@@ -125,8 +125,9 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
-	ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block,
-		NoCacheEntry)
+	ch := q.Request(
+		context.Background(), 1, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -136,7 +137,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(0, 2, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(2, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -147,10 +148,16 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 
 	t.Log("Make 2 requests for 2 different blocks")
 	block := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block,
-		NoCacheEntry)
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block,
-		NoCacheEntry)
+	// Set the base priority to be above the default on-demand
+	// fetching, so that the pre-prefetch request for a block doesn't
+	// override the other blocks' requests.
+	basePriority := defaultOnDemandRequestPriority + 1
+	req1Ch := q.Request(
+		context.Background(), basePriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
+	req2Ch := q.Request(
+		context.Background(), basePriority, makeKMD(), ptr2, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Allow the second request to complete before the first")
 	continueCh2 <- nil
@@ -159,8 +166,9 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	require.Equal(t, block2, block)
 
 	t.Log("Make another request for ptr2")
-	req2Ch = q.Request(context.Background(), 1, makeKMD(), ptr2, block,
-		NoCacheEntry)
+	req2Ch = q.Request(
+		context.Background(), basePriority, makeKMD(), ptr2, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 	continueCh2 <- nil
 	err = <-req2Ch
 	require.NoError(t, err)
@@ -176,7 +184,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	t.Log("Test the ability of a worker and queue to work correctly together.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(0, 1, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -193,18 +201,26 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	block := &FileBlock{}
 	testBlock1 := &FileBlock{}
 	testBlock2 := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block,
-		NoCacheEntry)
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block,
-		NoCacheEntry)
-	req3Ch := q.Request(context.Background(), 1, makeKMD(), ptr3, testBlock1,
-		NoCacheEntry)
+	// Set the base priority to be above the default on-demand
+	// fetching, so that the pre-prefetch request for a block doesn't
+	// override the other blocks' requests.
+	basePriority := defaultOnDemandRequestPriority + 1
+	req1Ch := q.Request(
+		context.Background(), basePriority, makeKMD(), ptr1,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
+	req2Ch := q.Request(
+		context.Background(), basePriority, makeKMD(), ptr2,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
+	req3Ch := q.Request(
+		context.Background(), basePriority, makeKMD(), ptr3, testBlock1,
+		NoCacheEntry, BlockRequestWithPrefetch)
 	// Ensure the worker picks up the first request
 	<-startCh1
 	t.Log("Make a high priority request for the third block, which should " +
 		"complete next.")
-	req4Ch := q.Request(context.Background(), 2, makeKMD(), ptr3, testBlock2,
-		NoCacheEntry)
+	req4Ch := q.Request(
+		context.Background(), basePriority+1, makeKMD(), ptr3, testBlock2,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Allow the ptr1 retrieval to complete.")
 	continueCh1 <- nil
@@ -243,7 +259,8 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	block := &FileBlock{}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	ch := q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
+	ch := q.Request(
+		ctx, 1, makeKMD(), ptr1, block, NoCacheEntry, BlockRequestWithPrefetch)
 	err := <-ch
 	require.EqualError(t, err, context.Canceled.Error())
 }
@@ -267,7 +284,8 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	// Ensure the context loop is stopped so the test doesn't leak goroutines
 	defer cancel()
-	ch := q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
+	ch := q.Request(
+		ctx, 1, makeKMD(), ptr1, block, NoCacheEntry, BlockRequestWithPrefetch)
 	shutdown := false
 	select {
 	case <-ch:
@@ -313,10 +331,12 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 		"target block type.")
 	testBlock1 := &FileBlock{}
 	testBlock2 := &CommonBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock1,
-		NoCacheEntry)
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock2,
-		NoCacheEntry)
+	req1Ch := q.Request(
+		context.Background(), 1, makeKMD(), ptr1, testBlock1,
+		NoCacheEntry, BlockRequestWithPrefetch)
+	req2Ch := q.Request(
+		context.Background(), 1, makeKMD(), ptr1, testBlock2,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Allow the first ptr1 retrieval to complete.")
 	continueCh1 <- nil
@@ -347,19 +367,22 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 
 	t.Log("Make a low-priority request. This will get to the worker.")
 	testBlock1 := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock1,
-		NoCacheEntry)
+	req1Ch := q.Request(
+		context.Background(), 1, makeKMD(), ptr1, testBlock1,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Make another low-priority request. This will block.")
 	testBlock2 := &FileBlock{}
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, testBlock2,
-		NoCacheEntry)
+	req2Ch := q.Request(
+		context.Background(), 1, makeKMD(), ptr2, testBlock2,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Make an on-demand request for the same block as the blocked " +
 		"request.")
 	testBlock3 := &FileBlock{}
-	req3Ch := q.Request(context.Background(), defaultOnDemandRequestPriority,
-		makeKMD(), ptr2, testBlock3, NoCacheEntry)
+	req3Ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority,
+		makeKMD(), ptr2, testBlock3, NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Release the requests for the second block first. " +
 		"Since the prefetch worker is still blocked, this confirms that the " +

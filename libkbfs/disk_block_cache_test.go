@@ -540,7 +540,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	t.Log("Request a block retrieval for ptr1. " +
 		"Verify the block against the one we put in the disk block cache.")
 	block := &FileBlock{}
-	ch := q.Request(ctx, 1, kmd, ptr1, block, TransientEntry)
+	ch := q.Request(
+		ctx, 1, kmd, ptr1, block, TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -553,7 +554,9 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 
 	block = &FileBlock{}
 	t.Log("Request the same block again to verify the memory cache.")
-	ch = q.Request(ctx, 1, makeKMD(), ptr1, block, TransientEntry)
+	ch = q.Request(
+		ctx, 1, makeKMD(), ptr1, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)

@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"container/heap"
-	"fmt"
 	"io"
 	"reflect"
 	"sync"
@@ -25,7 +24,6 @@ const (
 	testBlockRetrievalWorkerQueueSize    int = 5
 	testPrefetchWorkerQueueSize          int = 1
 	defaultOnDemandRequestPriority       int = 1 << 30
-	lowestTriggerPrefetchPriority        int = 1
 	// Channel buffer size can be big because we use the empty struct.
 	workerQueueSize int = 1<<31 - 1
 )
@@ -59,27 +57,6 @@ type blockRetrievalRequest struct {
 	doneCh chan error
 }
 
-type blockRequestAction int
-
-const (
-	blockRequestSolo blockRequestAction = iota
-	blockRequestWithPrefetch
-	blockRequestWithSync
-)
-
-func (bra blockRequestAction) overrides(other blockRequestAction) bool {
-	switch bra {
-	case blockRequestSolo:
-		return false
-	case blockRequestWithPrefetch:
-		return other == blockRequestSolo
-	case blockRequestWithSync:
-		return other == blockRequestSolo || other == blockRequestWithPrefetch
-	default:
-		panic(fmt.Sprintf("Unexpected block request action: %v", bra))
-	}
-}
-
 // blockRetrieval contains the metadata for a given block retrieval. May
 // represent many requests, all of which will be handled at once.
 type blockRetrieval struct {
@@ -101,7 +78,7 @@ type blockRetrieval struct {
 	// the cache lifetime for the retrieval
 	cacheLifetime BlockCacheLifetime
 	// the follow-on action to take once the block is fetched
-	action blockRequestAction
+	action BlockRequestAction
 
 	//// Queueing Metadata
 	// the index of the retrieval in the heap
@@ -309,16 +286,15 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 // request retrieves blocks asynchronously.
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime, action blockRequestAction) <-chan error {
-	doPrefetch := action != blockRequestSolo
-	doSync := action == blockRequestWithSync
+	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
+	brq.log.CDebugf(ctx, "Request of %v, action=%d", ptr, action)
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
 		ch <- io.EOF
-		if doPrefetch {
+		if action.PrefetchTracked() {
 			brq.Prefetcher().CancelPrefetch(ptr.ID)
 		}
 		return ch
@@ -326,7 +302,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	}
 	if block == nil {
 		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
-		if doPrefetch {
+		if action.PrefetchTracked() {
 			brq.Prefetcher().CancelPrefetch(ptr.ID)
 		}
 		return ch
@@ -335,16 +311,17 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
-		if doPrefetch {
+		brq.log.CDebugf(ctx, "Found %v in caches: %s", ptr, prefetchStatus)
+		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
-				priority, lifetime, prefetchStatus, doSync)
+				priority, lifetime, prefetchStatus, action)
 		}
 		ch <- nil
 		return ch
 	}
 	err = checkDataVersion(brq.config, path{}, ptr)
 	if err != nil {
-		if doPrefetch {
+		if action.PrefetchTracked() {
 			brq.Prefetcher().CancelPrefetch(ptr.ID)
 		}
 		ch <- err
@@ -390,6 +367,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		}
 		break
 	}
+	brq.log.CDebugf(ctx, "Scheduling request of %v", ptr)
 	br.reqMtx.Lock()
 	defer br.reqMtx.Unlock()
 	br.requests = append(br.requests, &blockRetrievalRequest{
@@ -418,40 +396,21 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 			}
 		}
 	}
-	// Update the action if we receive a stronger follow-on action.
-	if action.overrides(br.action) {
-		br.action = action
-	}
+	// Update the action if needed.
+	brq.log.CDebugf(ctx, "Combining actions %d and %d", action, br.action)
+	br.action = action.Combine(br.action)
+	brq.log.CDebugf(ctx, "Got action %d", br.action)
 	return ch
 }
 
 // Request implements the BlockRetriever interface for blockRetrievalQueue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) <-chan error {
-	action := blockRequestWithPrefetch
+	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	if brq.config.IsSyncedTlf(kmd.TlfID()) {
-		action = blockRequestWithSync
+		action = action.Combine(BlockRequestSoloWithSync)
 	}
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
-}
-
-// RequestNoPrefetch implements the BlockRetriever interface for
-// blockRetrievalQueue.
-func (brq *blockRetrievalQueue) RequestNoPrefetch(ctx context.Context,
-	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) <-chan error {
-	return brq.request(
-		ctx, priority, kmd, ptr, block, lifetime, blockRequestSolo)
-}
-
-// RequestAndSync implements the BlockRetriever interface for
-// blockRetrievalQueue.
-func (brq *blockRetrievalQueue) RequestAndSync(ctx context.Context,
-	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) <-chan error {
-	return brq.request(
-		ctx, priority, kmd, ptr, block, lifetime, blockRequestWithSync)
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
@@ -481,17 +440,18 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	defer retrieval.reqMtx.RUnlock()
 
 	// Cache the block and trigger prefetches if there is no error.
-	if err == nil {
-		// We treat this request as not having been prefetched, because the
-		// only way to get here is if the request wasn't already cached.
-		// Need to call with context.Background() because the retrieval's
-		// context will be canceled as soon as this method returns.
-		doSync := retrieval.action == blockRequestWithSync
-		brq.Prefetcher().ProcessBlockForPrefetch(context.Background(),
-			retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
-			retrieval.cacheLifetime, NoPrefetch, doSync)
-	} else {
-		brq.Prefetcher().CancelPrefetch(retrieval.blockPtr.ID)
+	if retrieval.action.PrefetchTracked() {
+		if err == nil {
+			// We treat this request as not having been prefetched, because the
+			// only way to get here is if the request wasn't already cached.
+			// Need to call with context.Background() because the retrieval's
+			// context will be canceled as soon as this method returns.
+			brq.Prefetcher().ProcessBlockForPrefetch(context.Background(),
+				retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
+				retrieval.cacheLifetime, NoPrefetch, retrieval.action)
+		} else {
+			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr.ID)
+		}
 	}
 
 	for _, r := range retrieval.requests {

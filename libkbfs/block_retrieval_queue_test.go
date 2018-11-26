@@ -87,8 +87,9 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 	ptr1 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the request.")
 	br := q.popIfNotEmpty()
@@ -114,10 +115,11 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and a higher priority " +
 		"retrieval for ptr2.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr2,
-		block, NoCacheEntry)
+		block, NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the preempted ptr2 request.")
 	br := q.popIfNotEmpty()
@@ -145,10 +147,12 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	ptr2 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and ptr2.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr2, block,
-		NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr2, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the ptr1 request.")
 	br := q.popIfNotEmpty()
@@ -159,8 +163,9 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 	ptr3 := makeRandomBlockPointer(t)
 	t.Log("Preempt the ptr2 request with the ptr3 request.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr3,
-		block, NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr3,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the ptr3 request.")
 	br = q.popIfNotEmpty()
@@ -187,10 +192,12 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	ptr1 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 twice.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests and that the queue is now empty.")
 	br := q.popIfNotEmpty()
@@ -217,12 +224,15 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	ptr3 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request 3 block retrievals, each preempting the previous one.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
-	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr2,
-		block, NoCacheEntry)
-	_ = q.Request(ctx, defaultOnDemandRequestPriority+2, makeKMD(), ptr3,
-		block, NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr2,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority+2, makeKMD(), ptr3,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the ptr3 retrieval.")
 	br := q.popIfNotEmpty()
@@ -232,8 +242,9 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	require.Equal(t, uint64(2), br.insertionOrder)
 
 	t.Log("Preempt the remaining retrievals with another retrieval for ptr1.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority+2, makeKMD(), ptr1,
-		block, NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority+2, makeKMD(), ptr1,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has increased in priority and has 2 requests.")
 	br = q.popIfNotEmpty()
@@ -261,8 +272,9 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	ptr1 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
-		NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
+		NoCacheEntry, BlockRequestWithPrefetch)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 1 request.")
 	br := q.popIfNotEmpty()
@@ -275,8 +287,9 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 
 	t.Log("Request another block retrieval for ptr1 before it has finished. " +
 		"Verify that the priority has elevated and there are now 2 requests.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
-		block, NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 	require.Len(t, br.requests, 2)
@@ -286,8 +299,9 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Finalize the existing request for ptr1.")
 	q.FinalizeRequest(br, &FileBlock{}, nil)
 	t.Log("Make another request for the same block. Verify that this is a new request.")
-	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
-		block, NoCacheEntry)
+	_ = q.Request(
+		ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
+		block, NoCacheEntry, BlockRequestWithPrefetch)
 	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)

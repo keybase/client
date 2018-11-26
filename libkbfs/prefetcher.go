@@ -21,7 +21,7 @@ import (
 const (
 	fileIndirectBlockPrefetchPriority int           = -100
 	dirEntryPrefetchPriority          int           = -200
-	updatePointerPrefetchPriority     int           = lowestTriggerPrefetchPriority
+	updatePointerPrefetchPriority     int           = 1
 	prefetchTimeout                   time.Duration = 24 * time.Hour
 	maxNumPrefetches                  int           = 10000
 )
@@ -41,7 +41,7 @@ type prefetchRequest struct {
 	priority       int
 	lifetime       BlockCacheLifetime
 	prefetchStatus PrefetchStatus
-	isDeepSync     bool
+	action         BlockRequestAction
 	sendCh         chan<- <-chan struct{}
 }
 
@@ -227,9 +227,9 @@ func (p *blockPrefetcher) completePrefetch(
 			b := pp.req.block.NewEmpty()
 			// TODO: after we split out priority from whether to prefetch, make
 			// this a much higher priority.
-			err := <-p.retriever.RequestNoPrefetch(pp.ctx,
-				lowestTriggerPrefetchPriority-1, pp.req.kmd, pp.req.ptr, b,
-				pp.req.lifetime)
+			err := <-p.retriever.Request(
+				pp.ctx, defaultOnDemandRequestPriority, pp.req.kmd, pp.req.ptr,
+				b, pp.req.lifetime, BlockRequestSolo)
 			if err != nil {
 				p.log.CWarningf(pp.ctx, "failed to retrieve block to "+
 					"complete its prefetch, canceled it instead: %+v", err)
@@ -296,8 +296,8 @@ top:
 // calculatePriority returns either a base priority for an unsynced TLF or a
 // high priority for a synced TLF.
 func (p *blockPrefetcher) calculatePriority(
-	basePriority int, isDeepSync bool) int {
-	if isDeepSync {
+	basePriority int, action BlockRequestAction) int {
+	if action.DeepSync() {
 		return defaultOnDemandRequestPriority - 1
 	}
 	return basePriority
@@ -308,7 +308,7 @@ func (p *blockPrefetcher) calculatePriority(
 func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, parentBlockID kbfsblock.ID,
-	isParentNew, isDeepSync bool) (numBlocks int) {
+	isParentNew bool, action BlockRequestAction) (numBlocks int) {
 	// If the prefetch is already waiting, don't make it wait again.
 	// Add the parent, however.
 	pre, isPrefetchWaiting := p.prefetches[ptr.ID]
@@ -316,14 +316,11 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			NoPrefetch, isDeepSync, nil}
+			NoPrefetch, action, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
-		requester := p.retriever.Request
-		if isDeepSync {
-			requester = p.retriever.RequestAndSync
-		}
-		ch := requester(pre.ctx, priority, kmd, ptr, block, lifetime)
+		ch := p.retriever.Request(
+			pre.ctx, priority, kmd, ptr, block, lifetime, action)
 		p.inFlightFetches.In() <- ch
 	}
 	_, isParentWaiting := p.prefetches[parentBlockID]
@@ -343,50 +340,50 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// 2. The parent is newly created but the child _did_ know about it,
 		// like when the parent previously had a prefetch but was canceled.
 		pre.parents[parentBlockID] = true
+		p.log.CDebugf(ctx, "%d blocks to prefetch %t", pre.subtreeBlockCount, isParentNew)
 		return pre.subtreeBlockCount
 	}
 	return 0
 }
 
-func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
-	parentBlockID kbfsblock.ID, b *FileBlock, kmd KeyMetadata,
-	lifetime BlockCacheLifetime, isPrefetchNew, isDeepSync bool) (numBlocks int,
-	isTail bool) {
+func (p *blockPrefetcher) prefetchIndirectFileBlock(
+	ctx context.Context, parentBlockID kbfsblock.ID, b *FileBlock,
+	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
+	action BlockRequestAction) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
-	startingPriority :=
-		p.calculatePriority(fileIndirectBlockPrefetchPriority, isDeepSync)
+	startingPriority := p.calculatePriority(
+		fileIndirectBlockPrefetchPriority, action)
 	for i, ptr := range b.IPtrs {
 		numBlocks += p.request(ctx, startingPriority-i, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
-			parentBlockID, isPrefetchNew, isDeepSync)
+			parentBlockID, isPrefetchNew, action)
 	}
 	return numBlocks, len(b.IPtrs) == 0
 }
 
-func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
-	parentBlockID kbfsblock.ID, b *DirBlock, kmd KeyMetadata,
-	lifetime BlockCacheLifetime, isPrefetchNew, isDeepSync bool) (numBlocks int,
-	isTail bool) {
+func (p *blockPrefetcher) prefetchIndirectDirBlock(
+	ctx context.Context, parentBlockID kbfsblock.ID, b *DirBlock,
+	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
+	action BlockRequestAction) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
-	startingPriority :=
-		p.calculatePriority(fileIndirectBlockPrefetchPriority, isDeepSync)
+	startingPriority := p.calculatePriority(
+		fileIndirectBlockPrefetchPriority, action)
 	for i, ptr := range b.IPtrs {
 		numBlocks += p.request(ctx, startingPriority-i, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
-			parentBlockID, isPrefetchNew, isDeepSync)
+			parentBlockID, isPrefetchNew, action)
 	}
 	return numBlocks, len(b.IPtrs) == 0
 }
 
-func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
-	parentBlockID kbfsblock.ID, b *DirBlock, kmd KeyMetadata,
-	lifetime BlockCacheLifetime, isPrefetchNew, isDeepSync bool) (
-	numBlocks int, isTail bool) {
+func (p *blockPrefetcher) prefetchDirectDirBlock(
+	ctx context.Context, parentBlockID kbfsblock.ID, b *DirBlock,
+	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
+	action BlockRequestAction) (numBlocks int, isTail bool) {
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
-	startingPriority :=
-		p.calculatePriority(dirEntryPrefetchPriority, isDeepSync)
+	startingPriority := p.calculatePriority(dirEntryPrefetchPriority, action)
 	totalChildEntries := 0
 	for i, entry := range dirEntries.dirEntries {
 		// Prioritize small files
@@ -407,9 +404,10 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 				"unknown type %d", entry.Type)
 			continue
 		}
+		p.log.CDebugf(ctx, "Prefetching %v", entry.BlockPointer)
 		totalChildEntries++
 		numBlocks += p.request(ctx, priority, kmd, entry.BlockPointer,
-			block, lifetime, parentBlockID, isPrefetchNew, isDeepSync)
+			block, lifetime, parentBlockID, isPrefetchNew, action)
 	}
 	if totalChildEntries == 0 {
 		isTail = true
@@ -423,35 +421,41 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 // Returns `numBlocks` which indicates how many additional blocks (blocks not
 // currently in the prefetch tree) with a parent of `pre.req.ptr.ID` must be
 // added to the tree.
-func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew,
-	isDeepSync bool) (numBlocks int, isTail bool, err error) {
+func (p *blockPrefetcher) handlePrefetch(
+	pre *prefetch, isPrefetchNew bool, action BlockRequestAction) (
+	numBlocks int, isTail bool, err error) {
 	req := pre.req
 	b := req.block.NewEmpty()
-	// TODO: after we split out priority from whether to prefetch, make this a
-	// much higher priority.
-	err = <-p.retriever.RequestNoPrefetch(pre.ctx,
-		lowestTriggerPrefetchPriority-1, req.kmd, req.ptr, b, req.lifetime)
+	err = <-p.retriever.Request(
+		pre.ctx, defaultOnDemandRequestPriority, req.kmd, req.ptr, b,
+		req.lifetime, BlockRequestSolo)
 	if err != nil {
 		p.log.CDebugf(pre.ctx, "failed to retrieve block %s to handle its "+
 			"prefetch: %+v", req.ptr.ID, err)
 		return 0, false, err
 	}
+	childAction := action
+	if !action.DeepSync() {
+		childAction = action.WithoutPrefetch()
+	}
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
-			numBlocks, isTail = p.prefetchIndirectFileBlock(pre.ctx,
-				req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
-				isDeepSync)
+			numBlocks, isTail = p.prefetchIndirectFileBlock(
+				pre.ctx, req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
+				childAction)
 		} else {
 			isTail = true
 		}
 	case *DirBlock:
 		if b.IsInd {
-			numBlocks, isTail = p.prefetchIndirectDirBlock(pre.ctx, req.ptr.ID,
-				b, req.kmd, req.lifetime, isPrefetchNew, isDeepSync)
+			numBlocks, isTail = p.prefetchIndirectDirBlock(
+				pre.ctx, req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
+				childAction)
 		} else {
-			numBlocks, isTail = p.prefetchDirectDirBlock(pre.ctx, req.ptr.ID,
-				b, req.kmd, req.lifetime, isPrefetchNew, isDeepSync)
+			numBlocks, isTail = p.prefetchDirectDirBlock(
+				pre.ctx, req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
+				childAction)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
@@ -511,7 +515,7 @@ func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
 func (p *blockPrefetcher) rescheduleIfNeeded(
 	ctx context.Context, req *prefetchRequest) (rescheduled bool) {
 	dbc := p.config.DiskBlockCache()
-	if req.isDeepSync && dbc != nil {
+	if req.action.Sync() && dbc != nil {
 		if !dbc.DoesSyncCacheHaveSpace(ctx) {
 			// If the sync cache is close to full, reschedule the prefetch.
 			p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
@@ -640,6 +644,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			if isPrefetchWaiting {
 				ctx = pre.ctx
 			}
+			p.log.CDebugf(ctx, "Handling request for %v", req.ptr)
 			if req.prefetchStatus == FinishedPrefetch {
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
@@ -666,12 +671,13 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// Always short circuit a finished prefetch.
 				continue
 			}
-			if req.priority < lowestTriggerPrefetchPriority {
-				p.log.CDebugf(ctx, "skipping prefetch for block %s",
-					req.ptr.ID)
+			if !req.action.Prefetch() {
+				p.log.CDebugf(ctx, "skipping prefetch for block %s, action %d",
+					req.ptr.ID, req.action)
 				continue
 			}
-			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
+			if req.prefetchStatus == TriggeredPrefetch &&
+				!req.action.DeepSync() {
 				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
 					"%s", req.ptr.ID)
 				continue
@@ -706,10 +712,12 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						p.applyToParentsRecursive(p.cancelPrefetch, req.ptr.ID,
 							pre)
 					}
-					if !pre.req.isDeepSync && req.isDeepSync {
-						// The prefetcher doesn't know about a deep sync but
-						// now one has been created.
-						pre.req.isDeepSync = true
+					newAction := pre.req.action.Combine(req.action)
+					if newAction != req.action {
+						// This can happen for example if the
+						// prefetcher doesn't know about a deep sync
+						// but now one has been created.
+						pre.req.action = newAction
 					} else {
 						// Short circuit prefetches if the subtree was already
 						// triggered, unless, as in the above case, we've
@@ -754,8 +762,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			//
 			// `numBlocks` now represents only the number of blocks to add
 			// to the tree from `pre` to its roots, inclusive.
-			numBlocks, isTail, err := p.handlePrefetch(pre, !isPrefetchWaiting,
-				req.isDeepSync)
+			numBlocks, isTail, err := p.handlePrefetch(
+				pre, !isPrefetchWaiting, req.action)
 			if err != nil {
 				p.log.CWarningf(ctx, "error handling prefetch for block %s: "+
 					"%+v", req.ptr.ID, err)
@@ -849,13 +857,13 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
-	isDeepSync bool) {
+	action BlockRequestAction) {
 	req := &prefetchRequest{ptr, block.NewEmpty(), kmd, priority, lifetime,
-		prefetchStatus, isDeepSync, nil}
+		prefetchStatus, action, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
-	} else if priority < lowestTriggerPrefetchPriority {
+	} else if !action.Prefetch() {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
@@ -864,8 +872,8 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		// Note that here we are caching `TriggeredPrefetch`, but the request
 		// will still reflect the passed-in `prefetchStatus`, since that's the
 		// one the prefetching goroutine needs to decide what to do with.
-		err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
-			TriggeredPrefetch)
+		err := p.cacheOrCancelPrefetch(
+			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch)
 		if err != nil {
 			return
 		}
@@ -883,7 +891,7 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, nil, nil, 0, TransientEntry, 0, false, c}
+		ptr, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:

@@ -1610,7 +1610,7 @@ type Prefetcher interface {
 	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
 	ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		prefetchStatus PrefetchStatus, isDeepSync bool)
+		prefetchStatus PrefetchStatus, action BlockRequestAction)
 	// WaitChannelForBlockPrefetch returns a channel that can be used
 	// to wait for a block to finish prefetching or be canceled.  If
 	// the block isn't currently being prefetched, it will return an
@@ -2535,17 +2535,11 @@ type RekeyFSM interface {
 
 // BlockRetriever specifies how to retrieve blocks.
 type BlockRetriever interface {
-	// Request retrieves blocks asynchronously.
+	// Request retrieves blocks asynchronously.  `action` determines
+	// what happens after the block is fetched successfully.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-	// RequestNoPrefetch retrieves blocks asynchronously, but doesn't trigger a
-	// prefetch unless the block had to be retrieved from the server.
-	RequestNoPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-	// RequestAndSync retrieves blocks asynchronously, and syncs the
-	// entire block tree rooted at `ptr`.
-	RequestAndSync(ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
+		action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that
 	// the disk cache metadata is updated.
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,

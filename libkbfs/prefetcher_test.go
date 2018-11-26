@@ -160,9 +160,10 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 		bg.setBlockToReturn(ptrs[1].BlockPointer, indBlock2)
 
 	var block Block = &FileBlock{}
-	ch := q.Request(context.Background(),
+	ch := q.Request(
+		context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
-		TransientEntry)
+		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootBlock <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -207,9 +208,10 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 		bg.setBlockToReturn(ptrs[1].BlockPointer, indBlock2)
 
 	block := NewDirBlock()
-	ch := q.Request(context.Background(),
+	ch := q.Request(
+		context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
-		TransientEntry)
+		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootBlock <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -260,9 +262,10 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	_, _ = bg.setBlockToReturn(dirB.Children["d"].BlockPointer, dirBfileD)
 
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(),
+	ch := q.Request(
+		context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
-		TransientEntry)
+		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -320,8 +323,9 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Request the root block.")
 	kmd := makeKMD()
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(),
-		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd, rootPtr,
+		block, TransientEntry, BlockRequestWithPrefetch)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -345,9 +349,10 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Request the already-cached second-level directory block. We don't " +
 		"need to unblock this one.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(),
-		defaultOnDemandRequestPriority, kmd,
-		rootDir.Children["a"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootDir.Children["a"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, dirA, block)
@@ -373,9 +378,10 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Request the second-level directory block again. No prefetches " +
 		"should be triggered.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(),
-		defaultOnDemandRequestPriority, kmd,
-		rootDir.Children["a"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootDir.Children["a"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, dirA, block)
@@ -404,8 +410,9 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Request the root block.")
 	var block Block = &DirBlock{}
 	kmd := makeKMD()
-	ch := q.Request(context.Background(),
-		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd, rootPtr,
+		block, TransientEntry, BlockRequestWithPrefetch)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -429,8 +436,9 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Request the root block again. It should be cached, so it should " +
 		"return without needing to release the block.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(),
-		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd, rootPtr,
+		block, TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, rootDir, block)
@@ -457,9 +465,9 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
 
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(),
-		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
-		TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, makeKMD(),
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -517,12 +525,13 @@ func testPrefetcherForSyncedTLF(
 		bg.setBlockToReturn(dirBfileDptrs[1].BlockPointer, dirBfileDblock2)
 
 	var block Block = &DirBlock{}
-	requester := q.Request
+	action := BlockRequestWithPrefetch
 	if explicitSync {
-		requester = q.RequestAndSync
+		action = BlockRequestWithSyncAndPrefetch
 	}
-	ch := requester(context.Background(),
-		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd, rootPtr,
+		block, TransientEntry, action)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -607,8 +616,9 @@ func testPrefetcherForSyncedTLF(
 		TransientEntry)
 
 	block = &DirBlock{}
-	ch = q.Request(context.Background(),
-		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd, rootPtr,
+		block, TransientEntry, BlockRequestWithPrefetch)
 	// We don't need to release the block this time because it should be cached
 	// already.
 	err = <-ch
@@ -697,9 +707,9 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		bg.setBlockToReturn(indBlock2.IPtrs[1].BlockPointer, indBlock22)
 
 	var block Block = &FileBlock{}
-	ch := q.Request(ctx,
-		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
-		TransientEntry)
+	ch := q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootBlock <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err := <-ch
@@ -728,8 +738,10 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 
 	t.Log("Fetch indirect block1 on-demand.")
 	block = &FileBlock{}
-	ch = q.Request(ctx, defaultOnDemandRequestPriority,
-		makeKMD(), rootBlock.IPtrs[0].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		rootBlock.IPtrs[0].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 
@@ -742,8 +754,10 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 
 	t.Log("Fetch indirect block2 on-demand.")
 	block = &FileBlock{}
-	ch = q.Request(ctx, defaultOnDemandRequestPriority,
-		makeKMD(), rootBlock.IPtrs[1].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		rootBlock.IPtrs[1].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 
@@ -756,15 +770,19 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 
 	t.Log("Fetch indirect block11 on-demand.")
 	block = &FileBlock{}
-	ch = q.Request(ctx, defaultOnDemandRequestPriority,
-		makeKMD(), indBlock1.IPtrs[0].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		indBlock1.IPtrs[0].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 
 	t.Log("Fetch indirect block12 on-demand.")
 	block = &FileBlock{}
-	ch = q.Request(ctx, defaultOnDemandRequestPriority,
-		makeKMD(), indBlock1.IPtrs[1].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		indBlock1.IPtrs[1].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 
@@ -826,8 +844,10 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir aa.")
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		a.Children["aa"].BlockPointer, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		a.Children["aa"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	contChAA <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err := <-ch
@@ -842,24 +862,30 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch file aaa.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aa.Children["aaa"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aa.Children["aaa"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
 
 	t.Log("Fetch file aab.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aa.Children["aab"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aa.Children["aab"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
 
 	t.Log("Fetch file ab.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		a.Children["ab"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		a.Children["ab"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	contChAB <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -867,8 +893,10 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir a.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		root.Children["a"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		root.Children["a"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	contChA <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -880,8 +908,10 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch file b.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		root.Children["b"].BlockPointer, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		root.Children["b"].BlockPointer, block, TransientEntry,
+		BlockRequestWithPrefetch)
 	contChB <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -889,8 +919,9 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	contChRoot <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -966,8 +997,9 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	block := &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	contChRoot <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err := <-ch
@@ -995,8 +1027,9 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
 
 	t.Log("Release all the blocks.")
@@ -1101,8 +1134,9 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	block := &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1133,8 +1167,9 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
 	// Notify the sync chan once for the canceled prefetch.
 	notifySyncCh(t, prefetchSyncCh)
@@ -1166,8 +1201,9 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	contChRoot <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err := <-ch
@@ -1175,8 +1211,9 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 
 	t.Log("Fetch child block \"a\" on demand.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	t.Log("Release child block \"a\".")
 	contChA <- nil
 	notifySyncCh(t, prefetchSyncCh)
@@ -1216,8 +1253,9 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch child block \"a\" on demand.")
 	var block Block = &FileBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	t.Log("Release child block \"a\".")
 	contChA <- nil
 	notifySyncCh(t, prefetchSyncCh)
@@ -1228,8 +1266,9 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	contChRoot <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -1280,8 +1319,9 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1299,16 +1339,18 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
 
 	t.Log("Fetch child block \"a\" on demand.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	// Notify sync channel for the child block `a`.
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -1371,8 +1413,9 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1396,8 +1439,9 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1407,8 +1451,9 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 
 	t.Log("Fetch child block \"a\" on demand.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	// Notify sync channel for the child block `a`.
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -1416,8 +1461,9 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 
 	t.Log("Fetch child block \"b\" on demand.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		bPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		bPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	// Notify sync channel for the child block `b`.
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -1477,8 +1523,9 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	t.Log("Fetch dir root.")
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1502,8 +1549,9 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1512,8 +1560,9 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	t.Log("Fetch child block \"a\" on demand.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		aPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	// Notify sync channel for the child block `a`.
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -1521,8 +1570,9 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	t.Log("Fetch child block \"b\" on demand.")
 	block = &FileBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		bPtr, block, TransientEntry)
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		bPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	// Notify sync channel for the child block `b`.
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
@@ -1629,8 +1679,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 	t.Log("Fetch dir root.")
 	block := &DirBlock{}
 	ch := q.Request(
-		context.Background(), lowestTriggerPrefetchPriority, kmd,
-		rootPtr, block, TransientEntry)
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
@@ -1654,14 +1704,14 @@ func TestPrefetcherReschedules(t *testing.T) {
 
 	blockA := &DirBlock{}
 	chA := q.Request(
-		context.Background(), lowestTriggerPrefetchPriority, kmd,
-		aPtr, blockA, TransientEntry)
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		aPtr, blockA, TransientEntry, BlockRequestWithPrefetch)
 	err = <-chA
 	require.NoError(t, err)
 	blockB := &FileBlock{}
 	chB := q.Request(
-		context.Background(), lowestTriggerPrefetchPriority, kmd,
-		bPtr, blockB, TransientEntry)
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		bPtr, blockB, TransientEntry, BlockRequestWithPrefetch)
 	err = <-chB
 	require.NoError(t, err)
 
