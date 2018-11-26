@@ -87,7 +87,7 @@ func newDiskBlockCacheWrapped(config diskBlockCacheConfig,
 	syncCacheErr := cache.enableCache(syncCacheLimitTrackerType,
 		syncCacheFolderName)
 	if syncCacheErr != nil {
-		log := config.MakeLogger("KBC")
+		log := config.MakeLogger("DBC")
 		log.Warning("Could not initialize sync block cache.")
 		// We still return success because the working set cache successfully
 		// initialized.
@@ -120,8 +120,13 @@ func (cache *diskBlockCacheWrapped) Get(
 	defer cache.mtx.RUnlock()
 	primaryCache := cache.workingSetCache
 	secondaryCache := cache.syncCache
-	if preferredCacheType == DiskBlockSyncCache && cache.syncCache != nil {
-		primaryCache, secondaryCache = secondaryCache, primaryCache
+	if preferredCacheType == DiskBlockSyncCache {
+		if cache.syncCache != nil {
+			primaryCache, secondaryCache = secondaryCache, primaryCache
+		} else {
+			log := cache.config.MakeLogger("DBC")
+			log.Warning("Sync cache is preferred, but there is no sync cache")
+		}
 	}
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, prefetchStatus, err =

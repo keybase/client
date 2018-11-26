@@ -1268,8 +1268,8 @@ const (
 	// DiskBlockWorkingSetCache indicates that the working set cache
 	// should be used.
 	DiskBlockWorkingSetCache
-	// DiskBlockSyncCache indicates that the working set cache should
-	// be used.
+	// DiskBlockSyncCache indicates that the sync cache should be
+	// used.
 	DiskBlockSyncCache
 )
 
