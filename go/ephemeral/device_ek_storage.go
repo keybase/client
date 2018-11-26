@@ -108,6 +108,11 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	s.Lock()
 	defer s.Unlock()
 
+	// sanity check that we got the right generation
+	if deviceEK.Metadata.Generation != generation {
+		return newEKCorruptedErr(DeviceEKStr, generation, deviceEK.Metadata.Generation)
+	}
+
 	key, err := s.key(ctx, generation)
 	if err != nil {
 		return err
@@ -178,6 +183,10 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 			}
 		}
 		return deviceEK, err
+	}
+	// sanity check that we got the right generation
+	if deviceEK.Metadata.Generation != generation {
+		return deviceEK, newEKCorruptedErr(DeviceEKStr, generation, deviceEK.Metadata.Generation)
 	}
 	return deviceEK, nil
 }
