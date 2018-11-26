@@ -435,12 +435,11 @@ const _createNewTeamFromConversation = function*(
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
-    yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamCreationWaitingKey}))
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
         joinSubteam: false,
         name: teamname,
-      })
+      }, Constants.teamCreationWaitingKey)
       for (const username of participants) {
         if (!createRes.creatorAdded || username !== me) {
           yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
@@ -449,14 +448,12 @@ const _createNewTeamFromConversation = function*(
             role: username === me ? RPCTypes.teamsTeamRole.admin : RPCTypes.teamsTeamRole.writer,
             sendChatNotification: true,
             username,
-          })
+          }, Constants.teamCreationWaitingKey)
         }
       }
       yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-    } finally {
-      yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamCreationWaitingKey}))
     }
   }
 }
