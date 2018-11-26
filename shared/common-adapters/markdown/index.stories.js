@@ -8,9 +8,6 @@ import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
-  nojima: `https://www.google.com/search?q=ebаy`,
-  nojima2: `http://ebаy.com`,
-  nojima3: `*http://cnn.io*`,
   debugging: `\` \` hi \` \``,
   inlineCodeWeirdness: `\` \` hi \` \``,
   inlineCodeWeirdness2: `\` \` hi \n\` \``,
