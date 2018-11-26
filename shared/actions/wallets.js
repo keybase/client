@@ -24,7 +24,17 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: any) => {
+const buildPayment = (
+  state: TypedState,
+  action:
+    | WalletsGen.BuildPaymentPayload
+    | WalletsGen.SetBuildingAmountPayload
+    | WalletsGen.SetBuildingCurrencyPayload
+    | WalletsGen.SetBuildingFromPayload
+    | WalletsGen.SetBuildingIsRequestPayload
+    | WalletsGen.SetBuildingToPayload
+    | WalletsGen.DisplayCurrencyReceivedPayload
+) => {
   if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
     // didn't change state.building; no need to call build
     return
@@ -648,11 +658,7 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
 
 const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
-  Saga.put(Route.navigateTo(
-    isMobile
-      ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
-      : [Tabs.walletsTab, 'wallet', 'linkExisting']
-  ))
+  Saga.put(Route.navigateTo([...Constants.rootWalletPath, 'linkExisting']))
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
@@ -718,6 +724,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
 
+  // We don't call this for publicMemo/secretNote so the button doesn't
+  // spinner as you type
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,

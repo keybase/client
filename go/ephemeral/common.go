@@ -30,6 +30,11 @@ func newEKMissingBoxErr(boxType EKType, boxGeneration keybase1.EkGeneration) Eph
 	return newEphemeralKeyError(msg)
 }
 
+func newEKCorruptedErr(boxType EKType, expectedGeneration, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
+	msg := fmt.Sprintf("Storage error for %s@generation:%v, got generation %v instead", boxType, boxGeneration, expectedGeneration)
+	return newEphemeralKeyError(msg)
+}
+
 func newEphemeralKeyError(msg string) EphemeralKeyError {
 	return EphemeralKeyError{
 		Msg: msg,

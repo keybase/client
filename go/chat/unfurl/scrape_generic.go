@@ -2,8 +2,12 @@ package unfurl
 
 import (
 	"context"
+	"io"
+	"net/http"
 	"strings"
 	"time"
+
+	"github.com/keybase/client/go/chat/attachments"
 
 	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -20,12 +24,25 @@ func fullURL(hostname, path string) string {
 }
 
 func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generic *scoredGenericRaw, score int) {
-	s.Debug(ctx, "pubdate: %s", content)
-	t, err := time.Parse("2006-01-02T15:04:05Z", content)
+	s.Debug(ctx, "scrapeGeneric: pubdate: %s", content)
+	formats := []string{
+		"2006-01-02T15:04:05Z",
+		"20060102",
+	}
+	var t time.Time
+	var err error
+	for _, f := range formats {
+		if t, err = time.Parse(f, content); err != nil {
+			s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: format: %s err: %s", f, err)
+		} else {
+			break
+		}
+	}
 	if err != nil {
-		s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: %s", err)
+		s.Debug(ctx, "scrapeGeneric: failed to parse pubdate with any format")
 	} else {
 		publishTime := int(t.Unix())
+		s.Debug(ctx, "scrapeGeneric: success: %d", publishTime)
 		generic.setPublishTime(&publishTime, score)
 	}
 }
@@ -64,6 +81,42 @@ func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, ge
 	}
 }
 
+type bodyReadResetter struct {
+	io.ReadCloser
+}
+
+func (b bodyReadResetter) Reset() error {
+	return nil
+}
+
+func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericRaw, uri, domain string) {
+	path, err := GetDefaultAppleTouchURL(uri)
+	if err != nil {
+		s.Debug(ctx, "tryAppleTouchIcon: failed to get Apple touch URL: %s", err)
+		return
+	}
+	resp, err := http.Get(path)
+	if err != nil {
+		s.Debug(ctx, "tryAppleTouchIcon: failed to read Apple touch icon: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+		s.Debug(ctx, "tryAppleTouchIcon: found Apple touch icon at known path")
+		mimeType, err := attachments.DetectMIMEType(ctx, bodyReadResetter{ReadCloser: resp.Body},
+			"apple-touch-icon.png")
+		if err != nil {
+			s.Debug(ctx, "tryAppleTouchIcon: failed to get MIME type from response: %s", err)
+			return
+		}
+		if mimeType != "image/png" {
+			s.Debug(ctx, "tryAppleTouchIcon: response not a PNG: %s", mimeType)
+			return
+		}
+		generic.setFaviconURL(&path, getAppleTouchFaviconScoreFromPath())
+	}
+}
+
 func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
 	hostname, err := GetHostname(uri)
 	if err != nil {
@@ -82,18 +135,20 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 	generic.setSiteName(domain, 0)
 	generic.setFaviconURL(&defaultFaviconURL, 0)
 
+	// Run the Colly scraper
 	c := colly.NewCollector()
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
 		s.setAttr(ctx, "title", hostname, domain, generic, e)
 	})
 	c.OnHTML("head link[rel][href]", func(e *colly.HTMLElement) {
 		rel := strings.ToLower(e.Attr("rel"))
-		if strings.Contains(rel, "shortcut icon") {
-			s.setAttr(ctx, "shortcut icon", hostname, domain, generic, e)
-		} else if strings.Contains(rel, "icon") && e.Attr("type") == "image/x-icon" {
-			s.setAttr(ctx, "icon", hostname, domain, generic, e)
-		} else if strings.Contains(rel, "apple-touch-icon") {
+		if strings.Contains(rel, "apple-touch-icon") {
 			s.setAttr(ctx, "apple-touch-icon", hostname, domain, generic, e)
+		} else if strings.Contains(rel, "shortcut icon") {
+			s.setAttr(ctx, "shortcut icon", hostname, domain, generic, e)
+		} else if strings.Contains(rel, "icon") &&
+			(e.Attr("type") == "image/x-icon" || e.Attr("type") == "image/png") {
+			s.setAttr(ctx, "icon", hostname, domain, generic, e)
 		}
 	})
 	c.OnHTML("head meta[content][name]", func(e *colly.HTMLElement) {
@@ -104,9 +159,15 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		attr := strings.ToLower(e.Attr("property"))
 		s.setAttr(ctx, attr, hostname, domain, generic, e)
 	})
-
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
+
+	// Try to get Apple touch icon from known URL if we are going to use one that is worse
+	if generic.faviconURLScore < getAppleTouchFaviconScoreFromPath() {
+		s.Debug(ctx, "scrapeGeneric: favicon score below Apple touch score, trying to find it")
+		s.tryAppleTouchIcon(ctx, generic, uri, domain)
+	}
+
 	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }

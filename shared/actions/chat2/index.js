@@ -37,8 +37,8 @@ import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
-  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
-  state: TypedState
+  state: TypedState,
+  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload
 ) => {
   if (!state.config.loggedIn) {
     return
@@ -156,8 +156,8 @@ const rpcMetaRequestConversationIDKeys = (
 
 // We want to unbox rows that have scroll into view
 const unboxRows = (
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
-  state: TypedState
+  state: TypedState,
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
 ) => {
   if (!state.config.loggedIn) {
     return
@@ -234,21 +234,22 @@ const unboxRows = (
     }
   }
 
-  const getRows = RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {
-      'chat.1.chatUi.chatInboxConversation': onUnboxed,
-      'chat.1.chatUi.chatInboxFailed': onFailed,
-      'chat.1.chatUi.chatInboxUnverified': () => {},
-    },
-    params: {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      query: Constants.makeInboxQuery(conversationIDKeys),
-      skipUnverified: true,
-    },
-    waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+  return Saga.call(function*() {
+    yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
+    yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatInboxConversation': onUnboxed,
+        'chat.1.chatUi.chatInboxFailed': onFailed,
+        'chat.1.chatUi.chatInboxUnverified': () => {},
+      },
+      params: {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        query: Constants.makeInboxQuery(conversationIDKeys),
+        skipUnverified: true,
+      },
+      waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+    })
   })
-
-  return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
 }
 
 // We get an incoming message streamed to us
@@ -575,6 +576,25 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
+const messagesUpdatedToActions = (info: RPCChatTypes.MessagesUpdated, state: TypedState) => {
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  const messages = (info.updates || []).reduce((l, msg) => {
+    const messageID = Constants.getMessageID(msg)
+    if (!messageID) {
+      return l
+    }
+    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, msg)
+    if (!uiMsg) {
+      return l
+    }
+    return l.concat({
+      messageID: Types.numberToMessageID(messageID),
+      message: uiMsg,
+    })
+  }, [])
+  return [Chat2Gen.createUpdateMessages({conversationIDKey, messages})]
+}
+
 // Get actions to update the messagemap when reactions are updated
 const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
@@ -657,6 +677,10 @@ const setupEngineListeners = () => {
         case RPCChatTypes.notifyChatChatActivityType.reactionUpdate:
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
+            : null
+        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated:
+          return activity.messagesUpdated
+            ? arrayOfActionsToSequentially(messagesUpdatedToActions(activity.messagesUpdated, getState()))
             : null
         default:
           break
@@ -779,6 +803,19 @@ const setupEngineListeners = () => {
         })
       )
     },
+    'chat.1.NotifyChat.ChatPromptUnfurl': notif => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const messageID = Types.numberToMessageID(notif.msgID)
+      const domain = notif.domain
+      return Saga.put(
+        Chat2Gen.createUnfurlTogglePrompt({
+          conversationIDKey,
+          messageID,
+          domain,
+          show: true,
+        })
+      )
+    },
   })
 }
 
@@ -789,6 +826,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
     case 'delete':
     case 'attachmentuploaded':
     case 'reaction':
+    case 'unfurl':
       break
     default:
       arr.push(RPCChatTypes.commonMessageType[key])
@@ -2530,6 +2568,50 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const unfurlRemove = (state: TypedState, action: Chat2Gen.UnfurlRemovePayload) => {
+  const {conversationIDKey, messageID} = action.payload
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.debug('unfurl remove no meta found, aborting!')
+    return
+  }
+  return Saga.call(
+    RPCChatTypes.localPostDeleteNonblockRpcPromise,
+    {
+      clientPrev: 0,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID: null,
+      supersedes: messageID,
+      tlfName: meta.tlfname,
+      tlfPublic: false,
+    },
+    Constants.waitingKeyDeletePost
+  )
+}
+
+const unfurlDismissPrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, domain} = action.payload
+  return Saga.put(
+    Chat2Gen.createUnfurlTogglePrompt({
+      conversationIDKey,
+      messageID,
+      domain,
+      show: false,
+    })
+  )
+}
+
+const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, result} = action.payload
+  return Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    msgID: Types.messageIDToNumber(messageID),
+    result,
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  })
+}
+
 const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
   if (action.payload.pendingMode === 'newChat') {
     return Saga.put(
@@ -2669,7 +2751,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changeSelectedConversation
   )
   // Refresh the inbox
-  yield Saga.safeTakeEveryPure(Chat2Gen.inboxRefresh, inboxRefresh)
+  yield Saga.actionToAction(Chat2Gen.inboxRefresh, inboxRefresh)
   // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
@@ -2678,7 +2760,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
-  yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
+  yield Saga.actionToAction([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 
   // Load the selected thread
   yield Saga.actionToAction(
@@ -2703,6 +2785,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
+
+  // Unfurl
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
+  yield Saga.actionToAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

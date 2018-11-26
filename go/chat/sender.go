@@ -680,6 +680,7 @@ func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
+	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
 	// Record that this user is "active in chat", which we use to determine
 	// gregor reconnect backoffs.
@@ -1160,6 +1161,18 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	return obr, nil
 }
 
+type unfurlerPermError struct{}
+
+func (e unfurlerPermError) Error() string {
+	return "unfurler permanent error"
+}
+
+func (e unfurlerPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+var _ (DelivererInfoError) = (*unfurlerPermError)(nil)
+
 func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsUnfurl() {
 		return obr, nil
@@ -1186,7 +1199,9 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 		return obr, errDelivererUnfurlInProgress
 	case types.UnfurlerTaskStatusFailed:
 		s.G().Unfurler.Retry(ctx, obr.OutboxID)
-		return obr, errors.New("failed to unfurl")
+		return obr, errors.New("failed to unfurl temporary")
+	case types.UnfurlerTaskStatusPermFailed:
+		return obr, unfurlerPermError{}
 	}
 	return obr, nil
 }
@@ -1254,6 +1269,15 @@ func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
 	case ErrDuplicateConnection:
 		// This just happens when threads are racing to reconnect to Gregor, don't count it as
 		// an error to send.
+		return false
+	}
+	return true
+}
+
+func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord) bool {
+	if obr.Msg.ClientHeader.MessageType == chat1.MessageType_UNFURL {
+		s.Debug(ctx, "shouldBreakLoop: not breaking deliverer loop for unfurl failure: outboxID: %s",
+			obr.OutboxID)
 		return false
 	}
 	return true
@@ -1350,7 +1374,10 @@ func (s *Deliverer) deliverLoop() {
 							s.outbox.GetUID(), err.Error())
 					}
 				}
-				break
+				// Check if we should break out of the deliverer loop on this failure
+				if s.shouldBreakLoop(bctx, obr) {
+					break
+				}
 			} else {
 				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)

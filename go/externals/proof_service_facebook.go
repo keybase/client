@@ -68,6 +68,8 @@ func (t FacebookServiceType) GetPrompt() string {
 	return "Your username on Facebook"
 }
 
+func (t FacebookServiceType) CanMakeNewProofs() bool { return false }
+
 func (t FacebookServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }

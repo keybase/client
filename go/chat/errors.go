@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -14,25 +16,7 @@ var ErrChatServerTimeout = errors.New("timeout calling chat server")
 var ErrDuplicateConnection = errors.New("error calling chat server")
 var ErrKeyServerTimeout = errors.New("timeout calling into key server")
 
-type InternalError interface {
-	// verbose error info for debugging but not user display
-	InternalError() string
-}
-
-type UnboxingError interface {
-	InternalError
-	Error() string
-	Inner() error
-	IsPermanent() bool
-	ExportType() chat1.MessageUnboxedErrorType
-	VersionKind() chat1.VersionKind
-	VersionNumber() int
-	IsCritical() bool
-}
-
-var _ error = (UnboxingError)(nil)
-
-func NewPermanentUnboxingError(inner error) UnboxingError {
+func NewPermanentUnboxingError(inner error) types.UnboxingError {
 	return PermanentUnboxingError{inner}
 }
 
@@ -88,7 +72,7 @@ func (e PermanentUnboxingError) IsCritical() bool {
 
 func (e PermanentUnboxingError) InternalError() string {
 	switch err := e.Inner().(type) {
-	case InternalError:
+	case types.InternalError:
 		return err.InternalError()
 	default:
 		return err.Error()
@@ -97,7 +81,7 @@ func (e PermanentUnboxingError) InternalError() string {
 
 //=============================================================================
 
-func NewTransientUnboxingError(inner error) UnboxingError {
+func NewTransientUnboxingError(inner error) types.UnboxingError {
 	return TransientUnboxingError{inner}
 }
 
@@ -129,7 +113,7 @@ func (e TransientUnboxingError) IsCritical() bool {
 
 func (e TransientUnboxingError) InternalError() string {
 	switch err := e.Inner().(type) {
-	case InternalError:
+	case types.InternalError:
 		return err.InternalError()
 	default:
 		return err.Error()
@@ -383,6 +367,10 @@ type OfflineClient struct {
 }
 
 func (e OfflineClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	return OfflineError{}
+}
+
+func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
 	return OfflineError{}
 }
 

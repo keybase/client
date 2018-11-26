@@ -18,7 +18,7 @@ type Props = {
   routePath: I.List<string>,
   targetName: string,
   targetIconSpec: Types.PathItemIconSpec,
-  onCancel: () => void,
+  onCancel: (() => void) | null,
   onCopyHere?: ?() => void,
   onMoveHere?: ?() => void,
   onNewFolder?: ?() => void,
@@ -114,7 +114,7 @@ const DestinationPicker = (props: Props) => (
 )
 
 export default (isMobile
-  ? withProps(props => ({
+  ? withProps<_, any>(props => ({
       onCancel: null, // unset this to avoid onCancel button from HeaderHoc
       headerStyle: {paddingRight: 0},
       customComponent: (
@@ -135,7 +135,6 @@ export default (isMobile
           </Kb.Box2>
         </Kb.Box2>
       ),
-      // $FlowFixMe
     }))(Kb.HeaderHoc(DestinationPicker))
   : Kb.HeaderOrPopup(DestinationPicker))
 

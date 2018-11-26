@@ -10,7 +10,16 @@ type Props = {
   children: ?React.Node,
 }
 
-const EscapeContext = React.createContext({add: () => {}, remove: () => {}})
+// eslint-disable-next-line func-call-spacing
+const EscapeContext = React.createContext<{
+  // eslint-disable-next-line no-use-before-define
+  add: (receiver: EscapeHandler) => void,
+  // eslint-disable-next-line no-use-before-define
+  remove: (receiver: EscapeHandler) => void,
+}>({
+  add: (receiver: EscapeHandler) => {},
+  remove: (receiver: EscapeHandler) => {},
+})
 
 class EscapeHandlerWrapper extends React.Component<Props> {
   render() {

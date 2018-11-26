@@ -8,35 +8,33 @@ import HiddenString from '../util/hidden-string'
 
 const initialState: Types.State = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: WalletsGen.Actions) {
+export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
     case WalletsGen.accountsReceived:
       const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
-      return state.set('accountMap', accountMap)
+      return state.merge({accountMap: accountMap})
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.builtPaymentReceived:
       return action.payload.forBuilding === state.building
-        ? state.set(
-            'builtPayment',
-            state.builtPayment.merge(Constants.makeBuiltPayment(action.payload.build))
-          )
+        ? state.merge({
+            builtPayment: state.builtPayment.merge(Constants.makeBuiltPayment(action.payload.build)),
+          })
         : state
     case WalletsGen.builtRequestReceived:
       return action.payload.forBuilding === state.building
-        ? state.set(
-            'builtRequest',
-            state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build))
-          )
+        ? state.merge({
+            builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
+          })
         : state
     case WalletsGen.clearBuilding:
-      return state.set('building', Constants.makeBuilding())
+      return state.merge({building: Constants.makeBuilding()})
     case WalletsGen.clearBuiltPayment:
-      return state.set('builtPayment', Constants.makeBuiltPayment())
+      return state.merge({builtPayment: Constants.makeBuiltPayment()})
     case WalletsGen.clearBuiltRequest:
-      return state.set('builtRequest', Constants.makeBuiltRequest())
+      return state.merge({builtRequest: Constants.makeBuiltRequest()})
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
         Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
@@ -53,7 +51,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
-      return state.set('currencies', I.List(action.payload.currencies))
+      return state.merge({currencies: I.List(action.payload.currencies)})
     case WalletsGen.displayCurrencyReceived:
       // $FlowIssue thinks state is _State
       return state.withMutations(stateMutable => {
@@ -71,13 +69,15 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         }
       })
     case WalletsGen.secretKeyReceived:
-      return state
-        .set('exportedSecretKey', action.payload.secretKey)
-        .set('exportedSecretKeyAccountID', state.get('selectedAccount'))
+      return state.merge({
+        exportedSecretKey: action.payload.secretKey,
+        exportedSecretKeyAccountID: state.get('selectedAccount'),
+      })
     case WalletsGen.secretKeySeen:
-      return state
-        .set('exportedSecretKey', new HiddenString(''))
-        .set('exportedSecretKeyAccountID', Types.noAccountID)
+      return state.merge({
+        exportedSecretKey: new HiddenString(''),
+        exportedSecretKeyAccountID: Types.noAccountID,
+      })
     case WalletsGen.selectAccount: {
       const newState = state.merge({
         exportedSecretKey: new HiddenString(''),
@@ -94,59 +94,66 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     }
     case WalletsGen.setBuildingAmount:
       const {amount} = action.payload
-      return state
-        .set(
-          'builtPayment',
-          state.get('builtPayment').merge({amountErrMsg: '', worthDescription: '', worthInfo: ''})
-        )
-        .set(
-          'builtRequest',
-          state.get('builtRequest').merge({amountErrMsg: '', worthDescription: '', worthInfo: ''})
-        )
-        .set('building', state.get('building').merge({amount}))
+      return state.merge({
+        builtPayment: state
+          .get('builtPayment')
+          .merge({amountErrMsg: '', worthDescription: '', worthInfo: ''}),
+        builtRequest: state
+          .get('builtRequest')
+          .merge({amountErrMsg: '', worthDescription: '', worthInfo: ''}),
+        building: state.get('building').merge({amount}),
+      })
     case WalletsGen.setBuildingCurrency:
       const {currency} = action.payload
-      return state
-        .set('builtPayment', Constants.makeBuiltPayment())
-        .set('building', state.get('building').merge({currency}))
+      return state.merge({
+        builtPayment: Constants.makeBuiltPayment(),
+        building: state.get('building').merge({currency}),
+      })
     case WalletsGen.setBuildingFrom:
       const {from} = action.payload
-      return state
-        .set('builtPayment', Constants.makeBuiltPayment())
-        .set('building', state.get('building').merge({from}))
+      return state.merge({
+        builtPayment: Constants.makeBuiltPayment(),
+        building: state.get('building').merge({from}),
+      })
     case WalletsGen.setBuildingIsRequest:
       const {isRequest} = action.payload
-      return state
-        .set('builtPayment', Constants.makeBuiltPayment())
-        .set('builtRequest', Constants.makeBuiltRequest())
-        .set('building', state.get('building').merge({isRequest}))
+      return state.merge({
+        builtPayment: Constants.makeBuiltPayment(),
+        builtRequest: Constants.makeBuiltRequest(),
+        building: state.get('building').merge({isRequest}),
+      })
     case WalletsGen.setBuildingPublicMemo:
       const {publicMemo} = action.payload
-      return state
-        .set('builtPayment', state.get('builtPayment').merge({publicMemoErrMsg: new HiddenString('')}))
-        .set('building', state.get('building').merge({publicMemo}))
+      return state.merge({
+        builtPayment: state.get('builtPayment').merge({publicMemoErrMsg: new HiddenString('')}),
+        building: state.get('building').merge({publicMemo}),
+      })
     case WalletsGen.setBuildingRecipientType:
       const {recipientType} = action.payload
-      return state
-        .set('builtPayment', Constants.makeBuiltPayment())
-        .set('building', state.get('building').merge({recipientType}))
+      return state.merge({
+        builtPayment: Constants.makeBuiltPayment(),
+        building: state.get('building').merge({recipientType}),
+      })
     case WalletsGen.setBuildingSecretNote:
       const {secretNote} = action.payload
-      return state
-        .set('builtPayment', state.get('builtPayment').merge({secretNoteErrMsg: new HiddenString('')}))
-        .set('builtRequest', state.get('builtRequest').merge({secretNoteErrMsg: new HiddenString('')}))
-        .set('building', state.get('building').merge({secretNote}))
+      return state.merge({
+        builtPayment: state.get('builtPayment').merge({secretNoteErrMsg: new HiddenString('')}),
+        builtRequest: state.get('builtRequest').merge({secretNoteErrMsg: new HiddenString('')}),
+        building: state.get('building').merge({secretNote}),
+      })
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
-      return state
-        .set('builtPayment', state.get('builtPayment').merge({toErrMsg: ''}))
-        .set('builtRequest', state.get('builtRequest').merge({toErrMsg: ''}))
-        .set('building', state.get('building').merge({to}))
+      return state.merge({
+        builtPayment: state.get('builtPayment').merge({toErrMsg: ''}),
+        builtRequest: state.get('builtRequest').merge({toErrMsg: ''}),
+        building: state.get('building').merge({to}),
+      })
     case WalletsGen.sendAssetChoicesReceived:
       const {sendAssetChoices} = action.payload
-      return state
-        .set('builtPayment', Constants.makeBuiltPayment())
-        .set('building', state.get('building').merge({sendAssetChoices}))
+      return state.merge({
+        builtPayment: Constants.makeBuiltPayment(),
+        building: state.get('building').merge({sendAssetChoices}),
+      })
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
     case WalletsGen.setReadyToSend:
@@ -206,7 +213,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.createdNewAccount:
       return action.error
-        ? state.set('createNewAccountError', action.payload.error)
+        ? state.merge({createNewAccountError: action.payload.error})
         : state.merge({
             accountName: '',
             accountNameError: '',
@@ -220,7 +227,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           })
     case WalletsGen.linkedExistingAccount:
       return action.error
-        ? state.set('linkExistingAccountError', action.payload.error)
+        ? state.merge({linkExistingAccountError: action.payload.error})
         : state.merge({
             accountName: '',
             accountNameError: '',
@@ -233,7 +240,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     case WalletsGen.sentPaymentError:
-      return state.set('sentPaymentError', action.payload.error)
+      return state.merge({sentPaymentError: action.payload.error})
     case WalletsGen.requestDetailReceived:
       const request = Constants.requestResultToRequest(action.payload.request)
       return request ? state.update('requests', r => r.set(request.id, request)) : state
@@ -242,12 +249,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         ? state.setIn(['paymentLoadingMoreMap', action.payload.accountID], true)
         : state
     case WalletsGen.badgesUpdated:
-      return state.set(
-        'unreadPaymentsMap',
-        I.Map(action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread]))
-      )
+      return state.merge({
+        unreadPaymentsMap: I.Map(
+          action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread])
+        ),
+      })
     case WalletsGen.walletDisclaimerReceived:
-      return state.set('acceptedDisclaimer', action.payload.accepted)
+      return state.merge({acceptedDisclaimer: action.payload.accepted})
     // Saga only actions
     case WalletsGen.acceptDisclaimer:
     case WalletsGen.rejectDisclaimer:

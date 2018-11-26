@@ -286,6 +286,7 @@ const (
 	UnfurlerTaskStatusUnfurling UnfurlerTaskStatus = iota
 	UnfurlerTaskStatusSuccess
 	UnfurlerTaskStatusFailed
+	UnfurlerTaskStatusPermFailed
 )
 
 type DummyUnfurler struct{}
@@ -311,6 +312,14 @@ func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, dom
 	return nil
 }
 
+func (d DummyUnfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
+	exemption WhitelistExemption) {
+}
+
 func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error {
+	return nil
+}
+
+func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
 	return nil
 }

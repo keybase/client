@@ -19,6 +19,16 @@ func GetDefaultFaviconURL(uri string) (string, error) {
 	return parsed.String(), nil
 }
 
+func GetDefaultAppleTouchURL(uri string) (string, error) {
+	parsed, err := url.Parse(uri)
+	if err != nil {
+		return "", err
+	}
+	parsed.Path = "apple-touch-icon.png"
+	parsed.RawQuery = ""
+	return parsed.String(), nil
+}
+
 func GetHostname(uri string) (string, error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {

@@ -3,7 +3,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/profile'
 
-export default function(state: Types.State = Constants.initialState, action: ProfileGen.Actions) {
+export default function(state: Types.State = Constants.initialState, action: ProfileGen.Actions): Types.State {
   switch (action.type) {
     case ProfileGen.resetStore:
       return {...Constants.initialState}

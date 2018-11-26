@@ -177,6 +177,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   submitState: null,
   text: new HiddenString(''),
   type: 'text',
+  unfurls: I.Map(),
 })
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
@@ -411,7 +412,7 @@ export const uiMessageEditToMessage = (
 
   const mentionsAt = I.Set(valid.atMentions || [])
   const mentionsChannel = channelMentionToMentionsChannel(valid.channelMention)
-  const mentionsChannelName = I.Map(
+  const mentionsChannelName: I.Map<string, Types.ConversationIDKey> = I.Map(
     (valid.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
   )
 
@@ -614,6 +615,7 @@ const validUIMessagetoMessage = (
         mentionsChannelName: I.Map(
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
+        unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
         text: new HiddenString(rawText),
       })
     case RPCChatTypes.commonMessageType.attachmentuploaded: // fallthrough
@@ -685,7 +687,9 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.leave:
       return makeMessageSystemLeft(minimum)
     case RPCChatTypes.commonMessageType.system:
-      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions) : null
+      return m.messageBody.system
+        ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions)
+        : null
     case RPCChatTypes.commonMessageType.headline:
       return m.messageBody.headline
         ? makeMessageSetDescription({
@@ -1018,9 +1022,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     if (!validUpgrade(old, m)) {
       return old
     }
-    return m.withMutations((ret: Types.MessageText) => {
-      ret.set('ordinal', old.ordinal)
-    })
+    return (m.set('ordinal', old.ordinal): Types.MessageText)
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
     if (!validUpgrade(old, m)) {
@@ -1033,9 +1035,12 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       // jump in the conversation view
       // hold on to the previewURL so that we
       // don't show the gray box.
-      return m.set('ordinal', old.ordinal).set('previewURL', old.previewURL)
+      return (m.merge({
+        ordinal: old.ordinal,
+        previewURL: old.previewURL,
+      }): Types.MessageAttachment)
     }
-    return m.withMutations((ret: Types.MessageAttachment) => {
+    return (m.withMutations((ret: Types.MessageAttachment) => {
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message
       ret.set('id', old.id)
@@ -1050,7 +1055,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
         ret.set('transferState', old.transferState)
       }
       ret.set('transferProgress', old.transferProgress)
-    })
+    }): Types.MessageAttachment)
   }
   return m
 }

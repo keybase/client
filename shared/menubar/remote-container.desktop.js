@@ -70,4 +70,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
   }
 }
-export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)
+export default remoteConnect<{||}, any, _, _, _, _>(state => state, mapDispatchToProps, mergeProps)(Menubar)

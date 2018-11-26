@@ -120,7 +120,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default compose(
-  withProps((props: WalletPopupProps) => ({
+  withProps<any, any, any>((props: WalletPopupProps) => ({
     [backButtonTypeToFcnHandle[props.backButtonType]]: (props.onExit: any), // cast to any for flow "incompatible with undefined"
     customCancelText: props.backButtonType === 'close' ? 'Close' : '',
     customComponent: props.headerTitle && (

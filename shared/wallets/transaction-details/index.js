@@ -55,9 +55,9 @@ const PartyAccount = (props: PartyAccountProps) => {
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
       <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" style={styles.flexOne}>
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
-        {props.accountID && <SmallAccountID accountID={props.accountID} />}
+        {!!props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -85,9 +85,10 @@ const Counterparty = (props: CounterpartyProps) => {
             horizontal={true}
             onClick={() => props.onShowProfile(props.counterparty)}
             username={props.counterparty}
-            metaOne={props.counterpartyMeta}
+            metaOne={<AccountMeta counterpartyMeta={props.counterpartyMeta} accountID={props.accountID} />}
+            metaStyle={styles.flexOne}
+            containerStyle={styles.alignItemsFlexStart}
             underline={true}
-            metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
           />
           <Kb.Button
             type="Secondary"
@@ -100,7 +101,7 @@ const Counterparty = (props: CounterpartyProps) => {
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Box2 direction="horizontal">
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
           <Kb.Text
             type="BodySemibold"
@@ -124,6 +125,19 @@ const Counterparty = (props: CounterpartyProps) => {
   return null
 }
 
+const AccountMeta = ({counterpartyMeta, accountID}) => (
+  <Kb.Box2 direction="horizontal" style={{flexWrap: 'wrap'}}>
+    {!!counterpartyMeta && (
+      <Kb.Text type="BodySmall">
+        {counterpartyMeta}
+        {!!accountID && ' ·'}
+        &nbsp;
+      </Kb.Text>
+    )}
+    {!!accountID && <SmallAccountID accountID={accountID} />}
+  </Kb.Box2>
+)
+
 type YourAccountProps = {|
   accountID: ?Types.AccountID,
   accountName: ?string,
@@ -142,8 +156,9 @@ const YourAccount = (props: YourAccountProps) => {
       onClick={() => props.onShowProfile(props.you)}
       underline={true}
       username={props.you}
-      metaOne="You"
-      metaTwo={props.accountID ? <SmallAccountID accountID={props.accountID} /> : null}
+      metaOne={<AccountMeta counterpartyMeta="You" accountID={props.accountID} />}
+      metaStyle={styles.flexOne}
+      containerStyle={styles.alignItemsFlexStart}
     />
   )
 }
@@ -259,6 +274,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
+      <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
           amountUser={props.amountUser}
@@ -280,7 +296,12 @@ const TransactionDetails = (props: NotLoadingProps) => {
         />
       </Kb.Box2>
       <Kb.Divider />
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        gap="small"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.container, styles.flexOne])}
+      >
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -353,7 +374,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Transaction ID:</Kb.Text>
-          <Kb.Text selectable={true} type="Body">
+          <Kb.Text selectable={true} style={styles.transactionID} type="Body">
             {props.transactionID}
           </Kb.Text>
           {props.onViewTransaction && (
@@ -399,6 +420,7 @@ class LoadTransactionDetails extends React.Component<Props> {
 export default LoadTransactionDetails
 
 const styles = Styles.styleSheetCreate({
+  alignItemsFlexStart: {alignItems: 'flex-start'},
   button: {
     alignSelf: 'center',
   },
@@ -424,6 +446,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
+  flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
   partyAccountContainer: {
     alignSelf: 'flex-start',
@@ -439,6 +462,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   scrollViewContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
   },
   statusBox: {
@@ -449,15 +473,20 @@ const styles = Styles.styleSheetCreate({
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
   },
-  stellarPublicKey: {
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  stellarPublicKey: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      marginLeft: Styles.globalMargins.tiny,
+      flex: 1,
+    },
+    isElectron: {wordBreak: 'break-all'},
+  }),
   tooltipText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-work',
     },
   }),
+  transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
     borderRadius: 4,

@@ -74,13 +74,13 @@ function platformToLogo24(service: Types.Service): IconType {
 const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
   action.type === SearchGen.userInputItemsUpdated && action.payload && action.payload.searchKey === searchKey
 
-const getSearchResultIds = (state: TypedState, searchKey: string) =>
+const getSearchResultIds = (state: TypedState, searchKey: string): ?I.List<Types.SearchResultId> =>
   state.entities.getIn(['search', 'searchKeyToResults', searchKey])
 
-const getUserInputItemIds = (state: TypedState, searchKey: string) =>
+const getUserInputItemIds = (state: TypedState, searchKey: string): I.OrderedSet<Types.SearchResultId> =>
   state.entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
 
-const getClearSearchTextInput = ({entities}: TypedState, searchKey: string) =>
+const getClearSearchTextInput = ({entities}: TypedState, searchKey: string): number =>
   entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
 
 export {

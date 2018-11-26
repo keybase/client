@@ -10,7 +10,7 @@ const padding = 5
 const BadLines = () => null
 
 // Note: duplicating the lines here vs a series of maps / permutations so its more readable
-const GoodLines = ({color}) => {
+const GoodLines = ({color}: {color: Styles.Color}) => {
   const s = [styles.common, {backgroundColor: color}]
   return (
     <React.Fragment>

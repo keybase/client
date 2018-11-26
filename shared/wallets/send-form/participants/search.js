@@ -8,6 +8,7 @@ import {ParticipantsRow} from '../../common'
 import {searchKey} from '../../../constants/wallets'
 
 export type SearchProps = {|
+  heading: 'To' | 'From',
   onClickResult: (username: string) => void,
   onClose: () => void,
   onShowSuggestions: () => void,
@@ -59,7 +60,12 @@ class Search extends React.Component<SearchProps, SearchState> {
   render() {
     return (
       <React.Fragment>
-        <ParticipantsRow ref={this._setRef} heading="To" style={styles.row} headingStyle={styles.rowHeading}>
+        <ParticipantsRow
+          ref={this._setRef}
+          heading={this.props.heading}
+          style={styles.row}
+          headingStyle={styles.rowHeading}
+        >
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <UserInput
               disableListBuilding={true}

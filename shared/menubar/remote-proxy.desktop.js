@@ -3,11 +3,11 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, connect, compose, renderNothing, branch} from '../util/container'
+import {NullComponent, connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
-import memoize from 'memoize-one'
+import {memoize1} from '../util/memoize'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 
 const windowOpts = {}
@@ -41,22 +41,15 @@ const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
-  broken: state.tracker.userTrackers,
   conversationsToSend: conversationsToSend(state),
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
+  userInfo: state.users.infoMap,
   username: state.config.username,
 })
 
 // TODO we should just send a Set like structure over, for now just extract trackerState
-const getBrokenSubset = memoize(userTrackers =>
-  Object.keys(userTrackers).reduce((map, name) => {
-    map[name] = {
-      trackerState: userTrackers[name].trackerState,
-    }
-    return map
-  }, {})
-)
+const getBrokenSubset = memoize1(userInfo => userInfo.filter(u => u.broken).toJS())
 
 let _lastUsername
 let _lastClearCacheTrigger = 0
@@ -68,7 +61,6 @@ const mergeProps = stateProps => {
   return {
     badgeKeys: stateProps._badgeInfo,
     badgeMap: stateProps._badgeInfo,
-    broken: getBrokenSubset(stateProps.broken),
     clearCacheTrigger: _lastClearCacheTrigger,
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
@@ -79,6 +71,7 @@ const mergeProps = stateProps => {
     following: stateProps._following,
     loggedIn: stateProps.loggedIn,
     outOfDate: stateProps.outOfDate,
+    userInfo: getBrokenSubset(stateProps.userInfo),
     username: stateProps.username,
     windowComponent: 'menubar',
     windowOpts,
@@ -88,17 +81,14 @@ const mergeProps = stateProps => {
   }
 }
 
+const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
+  class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
+    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
+  }
+
 // Actions are handled by remote-container
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  // flow correctly complains this shouldn't be true. We really want this to never be null before it hits RemoteMenubarWindow but we can't do that with branch. TODO use a wrapper to fix this
-  // $FlowIssue
-  branch(props => !props.externalRemoteWindow, renderNothing),
-  RemoteMenubarWindow,
-  SyncAvatarProps,
-  SyncProps(serialize)
-)(NullComponent)
+export default connect<Props | {}, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Styles from '../../../../../styles'
-import {Avatar, Text, Box, Box2} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import {formatTimeForChat} from '../../../../../util/timestamp'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
@@ -55,19 +55,13 @@ const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBr
   return isFollowing ? Styles.globalColors.green : Styles.globalColors.blue
 }
 
-const UserAvatar = ({author, onAuthorClick}) => (
-  <Box style={styles.userAvatar}>
-    <Avatar size={32} username={author} skipBackground={true} onClick={onAuthorClick} />
-  </Box>
-)
-
-const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
+const username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = Styles.collapseStyles([
     Styles.desktopStyles.clickable,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (
-    <Text
+    <Kb.Text
       type="BodySmallSemibold"
       onClick={onClick}
       className="hover-underline"
@@ -75,61 +69,59 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
       style={style}
     >
       {username}
-    </Text>
+    </Kb.Text>
   )
 }
-
-const EditedMark = () => (
-  <Text type="BodyTiny" style={styles.edited}>
-    EDITED
-  </Text>
-)
 
 const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, onCancel}) => {
   const error = `${failureDescription}. `
   const resolveByEdit = failureDescription === 'Failed to send: message is too long'
   return isExplodingUnreadable ? (
-    <Text type="BodySmall" style={styles.fail}>
+    <Kb.Text type="BodySmall" style={styles.fail}>
       This exploding message is not available to you.
-    </Text>
+    </Kb.Text>
   ) : (
-    <Text type="BodySmall">
-      <Text type="BodySmall" style={styles.fail}>
+    <Kb.Text type="BodySmall">
+      <Kb.Text type="BodySmall" style={styles.fail}>
         {error}
-      </Text>
+      </Kb.Text>
       {!!onCancel && (
-        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onCancel}>
+        <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onCancel}>
           Cancel
-        </Text>
+        </Kb.Text>
       )}
-      {!!onCancel && <Text type="BodySmall"> or </Text>}
+      {!!onCancel && <Kb.Text type="BodySmall"> or </Kb.Text>}
       {!!onEdit &&
         resolveByEdit && (
-          <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
             Edit
-          </Text>
+          </Kb.Text>
         )}
       {!!onRetry &&
         !resolveByEdit && (
-          <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
             Retry
-          </Text>
+          </Kb.Text>
         )}
-    </Text>
+    </Kb.Text>
   )
 }
 
-const LeftSide = props => (
-  <Box style={styles.leftSide}>
+const leftSide = props => (
+  <Kb.Box style={styles.leftSide}>
     {props.includeHeader && (
-      <Box style={styles.hasHeader}>
-        <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />
-      </Box>
+      <Kb.Avatar
+        size={32}
+        username={props.author}
+        skipBackground={true}
+        onClick={props.onAuthorClick}
+        style={styles.userAvatar}
+      />
     )}
-  </Box>
+  </Kb.Box>
 )
 
-const RightSide = props => {
+const rightSide = props => {
   const content = (
     <>
       {props.message.type === 'text' && <TextMessage message={props.message} isEditing={props.isEditing} />}
@@ -139,66 +131,65 @@ const RightSide = props => {
       {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
         <PaymentMessage message={props.message} />
       )}
-      {props.isEdited && <EditedMark />}
+      {props.isEdited && (
+        <Kb.Text type="BodyTiny" style={styles.edited}>
+          EDITED
+        </Kb.Text>
+      )}
     </>
   )
   return (
-    <Box style={styles.rightSideContainer}>
-      <Box
-        style={Styles.collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
-        className="message-wrapper"
-      >
-        {props.includeHeader && (
-          <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.usernameTimestamp}>
-            <Username
-              username={props.author}
-              isYou={props.isYou}
-              isFollowing={props.isFollowing}
-              isBroken={props.isBroken}
-              onClick={props.onAuthorClick}
-            />
-            <Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Text>
-          </Box2>
-        )}
-        <Box style={styles.textContainer} className="message">
-          {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+    <Kb.Box style={Styles.collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}>
+      {props.includeHeader && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.usernameTimestamp}>
+          {username({
+            isBroken: props.isBroken,
+            isFollowing: props.isFollowing,
+            isYou: props.isYou,
+            onClick: props.onAuthorClick,
+            username: props.author,
+          })}
+          <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
+        </Kb.Box2>
+      )}
+      <Kb.Box style={styles.textContainer} className="message">
+        {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
-          {props.exploding ? (
-            <ExplodingHeightRetainer
-              explodedBy={props.explodedBy}
-              exploding={props.exploding}
-              measure={props.measure}
-              messageKey={props.messageKey}
-              style={styles.flexOneColumn}
-              retainHeight={props.exploded || props.isExplodingUnreadable}
-            >
-              {content}
-            </ExplodingHeightRetainer>
-          ) : (
-            <Box style={styles.flexOneColumn}>{content}</Box>
-          )}
-        </Box>
-        {!!props.failureDescription &&
-          !props.exploded && (
-            <Failure
-              failureDescription={props.failureDescription}
-              isExplodingUnreadable={props.isExplodingUnreadable}
-              onRetry={props.onRetry}
-              onEdit={props.onEdit}
-              onCancel={props.onCancel}
-            />
-          )}
-        <Box style={styles.sendIndicator}>
-          {props.isYou && (
-            <SendIndicator
-              sent={props.messageSent || props.exploded}
-              failed={props.messageFailed}
-              id={props.timestamp}
-            />
-          )}
-        </Box>
-      </Box>
-    </Box>
+        {props.exploding ? (
+          <ExplodingHeightRetainer
+            explodedBy={props.explodedBy}
+            exploding={props.exploding}
+            measure={props.measure}
+            messageKey={props.messageKey}
+            style={styles.flexOneColumn}
+            retainHeight={props.exploded || props.isExplodingUnreadable}
+          >
+            {content}
+          </ExplodingHeightRetainer>
+        ) : (
+          content
+        )}
+      </Kb.Box>
+      {!!props.failureDescription &&
+        !props.exploded && (
+          <Failure
+            failureDescription={props.failureDescription}
+            isExplodingUnreadable={props.isExplodingUnreadable}
+            onRetry={props.onRetry}
+            onEdit={props.onEdit}
+            onCancel={props.onCancel}
+          />
+        )}
+      <Kb.Box style={styles.sendIndicator}>
+        {props.isYou && (
+          <SendIndicator
+            sent={props.messageSent || props.exploded}
+            failed={props.messageFailed}
+            id={props.timestamp}
+          />
+        )}
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
@@ -213,10 +204,14 @@ class WrapperAuthor extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Box style={Styles.collapseStyles([styles.flexOneRow, this.props.includeHeader && styles.hasHeader])}>
-        {LeftSide(this.props)}
-        {RightSide(this.props)}
-      </Box>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={this.props.includeHeader ? styles.hasHeader : null}
+      >
+        {leftSide(this.props)}
+        {rightSide(this.props)}
+      </Kb.Box2>
     )
   }
 }
@@ -245,14 +240,9 @@ const styles = Styles.styleSheetCreate({
   rightSide: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
-    paddingRight: Styles.globalMargins.tiny,
-    position: 'relative',
-  },
-  rightSideContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    flex: 1,
     paddingBottom: 2,
     paddingRight: Styles.globalMargins.tiny,
+    position: 'relative',
   },
   sendIndicator: Styles.platformStyles({
     common: {
@@ -274,13 +264,14 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   textContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxColumn,
     borderRadius: 4,
     flex: 1,
   },
   userAvatar: {
     flexShrink: 0,
     height: 32,
+    paddingTop: Styles.globalMargins.xtiny,
     width: 32,
   },
   usernameTimestamp: {

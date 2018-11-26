@@ -473,7 +473,7 @@ func TestRelayTransferInnards(t *testing.T) {
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
-		SeqnoProvider: stellar.NewSeqnoProvider(context.Background(), tcs[0].Srv.remoter),
+		SeqnoProvider: stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.remoter),
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())

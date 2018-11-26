@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -131,24 +132,12 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
-func (h *Server) suspendComponent(ctx context.Context, suspendable types.Suspendable) func() {
-	if canceled := suspendable.Suspend(ctx); canceled {
-		h.Debug(ctx, "suspendComponent: canceled background task")
-	}
-	return func() {
-		suspendable.Resume(ctx)
-	}
-}
-
-// suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
-// a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
-// conv loader.
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	return h.suspendComponent(ctx, h.G().ConvLoader)
+	return utils.SuspendComponent(ctx, h.G(), h.G().ConvLoader)
 }
 
 func (h *Server) suspendInboxSource(ctx context.Context) func() {
-	return h.suspendComponent(ctx, h.G().InboxSource)
+	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
 }
 
 func (h *Server) getUID() gregor1.UID {
@@ -2332,6 +2321,12 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err = fetchAndUnfurl(); err != nil {
 			return fmt.Errorf("failed to fetch and unfurl: %s", err)
 		}
+	case chat1.UnfurlPromptAction_ONETIME:
+		h.G().Unfurler.WhitelistAddExemption(ctx, uid,
+			unfurl.NewOneTimeWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
+		if err = fetchAndUnfurl(); err != nil {
+			return fmt.Errorf("failed to fetch and unfurl: %s", err)
+		}
 	case chat1.UnfurlPromptAction_NEVER:
 		if err = h.G().Unfurler.SetMode(ctx, uid, chat1.UnfurlMode_NEVER); err != nil {
 			return fmt.Errorf("failed to set mode to never: %s", err)
@@ -2345,4 +2340,42 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		}
 	}
 	return nil
+}
+
+func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSettingsDisplay, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetUnfurlSettings")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	settings, err := h.G().Unfurler.GetSettings(ctx, uid)
+	if err != nil {
+		return res, err
+	}
+	res.Mode = settings.Mode
+	for w := range settings.Whitelist {
+		res.Whitelist = append(res.Whitelist, w)
+	}
+	sort.Slice(res.Whitelist, func(i, j int) bool {
+		return res.Whitelist[i] < res.Whitelist[j]
+	})
+	return res, nil
+}
+
+func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSettingsArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SaveUnfurlSettings")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	wm := make(map[string]bool)
+	for _, w := range arg.Whitelist {
+		wm[w] = true
+	}
+	return h.G().Unfurler.SetSettings(ctx, uid, chat1.UnfurlSettings{
+		Mode:      arg.Mode,
+		Whitelist: wm,
+	})
 }

@@ -362,6 +362,12 @@ type ConversationBackedStorage interface {
 	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
 }
 
+type WhitelistExemption interface {
+	Use() bool
+	Matches(convID chat1.ConversationID, msgID chat1.MessageID, domain string) bool
+	Domain() string
+}
+
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed)
@@ -370,7 +376,27 @@ type Unfurler interface {
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 
 	GetSettings(ctx context.Context, uid gregor1.UID) (chat1.UnfurlSettings, error)
+	SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error
 	WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) error
 	WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error
+	WhitelistAddExemption(ctx context.Context, uid gregor1.UID, exemption WhitelistExemption)
 	SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error
 }
+
+type InternalError interface {
+	// verbose error info for debugging but not user display
+	InternalError() string
+}
+
+type UnboxingError interface {
+	InternalError
+	Error() string
+	Inner() error
+	IsPermanent() bool
+	ExportType() chat1.MessageUnboxedErrorType
+	VersionKind() chat1.VersionKind
+	VersionNumber() int
+	IsCritical() bool
+}
+
+var _ error = (UnboxingError)(nil)

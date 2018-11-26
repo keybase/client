@@ -89,7 +89,19 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
     )
   }
 }
-const NewInput = forwardRef((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
+const NewInput = forwardRef<
+  $Diff<
+    {
+      flexable?: boolean,
+      keyboardType?: KeyboardType,
+      textType?: TextType,
+    } & Props,
+    {
+      forwardedRef: React.Ref<typeof PlainInput>,
+    }
+  >,
+  _
+>((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
 
 const styles = styleSheetCreate({
   container: platformStyles({

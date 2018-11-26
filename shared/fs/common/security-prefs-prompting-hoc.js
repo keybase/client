@@ -1,7 +1,8 @@
 // @flow
-import {branch, compose, connect, renderNothing} from '../../util/container'
-import {isLinux, isMobile} from '../../constants/platform'
+import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
+import {connect} from '../../util/container'
+import {isLinux, isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 
 // On desktop, SecurityPrefsPromptingHoc prompts user about going to security
@@ -12,19 +13,24 @@ import {navigateAppend} from '../../actions/route-tree'
 // spamming the user.  We have a link in the Settings page so if the user wants
 // they can still find the instructions.
 
+type MergedProps = {|
+  shouldPromptSecurityPrefs: boolean,
+  showSecurityPrefsOnce: () => void,
+|}
+
 const mapStateToProps = state => {
-  const {securityPrefsPropmted, kextPermissionError} = state.fs.flags
+  const {securityPrefsPrompted, kextPermissionError} = state.fs.flags
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
-    shouldPromptSecurityPrefs: !securityPrefsPropmted && !kbfsEnabled && kextPermissionError,
+    shouldPromptSecurityPrefs: !securityPrefsPrompted && !kbfsEnabled && kextPermissionError,
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   showSecurityPrefsOnce: () => {
     dispatch(
       FsGen.createSetFlags({
-        securityPrefsPropmted: true,
+        securityPrefsPrompted: true,
       })
     )
     dispatch(
@@ -43,14 +49,19 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
   return shouldPromptSecurityPrefs
 }
 
-const DesktopSecurityPrefsPromptingHoc = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  branch(displayOnce, renderNothing)
+const ConnectedDesktopSecurityPrefs = connect<{||}, _, React.ComponentType<MergedProps>, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
 )
+
+const DesktopSecurityPrefsBranch = (ComposedComponent: React.ComponentType<any>) =>
+  class extends React.PureComponent<MergedProps> {
+    render = () => !displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null
+  }
+
+const DesktopSecurityPrefsPromptingHoc = (ComposedComponent: React.ComponentType<any>) =>
+  ConnectedDesktopSecurityPrefs(DesktopSecurityPrefsBranch(ComposedComponent))
 
 const SecurityPrefsPromptingHoc = isMobile ? (i: any) => i : DesktopSecurityPrefsPromptingHoc
 

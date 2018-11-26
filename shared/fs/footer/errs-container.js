@@ -44,4 +44,9 @@ const mergeProps = ({errors}, {_dismiss, _retry}) => {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedErrs')(Errs)
+export default namedConnect<{||}, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedErrs'
+)(Errs)

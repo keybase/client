@@ -298,6 +298,23 @@
           "name": "whitelist"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlSettingsDisplay",
+      "fields": [
+        {
+          "type": "UnfurlMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "whitelist"
+        }
+      ]
     }
   ],
   "messages": {},
