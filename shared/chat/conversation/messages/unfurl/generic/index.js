@@ -16,27 +16,10 @@ export type Props = {
   showImageOnSide: boolean,
 }
 
-type State = {
-  showClose: boolean,
-}
-
-class UnfurlGeneric extends React.Component<Props, State> {
-  state = {showClose: false}
-  _onMouseOver = () => {
-    this.setState({showClose: true})
-  }
-  _onMouseLeave = () => {
-    this.setState({showClose: false})
-  }
+class UnfurlGeneric extends React.Component<Props> {
   render() {
     return (
-      <Kb.Box2
-        style={styles.container}
-        onMouseOver={this._onMouseOver}
-        onMouseLeave={this._onMouseLeave}
-        gap="tiny"
-        direction="horizontal"
-      >
+      <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
         {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
         <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
@@ -52,15 +35,15 @@ class UnfurlGeneric extends React.Component<Props, State> {
                 )}
               </Kb.Text>
             </Kb.Box2>
-            {!!this.props.onClose &&
-              (this.state.showClose || Styles.isMobile) && (
-                <Kb.Icon
-                  type="iconfont-close"
-                  onClick={this.props.onClose}
-                  style={styles.closeBox}
-                  fontSize={12}
-                />
-              )}
+            {!!this.props.onClose && (
+              <Kb.Icon
+                type="iconfont-close"
+                onClick={this.props.onClose}
+                style={styles.closeBox}
+                className="unfurl-closebox"
+                fontSize={12}
+              />
+            )}
           </Kb.Box2>
           <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
             {this.props.title}
