@@ -1265,6 +1265,34 @@ func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.I
 	return t.identifyUI
 }
 
+func TestV2EndpointsAsV1(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.TODO()
+	g := tcs[0].G
+
+	acceptDisclaimer(tcs[0])
+	// create a v1 bundle with two accounts
+	_, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
+	require.NoError(t, err)
+	_, err = bundle.CreateNewAccount(&v1Bundle0, "whatevs", false)
+	require.NoError(t, err)
+	v1Bundle1 := bundle.Advance(v1Bundle0)
+	err = remote.PostV1Bundle(ctx, g, v1Bundle1)
+	require.NoError(t, err)
+
+	// secretless bundle
+	bundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	for _, ab := range bundle.AccountBundles {
+		require.Equal(t, len(ab.Signers), 0)
+	}
+
+}
+
 func TestMigrateBundleToAccountBundles(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()

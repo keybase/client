@@ -150,7 +150,7 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 		g.Log.CDebugf(ctx, "Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
 		return nil
 	}
-	nextBundle := acctbundle.AdvanceAll(prevBundle)
+	nextBundle := acctbundle.AdvanceAll(*prevBundle)
 	return remote.Post(ctx, g, nextBundle)
 }
 
@@ -159,7 +159,7 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err != nil {
 		return err
 	}
-	nextBundle := acctbundle.AdvanceBundle(prevBundle)
+	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	err = acctbundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
 	if err != nil {
 		return err
@@ -235,7 +235,7 @@ func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, s
 	if err != nil {
 		return err
 	}
-	nextBundle := acctbundle.AdvanceBundle(prevBundle)
+	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	err = acctbundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
 	if err != nil {
 		return err
@@ -1229,7 +1229,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if !found {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle := acctbundle.AdvanceAccounts(bundle, []stellar1.AccountID{accountID})
+	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
@@ -1265,7 +1265,7 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 	if !foundAccID {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle := acctbundle.AdvanceAccounts(bundle, accountsToAdvance)
+	nextBundle := acctbundle.AdvanceAccounts(*bundle, accountsToAdvance)
 	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle, false)
 }
 
@@ -1277,7 +1277,7 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	if err != nil {
 		return err
 	}
-	nextBundle := acctbundle.AdvanceBundle(prevBundle)
+	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	var found bool
 	for i, acc := range nextBundle.Accounts {
 		if acc.AccountID.Eq(accountID) {
@@ -1344,7 +1344,7 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 	if err != nil {
 		return ret, err
 	}
-	nextBundle := acctbundle.AdvanceBundle(prevBundle)
+	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	ret, err = acctbundle.CreateNewAccount(&nextBundle, accountName, false /* makePrimary */)
 	if err != nil {
 		return ret, err
