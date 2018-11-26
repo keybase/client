@@ -17,9 +17,11 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
@@ -311,6 +313,49 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	return nil
 }
 
+// squashChanMention will silence a chanMention if sent by a non-admin on a
+// large (> 100 member) team. The server drives this for mobile push
+// notifications, client checks this for desktop notifications
+func (g *PushHandler) squashChanMention(ctx context.Context, mt chat1.ConversationMembersType,
+	mvalid chat1.MessageUnboxedValid) (bool, error) {
+	if mt != chat1.ConversationMembersType_TEAM {
+		return false, nil
+	}
+	teamID, err := keybase1.TeamIDFromString(mvalid.ClientHeader.Conv.Tlfid.String())
+	if err != nil {
+		return false, err
+	}
+	extG := g.G().ExternalG()
+	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: mvalid.ClientHeader.TlfPublic,
+	})
+	if err != nil {
+		return false, err
+	}
+	senderUID := keybase1.UID(mvalid.ClientHeader.Sender.String())
+	upak, _, err := g.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserByUIDArg(ctx, extG, senderUID))
+	if err != nil {
+		return false, err
+	}
+	uv := upak.Current.ToUserVersion()
+	role, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return false, err
+	}
+	admin := role.IsOrAbove(keybase1.TeamRole_ADMIN)
+	if admin {
+		return false, nil
+	}
+	members, err := team.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
+	if err != nil {
+		return false, err
+	}
+	// if the sender is not an admin and the team is large squash the mention.
+	return len(members) > 100, nil
+}
+
 func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	uid gregor1.UID, conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) bool {
 	if conv == nil || conv.Notifications == nil {
@@ -364,8 +409,16 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 			}
 			chanMention := msg.Valid().ChannelMention
 			notifyFromChanMention := false
-			if chanMention == chat1.ChannelMention_HERE || chanMention == chat1.ChannelMention_ALL {
+			switch chanMention {
+			case chat1.ChannelMention_HERE, chat1.ChannelMention_ALL:
 				notifyFromChanMention = conv.Notifications.ChannelWide
+				shouldSquash, err := g.squashChanMention(ctx, conv.Info.MembersType, msg.Valid())
+				if err != nil {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to squashChanMention: %v", err)
+				}
+				if shouldSquash {
+					notifyFromChanMention = false
+				}
 			}
 			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
 		}
