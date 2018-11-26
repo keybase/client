@@ -36,6 +36,8 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
     case 'canceled': // fallthrough
     case 'cancelable':
       return youAreSender ? 'sending' : 'attempting to send'
+    case 'error':
+      return youAreSender ? 'attempted to send' : 'attempted to send'
     default:
       return 'sent'
   }
@@ -56,9 +58,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
-
-      // find the other participant's username
-      const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
 
       const cancelable = paymentInfo.status === 'cancelable'
       const pending = cancelable || paymentInfo.status === 'pending'
