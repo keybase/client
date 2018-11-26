@@ -242,10 +242,16 @@ func PostV1Bundle(ctx context.Context, g *libkb.GlobalContext, v1Bundle stellar1
 }
 
 // Post a bundle to the server.
-func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted) (err error) {
+func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted, version stellar1.BundleVersion) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Post", func() error { return err })()
-	v1Bundle, err := acctbundle.BundleFromBundleRestricted(clearBundle)
-	return PostV1Bundle(ctx, g, *v1Bundle)
+	if version == stellar1.BundleVersion_V1 {
+		v1Bundle, err := acctbundle.BundleFromBundleRestricted(clearBundle)
+		if err != nil {
+			return err
+		}
+		return PostV1Bundle(ctx, g, *v1Bundle)
+	}
+	return PostBundleRestricted(ctx, g, &clearBundle)
 }
 
 type AlreadyMigratedError struct{}

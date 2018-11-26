@@ -133,7 +133,7 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
 func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
-	prevBundle, _, prevPukGen, err := remote.Fetch(ctx, g)
+	prevBundle, version, prevPukGen, err := remote.FetchWholeBundle(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -151,14 +151,25 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 		return nil
 	}
 	nextBundle := acctbundle.AdvanceAll(*prevBundle)
-	return remote.Post(ctx, g, nextBundle)
+	return remote.Post(ctx, g, nextBundle, version)
 }
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
-	prevBundle, _, _, err := remote.Fetch(ctx, g)
+	prevBundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
 	if err != nil {
 		return err
 	}
+	var v2Link bool
+	if version == stellar1.BundleVersion_V1 {
+		prevBundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+		if err != nil {
+			return err
+		}
+		v2Link = false
+	} else {
+		v2Link = true
+	}
+
 	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	err = acctbundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
 	if err != nil {
@@ -168,9 +179,9 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if makePrimary {
 		// primary account changes need sigchain link
 		// (so other users can find user's primary account id)
-		err = remote.PostWithChainlink(ctx, g, nextBundle, false)
+		err = remote.PostWithChainlink(ctx, g, nextBundle, v2Link)
 	} else {
-		err = remote.Post(ctx, g, nextBundle)
+		err = remote.Post(ctx, g, nextBundle, version)
 	}
 	if err != nil {
 		return err
@@ -1212,7 +1223,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
 	}
-	bundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
+	bundle, version, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
 	}
@@ -1230,14 +1241,14 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 		return fmt.Errorf("account not found: %v", accountID)
 	}
 	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
-	return remote.Post(m.Ctx(), m.G(), nextBundle)
+	return remote.Post(m.Ctx(), m.G(), nextBundle, version)
 }
 
 func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err error) {
 	if accountID.IsNil() {
 		return errors.New("passed empty AccountID")
 	}
-	bundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
+	bundle, version, _, err := remote.FetchAccountBundle(m.Ctx(), m.G(), accountID)
 	if err != nil {
 		return err
 	}
@@ -1266,17 +1277,20 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 		return fmt.Errorf("account not found: %v", accountID)
 	}
 	nextBundle := acctbundle.AdvanceAccounts(*bundle, accountsToAdvance)
-	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle, false)
+	var v2Link bool
+	v2Link = !(version == stellar1.BundleVersion_V1)
+	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle, v2Link)
 }
 
 func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	if accountID.IsNil() {
 		return errors.New("passed empty AccountID")
 	}
-	prevBundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
+	prevBundle, version, _, err := remote.FetchAccountBundle(m.Ctx(), m.G(), accountID)
 	if err != nil {
 		return err
 	}
+
 	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	var found bool
 	for i, acc := range nextBundle.Accounts {
@@ -1294,7 +1308,7 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	if !found {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	return remote.Post(m.Ctx(), m.G(), nextBundle)
+	return remote.Post(m.Ctx(), m.G(), nextBundle, version)
 }
 
 const DefaultCurrencySetting = "USD"
@@ -1340,7 +1354,7 @@ func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error)
 }
 
 func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
-	prevBundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
+	prevBundle, version, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return ret, err
 	}
@@ -1349,7 +1363,7 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 	if err != nil {
 		return ret, err
 	}
-	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
+	return ret, remote.Post(m.Ctx(), m.G(), nextBundle, version)
 }
 
 func chatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {

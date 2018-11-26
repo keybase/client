@@ -874,20 +874,33 @@ func TestAccountBundleFlows(t *testing.T) {
 		require.Equal(t, len(signers), 0)
 		accountIDs = append(accountIDs, acct.AccountID)
 	}
-	// add a new account and post it as the new primary
-	require.True(t, bundle.Accounts[0].IsPrimary)
-	prevPrimary := bundle.Accounts[0].AccountID
-	accountsToAdvance := []stellar1.AccountID{prevPrimary}
-	newPrimaryAccountID, primarySecretKey := randomStellarKeypair()
-	name := "newprimary"
-	err = acctbundle.AddAccount(bundle, primarySecretKey, name, true)
+	// add a new account non-primary account
+	newAccountID, sk := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   sk,
+		MakePrimary: false,
+		Name:        "uu",
+	})
 	require.NoError(t, err)
 
-	newBundle := acctbundle.AdvanceAccounts(*bundle, accountsToAdvance)
-	err = remote.PostWithChainlink(ctx, g, newBundle, true /* v2link */)
+	// add a new primary account
+	newPrimaryAccountID, primarySecretKey := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   primarySecretKey,
+		MakePrimary: true,
+		Name:        "uu",
+	})
 	require.NoError(t, err)
 
 	assertFetchAccountBundles(t, tcs[0], newPrimaryAccountID)
+
+	// switch which account is primary
+	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(ctx, stellar1.SetWalletAccountAsDefaultLocalArg{
+		AccountID: newAccountID,
+	})
+	require.NoError(t, err)
+	assertFetchAccountBundles(t, tcs[0], newAccountID)
+	uselessAccountID := newPrimaryAccountID
 
 	// FetchWholeBundle
 	fullBundle, version, _, err := remote.FetchWholeBundle(ctx, g)
@@ -895,13 +908,35 @@ func TestAccountBundleFlows(t *testing.T) {
 	require.Equal(t, version, stellar1.BundleVersion_V2)
 	err = fullBundle.CheckInvariants()
 	require.NoError(t, err)
-	require.Equal(t, 2, len(fullBundle.Accounts))
+	require.Equal(t, 3, len(fullBundle.Accounts))
 	for _, acc := range fullBundle.Accounts {
 		ab := fullBundle.AccountBundles[acc.AccountID]
 		require.Equal(t, 1, len(ab.Signers))
 		_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(ab.Signers[0]))
 		require.NoError(t, err)
 		require.Equal(t, parsedAccountID, acc.AccountID)
+	}
+
+	// DeleteAccount
+	err = tcs[0].Srv.DeleteWalletAccountLocal(ctx, stellar1.DeleteWalletAccountLocalArg{
+		AccountID:        uselessAccountID,
+		UserAcknowledged: "yes",
+	})
+	require.NoError(t, err)
+	_, _, _, err = remote.FetchAccountBundle(ctx, g, uselessAccountID)
+	require.Error(t, err)
+	aerr, ok := err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("invalid error type %T", err)
+	}
+	require.Equal(t, libkb.SCStellarMissingAccount, aerr.Code)
+	bundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	for _, acc := range bundle.Accounts {
+		require.False(t, acc.AccountID == uselessAccountID)
+	}
+	for accID := range bundle.AccountBundles {
+		require.False(t, accID == uselessAccountID)
 	}
 }
 
