@@ -122,7 +122,7 @@ const linkRegex: RegExp = {
   },
 }
 // don't allow regular characters before a url
-const beforeLinkRegex = /[\s/]/
+const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
@@ -381,7 +381,12 @@ const rules = {
     match: (source, state, lookBehind) => {
       const matches = inlineLinkMatch(source, state, lookBehind)
       // If there is a match, let's also check if it's a valid tld
-      if (matches && beforeLinkRegex.exec(lookBehind) && matches.groups && tldExp.exec(matches.groups.tld)) {
+      if (
+        matches &&
+        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
+        matches.groups &&
+        tldExp.exec(matches.groups.tld)
+      ) {
         return matches
       }
       return null
