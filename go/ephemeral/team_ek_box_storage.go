@@ -178,6 +178,10 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	}
 
 	teamEKMetadata := teamEKStatement.CurrentTeamEkMetadata
+	if generation != teamEKMetadata.Generation {
+		// sanity check that we go the right generation
+		return teamEK, newEKCorruptedErr(TeamEKStr, generation, teamEKMetadata.Generation)
+	}
 	teamEKBoxed := keybase1.TeamEkBoxed{
 		Box:              result.Result.Box,
 		UserEkGeneration: result.Result.UserEKGeneration,
@@ -249,9 +253,14 @@ func (s *TeamEKBoxStorage) Put(ctx context.Context, teamID keybase1.TeamID, gene
 
 func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	teamEKBoxed keybase1.TeamEkBoxed, ekErr error) (err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#put: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#put: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
+
+	// sanity check that we got the right generation
+	if teamEKBoxed.Metadata.Generation != generation && ekErr == nil {
+		return newEKCorruptedErr(TeamEKStr, generation, teamEKBoxed.Metadata.Generation)
+	}
 
 	key, err := s.dbKey(ctx, teamID)
 	if err != nil {
@@ -301,9 +310,9 @@ func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamI
 }
 
 func (s *TeamEKBoxStorage) PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) (err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#PurgeCacheForTeamID: teamID:%v", teamID), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#PurgeCacheForTeamID: teamID:%v", teamID), func() error { return err })()
 
 	key, err := s.dbKey(ctx, teamID)
 	if err != nil {

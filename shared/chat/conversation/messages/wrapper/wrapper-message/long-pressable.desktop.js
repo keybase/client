@@ -2,5 +2,5 @@
 import {Box} from '../../../../../common-adapters'
 
 // See '.js.flow' for explanation
-
-export default Box
+const LongPressable = Box
+export default LongPressable
