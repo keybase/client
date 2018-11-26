@@ -2568,6 +2568,28 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const unfurlRemove = (state: TypedState, action: Chat2Gen.UnfurlRemovePayload) => {
+  const {conversationIDKey, messageID} = action.payload
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.debug('unfurl remove no meta found, aborting!')
+    return
+  }
+  return Saga.call(
+    RPCChatTypes.localPostDeleteNonblockRpcPromise,
+    {
+      clientPrev: 0,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID: null,
+      supersedes: messageID,
+      tlfName: meta.tlfname,
+      tlfPublic: false,
+    },
+    Constants.waitingKeyDeletePost
+  )
+}
+
 const unfurlDismissPrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, domain} = action.payload
   return Saga.put(
@@ -2767,6 +2789,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Unfurl
   yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
+  yield Saga.actionToAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

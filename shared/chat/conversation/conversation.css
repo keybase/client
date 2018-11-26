@@ -12,6 +12,12 @@
 .WrapperMessage-hoverBox:hover .menu-button {
   visibility: visible;
 }
+.WrapperMessage-hoverBox .unfurl-closebox {
+  visibility: hidden;
+}
+.WrapperMessage-hoverBox:hover .unfurl-closebox {
+  visibility: visible;
+}
 .WrapperMessage-decorated {
 }
 .WrapperMessage-decorated:active {
