@@ -1646,7 +1646,7 @@ func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncCha
 }
 
 func (c RemoteClient) SyncAll(ctx context.Context, __arg SyncAllArg) (res SyncAllResult, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.Call(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1716,7 +1716,7 @@ func (c RemoteClient) GetGlobalAppNotificationSettings(ctx context.Context) (res
 }
 
 func (c RemoteClient) RemoteNotificationSuccessful(ctx context.Context, __arg RemoteNotificationSuccessfulArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil)
 	return
 }
 
