@@ -518,6 +518,29 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 	return acctBundle, version, pukGen, err
 }
 
+// FetchWholeBundle gets the secretless bundle and loops through the accountIDs
+// to get the signers for each of them and build a single, full bundle with all
+// of the information. This will error from any device that does not have access
+// to all of the accounts (e.g. a desktop after mobile-only)
+func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.FetchWholeBundle", func() error { return err })()
+	bundle, version, pukGen, err := FetchSecretlessBundle(ctx, g)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	newAccBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
+	for _, acct := range bundle.Accounts {
+		singleBundle, _, _, err := FetchAccountBundle(ctx, g, acct.AccountID)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+		accBundle := singleBundle.AccountBundles[acct.AccountID]
+		newAccBundles[acct.AccountID] = accBundle
+	}
+	bundle.AccountBundles = newAccBundles
+	return bundle, version, pukGen, nil
+}
+
 // FetchAccountBundle gets an account bundle from the server and decrypts it.
 func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()

@@ -888,6 +888,21 @@ func TestAccountBundleFlows(t *testing.T) {
 	require.NoError(t, err)
 
 	assertFetchAccountBundles(t, tcs[0], newPrimaryAccountID)
+
+	// FetchWholeBundle
+	fullBundle, version, _, err := remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	err = fullBundle.CheckInvariants()
+	require.NoError(t, err)
+	require.Equal(t, 2, len(fullBundle.Accounts))
+	for _, acc := range fullBundle.Accounts {
+		ab := fullBundle.AccountBundles[acc.AccountID]
+		require.Equal(t, 1, len(ab.Signers))
+		_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(ab.Signers[0]))
+		require.NoError(t, err)
+		require.Equal(t, parsedAccountID, acc.AccountID)
+	}
 }
 
 func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID stellar1.AccountID) {
@@ -1300,6 +1315,21 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	require.Equal(t, version, stellar1.BundleVersion_V1)
 	ab := bundle.AccountBundles[primaryAccountID]
 	require.Equal(t, len(ab.Signers), 1)
+
+	// fetch whole bundle
+	fullBundle, version, _, err := remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	err = fullBundle.CheckInvariants()
+	require.NoError(t, err)
+	require.Equal(t, 2, len(fullBundle.Accounts))
+	for _, acc := range fullBundle.Accounts {
+		ab := fullBundle.AccountBundles[acc.AccountID]
+		require.Equal(t, 1, len(ab.Signers))
+		_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(ab.Signers[0]))
+		require.NoError(t, err)
+		require.Equal(t, parsedAccountID, acc.AccountID)
+	}
 }
 
 func TestMigrateBundleToAccountBundles(t *testing.T) {
