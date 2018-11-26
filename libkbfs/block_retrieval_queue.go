@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"container/heap"
+	"fmt"
 	"io"
 	"reflect"
 	"sync"
@@ -65,6 +66,19 @@ const (
 	blockRequestWithPrefetch
 	blockRequestWithSync
 )
+
+func (bra blockRequestAction) overrides(other blockRequestAction) bool {
+	switch bra {
+	case blockRequestSolo:
+		return false
+	case blockRequestWithPrefetch:
+		return other == blockRequestSolo
+	case blockRequestWithSync:
+		return other == blockRequestSolo || other == blockRequestWithPrefetch
+	default:
+		panic(fmt.Sprintf("Unexpected block request action: %v", bra))
+	}
+}
 
 // blockRetrieval contains the metadata for a given block retrieval. May
 // represent many requests, all of which will be handled at once.
@@ -405,7 +419,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		}
 	}
 	// Update the action if we receive a stronger follow-on action.
-	if action > br.action {
+	if action.overrides(br.action) {
 		br.action = action
 	}
 	return ch
