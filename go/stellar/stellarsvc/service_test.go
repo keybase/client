@@ -1103,7 +1103,9 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, stellar1.BundleRevision(2), rev2AcctBundle.Revision)
 	// NOTE: we're using this rev2AcctBundle later...
 
-	err = remote.MakeAccountMobileOnly(ctx, g, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	// this is a desktop device, so this should now fail
@@ -1175,7 +1177,9 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	checker.assertBundle(t, acctBundle, 2, 1, stellar1.AccountMode_USER)
 
-	err = remote.MakeAccountMobileOnly(ctx, g, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	// this is a recent mobile device, so this should now fail
@@ -1196,7 +1200,9 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// this should not post a new bundle
-	err = remote.MakeAccountMobileOnly(ctx, g, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
 	require.NoError(t, err)

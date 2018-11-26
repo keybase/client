@@ -1074,54 +1074,39 @@ type isMobileResult struct {
 }
 
 func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/mobileonly",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"account_id": libkb.S{Val: accountID.String()},
-		},
-		NetContext: ctx,
-	}
-	var res isMobileResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	bundle, _, _, err := FetchSecretlessBundle(ctx, g)
+	if err != nil {
 		return false, err
 	}
-	return res.MobileOnly != 0, nil
-}
-
-// TODO: This function will change very soon.  MakeAccountMobileOnly does what it intends to
-// do at the bundle level, so this can use that.
-func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	payload := make(libkb.JSONPayload)
-	payload["account_id"] = accountID
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/mobileonly",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		JSONPayload: payload,
-		NetContext:  ctx,
+	for _, account := range bundle.Accounts {
+		if account.AccountID == accountID {
+			return account.Mode == stellar1.AccountMode_MOBILE, nil
+		}
 	}
-	var res libkb.AppStatusEmbed
-	return g.API.PostDecode(apiArg, &res)
+	err = libkb.AppStatusError{
+		Code: libkb.SCStellarMissingAccount,
+		Desc: "account does not exist for user",
+	}
+	return false, err
 }
 
-// MakeAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
+// SetAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
 // then send the new account bundle revision to the server.
-func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
 	bundle, _, _, err := FetchAccountBundle(ctx, g, accountID)
 	if err != nil {
 		return err
 	}
-
 	err = acctbundle.MakeMobileOnly(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
-		g.Log.CDebugf(ctx, "MakeAccountMobileOnly account %s is already mobile-only", accountID)
+		g.Log.CDebugf(ctx, "SetAccountMobileOnly account %s is already mobile-only", accountID)
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
-		g.Log.CDebugf(ctx, "MakeAccountMobileOnly PostBundleRestricted error: %s", err)
+		g.Log.CDebugf(ctx, "SetAccountMobileOnly PostBundleRestricted error: %s", err)
 		return err
 	}
 

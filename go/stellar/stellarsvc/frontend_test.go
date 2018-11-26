@@ -1920,7 +1920,9 @@ func TestSetMobileOnly(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	acceptDisclaimer(tcs[0])
+	// this only works with a v2 bundle now
+	setupWithNewBundle(t, tcs[0])
+
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	accountID := getPrimaryAccountID(tcs[0])
 
@@ -1935,9 +1937,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, mobileOnly)
 
-	// XXX note that the real test here will be that the secret bundle does not come
-	// back for desktop devices or mobile devices that are less than 7d old.
-	// This is just a basic test at this point...
+	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
 
 type chatListener struct {
