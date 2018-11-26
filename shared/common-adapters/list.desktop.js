@@ -2,6 +2,7 @@
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
+import logger from '../logger'
 
 import type {Props} from './list'
 
@@ -14,7 +15,21 @@ class List extends PureComponent<Props<any>, void> {
       return null
     }
     const item = this.props.items[index]
-    return this.props.renderItem(index, item)
+    const children = this.props.renderItem(index, item)
+
+    if (this.props.indexAsKey) {
+      // if indexAsKey is set, just use index.
+      return <React.Fragment key={String(index)}>{children}</React.Fragment>
+    }
+    if (item[this.props.keyProperty || 'key']) {
+      // otherwise, see if key is set on item directly.
+      return <React.Fragment key={item.key}>{children}</React.Fragment>
+    }
+    // We still don't have a key. So hopefully renderItem will provide the key.
+    logger.info(
+      'Setting key from renderItem does not work on native. Please set it directly on items or use indexAsKey.'
+    )
+    return children
   }
 
   _setListRef = r => {
