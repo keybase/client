@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Box2, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, collapseStyles} from '../../../../styles'
 import type {Props} from './index.types'
 
 const ShhIcon = props => (
@@ -20,19 +20,45 @@ type DescriptionProps = {
   description: ?string,
 }
 
-class Description extends React.Component<Props> {
+type DescriptionState = {
+  expanded: boolean,
+}
+
+class Description extends React.Component<DescriptionProps, DescriptionState> {
+  state = {expanded: false}
+  _onMouseOver = () => {
+    this.setState({expanded: true})
+  }
+  _onMouseLeave = () => {
+    this.setState({expanded: false})
+  }
   render() {
     return (
-      <Box2 direction="horizontal" style={{alignSelf: 'center'}}>
+      <Box2
+        onMouseOver={this._onMouseOver}
+        onMouseLeave={this._onMouseLeave}
+        direction="horizontal"
+        style={collapseStyles([
+          {alignSelf: 'center', maxHeight: 17},
+          this.state.expanded ? descriptionExpanded : null,
+        ])}
+      >
         <Text type="BodyTiny">{this.props.description}</Text>
       </Box2>
     )
   }
 }
 
+const descriptionExpanded = {
+  overflow: undefined,
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: globalColors.black_10,
+}
+
 const ChannelHeader = (props: Props) => (
   <Box2 direction="horizontal" fullWidth={true} style={containerStyle}>
-    <Box2 direction="horizontal" />
+    <Box2 direction="horizontal" style={{minWidth: 48}} />
     <Box2 direction="vertical" fullWidth={true}>
       <Box2
         direction="horizontal"
@@ -55,7 +81,7 @@ const ChannelHeader = (props: Props) => (
       </Box2>
       <Description description={props.description} />
     </Box2>
-    <Box2 direction="horizontal">
+    <Box2 direction="horizontal" style={{minWidth: 48}}>
       {props.onOpenFolder && (
         <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
       )}
@@ -103,6 +129,7 @@ const containerStyle = {
   borderBottomWidth: 1,
   borderStyle: 'solid',
   minHeight: 32,
+  maxHeight: 48,
   padding: globalMargins.tiny,
   justifyContent: 'space-between',
 }

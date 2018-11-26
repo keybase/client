@@ -28,7 +28,7 @@ const isPendingProps = {
 
 const bigTeamProps = {
   ...defaultProps,
-  description: 'Talk about NYC with your friends and coworkers',
+  description: 'General announcements, events, etc. New members: please introduce yourself with your current experience and your specialization! Find out more about our mentorship programs at  http://techtonica.org/mentorship.',
   smallTeam: false,
 }
 
