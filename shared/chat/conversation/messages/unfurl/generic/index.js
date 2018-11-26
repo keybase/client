@@ -83,14 +83,13 @@ const styles = Styles.styleSheetCreate({
   innerContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      paddingLeft: Styles.globalMargins.tiny,
       minWidth: 150,
     },
     isMobile: {
       borderWidth: 1,
       borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
-      padding: Styles.globalMargins.xtiny,
+      padding: Styles.globalMargins.tiny,
     },
   }),
   siteNameContainer: Styles.platformStyles({
