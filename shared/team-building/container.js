@@ -9,7 +9,7 @@ import {compose, namedConnect} from '../util/container'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
-import {memoize1Obj, memoize1, memoize2, memoize3, memoize4} from '../util/memoize'
+import {memoize1Shallow, memoize1, memoize2, memoize3, memoize4} from '../util/memoize'
 import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
 
 // TODO
@@ -124,7 +124,7 @@ const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => 
   !searchString && teamSoFar.length && onRemove(teamSoFar[teamSoFar.length - 1].userId)
 })
 
-const deriveOnEnterKeyDown = memoize1Obj(
+const deriveOnEnterKeyDown = memoize1Shallow(
   ({
     searchResults,
     teamSoFar,
