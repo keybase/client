@@ -234,38 +234,6 @@ func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) err
 	return err
 }
 
-// ImportSecretKeyAccountBundle is a temporary function.
-// This is just to check PostBundleRestricted.
-// It does not attempt to do a full migration from V1 to V2.
-func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) error {
-	if g.GetRunMode() == libkb.ProductionRunMode {
-		return errors.New("this doesn't work in production")
-	}
-
-	prevBundle, _, _, err := remote.Fetch(ctx, g)
-	if err != nil {
-		return err
-	}
-	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
-	err = acctbundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
-	if err != nil {
-		return err
-	}
-
-	// turn on the feature flag for the v2 stellar account bundles
-	err = EnableMigrationFeatureFlag(ctx, g)
-	if err != nil {
-		return err
-	}
-
-	if err := remote.PostBundleRestricted(ctx, g, &nextBundle); err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
-		return err
-	}
-
-	return nil
-}
-
 func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
 	prevBundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
