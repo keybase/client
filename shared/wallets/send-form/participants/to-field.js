@@ -64,6 +64,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   // No username, so show search box.
   return (
     <Search
+      heading={props.isRequest ? 'From' : 'To'}
       onClickResult={props.onChangeRecipient}
       onClose={() => {}}
       onShowSuggestions={props.onShowSuggestions}
