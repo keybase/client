@@ -1282,8 +1282,11 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	v1Bundle1 := bundle.Advance(v1Bundle0)
 	err = remote.PostV1Bundle(ctx, g, v1Bundle1)
 	require.NoError(t, err)
+	primaryAccount, err := v1Bundle1.PrimaryAccount()
+	require.NoError(t, err)
+	primaryAccountID := primaryAccount.AccountID
 
-	// secretless bundle
+	// fetch secretless bundle
 	bundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
 	require.NoError(t, err)
 	require.Equal(t, version, stellar1.BundleVersion_V1)
@@ -1291,6 +1294,12 @@ func TestV2EndpointsAsV1(t *testing.T) {
 		require.Equal(t, len(ab.Signers), 0)
 	}
 
+	// fetch account bundle
+	bundle, version, _, err = remote.FetchAccountBundle(ctx, g, primaryAccountID)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	ab := bundle.AccountBundles[primaryAccountID]
+	require.Equal(t, len(ab.Signers), 1)
 }
 
 func TestMigrateBundleToAccountBundles(t *testing.T) {
@@ -1317,7 +1326,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 
 	// assert cannot use v2 endpoints before migrating
 	// fetch
-	_, _, _, err = remote.FetchAccountBundle(ctx, g, primaryAccountID)
+	_, _, _, err = remote.FetchV2BundleWithArgs(ctx, g, libkb.HTTPArgs{})
 	aerr := err.(libkb.AppStatusError)
 	actualStatus := keybase1.StatusCode(aerr.Code)
 	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
@@ -1380,7 +1389,8 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.NoError(t, err)
 	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
 	// add a primary account
-	fetchedBundle, _, _, err := remote.FetchAccountBundle(ctx, g, primaryAccountID)
+	fetchArgs := libkb.HTTPArgs{"account_id": libkb.S{Val: string(primaryAccountID)}}
+	fetchedBundle, _, _, err := remote.FetchV2BundleWithArgs(ctx, g, fetchArgs)
 	newPrimaryAccountID, newPrimarySecretKey := randomStellarKeypair()
 	err = acctbundle.AddAccount(fetchedBundle, newPrimarySecretKey, "newprimary", true /* make primary */)
 	require.NoError(t, err)
