@@ -505,6 +505,9 @@ func incompatibleVersionError(inputError error) bool {
 // but without any specified AccountID and therefore no secrets (signers)
 func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchSecretlessBundle", func() error { return err })()
+
+	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
+
 	acctBundle, version, pukGen, err = FetchV2BundleWithArgs(ctx, g, libkb.HTTPArgs{})
 	if err != nil && incompatibleVersionError(err) {
 		g.Log.CDebugf(ctx, "requested v2 secretless bundle but not migrated yet. replacing with v1.")
@@ -530,6 +533,9 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 // to all of the accounts (e.g. a desktop after mobile-only)
 func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchWholeBundle", func() error { return err })()
+
+	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
+
 	bundle, version, pukGen, err := FetchSecretlessBundle(ctx, g)
 	if err != nil {
 		return nil, 0, 0, err
@@ -550,6 +556,8 @@ func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *
 // FetchAccountBundle gets an account bundle from the server and decrypts it.
 func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
+
+	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
 
 	fetchArgs := libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}}
 	acctBundle, version, pukGen, err = FetchV2BundleWithArgs(ctx, g, fetchArgs)
@@ -643,15 +651,6 @@ func fetchV1BundleAsV2Bundle(ctx context.Context, g *libkb.GlobalContext) (res *
 		return res, 0, 0, err
 	}
 	return accountBundle, version, pukGen, nil
-}
-
-// Fetch and unbox the latest bundle from the server.
-func Fetch(ctx context.Context, g *libkb.GlobalContext) (res *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
-
-	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
-
-	return fetchV1BundleAsV2Bundle(ctx, g)
 }
 
 type seqnoResult struct {

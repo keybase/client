@@ -235,7 +235,7 @@ func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) err
 }
 
 func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
-	prevBundle, _, _, err := remote.Fetch(ctx, g)
+	prevBundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
 	if err != nil {
 		return res, err
 	}
@@ -260,7 +260,7 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 }
 
 func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	bundle, _, _, err := remote.Fetch(ctx, g)
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
 	if err != nil {
 		return false, false, err
 	}
@@ -273,17 +273,21 @@ func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 }
 
 func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
-	bundle, _, _, err := remote.Fetch(ctx, g)
-	if err != nil {
-		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
-	}
-
 	if accountID == "" {
+		bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+		if err != nil {
+			return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
+		}
 		entry, err := bundle.PrimaryAccount()
 		if err != nil {
 			return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 		}
-		return entry, bundle.AccountBundles[entry.AccountID], nil
+		accountID = entry.AccountID
+	}
+
+	bundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
+	if err != nil {
+		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 	}
 
 	for _, entry := range bundle.Accounts {
@@ -777,7 +781,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
-	activeBundle, _, _, err := remote.Fetch(ctx, g)
+	activeBundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
 	if err != nil {
 		return res, err
 	}
@@ -1191,7 +1195,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
 	}
-	bundle, version, _, err := remote.Fetch(m.Ctx(), m.G())
+	bundle, version, _, err := remote.FetchAccountBundle(m.Ctx(), m.G(), accountID)
 	if err != nil {
 		return err
 	}
@@ -1208,7 +1212,9 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if !found {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
+	// NOTE: changing the name of an account does not advance its revision
+	// so only the bundle gets advanced here.
+	nextBundle := acctbundle.AdvanceBundle(*bundle)
 	return remote.Post(m.Ctx(), m.G(), nextBundle, version)
 }
 
@@ -1322,9 +1328,15 @@ func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error)
 }
 
 func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
-	prevBundle, version, _, err := remote.Fetch(m.Ctx(), m.G())
+	prevBundle, version, _, err := remote.FetchSecretlessBundle(m.Ctx(), m.G())
 	if err != nil {
 		return ret, err
+	}
+	if version == stellar1.BundleVersion_V1 {
+		prevBundle, _, _, err = remote.FetchWholeBundle(m.Ctx(), m.G())
+		if err != nil {
+			return ret, err
+		}
 	}
 	nextBundle := acctbundle.AdvanceBundle(*prevBundle)
 	ret, err = acctbundle.CreateNewAccount(&nextBundle, accountName, false /* makePrimary */)

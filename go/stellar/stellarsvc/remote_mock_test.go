@@ -885,7 +885,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
-	bundle, _, _, err := remote.Fetch(context.Background(), tc.G)
+	bundle, _, _, err := remote.FetchWholeBundle(context.Background(), tc.G)
 	require.NoError(r.T, err)
 	for _, account := range bundle.Accounts {
 		if _, found := r.accounts[account.AccountID]; found {

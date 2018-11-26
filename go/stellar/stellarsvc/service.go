@@ -346,7 +346,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 
 	mctx := libkb.NewMetaContext(ctx, s.G())
 
-	currentBundle, _, _, err := remote.Fetch(ctx, s.G())
+	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		return nil, err
 	}
