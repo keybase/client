@@ -1444,6 +1444,38 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	}
 }
 
+func TestImplicitMigrationToAccountBundles(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.TODO()
+	g := tcs[0].G
+	m := libkb.NewMetaContextTODO(g)
+	acceptDisclaimer(tcs[0])
+
+	// verify that we have a v1 bundle
+	bundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	require.Equal(t, len(bundle.Accounts), 1)
+
+	// enable the feature flag
+	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	require.NoError(t, err)
+	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
+
+	// the next bundle we pull should be v2
+	bundle, version, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	require.Equal(t, len(bundle.Accounts), 1)
+
+	// attempting to migrate explicitly should throw already migrated
+	err = remote.MigrateBundleToAccountBundles(m)
+	require.Error(t, err)
+	_, correctErrorType := err.(remote.AlreadyMigratedError)
+	require.True(t, correctErrorType)
+}
+
 func TestMigrateBundleToAccountBundles(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()

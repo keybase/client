@@ -501,16 +501,28 @@ func incompatibleVersionError(inputError error) bool {
 	return keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCStellarIncompatibleVersion
 }
 
-// FetchSecretlessAccountBundle gets an account bundle from the server and decrypts it
+// FetchSecretlessBundle gets an account bundle from the server and decrypts it
 // but without any specified AccountID and therefore no secrets (signers)
+// if the FeatureStellarAcctBundles is true and the user is still on a v1 bundle,
+// this method will call `MigrateBundleToAccountBundles` and then fetch again.
 func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchSecretlessBundle", func() error { return err })()
 
-	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
-
 	acctBundle, version, pukGen, err = FetchV2BundleWithArgs(ctx, g, libkb.HTTPArgs{})
 	if err != nil && incompatibleVersionError(err) {
-		g.Log.CDebugf(ctx, "requested v2 secretless bundle but not migrated yet. replacing with v1.")
+		m := libkb.NewMetaContext(ctx, g)
+		m.CDebugf("requested v2 secretless bundle but not migrated yet.")
+		hasFeatureFlagForMigration := acctBundlesEnabled(m)
+		if hasFeatureFlagForMigration {
+			m.CDebugf("has feature flag. kicking off migration now.")
+			err := MigrateBundleToAccountBundles(m)
+			if err != nil {
+				m.CDebugf("migration failed. suggest turning off the feature flag and investigating.")
+				return nil, 0, 0, err
+			}
+			return FetchV2BundleWithArgs(ctx, g, libkb.HTTPArgs{})
+		}
+
 		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(ctx, g)
 		if err != nil {
 			return nil, 0, 0, err
@@ -534,8 +546,6 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchWholeBundle", func() error { return err })()
 
-	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
-
 	bundle, version, pukGen, err := FetchSecretlessBundle(ctx, g)
 	if err != nil {
 		return nil, 0, 0, err
@@ -556,8 +566,6 @@ func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *
 // FetchAccountBundle gets an account bundle from the server and decrypts it.
 func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
-
-	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
 
 	fetchArgs := libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}}
 	acctBundle, version, pukGen, err = FetchV2BundleWithArgs(ctx, g, fetchArgs)
