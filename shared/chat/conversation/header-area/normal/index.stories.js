@@ -26,6 +26,12 @@ const isPendingProps = {
   onOpenFolder: null,
 }
 
+const bigTeamProps = {
+  ...defaultProps,
+  description: 'Talk about NYC with your friends and coworkers',
+  smallTeam: false,
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Header', module)
     .add('Username Header', () => <UsernameHeader {...defaultProps} />)
@@ -35,7 +41,7 @@ const load = () => {
     .add('Username Header muted', () => <UsernameHeader {...defaultProps} muted={true} />)
     .add('Username Header isPending', () => <UsernameHeader {...defaultProps} {...isPendingProps} />)
     .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)
-    .add('Channel Header for big team', () => <ChannelHeader {...defaultProps} smallTeam={false} />)
+    .add('Channel Header for big team', () => <ChannelHeader {...bigTeamProps} />)
 }
 
 export default load
