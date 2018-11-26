@@ -566,6 +566,7 @@ export const localUnfurlPromptAction = {
   never: 1,
   accept: 2,
   notnow: 3,
+  onetime: 4,
 }
 
 export const notifyChatChatActivitySource = {
@@ -1099,8 +1100,9 @@ export type UnfurlPromptAction =
   | 1 // NEVER_1
   | 2 // ACCEPT_2
   | 3 // NOTNOW_3
+  | 4 // ONETIME_4
 
-export type UnfurlPromptResult = {actionType: 0} | {actionType: 1} | {actionType: 3} | {actionType: 2, accept: ?String}
+export type UnfurlPromptResult = {actionType: 0} | {actionType: 1} | {actionType: 3} | {actionType: 2, accept: ?String} | {actionType: 4, onetime: ?String}
 export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
 export type UnfurlResult = $ReadOnly<{unfurl: Unfurl, url: String}>
 export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist: {[key: string]: Boolean}}>
