@@ -935,3 +935,16 @@ func syncPathListFromBlock(codec kbfscodec.Codec, b *FileBlock) (
 	}
 	return paths, nil
 }
+
+// BlockMetadataValue represents the value stored in the block metadata
+// store. This is usually locally stored, and is separate from block metadata
+// stored on bserver.
+type BlockMetadataValue struct {
+	// Xattr contains all xattrs stored in association with the block. This is
+	// useful for stuff that's contingent to content of the block, such as
+	// quarantine data.
+	Xattr map[XattrType][]byte
+}
+
+// BlockMetadataUpdater defines a function to update a BlockMetadataValue.
+type BlockMetadataUpdater func(*BlockMetadataValue) error

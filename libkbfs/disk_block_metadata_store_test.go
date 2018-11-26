@@ -13,31 +13,32 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
-type testDiskBlockMetadataStoreConfig struct {
+type testBlockMetadataStoreConfig struct {
 	codec       kbfscodec.Codec
 	log         logger.Logger
 	storageRoot string
 }
 
-func (t *testDiskBlockMetadataStoreConfig) Codec() kbfscodec.Codec {
+func (t *testBlockMetadataStoreConfig) Codec() kbfscodec.Codec {
 	return t.codec
 }
-func (t *testDiskBlockMetadataStoreConfig) MakeLogger(
+func (t *testBlockMetadataStoreConfig) MakeLogger(
 	module string) logger.Logger {
 	return t.log
 }
-func (t *testDiskBlockMetadataStoreConfig) StorageRoot() string {
+func (t *testBlockMetadataStoreConfig) StorageRoot() string {
 	return t.storageRoot
 }
 
-func makeDiskBlockMetadataStoreForTest(t *testing.T) (
-	diskBlockMetadataStore DiskBlockMetadataStore, tempdir string) {
+func makeBlockMetadataStoreForTest(t *testing.T) (
+	blockMetadataStore BlockMetadataStore, tempdir string) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "xattr_test")
-	config := testDiskBlockMetadataStoreConfig{
+	config := testBlockMetadataStoreConfig{
 		codec:       kbfscodec.NewMsgpack(),
 		log:         logger.NewTestLogger(t),
 		storageRoot: tempdir,
@@ -47,35 +48,37 @@ func makeDiskBlockMetadataStoreForTest(t *testing.T) (
 	return s, tempdir
 }
 
-func shutdownDiskBlockMetadataStoreTest(
-	diskBlockMetadataStore DiskBlockMetadataStore, tempdir string) {
-	diskBlockMetadataStore.Shutdown()
+func shutdownBlockMetadataStoreTest(
+	blockMetadataStore BlockMetadataStore, tempdir string) {
+	blockMetadataStore.Shutdown()
 	os.RemoveAll(tempdir)
 }
 
 func TestDiskXattr(t *testing.T) {
 	t.Parallel()
 	t.Log("Test creating disk Xattr storage")
-	diskBlockMetadataStore, tempdir := makeDiskBlockMetadataStoreForTest(t)
-	defer shutdownDiskBlockMetadataStoreTest(diskBlockMetadataStore, tempdir)
+	blockMetadataStore, tempdir := makeBlockMetadataStoreForTest(t)
+	defer shutdownBlockMetadataStoreTest(blockMetadataStore, tempdir)
+
+	xattrStore := xattrStore{store: blockMetadataStore}
 
 	ctx := context.Background()
 	blockID := kbfsblock.FakeID(23)
 
 	t.Log("Test getting non-existent xattr")
-	v, err := diskBlockMetadataStore.GetXattr(
+	v, err := xattrStore.GetXattr(
 		ctx, blockID, XattrAppleQuarantine)
-	require.Equal(t, ldberrors.ErrNotFound, err)
+	require.Equal(t, ldberrors.ErrNotFound, errors.Cause(err))
 
 	value := []byte("rational irrationality")
 
 	t.Log("Test setting xattr")
-	err = diskBlockMetadataStore.SetXattr(
+	err = xattrStore.SetXattr(
 		ctx, blockID, XattrAppleQuarantine, value)
 	require.NoError(t, err)
 
 	t.Log("Test getting xattr")
-	v, err = diskBlockMetadataStore.GetXattr(ctx, blockID, XattrAppleQuarantine)
+	v, err = xattrStore.GetXattr(ctx, blockID, XattrAppleQuarantine)
 	require.NoError(t, err)
 	require.Equal(t, value, v)
 

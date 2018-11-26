@@ -771,7 +771,7 @@ func doInit(
 		log.CDebugf(ctx, "Disk quota cache enabled")
 	}
 
-	err = config.MakeDiskBlockMetadataStoreIfNotExists()
+	err = config.MakeBlockMetadataStoreIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)

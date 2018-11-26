@@ -99,12 +99,10 @@ type diskQuotaCacheSetter interface {
 	MakeDiskQuotaCacheIfNotExists() error
 }
 
-type diskBlockMetadataStoreGetter interface {
-	DiskBlockMetadataStore() DiskBlockMetadataStore
-}
-
-type diskBlockMetadataStoreSetter interface {
-	MakeDiskBlockMetadataStoreIfNotExists() error
+type blockMetadataStoreGetSeter interface {
+	MakeBlockMetadataStoreIfNotExists() error
+	XattrStore() XattrStore
+	// Other metadata store types goes here.
 }
 
 type clockGetter interface {
@@ -1343,17 +1341,36 @@ type DiskQuotaCache interface {
 	Shutdown(ctx context.Context)
 }
 
-// DiskBlockMetadataStore defines a type that stores xattrs.
-type DiskBlockMetadataStore interface {
+// BlockMetadataStore defines a type that stores block metadata locally on
+// device.
+type BlockMetadataStore interface {
+	// GetMetadata looks for and returns the block metadata for blockID if it's
+	// found, and an error whose Cause is ldberrors.ErrNotFound if it's not
+	// found.
+	GetMetadata(ctx context.Context, blockID kbfsblock.ID) (BlockMetadataValue, error)
+	// UpdateMetadata updates the block metadata for blockID using updater.
+	// Specifically, it looks for existing block metdata for blockID. If it's
+	// found, it's passed into updater. Otherwise, a zero value of
+	// BlockMetadataValue is passed into the updater. After if updater returns
+	// nil, the updated metadata is stored.
+	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, updater BlockMetadataUpdater) error
+	// MarkMiss marks miss(es) in the store's miss meter.
+	MarkMiss(num int64)
+	// Shutdown cleanly shuts down the disk block metadata cache.
+	Shutdown()
+}
+
+// XattrStore defines a type that handles locally stored xattr
+// values by interacting with a BlockMetadataStore.
+type XattrStore interface {
 	// GetXattr looks for and returns the Xattr value of xattrType for blockID
-	// if it's found, and ldberrors.ErrNotFound if it's not found.
+	// if it's found, and an error whose Cause is ldberrors.ErrNotFound if it's
+	// not found.
 	GetXattr(ctx context.Context,
 		blockID kbfsblock.ID, xattrType XattrType) ([]byte, error)
 	// SetXattr sets xattrType Xattr to xattrValue for blockID.
 	SetXattr(ctx context.Context,
 		blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) error
-	// Shutdown cleanly shuts down the disk block metadata cache.
-	Shutdown()
 }
 
 // cryptoPure contains all methods of Crypto that don't depend on
@@ -2218,8 +2235,7 @@ type Config interface {
 	diskMDCacheSetter
 	diskQuotaCacheGetter
 	diskQuotaCacheSetter
-	diskBlockMetadataStoreGetter
-	diskBlockMetadataStoreSetter
+	blockMetadataStoreGetSeter
 	clockGetter
 	diskLimiterGetter
 	syncedTlfGetterSetter

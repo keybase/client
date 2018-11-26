@@ -61,7 +61,7 @@ type diskBlockMetadataStore struct {
 
 // newDiskBlockMetadataStore creates a new disk BlockMetadata storage.
 func newDiskBlockMetadataStore(
-	config diskBlockMetadataStoreConfig) (DiskBlockMetadataStore, error) {
+	config diskBlockMetadataStoreConfig) (BlockMetadataStore, error) {
 	log := config.MakeLogger("BMS")
 	db, err := openVersionedLevelDB(log, config.StorageRoot(),
 		blockMetadataFolderName, currentBlockMetadataStoreVersion, blockMetadataDbFilename)
@@ -80,135 +80,146 @@ func newDiskBlockMetadataStore(
 }
 
 // Shutdown shuts done this storae.
-func (c *diskBlockMetadataStore) Shutdown() {
-	c.log.Debug("Shutting down diskBlockMetadataStore")
-	c.lock.Lock()
-	defer c.lock.Unlock()
+func (s *diskBlockMetadataStore) Shutdown() {
+	s.log.Debug("Shutting down diskBlockMetadataStore")
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	// shutdownCh has to be checked under lock, otherwise we can race.
 	select {
-	case <-c.shutdownCh:
-		c.log.Warning("Shutdown called more than once")
+	case <-s.shutdownCh:
+		s.log.Warning("Shutdown called more than once")
 	default:
 	}
-	close(c.shutdownCh)
-	if c.db == nil {
+	close(s.shutdownCh)
+	if s.db == nil {
 		return
 	}
-	c.db.Close()
-	c.db = nil
-	c.hitMeter.Shutdown()
-	c.missMeter.Shutdown()
-	c.putMeter.Shutdown()
+	s.db.Close()
+	s.db = nil
+	s.hitMeter.Shutdown()
+	s.missMeter.Shutdown()
+	s.putMeter.Shutdown()
 }
 
-// ErrDiskBlockMetadataStoreShutdown is returned when methods are called on
+// MarkMiss implements the BlockMetadataStore interface.
+func (s *diskBlockMetadataStore) MarkMiss(num int64) {
+	s.missMeter.Mark(num)
+}
+
+var _ BlockMetadataStore = (*diskBlockMetadataStore)(nil)
+
+// ErrBlockMetadataStoreShutdown is returned when methods are called on
 // diskBlockMetadataStore when it's already shutdown.
-type ErrDiskBlockMetadataStoreShutdown struct{}
+type ErrBlockMetadataStoreShutdown struct{}
 
 // Error implements the error interface.
-func (ErrDiskBlockMetadataStoreShutdown) Error() string {
+func (ErrBlockMetadataStoreShutdown) Error() string {
 	return "disk block metadata store has shutdown"
 }
 
-// DiskBlockMetadataValue represents the value stored in the block metadata
-// store.
-type DiskBlockMetadataValue struct {
-	// Xattr contains all xattrs stored in association with the block. This is
-	// useful for stuff that's contingent to content of the block, such as
-	// quarantine data.
-	Xattr map[XattrType][]byte
-}
-
-func (c *diskBlockMetadataStore) getMetadata(ctx context.Context,
-	blockID kbfsblock.ID) (value DiskBlockMetadataValue, err error) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+// GetMetadata implements the BlockMetadataStore interface.
+func (s *diskBlockMetadataStore) GetMetadata(ctx context.Context,
+	blockID kbfsblock.ID) (value BlockMetadataValue, err error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
 	select {
-	case <-c.shutdownCh:
-		return DiskBlockMetadataValue{}, ErrDiskBlockMetadataStoreShutdown{}
+	case <-s.shutdownCh:
+		return BlockMetadataValue{}, ErrBlockMetadataStoreShutdown{}
 	default:
 	}
 
-	encoded, err := c.db.GetWithMeter(blockID.Bytes(), c.hitMeter, c.missMeter)
+	encoded, err := s.db.GetWithMeter(blockID.Bytes(), s.hitMeter, s.missMeter)
 	switch errors.Cause(err) {
 	case ldberrors.ErrNotFound:
-		return DiskBlockMetadataValue{}, ldberrors.ErrNotFound
+		return BlockMetadataValue{}, err
 	case nil:
-		if err = c.config.Codec().Decode(encoded, &value); err != nil {
-			c.log.CWarningf(ctx, "decoding block metadata error: %v", err)
-			return DiskBlockMetadataValue{}, ldberrors.ErrNotFound
+		if err = s.config.Codec().Decode(encoded, &value); err != nil {
+			s.log.CWarningf(ctx, "decoding block metadata error: %v", err)
+			return BlockMetadataValue{}, ldberrors.ErrNotFound
 		}
 		return value, nil
 	default:
-		c.log.CWarningf(ctx, "getMetadata error: %v", err)
-		return DiskBlockMetadataValue{}, ldberrors.ErrNotFound
+		s.log.CWarningf(ctx, "GetMetadata error: %v", err)
+		return BlockMetadataValue{}, ldberrors.ErrNotFound
 	}
 }
 
-type blockMetadataUpdater func(*DiskBlockMetadataValue) error
-
-func (c *diskBlockMetadataStore) setMetadata(ctx context.Context,
-	blockID kbfsblock.ID, updater blockMetadataUpdater) error {
+// UpdateMetadata implements the BlockMetadataStore interface.
+func (s *diskBlockMetadataStore) UpdateMetadata(ctx context.Context,
+	blockID kbfsblock.ID, updater BlockMetadataUpdater) error {
 	bid := blockID.Bytes()
 
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
 	select {
-	case <-c.shutdownCh:
-		return ErrDiskBlockMetadataStoreShutdown{}
+	case <-s.shutdownCh:
+		return ErrBlockMetadataStoreShutdown{}
 	default:
 	}
 
-	var value DiskBlockMetadataValue
-	encoded, err := c.db.Get(bid, nil)
+	var value BlockMetadataValue
+	encoded, err := s.db.Get(bid, nil)
 	switch errors.Cause(err) {
 	case ldberrors.ErrNotFound:
 	case nil:
-		if err = c.config.Codec().Decode(encoded, &value); err != nil {
-			c.log.CWarningf(ctx, "decoding block metadata error: %v", err)
+		if err = s.config.Codec().Decode(encoded, &value); err != nil {
+			s.log.CWarningf(ctx, "decoding block metadata error: %v", err)
 		}
 	default:
-		c.log.CWarningf(ctx, "getMetadata error: %v", err)
+		s.log.CWarningf(ctx, "GetMetadata error: %v", err)
 	}
 
 	if err = updater(&value); err != nil {
 		return err
 	}
 
-	if encoded, err = c.config.Codec().Encode(value); err != nil {
+	if encoded, err = s.config.Codec().Encode(value); err != nil {
 		return err
 	}
-	if err = c.db.PutWithMeter(bid, encoded, c.putMeter); err != nil {
+	if err = s.db.PutWithMeter(bid, encoded, s.putMeter); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// GetXattr looks for and returns the Xattr value of xattrType for blockID if
-// it's found, and ldberrors.ErrNotFound if it's not found.
-func (c *diskBlockMetadataStore) GetXattr(ctx context.Context,
+// xattrStore is a wrapper around BlockMetadataStore that handles xattr
+// values.
+type xattrStore struct {
+	store BlockMetadataStore
+}
+
+// NewXattrStoreFromBlockMetadataStore returns a XattrStore which is a wrapper
+// around the passed in store.
+func NewXattrStoreFromBlockMetadataStore(store BlockMetadataStore) XattrStore {
+	return xattrStore{store: store}
+}
+
+var _ XattrStore = (*xattrStore)(nil)
+
+// GetXattr implements the XattrStore interface.
+func (s xattrStore) GetXattr(ctx context.Context,
 	blockID kbfsblock.ID, xattrType XattrType) ([]byte, error) {
-	blockMetadata, err := c.getMetadata(ctx, blockID)
+	blockMetadata, err := s.store.GetMetadata(ctx, blockID)
 	if err != nil {
 		return nil, err
 	}
 
 	v, ok := blockMetadata.Xattr[xattrType]
 	if !ok {
-		c.missMeter.Mark(1)
+		s.store.MarkMiss(1)
 		return nil, ldberrors.ErrNotFound
 	}
 
 	return v, nil
 }
 
-// SetXattr sets xattrType Xattr to xattrValue for blockID.
-func (c *diskBlockMetadataStore) SetXattr(ctx context.Context,
+// SetXattr implements the XattrStore interface.
+func (s xattrStore) SetXattr(ctx context.Context,
 	blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) (err error) {
-	return c.setMetadata(ctx, blockID, func(v *DiskBlockMetadataValue) error {
+	return s.store.UpdateMetadata(ctx, blockID, func(v *BlockMetadataValue) error {
 		if v.Xattr == nil {
 			v.Xattr = make(map[XattrType][]byte)
 		}
@@ -217,21 +228,26 @@ func (c *diskBlockMetadataStore) SetXattr(ctx context.Context,
 	})
 }
 
-// NoopBlockMetadataStore satisfies the DiskBlockMetadataStore interface but
+// NoopBlockMetadataStore satisfies the BlockMetadataStore interface but
 // does nothing.
 type NoopBlockMetadataStore struct{}
 
-// GetXattr always returns ldberrors.ErrNotFound.
-func (NoopBlockMetadataStore) GetXattr(ctx context.Context,
-	blockID kbfsblock.ID, xattrType XattrType) ([]byte, error) {
-	return nil, ldberrors.ErrNotFound
+var _ BlockMetadataStore = NoopBlockMetadataStore{}
+
+// GetMetadata always returns ldberrors.ErrNotFound.
+func (NoopBlockMetadataStore) GetMetadata(ctx context.Context,
+	blockID kbfsblock.ID) (value BlockMetadataValue, err error) {
+	return BlockMetadataValue{}, ldberrors.ErrNotFound
 }
 
-// SetXattr returns nil error but does nothing.
-func (NoopBlockMetadataStore) SetXattr(ctx context.Context,
-	blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) error {
+// UpdateMetadata returns nil error but does nothing.
+func (NoopBlockMetadataStore) UpdateMetadata(ctx context.Context,
+	blockID kbfsblock.ID, updater BlockMetadataUpdater) error {
 	return nil
 }
+
+// MarkMiss does nothing.
+func (NoopBlockMetadataStore) MarkMiss(int64) {}
 
 // Shutdown does nothing.
 func (NoopBlockMetadataStore) Shutdown() {}

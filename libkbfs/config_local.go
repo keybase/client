@@ -70,46 +70,47 @@ const (
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	lock                   sync.RWMutex
-	kbfs                   KBFSOps
-	keyman                 KeyManager
-	rep                    Reporter
-	kcache                 KeyCache
-	kbcache                kbfsmd.KeyBundleCache
-	bcache                 BlockCache
-	dirtyBcache            DirtyBlockCache
-	diskBlockCache         DiskBlockCache
-	diskMDCache            DiskMDCache
-	diskQuotaCache         DiskQuotaCache
-	diskBlockMetadataStore DiskBlockMetadataStore
-	codec                  kbfscodec.Codec
-	mdops                  MDOps
-	kops                   KeyOps
-	crypto                 Crypto
-	chat                   Chat
-	mdcache                MDCache
-	bops                   BlockOps
-	mdserv                 MDServer
-	bserv                  BlockServer
-	keyserv                KeyServer
-	service                KeybaseService
-	bsplit                 BlockSplitter
-	notifier               Notifier
-	clock                  Clock
-	kbpki                  KBPKI
-	renamer                ConflictRenamer
-	userHistory            *kbfsedits.UserHistory
-	registry               metrics.Registry
-	loggerFn               func(prefix string) logger.Logger
-	noBGFlush              bool // logic opposite so the default value is the common setting
-	rwpWaitTime            time.Duration
-	diskLimiter            DiskLimiter
-	syncedTlfs             map[tlf.ID]FolderSyncConfig
-	defaultBlockType       keybase1.BlockType
-	kbfsService            *KBFSService
-	kbCtx                  Context
-	rootNodeWrappers       []func(Node) Node
-	tlfClearCancels        map[tlf.ID]context.CancelFunc
+	lock               sync.RWMutex
+	kbfs               KBFSOps
+	keyman             KeyManager
+	rep                Reporter
+	kcache             KeyCache
+	kbcache            kbfsmd.KeyBundleCache
+	bcache             BlockCache
+	dirtyBcache        DirtyBlockCache
+	diskBlockCache     DiskBlockCache
+	diskMDCache        DiskMDCache
+	diskQuotaCache     DiskQuotaCache
+	blockMetadataStore BlockMetadataStore
+	xattrStore         XattrStore
+	codec              kbfscodec.Codec
+	mdops              MDOps
+	kops               KeyOps
+	crypto             Crypto
+	chat               Chat
+	mdcache            MDCache
+	bops               BlockOps
+	mdserv             MDServer
+	bserv              BlockServer
+	keyserv            KeyServer
+	service            KeybaseService
+	bsplit             BlockSplitter
+	notifier           Notifier
+	clock              Clock
+	kbpki              KBPKI
+	renamer            ConflictRenamer
+	userHistory        *kbfsedits.UserHistory
+	registry           metrics.Registry
+	loggerFn           func(prefix string) logger.Logger
+	noBGFlush          bool // logic opposite so the default value is the common setting
+	rwpWaitTime        time.Duration
+	diskLimiter        DiskLimiter
+	syncedTlfs         map[tlf.ID]FolderSyncConfig
+	defaultBlockType   keybase1.BlockType
+	kbfsService        *KBFSService
+	kbCtx              Context
+	rootNodeWrappers   []func(Node) Node
+	tlfClearCancels    map[tlf.ID]context.CancelFunc
 
 	maxNameBytes           uint32
 	rekeyQueue             RekeyQueue
@@ -625,11 +626,11 @@ func (c *ConfigLocal) DiskQuotaCache() DiskQuotaCache {
 	return c.diskQuotaCache
 }
 
-// DiskBlockMetadataStore implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) DiskBlockMetadataStore() DiskBlockMetadataStore {
+// XattrStore implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) XattrStore() XattrStore {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.diskBlockMetadataStore
+	return c.xattrStore
 }
 
 // DiskLimiter implements the Config interface for ConfigLocal.
@@ -1247,7 +1248,7 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if dqc != nil {
 		dqc.Shutdown(ctx)
 	}
-	bms := c.DiskBlockMetadataStore()
+	bms := c.blockMetadataStore
 	if bms != nil {
 		bms.Shutdown()
 	}
@@ -1494,12 +1495,15 @@ func (c *ConfigLocal) MakeDiskQuotaCacheIfNotExists() error {
 	return c.resetDiskQuotaCacheLocked()
 }
 
-// MakeDiskBlockMetadataStoreIfNotExists implements the Config interface for
+// MakeBlockMetadataStoreIfNotExists implements the Config interface for
 // ConfigLocal. If error happens, a Noop one is populated.
-func (c *ConfigLocal) MakeDiskBlockMetadataStoreIfNotExists() error {
+func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if c.diskBlockMetadataStore != nil {
+	defer func() {
+		c.xattrStore = NewXattrStoreFromBlockMetadataStore(c.blockMetadataStore)
+	}()
+	if c.blockMetadataStore != nil {
 		return nil
 	}
 	bms, err := newDiskBlockMetadataStore(c)
@@ -1507,7 +1511,7 @@ func (c *ConfigLocal) MakeDiskBlockMetadataStoreIfNotExists() error {
 		bms = NoopBlockMetadataStore{}
 		return err
 	}
-	c.diskBlockMetadataStore = bms
+	c.blockMetadataStore = bms
 	return nil
 }
 

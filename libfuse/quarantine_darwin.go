@@ -11,6 +11,7 @@ import (
 
 	"bazil.org/fuse"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"
 )
@@ -71,9 +72,9 @@ func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
 		return fuse.ENOTSUP
 	}
 
-	xattr, err := h.folder.fs.config.DiskBlockMetadataStore().GetXattr(
+	xattr, err := h.folder.fs.config.XattrStore().GetXattr(
 		ctx, h.node.GetBlockID(), libkbfs.XattrAppleQuarantine)
-	switch err {
+	switch errors.Cause(err) {
 	case nil:
 		if len(xattr) == 0 {
 			return fuse.ENOATTR
@@ -124,7 +125,7 @@ func (h *QuarantineXattrHandler) Setxattr(ctx context.Context,
 		return fuse.ENOTSUP
 	}
 
-	return h.folder.fs.config.DiskBlockMetadataStore().SetXattr(ctx,
+	return h.folder.fs.config.XattrStore().SetXattr(ctx,
 		h.node.GetBlockID(), libkbfs.XattrAppleQuarantine, req.Xattr)
 }
 
@@ -137,6 +138,6 @@ func (h *QuarantineXattrHandler) Removexattr(
 		return fuse.ENOTSUP
 	}
 
-	return h.folder.fs.config.DiskBlockMetadataStore().SetXattr(ctx,
+	return h.folder.fs.config.XattrStore().SetXattr(ctx,
 		h.node.GetBlockID(), libkbfs.XattrAppleQuarantine, nil)
 }
