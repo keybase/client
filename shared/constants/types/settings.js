@@ -1,4 +1,5 @@
 // @flow strict
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import type {Email, Time} from './rpc-gen'
 import type {SimpleProofState} from './tracker'
@@ -74,6 +75,15 @@ export type EmailState = {
   error: ?Error,
 }
 
+export type ChatUnfurlState = {
+  unfurlMode?: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist?: Array<string>,
+  unfurlError?: string,
+}
+export type ChatState = {
+  unfurl: ChatUnfurlState,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
@@ -82,10 +92,12 @@ export type State = {
   email: EmailState,
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
+  chat: ChatState,
 }
 
 type AboutTab = 'settingsTabs:aboutTab'
 type AdvancedTab = 'settingsTabs:advancedTab'
+type ChatTab = 'settingsTabs:chatTab'
 type DeleteMeTab = 'settingsTabs:deleteMeTab'
 type DevMenuTab = 'settingsTabs:devMenuTab'
 type DevicesTab = 'settingsTabs:devicesTab'
@@ -118,5 +130,6 @@ export type Tab =
   | ScreenprotectorTab
   | PassphraseTab
   | WalletsTab
+  | ChatTab
 
 export type PlanLevel = string

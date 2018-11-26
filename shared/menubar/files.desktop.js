@@ -15,7 +15,6 @@ type FileUpdateProps = {|
 
 type FileUpdatesProps = {|
   updates: Array<FileUpdateProps>,
-  tlfType: FsTypes.TlfType,
 |}
 
 export type UserTlfUpdateRowProps = {|
@@ -99,7 +98,7 @@ const defaultNumFileOptionsShown = 3
 const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
-      <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />
+      <FileUpdate key={u.name} {...u} />
     ))}
     {props.updates.length > defaultNumFileOptionsShown && (
       // $FlowIssue ¯\_(ツ)_/¯
@@ -147,7 +146,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           )}
         </Kb.Text>
       </Kb.Box2>
-      <ComposedFileUpdates updates={props.updates} tlfType={props.tlfType} />
+      <ComposedFileUpdates updates={props.updates} />
     </Kb.Box2>
   </Kb.Box2>
 )

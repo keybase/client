@@ -29,6 +29,10 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
+  const unfurlPrompts =
+    ownProps.message.type === 'text'
+      ? state.chat2.unfurlPromptMap.getIn([ownProps.message.conversationIDKey, ownProps.message.id])
+      : null
   return {
     _you: state.config.username || '',
     conversationIDKey: ownProps.message.conversationIDKey,
@@ -36,6 +40,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
     shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
+    hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
   }
 }
 
@@ -72,12 +77,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     previous: ownProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     type,
+    hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  () => ({}),
-  mergeProps,
-  'WrapperMessage'
-)(WrapperMessage)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'WrapperMessage')(
+  WrapperMessage
+)

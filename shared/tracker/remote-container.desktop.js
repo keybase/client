@@ -59,7 +59,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  withStateHandlers(
+  withStateHandlers<any, any, any>(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),

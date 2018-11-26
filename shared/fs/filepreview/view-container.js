@@ -87,7 +87,7 @@ const stylesLoadingText = platformStyles({
 })
 
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ViewContainer'),
+  namedConnect<Props, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ViewContainer'),
   lifecycle({
     componentDidMount() {
       if (!this.props.isSymlink && !this.props.mimeType) {

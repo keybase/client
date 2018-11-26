@@ -35,6 +35,7 @@ export type Props = {|
   type: 'wrapper-author' | 'children',
   orangeLineAbove: boolean,
   shouldShowPopup: boolean,
+  hasUnfurlPrompts: boolean,
 |}
 
 // TODO flow gets confused since the props are ambiguous
@@ -117,11 +118,9 @@ class _WrapperMessage extends React.Component<Props & OverlayParentProps, State>
                   toggleShowingMenu: props.toggleShowingMenu,
                 })}
             </Box2>
-            {// $FlowIssue doesn't like us not reducing the type here, but its faster
-            props.message.unfurlPrompts &&
-              !props.message.unfurlPrompts.isEmpty() && (
-                <UnfurlPromptList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-              )}
+            {props.hasUnfurlPrompts && (
+              <UnfurlPromptList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+            )}
             {// $FlowIssue doesn't like us not reducing the type here, but its faster
             props.message.unfurls &&
               !props.message.unfurls.isEmpty() && (

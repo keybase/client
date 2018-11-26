@@ -24,7 +24,6 @@ import (
 
 	"io/ioutil"
 
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -71,6 +70,14 @@ func updaterBinName() (string, error) {
 	// which is complete and total BULLSHIT LOL:
 	// https://technet.microsoft.com/en-us/library/cc709628%28v=ws.10%29.aspx?f=255&MSPPError=-2147217396
 	return "upd.exe", nil
+}
+
+func rqBinPath() (string, error) {
+	path, err := BinPath()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(filepath.Dir(path), "keybaserq.exe"), nil
 }
 
 // RunApp starts the app
@@ -335,24 +342,17 @@ func getCachedPackageModifyString(log Log) (string, error) {
 // StartUpdateIfNeeded starts to update the app if there's one available. It
 // calls `updater check` internally so it ignores the snooze.
 func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
+	rqPath, err := rqBinPath()
+	if err != nil {
+		return err
+	}
 	updaterPath, err := UpdaterBinPath()
 	if err != nil {
 		return err
 	}
-	pid, err := libcmdline.SpawnDetachedProcess(
-		updaterPath, []string{"check"}, log)
-	if err != nil {
+	log.Debug("Starting updater with keybaserq.exe")
+	if err = exec.Command(rqPath, updaterPath, "check").Run(); err != nil {
 		return err
 	}
-	log.Debug("Started background updater process (%s). pid=%d", updaterPath, pid)
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return err
-	}
-	// Ignore the exit status here as user may have hit "Ignore". If we are
-	// here without getting killed, it's likely user has hit "Ignore". Just
-	// just return `nil` and GUI would check for update info again where it'd
-	// know we don't need to update anymore.
-	process.Wait()
 	return nil
 }

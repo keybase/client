@@ -12,7 +12,7 @@ import {
   styleSheetCreate,
 } from '../../../../styles'
 
-let KeyHandler = c => c
+let KeyHandler: any = c => c
 if (!isMobile) {
   KeyHandler = require('../../../../util/key-handler.desktop').default
 }
@@ -202,4 +202,4 @@ const propsIconComposeMobile = {
 
 const propsIconPlatform = isMobile ? propsIconComposeMobile : propsIconCompose
 
-export default (isMobile ? ChatFilterRow : KeyHandler(ChatFilterRow))
+export default (isMobile ? ChatFilterRow : KeyHandler<any>(ChatFilterRow))

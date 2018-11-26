@@ -8,9 +8,9 @@ set -e -u -o pipefail
 
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
-startup_token="$runtime_dir/startup_mode"
 logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
 mkdir -p "$logdir"
+startup_token="$runtime_dir/startup_mode"
 
 set_autostart_vars() {
     # To keep the autostart file stable, so that we don't have to stomp on user
@@ -169,7 +169,7 @@ run_redirector() {
 
   # Only start the root redirector if it hasn't been explicitly disabled.
   if [ "$disable" != "true" ]; then
-    log="${XDG_CACHE_HOME:-$HOME/.cache}/keybase/keybase.redirector.log"
+    log="$logdir/keybase.redirector.log"
     # An older version of post_install.sh could have made a redirector log
     # here that's owned by root.  If we can't write to it, then just nuke it
     # and overwrite.
@@ -182,21 +182,6 @@ run_redirector() {
 
 start_systemd() {
   echo Starting via systemd...
-
-  systemctl --user set-environment KEYBASE_LOGDIR="$logdir"
-  if [ -n "${XDG_CACHE_HOME:-}" ]; then
-      systemctl --user import-environment XDG_CACHE_HOME
-  fi
-  if [ -n "${XDG_DATA_HOME:-}" ]; then
-      systemctl --user import-environment XDG_DATA_HOME
-  fi
-  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
-      systemctl --user import-environment XDG_CONFIG_HOME
-  fi
-  if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
-      systemctl --user import-environment XDG_RUNTIME_DIR
-  fi
-
   # This script is intended to be run after updates, so we need to reload
   # potentially changed unit files.
   systemctl --user daemon-reload
@@ -205,7 +190,6 @@ start_systemd() {
       # The autostart file sets this to "hideWindow" to prevent opening the
       # Keybase main window when the app is autostarted.
       KEYBASE_START_UI
-
       # Some older distros (e.g. Ubuntu 16.04) don't make X session variables
       # available to user units automatically. Whitelisting them is safer than
       # dumping the entire environment, even though there's a chance we might
@@ -214,19 +198,34 @@ start_systemd() {
       # (Arch Linux doesn't need it today.)
       DISPLAY
       XAUTHORITY
+      DBUS_SESSION_BUS_ADDRESS
+      # Arbitrary environment variables from bashrc and similar aren't
+      # automatically available in the systemd session, and users probably
+      # didn't use pam to define their XDG directories. Export them just in
+      # case.
       XDG_CURRENT_DESKTOP
       XDG_CACHE_HOME
+      XDG_CONFIG_HOME
       XDG_DATA_HOME
+      XDG_DOWNLOAD_DIR
       XDG_RUNTIME_DIR
-      DBUS_SESSION_BUS_ADDRESS
+      # Other useful GUI variables.
       CLUTTER_IM_MODULE
       GTK_IM_MODULE
       QT_IM_MODULE
       QT4_IM_MODULE
       XMODIFIERS
-      XDG_DOWNLOAD_DIR
+  )
+  forwarded_service_env_vars=(
+      # Once again, the XDG variables are needed
+      XDG_CACHE_HOME
+      XDG_DATA_HOME
+      XDG_CONFIG_HOME
+      XDG_RUNTIME_DIR
   )
   forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
+  forward_vars "$runtime_dir/keybase.env" forwarded_service_env_vars[@]
+  forward_vars "$runtime_dir/keybase.kbfs.env" forwarded_service_env_vars[@]
 
   run_redirector
 
@@ -236,10 +235,6 @@ start_systemd() {
   # so that we don't race against the service shutting down.
   systemctl --user restart keybase.service kbfs.service keybase.gui.service
   write_startup_token "systemd"
-
-  # Remove user-level environment variable to avoid polluting other services,
-  # though unlikely due to KEYBASE_ namespace.
-  systemctl --user unset-environment KEYBASE_LOGDIR
 }
 
 start_background() {

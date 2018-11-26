@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import BreadcrumbPopup from './breadcrumb-popup.desktop'
 
-type Props = {
+export type Props = {
   dropdownItems?: Array<Types.PathBreadcrumbItem>,
   shownItems: Array<Types.PathBreadcrumbItem>,
 }

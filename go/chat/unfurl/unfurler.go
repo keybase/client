@@ -299,6 +299,12 @@ func (u *Unfurler) detectPermError(err error) bool {
 	return false
 }
 
+func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {
+	if u.unfurlCh != nil {
+		u.unfurlCh <- unfurl
+	}
+}
+
 func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "unfurl(%s)", outboxID)()
 	if u.checkAndSetUnfurling(ctx, outboxID) {
@@ -307,11 +313,9 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	}
 	ctx = libkb.CopyTagsToBackground(ctx)
 	go func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
+		defer func() { u.testingSendUnfurl(unfurl) }()
 		defer u.doneUnfurling(outboxID)
 		defer func() {
-			if u.unfurlCh != nil {
-				u.unfurlCh <- unfurl
-			}
 			if err != nil {
 				status := types.UnfurlerTaskStatusFailed
 				if u.detectPermError(err) {
@@ -375,4 +379,9 @@ func (u *Unfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 func (u *Unfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
 	defer u.Trace(ctx, func() error { return nil }, "SetMode")()
 	return u.settings.SetMode(ctx, uid, mode)
+}
+
+func (u *Unfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "SetSettings")()
+	return u.settings.Set(ctx, uid, settings)
 }

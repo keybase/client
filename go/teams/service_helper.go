@@ -1661,9 +1661,9 @@ func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username st
 		}
 		disabledReason := ""
 		if !entry.CallerAdmin {
-			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
-		} else if entry.ThemMember {
 			disabledReason = fmt.Sprintf("Only admins can add people.")
+		} else if entry.ThemMember {
+			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
 		}
 		res = append(res, keybase1.TeamProfileAddEntry{
 			TeamName:       teamName,

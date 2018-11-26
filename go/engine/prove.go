@@ -320,10 +320,14 @@ func (p *Prove) checkProofText(m libkb.MetaContext) error {
 }
 
 func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
-	if p.st = m.G().GetProofServices().GetServiceType(p.arg.Service); p.st == nil {
-		err = libkb.BadServiceError{Service: p.arg.Service}
+	p.st = m.G().GetProofServices().GetServiceType(p.arg.Service)
+	if p.st == nil {
+		return libkb.BadServiceError{Service: p.arg.Service}
 	}
-	return err
+	if !p.st.CanMakeNewProofs() {
+		return libkb.ServiceDoesNotSupportNewProofsError{Service: p.arg.Service}
+	}
+	return nil
 }
 
 // SigID returns the signature id of the proof posted to the

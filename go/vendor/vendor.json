@@ -337,10 +337,10 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
-			"checksumSHA1": "XfwkOvXS532Ei4UDa5jhBZIEsuY=",
+			"checksumSHA1": "QPqgeDww5ENR6diSPCwNthJKXKw=",
 			"path": "github.com/keybase/cli",
-			"revision": "fc02402bde61f4341e79f9a7186fbe966d435800",
-			"revisionTime": "2018-02-28T16:13:57Z"
+			"revision": "5f59dc7950a7cc1ef374962cc6f6ff7527558806",
+			"revisionTime": "2018-11-19T22:17:51Z"
 		},
 		{
 			"path": "github.com/keybase/clockwork",
@@ -444,10 +444,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "HtTeVT9wTSEPm0R641eMS35XGK4=",
+			"checksumSHA1": "8ywsSY8a/yApC3C9/E8ORUULaak=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "f66a59145fa9f8fa6567295bde9927195fe04bc9",
-			"revisionTime": "2018-10-18T18:24:59Z"
+			"revision": "d23580948ce0c0f297c9e4fe35440544dd48dd4b",
+			"revisionTime": "2018-11-21T18:54:10Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",

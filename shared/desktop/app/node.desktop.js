@@ -73,9 +73,9 @@ const changeCommandLineSwitches = () => {
   SafeElectron.getApp().commandLine.appendSwitch('ignore-connections-limit', 'localhost')
 
   if (__DEV__) {
-    // eslint-disable-line no-undef
-    SafeElectron.getApp().commandLine.appendSwitch('enable-logging')
-    SafeElectron.getApp().commandLine.appendSwitch('v', 3)
+    // too noisy any higher than 0 now
+    // SafeElectron.getApp().commandLine.appendSwitch('enable-logging')
+    // SafeElectron.getApp().commandLine.appendSwitch('v', 0)
   }
 }
 

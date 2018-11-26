@@ -34,7 +34,7 @@ func (s *RegexpSearcher) SetPageSize(pageSize int) {
 }
 
 func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
+	queryRe *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
 	maxHits := opts.MaxHits
@@ -151,10 +151,8 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 			if !opts.Matches(msg) {
 				continue
 			}
-			msgText := msg.SearchableText()
-			matches := re.FindAllString(msgText, -1)
-
-			if matches != nil {
+			matches := searchMatches(msg, queryRe)
+			if len(matches) > 0 {
 				numHits++
 
 				afterMsgs := getAfterMsgs(i, prevPage, curPage)

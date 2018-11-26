@@ -231,6 +231,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: NonblockFetchRes,
   |},
+  'chat.1.local.getUnfurlSettings': {|
+    inParam: void,
+    outParam: UnfurlSettingsDisplay,
+  |},
   'chat.1.local.getUploadTempFile': {|
     inParam: $ReadOnly<{|outboxID: OutboxID, filename: String|}>,
     outParam: String,
@@ -309,6 +313,10 @@ export type MessageTypes = {|
   |},
   'chat.1.local.resolveUnfurlPrompt': {|
     inParam: $ReadOnly<{|convID: ConversationID, msgID: MessageID, result: UnfurlPromptResult, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    outParam: void,
+  |},
+  'chat.1.local.saveUnfurlSettings': {|
+    inParam: $ReadOnly<{|mode: UnfurlMode, whitelist?: ?Array<String>|}>,
     outParam: void,
   |},
   'chat.1.local.setAppNotificationSettingsLocal': {|
@@ -1096,6 +1104,7 @@ export type UnfurlPromptResult = {actionType: 0} | {actionType: 1} | {actionType
 export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
 export type UnfurlResult = $ReadOnly<{unfurl: Unfurl, url: String}>
 export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist: {[key: string]: Boolean}}>
+export type UnfurlSettingsDisplay = $ReadOnly<{mode: UnfurlMode, whitelist?: ?Array<String>}>
 export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1
@@ -1129,6 +1138,7 @@ declare export function localGetTLFConversationsLocalRpcPromise(params: $Propert
 declare export function localGetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'outParam'>>
 declare export function localGetThreadLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getThreadLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getThreadLocal'>, 'outParam'>>
 declare export function localGetThreadNonblockRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getThreadNonblock'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void, () => void, Array<void>>
+declare export function localGetUnfurlSettingsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUnfurlSettings'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUnfurlSettings'>, 'outParam'>>
 declare export function localGetUploadTempFileRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUploadTempFile'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUploadTempFile'>, 'outParam'>>
 declare export function localJoinConversationByIDLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'outParam'>>
 declare export function localLeaveConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'outParam'>>
@@ -1150,6 +1160,7 @@ declare export function localPreviewConversationByIDLocalRpcPromise(params: $Pro
 declare export function localProfileChatSearchRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.profileChatSearch'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.profileChatSearch'>, 'outParam'>>
 declare export function localResolveUnfurlPromptRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.resolveUnfurlPrompt'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.resolveUnfurlPrompt'>, 'outParam'>>
 declare export function localRetryPostRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.RetryPost'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.RetryPost'>, 'outParam'>>
+declare export function localSaveUnfurlSettingsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.saveUnfurlSettings'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.saveUnfurlSettings'>, 'outParam'>>
 declare export function localSetAppNotificationSettingsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setAppNotificationSettingsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setAppNotificationSettingsLocal'>, 'outParam'>>
 declare export function localSetConvMinWriterRoleLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setConvMinWriterRoleLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setConvMinWriterRoleLocal'>, 'outParam'>>
 declare export function localSetConvRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setConvRetentionLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setConvRetentionLocal'>, 'outParam'>>

@@ -133,6 +133,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 }
 
 func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#Get: generation:%v", generation), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 

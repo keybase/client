@@ -30,7 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withStateHandlers(
+  withStateHandlers<any, any, any>(
     {deviceName: ''},
     {
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),

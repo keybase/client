@@ -33,7 +33,7 @@ const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): stri
 const Uploading = (props: UploadingProps) => (
   <Box style={rowStyles.rowBox}>
     <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
-    <Box style={stylesIconBadge}>
+    <Box style={styles.uploadBadgeContainer}>
       <Icon type="icon-addon-file-uploading" />
     </Box>
     <Box key="main" style={rowStyles.itemBox}>
@@ -52,14 +52,16 @@ const Uploading = (props: UploadingProps) => (
   </Box>
 )
 
-const xOffset = -28
-const yOffset = 20
-const stylesIconBadge = {
-  marginLeft: xOffset,
-  marginRight: -xOffset,
-  marginTop: yOffset,
-  width: 0,
-  zIndex: 100,
-}
+const uploadBadgeXOffset = -28
+const uploadBadgeYOffset = Styles.isMobile ? 23 : 25
+const styles = Styles.styleSheetCreate({
+  uploadBadgeContainer: {
+    marginLeft: uploadBadgeXOffset,
+    marginRight: -uploadBadgeXOffset,
+    marginTop: uploadBadgeYOffset,
+    width: 0,
+    zIndex: 100,
+  },
+})
 
 export default Uploading

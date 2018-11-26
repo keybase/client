@@ -54,7 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
-  withProps(props => ({
+  withProps<any, any, any>(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))
 )(ChatFilterRow)

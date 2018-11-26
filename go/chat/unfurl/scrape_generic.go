@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"time"
 
@@ -77,6 +78,24 @@ func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, ge
 	}
 }
 
+func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericRaw, uri, domain string) {
+	path, err := GetDefaultAppleTouchURL(uri)
+	if err != nil {
+		s.Debug(ctx, "tryAppleTouchIcon: failed to get Apple touch URL: %s", err)
+		return
+	}
+	resp, err := http.Get(path)
+	if err != nil {
+		s.Debug(ctx, "tryAppleTouchIcon: failed to read Apple touch icon: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+		s.Debug(ctx, "tryAppleTouchIcon: found Apple touch icon at known path")
+		generic.setFaviconURL(&path, getAppleTouchFaviconScoreFromPath())
+	}
+}
+
 func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
 	hostname, err := GetHostname(uri)
 	if err != nil {
@@ -95,6 +114,7 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 	generic.setSiteName(domain, 0)
 	generic.setFaviconURL(&defaultFaviconURL, 0)
 
+	// Run the Colly scraper
 	c := colly.NewCollector()
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
 		s.setAttr(ctx, "title", hostname, domain, generic, e)
@@ -117,9 +137,15 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		attr := strings.ToLower(e.Attr("property"))
 		s.setAttr(ctx, attr, hostname, domain, generic, e)
 	})
-
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
+
+	// Try to get Apple touch icon from known URL if we are going to use one that is worse
+	if generic.faviconURLScore < getAppleTouchFaviconScoreFromPath() {
+		s.Debug(ctx, "scrapeGeneric: favicon score below Apple touch score, trying to find it")
+		s.tryAppleTouchIcon(ctx, generic, uri, domain)
+	}
+
 	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }
