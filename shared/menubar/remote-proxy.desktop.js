@@ -3,7 +3,7 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, connect, renderNothing} from '../util/container'
+import {NullComponent, connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
@@ -83,7 +83,7 @@ const mergeProps = stateProps => {
 
 const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
-    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : renderNothing)
+    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
   }
 
 // Actions are handled by remote-container

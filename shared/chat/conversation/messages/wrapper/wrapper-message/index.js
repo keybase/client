@@ -245,6 +245,8 @@ const styles = Styles.styleSheetCreate({
   controls: Styles.platformStyles({
     common: {
       alignItems: 'center',
+      height: '100%',
+      maxHeight: '100%',
       marginRight: Styles.globalMargins.tiny,
     },
     isElectron: {
@@ -265,7 +267,7 @@ const styles = Styles.styleSheetCreate({
   menuButtons: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
+      alignItems: 'flex-start',
       position: 'absolute',
       right: 0,
       top: 0,
