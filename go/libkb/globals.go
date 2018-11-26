@@ -347,11 +347,16 @@ func (g *GlobalContext) ConfigureLogging() error {
 			logFile = filePrefix + ".log"
 		}
 	}
-	if logFile == "" && g.Env.GetUseDefaultLogFile() {
-		logFile = g.Env.GetDefaultLogFile()
-	}
-	if logFile != "" {
+	// Configure the log file, setting a default one if not specified and LogPrefix is not specified
+	// Does not redirect logs to file until g.Log.RotateLogFile is called
+	if logFile == "" {
+		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
+	} else {
 		g.Log.Configure(style, debug, logFile)
+	}
+	// If specified or explicitly requested to use default log file, redirect logs.
+	// If not called, prints logs to stdout.
+	if logFile != "" || g.Env.GetUseDefaultLogFile() {
 		g.Log.RotateLogFile()
 	}
 	g.Output = os.Stdout
