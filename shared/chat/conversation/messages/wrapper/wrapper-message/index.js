@@ -141,13 +141,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
     return (
       <React.Fragment>
-        {orangeLine}
         <LongPressable
           direction="vertical"
           fullWidth={true}
           onMouseOver={this._onMouseOver}
           {...longPressProps}
         >
+          {orangeLine}
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {children}
             {wrapperAuthor}
