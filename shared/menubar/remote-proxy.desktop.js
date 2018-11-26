@@ -83,7 +83,7 @@ const mergeProps = stateProps => {
 
 const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
-    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : renderNothing)
+    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
   }
 
 // Actions are handled by remote-container
