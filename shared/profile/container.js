@@ -165,10 +165,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     }
   }
 
-  const onCopyStellarAddress = () => {
-    dispatchProps._copyStellarAddress(stateProps.stellarAddress)
-  }
-
   // TODO entirely change how this works
   const okProps = {
     ...stateProps.trackerState,
@@ -186,7 +182,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
     onChat: () => dispatchProps._onChat(username),
-    onCopyStellarAddress,
+    onCopyStellarAddress: () => dispatchProps._copyStellarAddress(stateProps.stellarAddress),
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
     onClickFollowers: () => dispatchProps._onClickFollowers(username),

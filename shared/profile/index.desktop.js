@@ -5,7 +5,7 @@ import Friendships from './friendships.desktop'
 import * as React from 'react'
 import moment from 'moment'
 import * as Kb from '../common-adapters'
-import UserActions, {MakeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
+import UserActions, {makeStellarAddressMenuItems, type stellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
@@ -112,7 +112,7 @@ class _ToastContainer extends React.Component<TProps, TState> {
 const ToastContainer = HOCTimers(_ToastContainer)
 
 class _StellarFederatedAddress extends React.PureComponent<
-  StellarFederatedAddressProps & Kb.OverlayParentProps
+  stellarFederatedAddressProps & Kb.OverlayParentProps
 > {
   _attachmentRef = null
   _toastRef: ?_ToastContainer = null
@@ -120,7 +120,7 @@ class _StellarFederatedAddress extends React.PureComponent<
     this._toastRef && this._toastRef.copy()
     this.props.onCopyAddress()
   }
-  _menuItems = MakeStellarAddressMenuItems({
+  _menuItems = makeStellarAddressMenuItems({
     stellarAddress: this.props.stellarAddress,
     onSendOrRequest: this.props.onSendOrRequest,
     onCopyAddress: this._onCopyAddress,
