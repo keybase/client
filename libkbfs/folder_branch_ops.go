@@ -7504,7 +7504,7 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 	}
 
 	// Make sure the new path list doesn't contain duplicates,
-	// contains no duplicates, and each path is cleaned.
+	// contains no absolute paths, and each path is cleaned.
 	seenPaths := make(map[string]bool, len(paths))
 	var pathList syncPathList
 	pathList.Paths = make([]string, len(paths))
@@ -7530,6 +7530,9 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 		"Setting partial sync config for %s; paths=%v",
 		fbo.id(), pathList.Paths)
 
+	// Place the config data in a block that will be stored locally on
+	// this device. It is not subject to the usual block size
+	// limitations, and will not be sent to the bserver.
 	b, err := pathList.makeBlock(fbo.config.Codec())
 	if err != nil {
 		return FolderSyncEncryptedPartialPaths{}, err

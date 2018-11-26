@@ -547,12 +547,13 @@ type KBFSOps interface {
 	// given TLF.
 	GetSyncConfig(ctx context.Context, tlfID tlf.ID) (
 		keybase1.FolderSyncConfig, error)
-	// SetSyncConfig set the sync state configuration for the given
-	// TLF to either fully enabled, or fully disabled.  If syncing is
-	// disabled, it returns a channel that is closed when all of the
-	// TLF's blocks have been removed from the sync cache.  The config
-	// must contain no absolute paths, no duplicate paths, and no
-	// relative paths that go out of the TLF.
+	// SetSyncConfig sets the sync state configuration for the given
+	// TLF to either fully enabled, fully disabled, or partially
+	// syncing selected paths.  If syncing is disabled, it returns a
+	// channel that is closed when all of the TLF's blocks have been
+	// removed from the sync cache.  For a partially-synced folder,
+	// the config must contain no absolute paths, no duplicate paths,
+	// and no relative paths that go out of the TLF.
 	SetSyncConfig(
 		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
 		<-chan error, error)

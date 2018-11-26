@@ -4296,7 +4296,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	syncConfig.Paths = []string{"a/b/c", "a/b/c"}
 	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
 	require.Error(t, err)
-	syncConfig.Paths = []string{"/a/b/c", "a/b/c"}
+	syncConfig.Paths = []string{"/a/b/c", "d/e/f"}
 	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
 	require.Error(t, err)
 	syncConfig.Paths = []string{"a/../a/b/c", "a/b/c"}
