@@ -16,7 +16,6 @@ import (
 type cmdWalletBalances struct {
 	libkb.Contextified
 	accountID string
-	verbose   bool
 }
 
 func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -31,12 +30,6 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)
 		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "v, verbose",
-				Usage: "show full account IDs and issuer IDs",
-			},
-		},
 	}
 }
 
@@ -46,15 +39,7 @@ func (c *cmdWalletBalances) ParseArgv(ctx *cli.Context) error {
 	} else if len(ctx.Args()) == 1 {
 		c.accountID = ctx.Args()[0]
 	}
-	c.verbose = ctx.Bool("verbose")
 	return nil
-}
-
-func (c *cmdWalletBalances) formatAccountID(accountID stellar1.AccountID) string {
-	if c.verbose {
-		return accountID.String()
-	}
-	return accountID.LossyAbbreviation()
 }
 
 func (c *cmdWalletBalances) printBalance(dui libkb.DumbOutputUI, balance stellar1.Balance, xchgRate *stellar1.OutsideExchangeRate) {
@@ -71,8 +56,7 @@ func (c *cmdWalletBalances) printBalance(dui libkb.DumbOutputUI, balance stellar
 
 		dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
 	} else {
-		issuerID := c.formatAccountID(stellar1.AccountID(balance.Asset.Issuer))
-		dui.Printf("%s\t%s\t(issued by %s %s)\n", balance.Asset.Code, balance.Amount, stellar.FormatAssetIssuerString(balance.Asset), issuerID)
+		dui.Printf("%s\t%s\t(issued by: %s, %s)\n", balance.Asset.Code, balance.Amount, stellar.FormatAssetIssuerString(balance.Asset), balance.Asset.Issuer)
 	}
 }
 
@@ -118,16 +102,15 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 
 	dui := c.G().UI.GetDumbOutputUI()
 	for i, acc := range accounts {
-		accountIDStr := c.formatAccountID(acc.AccountID)
 		var accountName string
 		if acc.Name != "" {
 			var isPrimary string
 			if acc.IsPrimary {
 				isPrimary = " (Primary)"
 			}
-			accountName = fmt.Sprintf("'%s' (%s)%s", acc.Name, accountIDStr, isPrimary)
+			accountName = fmt.Sprintf("'%s' (%s)%s", acc.Name, acc.AccountID, isPrimary)
 		} else {
-			accountName = accountIDStr
+			accountName = acc.AccountID.String()
 			if acc.IsPrimary {
 				accountName += " (Primary)"
 			}
