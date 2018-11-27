@@ -87,12 +87,12 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
             We believe Keybase can help make cryptocurrency usable for 2 reasons:
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • we can make your Stellar private key sync with encryption across your devices, without exposing
             it to our servers. cool!
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • we can help you send and receive crypto just by knowing usernames. You can say goodbye to ugly
             "addresses" you have to pass around insecurely.
           </Kb.Text>
@@ -105,23 +105,23 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
             to solve payments because:
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it's ultra fast and ultra cheap
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it natively understands currencies and tokens
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • the network itself has a decentralized exchange built into it
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it doesn't burn more electricity than small nations
           </Kb.Text>
 
-          <Kb.Text type="Body" style={{...styles.bodyText, ...styles.bodyBullet}}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             But there are a few things you must agree to understand before using Stellar on Keybase:
           </Kb.Text>
 
