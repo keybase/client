@@ -840,8 +840,9 @@ func (o UIMessage) DeepCopy() UIMessage {
 }
 
 type UIMessages struct {
-	Messages   []UIMessage   `codec:"messages" json:"messages"`
-	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages     []UIMessage   `codec:"messages" json:"messages"`
+	UnreadLineID *MessageID    `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
+	Pagination   *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o UIMessages) DeepCopy() UIMessages {
@@ -857,6 +858,13 @@ func (o UIMessages) DeepCopy() UIMessages {
 			}
 			return ret
 		})(o.Messages),
+		UnreadLineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadLineID),
 		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
