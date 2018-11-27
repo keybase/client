@@ -363,7 +363,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
-	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
+	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 	g.Unfurler = types.DummyUnfurler{}
@@ -5657,7 +5657,7 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 					MembersType:   chat1.ConversationMembersType_TEAM,
 				})
-			t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
+			t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel.Conv.GetConvID(), err)
 			require.NoError(t, err)
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 			if index == 0 {

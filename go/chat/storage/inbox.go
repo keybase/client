@@ -474,12 +474,11 @@ func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.Con
 	return false
 }
 
-func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) []types.RemoteConversation {
+func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) (res []types.RemoteConversation) {
 	if query == nil {
 		query = &chat1.GetInboxQuery{}
 	}
-	var res []types.RemoteConversation
-	filtered := 0
+
 	var queryConvIDMap map[string]bool
 	if query.ConvID != nil {
 		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
@@ -490,83 +489,77 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 			queryConvIDMap[c.String()] = true
 		}
 	}
-	for _, rc := range rcs {
-		ok := true
-		conv := rc.Conv
 
+	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
+	// Default allowed member statuses
+	if len(query.MemberStatus) == 0 {
+		query.MemberStatus = []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
+		}
+	}
+	for _, memberStatus := range query.MemberStatus {
+		queryMemberStatusMap[memberStatus] = true
+	}
+
+	queryStatusMap := map[chat1.ConversationStatus]bool{}
+	for _, status := range query.Status {
+		queryStatusMap[status] = true
+	}
+
+	for _, rc := range rcs {
+		conv := rc.Conv
 		// Existence check
 		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
-			ok = false
+			continue
 		}
-
 		// Member status check
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW,
-			chat1.ConversationMemberStatus_RESET:
-			// only let these states through
-		default:
-			ok = false
+		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(query.MemberStatus) > 0 {
+			continue
 		}
-
+		// Status check
+		if _, ok := queryStatusMap[conv.Metadata.Status]; !ok && len(query.Status) > 0 {
+			continue
+		}
 		// Basic checks
 		if queryConvIDMap != nil && !queryConvIDMap[conv.GetConvID().String()] {
-			filtered++
 			continue
 		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
-			ok = false
+			continue
 		}
 		if query.Before != nil && !conv.ReaderInfo.Mtime.Before(*query.Before) {
-			ok = false
+			continue
 		}
 		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
-			ok = false
+			continue
 		}
 		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
 			*query.TlfVisibility != conv.Metadata.Visibility {
-			ok = false
+			continue
 		}
 		if query.UnreadOnly && !conv.IsUnread() {
-			ok = false
+			continue
 		}
 		if query.ReadOnly && conv.IsUnread() {
-			ok = false
+			continue
 		}
 		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
-			ok = false
+			continue
 		}
-
-		// Check to see if the conv status is in the query list
-		if len(query.Status) > 0 {
-			found := false
-			for _, s := range query.Status {
-				if s == conv.Metadata.Status {
-					found = true
-					break
-				}
-			}
-			if !found {
-				ok = false
-			}
-		}
-
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
 			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
 				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, rcs) {
-					ok = false
+					continue
 				}
 			}
 		}
-
-		if ok {
-			res = append(res, rc)
-		} else {
-			filtered++
-		}
+		res = append(res, rc)
 	}
-
+	filtered := len(rcs) - len(res)
 	i.Debug(ctx, "applyQuery: res size: %d filtered: %d", len(res), filtered)
 	return res
 }

@@ -922,27 +922,6 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	return nil
 }
 
-func (g *PushHandler) TeamChannels(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
-		g.identNotifier)
-	defer g.Trace(ctx, func() error { return err }, "TeamChannels")()
-	if m.Body() == nil {
-		return errors.New("gregor handler for team channels update: nil message body")
-	}
-
-	var update chat1.TeamChannelUpdate
-	reader := bytes.NewReader(m.Body().Bytes())
-	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	if err = dec.Decode(&update); err != nil {
-		return err
-	}
-
-	g.G().TeamChannelSource.ChannelsChanged(ctx, update.TeamID)
-
-	return nil
-}
-
 func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -1154,8 +1133,6 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.Typing(ctx, obm)
 	case types.PushMembershipUpdate:
 		return true, g.MembershipUpdate(ctx, obm)
-	case types.PushTeamChannels:
-		return true, g.TeamChannels(ctx, obm)
 	case types.PushConvRetention:
 		return true, g.SetConvRetention(ctx, obm)
 	case types.PushTeamRetention:

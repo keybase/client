@@ -265,7 +265,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	pushHandler.SetClock(world.Fc)
 	g.PushHandler = pushHandler
 	g.ChatHelper = NewHelper(g, getRI)
-	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
+	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
 	searcher := search.NewRegexpSearcher(g)
