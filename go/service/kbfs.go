@@ -4,8 +4,7 @@
 package service
 
 import (
-	"fmt"
-	"golang.org/x/crypto/nacl/secretbox"
+	"github.com/keybase/client/go/encrypteddb"
 	"path/filepath"
 	"strings"
 
@@ -15,11 +14,13 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
+
+const favoritesEncryptionReason = "kbfs.favorites"
 
 type KBFSHandler struct {
 	*BaseHandler
@@ -127,68 +128,24 @@ func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg
 	return tlfupgrade.UpgradeTLFForKBFS(ctx, h.G(), arg.TlfName, arg.Public)
 }
 
-// TODO: much of these definitions are copied from EncryptedDB.
-// Maybe we should refactor that slightly to allow this to use it,
-// instead of cherrypicking the code we use here.
-
-// ***
-// If we change this, make sure to update the key derivation reason below!
-// ***
-const cryptoVersion = 1
-
-type boxedData struct {
-	V int
-	N [24]byte
-	E []byte
+// getKeyFn returns a function that gets an encryption key for storing
+// favorites.
+func (h *KBFSHandler) getKeyFn() func(context.Context) ([32]byte, error) {
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(), favoritesEncryptionReason)
+	}
+	return keyFn
 }
 
 // EncryptFavorites encrypts cached favorites to store on disk.
-func (h *KBFSHandler) EncryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
-	enckey, err := teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(),
-		"kbfs.favorites")
-	if err != nil {
-		return nil, err
-	}
-	var nonce []byte
-	nonce, err = libkb.RandBytes(24)
-	if err != nil {
-		return nil, err
-	}
-	var fnonce [24]byte
-	copy(fnonce[:], nonce)
-	sealed := secretbox.Seal(nil, dataToEncrypt, &fnonce, &enckey)
-	boxed := boxedData{
-		V: cryptoVersion,
-		E: sealed,
-		N: fnonce,
-	}
-
-	var dat []byte
-	if dat, err = libkb.MPackEncode(boxed); err != nil {
-		return nil, err
-	}
-	return dat, nil
+func (h *KBFSHandler) EncryptFavorites(ctx context.Context,
+	dataToDecrypt []byte) (res []byte, err error) {
+	return encrypteddb.EncodeBox(ctx, dataToDecrypt, h.getKeyFn())
 }
 
 // DecryptFavorites decrypts cached favorites stored on disk.
-func (h *KBFSHandler) DecryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
-	// Decode encrypted box
-	var boxed boxedData
-	if err := libkb.MPackDecode(dataToEncrypt, &boxed); err != nil {
-		return nil, err
-	}
-	if boxed.V > cryptoVersion {
-		return nil, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
-			cryptoVersion)
-	}
-	enckey, err := teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(),
-		"kbfs.favorites")
-	if err != nil {
-		return nil, err
-	}
-	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
-	if !ok {
-		return nil, fmt.Errorf("failed to decrypt item")
-	}
-	return pt, nil
+func (h *KBFSHandler) DecryptFavorites(ctx context.Context,
+	dataToEncrypt []byte) (res []byte, err error) {
+	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), res)
+	return res, err
 }

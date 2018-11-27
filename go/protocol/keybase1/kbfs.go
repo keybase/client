@@ -235,7 +235,6 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 					ret, err = i.EncryptFavorites(ctx, typedArgs[0].DataToEncrypt)
 					return
 				},
-				MethodType: rpc.MethodCall,
 			},
 			"decryptFavorites": {
 				MakeArg: func() interface{} {
@@ -251,7 +250,6 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 					ret, err = i.DecryptFavorites(ctx, typedArgs[0].DataToEncrypt)
 					return
 				},
-				MethodType: rpc.MethodCall,
 			},
 		},
 	}
