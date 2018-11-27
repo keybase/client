@@ -155,6 +155,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onPickUser={this.props.insertMention}
             onSelectUser={this.props.insertMention}
             filter={this.props.mentionFilter}
+            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
           />
         )}
         {this.props.channelMentionPopupOpen && (
@@ -166,6 +167,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onPickChannel={this.props.insertChannelMention}
             onSelectChannel={this.props.insertChannelMention}
             filter={this.props.channelMentionFilter}
+            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
           />
         )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (

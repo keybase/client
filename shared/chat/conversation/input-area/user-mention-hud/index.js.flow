@@ -15,6 +15,7 @@ export type MentionHudProps = {
   selectDownCounter: number,
   selectUpCounter: number,
   selectedIndex: number,
+  setMentionHudIsShowing: boolean => void,
   setSelectedIndex: number => void,
   users: Array<{|fullName: string, username: string|}>,
   _generalChannelConversationIDKey: string,
