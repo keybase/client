@@ -148,7 +148,7 @@ const styles = styleSheetCreate({
     height: fullWidthHeight,
     width: undefined,
   },
-  labelContainer: {height: '100%', position: 'relative'},
+  labelContainer: {height: isMobile ? undefined : '100%', position: 'relative'},
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
