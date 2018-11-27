@@ -1156,14 +1156,16 @@ func (o FolderSyncConfig) DeepCopy() FolderSyncConfig {
 }
 
 type FolderSyncStatus struct {
-	LocalDiskBytesAvailable int64 `codec:"localDiskBytesAvailable" json:"localDiskBytesAvailable"`
-	LocalDiskBytesTotal     int64 `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
+	LocalDiskBytesAvailable int64          `codec:"localDiskBytesAvailable" json:"localDiskBytesAvailable"`
+	LocalDiskBytesTotal     int64          `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
+	PrefetchStatus          PrefetchStatus `codec:"prefetchStatus" json:"prefetchStatus"`
 }
 
 func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
 	return FolderSyncStatus{
 		LocalDiskBytesAvailable: o.LocalDiskBytesAvailable,
 		LocalDiskBytesTotal:     o.LocalDiskBytesTotal,
+		PrefetchStatus:          o.PrefetchStatus.DeepCopy(),
 	}
 }
 
