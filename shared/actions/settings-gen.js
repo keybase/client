@@ -60,10 +60,7 @@ type _InvitesReclaimedPayload = void
 type _InvitesReclaimedPayloadError = $ReadOnly<{|errorText: string|}>
 type _InvitesRefreshPayload = void
 type _InvitesRefreshedPayload = $ReadOnly<{|invites: Types.InvitesState|}>
-type _InvitesSendPayload = $ReadOnly<{|
-  email: string,
-  message: ?string,
-|}>
+type _InvitesSendPayload = $ReadOnly<{|email: string, message: ?string|}>
 type _InvitesSentPayload = void
 type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
 type _LoadLockdownModePayload = void
@@ -75,10 +72,7 @@ type _LoadedSettingsPayload = $ReadOnly<{|emailState: Types.EmailState|}>
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = $ReadOnly<{|notifications: Types.NotificationsState|}>
 type _NotificationsSavedPayload = void
-type _NotificationsTogglePayload = $ReadOnly<{|
-  group: Types.NotificationGroups,
-  name?: ?string,
-|}>
+type _NotificationsTogglePayload = $ReadOnly<{|group: Types.NotificationGroups, name?: ?string|}>
 type _OnChangeLockdownModePayload = $ReadOnly<{|enabled: boolean|}>
 type _OnChangeNewEmailPayload = $ReadOnly<{|email: string|}>
 type _OnChangeNewPassphraseConfirmPayload = $ReadOnly<{|passphrase: HiddenString|}>
@@ -96,14 +90,8 @@ type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
 type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
 type _UnfurlSettingsRefreshPayload = void
-type _UnfurlSettingsRefreshedPayload = $ReadOnly<{|
-  mode: RPCChatTypes.UnfurlMode,
-  whitelist: Array<string>,
-|}>
-type _UnfurlSettingsSavedPayload = $ReadOnly<{|
-  mode: RPCChatTypes.UnfurlMode,
-  whitelist: Array<string>,
-|}>
+type _UnfurlSettingsRefreshedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>|}>
+type _UnfurlSettingsSavedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>|}>
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators

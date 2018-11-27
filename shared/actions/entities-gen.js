@@ -15,22 +15,10 @@ export const replaceEntity = 'entities:replaceEntity'
 export const subtractEntity = 'entities:subtractEntity'
 
 // Payload Types
-type _DeleteEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  ids: I.List<string>,
-|}>
-type _MergeEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.Map<any, any> | I.List<any>,
-|}>
-type _ReplaceEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.Map<any, any> | I.List<any>,
-|}>
-type _SubtractEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.List<any>,
-|}>
+type _DeleteEntityPayload = $ReadOnly<{|keyPath: Array<string>, ids: I.List<string>|}>
+type _MergeEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
+type _ReplaceEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
+type _SubtractEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.List<any>|}>
 
 // Action Creators
 export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({payload, type: deleteEntity})
