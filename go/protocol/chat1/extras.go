@@ -20,6 +20,9 @@ import (
 // we will show some representation of an exploded message in the UI for a week
 const ShowExplosionLifetime = time.Hour * 24 * 7
 
+// If a conversation is larger, only admins can @channel.
+const MaxChanMentionConvSize = 100
+
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
 

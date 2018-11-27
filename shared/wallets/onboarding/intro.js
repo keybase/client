@@ -23,14 +23,6 @@ const Intro = (props: IntroProps) => {
     >
       <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
     </Kb.Button>,
-    <Kb.Button
-      style={styles.buttonStyle}
-      fullWidth={true}
-      key={1}
-      type="SecondaryColoredBackground"
-      onClick={() => props.setNextScreen('linkExisting')}
-      label="Link an existing Stellar account"
-    />,
   ]
   return (
     <WalletPopup
@@ -63,7 +55,7 @@ const Intro = (props: IntroProps) => {
         </Kb.Text>
 
         <Kb.Icon
-          color={Styles.globalColors.black}
+          color={Styles.globalColors.black_75}
           style={Kb.iconCastPlatformStyles(styles.illustration)}
           type="icon-illustration-stellar-payments-200-188"
         />

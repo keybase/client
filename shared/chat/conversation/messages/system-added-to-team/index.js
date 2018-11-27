@@ -47,7 +47,17 @@ const ManageComponent = (props: Props) => {
   }
 }
 
-const YouOrUsername = ({username, you, capitalize, adder}: {username: string, you: string, capitalize: boolean, adder?: string}) => {
+const YouOrUsername = ({
+  username,
+  you,
+  capitalize,
+  adder,
+}: {
+  username: string,
+  you: string,
+  capitalize: boolean,
+  adder?: string,
+}) => {
   if (adder === you) return 'yourself'
   if (username === you) {
     return capitalize ? 'You' : 'you'

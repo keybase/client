@@ -67,6 +67,7 @@ const load = () => {
             onSelectChannel={action('onSelectChannel')}
             selectUpCounter={upCounter}
             selectDownCounter={downCounter}
+            setChannelMentionHudIsShowing={action('setChannelMentionHudIsShowing')}
             pickSelectedUserCounter={0}
             filter={filter}
             style={{flex: 1}}

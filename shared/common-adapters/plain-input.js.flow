@@ -22,6 +22,8 @@ export type KeyboardType =
 
 export type Props = {|
   autoFocus?: boolean,
+  // Enable if you want this to always have focus (desktop only)
+  globalCaptureKeypress?: boolean,
   className?: string,
   disabled?: boolean,
   // Resize in a flexbox-like fashion

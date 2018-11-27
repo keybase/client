@@ -55,17 +55,16 @@ export const TeamMember = (props: Props) => {
             showFollowingStatus={true}
             size={64}
           />
-          {user.type &&
-            !!roleIconMap[user.type] && (
-              <Icon
-                type={roleIconMap[user.type]}
-                style={{
-                  margin: globalMargins.tiny,
-                  alignSelf: 'center',
-                }}
-                fontSize={28}
-              />
-            )}
+          {user.type && !!roleIconMap[user.type] && (
+            <Icon
+              type={roleIconMap[user.type]}
+              style={{
+                margin: globalMargins.tiny,
+                alignSelf: 'center',
+              }}
+              fontSize={28}
+            />
+          )}
           <Avatar
             style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
             isTeam={true}

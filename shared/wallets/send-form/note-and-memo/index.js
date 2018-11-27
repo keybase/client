@@ -100,22 +100,21 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               value={this.state.secretNote}
               maxLength={secretNoteMaxLength}
             />
-            {this.state.emojiPickerOpen &&
-              !Styles.isMobile && (
-                <Kb.Overlay
-                  attachTo={() => this._emojiIcon.current}
-                  position="bottom right"
-                  onHidden={() => this.setState({emojiPickerOpen: false})}
-                >
-                  <Picker
-                    autoFocus={true}
-                    emoji="star-struck"
-                    title="reacjibase"
-                    onClick={this._emojiPickerOnClick}
-                    backgroundImageFn={backgroundImageFn}
-                  />
-                </Kb.Overlay>
-              )}
+            {this.state.emojiPickerOpen && !Styles.isMobile && (
+              <Kb.Overlay
+                attachTo={() => this._emojiIcon.current}
+                position="bottom right"
+                onHidden={() => this.setState({emojiPickerOpen: false})}
+              >
+                <Picker
+                  autoFocus={true}
+                  emoji="star-struck"
+                  title="reacjibase"
+                  onClick={this._emojiPickerOnClick}
+                  backgroundImageFn={backgroundImageFn}
+                />
+              </Kb.Overlay>
+            )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsCenter}>
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>

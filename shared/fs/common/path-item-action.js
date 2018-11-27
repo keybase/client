@@ -53,36 +53,34 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
   hideMenu()
 }
 
-const ShareNative = DownloadTrackingHoc(
-  ({downloading}) =>
-    downloading ? (
-      <Box2 direction="horizontal">
-        <ProgressIndicator style={styles.progressIndicator} />
-        <Text type="BodyBig" style={styles.menuRowTextDisabled}>
-          Preparing to send to other app
-        </Text>
-      </Box2>
-    ) : (
-      <Text type="BodyBig" style={styles.menuRowText}>
-        Send to other app
+const ShareNative = DownloadTrackingHoc(({downloading}) =>
+  downloading ? (
+    <Box2 direction="horizontal">
+      <ProgressIndicator style={styles.progressIndicator} />
+      <Text type="BodyBig" style={styles.menuRowTextDisabled}>
+        Preparing to send to other app
       </Text>
-    )
+    </Box2>
+  ) : (
+    <Text type="BodyBig" style={styles.menuRowText}>
+      Send to other app
+    </Text>
+  )
 )
 
-const Save = DownloadTrackingHoc(
-  ({downloading}) =>
-    downloading ? (
-      <Box2 direction="horizontal">
-        <ProgressIndicator style={styles.progressIndicator} />
-        <Text type="BodyBig" style={styles.menuRowTextDisabled}>
-          Saving
-        </Text>
-      </Box2>
-    ) : (
-      <Text type="BodyBig" style={styles.menuRowText}>
-        Save
+const Save = DownloadTrackingHoc(({downloading}) =>
+  downloading ? (
+    <Box2 direction="horizontal">
+      <ProgressIndicator style={styles.progressIndicator} />
+      <Text type="BodyBig" style={styles.menuRowTextDisabled}>
+        Saving
       </Text>
-    )
+    </Box2>
+  ) : (
+    <Text type="BodyBig" style={styles.menuRowText}>
+      Save
+    </Text>
+  )
 )
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => {

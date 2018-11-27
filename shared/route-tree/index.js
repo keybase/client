@@ -80,11 +80,10 @@ class MakeRouteDefNodeClass extends _makeRouteDefNode {
         typeof children === 'function'
           ? children
           : I.Seq(children)
-              .map(
-                params =>
-                  params instanceof MakeRouteDefNodeClass || typeof params === 'function'
-                    ? params
-                    : makeRouteDefNode(params)
+              .map(params =>
+                params instanceof MakeRouteDefNodeClass || typeof params === 'function'
+                  ? params
+                  : makeRouteDefNode(params)
               )
               .toMap(),
     })

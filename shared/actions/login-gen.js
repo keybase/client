@@ -19,10 +19,7 @@ export const loginError = 'login:loginError'
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
 type _LoginErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
-type _LoginPayload = $ReadOnly<{|
-  usernameOrEmail: string,
-  passphrase: HiddenString,
-|}>
+type _LoginPayload = $ReadOnly<{|usernameOrEmail: string, passphrase: HiddenString|}>
 
 // Action Creators
 export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({payload, type: launchAccountResetWebPage})

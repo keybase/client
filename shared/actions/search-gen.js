@@ -20,43 +20,15 @@ export const updateSelectedSearchResult = 'search:updateSelectedSearchResult'
 export const userInputItemsUpdated = 'search:userInputItemsUpdated'
 
 // Payload Types
-type _AddResultsToUserInputPayload = $ReadOnly<{|
-  searchKey: string,
-  searchResults: Array<Types.SearchResultId>,
-|}>
+type _AddResultsToUserInputPayload = $ReadOnly<{|searchKey: string, searchResults: Array<Types.SearchResultId>|}>
 type _ClearSearchResultsPayload = $ReadOnly<{|searchKey: string|}>
-type _FinishedSearchPayload = $ReadOnly<{|
-  searchResults: Array<Types.SearchResultId>,
-  searchResultTerm: string,
-  service: Types.Service,
-  searchKey: string,
-  searchShowingSuggestions?: boolean,
-|}>
-type _RemoveResultsToUserInputPayload = $ReadOnly<{|
-  searchKey: string,
-  searchResults: Array<Types.SearchResultId>,
-|}>
-type _SearchPayload = $ReadOnly<{|
-  term: string,
-  service: Types.Service,
-  searchKey: string,
-|}>
-type _SearchSuggestionsPayload = $ReadOnly<{|
-  maxUsers?: number,
-  searchKey: string,
-|}>
-type _SetUserInputItemsPayload = $ReadOnly<{|
-  searchKey: string,
-  searchResults: Array<Types.SearchResultId>,
-|}>
-type _UpdateSelectedSearchResultPayload = $ReadOnly<{|
-  searchKey: string,
-  id: ?Types.SearchResultId,
-|}>
-type _UserInputItemsUpdatedPayload = $ReadOnly<{|
-  searchKey: string,
-  userInputItemIds: Array<Types.SearchResultId>,
-|}>
+type _FinishedSearchPayload = $ReadOnly<{|searchResults: Array<Types.SearchResultId>, searchResultTerm: string, service: Types.Service, searchKey: string, searchShowingSuggestions?: boolean|}>
+type _RemoveResultsToUserInputPayload = $ReadOnly<{|searchKey: string, searchResults: Array<Types.SearchResultId>|}>
+type _SearchPayload = $ReadOnly<{|term: string, service: Types.Service, searchKey: string|}>
+type _SearchSuggestionsPayload = $ReadOnly<{|maxUsers?: number, searchKey: string|}>
+type _SetUserInputItemsPayload = $ReadOnly<{|searchKey: string, searchResults: Array<Types.SearchResultId>|}>
+type _UpdateSelectedSearchResultPayload = $ReadOnly<{|searchKey: string, id: ?Types.SearchResultId|}>
+type _UserInputItemsUpdatedPayload = $ReadOnly<{|searchKey: string, userInputItemIds: Array<Types.SearchResultId>|}>
 
 // Action Creators
 export const createAddResultsToUserInput = (payload: _AddResultsToUserInputPayload) => ({payload, type: addResultsToUserInput})

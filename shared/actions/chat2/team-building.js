@@ -112,6 +112,23 @@ const search = (state: TypedState) => {
   )
 }
 
+const fetchUserRecs = (state: TypedState) =>
+  RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50})
+    .then((suggestions: ?Array<RPCTypes.InterestingPerson>) =>
+      (suggestions || []).map(
+        ({username}): TeamBuildingTypes.User => ({
+          id: username,
+          prettyName: `${username} on Keybase`,
+          serviceMap: {},
+        })
+      )
+    )
+    .catch(e => {
+      logger.error(`Error in fetching recs`)
+      return []
+    })
+    .then(users => TeamBuildingGen.createFetchedUserRecs({users}))
+
 const createConversation = (state: TypedState) =>
   Saga.put(
     Chat2Gen.createCreateConversation({
@@ -121,6 +138,7 @@ const createConversation = (state: TypedState) =>
 
 function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(TeamBuildingGen.search, search)
+  yield Saga.actionToPromise(TeamBuildingGen.fetchUserRecs, fetchUserRecs)
   yield Saga.actionToAction(TeamBuildingGen.search, searchResultCounts)
   yield Saga.actionToAction(TeamBuildingGen.finishedTeamBuilding, createConversation)
 

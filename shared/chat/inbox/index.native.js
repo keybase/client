@@ -189,8 +189,9 @@ class Inbox extends React.PureComponent<Props, State> {
 
     const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating &&
-      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
+      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    )
     const HeadComponent = (
       <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}

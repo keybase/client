@@ -379,8 +379,8 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
         UsersGen.createUpdateFullnames({usernameToFullname}),
       ]
     : conversationIDKey && isADelete
-      ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
-      : []
+    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+    : []
 }
 
 // We got errors from the service
@@ -1167,16 +1167,8 @@ const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
     })
   )
 
-// We pass a special flag to tell the service if we're aware of any broken users. This is so we avoid
-// accidentally sending into a convo when there should be a red bar but we haven't seen it for some reason
 const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const participants = Constants.getMeta(state, conversationIDKey).participants
-  const hasBroken = participants.some(p => state.users.infoMap.getIn([p, 'broken']))
-  // We send a flag to the daemon depending on if we know about a broken user or not. If not it'll check before sending and show
-  // the red banner
-  return hasBroken
-    ? RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
-    : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
+  return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
 }
 
 const messageReplyPrivately = (state: TypedState, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
@@ -1893,14 +1885,13 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
 
   // Collect preview information
-  const previewURLs = previews.map(
-    preview =>
-      preview &&
-      preview.location &&
-      preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
-      preview.location.url
-        ? preview.location.url
-        : ''
+  const previewURLs = previews.map(preview =>
+    preview &&
+    preview.location &&
+    preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+    preview.location.url
+      ? preview.location.url
+      : ''
   )
   const previewSpecs = previews.map(preview =>
     Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
@@ -2316,7 +2307,65 @@ const changePendingMode = (
   }
 }
 
+// TODO create a conversation row that has a pending tag applied to it
+const createPendingConversation = function*(users: Array<string>) {
+  yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'newTeamBuilding'}))
+  yield Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'}))
+  yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}))
+}
+
+const removePendingConversation = function*() {
+  yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'thread'}))
+}
+
+// TODO This will break if you try to make 2 new conversations at the same time because there is
+// only one pending conversation state.
+// The fix involves being able to make multiple pending conversations
+const createConversation2 = (state: TypedState, action: Chat2Gen.CreateConversationPayload) =>
+  flags.newTeamBuildingForChat &&
+  (function*() {
+    const username = state.config.username
+    if (!username) {
+      logger.error('Making a convo while logged out?')
+      return
+    }
+
+    const {
+      payload: {participants},
+    } = action
+    yield createPendingConversation(participants)
+    try {
+      const result: RPCChatTypes.NewConversationLocalRes = yield Saga.call(
+        RPCChatTypes.localNewConversationLocalRpcPromise,
+        {
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+          tlfName: I.Set([username])
+            .concat(action.payload.participants)
+            .join(','),
+          tlfVisibility: RPCTypes.commonTLFVisibility.private,
+          topicType: RPCChatTypes.commonTopicType.chat,
+        },
+        Constants.waitingKeyCreating
+      )
+
+      const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+      if (!conversationIDKey) {
+        logger.warn("Couldn't make a new conversation?")
+      } else {
+        yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
+      }
+    } catch (e) {
+      logger.error(`Failed to create new conversation: ${e.message}`)
+    }
+
+    yield removePendingConversation()
+  })()
+
 const createConversation = (action: Chat2Gen.CreateConversationPayload, state: TypedState) => {
+  if (flags.newTeamBuildingForChat) {
+    return
+  }
   const username = state.config.username
   if (!username) {
     throw new Error('Making a convo while logged out?')
@@ -2612,16 +2661,6 @@ const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePr
   })
 }
 
-const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
-  if (action.payload.pendingMode === 'newChat') {
-    return Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: [{selected: 'newChat', props: {}}],
-      })
-    )
-  }
-}
-
 const openChatFromWidget = (
   state: TypedState,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
@@ -2849,6 +2888,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
+  yield Saga.actionToAction(Chat2Gen.createConversation, createConversation2)
   yield Saga.safeTakeEveryPure(
     Chat2Gen.createConversation,
     createConversation,
@@ -2874,9 +2914,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
-  if (flags.newTeamBuildingForChat) {
-    yield Saga.actionToAction(Chat2Gen.setPendingMode, popupTeamBuilding)
-  }
   yield Saga.spawn(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }

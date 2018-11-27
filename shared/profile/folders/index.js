@@ -47,15 +47,14 @@ class Folders extends React.PureComponent<Props, State> {
         {(this.state.expanded ? this.props.tlfs : this.props.tlfs.slice(0, numFoldersShown)).map(tlf => (
           <Tlf {...tlf} key={tlf.text} />
         ))}
-        {!this.state.expanded &&
-          this.props.tlfs.length > numFoldersShown && (
-            <Kb.ClickableBox key="more" onClick={this.expand} style={styles.itemContainer}>
-              <Kb.Icon type="iconfont-ellipsis" />
-              <Kb.Text type="BodySmall" style={styles.itemText}>
-                + {this.props.tlfs.length - numFoldersShown} more
-              </Kb.Text>
-            </Kb.ClickableBox>
-          )}
+        {!this.state.expanded && this.props.tlfs.length > numFoldersShown && (
+          <Kb.ClickableBox key="more" onClick={this.expand} style={styles.itemContainer}>
+            <Kb.Icon type="iconfont-ellipsis" />
+            <Kb.Text type="BodySmall" style={styles.itemText}>
+              + {this.props.tlfs.length - numFoldersShown} more
+            </Kb.Text>
+          </Kb.ClickableBox>
+        )}
       </React.Fragment>
     )
   }

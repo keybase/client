@@ -43,11 +43,10 @@ export default function makeMenu(window: any) {
               accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
               click: (item, focusedWindow) => {
                 devToolsState = !devToolsState
-                SafeElectron.BrowserWindow.getAllWindows().map(
-                  bw =>
-                    devToolsState
-                      ? bw.webContents.openDevTools({mode: 'detach'})
-                      : bw.webContents.closeDevTools()
+                SafeElectron.BrowserWindow.getAllWindows().map(bw =>
+                  devToolsState
+                    ? bw.webContents.openDevTools({mode: 'detach'})
+                    : bw.webContents.closeDevTools()
                 )
               },
             },

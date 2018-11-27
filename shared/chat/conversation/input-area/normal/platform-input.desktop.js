@@ -213,6 +213,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
             onPickUser={this.props.insertMention}
             onSelectUser={this.props.switchMention}
             filter={this.props.mentionFilter}
+            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
           />
         )}
         {this.props.channelMentionPopupOpen && <MentionCatcher onClick={this._channelMentionCatcherClick} />}
@@ -224,6 +225,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
             pickSelectedChannelCounter={this.props.pickSelectedCounter}
             onPickChannel={this.props.insertChannelMention}
             onSelectChannel={this.props.switchChannelMention}
+            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
             filter={this.props.channelMentionFilter}
           />
         )}
@@ -308,16 +310,15 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
                 type="iconfont-boom"
               />
             )}
-          {flags.explodingMessagesEnabled &&
-            this.props.showingMenu && (
-              <SetExplodingMessagePopup
-                attachTo={this.props.getAttachmentRef}
-                conversationIDKey={this.props.conversationIDKey}
-                onAfterSelect={this._inputFocus}
-                onHidden={this.props.toggleShowingMenu}
-                visible={this.props.showingMenu}
-              />
-            )}
+          {flags.explodingMessagesEnabled && this.props.showingMenu && (
+            <SetExplodingMessagePopup
+              attachTo={this.props.getAttachmentRef}
+              conversationIDKey={this.props.conversationIDKey}
+              onAfterSelect={this._inputFocus}
+              onHidden={this.props.toggleShowingMenu}
+              visible={this.props.showingMenu}
+            />
+          )}
           {this.state.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
           )}

@@ -166,33 +166,31 @@ class UserInput extends Component<Props, State> {
               onFocus={this._onFocus}
               onBlur={this._onBlur}
             />
-            {showAddButton &&
-              onClickAddButton && (
-                <Icon
-                  onClick={onClickAddButton}
-                  type="iconfont-add"
-                  style={platformStyles({
-                    common: {
-                      marginLeft: globalMargins.xtiny,
-                    },
-                    isElectron: {
-                      cursor: 'pointer',
-                    },
-                  })}
-                  color={globalColors.blue}
-                  fontSize={12}
-                />
-              )}
+            {showAddButton && onClickAddButton && (
+              <Icon
+                onClick={onClickAddButton}
+                type="iconfont-add"
+                style={platformStyles({
+                  common: {
+                    marginLeft: globalMargins.xtiny,
+                  },
+                  isElectron: {
+                    cursor: 'pointer',
+                  },
+                })}
+                color={globalColors.blue}
+                fontSize={12}
+              />
+            )}
           </Box>
         </Box>
-        {onClearSearch &&
-          !this.props.hideClearSearch && (
-            <Icon
-              type="iconfont-remove"
-              style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
-              onClick={onClearSearch}
-            />
-          )}
+        {onClearSearch && !this.props.hideClearSearch && (
+          <Icon
+            type="iconfont-remove"
+            style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
+            onClick={onClearSearch}
+          />
+        )}
       </Box>
     )
   }
