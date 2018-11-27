@@ -605,6 +605,16 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
+func (h *Server) squashGetThreadNonblockError(err error) bool {
+	switch err {
+	case errConvLockTabDeadlock:
+		// We don't want this error to leak up to the UI, it is really only used to get
+		// GetThreadNonblock to retry whatever operation was queued up, so let's squash it.
+		return true
+	}
+	return false
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var pagination, resultPagination *chat1.Pagination
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -619,6 +629,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if res.Offline || fullErr != nil {
+			// Some errors we just don't want to send up to the UI, let's check for those here.
+			if h.squashGetThreadNonblockError(fullErr) {
+				fullErr = nil
+			}
 			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
