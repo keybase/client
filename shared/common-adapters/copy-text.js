@@ -127,12 +127,12 @@ const styles = Styles.styleSheetCreate({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'stretch',
-      height: undefined,
       minHeight: Styles.isMobile ? 40 : 32,
       paddingLeft: 17,
       paddingRight: 17,
     },
     isElectron: {
+      height: undefined,
       paddingBottom: 6,
       paddingTop: 6,
     },
@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isMobile: {
-      height: 40,
+      minHeight: 40,
     },
   }),
   reveal: {
@@ -184,7 +184,7 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
     isMobile: {
-      height: 15,
+      minHeight: 15,
     },
   }),
   toastText: Styles.platformStyles({
