@@ -93,8 +93,10 @@ class _WalletList extends React.Component<Props> {
           />
         )
       default:
-        declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }
