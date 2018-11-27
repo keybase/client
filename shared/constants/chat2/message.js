@@ -369,7 +369,6 @@ export const uiPaymentInfoToChatPaymentInfo = (
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
     status: serviceStatus === 'claimable' ? 'cancelable' : serviceStatus,
     statusDescription: p.statusDescription,
-    statusDetail: p.statusDetail,
     showCancel: p.showCancel,
     worth: p.worth,
   })

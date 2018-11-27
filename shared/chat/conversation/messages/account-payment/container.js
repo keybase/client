@@ -28,6 +28,9 @@ const loadingProps = {
   pending: false,
 }
 
+// Info text for cancelable payments
+const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
+
 // Get action phrase for sendPayment msg
 const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
@@ -59,6 +62,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         return loadingProps
       }
 
+      // find the other participant's username
+      const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
+      const theirUsername = conv.participants.find(p => p !== you) || ''
+
       const cancelable = paymentInfo.status === 'cancelable'
       const pending = cancelable || paymentInfo.status === 'pending'
       const canceled = paymentInfo.status === 'canceled'
@@ -72,7 +79,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           paymentInfo.amountDescription
         )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
-        cancelButtonInfo: paymentInfo.showCancel ? paymentInfo.statusDetail : '',
+        cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
         cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
         canceled,
         claimButtonLabel:
