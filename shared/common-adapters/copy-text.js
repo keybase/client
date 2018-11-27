@@ -145,9 +145,11 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 10,
     },
   }),
-  buttonLabelContainer: {
-    height: undefined,
-  },
+  buttonLabelContainer: Styles.platformStyles({
+    isMobile: {
+      height: undefined,
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',
