@@ -137,6 +137,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: 17,
     },
     isElectron: {
+      display: 'flex',
       paddingBottom: 6,
       paddingTop: 6,
     },
@@ -145,11 +146,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 10,
     },
   }),
-  buttonLabelContainer: Styles.platformStyles({
-    isMobile: {
-      height: undefined,
-    },
-  }),
+  buttonLabelContainer: {
+    height: undefined,
+  },
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',
