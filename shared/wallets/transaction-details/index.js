@@ -174,7 +174,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'canceled':
       return Styles.globalColors.red
     default:
-      return Styles.globalColors.black
+      return Styles.globalColors.black_75
   }
 }
 
@@ -333,8 +333,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
                 ['error', 'canceled'].includes(props.status)
                   ? 'iconfont-close'
                   : props.status === 'completed'
-                    ? 'iconfont-success'
-                    : 'iconfont-clock'
+                  ? 'iconfont-success'
+                  : 'iconfont-clock'
               }
             />
             <Kb.Text

@@ -31,10 +31,9 @@ class TeamsDivider extends React.PureComponent<Props> {
               <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
                 {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
               </Kb.Text>
-              {this.props.hiddenCount > 0 &&
-                this.props.badgeCount > 0 && (
-                  <Kb.Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
-                )}
+              {this.props.hiddenCount > 0 && this.props.badgeCount > 0 && (
+                <Kb.Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
+              )}
             </Kb.Box2>
           </Kb.ClickableBox>
         )}

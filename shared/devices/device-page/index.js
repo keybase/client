@@ -22,15 +22,14 @@ const TimelineMarker = ({first, last, closedCircle}) => (
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
   <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
     <Kb.Text type="Body">{desc}</Kb.Text>
-    {!!subDesc &&
-      subDescIsName && (
-        <Kb.Text type="BodySmall">
-          by{' '}
-          <Kb.Text type="BodySmallItalic" style={styles.subDesc}>
-            {subDesc}
-          </Kb.Text>
+    {!!subDesc && subDescIsName && (
+      <Kb.Text type="BodySmall">
+        by{' '}
+        <Kb.Text type="BodySmallItalic" style={styles.subDesc}>
+          {subDesc}
         </Kb.Text>
-      )}
+      </Kb.Text>
+    )}
     {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
     {spacerOnBottom && <Kb.Box style={{height: 15}} />}
   </Kb.Box2>

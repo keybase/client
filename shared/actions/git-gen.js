@@ -28,43 +28,18 @@ export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 // Payload Types
 type _BadgeAppForGitPayload = $ReadOnly<{|ids: Array<string>|}>
 type _CreatePersonalRepoPayload = $ReadOnly<{|name: string|}>
-type _CreateTeamRepoPayload = $ReadOnly<{|
-  name: string,
-  teamname: string,
-  notifyTeam: boolean,
-|}>
+type _CreateTeamRepoPayload = $ReadOnly<{|name: string, teamname: string, notifyTeam: boolean|}>
 type _DeletePersonalRepoPayload = $ReadOnly<{|name: string|}>
-type _DeleteTeamRepoPayload = $ReadOnly<{|
-  name: string,
-  teamname: string,
-  notifyTeam: boolean,
-|}>
+type _DeleteTeamRepoPayload = $ReadOnly<{|name: string, teamname: string, notifyTeam: boolean|}>
 type _LoadGitPayload = void
-type _LoadGitRepoPayload = $ReadOnly<{|
-  username: ?string,
-  teamname: ?string,
-|}>
-type _LoadedPayload = $ReadOnly<{|
-  repos: {'[key: string]': Types.GitInfo},
-  errors: Array<Error>,
-|}>
-type _NavToGitPayload = $ReadOnly<{|
-  switchTab: boolean,
-  routeState: ?{expandedSet: I.Set<string>},
-|}>
-type _NavigateToTeamRepoPayload = $ReadOnly<{|
-  repoID: string,
-  teamname: string,
-|}>
+type _LoadGitRepoPayload = $ReadOnly<{|username: ?string, teamname: ?string|}>
+type _LoadedPayload = $ReadOnly<{|repos: {'[key: string]': Types.GitInfo}, errors: Array<Error>|}>
+type _NavToGitPayload = $ReadOnly<{|switchTab: boolean, routeState: ?{expandedSet: I.Set<string>}|}>
+type _NavigateToTeamRepoPayload = $ReadOnly<{|repoID: string, teamname: string|}>
 type _RepoCreatedPayload = void
 type _RepoDeletedPayload = void
 type _SetErrorPayload = $ReadOnly<{|error: ?Error|}>
-type _SetTeamRepoSettingsPayload = $ReadOnly<{|
-  chatDisabled: boolean,
-  channelName: ?string,
-  teamname: string,
-  repoID: string,
-|}>
+type _SetTeamRepoSettingsPayload = $ReadOnly<{|chatDisabled: boolean, channelName: ?string, teamname: string, repoID: string|}>
 
 // Action Creators
 export const createBadgeAppForGit = (payload: _BadgeAppForGitPayload) => ({payload, type: badgeAppForGit})

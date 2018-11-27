@@ -35,6 +35,7 @@ const makeSubState = (): $Exact<Types.TeamBuildingSubState> => ({
   teamBuildingSearchQuery: '',
   teamBuildingSelectedService: 'keybase',
   teamBuildingSearchLimit: 11,
+  teamBuildingUserRecs: [],
 })
 
 const parseRawResultToUser = (

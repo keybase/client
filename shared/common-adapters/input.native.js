@@ -342,22 +342,19 @@ class Input extends Component<Props, State> {
 
     return (
       <Box style={[containerStyle, this.props.style]}>
-        {!this.props.small &&
-          !this.props.hideLabel && (
-            <Text type="BodySmall" style={styles.floating}>
-              {floatingHintText}
-            </Text>
-          )}
-        {!!this.props.small &&
-          !!this.props.smallLabel &&
-          !this.props.hideLabel && (
-            <Text
-              type="BodySmall"
-              style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
-            >
-              {this.props.smallLabel}
-            </Text>
-          )}
+        {!this.props.small && !this.props.hideLabel && (
+          <Text type="BodySmall" style={styles.floating}>
+            {floatingHintText}
+          </Text>
+        )}
+        {!!this.props.small && !!this.props.smallLabel && !this.props.hideLabel && (
+          <Text
+            type="BodySmall"
+            style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
+          >
+            {this.props.smallLabel}
+          </Text>
+        )}
         <Box
           style={
             this.props.small

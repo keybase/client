@@ -76,10 +76,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     }
     case FsGen.loadingPath:
-      return state.updateIn(
-        ['loadingPaths', action.payload.path],
-        set =>
-          action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
+      return state.updateIn(['loadingPaths', action.payload.path], set =>
+        action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
       )
     case FsGen.favoritesLoaded:
       return state.set(
@@ -118,11 +116,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       const {key, completePortion, endEstimate} = action.payload
       return state.update('downloads', d =>
         d.update(key, k =>
-          k.update(
-            'state',
-            original =>
-              original && original.merge({completePortion, endEstimate})
-          )
+          k.update('state', original => original && original.merge({completePortion, endEstimate}))
         )
       )
     }
@@ -185,17 +179,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       })
     case FsGen.mimeTypeLoaded:
       return state.update('pathItems', pis =>
-        pis.update(
-          action.payload.path,
-          pathItem =>
-            pathItem
-              ? pathItem.type === 'file'
-                ? pathItem.set('mimeType', action.payload.mimeType)
-                : pathItem
-              : Constants.makeFile({
-                  mimeType: action.payload.mimeType,
-                  name: Types.getPathName(action.payload.path),
-                })
+        pis.update(action.payload.path, pathItem =>
+          pathItem
+            ? pathItem.type === 'file'
+              ? pathItem.set('mimeType', action.payload.mimeType)
+              : pathItem
+            : Constants.makeFile({
+                mimeType: action.payload.mimeType,
+                name: Types.getPathName(action.payload.path),
+              })
         )
       )
     case FsGen.newFolderRow:

@@ -565,9 +565,9 @@ const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
 
 const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
-  let balanceChangeColor = Styles.globalColors.black
+  let balanceChangeColor = Styles.globalColors.black_75
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.black_75
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20

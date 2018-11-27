@@ -114,12 +114,11 @@ class FriendshipsRender extends Component<Props> {
           }}
         >
           <Box style={{marginTop: globalMargins.small}}>
-            {followers === 0 &&
-              isYou && (
-                <Box style={friendshipEmptyStyle}>
-                  <Text type="BodySmall">You have no followers.</Text>
-                </Box>
-              )}
+            {followers === 0 && isYou && (
+              <Box style={friendshipEmptyStyle}>
+                <Text type="BodySmall">You have no followers.</Text>
+              </Box>
+            )}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(true, index)}
@@ -136,12 +135,11 @@ class FriendshipsRender extends Component<Props> {
           }}
         >
           <Box style={{marginTop: globalMargins.small}}>
-            {following === 0 &&
-              isYou && (
-                <Box style={friendshipEmptyStyle}>
-                  <Text type="BodySmall">You are not following anyone.</Text>
-                </Box>
-              )}
+            {following === 0 && isYou && (
+              <Box style={friendshipEmptyStyle}>
+                <Text type="BodySmall">You are not following anyone.</Text>
+              </Box>
+            )}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(false, index)}

@@ -18,8 +18,8 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   const icon = inviteLink
     ? 'icon-invite-link-negative-48'
     : isPrivate
-      ? 'icon-folder-private-success-negative-48'
-      : 'icon-folder-public-success-negative-48'
+    ? 'icon-folder-private-success-negative-48'
+    : 'icon-folder-public-success-negative-48'
 
   let textRef
   return (

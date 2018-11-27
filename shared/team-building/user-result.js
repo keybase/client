@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
-import {serviceIdToLogo14} from './shared'
+import {serviceIdToIconFont} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
@@ -84,7 +84,7 @@ const Services = ({services}: {services: {[key: ServiceIdWithContact]: string}})
   <Kb.Box2 direction="horizontal" style={styles.services}>
     {Object.keys(services).map(service => (
       <Kb.WithTooltip key={service} text={services[service]} position="top center">
-        <Kb.Icon type={serviceIdToLogo14(service)} style={Kb.iconCastPlatformStyles(styles.serviceIcon)} />
+        <Kb.Icon type={serviceIdToIconFont(service)} style={Kb.iconCastPlatformStyles(styles.serviceIcon)} />
       </Kb.WithTooltip>
     ))}
   </Kb.Box2>

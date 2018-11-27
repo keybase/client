@@ -56,11 +56,13 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
   const {
     profile: {pgpInfo},
   } = state
-  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
-    comment: '',
-    email: email || '',
-    username: pgpInfo.fullName || '',
-  }))
+  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3]
+    .filter(email => !!email)
+    .map(email => ({
+      comment: '',
+      email: email || '',
+      username: pgpInfo.fullName || '',
+    }))
 
   const generatePgpKeyChanMap: any = RPCTypes.pgpPgpKeyGenDefaultRpcChannelMap(
     [

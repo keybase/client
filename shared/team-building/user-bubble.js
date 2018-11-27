@@ -90,10 +90,10 @@ const styles = Styles.styleSheetCreate({
 
   removeIcon: Styles.platformStyles({
     isElectron: {
-      lineHeight: '32px',
+      lineHeight: '34px',
     },
     isMobile: {
-      lineHeight: 32,
+      lineHeight: 34,
     },
   }),
 })

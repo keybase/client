@@ -50,17 +50,16 @@ class MenuLayout extends Component<MenuLayoutProps> {
             {item.title}
           </Text>
         )}
-        {!item.view &&
-          item.subTitle && (
-            <Text
-              className="subtitle"
-              key={item.subTitle}
-              type="BodySmall"
-              style={collapseStyles([styles.itemBodyText, item.style])}
-            >
-              {item.subTitle}
-            </Text>
-          )}
+        {!item.view && item.subTitle && (
+          <Text
+            className="subtitle"
+            key={item.subTitle}
+            type="BodySmall"
+            style={collapseStyles([styles.itemBodyText, item.style])}
+          >
+            {item.subTitle}
+          </Text>
+        )}
       </Box>
     )
   }
@@ -90,9 +89,8 @@ class MenuLayout extends Component<MenuLayoutProps> {
             <Box style={styles.menuItemList}>
               {this.props.items
                 .filter(Boolean)
-                .map(
-                  (item, index) =>
-                    item === 'Divider' ? this._renderDivider(index) : this._renderMenuItem(item, index)
+                .map((item, index) =>
+                  item === 'Divider' ? this._renderDivider(index) : this._renderMenuItem(item, index)
                 )}
             </Box>
           )}

@@ -182,24 +182,23 @@ export default class TrackerRender extends React.PureComponent<Props> {
           />
         </div>
         <div style={styleFooter}>
-          {!this.props.loading &&
-            this.props.actionBarReady && (
-              <Action
-                loggedIn={this.props.loggedIn}
-                waiting={this.props.waiting}
-                state={this.props.trackerState}
-                currentlyFollowing={this.props.currentlyFollowing}
-                username={this.props.username}
-                myUsername={this.props.myUsername}
-                lastAction={this.props.lastAction}
-                onChat={this.props.onChat}
-                onClose={this.props.onClose}
-                onIgnore={this.props.onIgnore}
-                onFollow={this.props.onFollow}
-                onRefollow={this.props.onRefollow}
-                onUnfollow={this.props.onUnfollow}
-              />
-            )}
+          {!this.props.loading && this.props.actionBarReady && (
+            <Action
+              loggedIn={this.props.loggedIn}
+              waiting={this.props.waiting}
+              state={this.props.trackerState}
+              currentlyFollowing={this.props.currentlyFollowing}
+              username={this.props.username}
+              myUsername={this.props.myUsername}
+              lastAction={this.props.lastAction}
+              onChat={this.props.onChat}
+              onClose={this.props.onClose}
+              onIgnore={this.props.onIgnore}
+              onFollow={this.props.onFollow}
+              onRefollow={this.props.onRefollow}
+              onUnfollow={this.props.onUnfollow}
+            />
+          )}
         </div>
       </div>
     )
