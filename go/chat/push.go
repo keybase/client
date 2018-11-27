@@ -314,11 +314,15 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 }
 
 // squashChanMention will silence a chanMention if sent by a non-admin on a
-// large (> 100 member) team. The server drives this for mobile push
-// notifications, client checks this for desktop notifications
-func (g *PushHandler) squashChanMention(ctx context.Context, mt chat1.ConversationMembersType,
+// large (> chat1.MaxChanMentionConvSize member) team. The server drives this
+// for mobile push notifications, client checks this for desktop notifications
+func (g *PushHandler) squashChanMention(ctx context.Context, conv *chat1.ConversationLocal,
 	mvalid chat1.MessageUnboxedValid) (bool, error) {
-	if mt != chat1.ConversationMembersType_TEAM {
+	// Verify the chanMention is for a TEAM that is larger than
+	// MaxChanMentionConvSize
+	if conv == nil ||
+		conv.Info.MembersType != chat1.ConversationMembersType_TEAM ||
+		len(conv.Info.Participants) < chat1.MaxChanMentionConvSize {
 		return false, nil
 	}
 	teamID, err := keybase1.TeamIDFromString(mvalid.ClientHeader.Conv.Tlfid.String())
@@ -344,16 +348,8 @@ func (g *PushHandler) squashChanMention(ctx context.Context, mt chat1.Conversati
 	if err != nil {
 		return false, err
 	}
-	admin := role.IsOrAbove(keybase1.TeamRole_ADMIN)
-	if admin {
-		return false, nil
-	}
-	members, err := team.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
-	if err != nil {
-		return false, err
-	}
-	// if the sender is not an admin and the team is large squash the mention.
-	return len(members) > 100, nil
+	// if the sender is not an admin, large squash the mention.
+	return !role.IsOrAbove(keybase1.TeamRole_ADMIN), nil
 }
 
 func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
@@ -412,7 +408,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 			switch chanMention {
 			case chat1.ChannelMention_HERE, chat1.ChannelMention_ALL:
 				notifyFromChanMention = conv.Notifications.ChannelWide
-				shouldSquash, err := g.squashChanMention(ctx, conv.Info.MembersType, msg.Valid())
+				shouldSquash, err := g.squashChanMention(ctx, conv, msg.Valid())
 				if err != nil {
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to squashChanMention: %v", err)
 				}
