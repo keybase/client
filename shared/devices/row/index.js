@@ -45,10 +45,9 @@ const DeviceRow = (props: Props) => {
             {props.name}
           </Kb.Text>
           {props.isCurrentDevice && <Kb.Text type="BodySmall">Current device</Kb.Text>}
-          {props.isNew &&
-            !props.isCurrentDevice && (
-              <Kb.Meta title="new" style={_metaStyle} backgroundColor={Styles.globalColors.orange} />
-            )}
+          {props.isNew && !props.isCurrentDevice && (
+            <Kb.Meta title="new" style={_metaStyle} backgroundColor={Styles.globalColors.orange} />
+          )}
         </Kb.Box2>
       }
     />

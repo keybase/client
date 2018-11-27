@@ -76,78 +76,22 @@ export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
-type _AddParticipantPayload = $ReadOnly<{|
-  teamname: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participant: string,
-|}>
-type _AddPeopleToTeamPayload = $ReadOnly<{|
-  destSubPath: I.List<string>,
-  role: string,
-  rootPath: I.List<string>,
-  sendChatNotification: boolean,
-  sourceSubPath: I.List<string>,
-  teamname: string,
-|}>
+type _AddParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
+type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath: I.List<string>, role: string, rootPath: I.List<string>, sendChatNotification: boolean, sourceSubPath: I.List<string>, teamname: string|}>
 type _AddTeamWithChosenChannelsPayload = $ReadOnly<{|teamname: string|}>
-type _AddToTeamPayload = $ReadOnly<{|
-  teamname: string,
-  username: string,
-  role: Types.TeamRoleType,
-  sendChatNotification: boolean,
-|}>
-type _AddUserToTeamsPayload = $ReadOnly<{|
-  role: Types.TeamRoleType,
-  teams: Array<string>,
-  user: string,
-|}>
-type _BadgeAppForTeamsPayload = $ReadOnly<{|
-  newTeamNames: Array<string>,
-  newTeamAccessRequests: Array<string>,
-  teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>,
-|}>
+type _AddToTeamPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType, sendChatNotification: boolean|}>
+type _AddUserToTeamsPayload = $ReadOnly<{|role: Types.TeamRoleType, teams: Array<string>, user: string|}>
+type _BadgeAppForTeamsPayload = $ReadOnly<{|newTeamNames: Array<string>, newTeamAccessRequests: Array<string>, teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>|}>
 type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
 type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>
-type _CreateChannelPayload = $ReadOnly<{|
-  teamname: string,
-  channelname: string,
-  description: ?string,
-  rootPath: I.List<string>,
-  sourceSubPath: I.List<string>,
-  destSubPath: I.List<string>,
-|}>
-type _CreateNewTeamFromConversationPayload = $ReadOnly<{|
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  teamname: string,
-|}>
-type _CreateNewTeamPayload = $ReadOnly<{|
-  joinSubteam: boolean,
-  teamname: string,
-  rootPath: I.List<string>,
-  sourceSubPath: I.List<string>,
-  destSubPath: I.List<string>,
-|}>
-type _DeleteChannelConfirmedPayload = $ReadOnly<{|
-  teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-|}>
-type _DeleteChannelInfoPayload = $ReadOnly<{|
-  teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-|}>
-type _EditMembershipPayload = $ReadOnly<{|
-  teamname: string,
-  username: string,
-  role: Types.TeamRoleType,
-|}>
-type _EditTeamDescriptionPayload = $ReadOnly<{|
-  teamname: string,
-  description: string,
-|}>
-type _GetChannelInfoPayload = $ReadOnly<{|
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  teamname: string,
-|}>
+type _CreateChannelPayload = $ReadOnly<{|teamname: string, channelname: string, description: ?string, rootPath: I.List<string>, sourceSubPath: I.List<string>, destSubPath: I.List<string>|}>
+type _CreateNewTeamFromConversationPayload = $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey, teamname: string|}>
+type _CreateNewTeamPayload = $ReadOnly<{|joinSubteam: boolean, teamname: string, rootPath: I.List<string>, sourceSubPath: I.List<string>, destSubPath: I.List<string>|}>
+type _DeleteChannelConfirmedPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey|}>
+type _DeleteChannelInfoPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey|}>
+type _EditMembershipPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType|}>
+type _EditTeamDescriptionPayload = $ReadOnly<{|teamname: string, description: string|}>
+type _GetChannelInfoPayload = $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey, teamname: string|}>
 type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = $ReadOnly<{|teamname: string|}>
@@ -156,155 +100,45 @@ type _GetTeamProfileAddListPayload = $ReadOnly<{|username: string|}>
 type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamsPayload = void
-type _IgnoreRequestPayload = $ReadOnly<{|
-  teamname: string,
-  username: string,
-|}>
-type _InviteToTeamByEmailPayload = $ReadOnly<{|
-  destSubPath: I.List<string>,
-  invitees: string,
-  role: Types.TeamRoleType,
-  rootPath: I.List<string>,
-  sourceSubPath: I.List<string>,
-  teamname: string,
-|}>
-type _InviteToTeamByPhonePayload = $ReadOnly<{|
-  teamname: string,
-  role: Types.TeamRoleType,
-  phoneNumber: string,
-  fullName: string,
-|}>
+type _IgnoreRequestPayload = $ReadOnly<{|teamname: string, username: string|}>
+type _InviteToTeamByEmailPayload = $ReadOnly<{|destSubPath: I.List<string>, invitees: string, role: Types.TeamRoleType, rootPath: I.List<string>, sourceSubPath: I.List<string>, teamname: string|}>
+type _InviteToTeamByPhonePayload = $ReadOnly<{|teamname: string, role: Types.TeamRoleType, phoneNumber: string, fullName: string|}>
 type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
-type _LeaveTeamPayload = $ReadOnly<{|
-  teamname: string,
-  context: 'teams' | 'chat',
-|}>
-type _LeftTeamPayload = $ReadOnly<{|
-  teamname: string,
-  context: 'teams' | 'chat',
-|}>
-type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|
-  email: string,
-  teamname: string,
-  username: string,
-  inviteID: string,
-|}>
-type _RemoveParticipantPayload = $ReadOnly<{|
-  teamname: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  participant: string,
-|}>
-type _SaveChannelMembershipPayload = $ReadOnly<{|
-  teamname: string,
-  oldChannelState: Types.ChannelMembershipState,
-  newChannelState: Types.ChannelMembershipState,
-  you: string,
-|}>
-type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|
-  teamname: string,
-  policy: RetentionPolicy,
-|}>
+type _LeaveTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|}>
+type _LeftTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|}>
+type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|email: string, teamname: string, username: string, inviteID: string|}>
+type _RemoveParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
+type _SaveChannelMembershipPayload = $ReadOnly<{|teamname: string, oldChannelState: Types.ChannelMembershipState, newChannelState: Types.ChannelMembershipState, you: string|}>
+type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string, policy: RetentionPolicy|}>
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
-type _SetEmailInviteErrorPayload = $ReadOnly<{|
-  message: string,
-  malformed: Array<string>,
-|}>
+type _SetEmailInviteErrorPayload = $ReadOnly<{|message: string, malformed: Array<string>|}>
 type _SetLoadedPayload = $ReadOnly<{|loaded: boolean|}>
-type _SetMemberPublicityPayload = $ReadOnly<{|
-  teamname: string,
-  showcase: boolean,
-|}>
-type _SetNewTeamInfoPayload = $ReadOnly<{|
-  newTeams: I.Set<string>,
-  newTeamRequests: I.List<string>,
-  teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>,
-|}>
-type _SetPublicityPayload = $ReadOnly<{|
-  teamname: string,
-  settings: Types.PublicitySettings,
-|}>
+type _SetMemberPublicityPayload = $ReadOnly<{|teamname: string, showcase: boolean|}>
+type _SetNewTeamInfoPayload = $ReadOnly<{|newTeams: I.Set<string>, newTeamRequests: I.List<string>, teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>|}>
+type _SetPublicityPayload = $ReadOnly<{|teamname: string, settings: Types.PublicitySettings|}>
 type _SetTeamAccessRequestsPendingPayload = $ReadOnly<{|accessRequestsPending: I.Set<Types.Teamname>|}>
-type _SetTeamCanPerformPayload = $ReadOnly<{|
-  teamname: string,
-  teamOperation: Types.TeamOperations,
-|}>
-type _SetTeamChannelInfoPayload = $ReadOnly<{|
-  teamname: string,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  channelInfo: Types.ChannelInfo,
-|}>
-type _SetTeamChannelsPayload = $ReadOnly<{|
-  teamname: string,
-  channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
-|}>
+type _SetTeamCanPerformPayload = $ReadOnly<{|teamname: string, teamOperation: Types.TeamOperations|}>
+type _SetTeamChannelInfoPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, channelInfo: Types.ChannelInfo|}>
+type _SetTeamChannelsPayload = $ReadOnly<{|teamname: string, channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>|}>
 type _SetTeamCreationErrorPayload = $ReadOnly<{|error: string|}>
-type _SetTeamDetailsPayload = $ReadOnly<{|
-  teamname: string,
-  members: I.Map<string, Types.MemberInfo>,
-  settings: Types.TeamSettings,
-  invites: I.Set<Types.InviteInfo>,
-  subteams: I.Set<Types.Teamname>,
-  requests: I.Map<string, I.Set<Types.RequestInfo>>,
-|}>
-type _SetTeamInfoPayload = $ReadOnly<{|
-  teamnames: I.Set<Types.Teamname>,
-  teammembercounts: I.Map<Types.Teamname, number>,
-  teamNameToIsOpen: I.Map<Types.Teamname, boolean>,
-  teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>,
-  teamNameToAllowPromote: I.Map<Types.Teamname, boolean>,
-  teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>,
-  teamNameToID: I.Map<Types.Teamname, string>,
-|}>
+type _SetTeamDetailsPayload = $ReadOnly<{|teamname: string, members: I.Map<string, Types.MemberInfo>, settings: Types.TeamSettings, invites: I.Set<Types.InviteInfo>, subteams: I.Set<Types.Teamname>, requests: I.Map<string, I.Set<Types.RequestInfo>>|}>
+type _SetTeamInfoPayload = $ReadOnly<{|teamnames: I.Set<Types.Teamname>, teammembercounts: I.Map<Types.Teamname, number>, teamNameToIsOpen: I.Map<Types.Teamname, boolean>, teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>, teamNameToAllowPromote: I.Map<Types.Teamname, boolean>, teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>, teamNameToID: I.Map<Types.Teamname, string>|}>
 type _SetTeamInviteErrorPayload = $ReadOnly<{|error: string|}>
 type _SetTeamJoinErrorPayload = $ReadOnly<{|error: string|}>
-type _SetTeamJoinSuccessPayload = $ReadOnly<{|
-  success: boolean,
-  teamname: string,
-|}>
-type _SetTeamLoadingInvitesPayload = $ReadOnly<{|
-  teamname: string,
-  invitees: string,
-  loadingInvites: boolean,
-|}>
+type _SetTeamJoinSuccessPayload = $ReadOnly<{|success: boolean, teamname: string|}>
+type _SetTeamLoadingInvitesPayload = $ReadOnly<{|teamname: string, invitees: string, loadingInvites: boolean|}>
 type _SetTeamProfileAddListPayload = $ReadOnly<{|teamlist: I.List<Types.TeamProfileAddList>|}>
-type _SetTeamPublicitySettingsPayload = $ReadOnly<{|
-  teamname: string,
-  publicity: Types._PublicitySettings,
-|}>
-type _SetTeamRetentionPolicyPayload = $ReadOnly<{|
-  teamname: string,
-  retentionPolicy: RetentionPolicy,
-|}>
+type _SetTeamPublicitySettingsPayload = $ReadOnly<{|teamname: string, publicity: Types._PublicitySettings|}>
+type _SetTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string, retentionPolicy: RetentionPolicy|}>
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamsWithChosenChannelsPayload = $ReadOnly<{|teamsWithChosenChannels: I.Set<Types.Teamname>|}>
-type _SetUpdatedChannelNamePayload = $ReadOnly<{|
-  teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  newChannelName: string,
-|}>
-type _SetUpdatedTopicPayload = $ReadOnly<{|
-  teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  newTopic: string,
-|}>
-type _UpdateChannelNamePayload = $ReadOnly<{|
-  teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  newChannelName: string,
-|}>
-type _UpdateTopicPayload = $ReadOnly<{|
-  teamname: Types.Teamname,
-  conversationIDKey: ChatTypes.ConversationIDKey,
-  newTopic: string,
-|}>
-type _UploadTeamAvatarPayload = $ReadOnly<{|
-  crop?: RPCTypes.ImageCropRect,
-  filename: string,
-  sendChatNotification: boolean,
-  teamname: string,
-|}>
+type _SetUpdatedChannelNamePayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey, newChannelName: string|}>
+type _SetUpdatedTopicPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey, newTopic: string|}>
+type _UpdateChannelNamePayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey, newChannelName: string|}>
+type _UpdateTopicPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey, newTopic: string|}>
+type _UploadTeamAvatarPayload = $ReadOnly<{|crop?: RPCTypes.ImageCropRect, filename: string, sendChatNotification: boolean, teamname: string|}>
 
 // Action Creators
 /**

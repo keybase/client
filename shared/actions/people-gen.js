@@ -15,18 +15,9 @@ export const peopleDataProcessed = 'people:peopleDataProcessed'
 export const skipTodo = 'people:skipTodo'
 
 // Payload Types
-type _GetPeopleDataPayload = $ReadOnly<{|
-  markViewed: boolean,
-  numFollowSuggestionsWanted: number,
-|}>
+type _GetPeopleDataPayload = $ReadOnly<{|markViewed: boolean, numFollowSuggestionsWanted: number|}>
 type _MarkViewedPayload = void
-type _PeopleDataProcessedPayload = $ReadOnly<{|
-  oldItems: I.List<Types.PeopleScreenItem>,
-  newItems: I.List<Types.PeopleScreenItem>,
-  followSuggestions: I.List<Types.FollowSuggestion>,
-  lastViewed: Date,
-  version: number,
-|}>
+type _PeopleDataProcessedPayload = $ReadOnly<{|oldItems: I.List<Types.PeopleScreenItem>, newItems: I.List<Types.PeopleScreenItem>, followSuggestions: I.List<Types.FollowSuggestion>, lastViewed: Date, version: number|}>
 type _SkipTodoPayload = $ReadOnly<{|type: Types.TodoType|}>
 
 // Action Creators

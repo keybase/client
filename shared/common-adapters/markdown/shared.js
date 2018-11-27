@@ -29,8 +29,8 @@ function processAST(ast, createComponent) {
   while (stack.length > 0) {
     const top = stack[0]
     if (top.type && top.seen) {
-      const childrenComponents = top.children.map(
-        child => (typeof child === 'string' ? child : child.component)
+      const childrenComponents = top.children.map(child =>
+        typeof child === 'string' ? child : child.component
       )
       top.component = createComponent(top.type, String(index++), childrenComponents, top)
       stack.shift()
@@ -459,8 +459,8 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-          ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
-          : reactOutput(parseTree, {allowFontScaling, styleOverride})
+        ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
+        : reactOutput(parseTree, {allowFontScaling, styleOverride})
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)

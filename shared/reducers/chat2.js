@@ -40,16 +40,14 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.setConversationOffline:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? meta.set('offline', action.payload.offline) : meta)
+      return metaMap.update(action.payload.conversationIDKey, meta =>
+        meta ? meta.set('offline', action.payload.offline) : meta
       )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? Constants.updateMetaWithNotificationSettings(meta, action.payload.settings) : meta)
+      return metaMap.update(action.payload.conversationIDKey, meta =>
+        meta ? Constants.updateMetaWithNotificationSettings(meta, action.payload.settings) : meta
       )
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
@@ -91,16 +89,14 @@ const metaMapReducer = (metaMap, action) => {
             return metaMap.set(conversationIDKey, newMeta)
           }
           default:
-            return metaMap.update(
-              action.payload.conversationIDKey,
-              old =>
-                old
-                  ? old.withMutations(m => {
-                      m.set('trustedState', 'error')
-                      m.set('snippet', error.message)
-                      m.set('snippetDecoration', '')
-                    })
-                  : old
+            return metaMap.update(action.payload.conversationIDKey, old =>
+              old
+                ? old.withMutations(m => {
+                    m.set('trustedState', 'error')
+                    m.set('snippet', error.message)
+                    m.set('snippetDecoration', '')
+                  })
+                : old
             )
         }
       } else {
@@ -166,12 +162,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         : messageMap
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
-      return messageMap.updateIn(
-        [action.payload.conversationIDKey, action.payload.ordinal],
-        message =>
-          message && message.type === 'text'
-            ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
-            : message
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message =>
+        message && message.type === 'text'
+          ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
+          : message
       )
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
@@ -179,9 +173,8 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       if (!ordinal) {
         return messageMap
       }
-      return messageMap.updateIn(
-        [conversationIDKey, ordinal],
-        old => (old ? Constants.upgradeMessage(old, message) : message)
+      return messageMap.updateIn([conversationIDKey, ordinal], old =>
+        old ? Constants.upgradeMessage(old, message) : message
       )
     }
     case Chat2Gen.messageWasEdited: {
@@ -199,26 +192,23 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return messageMap
       }
 
-      return messageMap.updateIn(
-        [conversationIDKey, ordinal],
-        message =>
-          !message || message.type !== 'text'
-            ? message
-            : message.withMutations(m => {
-                m.set('text', text)
-                m.set('hasBeenEdited', true)
-                m.set('submitState', null)
-                m.set('mentionsAt', mentionsAt)
-                m.set('mentionsChannel', mentionsChannel)
-                m.set('mentionsChannelName', mentionsChannelName)
-              })
+      return messageMap.updateIn([conversationIDKey, ordinal], message =>
+        !message || message.type !== 'text'
+          ? message
+          : message.withMutations(m => {
+              m.set('text', text)
+              m.set('hasBeenEdited', true)
+              m.set('submitState', null)
+              m.set('mentionsAt', mentionsAt)
+              m.set('mentionsChannel', mentionsChannel)
+              m.set('mentionsChannelName', mentionsChannelName)
+            })
       )
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
-      return messageMap.updateIn(
-        [conversationIDKey, ordinal],
-        message => (!message || message.type !== 'text' ? message : message.set('text', text))
+      return messageMap.updateIn([conversationIDKey, ordinal], message =>
+        !message || message.type !== 'text' ? message : message.set('text', text)
       )
     }
     case Chat2Gen.attachmentUploading:
@@ -845,9 +835,8 @@ const rootReducer = (
         )
 
         s.update('messageOrdinals', messageOrdinals =>
-          messageOrdinals.update(
-            conversationIDKey,
-            ordinals => (ordinals ? ordinals.subtract(allOrdinals) : ordinals)
+          messageOrdinals.update(conversationIDKey, ordinals =>
+            ordinals ? ordinals.subtract(allOrdinals) : ordinals
           )
         )
       })

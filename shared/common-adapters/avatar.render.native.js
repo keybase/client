@@ -116,14 +116,13 @@ class AvatarRender extends React.PureComponent<Props, State> {
     return (
       <ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
         <Box style={containerStyle}>
-          {!this.props.skipBackground &&
-            (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
-              <Background
-                loaded={this.state.loaded}
-                loadingColor={this.props.loadingColor}
-                borderRadius={borderRadius}
-              />
-            )}
+          {!this.props.skipBackground && (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
+            <Background
+              loaded={this.state.loaded}
+              loadingColor={this.props.loadingColor}
+              borderRadius={borderRadius}
+            />
+          )}
           {!!this.props.url && (
             <UserImage
               opacity={this.props.opacity}

@@ -12,10 +12,7 @@ export const updateBrokenState = 'users:updateBrokenState'
 export const updateFullnames = 'users:updateFullnames'
 
 // Payload Types
-type _UpdateBrokenStatePayload = $ReadOnly<{|
-  newlyBroken: Array<string>,
-  newlyFixed: Array<string>,
-|}>
+type _UpdateBrokenStatePayload = $ReadOnly<{|newlyBroken: Array<string>, newlyFixed: Array<string>|}>
 type _UpdateFullnamesPayload = $ReadOnly<{|usernameToFullname: {[username: string]: string}|}>
 
 // Action Creators

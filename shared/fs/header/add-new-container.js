@@ -33,11 +33,11 @@ const mergeProps = ({_pathItem}, {newFolderRow, _openAndUpload, _pickAndUpload},
                   pickAndUploadVideo: _pickAndUpload('video'),
                 }
             : isDarwin
-              ? {openAndUploadBoth: _openAndUpload('both')}
-              : {
-                  openAndUploadFile: _openAndUpload('file'),
-                  openAndUploadDir: _openAndUpload('directory'),
-                }),
+            ? {openAndUploadBoth: _openAndUpload('both')}
+            : {
+                openAndUploadFile: _openAndUpload('file'),
+                openAndUploadDir: _openAndUpload('directory'),
+              }),
           newFolderRow,
         }
       : {}),

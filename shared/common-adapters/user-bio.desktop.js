@@ -101,16 +101,15 @@ class BioRender extends Component<Props> {
               size={avatarSize}
               showFollowingStatus={true}
             />
-            {editFns &&
-              !flags.avatarUploadsEnabled && (
-                <Box style={{height: 16, width: 0}}>
-                  <Icon
-                    type="iconfont-edit"
-                    onClick={() => editFns.onEditAvatarClick()}
-                    style={stylesEditAvatarIcon(avatarSize)}
-                  />
-                </Box>
-              )}
+            {editFns && !flags.avatarUploadsEnabled && (
+              <Box style={{height: 16, width: 0}}>
+                <Icon
+                  type="iconfont-edit"
+                  onClick={() => editFns.onEditAvatarClick()}
+                  style={stylesEditAvatarIcon(avatarSize)}
+                />
+              </Box>
+            )}
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
@@ -124,23 +123,21 @@ class BioRender extends Component<Props> {
             <Text type="BodyBig" selectable={true} style={stylesFullname} {...nameTweaks}>
               {userInfo.fullname}
             </Text>
-            {!userInfo.fullname &&
-              editFns && (
-                <Text
-                  type="BodySemibold"
-                  selectable={true}
-                  style={{...stylesFullname, color: globalColors.black_20}}
-                  {...nameTweaks}
-                >
-                  Your full name
-                </Text>
-              )}
-            {!editFns &&
-              followLabel && (
-                <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>
-                  {followLabel}
-                </Text>
-              )}
+            {!userInfo.fullname && editFns && (
+              <Text
+                type="BodySemibold"
+                selectable={true}
+                style={{...stylesFullname, color: globalColors.black_20}}
+                {...nameTweaks}
+              >
+                Your full name
+              </Text>
+            )}
+            {!editFns && followLabel && (
+              <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>
+                {followLabel}
+              </Text>
+            )}
             {userInfo.followersCount !== -1 && (
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
                 <Text type="BodySmall" style={{...globalStyles.fontBold}}>
@@ -164,19 +161,18 @@ class BioRender extends Component<Props> {
                 {userInfo.bio}
               </Text>
             )}
-            {!userInfo.bio &&
-              editFns && (
-                <Text
-                  type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
-                  onClick={editFns.onBioEdit}
-                  selectable={true}
-                  style={{...stylesBio, color: globalColors.black_20}}
-                  {...bioTweaks}
-                  {...bioLineClamp}
-                >
-                  Write a brief bio
-                </Text>
-              )}
+            {!userInfo.bio && editFns && (
+              <Text
+                type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+                onClick={editFns.onBioEdit}
+                selectable={true}
+                style={{...stylesBio, color: globalColors.black_20}}
+                {...bioTweaks}
+                {...bioLineClamp}
+              >
+                Write a brief bio
+              </Text>
+            )}
 
             {userInfo.location && (
               <Text
@@ -189,18 +185,17 @@ class BioRender extends Component<Props> {
                 {userInfo.location}
               </Text>
             )}
-            {!userInfo.location &&
-              editFns && (
-                <Text
-                  type="BodySmall"
-                  selectable={true}
-                  style={{...stylesLocation, color: globalColors.black_20}}
-                  {...locationLineClamp}
-                  {...locationTweaks}
-                >
-                  Wherever, Earth
-                </Text>
-              )}
+            {!userInfo.location && editFns && (
+              <Text
+                type="BodySmall"
+                selectable={true}
+                style={{...stylesLocation, color: globalColors.black_20}}
+                {...locationLineClamp}
+                {...locationTweaks}
+              >
+                Wherever, Earth
+              </Text>
+            )}
             {editFns && (
               <Button
                 style={{marginTop: globalMargins.small}}

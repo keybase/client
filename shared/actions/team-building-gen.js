@@ -26,16 +26,8 @@ type _FetchUserRecsPayload = void
 type _FetchedUserRecsPayload = $ReadOnly<{|users: Array<Types.User>|}>
 type _FinishedTeamBuildingPayload = void
 type _RemoveUsersFromTeamSoFarPayload = $ReadOnly<{|users: Array<Types.UserID>|}>
-type _SearchPayload = $ReadOnly<{|
-  query: string,
-  service: Types.ServiceIdWithContact,
-  limit?: number,
-|}>
-type _SearchResultsLoadedPayload = $ReadOnly<{|
-  users: Array<Types.User>,
-  query: string,
-  service: Types.ServiceIdWithContact,
-|}>
+type _SearchPayload = $ReadOnly<{|query: string, service: Types.ServiceIdWithContact, limit?: number|}>
+type _SearchResultsLoadedPayload = $ReadOnly<{|users: Array<Types.User>, query: string, service: Types.ServiceIdWithContact|}>
 
 // Action Creators
 export const createAddUsersToTeamSoFar = (payload: _AddUsersToTeamSoFarPayload) => ({payload, type: addUsersToTeamSoFar})

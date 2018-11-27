@@ -28,10 +28,10 @@ const Header = (props: HeaderProps) => (
         {props.sendingIntentionXLM ? props.displayAmountXLM : props.displayAmountFiat}
       </Kb.Text>
       {props.sendingIntentionXLM && !!props.displayAmountFiat && (
-          <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-            {'(APPROXIMATELY ' + props.displayAmountFiat + ')'}
-          </Kb.Text>
-        )}
+        <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
+          {'(APPROXIMATELY ' + props.displayAmountFiat + ')'}
+        </Kb.Text>
+      )}
     </Kb.Box2>
     <Kb.BackButton
       onClick={props.onBack}

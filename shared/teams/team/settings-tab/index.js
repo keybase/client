@@ -72,8 +72,8 @@ const SetMemberShowcase = (props: SettingProps) => (
             {props.yourOperations.setMemberShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperations.joinTeam
-                ? 'You must join this team to publish it on your profile.'
-                : "Admins aren't allowing members to publish this team on their profile."}
+              ? 'You must join this team to publish it on your profile.'
+              : "Admins aren't allowing members to publish this team on their profile."}
           </Text>
         </Box>
       }

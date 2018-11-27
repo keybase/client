@@ -274,8 +274,8 @@ const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
   return usernames.length === 0
     ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
     : usernames.length === 1
-      ? makeAvatarPathItemIconSpec(usernames[0])
-      : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+    ? makeAvatarPathItemIconSpec(usernames[0])
+    : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
 }
 export const getIconSpecFromUsernamesAndTeamname = (
   usernames: ?Array<string>,
