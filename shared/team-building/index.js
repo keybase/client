@@ -138,7 +138,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   recText: {
-    marginLeft: Styles.globalMargins.small,
+    marginBottom: Styles.globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
   list: {
     paddingBottom: Styles.globalMargins.small,
