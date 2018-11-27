@@ -1226,7 +1226,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_KBFS_CHAT:
 		return true
@@ -1238,7 +1237,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
@@ -1252,7 +1250,7 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI:
-		// The chat GUI (in non-strict mode) is specifically exempted from broken
+		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
@@ -1295,7 +1293,6 @@ func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,

@@ -547,10 +547,6 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	names = append(names, impTeamName.Readers.KeybaseUsers...)
 
 	// identify the members in the conversation
-	identBehavior, _, ok := IdentifyMode(ctx)
-	if !ok {
-		return res, errors.New("invalid context with no chat metadata")
-	}
 	res, err = t.Identify(ctx, names, true,
 		func() keybase1.TLFID {
 			return keybase1.TLFID(tlfID.String())
@@ -561,13 +557,6 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	if err != nil {
 		return res, err
 	}
-
-	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
-	// after send to IdentifyNotifier)
-	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT && len(res) > 0 {
-		return res, libkb.NewIdentifySummaryError(res[0])
-	}
-
 	return res, nil
 }
 

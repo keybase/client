@@ -1167,16 +1167,8 @@ const clearMessageSetEditing = (action: Chat2Gen.MessageEditPayload) =>
     })
   )
 
-// We pass a special flag to tell the service if we're aware of any broken users. This is so we avoid
-// accidentally sending into a convo when there should be a red bar but we haven't seen it for some reason
 const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const participants = Constants.getMeta(state, conversationIDKey).participants
-  const hasBroken = participants.some(p => state.users.infoMap.getIn([p, 'broken']))
-  // We send a flag to the daemon depending on if we know about a broken user or not. If not it'll check before sending and show
-  // the red banner
-  return hasBroken
-    ? RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
-    : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
+  return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
 }
 
 const messageReplyPrivately = (state: TypedState, action: Chat2Gen.MessageReplyPrivatelyPayload) => {

@@ -1704,7 +1704,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   unset: 0,
   chatCli: 1,
   chatGui: 2,
-  chatGuiStrict: 3,
+  removedAndUnused: 3,
   kbfsRekey: 4,
   kbfsQr: 5,
   chatSkip: 6,
@@ -2669,7 +2669,7 @@ export type TLFIdentifyBehavior =
   | 0 // UNSET_0
   | 1 // CHAT_CLI_1
   | 2 // CHAT_GUI_2
-  | 3 // CHAT_GUI_STRICT_3
+  | 3 // REMOVED_AND_UNUSED_3
   | 4 // KBFS_REKEY_4
   | 5 // KBFS_QR_5
   | 6 // CHAT_SKIP_6
