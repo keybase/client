@@ -30,7 +30,7 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
         teamBuildingTeamSoFar: I.Set(),
       })
 
-    case TeamBuildingGen.userRecsLoaded:
+    case TeamBuildingGen.fetchedUserRecs:
       return state.merge({
         teamBuildingUserRecs: action.payload.users,
       })

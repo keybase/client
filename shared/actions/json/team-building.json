@@ -4,7 +4,7 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "userRecsLoaded": {users: "Array<Types.User>"},
+    "fetchedUserRecs": {users: "Array<Types.User>"},
     "fetchUserRecs": {},
     "finishedTeamBuilding": {},
     "cancelTeamBuilding": {},

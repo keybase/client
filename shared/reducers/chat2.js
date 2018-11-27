@@ -952,7 +952,7 @@ const rootReducer = (
     case TeamBuildingGen.searchResultsLoaded:
     case TeamBuildingGen.finishedTeamBuilding:
     case TeamBuildingGen.search:
-    case TeamBuildingGen.userRecsLoaded:
+    case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
       return teamBuildingReducer(state, action)
 

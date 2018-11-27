@@ -46,8 +46,21 @@ const _serviceIdToIconFont = {
 }
 const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => _serviceIdToIconFont[service]
 
+const _serviceIdToAccentColor = {
+  // Service Accent Colors
+  // These are custom per service so they may not be associated with the keybase color scheme
+  serviceAccentForContact: '#000000',
+  serviceAccentForFacebook: '#3B5998',
+  serviceAccentForGithub: '#333',
+  serviceAccentForHackernews: '#FF6600',
+  serviceAccentForKeybase: '#4C8EFF',
+  serviceAccentForPgp: '#000000',
+  serviceAccentForReddit: '#ff4500',
+  serviceAccentForTwitter: '#1DA1F2',
+}
+
 const serviceIdToAccentColor = (service: ServiceIdWithContact): string =>
-  Styles.globalColors[`serviceAccentFor${capitalize(service)}`]
+  _serviceIdToAccentColor[`serviceAccentFor${capitalize(service)}`]
 
 const inactiveServiceAccentColor = Styles.globalColors.black_20
 

@@ -127,7 +127,7 @@ const fetchUserRecs = (state: TypedState) =>
       logger.error(`Error in fetching recs`)
       return []
     })
-    .then(users => TeamBuildingGen.createUserRecsLoaded({users}))
+    .then(users => TeamBuildingGen.createFetchedUserRecs({users}))
 
 const createConversation = (state: TypedState) =>
   Saga.put(
