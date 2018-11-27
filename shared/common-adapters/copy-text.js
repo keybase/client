@@ -128,7 +128,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'stretch',
       height: undefined,
-      minHeight: Styles.isMobile ? 40 : 32,
       paddingLeft: 17,
       paddingRight: 17,
     },
