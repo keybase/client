@@ -20,6 +20,7 @@ type OwnProps = {|
   selectDownCounter?: number,
   selectUpCounter?: number,
   selectedIndex?: number,
+  setMentionHudIsShowing: boolean => void,
   style?: Styles.StylesCrossPlatform,
 |}
 

@@ -13,6 +13,7 @@ type OwnProps = {|
   pickSelectedChannelCounter?: number,
   onPickChannel?: (c: string, options?: {notChannel: boolean}) => void,
   onSelectChannel?: (c: string) => void,
+  setChannelMentionHudIsShowing: boolean => void,
   style?: Styles.StylesCrossPlatform,
 |}
 

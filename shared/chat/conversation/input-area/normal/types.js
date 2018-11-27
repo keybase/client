@@ -62,9 +62,11 @@ type MentionProps = {|
   pickSelectedCounter: number,
   channelMentionFilter: string,
   channelMentionPopupOpen: boolean,
+  setChannelMentionHudIsShowing: (channelMentionHudIsShowing: boolean) => void,
   setChannelMentionPopupOpen: (setOpen: boolean) => void,
   mentionFilter: string,
   mentionPopupOpen: boolean,
+  setMentionHudIsShowing: (mentionHudIsShowing: boolean) => void,
   setMentionPopupOpen: (setOpen: boolean) => void,
 |}
 

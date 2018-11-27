@@ -70,6 +70,8 @@ const MentionHud = compose(
   }),
   lifecycle({
     componentDidUpdate(prevProps, prevState) {
+      this.props.setChannelMentionHudIsShowing(this.props.data.length > 0)
+
       if (this.props.data.length === 0) {
         if (prevProps.selectedIndex === 0) {
           // We've already done this, so just get out of here so we don't infinite loop

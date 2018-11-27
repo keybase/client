@@ -8,8 +8,10 @@ import {isMobile} from '../../../../constants/platform'
 
 type MentionState = {|
   channelMentionFilter: string,
+  channelMentionHudIsShowing: boolean,
   channelMentionPopupOpen: boolean,
   mentionFilter: string,
+  mentionHudIsShowing: boolean,
   mentionPopupOpen: boolean,
   pickSelectedCounter: number,
 
@@ -23,8 +25,10 @@ type SelectionKey = 'Enter' | 'Tab' | ''
 class MentionInput extends React.Component<MentionInputProps, MentionState> {
   state: MentionState = {
     channelMentionFilter: '',
+    channelMentionHudIsShowing: false,
     channelMentionPopupOpen: false,
     mentionFilter: '',
+    mentionHudIsShowing: false,
     mentionPopupOpen: false,
     pickSelectedCounter: 0,
     downArrowCounter: 0,
@@ -44,8 +48,16 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._lastSelectionKey = lastSelectionKey
   }
 
+  _setMentionHudIsShowing = (mentionHudIsShowing: boolean) => {
+    this.setState({mentionHudIsShowing})
+  }
+
   _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
     this.setState({mentionPopupOpen})
+  }
+
+  _setChannelMentionHudIsShowing = (channelMentionHudIsShowing: boolean) => {
+    this.setState({channelMentionHudIsShowing})
   }
 
   _setChannelMentionPopupOpen = (channelMentionPopupOpen: boolean) => {
@@ -262,7 +274,9 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         // popup is open we actually just want to pick whatever's
         // selected.
         this._triggerPickSelectedCounter('Enter')
-        return
+        if (this.state.mentionHudIsShowing || this.state.channelMentionHudIsShowing) {
+          return
+        }
       }
     }
 
@@ -286,7 +300,9 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       insertChannelMention={this.insertChannelMention}
       onChangeText={this._onChangeText}
       onSubmit={this._onSubmit}
+      setMentionHudIsShowing={this._setMentionHudIsShowing}
       setMentionPopupOpen={this._setMentionPopupOpen}
+      setChannelMentionHudIsShowing={this._setChannelMentionHudIsShowing}
       setChannelMentionPopupOpen={this._setChannelMentionPopupOpen}
       // Desktop only.
       switchMention={this.switchMention}
