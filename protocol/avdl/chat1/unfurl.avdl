@@ -87,4 +87,9 @@ protocol unfurl {
       UnfurlMode mode;
       map<string, boolean> whitelist;
     }
+
+    record UnfurlSettingsDisplay {
+      UnfurlMode mode;
+      array<string> whitelist;
+    }
 }

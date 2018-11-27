@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
@@ -6,7 +7,12 @@ import {putActionIfOnPath, navigateUp} from '../../actions/route-tree'
 import {namedConnect} from '../../util/container'
 import FolderHeader from './header'
 
-const mapDispatchToProps = (dispatch, {path, routePath}) => ({
+type OwnProps = {|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}
+
+const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
   _onChat: () =>
     dispatch(
@@ -19,7 +25,7 @@ const mapDispatchToProps = (dispatch, {path, routePath}) => ({
     ),
 })
 
-const mergeProps = (_, {onBack, _onChat}, {path, routePath}) => {
+const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
   const elems = Types.getPathElements(path)
   return {
     path,
@@ -30,4 +36,6 @@ const mergeProps = (_, {onBack, _onChat}, {path, routePath}) => {
   }
 }
 
-export default namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'FolderHeader')(FolderHeader)
+export default namedConnect<OwnProps, _, _, _, _>(() => ({}), mapDispatchToProps, mergeProps, 'FolderHeader')(
+  FolderHeader
+)

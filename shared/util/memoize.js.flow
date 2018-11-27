@@ -1,4 +1,5 @@
 // @flow
+declare export function memoize1Shallow<F, A1>(func: F, equalityCheck?: (a: A1, b: A1) => boolean): F
 declare export function memoize1<F, A1>(func: F, equalityCheck?: (a: A1, b: A1) => boolean): F
 declare export function memoize2<F, A1, A2>(
   func: F,

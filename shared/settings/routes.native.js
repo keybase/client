@@ -18,6 +18,7 @@ import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import DeleteConfirm from './delete-confirm/container'
 import AdvancedContainer from './advanced/container'
+import ChatContainer from './chat/container'
 import Screenprotector from './screenprotector-container.native'
 
 import * as Constants from '../constants/settings'
@@ -49,6 +50,7 @@ const routeTree = makeRouteDefNode({
     [Constants.walletsTab]: WalletsRoute,
     [Constants.gitTab]: GitRoute,
     [Constants.notificationsTab]: {component: NotificationsContainer},
+    [Constants.chatTab]: {component: ChatContainer},
     [Constants.advancedTab]: {
       component: AdvancedContainer,
       children: {

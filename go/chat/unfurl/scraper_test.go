@@ -53,6 +53,8 @@ func (d *dummyHTTPSrv) Stop() {
 func (d *dummyHTTPSrv) serveAppleTouchIcon(w http.ResponseWriter, r *http.Request) {
 	if d.shouldServeAppleTouchIcon {
 		w.WriteHeader(200)
+		dat, _ := ioutil.ReadFile(filepath.Join("testcases", "github.png"))
+		io.Copy(w, bytes.NewBuffer(dat))
 		return
 	}
 	w.WriteHeader(404)

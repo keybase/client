@@ -202,6 +202,31 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         ...state,
         waitingForResponse: waiting,
       }
+    case SettingsGen.unfurlSettingsRefreshed:
+    case SettingsGen.unfurlSettingsSaved:
+      const {mode, whitelist} = action.payload
+      return {
+        ...state,
+        chat: {
+          ...state.chat,
+          unfurl: {
+            unfurlMode: mode,
+            unfurlWhitelist: whitelist,
+            unfurlError: undefined,
+          },
+        },
+      }
+    case SettingsGen.unfurlSettingsError:
+      return {
+        ...state,
+        chat: {
+          ...state.chat,
+          unfurl: {
+            ...state.chat.unfurl,
+            unfurlError: action.payload.error,
+          },
+        },
+      }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -220,6 +245,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.onChangeLockdownMode:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
+    case SettingsGen.unfurlSettingsRefresh:
       return state
     default:
       /*::

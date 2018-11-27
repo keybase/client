@@ -1,5 +1,5 @@
 @namespace("gregor.1")
-
+@compression_type("gzip")
 protocol incoming {
   record SyncResult {
     array<InBandMessage> msgs;
@@ -8,6 +8,7 @@ protocol incoming {
   SyncResult sync(UID uid, DeviceID deviceid, Time ctime);
   void consumeMessage(Message m);
   void consumePublishMessage(Message m);
+
   /**
     consumeMessageMulti will take msg and consume it for all the users listed
     in uids. This is so a gregor client can send the same message to many UIDs
@@ -18,12 +19,13 @@ protocol incoming {
   string version(UID uid);
 
   State state(UID uid, DeviceID deviceid, TimeOrOffset timeOrOffset);
+
   /**
     StateByCategoryPrefix loads the messages of the user's state whose
     categories are prefixed by the given prefix
    */
   State stateByCategoryPrefix(UID uid, DeviceID deviceid, TimeOrOffset timeOrOffset, Category categoryPrefix);
- 
+
   /**
     DescribeConnectedUsers will take a list of users, and return the list of users
     which are connected to any Gregor in the cluster, and what devices (and device type)

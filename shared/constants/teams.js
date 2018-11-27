@@ -19,6 +19,8 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 // Waiting keys
 // Add granularity as necessary
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamCreationWaitingKey = 'teamCreate'
+
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
@@ -29,6 +31,7 @@ export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) 
 // also for pending invites, hence id rather than username
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
+export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
@@ -102,7 +105,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sawSubteamsBanner: false,
   teamAccessRequestsPending: I.Set(),
   teamCreationError: '',
-  teamCreationPending: false,
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -126,6 +128,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToSubteams: I.Map(),
   teammembercounts: I.Map(),
   teamnames: I.Set(),
+  teamProfileAddList: I.List(),
   teamsWithChosenChannels: I.Set(),
 })
 

@@ -34,7 +34,16 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
   </Box>
 )
 
-const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
+type UserInputProps = {
+  isPublic: boolean,
+  onSubmit: () => void,
+  onCancel: () => void,
+  onUpdateText: () => void,
+  username: ?string,
+  text: string,
+}
+
+const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}: UserInputProps) => {
   return (
     <Box
       style={{

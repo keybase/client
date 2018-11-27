@@ -504,6 +504,11 @@
       "domain": "string",
       "show": "boolean"
     },
+    "unfurlRemove": {
+      "_description": "Remove an unfurl",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
     "updateMessages": {
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",

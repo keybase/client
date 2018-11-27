@@ -61,6 +61,7 @@ type configGetter interface {
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
+	GetUseDefaultLogFile() (bool, bool)
 	GetLogPrefix() string
 	GetLogFormat() string
 	GetMerkleKIDs() []string

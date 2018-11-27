@@ -1109,6 +1109,7 @@ type FolderSyncMode int
 const (
 	FolderSyncMode_DISABLED FolderSyncMode = 0
 	FolderSyncMode_ENABLED  FolderSyncMode = 1
+	FolderSyncMode_PARTIAL  FolderSyncMode = 2
 )
 
 func (o FolderSyncMode) DeepCopy() FolderSyncMode { return o }
@@ -1116,11 +1117,13 @@ func (o FolderSyncMode) DeepCopy() FolderSyncMode { return o }
 var FolderSyncModeMap = map[string]FolderSyncMode{
 	"DISABLED": 0,
 	"ENABLED":  1,
+	"PARTIAL":  2,
 }
 
 var FolderSyncModeRevMap = map[FolderSyncMode]string{
 	0: "DISABLED",
 	1: "ENABLED",
+	2: "PARTIAL",
 }
 
 func (e FolderSyncMode) String() string {
@@ -1131,12 +1134,24 @@ func (e FolderSyncMode) String() string {
 }
 
 type FolderSyncConfig struct {
-	Mode FolderSyncMode `codec:"mode" json:"mode"`
+	Mode  FolderSyncMode `codec:"mode" json:"mode"`
+	Paths []string       `codec:"paths" json:"paths"`
 }
 
 func (o FolderSyncConfig) DeepCopy() FolderSyncConfig {
 	return FolderSyncConfig{
 		Mode: o.Mode.DeepCopy(),
+		Paths: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Paths),
 	}
 }
 

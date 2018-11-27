@@ -56,13 +56,13 @@ func encodeToBytes(enc *codec.Encoder, i interface{}) (v []byte, err error) {
 	return v, err
 }
 
-func (e *framedMsgpackEncoder) compressResponse(ctype CompressionType, res interface{}) (interface{}, error) {
+func (e *framedMsgpackEncoder) compressData(ctype CompressionType, i interface{}) (interface{}, error) {
 	c := e.compressorCacher.getCompressor(ctype)
 	if c == nil {
-		return res, nil
+		return i, nil
 	}
 	enc := codec.NewEncoderBytes(nil, e.handle)
-	content, err := encodeToBytes(enc, res)
+	content, err := encodeToBytes(enc, i)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +70,8 @@ func (e *framedMsgpackEncoder) compressResponse(ctype CompressionType, res inter
 	if err != nil {
 		return nil, err
 	}
-	i := interface{}(compressedContent)
-	return i, nil
+	compressedI := interface{}(compressedContent)
+	return compressedI, nil
 }
 
 func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {

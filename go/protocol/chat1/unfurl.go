@@ -499,6 +499,28 @@ func (o UnfurlSettings) DeepCopy() UnfurlSettings {
 	}
 }
 
+type UnfurlSettingsDisplay struct {
+	Mode      UnfurlMode `codec:"mode" json:"mode"`
+	Whitelist []string   `codec:"whitelist" json:"whitelist"`
+}
+
+func (o UnfurlSettingsDisplay) DeepCopy() UnfurlSettingsDisplay {
+	return UnfurlSettingsDisplay{
+		Mode: o.Mode.DeepCopy(),
+		Whitelist: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Whitelist),
+	}
+}
+
 type UnfurlInterface interface {
 }
 

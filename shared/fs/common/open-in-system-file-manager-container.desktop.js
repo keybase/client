@@ -14,7 +14,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   installFuse: () => dispatch(FsGen.createInstallFuse()),
 })
 
-export default namedConnect(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

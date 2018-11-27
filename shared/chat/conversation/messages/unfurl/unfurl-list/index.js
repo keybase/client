@@ -48,6 +48,7 @@ class UnfurlList extends React.PureComponent<ListProps> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
+      alignSelf: 'flex-start',
       flex: 1,
       marginTop: Styles.globalMargins.xtiny,
       marginBottom: Styles.globalMargins.xtiny,
@@ -60,7 +61,6 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.tiny,
       width: '100%',
-      alignSelf: 'flex-start',
     },
   }),
 })

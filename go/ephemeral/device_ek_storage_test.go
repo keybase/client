@@ -77,6 +77,16 @@ func TestDeviceEKStorage(t *testing.T) {
 		require.Equal(t, test, deviceEK)
 	}
 
+	// corrupt a key in storage and ensure we get the right error back
+	corruptedGeneration := keybase1.EkGeneration(3)
+	ek, err := s.Get(context.Background(), corruptedGeneration)
+	require.NoError(t, err)
+
+	ek.Metadata.Generation = 100
+	err = s.Put(context.Background(), corruptedGeneration, ek)
+	require.Error(t, err)
+	require.Equal(t, newEKCorruptedErr(DeviceEKStr, corruptedGeneration, 100), err)
+
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), keybase1.EkGeneration(len(testKeys)+1))
 	require.Error(t, err)
@@ -87,7 +97,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	deviceEKs, err := s.GetAll(context.Background())
 	require.NoError(t, err)
 
-	require.Equal(t, len(deviceEKs), 4)
+	require.Equal(t, len(deviceEKs), len(testKeys))
 	for _, test := range testKeys {
 		deviceEK, ok := deviceEKs[test.Metadata.Generation]
 		require.True(t, ok)

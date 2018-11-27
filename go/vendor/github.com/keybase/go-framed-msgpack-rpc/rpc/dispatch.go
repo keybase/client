@@ -64,7 +64,11 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 		v = []interface{}{MethodCall, c.seqid, c.method, c.arg}
 		logCall = func() { d.log.ClientCall(c.seqid, c.method, c.arg) }
 	default:
-		v = []interface{}{MethodCallCompressed, c.seqid, c.ctype, c.method, c.arg}
+		arg, err := d.writer.compressData(c.ctype, c.arg)
+		if err != nil {
+			return err
+		}
+		v = []interface{}{MethodCallCompressed, c.seqid, c.ctype, c.method, arg}
 		logCall = func() { d.log.ClientCallCompressed(c.seqid, c.method, c.arg, c.ctype) }
 	}
 

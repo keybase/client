@@ -37,14 +37,12 @@
       "malformed": "Array<string>"
     },
     "getChannelInfo": {
-      "_description":
-        "Fetches the channel information for a single channel in a team from the server.",
+      "_description": "Fetches the channel information for a single channel in a team from the server.",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "teamname": "string"
     },
     "getChannels": {
-      "_description":
-        "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
+      "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
     "getTeams": {},
@@ -54,6 +52,9 @@
     "getDetailsForAllTeams": {},
     "getTeamOperations": {
       "teamname": "string"
+    },
+    "getTeamProfileAddList": {
+      "username": "string"
     },
     "getTeamPublicity": {
       "teamname": "string"
@@ -159,9 +160,6 @@
     "setTeamCreationError": {
       "error": "string"
     },
-    "setTeamCreationPending": {
-      "pending": "boolean"
-    },
     "setTeamInviteError": {
       "error": "string"
     },
@@ -221,6 +219,9 @@
       "teamNameToIsShowcasing": "I.Map<Types.Teamname, boolean>",
       "teamNameToID": "I.Map<Types.Teamname, string>"
     },
+    "setTeamProfileAddList": {
+      "teamlist": "I.List<Types.TeamProfileAddList>"
+    },
     "setTeamAccessRequestsPending": {
       "accessRequestsPending": "I.Set<Types.Teamname>"
     },
@@ -262,20 +263,17 @@
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",
       "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers":
-        "Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>"
+      "teamsWithResetUsers": "Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>"
     },
     "checkRequestedAccess": {
       "teamname": "string"
     },
     "getTeamRetentionPolicy": {
-      "_description":
-        "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
+      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
       "teamname": "string"
     },
     "saveTeamRetentionPolicy": {
-      "_description":
-        "Sets the retention policy for a team. The store will be updated automatically.",
+      "_description": "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
       "policy": "RetentionPolicy"
     }

@@ -75,6 +75,7 @@ func (n NullConfiguration) GetAutoFork() (bool, bool)                       { re
 func (n NullConfiguration) GetRunMode() (RunMode, error)                    { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
+func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)        { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)            { return 0, false }
@@ -1250,6 +1251,13 @@ func (e *Env) GetLogFile() string {
 	)
 }
 
+func (e *Env) GetUseDefaultLogFile() bool {
+	return e.GetBool(false,
+		e.cmd.GetUseDefaultLogFile,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_USE_DEFAULT_LOG_FILE") },
+	)
+}
+
 func (e *Env) GetLogPrefix() string {
 	return e.cmd.GetLogPrefix()
 }
@@ -1329,6 +1337,7 @@ type AppConfig struct {
 	HomeDir                        string
 	MobileSharedHomeDir            string
 	LogFile                        string
+	UseDefaultLogFile              bool
 	RunMode                        RunMode
 	Debug                          bool
 	LocalRPCDebug                  string
@@ -1350,6 +1359,10 @@ var _ CommandLine = AppConfig{}
 
 func (c AppConfig) GetLogFile() string {
 	return c.LogFile
+}
+
+func (c AppConfig) GetUseDefaultLogFile() (bool, bool) {
+	return c.UseDefaultLogFile, true
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {

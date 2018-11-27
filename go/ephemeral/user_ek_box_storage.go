@@ -148,7 +148,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	if result.Result == nil {
 		err = newEKMissingBoxErr(UserEKStr, generation)
 		if perr := s.put(ctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
-			s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
+			s.G().Log.CDebugf(ctx, "unable to store: %v", perr)
 		}
 		return userEK, err
 	}
@@ -167,6 +167,10 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	}
 
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata
+	if generation != userEKMetadata.Generation {
+		// sanity check that we go the right generation
+		return userEK, newEKCorruptedErr(UserEKStr, generation, userEKMetadata.Generation)
+	}
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
 		DeviceEkGeneration: result.Result.DeviceEKGeneration,
@@ -180,7 +184,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 		switch err.(type) {
 		case EphemeralKeyError:
 			if perr := s.put(ctx, generation, userEKBoxed, err); perr != nil {
-				s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
+				s.G().Log.CDebugf(ctx, "unable to store: %v", perr)
 			}
 		}
 		return userEK, err
@@ -208,6 +212,11 @@ func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGenera
 
 	s.Lock()
 	defer s.Unlock()
+
+	// sanity check that we got the right generation
+	if userEKBoxed.Metadata.Generation != generation && ekErr == nil {
+		return newEKCorruptedErr(UserEKStr, generation, userEKBoxed.Metadata.Generation)
+	}
 
 	key, err := s.dbKey(ctx)
 	if err != nil {

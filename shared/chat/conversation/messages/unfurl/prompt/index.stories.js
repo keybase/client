@@ -11,6 +11,7 @@ const props = {
   onAccept: Sb.action('onAccept'),
   onNotnow: Sb.action('onNotnow'),
   onNever: Sb.action('onNever'),
+  onOnetime: Sb.action('onOnetime'),
 }
 
 const load = () => {

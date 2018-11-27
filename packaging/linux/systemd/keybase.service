@@ -7,11 +7,7 @@ Type=notify
 Environment=KEYBASE_SERVICE_TYPE=systemd
 # import keybase environment variables
 EnvironmentFile=-%t/keybase/keybase.env
-# We would simply use the systemd %C specifier to auto-expand XDG_CACHE_HOME,
-# but if it is set after the user service manager is started, that will just
-# default to ~/.config, and not everyone uses .pam_environment so we start a
-# shell in order to expand it ourself.
-ExecStart=/bin/sh -c 'keybase --debug --log-file="${XDG_CACHE_HOME:-$HOME/.cache}/keybase/keybase.service.log" service'
+ExecStart=/usr/bin/keybase --use-default-log-file --debug service
 Restart=on-failure
 
 [Install]
