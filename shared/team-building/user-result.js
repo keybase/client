@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
-import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
+import {serviceIdToIconFont} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
