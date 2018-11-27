@@ -224,18 +224,17 @@ class UserInput extends Component<Props, State> {
               underlineColorAndroid="transparent"
               returnKeyType="next"
             />
-            {showAddButton &&
-              onClickAddButton && (
-                <Icon
-                  onClick={onClickAddButton}
-                  type="iconfont-add"
-                  style={{
-                    height: 22,
-                  }}
-                  fontSize={22}
-                  color={globalColors.blue}
-                />
-              )}
+            {showAddButton && onClickAddButton && (
+              <Icon
+                onClick={onClickAddButton}
+                type="iconfont-add"
+                style={{
+                  height: 22,
+                }}
+                fontSize={22}
+                color={globalColors.blue}
+              />
+            )}
           </Box>
         </Box>
       </ClickableBox>

@@ -138,10 +138,9 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
                 </Text>
               )}
             </Text>
-            {proof.meta &&
-              proof.meta !== metaNone && (
-                <Meta title={proof.meta} backgroundColor={shared.metaColor(proof)} style={{marginTop: 1}} />
-              )}
+            {proof.meta && proof.meta !== metaNone && (
+              <Meta title={proof.meta} backgroundColor={shared.metaColor(proof)} style={{marginTop: 1}} />
+            )}
           </Box>
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>

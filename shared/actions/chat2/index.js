@@ -379,8 +379,8 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
         UsersGen.createUpdateFullnames({usernameToFullname}),
       ]
     : conversationIDKey && isADelete
-      ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
-      : []
+    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+    : []
 }
 
 // We got errors from the service
@@ -1893,14 +1893,13 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
 
   // Collect preview information
-  const previewURLs = previews.map(
-    preview =>
-      preview &&
-      preview.location &&
-      preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
-      preview.location.url
-        ? preview.location.url
-        : ''
+  const previewURLs = previews.map(preview =>
+    preview &&
+    preview.location &&
+    preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+    preview.location.url
+      ? preview.location.url
+      : ''
   )
   const previewSpecs = previews.map(preview =>
     Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)

@@ -81,14 +81,13 @@ const EditChannelBare = (props: Props & TextState) => (
       />
     </Box>
     <Box style={_bottomRowStyle}>
-      {!isMobile &&
-        props.showDelete && (
-          <DeleteChannel
-            channelName={props.channelName}
-            onConfirmedDelete={props.onConfirmedDelete}
-            disabled={props.deleteRenameDisabled}
-          />
-        )}
+      {!isMobile && props.showDelete && (
+        <DeleteChannel
+          channelName={props.channelName}
+          onConfirmedDelete={props.onConfirmedDelete}
+          disabled={props.deleteRenameDisabled}
+        />
+      )}
       <ButtonBar>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
@@ -100,15 +99,13 @@ const EditChannelBare = (props: Props & TextState) => (
         />
       </ButtonBar>
     </Box>
-    {isMobile &&
-      props.showDelete &&
-      !props.deleteRenameDisabled && (
-        <DeleteChannel
-          channelName={props.channelName}
-          onConfirmedDelete={props.onConfirmedDelete}
-          disabled={false}
-        />
-      )}
+    {isMobile && props.showDelete && !props.deleteRenameDisabled && (
+      <DeleteChannel
+        channelName={props.channelName}
+        onConfirmedDelete={props.onConfirmedDelete}
+        disabled={false}
+      />
+    )}
   </Box>
 )
 

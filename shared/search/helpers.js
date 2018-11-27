@@ -52,8 +52,8 @@ const onChangeSelectedSearchResultHoc: any = compose(
         index === -1
           ? 0
           : direction === 'down'
-            ? Math.min(index + 1, searchResultIds.length - 1)
-            : Math.max(index - 1, 0)
+          ? Math.min(index + 1, searchResultIds.length - 1)
+          : Math.max(index - 1, 0)
       const nextSelectedSearchId = searchResultIds[nextIndex]
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },

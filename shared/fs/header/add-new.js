@@ -77,31 +77,29 @@ const propsToMenuItems = (props: AddNewProps) => {
   items.push({title: 'Create new folder', onClick: props.newFolderRow, icon: 'iconfont-folder-new'})
 
   return isMobile
-    ? items.map(
-        item =>
-          item === 'Divider'
-            ? 'Divider'
-            : {
-                title: item.title,
-                onClick: item.onClick,
-              }
+    ? items.map(item =>
+        item === 'Divider'
+          ? 'Divider'
+          : {
+              title: item.title,
+              onClick: item.onClick,
+            }
       )
-    : items.map(
-        item =>
-          item === 'Divider'
-            ? 'Divider'
-            : {
-                onClick: item.onClick,
-                title: item.title,
-                view: (
-                  <Box style={styles.stylesBox}>
-                    <Icon type={item.icon} color={globalColors.blue} />
-                    <Text type="Body" style={styles.stylesText}>
-                      {item.title}
-                    </Text>
-                  </Box>
-                ),
-              }
+    : items.map(item =>
+        item === 'Divider'
+          ? 'Divider'
+          : {
+              onClick: item.onClick,
+              title: item.title,
+              view: (
+                <Box style={styles.stylesBox}>
+                  <Icon type={item.icon} color={globalColors.blue} />
+                  <Text type="Body" style={styles.stylesText}>
+                    {item.title}
+                  </Text>
+                </Box>
+              ),
+            }
       )
 }
 

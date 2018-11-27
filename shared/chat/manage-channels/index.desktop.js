@@ -71,17 +71,16 @@ const Row = (
           </Text>
           <Text type="BodySmall">{props.description}</Text>
         </Box>
-        {props.showEdit &&
-          props.canEditChannels && (
-            <Edit
-              style={{
-                ...globalStyles.flexBoxRow,
-                flex: 1,
-                justifyContent: 'flex-end',
-              }}
-              onClick={props.onEdit}
-            />
-          )}
+        {props.showEdit && props.canEditChannels && (
+          <Edit
+            style={{
+              ...globalStyles.flexBoxRow,
+              flex: 1,
+              justifyContent: 'flex-end',
+            }}
+            onClick={props.onEdit}
+          />
+        )}
       </Box>
     </Box>
   </Box>

@@ -351,8 +351,8 @@ export default function(
     case TrackerGen.reportLastTrack: {
       const {tracking} = action.payload
       return updateUserState(state, action.payload.username, s => {
-        const proofs = (s ? s.proofs : []).map(
-          p => (['btc', 'pgp'].includes(p.type) ? {...p, isTracked: tracking} : p)
+        const proofs = (s ? s.proofs : []).map(p =>
+          ['btc', 'pgp'].includes(p.type) ? {...p, isTracked: tracking} : p
         )
         return {
           ...s,

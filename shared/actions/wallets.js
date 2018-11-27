@@ -567,8 +567,8 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
 const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
   const {conversationIDKey, ordinal, requestID} = action.payload
   return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
-    .then(
-      () => (conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null)
+    .then(() =>
+      conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null
     )
     .catch(err => logger.error(`Error cancelling request: ${err.message}`))
 }

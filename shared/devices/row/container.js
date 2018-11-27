@@ -33,4 +33,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'DeviceRow'
+)(DeviceRow)

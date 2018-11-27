@@ -292,25 +292,24 @@ class Profile extends Component<Props, State> {
             doneLoadingComponent={this._makeUserBio(false)}
           />
         </Kb.Box>
-        {!this.props.isYou &&
-          !this.props.loading && (
-            <UserActions
-              style={styleActions}
-              trackerState={this.props.trackerState}
-              currentlyFollowing={this.props.currentlyFollowing}
-              onAddToTeam={this.props.onAddToTeam}
-              onBrowsePublicFolder={this.props.onBrowsePublicFolder}
-              onChat={this.props.onChat}
-              onFollow={this.props.onFollow}
-              onOpenPrivateFolder={this.props.onOpenPrivateFolder}
-              onRefresh={this.props.refresh}
-              onUnfollow={this.props.onUnfollow}
-              onSendLumens={this.props.onSendLumens}
-              onRequestLumens={this.props.onRequestLumens}
-              onAcceptProofs={this.props.onAcceptProofs}
-              waiting={this.props.waiting}
-            />
-          )}
+        {!this.props.isYou && !this.props.loading && (
+          <UserActions
+            style={styleActions}
+            trackerState={this.props.trackerState}
+            currentlyFollowing={this.props.currentlyFollowing}
+            onAddToTeam={this.props.onAddToTeam}
+            onBrowsePublicFolder={this.props.onBrowsePublicFolder}
+            onChat={this.props.onChat}
+            onFollow={this.props.onFollow}
+            onOpenPrivateFolder={this.props.onOpenPrivateFolder}
+            onRefresh={this.props.refresh}
+            onUnfollow={this.props.onUnfollow}
+            onSendLumens={this.props.onSendLumens}
+            onRequestLumens={this.props.onRequestLumens}
+            onAcceptProofs={this.props.onAcceptProofs}
+            waiting={this.props.waiting}
+          />
+        )}
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
@@ -357,15 +356,14 @@ class Profile extends Component<Props, State> {
   _renderFriends = ({item}) => {
     return (
       <Kb.Box style={styles.friendRow}>
-        {item.map(
-          user =>
-            user.dummy ? (
-              <Kb.Text key={user.dummy} type="BodySmall" style={{padding: 40}}>
-                {user.dummy}
-              </Kb.Text>
-            ) : (
-              <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
-            )
+        {item.map(user =>
+          user.dummy ? (
+            <Kb.Text key={user.dummy} type="BodySmall" style={{padding: 40}}>
+              {user.dummy}
+            </Kb.Text>
+          ) : (
+            <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+          )
         )}
       </Kb.Box>
     )

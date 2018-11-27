@@ -122,8 +122,8 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
                 {files
                   ? `Encrypting and uploading ${files} files...`
                   : totalSyncingBytes
-                    ? 'Encrypting and uploading...'
-                    : 'Done!'}
+                  ? 'Encrypting and uploading...'
+                  : 'Done!'}
               </Text>
               {!!(timeLeft && timeLeft.length) && (
                 <Text key="left" type="BodyTiny" style={stylesText}>{`${timeLeft} left`}</Text>

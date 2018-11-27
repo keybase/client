@@ -86,17 +86,16 @@ function getPathType(openPath: string): Promise<pathType> {
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
 const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean) =>
-  new Promise(
-    (resolve, reject) =>
-      isFolder
-        ? isWindows
-          ? SafeElectron.getShell().openItem(openPath)
-            ? resolve()
-            : reject(new Error('unable to open item'))
-          : openInDefaultDirectory(openPath).then(resolve, reject)
-        : SafeElectron.getShell().showItemInFolder(openPath)
+  new Promise((resolve, reject) =>
+    isFolder
+      ? isWindows
+        ? SafeElectron.getShell().openItem(openPath)
           ? resolve()
-          : reject(new Error('unable to open item in folder'))
+          : reject(new Error('unable to open item'))
+        : openInDefaultDirectory(openPath).then(resolve, reject)
+      : SafeElectron.getShell().showItemInFolder(openPath)
+      ? resolve()
+      : reject(new Error('unable to open item in folder'))
   )
 
 const openLocalPathInSystemFileManager = (

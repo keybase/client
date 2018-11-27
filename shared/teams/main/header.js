@@ -48,8 +48,9 @@ const Header = (props: Props) => (
     }}
   >
     {/* Put progress indicator in the footer (./index.js) on mobile because it won't fit in the header on small screens */}
-    {!isMobile &&
-      !props.loaded && <ProgressIndicator style={{position: 'absolute', width: 20, top: 12, left: 12}} />}
+    {!isMobile && !props.loaded && (
+      <ProgressIndicator style={{position: 'absolute', width: 20, top: 12, left: 12}} />
+    )}
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
     <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
   </Box2>

@@ -58,12 +58,12 @@ class UpdatePassphrase extends Component<Props, State> {
     const notification = this.props.error
       ? {message: this.props.error.message, type: 'error'}
       : this.props.hasPGPKeyOnServer
-        ? {
-            message:
-              "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
-            type: 'error',
-          }
-        : null
+      ? {
+          message:
+            "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
+          type: 'error',
+        }
+      : null
     return (
       <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
         <Input

@@ -259,16 +259,14 @@ const Action = ({
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled &&
-        isExploding &&
-        !isEditing && (
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-        )}
+      {flags.explodingMessagesEnabled && isExploding && !isEditing && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
