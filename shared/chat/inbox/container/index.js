@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Inbox from '..'
 import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
@@ -33,9 +34,11 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   onNewChat: () =>
     dispatch(
-      Chat2Gen.createSetPendingMode({
-        pendingMode: ff.newTeamBuildingForChat ? 'newChat' : 'searchingForUsers',
-      })
+      ff.newTeamBuildingForChat
+        ? RouteTreeGen.createNavigateAppend({
+            path: [{selected: 'newChat', props: {}}],
+          })
+        : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
     ),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
     const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {

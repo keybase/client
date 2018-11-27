@@ -27,16 +27,12 @@ const GeneralServiceBubble = (props: Props) => (
 
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
-    <Kb.ClickableBox onClick={() => onRemove()}>
+    <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
       <Kb.Icon
         type={'iconfont-close'}
         color={Styles.globalColors.white}
-        fontSize={18}
-        style={{
-          left: 5,
-          position: 'relative',
-          top: 6,
-        }}
+        fontSize={20}
+        style={Kb.iconCastPlatformStyles(styles.removeIcon)}
       />
     </Kb.ClickableBox>
   </Kb.WithTooltip>
@@ -87,6 +83,19 @@ const styles = Styles.styleSheetCreate({
     height: bubbleSize,
     width: bubbleSize,
   },
+
+  removeBubbleTextAlignCenter: {
+    textAlign: 'center',
+  },
+
+  removeIcon: Styles.platformStyles({
+    isElectron: {
+      lineHeight: '32px',
+    },
+    isMobile: {
+      lineHeight: 32,
+    },
+  }),
 })
 
 export default UserBubble
