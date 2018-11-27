@@ -100,6 +100,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       state.config.username,
       state.config.following
     ),
+    recommendations: deriveSearchResults(
+      state.chat2.teamBuildingUserRecs,
+      state.chat2.teamBuildingTeamSoFar,
+      state.config.username,
+      state.config.following
+    ),
     teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
     serviceResultCount: deriveServiceResultCount(
       state.chat2.teamBuildingSearchResults,
@@ -117,6 +123,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(TeamBuildingGen.createSearch({query, service}))
   }, 500),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
+  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
 })
 
 const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => {
@@ -180,7 +187,14 @@ const deriveOnDownArrowKeyDown = memoize2(
 )
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {teamSoFar, searchResults, userFromUserId, serviceResultCount, showServiceResultCount} = stateProps
+  const {
+    teamSoFar,
+    searchResults,
+    userFromUserId,
+    serviceResultCount,
+    showServiceResultCount,
+    recommendations,
+  } = stateProps
 
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
@@ -219,6 +233,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     serviceResultCount,
     showServiceResultCount,
     teamSoFar,
+    onMakeItATeam: () => console.log('todo'),
+    recommendations,
+    fetchUserRecs: dispatchProps.fetchUserRecs,
   }
 }
 

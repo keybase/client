@@ -45,6 +45,9 @@ const load = () => {
           onEnterKeyDown={Sb.action('onEnterKeyDown')}
           onBackspace={Sb.action('onBackspace')}
           onRemove={Sb.action('onRemove')}
+          onMakeItATeam={Sb.action('onMakeItATeam')}
+          recommendations={[]}
+          fetchUserRecs={() => {}}
           teamSoFar={[
             {
               username: 'max',
