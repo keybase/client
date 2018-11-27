@@ -1464,6 +1464,13 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 
 	// the next bundle we pull should be v2
+	go func() {
+		// test concurrency
+		bundle, version, _, err = remote.FetchSecretlessBundle(ctx, g)
+		require.NoError(t, err)
+		require.Equal(t, version, stellar1.BundleVersion_V2)
+		require.Equal(t, len(bundle.Accounts), 1)
+	}()
 	bundle, version, _, err = remote.FetchSecretlessBundle(ctx, g)
 	require.NoError(t, err)
 	require.Equal(t, version, stellar1.BundleVersion_V2)

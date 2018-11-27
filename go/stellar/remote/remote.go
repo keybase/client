@@ -260,6 +260,14 @@ func (e AlreadyMigratedError) Error() string {
 	return fmt.Sprintf("this bundle is already accessible from v2 endpoints")
 }
 
+func alreadyMigratedError(inputError error) bool {
+	if inputError == nil {
+		return false
+	}
+	_, alreadyMigrated := inputError.(AlreadyMigratedError)
+	return alreadyMigrated
+}
+
 type MissingFeatureFlagMigrationError struct{}
 
 func (e MissingFeatureFlagMigrationError) Error() string {
@@ -367,6 +375,10 @@ func postMigrationChecks(m libkb.MetaContext, preMigrationBundle stellar1.Bundle
 // contains all secrets to separate account bundles for each account.
 func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 	defer m.CTrace(fmt.Sprintf("Stellar MigrateBundleToAccountBundles"), func() error { return err })()
+
+	defer m.G().StellarBundleMu.Unlock()
+	m.G().StellarBundleMu.Lock()
+	m.CDebugf("| Acquired Stellar Bundle Migration mutex")
 
 	if err = preMigrationChecks(m); err != nil {
 		m.CErrorf("MIGRATION FAILED: failed premigration checks: %v\n", err)
@@ -516,7 +528,7 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 		if hasFeatureFlagForMigration {
 			m.CDebugf("has feature flag. kicking off migration now.")
 			err := MigrateBundleToAccountBundles(m)
-			if err != nil {
+			if err != nil && !alreadyMigratedError(err) {
 				m.CDebugf("migration failed. suggest turning off the feature flag and investigating.")
 				return nil, 0, 0, err
 			}
