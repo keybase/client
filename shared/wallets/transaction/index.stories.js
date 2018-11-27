@@ -116,6 +116,16 @@ const load = () => {
   addConfigs(stories, 'Account', config => (
     <Transaction {...config} counterparty="Second account" counterpartyType="otherAccount" />
   ))
+  addConfigs(stories, 'Non-native asset', config => (
+    <Transaction
+      {...config}
+      counterparty="G43289XXXXX34OPL"
+      counterpartyType="stellarPublicKey"
+      issuerDescription="example.com"
+      amountXLM="53.1688643 HUGS/G4....XHUZ"
+      amountUser=""
+    />
+  ))
 }
 
 export default load
