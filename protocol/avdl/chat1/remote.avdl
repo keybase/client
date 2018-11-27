@@ -1,4 +1,5 @@
 @namespace("chat.1")
+@compression_type("gzip")
 protocol remote {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
@@ -224,6 +225,7 @@ protocol remote {
     UnreadUpdateFull badge;
   }
 
+  @compression_type("none")
   SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
@@ -270,6 +272,7 @@ protocol remote {
   GlobalAppNotificationSettings getGlobalAppNotificationSettings();
 
   // Endpoint to indicate a high priority push notification has been processed
+  @compression_type("none")
   void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
 
   record SetRetentionRes {

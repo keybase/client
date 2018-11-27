@@ -16,9 +16,14 @@ function SettingsNav(props: Props) {
         onClick={() => props.onTabChange(Constants.landingTab)}
       />
       <SettingsItem
-        text="Invitations"
-        selected={props.selectedTab === Constants.invitationsTab}
-        onClick={() => props.onTabChange(Constants.invitationsTab)}
+        text="Chat"
+        selected={props.selectedTab === Constants.chatTab}
+        onClick={() => props.onTabChange(Constants.chatTab)}
+      />
+      <SettingsItem
+        text="Files"
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
       />
       <SettingsItem
         text="Notifications"
@@ -26,14 +31,14 @@ function SettingsNav(props: Props) {
         onClick={() => props.onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
+        text="Invitations"
+        selected={props.selectedTab === Constants.invitationsTab}
+        onClick={() => props.onTabChange(Constants.invitationsTab)}
+      />
+      <SettingsItem
         text="Advanced"
         selected={props.selectedTab === Constants.advancedTab}
         onClick={() => props.onTabChange(Constants.advancedTab)}
-      />
-      <SettingsItem
-        text="Files"
-        selected={props.selectedTab === Constants.fsTab}
-        onClick={() => props.onTabChange(Constants.fsTab)}
       />
       <SettingsItem
         text="Delete me"

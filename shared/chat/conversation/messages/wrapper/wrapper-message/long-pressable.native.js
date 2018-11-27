@@ -1,6 +1,14 @@
 // @flow
-import {NativeTouchableHighlight} from '../../../../../common-adapters/mobile.native'
+import * as React from 'react'
+import {NativeTouchableHighlight, NativeView} from '../../../../../common-adapters/mobile.native'
 
 // See '.js.flow' for explanation
-
-export default NativeTouchableHighlight
+const LongPressable = (props: any) => {
+  const {children, ...rest} = props
+  return (
+    <NativeTouchableHighlight {...rest}>
+      <NativeView>{children}</NativeView>
+    </NativeTouchableHighlight>
+  )
+}
+export default LongPressable

@@ -6,6 +6,9 @@ import * as WaitingConstants from './waiting'
 
 const initialState: Types.State = {
   allowDeleteAccount: false,
+  chat: {
+    unfurl: {},
+  },
   email: {
     emails: [],
     error: null,
@@ -16,6 +19,7 @@ const initialState: Types.State = {
     error: null,
     pendingInvites: [],
   },
+  lockdownModeEnabled: null,
   notifications: {
     allowEdit: false,
     groups: {
@@ -25,7 +29,6 @@ const initialState: Types.State = {
       },
     },
   },
-  lockdownModeEnabled: null,
   passphrase: {
     error: null,
     hasPGPKeyOnServer: null,
@@ -49,6 +52,8 @@ const processorProfileInProgress = (state: TypedState) =>
 
 export const aboutTab = 'settingsTabs:aboutTab'
 export const advancedTab = 'settingsTabs:advancedTab'
+export const chatTab = 'settingsTabs:chatTab'
+export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
 export const devMenuTab = 'settingsTabs:devMenuTab'
 export const devicesTab = 'settingsTabs:devicesTab'

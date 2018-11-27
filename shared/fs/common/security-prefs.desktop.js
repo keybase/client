@@ -4,7 +4,7 @@ import {BackButton, Box, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, platformStyles} from '../../styles'
 import {fileUIName} from '../../constants/platform'
 
-type Props = {
+export type Props = {
   back: () => void,
   openSecurityPrefs: () => void,
   needAction: boolean,

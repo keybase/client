@@ -93,6 +93,7 @@ export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
+export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
@@ -378,6 +379,10 @@ type _ToggleMessageReactionPayload = $ReadOnly<{|
   ordinal: Types.Ordinal,
 |}>
 type _ToggleSmallTeamsExpandedPayload = void
+type _UnfurlRemovePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: Types.MessageID,
+|}>
 type _UnfurlResolvePromptPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageID: Types.MessageID,
@@ -442,6 +447,10 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  * Prime data to fulfill this message's request and navigate to the send form.
  */
 export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({payload, type: prepareFulfillRequestForm})
+/**
+ * Remove an unfurl
+ */
+export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, type: unfurlRemove})
 /**
  * Response to an unfurl prompt
  */
@@ -664,6 +673,7 @@ export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeamsExpanded, _ToggleSmallTeamsExpandedPayload>
+export type UnfurlRemovePayload = $Call<typeof createUnfurlRemove, _UnfurlRemovePayload>
 export type UnfurlResolvePromptPayload = $Call<typeof createUnfurlResolvePrompt, _UnfurlResolvePromptPayload>
 export type UnfurlTogglePromptPayload = $Call<typeof createUnfurlTogglePrompt, _UnfurlTogglePromptPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
@@ -758,6 +768,7 @@ export type Actions =
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
   | ToggleSmallTeamsExpandedPayload
+  | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
   | UpdateConvExplodingModesPayload

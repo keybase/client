@@ -18,7 +18,7 @@ const Go = () => (
 
 const GoIcon = () => (
   <Kb.Icon
-    type="iconfont-add"
+    type="iconfont-return"
     fontSize={22}
     color={Styles.globalColors.white}
     style={Kb.iconCastPlatformStyles(styles.goIcon)}

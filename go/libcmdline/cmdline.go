@@ -123,7 +123,9 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
-
+func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
+	return p.GetBool("use-default-log-file", true)
+}
 func (p CommandLine) GetLogPrefix() string {
 	return p.GetGString("log-prefix")
 }
@@ -629,6 +631,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "upgrade-per-user-key",
 			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
+		},
+		cli.BoolFlag{
+			Name:  "use-default-log-file",
+			Usage: "Log to the default log file in $XDG_CACHE_HOME, or ~/.cache if unset.",
 		},
 		cli.IntFlag{
 			Name:  "user-cache-size",

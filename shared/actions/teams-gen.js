@@ -31,6 +31,7 @@ export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
 export const getTeamOperations = 'teams:getTeamOperations'
+export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const getTeams = 'teams:getTeams'
@@ -56,13 +57,13 @@ export const setTeamCanPerform = 'teams:setTeamCanPerform'
 export const setTeamChannelInfo = 'teams:setTeamChannelInfo'
 export const setTeamChannels = 'teams:setTeamChannels'
 export const setTeamCreationError = 'teams:setTeamCreationError'
-export const setTeamCreationPending = 'teams:setTeamCreationPending'
 export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
+export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
@@ -151,6 +152,7 @@ type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamOperationsPayload = $ReadOnly<{|teamname: string|}>
+type _GetTeamProfileAddListPayload = $ReadOnly<{|username: string|}>
 type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamsPayload = void
@@ -237,7 +239,6 @@ type _SetTeamChannelsPayload = $ReadOnly<{|
   channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
 |}>
 type _SetTeamCreationErrorPayload = $ReadOnly<{|error: string|}>
-type _SetTeamCreationPendingPayload = $ReadOnly<{|pending: boolean|}>
 type _SetTeamDetailsPayload = $ReadOnly<{|
   teamname: string,
   members: I.Map<string, Types.MemberInfo>,
@@ -266,6 +267,7 @@ type _SetTeamLoadingInvitesPayload = $ReadOnly<{|
   invitees: string,
   loadingInvites: boolean,
 |}>
+type _SetTeamProfileAddListPayload = $ReadOnly<{|teamlist: I.List<Types.TeamProfileAddList>|}>
 type _SetTeamPublicitySettingsPayload = $ReadOnly<{|
   teamname: string,
   publicity: Types._PublicitySettings,
@@ -343,6 +345,7 @@ export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) 
 export const createGetDetails = (payload: _GetDetailsPayload) => ({payload, type: getDetails})
 export const createGetDetailsForAllTeams = (payload: _GetDetailsForAllTeamsPayload) => ({payload, type: getDetailsForAllTeams})
 export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({payload, type: getTeamOperations})
+export const createGetTeamProfileAddList = (payload: _GetTeamProfileAddListPayload) => ({payload, type: getTeamProfileAddList})
 export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({payload, type: getTeamPublicity})
 export const createGetTeams = (payload: _GetTeamsPayload) => ({payload, type: getTeams})
 export const createIgnoreRequest = (payload: _IgnoreRequestPayload) => ({payload, type: ignoreRequest})
@@ -365,13 +368,13 @@ export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => (
 export const createSetTeamChannelInfo = (payload: _SetTeamChannelInfoPayload) => ({payload, type: setTeamChannelInfo})
 export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({payload, type: setTeamChannels})
 export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({payload, type: setTeamCreationError})
-export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({payload, type: setTeamCreationPending})
 export const createSetTeamDetails = (payload: _SetTeamDetailsPayload) => ({payload, type: setTeamDetails})
 export const createSetTeamInfo = (payload: _SetTeamInfoPayload) => ({payload, type: setTeamInfo})
 export const createSetTeamInviteError = (payload: _SetTeamInviteErrorPayload) => ({payload, type: setTeamInviteError})
 export const createSetTeamJoinError = (payload: _SetTeamJoinErrorPayload) => ({payload, type: setTeamJoinError})
 export const createSetTeamJoinSuccess = (payload: _SetTeamJoinSuccessPayload) => ({payload, type: setTeamJoinSuccess})
 export const createSetTeamLoadingInvites = (payload: _SetTeamLoadingInvitesPayload) => ({payload, type: setTeamLoadingInvites})
+export const createSetTeamProfileAddList = (payload: _SetTeamProfileAddListPayload) => ({payload, type: setTeamProfileAddList})
 export const createSetTeamPublicitySettings = (payload: _SetTeamPublicitySettingsPayload) => ({payload, type: setTeamPublicitySettings})
 export const createSetTeamRetentionPolicy = (payload: _SetTeamRetentionPolicyPayload) => ({payload, type: setTeamRetentionPolicy})
 export const createSetTeamSawChatBanner = (payload: _SetTeamSawChatBannerPayload) => ({payload, type: setTeamSawChatBanner})
@@ -404,6 +407,7 @@ export type GetChannelsPayload = $Call<typeof createGetChannels, _GetChannelsPay
 export type GetDetailsForAllTeamsPayload = $Call<typeof createGetDetailsForAllTeams, _GetDetailsForAllTeamsPayload>
 export type GetDetailsPayload = $Call<typeof createGetDetails, _GetDetailsPayload>
 export type GetTeamOperationsPayload = $Call<typeof createGetTeamOperations, _GetTeamOperationsPayload>
+export type GetTeamProfileAddListPayload = $Call<typeof createGetTeamProfileAddList, _GetTeamProfileAddListPayload>
 export type GetTeamPublicityPayload = $Call<typeof createGetTeamPublicity, _GetTeamPublicityPayload>
 export type GetTeamRetentionPolicyPayload = $Call<typeof createGetTeamRetentionPolicy, _GetTeamRetentionPolicyPayload>
 export type GetTeamsPayload = $Call<typeof createGetTeams, _GetTeamsPayload>
@@ -429,13 +433,13 @@ export type SetTeamCanPerformPayload = $Call<typeof createSetTeamCanPerform, _Se
 export type SetTeamChannelInfoPayload = $Call<typeof createSetTeamChannelInfo, _SetTeamChannelInfoPayload>
 export type SetTeamChannelsPayload = $Call<typeof createSetTeamChannels, _SetTeamChannelsPayload>
 export type SetTeamCreationErrorPayload = $Call<typeof createSetTeamCreationError, _SetTeamCreationErrorPayload>
-export type SetTeamCreationPendingPayload = $Call<typeof createSetTeamCreationPending, _SetTeamCreationPendingPayload>
 export type SetTeamDetailsPayload = $Call<typeof createSetTeamDetails, _SetTeamDetailsPayload>
 export type SetTeamInfoPayload = $Call<typeof createSetTeamInfo, _SetTeamInfoPayload>
 export type SetTeamInviteErrorPayload = $Call<typeof createSetTeamInviteError, _SetTeamInviteErrorPayload>
 export type SetTeamJoinErrorPayload = $Call<typeof createSetTeamJoinError, _SetTeamJoinErrorPayload>
 export type SetTeamJoinSuccessPayload = $Call<typeof createSetTeamJoinSuccess, _SetTeamJoinSuccessPayload>
 export type SetTeamLoadingInvitesPayload = $Call<typeof createSetTeamLoadingInvites, _SetTeamLoadingInvitesPayload>
+export type SetTeamProfileAddListPayload = $Call<typeof createSetTeamProfileAddList, _SetTeamProfileAddListPayload>
 export type SetTeamPublicitySettingsPayload = $Call<typeof createSetTeamPublicitySettings, _SetTeamPublicitySettingsPayload>
 export type SetTeamRetentionPolicyPayload = $Call<typeof createSetTeamRetentionPolicy, _SetTeamRetentionPolicyPayload>
 export type SetTeamSawChatBannerPayload = $Call<typeof createSetTeamSawChatBanner, _SetTeamSawChatBannerPayload>
@@ -470,6 +474,7 @@ export type Actions =
   | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
   | GetTeamOperationsPayload
+  | GetTeamProfileAddListPayload
   | GetTeamPublicityPayload
   | GetTeamRetentionPolicyPayload
   | GetTeamsPayload
@@ -495,13 +500,13 @@ export type Actions =
   | SetTeamChannelInfoPayload
   | SetTeamChannelsPayload
   | SetTeamCreationErrorPayload
-  | SetTeamCreationPendingPayload
   | SetTeamDetailsPayload
   | SetTeamInfoPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
   | SetTeamJoinSuccessPayload
   | SetTeamLoadingInvitesPayload
+  | SetTeamProfileAddListPayload
   | SetTeamPublicitySettingsPayload
   | SetTeamRetentionPolicyPayload
   | SetTeamSawChatBannerPayload

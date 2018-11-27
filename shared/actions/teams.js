@@ -30,12 +30,11 @@ import type {TypedState} from '../constants/reducer'
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
   const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
-  yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       joinSubteam,
       name: teamname,
-    })
+    }, Constants.teamCreationWaitingKey)
 
     // Dismiss the create team dialog.
     yield Saga.put(
@@ -67,8 +66,6 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-  } finally {
-    yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: false}))
   }
 }
 
@@ -97,6 +94,22 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
         : error.desc
     yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
   }
+}
+
+const _getTeamProfileAddList = function(state: TypedState, action: TeamsGen.GetTeamProfileAddListPayload) {
+  const {username} = action.payload
+  return RPCTypes.teamsTeamProfileAddListRpcPromise({username}, Constants.teamProfileAddListWaitingKey
+  ).then(res => {
+    const teamlist = res && res.map(team => ({
+      disabledReason: team.disabledReason,
+      open: team.open,
+      teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+    }))
+    if (teamlist) {
+      teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+    }
+    return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist || [])})
+  })
 }
 
 const _leaveTeam = function(state: TypedState, action: TeamsGen.LeaveTeamPayload) {
@@ -438,12 +451,11 @@ const _createNewTeamFromConversation = function*(
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
-    yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
         joinSubteam: false,
         name: teamname,
-      })
+      }, Constants.teamCreationWaitingKey)
       for (const username of participants) {
         if (!createRes.creatorAdded || username !== me) {
           yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
@@ -452,14 +464,12 @@ const _createNewTeamFromConversation = function*(
             role: username === me ? RPCTypes.teamsTeamRole.admin : RPCTypes.teamsTeamRole.writer,
             sendChatNotification: true,
             username,
-          })
+          }, Constants.teamCreationWaitingKey)
         }
       }
       yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-    } finally {
-      yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: false}))
     }
   }
 }
@@ -1387,6 +1397,7 @@ const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(TeamsGen.leaveTeam, _leaveTeam)
+  yield Saga.actionToPromise(TeamsGen.getTeamProfileAddList, _getTeamProfileAddList)
   yield Saga.actionToAction(TeamsGen.leftTeam, _leftTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)

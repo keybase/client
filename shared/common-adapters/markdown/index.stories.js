@@ -74,6 +74,9 @@ Include:
   http://keybase.io/blah/../up-one/index.html
   keybase.io/)(,)?=56,78,910@123
   abc subdomain.domain.com
+Internationalized Domain Names:
+  the 'a' in http://ebаy.com isn't an ascii 'a'
+  https://www.google.com/search?q=ebаy the params should be allowed
 These should have the trailing punctuation outside the link:
   amazon.co.uk.
   keybase.io,
@@ -178,7 +181,7 @@ this isn't@either
 
 and @this!
 
-this is the smallest username @aa and @a_ this is too small @a 
+this is the smallest username @aa and @a_ this is too small @a
 
 this is a @long_username
 

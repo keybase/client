@@ -8,7 +8,6 @@ import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
 // * Add styles for mobile
-// * handle backspace remove user
 
 type Props = {
   onChangeText: (newText: string) => void,

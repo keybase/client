@@ -9,6 +9,7 @@ import FilesContainer from './files/container'
 import DBNukeConfirm from './db-nuke-confirm/container'
 import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
+import ChatContainer from './chat/container'
 import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
 import RemoveDevice from '../devices/device-revoke/container'
@@ -79,6 +80,9 @@ const routeTree = makeRouteDefNode({
           component: SecurityPrefs,
         },
       },
+    },
+    [Constants.chatTab]: {
+      component: ChatContainer,
     },
   },
 })

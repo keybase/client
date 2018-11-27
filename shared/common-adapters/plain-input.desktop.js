@@ -224,6 +224,55 @@ class PlainInput extends React.PureComponent<InternalProps> {
     return this.props.multiline ? this._getMultilineProps() : this._getSinglelineProps()
   }
 
+  componentDidMount = () => {
+    this.props.globalCaptureKeypress && this._registerBodyEvents(true)
+  }
+
+  componentDidUpdate = (prevProps: InternalProps) => {
+    if (this.props.globalCaptureKeypress !== prevProps.globalCaptureKeypress) {
+      this._registerBodyEvents(!!this.props.globalCaptureKeypress)
+    }
+  }
+
+  componentWillUnmount = () => {
+    this._registerBodyEvents(false)
+  }
+
+  _registerBodyEvents = (add: boolean) => {
+    const body = document.body
+    if (!body) {
+      return
+    }
+    if (add) {
+      body.addEventListener('keydown', this._globalKeyDownHandler)
+      body.addEventListener('keypress', this._globalKeyDownHandler)
+    } else {
+      body.removeEventListener('keydown', this._globalKeyDownHandler)
+      body.removeEventListener('keypress', this._globalKeyDownHandler)
+    }
+  }
+
+  _globalKeyDownHandler = (ev: KeyboardEvent) => {
+    const target = ev.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return
+    }
+
+    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+    const isValidSpecialKey = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Enter',
+    ].includes(ev.key)
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+      this.focus()
+    }
+  }
+
   render = () => {
     const inputProps = this._getInputProps()
     const css = `::-webkit-input-placeholder { color: ${this.props.placeholderColor ||

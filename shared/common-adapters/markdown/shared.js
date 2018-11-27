@@ -112,7 +112,7 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+]|[.?]+[\w/=])*)?)/i
+    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+\u00c0-\uffff]|[.?]+[\w/=])*)?)/i
     const result = r.exec(source)
     if (result) {
       result.groups = {tld: result[4]}
@@ -121,6 +121,8 @@ const linkRegex: RegExp = {
     return null
   },
 }
+// Only allow a small set of characters before a url
+const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
@@ -379,7 +381,12 @@ const rules = {
     match: (source, state, lookBehind) => {
       const matches = inlineLinkMatch(source, state, lookBehind)
       // If there is a match, let's also check if it's a valid tld
-      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
+      if (
+        matches &&
+        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
+        matches.groups &&
+        tldExp.exec(matches.groups.tld)
+      ) {
         return matches
       }
       return null

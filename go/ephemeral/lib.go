@@ -55,6 +55,7 @@ func (e *EKLib) Shutdown() {
 	defer e.Unlock()
 	if e.stopCh != nil {
 		close(e.stopCh)
+		e.stopCh = nil
 	}
 }
 
