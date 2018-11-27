@@ -137,7 +137,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 		return res, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
+	mctx := s.mctx(ctx)
 
 	// Prompt for passphrase
 	username := s.G().GetEnv().GetUsername().String()
@@ -197,7 +197,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+	m := s.mctx(ctx).WithUIs(uis)
 
 	sendRes, err := stellar.SendPaymentCLI(m, s.remoter, stellar.SendPaymentArg{
 		From:           arg.FromAccountID,
@@ -344,7 +344,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		return ret, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
+	mctx := s.mctx(ctx)
 
 	currentBundle, _, err := remote.Fetch(ctx, s.G())
 	if err != nil {
@@ -488,7 +488,7 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+	m := s.mctx(ctx).WithUIs(uis)
 
 	return stellar.MakeRequestCLI(m, s.remoter, stellar.MakeRequestArg{
 		To:       stellarcommon.RecipientInput(arg.Recipient),

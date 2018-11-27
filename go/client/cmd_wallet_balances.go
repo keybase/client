@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/stellarnet"
 	"golang.org/x/net/context"
 )
@@ -15,6 +16,7 @@ import (
 type cmdWalletBalances struct {
 	libkb.Contextified
 	accountID string
+	verbose   bool
 }
 
 func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -29,6 +31,12 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "v, verbose",
+				Usage: "show full account IDs and issuer IDs",
+			},
+		},
 	}
 }
 
@@ -38,8 +46,34 @@ func (c *cmdWalletBalances) ParseArgv(ctx *cli.Context) error {
 	} else if len(ctx.Args()) == 1 {
 		c.accountID = ctx.Args()[0]
 	}
-
+	c.verbose = ctx.Bool("verbose")
 	return nil
+}
+
+func (c *cmdWalletBalances) formatAccountID(accountID stellar1.AccountID) string {
+	if c.verbose {
+		return accountID.String()
+	}
+	return accountID.LossyAbbreviation()
+}
+
+func (c *cmdWalletBalances) printBalance(dui libkb.DumbOutputUI, balance stellar1.Balance, xchgRate *stellar1.OutsideExchangeRate) {
+	localAmountStr := ""
+	if balance.Asset.IsNativeXLM() {
+		if xchgRate != nil {
+			localAmount, err := stellarnet.ConvertXLMToOutside(balance.Amount, xchgRate.Rate)
+			if err == nil {
+				localAmountStr = fmt.Sprintf(" (%s %s)", string(xchgRate.Currency), localAmount)
+			} else {
+				c.G().Log.Warning("Unable to convert to local currency: %s", err)
+			}
+		}
+
+		dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
+	} else {
+		issuerID := c.formatAccountID(stellar1.AccountID(balance.Asset.Issuer))
+		dui.Printf("%s\t%s\t(issued by %s %s)\n", balance.Asset.Code, balance.Amount, stellar.FormatAssetIssuerString(balance.Asset), issuerID)
+	}
 }
 
 func (c *cmdWalletBalances) runForAccountID(cli stellar1.LocalClient) error {
@@ -54,12 +88,24 @@ func (c *cmdWalletBalances) runForAccountID(cli stellar1.LocalClient) error {
 		return err
 	}
 
-	for _, balance := range balances {
-		if balance.Asset.IsNativeXLM() {
-			dui.Printf("%s\t%s\n", "XLM", balance.Amount)
+	var xchgRate *stellar1.OutsideExchangeRate
+	accountCurrency, err := cli.GetDisplayCurrencyLocal(context.Background(), stellar1.GetDisplayCurrencyLocalArg{
+		AccountID: &accountID,
+	})
+	if err == nil {
+		// Ignore error - GetDisplayCurrencyLocal will error out if we don't
+		// own the account. In that case we just skip currency conversion but
+		// still display balances.
+		rate, err := cli.ExchangeRateLocal(context.Background(), accountCurrency.Code)
+		if err != nil {
+			c.G().Log.Warning("Unable to get exchange rate for %q: %s", accountCurrency.Code, err)
 		} else {
-			dui.Printf("%q\t%s\t(issued by %s)\n", balance.Asset.Code, balance.Amount, balance.Asset.Issuer)
+			xchgRate = &rate
 		}
+	}
+
+	for _, balance := range balances {
+		c.printBalance(dui, balance, xchgRate)
 	}
 	return nil
 }
@@ -72,15 +118,16 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 
 	dui := c.G().UI.GetDumbOutputUI()
 	for i, acc := range accounts {
+		accountIDStr := c.formatAccountID(acc.AccountID)
 		var accountName string
 		if acc.Name != "" {
 			var isPrimary string
 			if acc.IsPrimary {
 				isPrimary = " (Primary)"
 			}
-			accountName = fmt.Sprintf("'%s' (%s)%s", acc.Name, acc.AccountID.String(), isPrimary)
+			accountName = fmt.Sprintf("'%s' (%s)%s", acc.Name, accountIDStr, isPrimary)
 		} else {
-			accountName = acc.AccountID.String()
+			accountName = accountIDStr
 			if acc.IsPrimary {
 				accountName += " (Primary)"
 			}
@@ -97,21 +144,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 			}}
 		}
 		for _, balance := range acc.Balance {
-			localAmountStr := ""
-			if balance.Asset.IsNativeXLM() {
-				if acc.ExchangeRate != nil {
-					localAmount, err := stellarnet.ConvertXLMToOutside(balance.Amount, acc.ExchangeRate.Rate)
-					if err == nil {
-						localAmountStr = fmt.Sprintf(" (%s %s)", string(acc.ExchangeRate.Currency), localAmount)
-					} else {
-						c.G().Log.Warning("Unable to convert to local currency: %s", err)
-					}
-				}
-
-				dui.PrintfUnescaped("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
-			} else {
-				dui.Printf("%q\t%s\t(issued by %s)\n", balance.Asset.Code, balance.Amount, balance.Asset.Issuer)
-			}
+			c.printBalance(dui, balance, acc.ExchangeRate)
 		}
 
 		if i != len(accounts)-1 {
