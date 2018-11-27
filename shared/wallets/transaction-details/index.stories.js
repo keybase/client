@@ -40,6 +40,8 @@ const props = {
   you: 'cjb',
   yourAccountName: '',
   yourRole: 'senderOnly',
+  issuerDescription: '',
+  issuerAccountID: null,
 }
 
 const load = () => {

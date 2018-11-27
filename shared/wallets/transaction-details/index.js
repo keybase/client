@@ -41,6 +41,9 @@ export type NotLoadingProps = {|
   yourRole: Types.Role,
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string,
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?Types.AccountID,
 |}
 export type Props =
   | NotLoadingProps
@@ -273,8 +276,25 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const propsToAssetIssuer = (props: NotLoadingProps) => {
+  return props.issuerAccountID ? (
+    <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+      <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
+      <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
+        {props.issuerDescription}
+      </Kb.Text>
+      <Kb.Text selectable={true} style={styles.transactionID} type="Body">
+        {props.issuerAccountID}
+      </Kb.Text>
+    </Kb.Box2>
+  ) : (
+    ''
+  )
+}
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
+  const assetIssuer = propsToAssetIssuer(props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -296,6 +316,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           timestamp={props.timestamp}
           unread={false}
           yourRole={props.yourRole}
+          issuerDescription={props.issuerDescription}
         />
       </Kb.Box2>
       <Kb.Divider />
@@ -314,6 +335,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
           {receiver}
         </Kb.Box2>
+
+        {assetIssuer}
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>

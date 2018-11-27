@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/terminalescaper"
 	isatty "github.com/mattn/go-isatty"
 
@@ -24,12 +25,16 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		timeStr += " *"
 	}
 	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount := fmt.Sprintf("%v XLM", libkb.StellarSimplifyAmount(p.Amount))
-	if !p.Asset.IsNativeXLM() {
-		amount = fmt.Sprintf("%v %v/%v", p.Amount, p.Asset.Code, p.Asset.Issuer)
-	}
-	if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
-		amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
+	amount, err := stellar.FormatAmountDescriptionAsset(p.Amount, p.Asset, !verbose /* lossyIssuer */)
+	if err == nil {
+		if !p.Asset.IsNativeXLM() {
+			amount = fmt.Sprintf("%s (%s)", amount, stellar.FormatAssetIssuerString(p.Asset))
+		}
+		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
+			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
+		}
+	} else {
+		lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 	}
 	lineUnescaped("%v", ColorString(g, "green", amount))
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.

@@ -1084,7 +1084,7 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 
 // Example: "157.5000000 XLM"
 // Example: "12.9000000 USD/GB...VTUK"
-func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
+func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset, lossyIssuer bool) (string, error) {
 	if asset.IsNativeXLM() {
 		return FormatAmountDescriptionXLM(amount)
 	}
@@ -1103,8 +1103,24 @@ func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, 
 	if err != nil {
 		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
+	var issuerStr string
+	if lossyIssuer {
+		issuerStr = issuerAccountID.LossyAbbreviation()
+	} else {
+		issuerStr = issuerAccountID.String()
+	}
 	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
-		fmt.Sprintf("%v/%v", asset.Code, issuerAccountID.LossyAbbreviation()))
+		fmt.Sprintf("%v/%v", asset.Code, issuerStr))
+}
+
+// FormatAssetIssuerString returns "Unknown issuer" if asset does not have a
+// verified domain, or returns asset verified domain if it does (e.g.
+// "example.com").
+func FormatAssetIssuerString(asset stellar1.Asset) string {
+	if asset.VerifiedDomain != "" {
+		return asset.VerifiedDomain
+	}
+	return "Unknown issuer"
 }
 
 // Example: "157.5000000 XLM"

@@ -73,6 +73,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
                 onShowProfile: Sb.action('onShowProfile'),
                 selectableText: false,
                 unread: false,
+                issuerDescription: '',
               })
             )
           })

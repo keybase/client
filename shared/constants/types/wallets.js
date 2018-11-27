@@ -154,6 +154,9 @@ export type _PaymentCommon = {|
   time: ?number,
   worth: string,
   worthCurrency: string,
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?AccountID,
 |}
 
 export type _PaymentResult = {|

@@ -99,6 +99,7 @@ type DetailProps = {|
   isXLM: boolean,
   onShowProfile: string => void,
   selectableText: boolean,
+  issuerDescription: string,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -108,10 +109,24 @@ const Detail = (props: DetailProps) => {
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
-  const amount = props.isXLM ? (
-    <Text selectable={props.selectableText} type={textTypeExtrabold}>
-      {props.amountUser}
+  const issuer = props.issuerDescription ? (
+    <Text selectable={props.selectableText} type={textTypeSemibold}>
+      {' '}
+      ({props.issuerDescription})
     </Text>
+  ) : (
+    ''
+  )
+
+  // props.isXLM is not necessarily lumens, might be other asset, but not
+  // something we do outside currency conversions with.
+  const amount = props.isXLM ? (
+    <React.Fragment>
+      <Text selectable={props.selectableText} type={textTypeExtrabold}>
+        {props.amountUser}
+      </Text>
+      {issuer}
+    </React.Fragment>
   ) : (
     <React.Fragment>
       Lumens worth{' '}
@@ -322,6 +337,7 @@ export type Props = {|
   timestamp: Date | null,
   unread: boolean,
   yourRole: Types.Role,
+  issuerDescription: string,
 |}
 
 export const Transaction = (props: Props) => {
@@ -378,6 +394,7 @@ export const Transaction = (props: Props) => {
               isXLM={!props.amountUser}
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
+              issuerDescription={props.issuerDescription}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>

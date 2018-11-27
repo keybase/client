@@ -220,6 +220,8 @@ const _defaultPaymentCommon = {
   targetType: '',
   time: null,
   worth: '',
+  issuerDescription: '',
+  issuerAccountID: null,
 }
 
 const _defaultPaymentResult = {
@@ -329,6 +331,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetType,
     time: p.time,
     worth: p.worth,
+    issuerDescription: p.issuerDescription,
+    issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
   }
 }
 

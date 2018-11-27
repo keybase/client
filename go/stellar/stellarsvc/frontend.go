@@ -456,6 +456,8 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		NoteErr:              summary.NoteErr,
 		PublicNote:           details.Memo,
 		PublicNoteType:       details.MemoType,
+		IssuerDescription:    summary.IssuerDescription,
+		IssuerAccountID:      summary.IssuerAccountID,
 		ExternalTxURL:        details.ExternalTxURL,
 	}
 
