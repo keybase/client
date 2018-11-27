@@ -10,7 +10,6 @@ import {searchKey} from '../../../constants/wallets'
 export type SearchProps = {|
   heading: 'To' | 'From',
   onClickResult: (username: string) => void,
-  onClose: () => void,
   onShowSuggestions: () => void,
   onShowTracker: (username: string) => void,
   onScanQRCode: ?() => void,
@@ -78,16 +77,15 @@ class Search extends React.Component<SearchProps, SearchState> {
               showServiceFilter={false}
               style={styles.input}
             />
-            {!this.state.searchText &&
-              this.props.onScanQRCode && (
-                <Kb.Icon
-                  color={Styles.globalColors.black_40}
-                  type="iconfont-qr-code"
-                  fontSize={24}
-                  onClick={this.props.onScanQRCode}
-                  style={Kb.iconCastPlatformStyles(styles.qrCode)}
-                />
-              )}
+            {!this.state.searchText && this.props.onScanQRCode && (
+              <Kb.Icon
+                color={Styles.globalColors.black_40}
+                type="iconfont-qr-code"
+                fontSize={24}
+                onClick={this.props.onScanQRCode}
+                style={Kb.iconCastPlatformStyles(styles.qrCode)}
+              />
+            )}
           </Kb.Box2>
         </ParticipantsRow>
         {this.state.displayResultsList && (

@@ -27,52 +27,21 @@ export const signedup = 'signup:signedup'
 // Payload Types
 type _CheckDevicenamePayload = $ReadOnly<{|devicename: string|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckPassphrasePayload = $ReadOnly<{|
-  pass1: HiddenString,
-  pass2: HiddenString,
-|}>
-type _CheckUsernameEmailPayload = $ReadOnly<{|
-  username: string,
-  email: string,
-|}>
+type _CheckPassphrasePayload = $ReadOnly<{|pass1: HiddenString, pass2: HiddenString|}>
+type _CheckUsernameEmailPayload = $ReadOnly<{|username: string, email: string|}>
 type _CheckedDevicenamePayload = $ReadOnly<{|devicename: string|}>
-type _CheckedDevicenamePayloadError = $ReadOnly<{|
-  devicename: string,
-  error: string,
-|}>
+type _CheckedDevicenamePayloadError = $ReadOnly<{|devicename: string, error: string|}>
 type _CheckedInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckedInviteCodePayloadError = $ReadOnly<{|
-  inviteCode: string,
-  error: string,
-|}>
-type _CheckedUsernameEmailPayload = $ReadOnly<{|
-  username: string,
-  email: string,
-|}>
-type _CheckedUsernameEmailPayloadError = $ReadOnly<{|
-  emailError: string,
-  usernameError: string,
-  email: string,
-  username: string,
-|}>
+type _CheckedInviteCodePayloadError = $ReadOnly<{|inviteCode: string, error: string|}>
+type _CheckedUsernameEmailPayload = $ReadOnly<{|username: string, email: string|}>
+type _CheckedUsernameEmailPayloadError = $ReadOnly<{|emailError: string, usernameError: string, email: string, username: string|}>
 type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
-type _RequestInvitePayload = $ReadOnly<{|
-  email: string,
-  name: string,
-|}>
+type _RequestInvitePayload = $ReadOnly<{|email: string, name: string|}>
 type _RequestedAutoInvitePayload = $ReadOnly<{|inviteCode: string|}>
 type _RequestedAutoInvitePayloadError = void
-type _RequestedInvitePayload = $ReadOnly<{|
-  email: string,
-  name: string,
-|}>
-type _RequestedInvitePayloadError = $ReadOnly<{|
-  emailError: string,
-  nameError: string,
-  email: string,
-  name: string,
-|}>
+type _RequestedInvitePayload = $ReadOnly<{|email: string, name: string|}>
+type _RequestedInvitePayloadError = $ReadOnly<{|emailError: string, nameError: string, email: string, name: string|}>
 type _RestartSignupPayload = void
 type _SignedupPayload = void
 type _SignedupPayloadError = $ReadOnly<{|error: HiddenString|}>

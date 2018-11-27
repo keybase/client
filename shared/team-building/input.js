@@ -14,6 +14,18 @@ type Props = {
 
 const handleKeyDown = (e: any, key: string, props: Props) => {
   switch (key) {
+    case 'p':
+      if (e.ctrlKey) {
+        e.preventDefault()
+        props.onUpArrowKeyDown()
+      }
+      break
+    case 'n':
+      if (e.ctrlKey) {
+        e.preventDefault()
+        props.onDownArrowKeyDown()
+      }
+      break
     case 'ArrowDown':
       e.preventDefault()
       props.onDownArrowKeyDown()
@@ -31,8 +43,10 @@ const handleKeyDown = (e: any, key: string, props: Props) => {
 const Input = (props: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
     <Kb.PlainInput
+      autoFocus={true}
+      globalCaptureKeypress={true}
       style={styles.input}
-      placeholder={'Find people by name, email, or phone'}
+      placeholder={'Enter any username'}
       onChangeText={props.onChangeText}
       value={props.searchString}
       maxLength={50}

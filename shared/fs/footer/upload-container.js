@@ -32,7 +32,7 @@ const getDebugToggleShow = dispatch => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
@@ -79,11 +79,6 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
 
 export default compose(
   // $FlowIssue @jzila
-  namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'ConnectedUpload'
-  ),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
   UploadCountdownHOC
 )(Upload)

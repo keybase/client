@@ -53,126 +53,48 @@ export const updateZcash = 'tracker:updateZcash'
 export const waiting = 'tracker:waiting'
 
 // Payload Types
-type _CacheIdentifyPayload = $ReadOnly<{|
-  uid: string,
-  goodTill: number,
-|}>
-type _FollowPayload = $ReadOnly<{|
-  username: string,
-  localIgnore?: boolean,
-|}>
+type _CacheIdentifyPayload = $ReadOnly<{|uid: string, goodTill: number|}>
+type _FollowPayload = $ReadOnly<{|username: string, localIgnore?: boolean|}>
 type _GetMyProfilePayload = $ReadOnly<{|ignoreCache?: boolean|}>
-type _GetProfilePayload = $ReadOnly<{|
-  username: string,
-  ignoreCache?: boolean,
-  forceDisplay?: boolean,
-|}>
+type _GetProfilePayload = $ReadOnly<{|username: string, ignoreCache?: boolean, forceDisplay?: boolean|}>
 type _IdentifyFinishedPayload = $ReadOnly<{|username: string|}>
-type _IdentifyFinishedPayloadError = $ReadOnly<{|
-  username: string,
-  error: string,
-|}>
+type _IdentifyFinishedPayloadError = $ReadOnly<{|username: string, error: string|}>
 type _IdentifyStartedPayload = $ReadOnly<{|username: string|}>
 type _IgnorePayload = $ReadOnly<{|username: string|}>
-type _MarkActiveIdentifyUiPayload = $ReadOnly<{|
-  username: string,
-  active: boolean,
-|}>
+type _MarkActiveIdentifyUiPayload = $ReadOnly<{|username: string, active: boolean|}>
 type _OnClosePayload = $ReadOnly<{|username: string|}>
-type _OnErrorPayload = $ReadOnly<{|
-  username: string,
-  extraText: string,
-|}>
+type _OnErrorPayload = $ReadOnly<{|username: string, extraText: string|}>
 type _OpenProofUrlPayload = $ReadOnly<{|proof: Types.Proof|}>
-type _ParseFriendshipPayload = $ReadOnly<{|
-  username: string,
-  uid: string,
-  fullname: string,
-  followsYou: string,
-  following: string,
-|}>
-type _PendingIdentifyPayload = $ReadOnly<{|
-  username: string,
-  pending: boolean,
-|}>
+type _ParseFriendshipPayload = $ReadOnly<{|username: string, uid: string, fullname: string, followsYou: string, following: string|}>
+type _PendingIdentifyPayload = $ReadOnly<{|username: string, pending: boolean|}>
 type _RefollowPayload = $ReadOnly<{|username: string|}>
 type _RemoteDismissPayload = $ReadOnly<{|username: string|}>
-type _ReportLastTrackPayload = $ReadOnly<{|
-  username: string,
-  tracking?: boolean,
-|}>
+type _ReportLastTrackPayload = $ReadOnly<{|username: string, tracking?: boolean|}>
 type _ResetProofsPayload = $ReadOnly<{|username: string|}>
-type _SetNeedTrackTokenDismissPayload = $ReadOnly<{|
-  username: string,
-  needTrackTokenDismiss: boolean,
-|}>
+type _SetNeedTrackTokenDismissPayload = $ReadOnly<{|username: string, needTrackTokenDismiss: boolean|}>
 type _SetOnFollowPayload = $ReadOnly<{|username: string|}>
 type _SetOnRefollowPayload = $ReadOnly<{|username: string|}>
 type _SetOnUnfollowPayload = $ReadOnly<{|username: string|}>
-type _SetProofsPayload = $ReadOnly<{|
-  username: string,
-  identity: RPCTypes.Identity,
-|}>
+type _SetProofsPayload = $ReadOnly<{|username: string, identity: RPCTypes.Identity|}>
 type _SetRegisterIdentifyUiPayload = $ReadOnly<{|started: boolean|}>
-type _SetUpdateTrackersPayload = $ReadOnly<{|
-  username: string,
-  trackers: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
-  tracking: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
-|}>
-type _ShowNonUserPayload = $ReadOnly<{|
-  username: string,
-  nonUser: {throttled: boolean, inviteLink: string, isPrivate: boolean, assertion: string, folderName: string, service: string},
-|}>
+type _SetUpdateTrackersPayload = $ReadOnly<{|username: string, trackers: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>, tracking: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>|}>
+type _ShowNonUserPayload = $ReadOnly<{|username: string, nonUser: {throttled: boolean, inviteLink: string, isPrivate: boolean, assertion: string, folderName: string, service: string}|}>
 type _ShowTrackerPayload = $ReadOnly<{|username: string|}>
 type _UnfollowPayload = $ReadOnly<{|username: string|}>
-type _UpdateBTCPayload = $ReadOnly<{|
-  username: string,
-  address: string,
-  sigID: string,
-|}>
+type _UpdateBTCPayload = $ReadOnly<{|username: string, address: string, sigID: string|}>
 type _UpdateEldestKidChangedPayload = $ReadOnly<{|username: string|}>
-type _UpdateFoldersPayload = $ReadOnly<{|
-  username: string,
-  tlfs: Array<FolderTypes.Folder>,
-|}>
-type _UpdatePGPKeyPayload = $ReadOnly<{|
-  username: string,
-  pgpFingerprint: Buffer,
-  kid: string,
-|}>
-type _UpdateProofPayload = $ReadOnly<{|
-  remoteProof: RPCTypes.RemoteProof,
-  linkCheckResult: RPCTypes.LinkCheckResult,
-  username: string,
-|}>
+type _UpdateFoldersPayload = $ReadOnly<{|username: string, tlfs: Array<FolderTypes.Folder>|}>
+type _UpdatePGPKeyPayload = $ReadOnly<{|username: string, pgpFingerprint: Buffer, kid: string|}>
+type _UpdateProofPayload = $ReadOnly<{|remoteProof: RPCTypes.RemoteProof, linkCheckResult: RPCTypes.LinkCheckResult, username: string|}>
 type _UpdateProofStatePayload = $ReadOnly<{|username: string|}>
-type _UpdateReasonPayload = $ReadOnly<{|
-  username: string,
-  reason: ?string,
-|}>
-type _UpdateSelectedTeamPayload = $ReadOnly<{|
-  selectedTeam: string,
-  username: string,
-|}>
-type _UpdateTrackTokenPayload = $ReadOnly<{|
-  username: string,
-  trackToken: RPCTypes.TrackToken,
-|}>
+type _UpdateReasonPayload = $ReadOnly<{|username: string, reason: ?string|}>
+type _UpdateSelectedTeamPayload = $ReadOnly<{|selectedTeam: string, username: string|}>
+type _UpdateTrackTokenPayload = $ReadOnly<{|username: string, trackToken: RPCTypes.TrackToken|}>
 type _UpdateTrackersPayload = $ReadOnly<{|username: string|}>
-type _UpdateUserInfoPayload = $ReadOnly<{|
-  userCard: RPCTypes.UserCard,
-  username: string,
-|}>
+type _UpdateUserInfoPayload = $ReadOnly<{|userCard: RPCTypes.UserCard, username: string|}>
 type _UpdateUsernamePayload = $ReadOnly<{|username: string|}>
-type _UpdateZcashPayload = $ReadOnly<{|
-  username: string,
-  address: string,
-  sigID: string,
-|}>
-type _WaitingPayload = $ReadOnly<{|
-  username: string,
-  waiting: boolean,
-|}>
+type _UpdateZcashPayload = $ReadOnly<{|username: string, address: string, sigID: string|}>
+type _WaitingPayload = $ReadOnly<{|username: string, waiting: boolean|}>
 
 // Action Creators
 export const createCacheIdentify = (payload: _CacheIdentifyPayload) => ({payload, type: cacheIdentify})

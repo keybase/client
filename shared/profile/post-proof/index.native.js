@@ -74,19 +74,18 @@ const PostProof = (props: Props) => {
           {noteText}
         </Text>
       )}
-      {!!proofAction &&
-        !allowProofCheck && (
-          <Button
-            style={styleContinueButton}
-            fullWidth={true}
-            type="Primary"
-            onClick={() => {
-              onAllowProofCheck(true)
-              proofAction()
-            }}
-            label={proofActionText || ''}
-          />
-        )}
+      {!!proofAction && !allowProofCheck && (
+        <Button
+          style={styleContinueButton}
+          fullWidth={true}
+          type="Primary"
+          onClick={() => {
+            onAllowProofCheck(true)
+            proofAction()
+          }}
+          label={proofActionText || ''}
+        />
+      )}
       {allowProofCheck && (
         <Button
           style={styleContinueButton}

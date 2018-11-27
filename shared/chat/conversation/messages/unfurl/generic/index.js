@@ -49,13 +49,13 @@ class UnfurlGeneric extends React.Component<Props> {
             {this.props.title}
           </Kb.Text>
           {!!this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
-          {!!this.props.imageURL &&
-            !Styles.isMobile &&
-            !this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />}
+          {!!this.props.imageURL && !Styles.isMobile && !this.props.showImageOnSide && (
+            <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />
+          )}
         </Kb.Box2>
-        {!!this.props.imageURL &&
-          !Styles.isMobile &&
-          this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
+        {!!this.props.imageURL && !Styles.isMobile && this.props.showImageOnSide && (
+          <Kb.Image src={this.props.imageURL} style={styles.sideImage} />
+        )}
       </Kb.Box2>
     )
   }

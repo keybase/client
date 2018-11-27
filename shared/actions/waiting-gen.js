@@ -14,10 +14,7 @@ export const decrementWaiting = 'waiting:decrementWaiting'
 export const incrementWaiting = 'waiting:incrementWaiting'
 
 // Payload Types
-type _ChangeWaitingPayload = $ReadOnly<{|
-  key: string | Array<string>,
-  increment: boolean,
-|}>
+type _ChangeWaitingPayload = $ReadOnly<{|key: string | Array<string>, increment: boolean|}>
 type _ClearWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 type _DecrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 type _IncrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>

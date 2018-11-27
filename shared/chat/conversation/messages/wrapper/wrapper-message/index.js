@@ -101,15 +101,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
     // $ForceType
     const unfurls = props.message.unfurls
-    const unfurlList = unfurls &&
-      !unfurls.isEmpty() && <UnfurlList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+    const unfurlList = unfurls && !unfurls.isEmpty() && (
+      <UnfurlList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+    )
 
     // $ForceType
     const reactions = props.message.reactions
-    const reactionsRow = reactions &&
-      !reactions.isEmpty() && (
-        <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-      )
+    const reactionsRow = reactions && !reactions.isEmpty() && (
+      <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+    )
 
     const popup = (props.message.type === 'text' ||
       props.message.type === 'attachment' ||
@@ -141,13 +141,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
     return (
       <React.Fragment>
-        {orangeLine}
         <LongPressable
           direction="vertical"
           fullWidth={true}
           onMouseOver={this._onMouseOver}
           {...longPressProps}
         >
+          {orangeLine}
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {children}
             {wrapperAuthor}

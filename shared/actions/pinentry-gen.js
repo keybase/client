@@ -18,37 +18,13 @@ export const replaceEntity = 'pinentry:replaceEntity'
 export const subtractEntity = 'pinentry:subtractEntity'
 
 // Payload Types
-type _DeleteEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  ids: Iterable<any>,
-|}>
-type _MergeEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.Map<any, any> | I.List<any>,
-|}>
-type _NewPinentryPayload = $ReadOnly<{|
-  showTyping: RPCTypes.Feature,
-  type: RPCTypes.PassphraseType,
-  sessionID: number,
-  prompt: string,
-  windowTitle: string,
-  submitLabel: ?string,
-  cancelLabel: ?string,
-  retryLabel: ?string,
-|}>
+type _DeleteEntityPayload = $ReadOnly<{|keyPath: Array<string>, ids: Iterable<any>|}>
+type _MergeEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
+type _NewPinentryPayload = $ReadOnly<{|showTyping: RPCTypes.Feature, type: RPCTypes.PassphraseType, sessionID: number, prompt: string, windowTitle: string, submitLabel: ?string, cancelLabel: ?string, retryLabel: ?string|}>
 type _OnCancelPayload = $ReadOnly<{|sessionID: number|}>
-type _OnSubmitPayload = $ReadOnly<{|
-  sessionID: number,
-  passphrase: string,
-|}>
-type _ReplaceEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.Map<any, any> | I.List<any>,
-|}>
-type _SubtractEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.List<any>,
-|}>
+type _OnSubmitPayload = $ReadOnly<{|sessionID: number, passphrase: string|}>
+type _ReplaceEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
+type _SubtractEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.List<any>|}>
 
 // Action Creators
 export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({payload, type: deleteEntity})

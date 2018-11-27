@@ -75,13 +75,11 @@ function UsernameText(props: Props) {
         const _onUsernameClicked = props.onUsernameClicked
         return (
           <Text type={props.type} key={u.username}>
-            {i !== 0 &&
-              i === props.users.length - 1 &&
-              props.showAnd && (
-                <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-                  {'and '}
-                </Text>
-              )}
+            {i !== 0 && i === props.users.length - 1 && props.showAnd && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                {'and '}
+              </Text>
+            )}
             <Text
               type={props.type}
               backgroundMode={props.backgroundMode}
@@ -92,12 +90,11 @@ function UsernameText(props: Props) {
               {u.username}
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-            {i !== props.users.length - 1 &&
-              (!props.inlineGrammar || props.users.length > 2) && (
-                <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-                  ,
-                </Text>
-              )}
+            {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                ,
+              </Text>
+            )}
             {i !== props.users.length - 1 && ' '}
           </Text>
         )

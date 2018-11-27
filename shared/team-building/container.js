@@ -9,7 +9,7 @@ import {compose, namedConnect} from '../util/container'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
-import {memoize1, memoize2, memoize3, memoize4, memoize6} from '../util/memoize'
+import {memoize1Shallow, memoize1, memoize2, memoize3, memoize4} from '../util/memoize'
 import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
 
 // TODO
@@ -100,6 +100,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       state.config.username,
       state.config.following
     ),
+    recommendations: deriveSearchResults(
+      state.chat2.teamBuildingUserRecs,
+      state.chat2.teamBuildingTeamSoFar,
+      state.config.username,
+      state.config.following
+    ),
     teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
     serviceResultCount: deriveServiceResultCount(
       state.chat2.teamBuildingSearchResults,
@@ -117,6 +123,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(TeamBuildingGen.createSearch({query, service}))
   }, 500),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
+  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
 })
 
 const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => {
@@ -124,8 +131,17 @@ const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => 
   !searchString && teamSoFar.length && onRemove(teamSoFar[teamSoFar.length - 1].userId)
 })
 
-const deriveOnEnterKeyDown = memoize6(
-  (searchResults, teamSoFar, highlightedIndex, onAdd, onRemove, changeText) => () => {
+const deriveOnEnterKeyDown = memoize1Shallow(
+  ({
+    searchResults,
+    teamSoFar,
+    highlightedIndex,
+    onAdd,
+    onRemove,
+    changeText,
+    searchStringIsEmpty,
+    onFinishTeamBuilding,
+  }) => () => {
     if (searchResults.length) {
       const selectedResult = searchResults[highlightedIndex || 0]
       if (selectedResult) {
@@ -136,6 +152,10 @@ const deriveOnEnterKeyDown = memoize6(
           onAdd(selectedResult.userId)
         }
       }
+    } else if (searchStringIsEmpty && !!teamSoFar.length) {
+      // They hit enter with an empty search string and a teamSoFar
+      // We'll Finish the team building
+      onFinishTeamBuilding()
     }
   }
 )
@@ -167,7 +187,14 @@ const deriveOnDownArrowKeyDown = memoize2(
 )
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {teamSoFar, searchResults, userFromUserId, serviceResultCount, showServiceResultCount} = stateProps
+  const {
+    teamSoFar,
+    searchResults,
+    userFromUserId,
+    serviceResultCount,
+    showServiceResultCount,
+    recommendations,
+  } = stateProps
 
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
@@ -177,14 +204,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
 
-  const onEnterKeyDown = deriveOnEnterKeyDown(
+  const onEnterKeyDown = deriveOnEnterKeyDown({
     searchResults,
     teamSoFar,
-    ownProps.highlightedIndex,
+    highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    dispatchProps.onRemove,
-    ownProps.onChangeText
-  )
+    onRemove: dispatchProps.onRemove,
+    changeText: ownProps.onChangeText,
+    searchStringIsEmpty: !ownProps.searchString,
+    onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+  })
 
   return {
     highlightedIndex: ownProps.highlightedIndex,
@@ -204,6 +233,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     serviceResultCount,
     showServiceResultCount,
     teamSoFar,
+    onMakeItATeam: () => console.log('todo'),
+    recommendations,
+    fetchUserRecs: dispatchProps.fetchUserRecs,
   }
 }
 

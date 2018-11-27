@@ -80,10 +80,9 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
               </Text>
             )}
           </Text>
-          {proof.meta &&
-            proof.meta !== metaNone && (
-              <Meta title={proof.meta} backgroundColor={shared.metaColor(proof)} style={{marginTop: 1}} />
-            )}
+          {proof.meta && proof.meta !== metaNone && (
+            <Meta title={proof.meta} backgroundColor={shared.metaColor(proof)} style={{marginTop: 1}} />
+          )}
         </Box>
       </Box>
       <ClickableBox

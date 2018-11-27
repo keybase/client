@@ -14,8 +14,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({channelCreationError: action.payload.error})
     case TeamsGen.setTeamCreationError:
       return state.merge({teamCreationError: action.payload.error})
-    case TeamsGen.setTeamCreationPending:
-      return state.merge({teamCreationPending: action.payload.pending})
     case TeamsGen.setAddUserToTeamsResults:
       return state.merge({addUserToTeamsResults: action.payload.results})
     case TeamsGen.setTeamInviteError:
@@ -53,12 +51,10 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
     case TeamsGen.setTeamChannelInfo:
       const {conversationIDKey, channelInfo} = action.payload
-      return state.updateIn(
-        ['teamNameToChannelInfos', action.payload.teamname],
-        channelInfos =>
-          channelInfos
-            ? channelInfos.set(conversationIDKey, channelInfo)
-            : I.Map([[conversationIDKey, channelInfo]])
+      return state.updateIn(['teamNameToChannelInfos', action.payload.teamname], channelInfos =>
+        channelInfos
+          ? channelInfos.set(conversationIDKey, channelInfo)
+          : I.Map([[conversationIDKey, channelInfo]])
       )
     case TeamsGen.setTeamChannels:
       return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)

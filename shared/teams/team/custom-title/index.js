@@ -33,15 +33,14 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
         type="iconfont-chat"
       />
     )}
-    {!isMobile &&
-      props.canViewFolder && (
-        <Icon
-          onClick={props.onOpenFolder}
-          fontSize={fontSize}
-          style={iconCastPlatformStyles(styles.icon)}
-          type="iconfont-folder-private"
-        />
-      )}
+    {!isMobile && props.canViewFolder && (
+      <Icon
+        onClick={props.onOpenFolder}
+        fontSize={fontSize}
+        style={iconCastPlatformStyles(styles.icon)}
+        type="iconfont-folder-private"
+      />
+    )}
     <Icon
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}

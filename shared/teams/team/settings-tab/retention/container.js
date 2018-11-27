@@ -155,7 +155,12 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'RetentionPicker'),
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d}),
+    'RetentionPicker'
+  ),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({
     componentDidMount() {

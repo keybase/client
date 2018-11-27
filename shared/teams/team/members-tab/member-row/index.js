@@ -132,50 +132,9 @@ export const TeamMemberRow = (props: Props) => {
             </Box>
           </Box>
         </ClickableBox>
-        {!active &&
-          !isMobile &&
-          props.youCanManageMembers && (
-            <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-              <ButtonBar>
-                {props.status !== 'deleted' && (
-                  <Button
-                    small={true}
-                    label="Re-Admit"
-                    onClick={props.onReAddToTeam}
-                    type="PrimaryGreen"
-                    waiting={props.waitingForAdd}
-                    disabled={props.waitingForRemove}
-                  />
-                )}
-                <Button
-                  small={true}
-                  label="Remove"
-                  onClick={props.onRemoveFromTeam}
-                  type="Secondary"
-                  waiting={props.waitingForRemove}
-                  disabled={props.waitingForAdd}
-                />
-              </ButtonBar>
-            </Box>
-          )}
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 1, height: '100%'}}>
-          {(active || isLargeScreen) && (
-            // Desktop & mobile large screen - display on the far right of the first row
-            // Also when user is active
-            <Icon
-              onClick={props.onChat}
-              style={isMobile ? stylesChatButtonMobile(active) : stylesChatButtonDesktop}
-              fontSize={isMobile ? 20 : 16}
-              type="iconfont-chat"
-            />
-          )}
-        </Box>
-      </Box>
-      {!active &&
-        isMobile &&
-        props.youCanManageMembers && (
+        {!active && !isMobile && props.youCanManageMembers && (
           <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-            <ButtonBar direction="row">
+            <ButtonBar>
               {props.status !== 'deleted' && (
                 <Button
                   small={true}
@@ -195,18 +154,55 @@ export const TeamMemberRow = (props: Props) => {
                 disabled={props.waitingForAdd}
               />
             </ButtonBar>
-            {!isLargeScreen && (
-              // Mobile small screens - for inactive user
-              // display next to reset / deleted controls
-              <Icon
-                onClick={props.onChat}
-                style={stylesChatButtonMobile(active)}
-                fontSize={20}
-                type="iconfont-chat"
-              />
-            )}
           </Box>
         )}
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 1, height: '100%'}}>
+          {(active || isLargeScreen) && (
+            // Desktop & mobile large screen - display on the far right of the first row
+            // Also when user is active
+            <Icon
+              onClick={props.onChat}
+              style={isMobile ? stylesChatButtonMobile(active) : stylesChatButtonDesktop}
+              fontSize={isMobile ? 20 : 16}
+              type="iconfont-chat"
+            />
+          )}
+        </Box>
+      </Box>
+      {!active && isMobile && props.youCanManageMembers && (
+        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+          <ButtonBar direction="row">
+            {props.status !== 'deleted' && (
+              <Button
+                small={true}
+                label="Re-Admit"
+                onClick={props.onReAddToTeam}
+                type="PrimaryGreen"
+                waiting={props.waitingForAdd}
+                disabled={props.waitingForRemove}
+              />
+            )}
+            <Button
+              small={true}
+              label="Remove"
+              onClick={props.onRemoveFromTeam}
+              type="Secondary"
+              waiting={props.waitingForRemove}
+              disabled={props.waitingForAdd}
+            />
+          </ButtonBar>
+          {!isLargeScreen && (
+            // Mobile small screens - for inactive user
+            // display next to reset / deleted controls
+            <Icon
+              onClick={props.onChat}
+              style={stylesChatButtonMobile(active)}
+              fontSize={20}
+              type="iconfont-chat"
+            />
+          )}
+        </Box>
+      )}
     </Box>
   )
 }

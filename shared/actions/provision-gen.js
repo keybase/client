@@ -34,20 +34,11 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 // Payload Types
 type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'mobile'|}>
 type _ProvisionErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
-type _ShowCodePagePayload = $ReadOnly<{|
-  code: HiddenString,
-  error: ?HiddenString,
-|}>
+type _ShowCodePagePayload = $ReadOnly<{|code: HiddenString, error: ?HiddenString|}>
 type _ShowDeviceListPagePayload = $ReadOnly<{|devices: Array<Types.Device>|}>
-type _ShowFinalErrorPagePayload = $ReadOnly<{|
-  finalError: RPCError,
-  fromDeviceAdd: boolean,
-|}>
+type _ShowFinalErrorPagePayload = $ReadOnly<{|finalError: RPCError, fromDeviceAdd: boolean|}>
 type _ShowGPGPagePayload = void
-type _ShowNewDeviceNamePagePayload = $ReadOnly<{|
-  existingDevices: Array<string>,
-  error: ?HiddenString,
-|}>
+type _ShowNewDeviceNamePagePayload = $ReadOnly<{|existingDevices: Array<string>, error: ?HiddenString|}>
 type _ShowPaperkeyPagePayload = $ReadOnly<{|error: ?HiddenString|}>
 type _ShowPassphrasePagePayload = $ReadOnly<{|error: ?HiddenString|}>
 type _StartProvisionPayload = void

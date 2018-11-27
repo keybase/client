@@ -155,6 +155,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onPickUser={this.props.insertMention}
             onSelectUser={this.props.insertMention}
             filter={this.props.mentionFilter}
+            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
           />
         )}
         {this.props.channelMentionPopupOpen && (
@@ -166,6 +167,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onPickChannel={this.props.insertChannelMention}
             onSelectChannel={this.props.insertChannelMention}
             filter={this.props.channelMentionFilter}
+            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
           />
         )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
@@ -259,16 +261,14 @@ const Action = ({
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled &&
-        isExploding &&
-        !isEditing && (
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-        )}
+      {flags.explodingMessagesEnabled && isExploding && !isEditing && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>

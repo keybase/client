@@ -276,7 +276,9 @@ class AvatarConnector extends React.PureComponent<Props> {
   }
 }
 
-const Avatar = namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(AvatarConnector)
+const Avatar = namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(
+  AvatarConnector
+)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

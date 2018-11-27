@@ -138,8 +138,9 @@ class Inbox extends React.PureComponent<Props, State> {
 
   render() {
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating &&
-      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
+      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    )
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>

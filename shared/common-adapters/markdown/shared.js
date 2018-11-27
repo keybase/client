@@ -29,8 +29,8 @@ function processAST(ast, createComponent) {
   while (stack.length > 0) {
     const top = stack[0]
     if (top.type && top.seen) {
-      const childrenComponents = top.children.map(
-        child => (typeof child === 'string' ? child : child.component)
+      const childrenComponents = top.children.map(child =>
+        typeof child === 'string' ? child : child.component
       )
       top.component = createComponent(top.type, String(index++), childrenComponents, top)
       stack.shift()
@@ -112,7 +112,7 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+]|[.?]+[\w/=])*)?)/i
+    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+\u00c0-\uffff]|[.?]+[\w/=])*)?)/i
     const result = r.exec(source)
     if (result) {
       result.groups = {tld: result[4]}
@@ -121,6 +121,8 @@ const linkRegex: RegExp = {
     return null
   },
 }
+// Only allow a small set of characters before a url
+const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
@@ -379,7 +381,12 @@ const rules = {
     match: (source, state, lookBehind) => {
       const matches = inlineLinkMatch(source, state, lookBehind)
       // If there is a match, let's also check if it's a valid tld
-      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
+      if (
+        matches &&
+        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
+        matches.groups &&
+        tldExp.exec(matches.groups.tld)
+      ) {
         return matches
       }
       return null
@@ -452,8 +459,8 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-          ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
-          : reactOutput(parseTree, {allowFontScaling, styleOverride})
+        ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
+        : reactOutput(parseTree, {allowFontScaling, styleOverride})
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)

@@ -414,17 +414,15 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
   // It's important to not set the refreshTag in new actions, to make sure the
   // related sagas won't skip the RPC.
   const actions = []
-  folderListRefreshTags.forEach(
-    (path, refreshTag) =>
-      Types.pathIsInTlfPath(path, action.payload.tlfPath)
-        ? actions.push(Saga.put(FsGen.createFolderListLoad({path})))
-        : folderListRefreshTags.delete(refreshTag)
+  folderListRefreshTags.forEach((path, refreshTag) =>
+    Types.pathIsInTlfPath(path, action.payload.tlfPath)
+      ? actions.push(Saga.put(FsGen.createFolderListLoad({path})))
+      : folderListRefreshTags.delete(refreshTag)
   )
-  mimeTypeRefreshTags.forEach(
-    (path, refreshTag) =>
-      Types.pathIsInTlfPath(path, action.payload.tlfPath)
-        ? actions.push(Saga.put(FsGen.createMimeTypeLoad({path})))
-        : folderListRefreshTags.delete(refreshTag)
+  mimeTypeRefreshTags.forEach((path, refreshTag) =>
+    Types.pathIsInTlfPath(path, action.payload.tlfPath)
+      ? actions.push(Saga.put(FsGen.createMimeTypeLoad({path})))
+      : folderListRefreshTags.delete(refreshTag)
   )
   return Saga.all(actions)
 }
