@@ -80,6 +80,17 @@ const colors = {
   yellowGreen2_75: 'rgba(154, 180, 57, 0.75)',
   yellowGreen2_75_on_white: 'rgb(179,199,107)',
   yellowGreen3: '#d2e697',
+
+  // Service Accent Colors
+  // These are custom per service so they may not be associated with the keybase color scheme
+  serviceAccentForContact: '#000000',
+  serviceAccentForFacebook: '#3B5998',
+  serviceAccentForGithub: '#333',
+  serviceAccentForHackernews: '#FF6600',
+  serviceAccentForKeybase: '#4C8EFF',
+  serviceAccentForPgp: '#000000',
+  serviceAccentForReddit: '#ff4500',
+  serviceAccentForTwitter: '#1DA1F2',
 }
 
 export default colors

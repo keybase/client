@@ -30,6 +30,11 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
         teamBuildingTeamSoFar: I.Set(),
       })
 
+    case TeamBuildingGen.userRecsLoaded:
+      return state.merge({
+        teamBuildingUserRecs: action.payload.users,
+      })
+
     case TeamBuildingGen.search: {
       const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
       return state.merge({
@@ -38,6 +43,9 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
         teamBuildingSearchLimit: limit,
       })
     }
+
+    case TeamBuildingGen.fetchUserRecs:
+      return state
 
     default:
       /*::

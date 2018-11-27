@@ -4,6 +4,8 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "userRecsLoaded": {users: "Array<Types.User>"},
+    "fetchUserRecs": {},
     "finishedTeamBuilding": {},
     "cancelTeamBuilding": {},
     "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},

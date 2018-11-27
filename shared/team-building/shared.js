@@ -2,6 +2,7 @@
 import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 import type {IconType} from '../common-adapters/icon.constants'
+import {capitalize} from 'lodash-es'
 
 // TODO
 // use 16px version
@@ -45,20 +46,8 @@ const _serviceIdToIconFont = {
 }
 const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => _serviceIdToIconFont[service]
 
-// Color for an active service id
-// These are custom per service so they may not be associated with the keybase color scheme
-const _serviceIdToAccentColor = {
-  contact: Styles.globalColors.black,
-  facebook: '#3B5998',
-  github: '#333',
-  hackernews: '#FF6600',
-  keybase: Styles.globalColors.blue,
-  pgp: Styles.globalColors.black,
-  reddit: '#ff4500',
-  twitter: '#1DA1F2',
-}
-
-const serviceIdToAccentColor = (service: ServiceIdWithContact): string => _serviceIdToAccentColor[service]
+const serviceIdToAccentColor = (service: ServiceIdWithContact): string =>
+  Styles.globalColors[`serviceAccentFor${capitalize(service)}`]
 
 const inactiveServiceAccentColor = Styles.globalColors.black_20
 
