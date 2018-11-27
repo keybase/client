@@ -9,6 +9,12 @@ import OriginalParser from '../../markdown/parser'
 
 const cases = {
   debugging: `\` \` hi \` \``,
+  accidentalBoldLists: `
+  List of this:
+   * a
+   * b
+   * c
+  `,
   inlineCodeWeirdness: `\` \` hi \` \``,
   inlineCodeWeirdness2: `\` \` hi \n\` \``,
   breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
