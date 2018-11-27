@@ -75,10 +75,11 @@ const getPeopleData = (
           data: {
             announcement: {
               appLink: null,
-              badged: true,
+              badged: false,
               confirmLabel: null,
               dismissable: false,
-              text: '[mock] Chat is a thing',
+              iconUrl: 'https://keybase.io/images/blog/exploding/cherry_sm.png',
+              text: '[mock] Go to keybase',
               type: 'announcement',
               url: 'keybase.io',
             },

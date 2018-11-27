@@ -51,6 +51,7 @@ export type _Announcement = {
   badged: boolean,
   confirmLabel: ?string,
   dismissable: boolean,
+  iconUrl: ?string,
   text: string,
   type: 'announcement',
   url: ?string,

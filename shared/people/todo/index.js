@@ -16,7 +16,7 @@ export type Props = {
 
 export const Task = (props: Props) => (
   <PeopleItem badged={props.badged} icon={<Icon type={props.icon} />}>
-    <Text type="Body" style={{marginTop: 2, marginBottom: globalMargins.xtiny}}>
+    <Text type="Body" style={{marginTop: 2}}>
       {props.instructions}
     </Text>
     <Box style={actionContainerStyle}>
