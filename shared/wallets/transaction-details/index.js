@@ -174,7 +174,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'canceled':
       return Styles.globalColors.red
     default:
-      return Styles.globalColors.black
+      return Styles.globalColors.black_75
   }
 }
 
