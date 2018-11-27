@@ -276,25 +276,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
-const propsToAssetIssuer = (props: NotLoadingProps) => {
-  return props.issuerAccountID ? (
-    <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-      <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
-      <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
-        {props.issuerDescription}
-      </Kb.Text>
-      <Kb.Text selectable={true} style={styles.transactionID} type="Body">
-        {props.issuerAccountID}
-      </Kb.Text>
-    </Kb.Box2>
-  ) : (
-    ''
-  )
-}
-
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
-  const assetIssuer = propsToAssetIssuer(props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -336,7 +319,17 @@ const TransactionDetails = (props: NotLoadingProps) => {
           {receiver}
         </Kb.Box2>
 
-        {assetIssuer}
+        {props.issuerAccountID && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
+              {props.issuerDescription}
+            </Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="Body">
+              {props.issuerAccountID}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>
