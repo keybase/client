@@ -3,6 +3,14 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 
+export type AppLink =
+  | 'tab:People'
+  | 'tab:Chat'
+  | 'tab:Files'
+  | 'tab:Wallet'
+  | 'tab:Git'
+  | 'tab:Devices'
+  | 'tab:Settings'
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
 export type ItemType = $Keys<typeof RPCTypes.homeHomeScreenItemType>
 
@@ -38,8 +46,19 @@ export type _FollowedNotificationItem = {
 }
 export type FollowedNotificationItem = I.RecordOf<_FollowedNotificationItem>
 
-export type _PeopleScreenItem = _Todo | _FollowedNotificationItem
-export type PeopleScreenItem = Todo | FollowedNotificationItem
+export type _Announcement = {
+  appLink: ?AppLink,
+  badged: boolean,
+  confirmLabel: ?string,
+  dismissable: boolean,
+  text: string,
+  type: 'announcement',
+  url: ?string,
+}
+
+export type Announcement = I.RecordOf<_Announcement>
+
+export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type _FollowSuggestion = {
   username: string,

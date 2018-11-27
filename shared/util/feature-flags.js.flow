@@ -12,6 +12,7 @@ export type FeatureFlags = {|
   plansEnabled: boolean,
   useSimpleMarkdown: boolean,
   walletsEnabled: boolean,
+  peopleAnnouncementsEnabled: boolean,
 |}
 
 declare var ff: FeatureFlags

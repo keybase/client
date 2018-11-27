@@ -1,14 +1,14 @@
 // @flow
 import React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
-import {Task, type Props} from '.'
+import {Task} from '.'
 
 const actionProps = {
   onConfirm: action('onConfirm'),
   onDismiss: action('onDismiss'),
 }
 
-const avatarTeamTaskProps: Props = {
+const avatarTeamTaskProps = {
   badged: true,
   confirmLabel: 'Edit team avatar',
   instructions: 'NEW! Change your team’s avatar from within the Keybase app.',
@@ -17,7 +17,7 @@ const avatarTeamTaskProps: Props = {
   ...actionProps,
 }
 
-const avatarUserTaskProps: Props = {
+const avatarUserTaskProps = {
   badged: true,
   confirmLabel: 'Edit avatar',
   instructions: 'NEW! Change your photo from within the Keybase app.',
@@ -26,7 +26,7 @@ const avatarUserTaskProps: Props = {
   ...actionProps,
 }
 
-const bioTaskProps: Props = {
+const bioTaskProps = {
   badged: true,
   confirmLabel: 'Edit profile',
   instructions: 'Add your name, bio, and location to complete your profile.',
@@ -35,7 +35,7 @@ const bioTaskProps: Props = {
   ...actionProps,
 }
 
-const proofTaskProps: Props = {
+const proofTaskProps = {
   badged: true,
   confirmLabel: 'Prove your identities',
   instructions:
@@ -45,7 +45,7 @@ const proofTaskProps: Props = {
   ...actionProps,
 }
 
-const installTaskProps: Props = {
+const installTaskProps = {
   badged: true,
   confirmLabel: 'Get the download link',
   instructions: 'Install Keybase on your phone. Until you have at least 2 devices, you risk losing data.',
@@ -54,7 +54,7 @@ const installTaskProps: Props = {
   ...actionProps,
 }
 
-const followTaskProps: Props = {
+const followTaskProps = {
   badged: true,
   confirmLabel: 'Browse people',
   instructions:
@@ -64,7 +64,7 @@ const followTaskProps: Props = {
   ...actionProps,
 }
 
-const chatTaskProps: Props = {
+const chatTaskProps = {
   badged: true,
   confirmLabel: 'Start a chat',
   instructions: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
@@ -73,7 +73,7 @@ const chatTaskProps: Props = {
   ...actionProps,
 }
 
-const paperKeyTaskProps: Props = {
+const paperKeyTaskProps = {
   badged: true,
   confirmLabel: 'Create a paper key',
   instructions:
@@ -83,7 +83,7 @@ const paperKeyTaskProps: Props = {
   ...actionProps,
 }
 
-const teamTaskProps: Props = {
+const teamTaskProps = {
   badged: true,
   confirmLabel: 'Create a team',
   instructions:
@@ -93,7 +93,7 @@ const teamTaskProps: Props = {
   ...actionProps,
 }
 
-const folderTaskProps: Props = {
+const folderTaskProps = {
   badged: true,
   confirmLabel: 'Open a private folder',
   instructions:
@@ -103,7 +103,7 @@ const folderTaskProps: Props = {
   ...actionProps,
 }
 
-const gitTaskProps: Props = {
+const gitTaskProps = {
   badged: true,
   confirmLabel: 'Create a personal git repo',
   instructions:
@@ -113,7 +113,7 @@ const gitTaskProps: Props = {
   ...actionProps,
 }
 
-const publicityTaskProps: Props = {
+const publicityTaskProps = {
   badged: true,
   confirmLabel: 'Set publicity settings',
   instructions: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out “Publicity settings" on any team you manage.`,

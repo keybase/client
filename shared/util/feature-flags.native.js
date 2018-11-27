@@ -15,6 +15,7 @@ const ff: FeatureFlags = {
   moveOrCopy: false,
   newTeamBuildingForChat: false,
   outOfDateBanner: false,
+  peopleAnnouncementsEnabled: false,
   plansEnabled: false,
   useSimpleMarkdown: true,
   walletsEnabled: false,

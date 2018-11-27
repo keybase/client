@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../constants/types/people'
 import {Box, ClickableBox, Icon, Text} from '../common-adapters'
-import Todo from './task/container'
+import Todo from './todo/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
