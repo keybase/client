@@ -96,7 +96,12 @@ class _CopyText extends React.Component<Props, State> {
             </Text>
           )}
         </Text>
-        <Button type={this.props.buttonType || 'Primary'} style={styles.button} onClick={this.copy}>
+        <Button
+          type={this.props.buttonType || 'Primary'}
+          style={styles.button}
+          onClick={this.copy}
+          labelContainerStyle={styles.buttonLabelContainer}
+        >
           <Icon
             type="iconfont-clipboard"
             color={Styles.globalColors.white}
@@ -140,6 +145,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 10,
     },
   }),
+  buttonLabelContainer: {
+    height: undefined,
+  },
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',

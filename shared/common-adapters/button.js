@@ -24,6 +24,7 @@ export type Props = {
   onMouseLeave?: Function,
   label?: string,
   style?: StylesCrossPlatform,
+  labelContainerStyle?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
   type:
     | 'Primary'
@@ -96,7 +97,12 @@ class Button extends React.Component<Props> {
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
         <Box
-          style={collapseStyles([globalStyles.flexBoxRow, globalStyles.flexBoxCenter, styles.labelContainer])}
+          style={collapseStyles([
+            globalStyles.flexBoxRow,
+            globalStyles.flexBoxCenter,
+            styles.labelContainer,
+            this.props.labelContainerStyle,
+          ])}
         >
           {!this.props.waiting && this.props.children}
           <Text
@@ -148,7 +154,7 @@ const styles = styleSheetCreate({
     height: fullWidthHeight,
     width: undefined,
   },
-  labelContainer: {height: isMobile ? undefined : '100%', position: 'relative'},
+  labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
