@@ -80,7 +80,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             </Kb.Text>
           </Kb.Box2>
           <Kb.Text type="BodySmall" style={styles.warningText}>
-            Paste it in a 100% safe place.
+            If you save this secret key, you can use it in other wallets outside Keybase, or even import it
+            back into Keybase later.
           </Kb.Text>
 
           <Kb.Toast
