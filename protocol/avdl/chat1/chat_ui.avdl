@@ -38,6 +38,7 @@ protocol chatUi {
     ConversationVers version;
     MessageID maxMsgID;
     MessageID readMsgID;
+    MessageID orangeLineMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
 
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -74,6 +75,7 @@ protocol chatUi {
     ConversationVers version;
     MessageID maxMsgID;
     MessageID readMsgID;
+    MessageID orangeLineMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;

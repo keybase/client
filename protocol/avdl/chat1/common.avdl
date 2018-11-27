@@ -252,6 +252,7 @@
     gregor1.Time mtime; // The last time the convo was modified from the user perspective
     MessageID readMsgid; // The message ID the user has read up to in the convo
     MessageID maxMsgid; // The max message ID in the convo
+    MessageID orangeLineMsgid; // The message ID the UI should draw the orange line above
     ConversationMemberStatus status; // The status of the membership to the convo
   }
 

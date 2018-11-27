@@ -144,6 +144,10 @@
           "name": "readMsgID"
         },
         {
+          "type": "MessageID",
+          "name": "orangeLineMsgID"
+        },
+        {
           "type": [
             null,
             "UnverifiedInboxUIItemMetadata"
@@ -304,6 +308,10 @@
         {
           "type": "MessageID",
           "name": "readMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "orangeLineMsgID"
         },
         {
           "type": [

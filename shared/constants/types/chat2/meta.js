@@ -27,6 +27,7 @@ export type _ConversationMeta = {
   participants: I.List<string>, // was OrderedSet but is quite slow
   maxMsgID: number,
   readMsgID: number,
+  orangeLineMsgID: number,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,

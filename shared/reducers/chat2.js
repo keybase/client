@@ -382,18 +382,17 @@ const rootReducer = (
       }
       return state.withMutations(s => {
         if (action.payload.conversationIDKey) {
-          const {readMsgID, maxMsgID} = state.metaMap.get(
+          const {orangeLineMsgID, maxMsgID} = state.metaMap.get(
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
           )
           logger.info(
             `rootReducer: selectConversation: setting orange line: convID: ${
               action.payload.conversationIDKey
-            } max: ${maxMsgID} read: ${readMsgID}`
+            } max: ${maxMsgID} orange: ${orangeLineMsgID}`
           )
-          if (maxMsgID > readMsgID) {
-            // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
+          if (maxMsgID > orangeLineMsgID) {
+            s.setIn(['orangeLineMap', action.payload.conversationIDKey], orangeLineMsgID)
           } else {
             // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
             s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
