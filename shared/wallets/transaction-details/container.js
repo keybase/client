@@ -59,7 +59,6 @@ const mergeProps = (stateProps, dispatchProps) => {
       title: 'Transaction details',
     }
   }
-  console.log('asd mprops', tx)
   return {
     ...stateProps.yourInfoAndCounterparty,
     amountUser: tx.worth,

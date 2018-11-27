@@ -109,32 +109,39 @@ const Detail = (props: DetailProps) => {
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
-  const issuer = props.issuerDescription ? (
-    <Text selectable={props.selectableText} type={textTypeSemibold}>
-      {' '}
-      ({props.issuerDescription})
-    </Text>
-  ) : (
-    ''
-  )
-
-  // props.isXLM is not necessarily lumens, might be other asset, but not
-  // something we do outside currency conversions with.
-  const amount = props.isXLM ? (
-    <React.Fragment>
-      <Text selectable={props.selectableText} type={textTypeExtrabold}>
-        {props.amountUser}
-      </Text>
-      {issuer}
-    </React.Fragment>
-  ) : (
-    <React.Fragment>
-      Lumens worth{' '}
-      <Text selectable={true} type={textTypeExtrabold}>
-        {props.amountUser}
-      </Text>
-    </React.Fragment>
-  )
+  let amount
+  if (props.issuerDescription) {
+    // non-native asset
+    amount = (
+      <React.Fragment>
+        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>{' '}
+        <Text selectable={props.selectableText} type={textTypeSemibold}>
+          ({props.issuerDescription})
+        </Text>
+      </React.Fragment>
+    )
+  } else if (props.isXLM) {
+    // purely, strictly lumens
+    amount = (
+      <React.Fragment>
+        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>
+      </React.Fragment>
+    )
+  } else {
+    // lumens sent with outside currency exchange rate
+    amount = (
+      <React.Fragment>
+        Lumens worth{' '}
+        <Text selectable={true} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>
+      </React.Fragment>
+    )
+  }
 
   const counterparty = () => (
     <CounterpartyText
