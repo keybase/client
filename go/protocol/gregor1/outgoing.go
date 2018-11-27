@@ -45,6 +45,6 @@ type OutgoingClient struct {
 
 func (c OutgoingClient) BroadcastMessage(ctx context.Context, m Message) (err error) {
 	__arg := BroadcastMessageArg{M: m}
-	err = c.Cli.Call(ctx, "gregor.1.outgoing.broadcastMessage", []interface{}{__arg}, nil)
+	err = c.Cli.CallCompressed(ctx, "gregor.1.outgoing.broadcastMessage", []interface{}{__arg}, nil, rpc.CompressionGzip)
 	return
 }

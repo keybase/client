@@ -116,7 +116,6 @@ export type _State = {
   teamJoinSuccess: boolean,
   teamJoinSuccessTeamName: string,
   teamCreationError: string,
-  teamCreationPending: boolean,
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>,
   teamNameToID: I.Map<Teamname, string>,
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>,

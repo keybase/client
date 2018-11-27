@@ -1,11 +1,21 @@
 .WrapperMessage-hoverBox {
   padding-bottom: 2px;
   padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
 }
 .WrapperMessage-hoverBox .menu-button {
   visibility: hidden;
 }
 .WrapperMessage-hoverBox:hover .menu-button {
+  visibility: visible;
+}
+.WrapperMessage-hoverBox .unfurl-closebox {
+  visibility: hidden;
+}
+.WrapperMessage-hoverBox:hover .unfurl-closebox {
   visibility: visible;
 }
 .WrapperMessage-decorated {

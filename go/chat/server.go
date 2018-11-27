@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -2317,6 +2318,12 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err = h.G().Unfurler.WhitelistAdd(ctx, uid, arg.Result.Accept()); err != nil {
 			return fmt.Errorf("failed to add to whitelist, doing nothing: %s", err)
 		}
+		if err = fetchAndUnfurl(); err != nil {
+			return fmt.Errorf("failed to fetch and unfurl: %s", err)
+		}
+	case chat1.UnfurlPromptAction_ONETIME:
+		h.G().Unfurler.WhitelistAddExemption(ctx, uid,
+			unfurl.NewOneTimeWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
 		if err = fetchAndUnfurl(); err != nil {
 			return fmt.Errorf("failed to fetch and unfurl: %s", err)
 		}

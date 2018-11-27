@@ -2356,6 +2356,15 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 	})
 }
 
+func filterOutboxMessages(tv chat1.ThreadView) (res []chat1.MessageUnboxed) {
+	for _, m := range tv.Messages {
+		if !m.IsOutbox() {
+			res = append(res, m)
+		}
+	}
+	return res
+}
+
 func TestChatSrvPostEditNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
@@ -2381,12 +2390,7 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-			var thread []chat1.MessageUnboxed
-			for _, m := range res.Thread.Messages {
-				if !m.IsOutbox() {
-					thread = append(thread, m)
-				}
-			}
+			thread := filterOutboxMessages(res.Thread)
 			require.Equal(t, num, len(thread))
 			require.True(t, thread[0].IsValid())
 			require.Equal(t, intended, thread[0].Valid().MessageBody.Text().Body)

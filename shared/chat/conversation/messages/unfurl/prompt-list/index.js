@@ -21,6 +21,7 @@ class UnfurlPromptList extends React.PureComponent<Props> {
           onAccept={p.onAccept}
           onNotnow={p.onNotnow}
           onNever={p.onNever}
+          onOnetime={p.onOnetime}
         />
       )
     }

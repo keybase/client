@@ -56,6 +56,7 @@ const fullGithub = {
   faviconURL: require('../../../../../images/mock/github_fav.jpg'),
   imageURL: require('../../../../../images/mock/github.jpg'),
   showImageOnSide: true,
+  onClose: Sb.action('onClose'),
 }
 
 const githubMissingDesc = {

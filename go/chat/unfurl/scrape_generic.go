@@ -2,9 +2,12 @@ package unfurl
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/keybase/client/go/chat/attachments"
 
 	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -78,6 +81,14 @@ func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, ge
 	}
 }
 
+type bodyReadResetter struct {
+	io.ReadCloser
+}
+
+func (b bodyReadResetter) Reset() error {
+	return nil
+}
+
 func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericRaw, uri, domain string) {
 	path, err := GetDefaultAppleTouchURL(uri)
 	if err != nil {
@@ -92,6 +103,16 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 	defer resp.Body.Close()
 	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
 		s.Debug(ctx, "tryAppleTouchIcon: found Apple touch icon at known path")
+		mimeType, err := attachments.DetectMIMEType(ctx, bodyReadResetter{ReadCloser: resp.Body},
+			"apple-touch-icon.png")
+		if err != nil {
+			s.Debug(ctx, "tryAppleTouchIcon: failed to get MIME type from response: %s", err)
+			return
+		}
+		if mimeType != "image/png" {
+			s.Debug(ctx, "tryAppleTouchIcon: response not a PNG: %s", mimeType)
+			return
+		}
 		generic.setFaviconURL(&path, getAppleTouchFaviconScoreFromPath())
 	}
 }
@@ -121,12 +142,13 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 	})
 	c.OnHTML("head link[rel][href]", func(e *colly.HTMLElement) {
 		rel := strings.ToLower(e.Attr("rel"))
-		if strings.Contains(rel, "shortcut icon") {
-			s.setAttr(ctx, "shortcut icon", hostname, domain, generic, e)
-		} else if strings.Contains(rel, "icon") && e.Attr("type") == "image/x-icon" {
-			s.setAttr(ctx, "icon", hostname, domain, generic, e)
-		} else if strings.Contains(rel, "apple-touch-icon") {
+		if strings.Contains(rel, "apple-touch-icon") {
 			s.setAttr(ctx, "apple-touch-icon", hostname, domain, generic, e)
+		} else if strings.Contains(rel, "shortcut icon") {
+			s.setAttr(ctx, "shortcut icon", hostname, domain, generic, e)
+		} else if strings.Contains(rel, "icon") &&
+			(e.Attr("type") == "image/x-icon" || e.Attr("type") == "image/png") {
+			s.setAttr(ctx, "icon", hostname, domain, generic, e)
 		}
 	})
 	c.OnHTML("head meta[content][name]", func(e *colly.HTMLElement) {
