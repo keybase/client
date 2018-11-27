@@ -1082,21 +1082,30 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
 
+// Return an error if asset is completely outside of what we understand, like
+// asset unknown types or unexpected length.
+func assertAssetIsSane(asset stellar1.Asset) error {
+	switch asset.Type {
+	case "credit_alphanum4", "credit_alphanum12":
+	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
+	default:
+		return fmt.Errorf("unrecognized asset type: %v", asset.Type)
+	}
+	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
+	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
+		return fmt.Errorf("invalid asset code: %v", asset.Code)
+	}
+	return nil
+}
+
 // Example: "157.5000000 XLM"
 // Example: "12.9000000 USD/GB...VTUK"
 func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset, lossyIssuer bool) (string, error) {
 	if asset.IsNativeXLM() {
 		return FormatAmountDescriptionXLM(amount)
 	}
-	switch asset.Type {
-	case "credit_alphanum4", "credit_alphanum12":
-	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
-	default:
-		return "", fmt.Errorf("unrecognized asset type: %v", asset.Type)
-	}
-	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
-	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
-		return "", fmt.Errorf("invalid asset code: %v", asset.Code)
+	if err := assertAssetIsSane(asset); err != nil {
+		return "", err
 	}
 	// Sanity check asset issuer.
 	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
@@ -1111,6 +1120,33 @@ func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset, lossyIssu
 	}
 	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
 		fmt.Sprintf("%v/%v", asset.Code, issuerStr))
+}
+
+// Example: "157.5000000 XLM"
+// Example: "1,000.15 CATS/catmoney.example.com (GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR)"
+func FormatAmountDescriptionAssetEx(amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(amount)
+	}
+	if err := assertAssetIsSane(asset); err != nil {
+		return "", err
+	}
+	// Sanity check asset issuer.
+	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
+	if err != nil {
+		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
+	}
+	amountFormatted, err := FormatAmount(amount, false /* precisionTwo */, FmtRound)
+	if err != nil {
+		return "", err
+	}
+	var issuerDesc string
+	if asset.VerifiedDomain != "" {
+		issuerDesc = asset.VerifiedDomain
+	} else {
+		issuerDesc = "Unknown"
+	}
+	return fmt.Sprintf("%s %s/%s (%s)", amountFormatted, asset.Code, issuerDesc, issuerAccountID.String()), nil
 }
 
 // FormatAssetIssuerString returns "Unknown issuer" if asset does not have a

@@ -25,11 +25,8 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		timeStr += " *"
 	}
 	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount, err := stellar.FormatAmountDescriptionAsset(p.Amount, p.Asset, !verbose /* lossyIssuer */)
+	amount, err := stellar.FormatAmountDescriptionAssetEx(p.Amount, p.Asset)
 	if err == nil {
-		if !p.Asset.IsNativeXLM() {
-			amount = fmt.Sprintf("%s (%s)", amount, stellar.FormatAssetIssuerString(p.Asset))
-		}
 		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
 			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
 		}
