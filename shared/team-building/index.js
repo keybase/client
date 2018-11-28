@@ -133,16 +133,20 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.small,
     },
     isElectron: {
-      width: 470,
       height: 434,
+      width: 470,
     },
   }),
-  recText: {
-    marginBottom: Styles.globalMargins.xtiny,
-    marginLeft: Styles.globalMargins.tiny,
-  },
   list: {
     paddingBottom: Styles.globalMargins.small,
+  },
+  recText: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
   },
 })
 
