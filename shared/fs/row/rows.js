@@ -14,7 +14,7 @@ import {rowHeight} from './common'
 import {isMobile} from '../../constants/platform'
 
 type Props = {
-  items: Array<Types.RowItem>,
+  items: Array<Types.RowItemWithKey>,
   routePath: I.List<string>,
   destinationPickerIndex?: number,
 }
@@ -100,13 +100,12 @@ class Rows extends React.PureComponent<Props> {
     return this.props.items && this.props.items.length ? (
       <Kb.List
         fixedHeight={rowHeight}
-        indexAsKey={true}
         items={
           // If we are in the destination picker, inject two empty rows so when
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
           !isMobile && this.props.destinationPickerIndex
-            ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
+            ? [...this.props.items, {rowType: 'empty', key: 'empty:0'}, {rowType: 'empty', key: 'empty:1'}]
             : this.props.items
         }
         renderItem={this._rowRenderer}

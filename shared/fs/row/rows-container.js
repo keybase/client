@@ -31,6 +31,7 @@ const getEditingRows = (
       rowType: 'editing',
       editID,
       name: edit.name,
+      key: `edit:${Types.editIDToString(editID)}`,
       // fields for sortable
       editType: edit.type,
       type: 'folder',
@@ -43,12 +44,14 @@ const getStillRows = (
 ): Array<SortableStillRowItem> =>
   names.reduce((items, name) => {
     const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.unknownPathItem)
+    const path = Types.pathConcat(parentPath, item.name)
     return [
       ...items,
       {
         rowType: 'still',
-        path: Types.pathConcat(parentPath, item.name),
+        path,
         name: item.name,
+        key: `still:${name}`,
         // fields for sortable
         type: item.type,
         lastModifiedTimestamp: item.lastModifiedTimestamp,
@@ -75,15 +78,16 @@ const amendStillRows = (
       rowType: 'uploading',
       name,
       path,
+      key: `uploading:${name}`,
       // field for sortable
       type,
     }: SortableUploadingRowItem)
   })
 
 const getPlaceholderRows = type => [
-  {rowType: 'placeholder', name: '1', type},
-  {rowType: 'placeholder', name: '2', type},
-  {rowType: 'placeholder', name: '3', type},
+  {rowType: 'placeholder', name: '1', type, key: 'placeholder:1'},
+  {rowType: 'placeholder', name: '2', type, key: 'placeholder:2'},
+  {rowType: 'placeholder', name: '3', type, key: 'placeholder:3'},
 ]
 
 const getInTlfItemsFromStateProps = (stateProps, path: Types.Path, sortSetting) => {
@@ -109,9 +113,9 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path, sortSetting) 
 const getRootRows = (stateProps, sortSetting) =>
   sortRowItems(
     [
-      {rowType: 'tlf-type', name: 'private', type: 'folder'},
-      {rowType: 'tlf-type', name: 'public', type: 'folder'},
-      {rowType: 'tlf-type', name: 'team', type: 'folder'},
+      {rowType: 'tlf-type', name: 'private', type: 'folder', key: 'tlfType:private'},
+      {rowType: 'tlf-type', name: 'public', type: 'folder', key: 'tlfType:public'},
+      {rowType: 'tlf-type', name: 'team', type: 'folder', key: 'tlfType:team'},
     ],
     sortSetting,
     undefined
@@ -129,6 +133,7 @@ const getTlfRowsFromTlfs = (tlfs: I.Map<string, Types.Tlf>, tlfType: Types.TlfTy
               rowType: 'tlf',
               tlfType,
               name,
+              key: `tlf:${name}`,
               type: 'folder',
             },
           ],
