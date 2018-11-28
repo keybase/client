@@ -79,6 +79,7 @@ const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
   acceptedDisclaimer: false,
+  acceptingDisclaimerDelay: false,
   accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
