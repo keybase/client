@@ -21,13 +21,9 @@ const ff: FeatureFlags = {
   walletsEnabled: false,
 }
 
-const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
-  moveOrCopy: true,
-}
-
 // load overrides
 Object.keys(ff).forEach(k => {
-  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && !!inAdmin[k])
+  ff[k] = featureOn(k) || ff[k] || false
 })
 
 if (__DEV__) {
