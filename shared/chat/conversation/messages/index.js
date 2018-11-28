@@ -15,7 +15,7 @@ import TextMessage from './text/container'
 import AttachmentMessage from './attachment/container'
 import PaymentMessage from './account-payment/container'
 import Placeholder from './placeholder/container'
-import WrapperMessage from './wrapper/wrapper-message/container'
+import WrapperMessage from './wrapper/container'
 import {namedConnect, compose, lifecycle} from '../../../util/container'
 
 type OwnProps = {|

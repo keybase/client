@@ -1,17 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
-import * as Kb from '../../../../../common-adapters'
-import {dismiss as dismissKeyboard} from '../../../../../util/keyboard'
-import * as Styles from '../../../../../styles'
-import ReactionsRow from '../../reactions-row/container'
-import UnfurlPromptList from '../../unfurl/prompt-list/container'
-import UnfurlList from '../../unfurl/unfurl-list/container'
-import ReactButton from '../../react-button/container'
-import MessagePopup from '../../message-popup'
-import ExplodingMeta from '../exploding-meta/container'
+import * as Types from '../../../../constants/types/chat2'
+import * as Kb from '../../../../common-adapters'
+import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
+import * as Styles from '../../../../styles'
+import ReactionsRow from '../reactions-row/container'
+import UnfurlPromptList from '../unfurl/prompt-list/container'
+import UnfurlList from '../unfurl/unfurl-list/container'
+import ReactButton from '../react-button/container'
+import MessagePopup from '../message-popup'
+import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
-import {formatTimeForChat} from '../../../../../util/timestamp'
+import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji

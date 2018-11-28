@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
 import WrapperMessage from '.'
-import * as Constants from '../../../../../constants/chat2'
-import * as MessageConstants from '../../../../../constants/chat2/message'
-import * as Types from '../../../../../constants/types/chat2'
-import {namedConnect} from '../../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
+import * as MessageConstants from '../../../../constants/chat2/message'
+import * as Types from '../../../../constants/types/chat2'
+import {namedConnect} from '../../../../util/container'
 
 export type OwnProps = {|
   children?: React.Node,
