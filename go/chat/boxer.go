@@ -315,10 +315,6 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	// If the message is exploding, load the ephemeral key.
 	var ephemeralSeed *keybase1.TeamEk
 	if boxed.IsEphemeral() {
-		// Don't bother if the message is already expired.
-		if boxed.IsEphemeralExpired(b.clock.Now()) {
-			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralAlreadyExpiredError())), nil
-		}
 		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
 			boxed.EphemeralMetadata().Generation)
