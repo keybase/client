@@ -375,7 +375,7 @@ func newPaymentLocal(mctx libkb.MetaContext,
 	exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
-	formatted, err := FormatAmountDescriptionAsset(amount, asset, true /* lossyIssuer */)
+	formatted, err := FormatAmountDescriptionAsset(amount, asset)
 	if err != nil {
 		return nil, err
 	}

@@ -1099,8 +1099,14 @@ func assertAssetIsSane(asset stellar1.Asset) error {
 }
 
 // Example: "157.5000000 XLM"
-// Example: "12.9000000 USD/GB...VTUK"
-func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset, lossyIssuer bool) (string, error) {
+// Example: "12.9000000 USD"
+//   (where USD is a non-native asset issued by someone).
+// User interfaces should be careful to never give user just amount + asset
+// code, but annotate when it's a non-native asset and make Issuer ID and
+// Verified Domain visible.
+// If you are coming from CLI, FormatAmountDescriptionAssetEx might be a better
+// choice which is more verbose about non-native assets.
+func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
 	if asset.IsNativeXLM() {
 		return FormatAmountDescriptionXLM(amount)
 	}
@@ -1108,22 +1114,17 @@ func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset, lossyIssu
 		return "", err
 	}
 	// Sanity check asset issuer.
-	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
-	if err != nil {
+	if _, err := libkb.ParseStellarAccountID(asset.Issuer); err != nil {
 		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-	var issuerStr string
-	if lossyIssuer {
-		issuerStr = issuerAccountID.LossyAbbreviation()
-	} else {
-		issuerStr = issuerAccountID.String()
-	}
-	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
-		fmt.Sprintf("%v/%v", asset.Code, issuerStr))
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, asset.Code)
 }
 
+// FormatAmountDescriptionAssetEx is a more verbose version of FormatAmountDescriptionAsset.
+// In case of non-native asset, it includes issuer domain (or "Unknown") and issuer ID.
 // Example: "157.5000000 XLM"
-// Example: "1,000.15 CATS/catmoney.example.com (GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR)"
+// Example: "1,000.15 CATS/catmoney.example.com (GDWVJEG7CMYKRYGB2MWSRZNSPCWIGGA4FRNFTQBIR6RAEPNEGGEH4XYZ)"
+// Example: "1,000.15 BTC/Unknown (GBPEHURSE52GCBRPDWNV2VL3HRLCI42367OGRPBOO3AW6VAYEW5EO5PM)"
 func FormatAmountDescriptionAssetEx(amount string, asset stellar1.Asset) (string, error) {
 	if asset.IsNativeXLM() {
 		return FormatAmountDescriptionXLM(amount)
