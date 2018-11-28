@@ -950,127 +950,76 @@ type BlockMetadataValue struct {
 type BlockMetadataUpdater func(*BlockMetadataValue) error
 
 // BlockRequestAction indicates what kind of action should be taken
-// after successfully fetching a block.
+// after successfully fetching a block.  This is a bit mask filled
+// with `blockRequestFlag`s.
 type BlockRequestAction int
 
 const (
+	// These unexported actions are really flags that are combined to
+	// make the other actions below.
+	blockRequestTrackedInPrefetch BlockRequestAction = 1 << iota
+	blockRequestPrefetch
+	blockRequestSync
+
 	// BlockRequestSolo indicates that no action should take place
 	// after fetching the block.  However, a TLF that is configured to
 	// be fully-synced will still be prefetched and synced.
-	BlockRequestSolo BlockRequestAction = iota
+	BlockRequestSolo BlockRequestAction = 0
 	// BlockRequestSoloWithSync indicates the the requested block
 	// should be put in the sync cache, but no prefetching should be
 	// triggered.
-	BlockRequestSoloWithSync
+	BlockRequestSoloWithSync BlockRequestAction = blockRequestSync
+	// BlockRequestPrefetchTail indicates that the block is being
+	// tracked in the prefetcher, but shouldn't kick off any more
+	// prefetches.
+	BlockRequestPrefetchTail BlockRequestAction = blockRequestTrackedInPrefetch
+	// BlockRequestPrefetchTailWithSync indicates that the block is
+	// being tracked in the prefetcher and goes in the sync cache, but
+	// shouldn't kick off any more prefetches.
+	BlockRequestPrefetchTailWithSync BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestSync
 	// BlockRequestWithPrefetch indicates that a prefetch should be
 	// triggered after fetching the block.  If a TLF is configured to
 	// be fully-synced, the block will still be put in the sync cache.
-	BlockRequestWithPrefetch
+	BlockRequestWithPrefetch BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch
 	// BlockRequestWithSyncAndPrefetch indicates that the block should
 	// be stored in the sync cache after fetching it, as well as
 	// triggering a deep prefetch of all the child blocks rooted at
 	// the requested one.
-	BlockRequestWithSyncAndPrefetch
-	// BlockRequestPrefetchTail indicates that the block is being
-	// tracked in the prefetcher, but shouldn't kick off any more
-	// prefetches.
-	BlockRequestPrefetchTail
-	// BlockRequestPrefetchTailWithSync indicates that the block is
-	// being tracked in the prefetcher and goes in the sync cache, but
-	// shouldn't kick off any more prefetches.
-	BlockRequestPrefetchTailWithSync
+	BlockRequestWithSyncAndPrefetch BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch | blockRequestSync
 )
 
 // Combine returns a new action by taking `other` into account.
 func (bra BlockRequestAction) Combine(
 	other BlockRequestAction) BlockRequestAction {
-	switch bra {
-	case BlockRequestSolo:
-		// Anything overrides a pure solo request.
-		return other
-	case BlockRequestSoloWithSync:
-		// Upgrade a solo sync action to prefetching if needed.
-		switch other {
-		case BlockRequestSolo, BlockRequestPrefetchTailWithSync,
-			BlockRequestPrefetchTail:
-			return bra
-		case BlockRequestWithPrefetch:
-			return BlockRequestWithSyncAndPrefetch
-		default:
-			return other
-		}
-	case BlockRequestWithPrefetch:
-		// Upgrade a prefetching action to be syncing if needed.
-		switch other {
-		case BlockRequestSolo, BlockRequestPrefetchTail:
-			return bra
-		case BlockRequestSoloWithSync, BlockRequestPrefetchTailWithSync:
-			return BlockRequestWithSyncAndPrefetch
-		default:
-			return other
-		}
-	case BlockRequestWithSyncAndPrefetch:
-		return BlockRequestWithSyncAndPrefetch
-	case BlockRequestPrefetchTail:
-		// Upgrade a prefetching tail action to be syncing or non-tail
-		// if needed.
-		switch other {
-		case BlockRequestSolo:
-			return bra
-		case BlockRequestSoloWithSync:
-			return BlockRequestPrefetchTailWithSync
-		default:
-			return other
-		}
-	case BlockRequestPrefetchTailWithSync:
-		// Upgrade to a full deep sync if needed.
-		switch other {
-		case BlockRequestWithPrefetch, BlockRequestWithSyncAndPrefetch:
-			return BlockRequestWithSyncAndPrefetch
-		default:
-			return bra
-		}
-	default:
-		panic(fmt.Sprintf("Unexpected block request action: %v", bra))
-	}
+	return bra | other
 }
 
 // Prefetch returns true if the action indicates the block should
 // trigger a prefetch.
 func (bra BlockRequestAction) Prefetch() bool {
-	return bra == BlockRequestWithPrefetch ||
-		bra == BlockRequestWithSyncAndPrefetch
+	return bra&blockRequestPrefetch > 0
 }
 
 // PrefetchTracked returns true if this block is being tracked by the
 // prefetcher.
 func (bra BlockRequestAction) PrefetchTracked() bool {
-	return bra.Prefetch() || bra == BlockRequestPrefetchTail ||
-		bra == BlockRequestPrefetchTailWithSync
+	return bra.Prefetch() || bra&blockRequestTrackedInPrefetch > 0
 }
 
 // Sync returns true if the action indicates the block should go into
 // the sync cache.
 func (bra BlockRequestAction) Sync() bool {
-	return bra == BlockRequestSoloWithSync ||
-		bra == BlockRequestWithSyncAndPrefetch
+	return bra&blockRequestSync > 0
 }
 
 // DeepSync returns true if the action indicates a deep-syncing of the
 // block tree rooted at the given block.
 func (bra BlockRequestAction) DeepSync() bool {
-	return bra == BlockRequestWithSyncAndPrefetch
+	return bra.Prefetch() && bra.Sync()
 }
 
 // WithoutPrefetch returns a new action similar to `bra` but with no
 // additional prefetching.
 func (bra BlockRequestAction) WithoutPrefetch() BlockRequestAction {
-	switch bra {
-	case BlockRequestWithPrefetch:
-		return BlockRequestPrefetchTail
-	case BlockRequestWithSyncAndPrefetch:
-		return BlockRequestPrefetchTailWithSync
-	default:
-		return bra
-	}
+	return bra &^ blockRequestPrefetch
 }
