@@ -921,6 +921,7 @@ func TestAccountBundleFlows(t *testing.T) {
 		require.Equal(t, len(signers), 0)
 		accountIDs = append(accountIDs, acct.AccountID)
 	}
+	require.Equal(t, len(accountIDs), 1)
 	// add a new account non-primary account
 	a1, s1 := randomStellarKeypair()
 	err = tcs[0].Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
@@ -1017,6 +1018,7 @@ func TestAccountBundleFlows(t *testing.T) {
 	})
 	require.NoError(t, err)
 	bundle, _, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
 	found := false
 	for _, acc := range bundle.Accounts {
 		if acc.Name == "skittles" {
@@ -1572,6 +1574,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	// add a primary account
 	fetchArgs := libkb.HTTPArgs{"account_id": libkb.S{Val: string(primaryAccountID)}}
 	fetchedBundle, _, _, err := remote.FetchV2BundleWithArgs(ctx, g, fetchArgs)
+	require.NoError(t, err)
 	newPrimaryAccountID, newPrimarySecretKey := randomStellarKeypair()
 	err = acctbundle.AddAccount(fetchedBundle, newPrimarySecretKey, "newprimary", true /* make primary */)
 	require.NoError(t, err)

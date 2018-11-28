@@ -1088,11 +1088,6 @@ func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 	return g.API.PostDecode(apiArg, &res)
 }
 
-type isMobileResult struct {
-	libkb.AppStatusEmbed
-	MobileOnly int `json:"mobile_only"`
-}
-
 func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
 	bundle, _, _, err := FetchSecretlessBundle(ctx, g)
 	if err != nil {
