@@ -19,7 +19,7 @@ const TeamRow = ({
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
       <Kb.Avatar isTeam={true} size={Styles.isMobile ? 48 : 32} teamname={name} />
-      <Kb.Box2 direction="vertical" style={styles.teamNameContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
           <Kb.Text type="BodySemibold" lineClamp={1}>
             {name}
@@ -30,48 +30,44 @@ const TeamRow = ({
           <Kb.Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical">
-        {showcased || canShowcase || waiting ? (
+      {showcased || canShowcase || waiting ? (
+        <Kb.Box2 direction="vertical">
           <Kb.Button
             label={showcased ? 'Published' : 'Publish'}
             onClick={() => onPromote(!showcased)}
             small={true}
-            style={{minWidth: 72}}
             type={showcased ? 'PrimaryGreenActive' : 'PrimaryGreen'}
             waiting={waiting}
           />
-        ) : (
-          <Kb.Text
-            style={{color: Styles.globalColors.black_40, width: Styles.isMobile ? '35%' : '25%'}}
-            type="BodySmall"
-          >
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
+          <Kb.Text style={styles.membershipText} type="BodySmall">
             {isExplicitMember
               ? 'Admins aren’t allowing members to publish.'
-              : 'You are not a member. Add yourself to publish.'}
+              : 'Add yourself to the team first.'}
           </Kb.Text>
-        )}
-      </Kb.Box2>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
     {!Styles.isMobile && <Kb.Divider style={{marginLeft: 48}} />}
   </Kb.Box2>
 )
 
 const ShowcaseTeamOfferHeader = () => (
-  <Kb.Box2 direction="vertical" style={styles.headerContainer}>
+  <Kb.Box style={styles.headerContainer}>
     {!Styles.isMobile && (
-      <Kb.Box2 direction="horizontal">
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
         <Kb.Text type="Header">Publish the teams you’re in</Kb.Text>
       </Kb.Box2>
     )}
-    <Kb.Box2 direction="horizontal" style={styles.noteContainer}>
-      <Kb.InfoNote>
-        <Kb.Text style={styles.noteText} type="BodySmall">
-          Promoting a team will encourage others to ask to join. The team's description and number of members
-          will be public.
-        </Kb.Text>
-      </Kb.InfoNote>
-    </Kb.Box2>
-  </Kb.Box2>
+    <Kb.InfoNote containerStyle={styles.noteContainer}>
+      <Kb.Text style={styles.noteText} type="BodySmall">
+        Promoting a team will encourage others to ask to join. The team's description and number of members
+        will be public.
+      </Kb.Text>
+    </Kb.InfoNote>
+  </Kb.Box>
 )
 
 const ShowcaseTeamOffer = (props: Props) => (
@@ -109,9 +105,28 @@ const styles = Styles.styleSheetCreate({
   }),
   headerContainer: Styles.platformStyles({
     isElectron: {
-      padding: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.mediumLarge,
     },
   }),
+  headerText: {
+    marginBottom: Styles.globalMargins.xsmall,
+  },
+  membershipText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_40,
+    },
+    isElectron: {
+      textAlign: 'right',
+    },
+    isMobile: {
+      textAlign: 'center',
+    },
+  }),
+  membershipTextContainer: {
+    flexShrink: 1,
+  },
   meta: {
     alignSelf: 'center',
     marginLeft: Styles.globalMargins.xtiny,
@@ -130,21 +145,19 @@ const styles = Styles.styleSheetCreate({
     textAlign: 'center',
   },
   teamNameContainer: {
+    flexShrink: 1,
     marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
   },
   teamRowContainer: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
     },
     isMobile: {
       minHeight: Styles.isMobile ? 64 : 48,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
     },
   }),
   teamText: {
@@ -152,10 +165,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const PopupWrapped = (props: Props) => (
-  <Kb.PopupDialog styleCover={{zIndex: 20}} onClose={props.onBack}>
-    <ShowcaseTeamOffer {...props} />
-  </Kb.PopupDialog>
-)
-
-export default (Styles.isMobile ? ShowcaseTeamOffer : PopupWrapped)
+export default ShowcaseTeamOffer
