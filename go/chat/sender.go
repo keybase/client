@@ -699,7 +699,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 				return chat1.OutboxID{}, nil, err
 			default:
-				s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
+				s.Debug(ctx,
+					"Send: conversation not found, attempting to join the conversation and try again")
 				if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
 					convID); err != nil {
 					return chat1.OutboxID{}, nil, err
@@ -708,16 +709,16 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				// inbox
 				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
 				if err != nil {
-					s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
+					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
 					return chat1.OutboxID{}, nil, err
 				}
 			}
 		} else {
-			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
+			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
 		}
 	} else {
-		s.Debug(ctx, "uid: %s in conversation %s with status: %v", sender,
+		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
 			conv.GetConvID(), conv.ReaderInfo.Status)
 	}
 
@@ -728,7 +729,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 			// pass so we don't loop between Send and Join/Leave.
 		default:
-			s.Debug(ctx, "user is in preview mode, joining conversation")
+			s.Debug(ctx, "Send: user is in preview mode, joining conversation")
 			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
 				return chat1.OutboxID{}, nil, err
 			}
@@ -745,7 +746,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		b, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
 			conv.GetMembersType(), &conv)
 		if err != nil {
-			s.Debug(ctx, "error in Prepare: %s", err.Error())
+			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
 		}
 		boxed = b
@@ -755,7 +756,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if len(pendingAssetDeletes) > 0 {
 			err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
 			if err != nil {
-				s.Debug(ctx, "failure in deleteAssets (charging forward): %s", err.Error())
+				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err.Error())
 			}
 		}
 
@@ -764,7 +765,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if boxed.ClientHeader.OutboxID != nil {
 			obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
 		}
-		s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+		s.Debug(ctx, "Send: sending message: convID: %s outboxID: %s", convID, obidstr)
 
 		// Keep trying if we get an error on topicNameState for a fixed number of times
 		rarg := chat1.PostRemoteArg{
@@ -780,20 +781,30 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			case libkb.ChatStalePreviousStateError:
 				// If we hit the stale previous state error, that means we should try again, since our view is
 				// out of date.
-				s.Debug(ctx, "failed because of stale previous state, trying the whole thing again")
+				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-				s.Debug(ctx, "failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
+				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
 				utils.ForceReloadUPAKsForUIDs(ctx, s.G(), merr.UIDs)
 				continue
 			default:
-				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
+				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
 				return chat1.OutboxID{}, nil, err
 			}
 		}
 		boxed.ServerHeader = &plres.MsgHeader
 		break
+	}
+	if err != nil {
+		return chat1.OutboxID{}, nil, err
+	}
+
+	// If this message was sent from the Outbox, then we can remove it now
+	if boxed.ClientHeader.OutboxID != nil {
+		if err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
+			s.Debug(ctx, "d: %s", err)
+		}
 	}
 
 	// Write new message out to cache and other followup
@@ -1383,6 +1394,8 @@ func (s *Deliverer) deliverLoop() {
 					break
 				}
 			} else {
+				// BlockingSender actually does this too, so this will likely fail, but to maintain
+				// the types.Sender abstraction we will do it here too and likely fail.
 				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
 				}
