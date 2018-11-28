@@ -398,7 +398,7 @@ const BOOL isSimulator = NO;
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
-    [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We failed to share your content. Please try from the Keybase app."
+    [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We are not able to share this kind of file."
                                         badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
     [self maybeCompleteRequest:lastItem];
   }

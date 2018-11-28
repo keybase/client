@@ -15,6 +15,7 @@
 @end
 
 NSString* const UpOneLevel = @"⤴ [up one level]";
+int const DirentTypeFolder = 1;
 
 @implementation FilesViewController
 
@@ -57,16 +58,11 @@ NSString* const UpOneLevel = @"⤴ [up one level]";
     NSError* error = NULL;
     [self setDirectoryEntries:[NSArray new]];
     NSString* jsonFiles = KeybaseExtensionListPath(self.path, &error); // returns the path list in JSON format
-    if (jsonFiles == nil) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        NSLog(@"failed to get files: %@", error);
-        [av stopAnimating];
-        [av removeFromSuperview];
-      });
-      // just show blank in this case
-      return;
+    if (jsonFiles == nil || error != nil) {
+      NSLog(@"failed to get files: %@", error);
+    } else {
+      [self parseFiles:jsonFiles];
     }
-    [self parseFiles:jsonFiles];
     dispatch_async(dispatch_get_main_queue(), ^{
       [av stopAnimating];
       [self.tableView reloadData];
@@ -76,8 +72,8 @@ NSString* const UpOneLevel = @"⤴ [up one level]";
 }
 
 NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
-  int t1 = [[one objectForKey:@"direntType"] intValue];
-  int t2 = [[two objectForKey:@"direntType"] intValue];
+  int t1 = [one[@"direntType"] intValue];
+  int t2 = [two[@"direntType"] intValue];
   if (t1 == 1 && t2 != 1) {
     // `one` is a folder and `two` isn't.
     return NSOrderedAscending;
@@ -91,7 +87,7 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
 }
 
 bool filterWritableEntries(NSDictionary* entry) {
-  return [entry objectForKey:@"writable"];
+  return entry[@"writable"];
 }
 
 - (void)parseFiles:(NSString*)jsonFiles {
@@ -104,7 +100,7 @@ bool filterWritableEntries(NSDictionary* entry) {
       NSLog(@"parseFiles: error parsing JSON: %@", error);
     }
     // At least show an empty folder.
-    sortedAndFilteredItems = [[NSArray alloc] init];
+    sortedAndFilteredItems = @[];
   } else {
     // Sort items: directories first, then alphabetically.
     sortedAndFilteredItems = [items sortedArrayUsingFunction:sortEntries context:NULL];
@@ -113,7 +109,7 @@ bool filterWritableEntries(NSDictionary* entry) {
     unsigned long pathLength = [self pathLength];
     if (pathLength > 2) {
       sortedAndFilteredItems = [sortedAndFilteredItems filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id entry, NSDictionary* bindings) {
-        return [entry objectForKey:@"writable"];
+        return entry[@"writable"];
       }]];
     }
   }
@@ -125,7 +121,7 @@ bool filterWritableEntries(NSDictionary* entry) {
     NSMutableArray* itemsWithBack = [[NSMutableArray alloc] init];
     [itemsWithBack addObject:[[NSDictionary alloc] initWithObjectsAndKeys:
                               UpOneLevel, @"name",
-                              [NSNumber numberWithInt:1], @"direntType",
+                              [NSNumber numberWithInt:DirentTypeFolder], @"direntType",
                               nil]];
     [itemsWithBack addObjectsFromArray:sortedAndFilteredItems];
     [self setDirectoryEntries:itemsWithBack];
@@ -158,25 +154,28 @@ bool filterWritableEntries(NSDictionary* entry) {
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ConvCell"];
   }
   NSDictionary* item = [self getItemAtIndex:indexPath];
-  [[cell textLabel] setText:item[@"name"]];
-  if ([[item objectForKey:@"direntType"] intValue] == 1) {
+  UILabel* textLabel = [cell textLabel];
+  [textLabel setText:item[@"name"]];
+  if ([item[@"direntType"] intValue] == DirentTypeFolder) {
     // Style folders differently from files. Use Keybase blue.
-    [[cell textLabel] setTextColor:[UIColor colorWithRed:76.0/255.0 green:142.0/255.0 blue:1 alpha:1]];
+    [textLabel setTextColor:DirentColorFolder];
+    [textLabel setFont:[UIFont boldSystemFontOfSize: textLabel.font.pointSize]];
   } else {
-    [[cell textLabel] setTextColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:1]];
+    [textLabel setTextColor:DirentColorOther];
+    [textLabel setFont:[UIFont systemFontOfSize: textLabel.font.pointSize]];
   }
   return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   NSDictionary* target = [self getItemAtIndex:indexPath];
-  if ([indexPath isEqual:[NSIndexPath indexPathForRow:0 inSection:0]] && [[target objectForKey:@"name"] isEqualToString:UpOneLevel]) {
+  if ([indexPath isEqual:[NSIndexPath indexPathForRow:0 inSection:0]] && [target[@"name"] isEqualToString:UpOneLevel]) {
     // '..' navigates back up.
     NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
     NSArray* upOneDirectory = [pathElems subarrayWithRange:NSMakeRange(0, [pathElems count] - 2)];
     [self setPath:[NSString stringWithFormat:@"%@/", [upOneDirectory componentsJoinedByString:@"/"]]];
     [self dispatchFilesBrowser];
-  } else if ([[target objectForKey:@"direntType"] intValue] == 1) {
+  } else if ([target[@"direntType"] intValue] == 1) {
     // Folders navigate down.
     [self setPath:[NSString stringWithFormat:@"%@%@/", self.path, target[@"name"]]];
     [self dispatchFilesBrowser];
@@ -201,6 +200,7 @@ bool filterWritableEntries(NSDictionary* entry) {
   unsigned long pathLength = [pathElems count];
   if (pathLength <= 2) {
     [self setTitle:@"Keybase"];
+    self.navigationItem.rightBarButtonItem = nil;
   } else {
     NSString* pathName = pathElems[pathLength - 2];
     [self setTitle:pathName];
