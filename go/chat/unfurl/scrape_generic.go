@@ -137,6 +137,7 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 
 	// Run the Colly scraper
 	c := colly.NewCollector()
+	c.UserAgent = "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
 		s.setAttr(ctx, "title", hostname, domain, generic, e)
 	})
