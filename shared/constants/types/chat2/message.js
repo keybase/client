@@ -21,6 +21,8 @@ export type _Reaction = {
 export type Reaction = I.RecordOf<_Reaction>
 export type Reactions = I.Map<string, I.Set<Reaction>>
 
+export type UnfurlMap = I.Map<string, RPCChatTypes.UIMessageUnfurlInfo>
+
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)
 // 2. When a message is sent we want to maintain the order of it from our perspective, even though we might have gotten newer messages before it actually went through. In order to make this work we keep the ordinal as-is even though we actually do get a real messageID.
@@ -106,6 +108,7 @@ export type _MessageText = {
   outboxID: ?OutboxID,
   text: HiddenString,
   timestamp: number,
+  unfurls: UnfurlMap,
   type: 'text',
 }
 export type MessageText = I.RecordOf<_MessageText>

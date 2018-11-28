@@ -70,6 +70,12 @@ protocol SimpleFS {
     SYM_2,
     EXEC_3
   }
+
+  enum PrefetchStatus {
+    NOT_STARTED_0,
+    IN_PROGRESS_1,
+    COMPLETE_2
+  }
   
   record Dirent {
     Time time;
@@ -81,6 +87,7 @@ protocol SimpleFS {
     // in theory spoof the last writer if they modify their client.
     User lastWriterUnverified;
     boolean writable;
+    PrefetchStatus prefetchStatus;
   }
 
   record DirentWithRevision {
@@ -418,4 +425,38 @@ protocol SimpleFS {
    It should only be called after explicit user confirmation.
    */
   void simpleFSReset(Path path);
+
+  enum FolderSyncMode {
+    DISABLED_0,
+    ENABLED_1,
+    PARTIAL_2
+  }
+
+  record FolderSyncConfig {
+    FolderSyncMode mode;
+    // paths is only used when the mode is PARTIAL
+    array<string> paths;
+  }
+
+  record FolderSyncStatus {
+    // Bytes available and total on the partition hosting the sync cache.
+    int64 localDiskBytesAvailable;
+    int64 localDiskBytesTotal;
+    // TODO: fill in percentage synced, etc.
+    PrefetchStatus prefetchStatus;
+  }
+
+  record FolderSyncConfigAndStatus {
+    FolderSyncConfig config;
+    FolderSyncStatus status;
+  }
+
+  // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
+  // folder specified in `path` (e.g., whether syncing is enabled for
+  // that folder).
+  FolderSyncConfigAndStatus simpleFSFolderSyncConfigAndStatus(Path path);
+
+  // simpleFSSetFolderSyncConfig sets the sync config for the folder
+  // specified in `path`.
+  void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
 }

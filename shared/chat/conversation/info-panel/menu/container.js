@@ -52,8 +52,8 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
     : moreThanOneSubscribedChannel(state.chat2.metaMap, teamname)
-      ? 'Manage chat channels'
-      : 'Subscribe to channels...'
+    ? 'Manage chat channels'
+    : 'Subscribe to channels...'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
   return {
     hasCanPerform,

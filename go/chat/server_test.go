@@ -1927,7 +1927,7 @@ type serverChatListener struct {
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 	reactionUpdate          chan chat1.ReactionUpdateNotif
-	messagesUnfurled        chan chat1.UnfurlUpdateNotifs
+	messagesUpdated         chan chat1.MessagesUpdated
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1986,8 +1986,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.ephemeralPurge <- activity.EphemeralPurge()
 	case chat1.ChatActivityType_REACTION_UPDATE:
 		n.reactionUpdate <- activity.ReactionUpdate()
-	case chat1.ChatActivityType_MESSAGE_UNFURLED:
-		n.messagesUnfurled <- activity.MessageUnfurled()
+	case chat1.ChatActivityType_MESSAGES_UPDATED:
+		n.messagesUpdated <- activity.MessagesUpdated()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2037,7 +2037,7 @@ func newServerChatListener() *serverChatListener {
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
-		messagesUnfurled:        make(chan chat1.UnfurlUpdateNotifs, buf),
+		messagesUpdated:         make(chan chat1.MessagesUpdated, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2356,6 +2356,15 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 	})
 }
 
+func filterOutboxMessages(tv chat1.ThreadView) (res []chat1.MessageUnboxed) {
+	for _, m := range tv.Messages {
+		if !m.IsOutbox() {
+			res = append(res, m)
+		}
+	}
+	return res
+}
+
 func TestChatSrvPostEditNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
@@ -2381,9 +2390,10 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-			require.Equal(t, num, len(res.Thread.Messages))
-			require.True(t, res.Thread.Messages[0].IsValid())
-			require.Equal(t, intended, res.Thread.Messages[0].Valid().MessageBody.Text().Body)
+			thread := filterOutboxMessages(res.Thread)
+			require.Equal(t, num, len(thread))
+			require.True(t, thread[0].IsValid())
+			require.Equal(t, intended, thread[0].Valid().MessageBody.Text().Body)
 		}
 
 		outboxID, err := storage.NewOutboxID()

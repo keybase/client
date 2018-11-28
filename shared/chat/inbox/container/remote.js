@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import type {TypedState} from '../../../constants/reducer'
-import memoize from 'memoize-one'
+import {memoize3} from '../../../util/memoize'
 
 export const maxShownConversations = 3
 
@@ -17,27 +17,35 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize((badgeMap, unreadMap, metaMap) =>
-  metaMap
-    .filter((_, id) => Constants.isValidConversationIDKey(id))
-    .map(v => ({
-      hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
-      hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
-      conversation: v,
-    }))
-    .sort(
-      (a, b) =>
+const valuesCached = memoize3(
+  (
+    badgeMap,
+    unreadMap,
+    metaMap
+  ): Array<{
+    hasBadge: boolean,
+    hasUnread: boolean,
+    conversation: ChatTypes.ConversationMeta,
+  }> =>
+    metaMap
+      .filter((_, id) => Constants.isValidConversationIDKey(id))
+      .map(v => ({
+        hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+        hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
+        conversation: v,
+      }))
+      .sort((a, b) =>
         a.hasBadge
           ? b.hasBadge
             ? b.conversation.timestamp - a.conversation.timestamp
             : -1
           : b.hasBadge
-            ? 1
-            : b.conversation.timestamp - a.conversation.timestamp
-    )
-    .take(maxShownConversations)
-    .valueSeq()
-    .toArray()
+          ? 1
+          : b.conversation.timestamp - a.conversation.timestamp
+      )
+      .take(maxShownConversations)
+      .valueSeq()
+      .toArray()
 )
 
 // A hack to store the username to avoid plumbing.

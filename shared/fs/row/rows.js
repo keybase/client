@@ -14,7 +14,7 @@ import {rowHeight} from './common'
 import {isMobile} from '../../constants/platform'
 
 type Props = {
-  items: Array<Types.RowItem>,
+  items: Array<Types.RowItemWithKey>,
   routePath: I.List<string>,
   destinationPickerIndex?: number,
 }
@@ -33,13 +33,13 @@ class Rows extends React.PureComponent<Props> {
     switch (item.rowType) {
       case 'placeholder':
         return (
-          <WrapRow key={`placeholder:${item.name}`}>
+          <WrapRow>
             <Placeholder type={item.type} />
           </WrapRow>
         )
       case 'tlf-type':
         return (
-          <WrapRow key={`still:${item.name}`}>
+          <WrapRow>
             <TlfType
               name={item.name}
               destinationPickerIndex={this.props.destinationPickerIndex}
@@ -49,7 +49,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'tlf':
         return (
-          <WrapRow key={`still:${item.name}`}>
+          <WrapRow>
             <Tlf
               name={item.name}
               tlfType={item.tlfType}
@@ -60,7 +60,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'still':
         return (
-          <WrapRow key={`still:${item.name}`}>
+          <WrapRow>
             <Still
               name={item.name}
               path={item.path}
@@ -71,18 +71,18 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'uploading':
         return (
-          <WrapRow key={`uploading:${item.name}`}>
+          <WrapRow>
             <Uploading name={item.name} path={item.path} />
           </WrapRow>
         )
       case 'editing':
         return (
-          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
+          <WrapRow>
             <Editing editID={item.editID} routePath={this.props.routePath} />
           </WrapRow>
         )
       case 'empty':
-        return <EmptyRow key={`empty:${item.name}`} />
+        return <EmptyRow />
       default:
         /*::
       let rowType = item.rowType
@@ -90,7 +90,7 @@ class Rows extends React.PureComponent<Props> {
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
       */
         return (
-          <WrapRow key="">
+          <WrapRow>
             <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
           </WrapRow>
         )
@@ -105,7 +105,7 @@ class Rows extends React.PureComponent<Props> {
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
           !isMobile && this.props.destinationPickerIndex
-            ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
+            ? [...this.props.items, {rowType: 'empty', key: 'empty:0'}, {rowType: 'empty', key: 'empty:1'}]
             : this.props.items
         }
         renderItem={this._rowRenderer}

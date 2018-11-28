@@ -47,7 +47,7 @@ const Header = (props: Props) => (
       )}
       {!!props.walletName && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          <SmallAccountID accountID={props.accountID} />
+          <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -88,7 +88,7 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
     },
     {
       onClick: () => this.props.onSendToAnotherAccount(),
-      title: 'To one of my other Stellar accounts',
+      title: 'To one of your other Stellar accounts',
     },
   ]
 
@@ -181,6 +181,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   noShrink: {flexShrink: 0},
+  smallAccountID: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+    textAlign: 'center',
+  },
   spinner: {
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,

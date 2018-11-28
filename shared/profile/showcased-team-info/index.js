@@ -78,8 +78,8 @@ const TeamInfo = (props: Props) => (
                 ? 'Joined'
                 : 'Request sent'
               : props.openTeam
-                ? 'Join team'
-                : 'Request to join'
+              ? 'Join team'
+              : 'Request to join'
           }
           small={!isMobile}
           style={{marginTop: globalMargins.tiny}}
@@ -89,20 +89,18 @@ const TeamInfo = (props: Props) => (
                 ? 'PrimaryGreen'
                 : 'Secondary'
               : props.openTeam
-                ? 'PrimaryGreen'
-                : 'Primary'
+              ? 'PrimaryGreen'
+              : 'Primary'
           }
         />
       </Box>
     )}
 
-    {!props.youAreInTeam &&
-      props.youHaveRequestedAccess &&
-      props.openTeam && (
-        <Box style={styleDescription}>
-          <Text type="BodySmall">As soon as an admin comes online, this team will unlock for you.</Text>
-        </Box>
-      )}
+    {!props.youAreInTeam && props.youHaveRequestedAccess && props.openTeam && (
+      <Box style={styleDescription}>
+        <Text type="BodySmall">As soon as an admin comes online, this team will unlock for you.</Text>
+      </Box>
+    )}
 
     {!!props.publicAdmins.length && (
       <Box style={styleWrap}>
@@ -122,8 +120,8 @@ const TeamInfo = (props: Props) => (
               {idx < props.publicAdmins.length - 1
                 ? ', '
                 : props.publicAdminsOthers === 0
-                  ? '.'
-                  : `, + ${props.publicAdminsOthers} others.`}
+                ? '.'
+                : `, + ${props.publicAdminsOthers} others.`}
             </Text>
           </Box>
         ))}

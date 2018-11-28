@@ -8,7 +8,7 @@ import {navigateAppend} from '../../actions/route-tree'
 
 type OwnProps = {|
   shouldPromptSecurityPrefs: boolean,
-  showSecurityPrefsOnce: () => boolean,
+  showSecurityPrefsOnce: () => void,
 |}
 const mapStateToProps = state => {
   const kbfsEnabled = Constants.kbfsEnabled(state)

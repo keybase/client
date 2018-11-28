@@ -1,5 +1,5 @@
 // @flow
-import {connect, compose} from '../../util/container'
+import {connect, compose, type RouteProps} from '../../util/container'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
@@ -7,7 +7,10 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
+import openURL from '../../util/open-url'
 import TransactionDetails from '.'
+
+type OwnProps = RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
 
 const mapStateToProps = (state, ownProps) => {
   const you = state.config.username || ''
@@ -24,6 +27,7 @@ const mapStateToProps = (state, ownProps) => {
             yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
           )
         : null,
+    transactionURL: _transaction.externalTxURL,
     you,
     yourInfoAndCounterparty,
   }
@@ -45,7 +49,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   const tx = stateProps._transaction
   if (!tx.txID || !tx.sourceAccountID) {
     return {
@@ -68,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
+    onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : undefined,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
     selectableText: true,
@@ -82,7 +87,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

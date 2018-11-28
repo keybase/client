@@ -10,6 +10,7 @@ export type PendingMode =
   | 'none' // no pending
   | 'searchingForUsers' // doing a search
   | 'newChat' // doing a search
+  | 'newTeamBuilding' // Users picked via team-building, waiting now.
   | 'fixedSetOfUsers' // selected a set of users externally
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
@@ -59,6 +60,7 @@ export type _State = {
   staticConfig: ?StaticConfig, // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: ConversationCountMap, // how many unread messages there are
+  unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation

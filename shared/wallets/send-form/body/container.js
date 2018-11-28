@@ -3,6 +3,8 @@ import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from
 import {namedConnect} from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   banners: state.wallets.building.isRequest
     ? state.wallets.builtRequest.banners
@@ -19,11 +21,14 @@ const mergeProps = (stateProps, dispatchProps) => ({
   })),
 })
 
-export const SendBody = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedSendBody')(
-  SendBodyComponent
-)
+export const SendBody = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedSendBody'
+)(SendBodyComponent)
 
-export const RequestBody = namedConnect(
+export const RequestBody = namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

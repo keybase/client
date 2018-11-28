@@ -75,17 +75,16 @@ const PostProof = (props: Props) => {
                 style={{marginRight: globalMargins.tiny}}
               />
             )}
-            {!!proofAction &&
-              !props.allowProofCheck && (
-                <Button
-                  type="Primary"
-                  onClick={() => {
-                    props.onAllowProofCheck(true)
-                    proofAction()
-                  }}
-                  label={proofActionText || ''}
-                />
-              )}
+            {!!proofAction && !props.allowProofCheck && (
+              <Button
+                type="Primary"
+                onClick={() => {
+                  props.onAllowProofCheck(true)
+                  proofAction()
+                }}
+                label={proofActionText || ''}
+              />
+            )}
             {props.allowProofCheck && (
               <Button
                 type="Primary"

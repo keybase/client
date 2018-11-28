@@ -43,8 +43,8 @@ const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {
       type = isSelected
         ? 'icon-addon-lock-active-16'
         : isHovered
-          ? 'icon-addon-lock-hover-16'
-          : 'icon-addon-lock-16'
+        ? 'icon-addon-lock-hover-16'
+        : 'icon-addon-lock-16'
     }
     icon = <Icon type={type} style={avatarIconStyle} />
   }

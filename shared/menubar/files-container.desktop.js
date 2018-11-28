@@ -5,12 +5,18 @@ import * as FsGen from '../actions/fs-gen'
 import * as FsUtil from '../util/kbfs'
 import * as FsConstants from '../constants/fs'
 import * as TimestampUtil from '../util/timestamp'
+import {type RemoteTlfUpdates} from '../fs/remote-container'
 import {FilesPreview, type UserTlfUpdateRowProps} from './files.desktop'
-import {remoteConnect, setDisplayName, compose} from '../util/container'
+import {remoteConnect, setDisplayName} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash'
 
-const mapStateToProps = state => ({
+type State = {|
+  username: string,
+  fileRows: Array<RemoteTlfUpdates>,
+|}
+
+const mapStateToProps = (state: State) => ({
   _username: state.username,
   _userTlfUpdates: state.fileRows,
 })
@@ -27,17 +33,19 @@ const mergeProps = (stateProps, dispatchProps) => ({
     const tlf = FsTypes.pathToString(c.tlf)
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
+    const tlfType = FsTypes.getPathVisibility(c.tlf) || 'private'
     return {
       onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
       tlf,
       // Default to private visibility--this should never happen though.
-      tlfType: FsTypes.getPathVisibility(c.tlf) || 'private',
+      tlfType,
       writer: c.writer,
       participants: participants || [],
       teamname: teamname || '',
       iconSpec,
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
       updates: c.updates.map(({path, uploading}) => ({
+        tlfType,
         name: FsTypes.getPathName(path),
         uploading,
         onClick: () => dispatchProps._onSelectPath(path, 'file'),
@@ -64,8 +72,7 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(
-  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('FilesPreview'),
-  TlfUpdateHoc
-)(FilesPreview)
+export default ((ComposedComponent: React.ComponentType<any>) =>
+  remoteConnect<{||}, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(
+    setDisplayName('FilesPreview')(TlfUpdateHoc(ComposedComponent))
+  ))(FilesPreview)

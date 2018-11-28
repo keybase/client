@@ -3,9 +3,11 @@ package unfurl
 import (
 	"context"
 	"regexp"
+	"sync"
 
 	"github.com/mvdan/xurls"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -27,29 +29,61 @@ type ExtractorHit struct {
 type Extractor struct {
 	utils.DebugLabeler
 
-	urlRegexp *regexp.Regexp
-	maxHits   int
+	urlRegexp      *regexp.Regexp
+	quoteRegexp    *regexp.Regexp
+	maxHits        int
+	exemptionsLock sync.Mutex
+	exemptions     map[string]*WhitelistExemptionList
 }
 
 func NewExtractor(log logger.Logger) *Extractor {
 	return &Extractor{
 		DebugLabeler: utils.NewDebugLabeler(log, "Extractor", false),
 		urlRegexp:    xurls.Strict(),
+		quoteRegexp:  regexp.MustCompile("`[^`]*`"),
+		exemptions:   make(map[string]*WhitelistExemptionList),
 		maxHits:      5,
 	}
 }
 
-func (e *Extractor) isWhitelistHit(ctx context.Context, hit string, whitelist map[string]bool) bool {
+func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionList) {
+	e.exemptionsLock.Lock()
+	defer e.exemptionsLock.Unlock()
+	var ok bool
+	res, ok = e.exemptions[uid.String()]
+	if !ok {
+		res = NewWhitelistExemptionList()
+		e.exemptions[uid.String()] = res
+	}
+	return res
+}
+
+func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList) bool {
 	domain, err := GetDomain(hit)
 	if err != nil {
 		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
 		return false
 	}
-	return whitelist[domain]
+	if whitelist[domain] {
+		return true
+	}
+	// Check exemptions
+	if exemptions.Use(convID, msgID, domain) {
+		e.Debug(ctx, "isWhitelistHit: hit exemption for domain, letting through")
+		return true
+	}
+	return false
 }
 
-func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
+func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
 	defer e.Trace(ctx, func() error { return err }, "Extract")()
+	body = e.quoteRegexp.ReplaceAllString(body, "")
+	hits := e.urlRegexp.FindAllString(body, -1)
+	if len(hits) == 0 {
+		return res, nil
+	}
 	settings, err := userSettings.Get(ctx, uid)
 	if err != nil {
 		return res, err
@@ -57,7 +91,6 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, u
 	if settings.Mode == chat1.UnfurlMode_NEVER {
 		return res, nil
 	}
-	hits := e.urlRegexp.FindAllString(body, -1)
 	for _, h := range hits {
 		ehit := ExtractorHit{
 			URL: h,
@@ -67,7 +100,7 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, u
 		case chat1.UnfurlMode_ALWAYS:
 			ehit.Typ = ExtractorHitUnfurl
 		case chat1.UnfurlMode_WHITELISTED:
-			if e.isWhitelistHit(ctx, h, settings.Whitelist) {
+			if e.isWhitelistHit(ctx, convID, msgID, h, settings.Whitelist, e.getExemptionList(uid)) {
 				ehit.Typ = ExtractorHitUnfurl
 			}
 		}
@@ -78,4 +111,10 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, u
 		}
 	}
 	return res, nil
+}
+
+func (e *Extractor) AddWhitelistExemption(ctx context.Context, uid gregor1.UID,
+	exemption types.WhitelistExemption) {
+	defer e.Trace(ctx, func() error { return nil }, "AddWhitelistExemption")()
+	e.getExemptionList(uid).Add(exemption)
 }

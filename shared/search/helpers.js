@@ -1,6 +1,7 @@
 // @flow
 import {compose, withHandlers, withPropsOnChange} from 'recompose'
 import * as Types from '../constants/types/search'
+import {isMobile} from '../constants/platform'
 import {debounce} from 'lodash-es'
 
 const debounceTimeout = 1e3
@@ -32,7 +33,7 @@ type OutProps = {
   onClearSearch: () => void,
 }
 */
-const clearSearchHoc = withHandlers({
+const clearSearchHoc: any = withHandlers({
   // use existing onClearSearch if exists. TODO change how this whole thing works. so confusing
   onClearSearch: ({onExitSearch, onClearSearch}) =>
     onClearSearch ? () => onClearSearch() : () => onExitSearch(),
@@ -40,7 +41,7 @@ const clearSearchHoc = withHandlers({
 
 type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}
 
-const onChangeSelectedSearchResultHoc = compose(
+const onChangeSelectedSearchResultHoc: any = compose(
   withHandlers({
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
@@ -51,13 +52,12 @@ const onChangeSelectedSearchResultHoc = compose(
         index === -1
           ? 0
           : direction === 'down'
-            ? Math.min(index + 1, searchResultIds.length - 1)
-            : Math.max(index - 1, 0)
+          ? Math.min(index + 1, searchResultIds.length - 1)
+          : Math.max(index - 1, 0)
       const nextSelectedSearchId = searchResultIds[nextIndex]
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
   }),
-  // $FlowIssue TODO fix up thie type for real
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, debounceTimeout),
   })),
@@ -65,7 +65,8 @@ const onChangeSelectedSearchResultHoc = compose(
     let lastSearchTerm
     return {
       // onAddSelectedUser happens on desktop when tab, enter or comma
-      // is typed, so we expedite the current search, if any
+      // is typed, or on mobile when 'Next' is tapped, so we expedite
+      // the current search, if any
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
@@ -73,13 +74,19 @@ const onChangeSelectedSearchResultHoc = compose(
         // $FlowIssue
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
           // $FlowIssue
-          if (props.selectedSearchId && props.disableListBuilding) {
-            props.onSelectUser(props.selectedSearchId)
+          if (props.disableListBuilding) {
+            if (props.onSelectUser && props.selectedSearchId) {
+              props.onSelectUser(props.selectedSearchId)
+              props.onChangeSearchText && props.onChangeSearchText('')
+            } else if (isMobile) {
+              // On mobile, this function is called if the user taps
+              // 'Next', which means the keyboard is going away.
+              props.onExitSearch()
+            }
           } else {
-            // $FlowIssue
             props.onAddUser(props.selectedSearchId)
+            props.onChangeSearchText && props.onChangeSearchText('')
           }
-          props.onChangeSearchText && props.onChangeSearchText('')
         }
       },
       onMoveSelectUp: ({onMove}) => () => onMove('up'),
@@ -99,7 +106,7 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedService}) => ({
+const placeholderServiceHoc: any = withPropsOnChange(['selectedService'], ({selectedService}) => ({
   placeholder: `Search ${selectedService}`,
 }))
 

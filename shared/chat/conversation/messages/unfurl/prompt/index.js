@@ -7,6 +7,7 @@ export type Props = {
   domain: string,
   onAlways: () => void,
   onAccept: () => void,
+  onOnetime: () => void,
   onNotnow: () => void,
   onNever: () => void,
 }
@@ -19,21 +20,26 @@ class UnfurlPrompt extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.container}>
-        <Kb.Icon type={promptIcon} style={Kb.iconCastPlatformStyles(styles.icon)} />
-        <Kb.Box2 direction="vertical" style={styles.choiceContainer}>
-          <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
-          <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
+        {!Styles.isMobile && <Kb.Icon type={promptIcon} style={Kb.iconCastPlatformStyles(styles.icon)} />}
+        <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
+            <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
+          </Kb.Box2>
           <Kb.Text onClick={this.props.onAlways} type="BodyPrimaryLink">
-            Always for any site.
+            Always, for any site
           </Kb.Text>
           <Kb.Text onClick={this.props.onAccept} type="BodyPrimaryLink">
-            Always, for {this.props.domain}.
+            Always, for {this.props.domain}
+          </Kb.Text>
+          <Kb.Text onClick={this.props.onOnetime} type="BodyPrimaryLink">
+            Yes, but ask me again for {this.props.domain}
           </Kb.Text>
           <Kb.Text onClick={this.props.onNotnow} type="BodyPrimaryLink">
-            Not now.
+            Not now
           </Kb.Text>
           <Kb.Text onClick={this.props.onNever} type="BodyPrimaryLink">
-            Never, for any site.
+            Never, for any site
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
@@ -50,10 +56,12 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       backgroundColor: Styles.globalColors.blue5,
       borderRadius: Styles.borderRadius,
-    },
-    isElectron: {
       paddingTop: 8,
       paddingBottom: 8,
+      alignSelf: 'flex-start',
+    },
+    isElectron: {
+      maxWidth: 600,
     },
   }),
   choiceContainer: Styles.platformStyles({
@@ -62,10 +70,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   closeContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+    },
     isElectron: {
       width: 30,
       marginLeft: 'auto',
-      alignSelf: 'flex-start',
     },
   }),
   icon: Styles.platformStyles({

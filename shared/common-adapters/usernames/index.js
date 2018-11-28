@@ -52,54 +52,55 @@ function UsernameText(props: Props) {
     styles.joinerStyle,
     {color: props.commaColor},
   ])
-  return props.users.map((u, i) => {
-    let userStyle = {
-      ...(props.colorFollowing && !u.you
-        ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
-        : null),
-      ...(props.colorBroken && u.broken && !u.you
-        ? {color: props.redColor || Styles.globalColors.red}
-        : null),
-      ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
-      ...(props.colorYou && u.you
-        ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
-        : null),
-    }
-    userStyle = Styles.collapseStyles([props.style, userStyle])
+  return (
+    <>
+      {props.users.map((u, i) => {
+        let userStyle = {
+          ...(props.colorFollowing && !u.you
+            ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
+            : null),
+          ...(props.colorBroken && u.broken && !u.you
+            ? {color: props.redColor || Styles.globalColors.red}
+            : null),
+          ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
+          ...(props.colorYou && u.you
+            ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
+            : null),
+        }
+        userStyle = Styles.collapseStyles([props.style, userStyle])
 
-    // Make sure onClick is undefined when _onUsernameClicked is, so
-    // as to not override any existing onClick handler from containers
-    // on native. (See DESKTOP-3963.)
-    const _onUsernameClicked = props.onUsernameClicked
-    return (
-      <Text type={props.type} key={u.username}>
-        {i !== 0 &&
-          i === props.users.length - 1 &&
-          props.showAnd && (
-            <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-              {'and '}
+        // Make sure onClick is undefined when _onUsernameClicked is, so
+        // as to not override any existing onClick handler from containers
+        // on native. (See DESKTOP-3963.)
+        const _onUsernameClicked = props.onUsernameClicked
+        return (
+          <Text type={props.type} key={u.username}>
+            {i !== 0 && i === props.users.length - 1 && props.showAnd && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                {'and '}
+              </Text>
+            )}
+            <Text
+              type={props.type}
+              backgroundMode={props.backgroundMode}
+              className={Styles.classNames({'hover-underline': props.underline})}
+              onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
+              style={userStyle}
+            >
+              {u.username}
             </Text>
-          )}
-        <Text
-          type={props.type}
-          backgroundMode={props.backgroundMode}
-          className={Styles.classNames({'hover-underline': props.underline})}
-          onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
-          style={userStyle}
-        >
-          {u.username}
-        </Text>
-        {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-        {i !== props.users.length - 1 &&
-          (!props.inlineGrammar || props.users.length > 2) && (
-            <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-              ,
-            </Text>
-          )}
-        {i !== props.users.length - 1 && ' '}
-      </Text>
-    )
-  })
+            {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
+            {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                ,
+              </Text>
+            )}
+            {i !== props.users.length - 1 && ' '}
+          </Text>
+        )
+      })}
+    </>
+  )
 }
 UsernameText.defaultProps = {
   colorBroken: true,

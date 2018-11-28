@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {NativeImage, NativeDimensions, ZoomableBox} from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters/mobile.native'
 import {type ImageViewProps} from './image-view'
 
-const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
+const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
 class ImageView extends React.Component<
   ImageViewProps,
@@ -18,7 +18,7 @@ class ImageView extends React.Component<
   }
   componentDidMount() {
     this._mounted = true
-    NativeImage.getSize(this.props.url, (width, height) => {
+    Kb.NativeImage.getSize(this.props.url, (width, height) => {
       if (this._mounted) {
         this.setState({height, width})
       }
@@ -30,14 +30,14 @@ class ImageView extends React.Component<
   render() {
     const {onLoadingStateChange} = this.props
     return (
-      <ZoomableBox
+      <Kb.ZoomableBox
         contentContainerStyle={styles.zoomableBoxContainer}
         maxZoom={10}
         style={styles.zoomableBox}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
-        <NativeImage
+        <Kb.NativeFastImage
           source={{uri: this.props.url}}
           style={Styles.collapseStyles([
             styles.image,
@@ -50,7 +50,7 @@ class ImageView extends React.Component<
           onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
           resizeMode="contain"
         />
-      </ZoomableBox>
+      </Kb.ZoomableBox>
     )
   }
 }

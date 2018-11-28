@@ -136,6 +136,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PrefetchStatus",
+      "symbols": [
+        "NOT_STARTED_0",
+        "IN_PROGRESS_1",
+        "COMPLETE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "Dirent",
       "fields": [
@@ -162,6 +171,10 @@
         {
           "type": "boolean",
           "name": "writable"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
         }
       ]
     },
@@ -590,6 +603,64 @@
           "name": "gitLimitBytes"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "FolderSyncMode",
+      "symbols": [
+        "DISABLED_0",
+        "ENABLED_1",
+        "PARTIAL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfig",
+      "fields": [
+        {
+          "type": "FolderSyncMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "paths"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncStatus",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "localDiskBytesAvailable"
+        },
+        {
+          "type": "int64",
+          "name": "localDiskBytesTotal"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatus",
+      "fields": [
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
     }
   ],
   "messages": {
@@ -988,6 +1059,28 @@
       ],
       "response": null,
       "doc": "simpleFSReset completely resets the KBFS folder referenced in `path`.\n   It should only be called after explicit user confirmation."
+    },
+    "simpleFSFolderSyncConfigAndStatus": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "FolderSyncConfigAndStatus"
+    },
+    "simpleFSSetFolderSyncConfig": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "config",
+          "type": "FolderSyncConfig"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
-import {serviceIdToLogo14} from './shared'
+import {serviceIdToIconFont} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
@@ -43,26 +43,32 @@ const realCSS = (inTeam: boolean) => `
   `
 
 const Row = (props: Props) => (
-  <Kb.Box2
-    className={Styles.classNames({
-      hoverRow: !props.inTeam,
-      hoverRowinTeam: props.inTeam,
-    })}
-    direction="horizontal"
-    centerChildren={true}
-    style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
-  >
-    <Kb.DesktopStyle style={realCSS(props.inTeam)} />
-    <Kb.Avatar size={32} username={props.username} style={{}} />
-    <Username username={props.username} prettyName={props.prettyName} followingState={props.followingState} />
-    <Services services={props.services} />
-    <ActionButton
-      inTeam={props.inTeam}
-      onAdd={props.onAdd}
-      onRemove={props.onRemove}
-      highlight={props.highlight}
-    />
-  </Kb.Box2>
+  <Kb.ClickableBox onClick={props.onAdd}>
+    <Kb.Box2
+      className={Styles.classNames({
+        hoverRow: !props.inTeam,
+        hoverRowinTeam: props.inTeam,
+      })}
+      direction="horizontal"
+      centerChildren={true}
+      style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
+    >
+      <Kb.DesktopStyle style={realCSS(props.inTeam)} />
+      <Kb.Avatar size={32} username={props.username} style={{}} />
+      <Username
+        username={props.username}
+        prettyName={props.prettyName}
+        followingState={props.followingState}
+      />
+      <Services services={props.services} />
+      <ActionButton
+        inTeam={props.inTeam}
+        onAdd={props.onAdd}
+        onRemove={props.onRemove}
+        highlight={props.highlight}
+      />
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 
 const Username = (props: {username: string, prettyName: string, followingState: FollowingState}) => (
@@ -78,7 +84,7 @@ const Services = ({services}: {services: {[key: ServiceIdWithContact]: string}})
   <Kb.Box2 direction="horizontal" style={styles.services}>
     {Object.keys(services).map(service => (
       <Kb.WithTooltip key={service} text={services[service]} position="top center">
-        <Kb.Icon type={serviceIdToLogo14(service)} style={Kb.iconCastPlatformStyles(styles.serviceIcon)} />
+        <Kb.Icon type={serviceIdToIconFont(service)} style={Kb.iconCastPlatformStyles(styles.serviceIcon)} />
       </Kb.WithTooltip>
     ))}
   </Kb.Box2>
@@ -119,11 +125,11 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={19} color={Styles.globalColors.black_75} />
+const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={18} color={Styles.globalColors.black_75} />
 
 const AddButtonHover = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
-    <Kb.Icon type="iconfont-arrow-right" fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-return" fontSize={19} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 

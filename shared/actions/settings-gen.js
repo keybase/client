@@ -4,6 +4,7 @@
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
 import HiddenString from '../util/hidden-string'
 
@@ -44,6 +45,10 @@ export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const trace = 'settings:trace'
+export const unfurlSettingsError = 'settings:unfurlSettingsError'
+export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
+export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
+export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
@@ -55,10 +60,7 @@ type _InvitesReclaimedPayload = void
 type _InvitesReclaimedPayloadError = $ReadOnly<{|errorText: string|}>
 type _InvitesRefreshPayload = void
 type _InvitesRefreshedPayload = $ReadOnly<{|invites: Types.InvitesState|}>
-type _InvitesSendPayload = $ReadOnly<{|
-  email: string,
-  message: ?string,
-|}>
+type _InvitesSendPayload = $ReadOnly<{|email: string, message: ?string|}>
 type _InvitesSentPayload = void
 type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
 type _LoadLockdownModePayload = void
@@ -70,10 +72,7 @@ type _LoadedSettingsPayload = $ReadOnly<{|emailState: Types.EmailState|}>
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = $ReadOnly<{|notifications: Types.NotificationsState|}>
 type _NotificationsSavedPayload = void
-type _NotificationsTogglePayload = $ReadOnly<{|
-  group: Types.NotificationGroups,
-  name?: ?string,
-|}>
+type _NotificationsTogglePayload = $ReadOnly<{|group: Types.NotificationGroups, name?: ?string|}>
 type _OnChangeLockdownModePayload = $ReadOnly<{|enabled: boolean|}>
 type _OnChangeNewEmailPayload = $ReadOnly<{|email: string|}>
 type _OnChangeNewPassphraseConfirmPayload = $ReadOnly<{|passphrase: HiddenString|}>
@@ -89,9 +88,29 @@ type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
 type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
 type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
+type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
+type _UnfurlSettingsRefreshPayload = void
+type _UnfurlSettingsRefreshedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>|}>
+type _UnfurlSettingsSavedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>|}>
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
+/**
+ * An error occurred on the unfurl settings screen
+ */
+export const createUnfurlSettingsError = (payload: _UnfurlSettingsErrorPayload) => ({payload, type: unfurlSettingsError})
+/**
+ * Refresh unfurl settings
+ */
+export const createUnfurlSettingsRefresh = (payload: _UnfurlSettingsRefreshPayload) => ({payload, type: unfurlSettingsRefresh})
+/**
+ * Refreshed unfurl settings available
+ */
+export const createUnfurlSettingsRefreshed = (payload: _UnfurlSettingsRefreshedPayload) => ({payload, type: unfurlSettingsRefreshed})
+/**
+ * Update unfurl settings from settings screen
+ */
+export const createUnfurlSettingsSaved = (payload: _UnfurlSettingsSavedPayload) => ({payload, type: unfurlSettingsSaved})
 export const createDbNuke = (payload: _DbNukePayload) => ({payload, type: dbNuke})
 export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({payload, type: deleteAccountForever})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({payload, type: invitesClearError})
@@ -167,6 +186,10 @@ export type OnUpdatedPGPSettingsPayload = $Call<typeof createOnUpdatedPGPSetting
 export type ProcessorProfilePayload = $Call<typeof createProcessorProfile, _ProcessorProfilePayload>
 export type SetAllowDeleteAccountPayload = $Call<typeof createSetAllowDeleteAccount, _SetAllowDeleteAccountPayload>
 export type TracePayload = $Call<typeof createTrace, _TracePayload>
+export type UnfurlSettingsErrorPayload = $Call<typeof createUnfurlSettingsError, _UnfurlSettingsErrorPayload>
+export type UnfurlSettingsRefreshPayload = $Call<typeof createUnfurlSettingsRefresh, _UnfurlSettingsRefreshPayload>
+export type UnfurlSettingsRefreshedPayload = $Call<typeof createUnfurlSettingsRefreshed, _UnfurlSettingsRefreshedPayload>
+export type UnfurlSettingsSavedPayload = $Call<typeof createUnfurlSettingsSaved, _UnfurlSettingsSavedPayload>
 export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _WaitingForResponsePayload>
 
 // All Actions
@@ -208,5 +231,9 @@ export type Actions =
   | ProcessorProfilePayload
   | SetAllowDeleteAccountPayload
   | TracePayload
+  | UnfurlSettingsErrorPayload
+  | UnfurlSettingsRefreshPayload
+  | UnfurlSettingsRefreshedPayload
+  | UnfurlSettingsSavedPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: void}

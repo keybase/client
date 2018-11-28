@@ -13,6 +13,8 @@ import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
 // import {setConfig} from 'react-hot-loader'
 // setConfig({logLevel: 'debug'})
 
+type OwnProps = any // the types here and RouteProps don't agree
+
 type Props = {
   widgetBadge: boolean,
   desktopAppBadgeCount: number,
@@ -61,15 +63,13 @@ class Main extends Component<Props> {
   }
 }
 
-const mapStateToProps = state => {
-  return {
-    desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
-    routeDef: state.routeTree.routeDef,
-    routeState: state.routeTree.routeState,
-    username: state.config.username,
-    widgetBadge: state.notifications.get('widgetBadge') || false,
-  }
-}
+const mapStateToProps = state => ({
+  desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
+  routeDef: state.routeTree.routeDef,
+  routeState: state.routeTree.routeState,
+  username: state.config.username,
+  widgetBadge: state.notifications.get('widgetBadge') || false,
+})
 
 const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
@@ -79,7 +79,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default hot(module)(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

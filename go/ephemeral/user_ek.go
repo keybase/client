@@ -134,8 +134,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		return metadata, err
 	}
 
-	err = postNewUserEK(ctx, g, sig, boxes)
-	if err != nil {
+	if err = postNewUserEK(ctx, g, sig, boxes); err != nil {
 		return metadata, err
 	}
 

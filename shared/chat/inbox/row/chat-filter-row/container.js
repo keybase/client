@@ -1,9 +1,11 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {isDarwin} from '../../../../constants/platform'
 import {namedConnect, compose, withProps} from '../../../../util/container'
 import ChatFilterRow from '.'
+import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   onNewChat: () => void,
@@ -24,7 +26,13 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
-      dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
+      dispatch(
+        flags.newTeamBuildingForChat
+          ? RouteTreeGen.createNavigateAppend({
+              path: [{selected: 'newChat', props: {}}],
+            })
+          : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+      )
     } else {
       focusFilter()
     }
@@ -46,7 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
-  withProps(props => ({
+  withProps<any, any, any>(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))
 )(ChatFilterRow)

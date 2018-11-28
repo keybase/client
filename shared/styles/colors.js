@@ -56,6 +56,7 @@ const colors = {
   purple2_40: 'rgba(132, 92, 219, 0.4)',
   purple3: '#9f7bec',
   red: '#ff4d61',
+  red_20: 'rgba(255,0,0,0.2)',
   red_75: 'rgba(255,0,0,0.75)',
   red_75_on_white: 'rgb(255,64,64)',
   transparent: 'rgba(0, 0, 0, 0)',

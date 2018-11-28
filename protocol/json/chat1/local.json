@@ -1091,8 +1091,9 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "UnfurlResult"
+            "type": "map",
+            "values": "UnfurlResult",
+            "keys": "MessageID"
           },
           "name": "unfurls"
         }
@@ -2625,7 +2626,8 @@
         "ALWAYS_0",
         "NEVER_1",
         "ACCEPT_2",
-        "NOTNOW_3"
+        "NOTNOW_3",
+        "ONETIME_4"
       ]
     },
     {
@@ -2660,6 +2662,13 @@
         {
           "label": {
             "name": "ACCEPT",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "ONETIME",
             "def": false
           },
           "body": "string"
@@ -3995,6 +4004,26 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
+    },
+    "getUnfurlSettings": {
+      "request": [],
+      "response": "UnfurlSettingsDisplay"
+    },
+    "saveUnfurlSettings": {
+      "request": [
+        {
+          "name": "mode",
+          "type": "UnfurlMode"
+        },
+        {
+          "name": "whitelist",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null

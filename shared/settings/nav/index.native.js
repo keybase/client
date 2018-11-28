@@ -73,6 +73,10 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
+              onClick: () => props.onTabChange(Constants.chatTab),
+              text: 'Chat',
+            },
+            {
               badgeNumber: props.badgeNotifications ? 1 : 0,
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',

@@ -34,7 +34,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
           <Kb.Box2
             className="hover_background_color_blueGrey2"
             direction="horizontal"
-            fullWidth={true}
+            fullWidth={!Styles.isMobile}
             style={Styles.collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
@@ -45,17 +45,18 @@ class BigTeamChannel extends PureComponent<Props, State> {
             <Kb.Text
               lineClamp={1}
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
-              style={
+              style={Styles.collapseStyles([
+                styles.channelText,
                 this.props.isError
                   ? styles.textError
                   : this.props.isSelected
-                    ? this.props.hasUnread
-                      ? styles.textSelectedBold
-                      : styles.textSelected
-                    : this.props.hasUnread
-                      ? styles.textPlainBold
-                      : styles.textPlain
-              }
+                  ? this.props.hasUnread
+                    ? styles.textSelectedBold
+                    : styles.textSelected
+                  : this.props.hasUnread
+                  ? styles.textPlainBold
+                  : styles.textPlain,
+              ])}
             >
               #{this.props.channelname}
             </Kb.Text>
@@ -78,10 +79,10 @@ const MutedIcon = ({isHovered, isSelected}) => (
           ? 'icon-shh-active-24'
           : 'icon-shh-24'
         : isSelected
-          ? 'icon-shh-active-16'
-          : isHovered
-            ? 'icon-shh-hover-16'
-            : 'icon-shh-16'
+        ? 'icon-shh-active-16'
+        : isHovered
+        ? 'icon-shh-hover-16'
+        : 'icon-shh-16'
     }
     style={mutedStyle}
   />
@@ -112,6 +113,12 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
+    },
+  }),
+  channelText: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
     },
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},

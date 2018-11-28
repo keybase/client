@@ -1,11 +1,14 @@
 // @flow
+// TODO fix up all the typing here
 import * as I from 'immutable'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
+
+type OwnProps = RouteProps<{teamname: string, username: string}, {}>
 
 type StateProps = {
   _memberInfo: I.Map<string, Types.MemberInfo>,
@@ -68,6 +71,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   return {
     ...stateProps,
     ...dispatchProps,
+    // $FlowIssue
     ...ownProps,
     allowOwner: isOwner(stateProps.yourRole),
     onComplete,
@@ -77,7 +81,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

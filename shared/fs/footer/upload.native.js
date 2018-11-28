@@ -122,8 +122,8 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
                 {files
                   ? `Encrypting and uploading ${files} files...`
                   : totalSyncingBytes
-                    ? 'Encrypting and uploading...'
-                    : 'Done!'}
+                  ? 'Encrypting and uploading...'
+                  : 'Done!'}
               </Text>
               {!!(timeLeft && timeLeft.length) && (
                 <Text key="left" type="BodyTiny" style={stylesText}>{`${timeLeft} left`}</Text>
@@ -150,7 +150,7 @@ const stylesBackgroundBox = platformStyles({
 })
 
 const stylesBackgroundImage = {
-  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here.
+  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
   height: 160,
 }
 

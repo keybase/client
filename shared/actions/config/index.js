@@ -409,11 +409,10 @@ const readLastSentXLM = () => {
       logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
       return createSetLastSentXLM({lastSentXLM: value, writeFile: false})
     })
-    .catch(
-      err =>
-        err.message.includes('no such key')
-          ? null
-          : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
+    .catch(err =>
+      err.message.includes('no such key')
+        ? null
+        : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
     )
 }
 
@@ -462,8 +461,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(ConfigGen.daemonHandshakeDone, readLastSentXLM)
 
   // Kick off platform specific stuff
-  yield Saga.fork(PlatformSpecific.platformConfigSaga)
-  yield Saga.fork(avatarSaga)
+  yield Saga.spawn(PlatformSpecific.platformConfigSaga)
+  yield Saga.spawn(avatarSaga)
 }
 
 export default configSaga

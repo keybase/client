@@ -5,16 +5,16 @@ import * as Types from '../../../constants/types/chat2'
 import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
-import memoize from 'memoize-one'
+import {memoize1, memoize2} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const smallTeamsCollapsedMaxShown = 5
 
 // Could make this faster by bookkeeping if this structure changed instead of if any item changed
-const splitMetas = memoize((metaMap: Types.MetaMap) => {
-  const bigMetas = []
-  const smallMetas = []
-  metaMap.forEach((meta, id) => {
+const splitMetas = memoize1((metaMap: Types.MetaMap) => {
+  const bigMetas: Array<Types.ConversationMeta> = []
+  const smallMetas: Array<Types.ConversationMeta> = []
+  metaMap.forEach((meta: Types.ConversationMeta, id) => {
     if (Constants.isValidConversationIDKey(id)) {
       if (meta.teamType === 'big') {
         bigMetas.push(meta)
@@ -36,14 +36,14 @@ const smallMetasEqual = (la, lb) => {
     })
   )
 }
-const sortByTimestsamp = (a, b) => b.timestamp - a.timestamp
-const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
+const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
+const getSmallRows = memoize2((smallMetas, showAllSmallRows) => {
   let metas
   if (showAllSmallRows) {
-    metas = smallMetas.sort(sortByTimestsamp)
+    metas = smallMetas.sort(sortByTimestamp)
   } else {
     metas = I.Seq(smallMetas)
-      .sort(sortByTimestsamp)
+      .sort(sortByTimestamp)
       .take(smallTeamsCollapsedMaxShown)
       .toArray()
   }
@@ -54,7 +54,7 @@ const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
     ? a.channelname.localeCompare(b.channelname)
     : a.teamname.localeCompare(b.teamname)
-const getBigRows = memoize(bigMetas => {
+const getBigRows = memoize1(bigMetas => {
   let lastTeam: ?string
   return bigMetas.sort(sortByTeamChannel).reduce((arr, meta) => {
     // headers for new teams
@@ -76,7 +76,7 @@ const getBigRows = memoize(bigMetas => {
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize((metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
+const getRowsAndMetadata = memoize2((metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
   const {bigMetas, smallMetas} = splitMetas(metaMap)
   const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
   const smallRows = getSmallRows(smallMetas, showAllSmallRows)

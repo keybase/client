@@ -34,14 +34,13 @@ const AccountEntry = (props: AccountEntryProps) => (
     )}
     <Kb.Box2 direction="vertical" style={styles.rightColumn}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.user}>
-        {props.keybaseUser &&
-          props.isDefault && (
-            <Kb.Avatar
-              size={16}
-              style={Kb.avatarCastPlatformStyles(styles.avatar)}
-              username={props.keybaseUser}
-            />
-          )}
+        {props.keybaseUser && props.isDefault && (
+          <Kb.Avatar
+            size={16}
+            style={Kb.avatarCastPlatformStyles(styles.avatar)}
+            username={props.keybaseUser}
+          />
+        )}
         <Kb.Text type="BodySemibold" style={styles.title}>
           {props.name}
         </Kb.Text>

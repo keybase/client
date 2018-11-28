@@ -3,6 +3,7 @@
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {
+  Animation,
   Box,
   Box2,
   Icon,
@@ -154,6 +155,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onPickUser={this.props.insertMention}
             onSelectUser={this.props.insertMention}
             filter={this.props.mentionFilter}
+            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
           />
         )}
         {this.props.channelMentionPopupOpen && (
@@ -165,6 +167,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             onPickChannel={this.props.insertChannelMention}
             onSelectChannel={this.props.insertChannelMention}
             filter={this.props.channelMentionFilter}
+            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
           />
         )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
@@ -211,7 +214,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             rowsMin={1}
           />
 
-          {this.props.typing.size > 0 && <Typing />}
+          {this.props.typing.size > 0 && <Animation animationType="typing" containerStyle={styles.typing} />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -245,12 +248,6 @@ const ChannelMentionHud = props => (
   </Box>
 )
 
-const Typing = () => (
-  <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
-  </Box>
-)
-
 const Action = ({
   hasText,
   onSubmit,
@@ -264,16 +261,14 @@ const Action = ({
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled &&
-        isExploding &&
-        !isEditing && (
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-        )}
+      {flags.explodingMessagesEnabled && isExploding && !isEditing && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>

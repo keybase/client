@@ -680,6 +680,7 @@ func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
+	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
 	// Record that this user is "active in chat", which we use to determine
 	// gregor reconnect backoffs.
@@ -698,7 +699,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 				return chat1.OutboxID{}, nil, err
 			default:
-				s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
+				s.Debug(ctx,
+					"Send: conversation not found, attempting to join the conversation and try again")
 				if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
 					convID); err != nil {
 					return chat1.OutboxID{}, nil, err
@@ -707,16 +709,16 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				// inbox
 				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
 				if err != nil {
-					s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
+					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
 					return chat1.OutboxID{}, nil, err
 				}
 			}
 		} else {
-			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
+			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
 		}
 	} else {
-		s.Debug(ctx, "uid: %s in conversation %s with status: %v", sender,
+		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
 			conv.GetConvID(), conv.ReaderInfo.Status)
 	}
 
@@ -727,7 +729,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 			// pass so we don't loop between Send and Join/Leave.
 		default:
-			s.Debug(ctx, "user is in preview mode, joining conversation")
+			s.Debug(ctx, "Send: user is in preview mode, joining conversation")
 			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
 				return chat1.OutboxID{}, nil, err
 			}
@@ -744,7 +746,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		b, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
 			conv.GetMembersType(), &conv)
 		if err != nil {
-			s.Debug(ctx, "error in Prepare: %s", err.Error())
+			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
 		}
 		boxed = b
@@ -754,7 +756,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if len(pendingAssetDeletes) > 0 {
 			err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
 			if err != nil {
-				s.Debug(ctx, "failure in deleteAssets (charging forward): %s", err.Error())
+				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err.Error())
 			}
 		}
 
@@ -763,7 +765,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if boxed.ClientHeader.OutboxID != nil {
 			obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
 		}
-		s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+		s.Debug(ctx, "Send: sending message: convID: %s outboxID: %s", convID, obidstr)
 
 		// Keep trying if we get an error on topicNameState for a fixed number of times
 		rarg := chat1.PostRemoteArg{
@@ -779,23 +781,33 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			case libkb.ChatStalePreviousStateError:
 				// If we hit the stale previous state error, that means we should try again, since our view is
 				// out of date.
-				s.Debug(ctx, "failed because of stale previous state, trying the whole thing again")
+				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-				s.Debug(ctx, "failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
+				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
 				utils.ForceReloadUPAKsForUIDs(ctx, s.G(), merr.UIDs)
 				continue
 			default:
-				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
+				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
 				return chat1.OutboxID{}, nil, err
 			}
 		}
 		boxed.ServerHeader = &plres.MsgHeader
 		break
 	}
+	if err != nil {
+		return chat1.OutboxID{}, nil, err
+	}
 
-	// Write new message out to cache
+	// If this message was sent from the Outbox, then we can remove it now
+	if boxed.ClientHeader.OutboxID != nil {
+		if err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
+			s.Debug(ctx, "d: %s", err)
+		}
+	}
+
+	// Write new message out to cache and other followup
 	var cerr error
 	var unboxedMsg chat1.MessageUnboxed
 	var convLocal *chat1.ConversationLocal
@@ -810,8 +822,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender, convID),
-			ConvID:  convID,
+			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
+				convID),
+			ConvID: convID,
 			DisplayDesktopNotification: false,
 			Conv: s.presentUIItem(convLocal),
 		})
@@ -820,7 +833,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		s.G().Unfurler.UnfurlAndSend(ctx, boxed.ClientHeader.Sender, convID, unboxedMsg)
+		go s.G().Unfurler.UnfurlAndSend(BackgroundContext(ctx, s.G()), boxed.ClientHeader.Sender, convID,
+			unboxedMsg)
 	}
 
 	return []byte{}, boxed, nil
@@ -1148,17 +1162,31 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 		// register this as a failure, but still attempt a retry
 		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
+			return obr, NewAttachmentUploadError(err.Error(), true)
 		}
-		return obr, NewAttachmentUploadError(errStr)
+		return obr, NewAttachmentUploadError(errStr, false)
 	case types.AttachmentUploaderTaskStatusUploading:
 		// Make sure we are actually trying to upload this guy
 		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
+			return obr, NewAttachmentUploadError(err.Error(), true)
 		}
 		return obr, errDelivererUploadInProgress
 	}
 	return obr, nil
 }
+
+type unfurlerPermError struct{}
+
+func (e unfurlerPermError) Error() string {
+	return "unfurler permanent error"
+}
+
+func (e unfurlerPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+var _ (DelivererInfoError) = (*unfurlerPermError)(nil)
 
 func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsUnfurl() {
@@ -1186,7 +1214,9 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 		return obr, errDelivererUnfurlInProgress
 	case types.UnfurlerTaskStatusFailed:
 		s.G().Unfurler.Retry(ctx, obr.OutboxID)
-		return obr, errors.New("failed to unfurl")
+		return obr, errors.New("failed to unfurl temporary")
+	case types.UnfurlerTaskStatusPermFailed:
+		return obr, unfurlerPermError{}
 	}
 	return obr, nil
 }
@@ -1254,6 +1284,15 @@ func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
 	case ErrDuplicateConnection:
 		// This just happens when threads are racing to reconnect to Gregor, don't count it as
 		// an error to send.
+		return false
+	}
+	return true
+}
+
+func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord) bool {
+	if obr.Msg.ClientHeader.MessageType == chat1.MessageType_UNFURL {
+		s.Debug(ctx, "shouldBreakLoop: not breaking deliverer loop for unfurl failure: outboxID: %s",
+			obr.OutboxID)
 		return false
 	}
 	return true
@@ -1350,8 +1389,13 @@ func (s *Deliverer) deliverLoop() {
 							s.outbox.GetUID(), err.Error())
 					}
 				}
-				break
+				// Check if we should break out of the deliverer loop on this failure
+				if s.shouldBreakLoop(bctx, obr) {
+					break
+				}
 			} else {
+				// BlockingSender actually does this too, so this will likely fail, but to maintain
+				// the types.Sender abstraction we will do it here too and likely fail.
 				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
 				}

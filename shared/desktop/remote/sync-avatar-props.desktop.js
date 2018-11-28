@@ -5,13 +5,21 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {compose, connect, withStateHandlers} from '../../util/container'
-import memoize from 'memoize-one'
+import {connect} from '../../util/container'
+import {memoize2} from '../../util/memoize'
+
+type OwnProps = {|
+  usernames: I.Set<string>,
+  setUsernames: (I.Set<string>) => void,
+  remoteWindow: ?SafeElectron.BrowserWindowType,
+  windowComponent: string,
+  windowParam: string,
+|}
 
 type Props = {
   avatars: Object,
-  followers: Array<string>,
-  following: Array<string>,
+  followers: I.Set<string>,
+  following: I.Set<string>,
   remoteWindow: ?SafeElectron.BrowserWindowType,
   setUsernames: (I.Set<string>) => void,
   usernames: I.Set<string>,
@@ -99,18 +107,30 @@ function SyncAvatarProps(ComposedComponent: any) {
     following: getRemoteFollowing(state.config.following, ownProps.usernames),
   })
 
-  const getRemoteAvatars = memoize((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
-  const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
-  const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))
+  const getRemoteAvatars = memoize2((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
+  const getRemoteFollowers = memoize2((followers, usernames) => followers.intersect(usernames))
+  const getRemoteFollowing = memoize2((following, usernames) => following.intersect(usernames))
 
-  return compose(
-    withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
-    connect(
-      mapStateToProps,
-      () => ({}),
-      (s, d, o) => ({...o, ...s, ...d})
-    )
+  const Connected = connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    () => ({}),
+    (s, d, o) => ({...o, ...s, ...d})
   )(RemoteAvatarConnected)
+
+  type WrapperProps = {
+    remoteWindow: ?SafeElectron.BrowserWindowType,
+    windowComponent: string,
+    windowParam: string,
+  }
+  class Wrapper extends React.Component<WrapperProps, {usernames: I.Set<string>}> {
+    state = {usernames: I.Set()}
+    setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
+    render() {
+      return <Connected {...this.props} usernames={this.state.usernames} setUsernames={this.setUsernames} />
+    }
+  }
+
+  return Wrapper
 }
 
 export default SyncAvatarProps

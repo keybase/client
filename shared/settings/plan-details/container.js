@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import logger from '../../logger'
 import PlanDetails from '.'
 import {connect} from '../../util/container'
@@ -19,6 +19,7 @@ type OwnProps = RouteProps<
 export default connect<OwnProps, _, _, _, _>(
   (state: TypedState, ownProps: OwnProps) => {
     const selectedLevel = ownProps.routeProps.get('selectedLevel')
+    // $FlowIssue
     const availablePlan: ?AvailablePlan = state.planBilling.availablePlans
       ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
       : null

@@ -141,10 +141,12 @@ const getProfilePath = (
   const onlyProfilesProps = peopleRouteProps.filter(segment =>
     [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
   )
-  const onlyProfilesPath = onlyProfilesProps.toArray().map(segment => ({
-    selected: segment.node || null,
-    props: segment.props.toObject(),
-  }))
+  const onlyProfilesPath: Array<{selected: ?string, props: any}> = onlyProfilesProps
+    .map(segment => ({
+      selected: segment.node || null,
+      props: segment.props.toObject(),
+    }))
+    .toArray()
   // Assume user exists
   if (!username.includes('@')) {
     if (onlyProfilesProps.size <= 1) {

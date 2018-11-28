@@ -14,11 +14,7 @@ export const updateDebugConfig = 'dev:updateDebugConfig'
 
 // Payload Types
 type _DebugCountPayload = void
-type _UpdateDebugConfigPayload = $ReadOnly<{|
-  dumbFilter: string,
-  dumbFullscreen: boolean,
-  dumbIndex: number,
-|}>
+type _UpdateDebugConfigPayload = $ReadOnly<{|dumbFilter: string, dumbFullscreen: boolean, dumbIndex: number|}>
 
 // Action Creators
 export const createDebugCount = (payload: _DebugCountPayload) => ({payload, type: debugCount})

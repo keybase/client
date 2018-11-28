@@ -134,6 +134,8 @@ func (t BaseServiceType) GetAPIArgKey() string {
 
 func (t BaseServiceType) IsDevelOnly() bool { return false }
 
+func (t BaseServiceType) CanMakeNewProofs() bool { return true }
+
 //=============================================================================
 
 type assertionContext struct {

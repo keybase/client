@@ -123,7 +123,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   kbfsInstalling: false,
   fuseInstalling: false,
   kextPermissionError: false,
-  securityPrefsPropmted: false,
+  securityPrefsPrompted: false,
   showBanner: true,
   syncing: false,
 })
@@ -274,8 +274,8 @@ const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
   return usernames.length === 0
     ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
     : usernames.length === 1
-      ? makeAvatarPathItemIconSpec(usernames[0])
-      : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+    ? makeAvatarPathItemIconSpec(usernames[0])
+    : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
 }
 export const getIconSpecFromUsernamesAndTeamname = (
   usernames: ?Array<string>,
@@ -690,7 +690,7 @@ export const notFoundError = new Error('not found')
 
 export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
 
-export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => {
+export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Types.TlfList => {
   switch (tlfType) {
     case 'private':
       return tlfs.private
@@ -766,7 +766,7 @@ export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Type
 export const kbfsEnabled = (state: TypedState) =>
   !isMobile &&
   (isLinux ||
-    (state.fs.fuseStatus &&
+    (!!state.fs.fuseStatus &&
       state.fs.fuseStatus.kextStarted &&
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))

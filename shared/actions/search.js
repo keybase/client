@@ -199,14 +199,16 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Types.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r =>
-      Constants.makeSearchResult({
-        id: r.rightUsername || '',
-        leftService: 'Keybase',
-        leftUsername: r.rightUsername,
-        leftIcon: null,
-      })
-    )
+    const kbRows: Array<Types.SearchResult> = rows
+      .filter(r => r.rightService === 'Keybase')
+      .map(r =>
+        Constants.makeSearchResult({
+          id: r.rightUsername || '',
+          leftService: 'Keybase',
+          leftUsername: r.rightUsername,
+          leftIcon: null,
+        })
+      )
     yield Saga.put(
       EntitiesGen.createMergeEntity({
         keyPath: ['search', 'searchResults'],
@@ -424,16 +426,16 @@ function clearSearchTextInput(
 }
 
 function* searchSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(SearchGen.search, search)
-  yield Saga.safeTakeLatest(SearchGen.searchSuggestions, searchSuggestions)
-  yield Saga.safeTakeLatestPure(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
-  yield Saga.safeTakeLatest(SearchGen.addResultsToUserInput, addResultsToUserInput)
-  yield Saga.safeTakeLatest(SearchGen.removeResultsToUserInput, removeResultsToUserInput)
-  yield Saga.safeTakeLatest(SearchGen.setUserInputItems, setUserInputItems)
-  yield Saga.safeTakeLatestPure(SearchGen.clearSearchResults, clearSearchResults)
-  yield Saga.safeTakeLatestPure(SearchGen.finishedSearch, finishedSearch)
-  yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, clearSearchTextInput)
-  yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, maybeNewSearch)
+  yield Saga.safeTakeEvery(SearchGen.search, search)
+  yield Saga.safeTakeEvery(SearchGen.searchSuggestions, searchSuggestions)
+  yield Saga.safeTakeEveryPure(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
+  yield Saga.safeTakeEvery(SearchGen.addResultsToUserInput, addResultsToUserInput)
+  yield Saga.safeTakeEvery(SearchGen.removeResultsToUserInput, removeResultsToUserInput)
+  yield Saga.safeTakeEvery(SearchGen.setUserInputItems, setUserInputItems)
+  yield Saga.safeTakeEveryPure(SearchGen.clearSearchResults, clearSearchResults)
+  yield Saga.safeTakeEveryPure(SearchGen.finishedSearch, finishedSearch)
+  yield Saga.safeTakeEveryPure(SearchGen.userInputItemsUpdated, clearSearchTextInput)
+  yield Saga.safeTakeEveryPure(SearchGen.userInputItemsUpdated, maybeNewSearch)
 }
 
 export default searchSaga

@@ -56,11 +56,13 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
   const {
     profile: {pgpInfo},
   } = state
-  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
-    comment: '',
-    email: email || '',
-    username: pgpInfo.fullName || '',
-  }))
+  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3]
+    .filter(email => !!email)
+    .map(email => ({
+      comment: '',
+      email: email || '',
+      username: pgpInfo.fullName || '',
+    }))
 
   const generatePgpKeyChanMap: any = RPCTypes.pgpPgpKeyGenDefaultRpcChannelMap(
     [
@@ -128,8 +130,8 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* pgpSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatestPure(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
-  yield Saga.safeTakeLatest(ProfileGen.generatePgp, _generatePgpSaga)
+  yield Saga.safeTakeEveryPure(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
+  yield Saga.safeTakeEvery(ProfileGen.generatePgp, _generatePgpSaga)
   yield Saga.safeTakeEvery(ProfileGen.dropPgp, _dropPgpSaga)
 }
 

@@ -20,16 +20,9 @@ export const updateReachable = 'gregor:updateReachable'
 // Payload Types
 type _CheckReachabilityPayload = void
 type _PushOOBMPayload = $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>
-type _PushStatePayload = $ReadOnly<{|
-  state: Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>,
-  reason: RPCTypes.PushReason,
-|}>
+type _PushStatePayload = $ReadOnly<{|state: Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>, reason: RPCTypes.PushReason|}>
 type _StartReachabilityPayload = void
-type _UpdateCategoryPayload = $ReadOnly<{|
-  category: string,
-  body: string,
-  dtime?: {offset: number, time: number},
-|}>
+type _UpdateCategoryPayload = $ReadOnly<{|category: string, body: string, dtime?: {offset: number, time: number}|}>
 type _UpdateReachablePayload = $ReadOnly<{|reachable: RPCTypes.Reachable|}>
 
 // Action Creators

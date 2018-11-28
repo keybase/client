@@ -1,7 +1,7 @@
 // @flow
 // The filtered inbox rows. No dividers or headers, just smallbig row items
 import * as Types from '../../../constants/types/chat2'
-import memoize from 'memoize-one'
+import {memoize3} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
@@ -89,13 +89,13 @@ const makeBigItem = (meta, filter) => {
 }
 
 // Ignore headers, score based on matches of participants, ignore total non matches
-const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: string, username: string) => {
+const getFilteredRowsAndMetadata = memoize3((metaMap: Types.MetaMap, filter: string, username: string) => {
   const metas = metaMap.valueSeq().toArray()
   const lcFilter = filter.toLowerCase()
   const lcYou = username.toLowerCase()
   const rows: Array<RowItem> = metas
-    .map(
-      meta => (meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter))
+    .map(meta =>
+      meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter)
     )
     .filter(Boolean)
     .sort((a, b) => {

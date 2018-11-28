@@ -26,7 +26,7 @@ type Props = {
 
 const iconType = isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
 
-const Wrapper = ({children, onBack}) =>
+const Wrapper = ({children, onBack}: {children: React.Node, onBack: () => void}) =>
   isMobile ? (
     <ScrollView style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxColumn}} children={children} />
   ) : (

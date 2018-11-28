@@ -29,8 +29,8 @@ function processAST(ast, createComponent) {
   while (stack.length > 0) {
     const top = stack[0]
     if (top.type && top.seen) {
-      const childrenComponents = top.children.map(
-        child => (typeof child === 'string' ? child : child.component)
+      const childrenComponents = top.children.map(child =>
+        typeof child === 'string' ? child : child.component
       )
       top.component = createComponent(top.type, String(index++), childrenComponents, top)
       stack.shift()
@@ -112,7 +112,7 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@]|[.?]+[\w/=])*)?)/i
+    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+\u00c0-\uffff]|[.?]+[\w/=])*)?)/i
     const result = r.exec(source)
     if (result) {
       result.groups = {tld: result[4]}
@@ -121,6 +121,8 @@ const linkRegex: RegExp = {
     return null
   },
 }
+// Only allow a small set of characters before a url
+const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
@@ -130,11 +132,11 @@ const textMatch = SimpleMarkdown.anyScopeRegex(
     //   [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
     //   | [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
     //   | [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
-    //   | \w+\.(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
+    //   | (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
     //   | \w+:\S // OR there's letters before a : so stop here.
     //   | $ // OR we reach the end of the line
     // )
-    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|\\w+\\.(${commonTlds.join(
+    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|(\\w+\\.)+(${commonTlds.join(
       '|'
     )})|\\n|\\w+:\\S|$)`
   )
@@ -232,7 +234,7 @@ const rules = {
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
     // ours: only allow a single backtick
-    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*([\s\S]*?[^`\n])\s*\1(?!`)/),
+    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
   },
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
@@ -379,7 +381,12 @@ const rules = {
     match: (source, state, lookBehind) => {
       const matches = inlineLinkMatch(source, state, lookBehind)
       // If there is a match, let's also check if it's a valid tld
-      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
+      if (
+        matches &&
+        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
+        matches.groups &&
+        tldExp.exec(matches.groups.tld)
+      ) {
         return matches
       }
       return null
@@ -452,8 +459,8 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-          ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
-          : reactOutput(parseTree, {allowFontScaling, styleOverride})
+        ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
+        : reactOutput(parseTree, {allowFontScaling, styleOverride})
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)

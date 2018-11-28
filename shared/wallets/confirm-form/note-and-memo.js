@@ -17,7 +17,7 @@ const NoteAndMemo = (props: Props) => (
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
             Encrypted note
           </Kb.Text>
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.encryptedNote}
           </Kb.Text>
         </Kb.Box2>
@@ -30,7 +30,7 @@ const NoteAndMemo = (props: Props) => (
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
             Public note
           </Kb.Text>
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.publicMemo}
           </Kb.Text>
         </Kb.Box2>

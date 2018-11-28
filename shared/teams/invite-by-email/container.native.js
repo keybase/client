@@ -11,12 +11,15 @@ import {
   compose,
   withHandlers,
   withPropsOnChange,
+  withProps,
   withStateHandlers,
   lifecycle,
+  type RouteProps,
 } from '../../util/container'
-import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
+
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const cleanPhoneNumber: string => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
@@ -106,7 +109,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, ro
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
@@ -121,7 +124,7 @@ export default compose(
         _setHasPermission: () => hasPermission => ({hasPermission}),
       }
     ),
-    withPropsOnChange(['onExitSearch'], props => ({
+    withProps(props => ({
       onBack: () => props.onClose(),
       title: 'Invite contacts',
       headerStyle: {borderBottomWidth: 0},

@@ -8,10 +8,9 @@ import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
-  debugging: `> outside code
-
-  
-  foo`,
+  debugging: `\` \` hi \` \``,
+  inlineCodeWeirdness: `\` \` hi \` \``,
+  inlineCodeWeirdness2: `\` \` hi \n\` \``,
   breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   underscoreweirdness: `under_score the first, \`under_score the second\``,
   boldweirdness: `How are you *today*?`,
@@ -74,6 +73,10 @@ Include:
   keybase.io/~user/cool
   http://keybase.io/blah/../up-one/index.html
   keybase.io/)(,)?=56,78,910@123
+  abc subdomain.domain.com
+Internationalized Domain Names:
+  the 'a' in http://ebаy.com isn't an ascii 'a'
+  https://www.google.com/search?q=ebаy the params should be allowed
 These should have the trailing punctuation outside the link:
   amazon.co.uk.
   keybase.io,
@@ -178,7 +181,7 @@ this isn't@either
 
 and @this!
 
-this is the smallest username @aa and @a_ this is too small @a 
+this is the smallest username @aa and @a_ this is too small @a
 
 this is a @long_username
 
@@ -283,10 +286,10 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
-                      : Array.isArray(v)
-                        ? v.map(o => ({type: o.type, content: o.content}))
-                        : v,
+                    ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
+                    : Array.isArray(v)
+                    ? v.map(o => ({type: o.type, content: o.content}))
+                    : v,
                 2
               ) +
               '\n```'}

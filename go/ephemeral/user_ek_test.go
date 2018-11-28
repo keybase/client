@@ -13,7 +13,6 @@ import (
 
 func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb.MerkleRoot, uid keybase1.UID) keybase1.EkGeneration {
 
-	uids := []keybase1.UID{uid}
 	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
@@ -22,6 +21,7 @@ func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
+	uids := []keybase1.UID{uid}
 	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
 	statement, ok := statements[uid]
@@ -140,15 +140,14 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	ekLib := NewEKLib(tc.G)
-	defer ekLib.Shutdown()
+	lib := tc.G.GetEKLib()
+	ekLib, ok := lib.(*EKLib)
+	require.True(t, ok)
+	// disable background keygen
+	ekLib.Shutdown()
 	needed, err := ekLib.NewUserEKNeeded(context.Background())
 	require.NoError(t, err)
-	if skipUserEKForTesting {
-		require.True(t, needed)
-	} else {
-		require.False(t, needed)
-	}
+	require.Equal(t, skipUserEKForTesting, needed)
 	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
 }
 

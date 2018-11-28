@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -131,24 +132,12 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
-func (h *Server) suspendComponent(ctx context.Context, suspendable types.Suspendable) func() {
-	if canceled := suspendable.Suspend(ctx); canceled {
-		h.Debug(ctx, "suspendComponent: canceled background task")
-	}
-	return func() {
-		suspendable.Resume(ctx)
-	}
-}
-
-// suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
-// a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
-// conv loader.
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	return h.suspendComponent(ctx, h.G().ConvLoader)
+	return utils.SuspendComponent(ctx, h.G(), h.G().ConvLoader)
 }
 
 func (h *Server) suspendInboxSource(ctx context.Context) func() {
-	return h.suspendComponent(ctx, h.G().InboxSource)
+	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
 }
 
 func (h *Server) getUID() gregor1.UID {
@@ -616,6 +605,16 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
+func (h *Server) squashGetThreadNonblockError(err error) bool {
+	switch err {
+	case errConvLockTabDeadlock:
+		// We don't want this error to leak up to the UI, it is really only used to get
+		// GetThreadNonblock to retry whatever operation was queued up, so let's squash it.
+		return true
+	}
+	return false
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var pagination, resultPagination *chat1.Pagination
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -630,6 +629,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if res.Offline || fullErr != nil {
+			// Some errors we just don't want to send up to the UI, let's check for those here.
+			if h.squashGetThreadNonblockError(fullErr) {
+				fullErr = nil
+			}
 			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
@@ -2332,6 +2335,12 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err = fetchAndUnfurl(); err != nil {
 			return fmt.Errorf("failed to fetch and unfurl: %s", err)
 		}
+	case chat1.UnfurlPromptAction_ONETIME:
+		h.G().Unfurler.WhitelistAddExemption(ctx, uid,
+			unfurl.NewOneTimeWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
+		if err = fetchAndUnfurl(); err != nil {
+			return fmt.Errorf("failed to fetch and unfurl: %s", err)
+		}
 	case chat1.UnfurlPromptAction_NEVER:
 		if err = h.G().Unfurler.SetMode(ctx, uid, chat1.UnfurlMode_NEVER); err != nil {
 			return fmt.Errorf("failed to set mode to never: %s", err)
@@ -2345,4 +2354,42 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		}
 	}
 	return nil
+}
+
+func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSettingsDisplay, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetUnfurlSettings")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	settings, err := h.G().Unfurler.GetSettings(ctx, uid)
+	if err != nil {
+		return res, err
+	}
+	res.Mode = settings.Mode
+	for w := range settings.Whitelist {
+		res.Whitelist = append(res.Whitelist, w)
+	}
+	sort.Slice(res.Whitelist, func(i, j int) bool {
+		return res.Whitelist[i] < res.Whitelist[j]
+	})
+	return res, nil
+}
+
+func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSettingsArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SaveUnfurlSettings")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	wm := make(map[string]bool)
+	for _, w := range arg.Whitelist {
+		wm[w] = true
+	}
+	return h.G().Unfurler.SetSettings(ctx, uid, chat1.UnfurlSettings{
+		Mode:      arg.Mode,
+		Whitelist: wm,
+	})
 }

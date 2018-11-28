@@ -489,6 +489,30 @@
       "_description": "Prime data to fulfill this message's request and navigate to the send form.",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
+    },
+    "unfurlResolvePrompt": {
+      "_description": "Response to an unfurl prompt",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "domain": "string",
+      "result": "RPCChatTypes.UnfurlPromptResult"
+    },
+    "unfurlTogglePrompt": {
+      "_description": "Add an unfurl prompt to a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "domain": "string",
+      "show": "boolean"
+    },
+    "unfurlRemove": {
+      "_description": "Remove an unfurl",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "updateMessages": {
+      "_description": "Update messages that we might have in the store",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     }
   }
 }

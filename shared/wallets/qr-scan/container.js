@@ -1,7 +1,9 @@
 // @flow
 import QRScan from '.'
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
@@ -13,11 +15,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
     dispatch(navigateUp())
   },
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   ...dispatchProps,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

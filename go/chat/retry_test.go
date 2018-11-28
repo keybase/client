@@ -10,11 +10,16 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 type errorClient struct{}
+
+func (e errorClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
+	return fmt.Errorf("errorClient: Call %s", method)
+}
 
 func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
 	return fmt.Errorf("errorClient: Call %s", method)

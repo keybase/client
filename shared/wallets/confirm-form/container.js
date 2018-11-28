@@ -18,10 +18,12 @@ const mapStateToProps = state => {
       ]
     : []
   ).concat(
-    (built.banners || []).filter(banner => !banner.hideOnConfirm).map(banner => ({
-      bannerBackground: Constants.bannerLevelToBackground(banner.level),
-      bannerText: banner.message,
-    }))
+    (built.banners || [])
+      .filter(banner => !banner.hideOnConfirm)
+      .map(banner => ({
+        bannerBackground: Constants.bannerLevelToBackground(banner.level),
+        bannerText: banner.message,
+      }))
   )
   return {
     banners,
@@ -42,7 +44,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => {

@@ -1228,11 +1228,15 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 }
 
 func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	unfurls []chat1.UnfurlResult) (res []chat1.UnfurlDisplay) {
-	for _, u := range unfurls {
+	unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+	for unfurlMessageID, u := range unfurls {
 		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
-			res = append(res, *ud)
+			res = append(res, chat1.UIMessageUnfurlInfo{
+				Unfurl:          *ud,
+				UnfurlMessageID: unfurlMessageID,
+				Url:             u.Url,
+			})
 		}
 	}
 	return res
@@ -1647,4 +1651,38 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 // is used for result highlighting.
 func GetQueryRe(query string) (*regexp.Regexp, error) {
 	return regexp.Compile("(?i)" + regexp.QuoteMeta(query))
+}
+
+func SetUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageID,
+	unfurl chat1.UnfurlResult) {
+	if mvalid.Unfurls == nil {
+		mvalid.Unfurls = make(map[chat1.MessageID]chat1.UnfurlResult)
+	}
+	mvalid.Unfurls[unfurlMessageID] = unfurl
+}
+
+func RemoveUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageID) {
+	if mvalid.Unfurls == nil {
+		return
+	}
+	delete(mvalid.Unfurls, unfurlMessageID)
+}
+
+// SuspendComponent will suspend a Suspendable type until the return function
+// is called. This allows a succinct call like defer SuspendComponent(ctx, g,
+// g.ConvLoader)() in RPC handlers wishing to lock out the conv loader.
+func SuspendComponent(ctx context.Context, g *globals.Context, suspendable types.Suspendable) func() {
+	if canceled := suspendable.Suspend(ctx); canceled {
+		g.Log.CDebugf(ctx, "SuspendComponent: canceled background task")
+	}
+	return func() {
+		suspendable.Resume(ctx)
+	}
+}
+
+func IsPermanentErr(err error) bool {
+	if uberr, ok := err.(types.UnboxingError); ok {
+		return uberr.IsPermanent()
+	}
+	return err != nil
 }

@@ -5,7 +5,7 @@ import * as Types from './types/team-building'
 
 const allServices: Array<Types.ServiceIdWithContact> = Object.keys(Types._services)
 // We don't search pgp explicitly, and contact isn't implemented yet
-const services = allServices.filter(s => s !== 'contact' && s !== 'pgp')
+const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
 function isKeybaseUserId(userId) {
   // Only keybase user id's do not have
@@ -35,6 +35,7 @@ const makeSubState = (): $Exact<Types.TeamBuildingSubState> => ({
   teamBuildingSearchQuery: '',
   teamBuildingSelectedService: 'keybase',
   teamBuildingSearchLimit: 11,
+  teamBuildingUserRecs: [],
 })
 
 const parseRawResultToUser = (

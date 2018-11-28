@@ -2,7 +2,7 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {serviceIdToLogo16} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor} from './shared'
 import * as Constants from '../constants/team-building'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
@@ -28,33 +28,38 @@ type IconProps = {
 }
 
 const ServiceIcon = (props: IconProps) => (
-  <Kb.ClickableBox onClick={props.onClick}>
+  <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
       <Kb.Icon
-        type={serviceIdToLogo16(props.service, props.isActive)}
+        type={serviceIdToIconFont(props.service)}
         style={Styles.collapseStyles([
           styles.serviceIcon,
-          props.isActive ? styles.activeIcon : styles.inactiveIcon,
+          {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
         ])}
       />
       {!!props.showCount &&
-        (props.count ? (
+        (Number.isInteger(props.count) ? (
           <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
-            {props.count > 10 ? '10+' : props.count}
+            {props.count && props.count > 10 ? '10+' : props.count}
           </Kb.Text>
         ) : (
           <Kb.Icon
             type="icon-progress-grey-animated"
             color={Styles.globalColors.grey}
-            style={{height: 10, width: 10}}
+            style={styles.pendingIcon}
           />
         ))}
     </Kb.Box2>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={props.isActive ? styles.activeTabBar : styles.inactiveTabBar}
+    />
   </Kb.ClickableBox>
 )
 
 const ServiceTabBar = (props: Props) => (
-  <Kb.Box2 direction="horizontal">
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
     {Constants.services.map(service => (
       <ServiceIcon
         key={service}
@@ -84,13 +89,30 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   serviceIconContainer: {
+    flex: 1,
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
+    minWidth: 40,
   },
-  serviceIcon: {},
-  activeIcon: {},
-  inactiveIcon: {},
+  serviceIcon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   resultCount: {},
+  pendingIcon: {height: 10, width: 10},
+  tabBarContainer: {
+    height: 30,
+  },
+  activeTabBar: {
+    height: 1,
+    backgroundColor: Styles.globalColors.blue,
+  },
+  inactiveTabBar: {
+    height: 1,
+    backgroundColor: Styles.globalColors.black_20,
+  },
+  clickableServiceIcon: {
+    flex: 1,
+  },
 })
 
 export default ServiceTabBar

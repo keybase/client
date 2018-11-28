@@ -77,7 +77,10 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
       switch (conversationIDKey) {
         case Constants.pendingConversationIDKey: // fallthrough
         case Constants.noConversationIDKey:
-          if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.size) {
+          if (state.chat2.pendingMode === 'newTeamBuilding') {
+            type = 'waiting'
+            break
+          } else if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.size) {
             // No search results + no users in input; show spinner
             type = 'waiting'
             break

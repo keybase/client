@@ -93,8 +93,12 @@ export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
+export const unfurlRemove = 'chat2:unfurlRemove'
+export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
+export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
+export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
@@ -103,294 +107,97 @@ export const updateTypers = 'chat2:updateTypers'
 
 // Payload Types
 type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
-type _AttachmentDownloadedPayload = $ReadOnly<{|
-  message: Types.Message,
-  path?: string,
-|}>
-type _AttachmentFullscreenNextPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: Types.MessageID,
-  backInTime: boolean,
-|}>
+type _AttachmentDownloadedPayload = $ReadOnly<{|message: Types.Message, path?: string|}>
+type _AttachmentFullscreenNextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, backInTime: boolean|}>
 type _AttachmentFullscreenSelectionPayload = $ReadOnly<{|message: Types.Message|}>
-type _AttachmentLoadingPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  ratio: number,
-  isPreview: boolean,
-|}>
-type _AttachmentMobileSavePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _AttachmentMobileSavedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _AttachmentPastedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  data: Buffer,
-|}>
+type _AttachmentLoadingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, ratio: number, isPreview: boolean|}>
+type _AttachmentMobileSavePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _AttachmentMobileSavedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _AttachmentPastedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, data: Buffer|}>
 type _AttachmentPreviewSelectPayload = $ReadOnly<{|message: Types.MessageAttachment|}>
-type _AttachmentUploadedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _AttachmentUploadingPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  outboxID: Types.OutboxID,
-  ratio: number,
-|}>
-type _AttachmentsUploadPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  paths: Array<Types.PathAndOutboxID>,
-  titles: Array<string>,
-|}>
+type _AttachmentUploadedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _AttachmentUploadingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID, ratio: number|}>
+type _AttachmentsUploadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, paths: Array<Types.PathAndOutboxID>, titles: Array<string>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
-type _BlockConversationPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  reportUser: boolean,
-|}>
+type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, reportUser: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
-type _DesktopNotificationPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  author: string,
-  body: string,
-|}>
+type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
 type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _LeaveConversationPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  dontNavigateToInbox?: boolean,
-|}>
+type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _MarkConversationsStalePayload = $ReadOnly<{|
-  conversationIDKeys: Array<Types.ConversationIDKey>,
-  updateType: RPCChatTypes.StaleUpdateType,
-|}>
+type _MarkConversationsStalePayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>, updateType: RPCChatTypes.StaleUpdateType|}>
 type _MarkInitiallyLoadedThreadAsReadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _MessageAttachmentNativeSavePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _MessageAttachmentNativeSharePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _MessageAttachmentUploadedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  placeholderID: RPCChatTypes.MessageID,
-  message: Types.MessageAttachment,
-|}>
+type _MessageAttachmentNativeSavePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _MessageAttachmentNativeSharePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _MessageAttachmentUploadedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, placeholderID: RPCChatTypes.MessageID, message: Types.MessageAttachment|}>
 type _MessageDeleteHistoryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _MessageDeletePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _MessageEditPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  text: HiddenString,
-|}>
-type _MessageErroredPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  reason: string,
-  outboxID: Types.OutboxID,
-|}>
-type _MessageReplyPrivatelyPayload = $ReadOnly<{|
-  sourceConversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _MessageRetryPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  outboxID: Types.OutboxID,
-|}>
-type _MessageSendPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  text: HiddenString,
-|}>
-type _MessageSetEditingPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: ?Types.Ordinal,
-  editLastUser?: string,
-|}>
-type _MessageSetQuotingPayload = $ReadOnly<{|
-  sourceConversationIDKey: Types.ConversationIDKey,
-  targetConversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _MessageWasEditedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  text: HiddenString,
-  mentionsAt: I.Set<string>,
-  mentionsChannel: 'none' | 'all' | 'here',
-  mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
-|}>
-type _MessagesAddPayload = $ReadOnly<{|
-  context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
-  messages: Array<Types.Message>,
-  shouldClearOthers?: boolean,
-|}>
-type _MessagesExplodedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageIDs: Array<RPCChatTypes.MessageID>,
-  explodedBy?: string,
-|}>
-type _MessagesWereDeletedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageIDs?: Array<RPCChatTypes.MessageID>,
-  upToMessageID?: RPCChatTypes.MessageID,
-  deletableMessageTypes?: I.Set<Types.MessageType>,
-  ordinals?: Array<Types.Ordinal>,
-|}>
-type _MetaDeletePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  selectSomethingElse: boolean,
-|}>
+type _MessageDeletePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _MessageEditPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, text: HiddenString|}>
+type _MessageErroredPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, reason: string, outboxID: Types.OutboxID|}>
+type _MessageReplyPrivatelyPayload = $ReadOnly<{|sourceConversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _MessageRetryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID|}>
+type _MessageSendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
+type _MessageSetEditingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: ?Types.Ordinal, editLastUser?: string|}>
+type _MessageSetQuotingPayload = $ReadOnly<{|sourceConversationIDKey: Types.ConversationIDKey, targetConversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _MessageWasEditedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, text: HiddenString, mentionsAt: I.Set<string>, mentionsChannel: 'none' | 'all' | 'here', mentionsChannelName: I.Map<string, Types.ConversationIDKey>|}>
+type _MessagesAddPayload = $ReadOnly<{|context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}, messages: Array<Types.Message>, shouldClearOthers?: boolean|}>
+type _MessagesExplodedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageIDs: Array<RPCChatTypes.MessageID>, explodedBy?: string|}>
+type _MessagesWereDeletedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageIDs?: Array<RPCChatTypes.MessageID>, upToMessageID?: RPCChatTypes.MessageID, deletableMessageTypes?: I.Set<Types.MessageType>, ordinals?: Array<Types.Ordinal>|}>
+type _MetaDeletePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, selectSomethingElse: boolean|}>
 type _MetaHandleQueuePayload = void
-type _MetaNeedsUpdatingPayload = $ReadOnly<{|
-  conversationIDKeys: Array<Types.ConversationIDKey>,
-  reason: string,
-|}>
-type _MetaReceivedErrorPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  error: ?RPCChatTypes.InboxUIItemError,
-  username: ?string,
-|}>
-type _MetaRequestTrustedPayload = $ReadOnly<{|
-  force?: boolean,
-  conversationIDKeys: Array<Types.ConversationIDKey>,
-|}>
+type _MetaNeedsUpdatingPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>, reason: string|}>
+type _MetaReceivedErrorPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, error: ?RPCChatTypes.InboxUIItemError, username: ?string|}>
+type _MetaRequestTrustedPayload = $ReadOnly<{|force?: boolean, conversationIDKeys: Array<Types.ConversationIDKey>|}>
 type _MetaRequestingTrustedPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
-type _MetasReceivedPayload = $ReadOnly<{|
-  metas: Array<Types.ConversationMeta>,
-  neverCreate?: boolean,
-  clearExistingMetas?: boolean,
-  clearExistingMessages?: boolean,
-  fromExpunge?: boolean,
-  fromInboxRefresh?: boolean,
-|}>
-type _MuteConversationPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  muted: boolean,
-|}>
+type _MetasReceivedPayload = $ReadOnly<{|metas: Array<Types.ConversationMeta>, neverCreate?: boolean, clearExistingMetas?: boolean, clearExistingMessages?: boolean, fromExpunge?: boolean, fromInboxRefresh?: boolean|}>
+type _MuteConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, muted: boolean|}>
 type _NavigateToInboxPayload = $ReadOnly<{|findNewConversation: boolean|}>
 type _NavigateToThreadPayload = void
-type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  settings: RPCChatTypes.ConversationNotificationInfo,
-|}>
+type _NotificationSettingsUpdatedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, settings: RPCChatTypes.ConversationNotificationInfo|}>
 type _OpenChatFromWidgetPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey|}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _PaymentInfoReceivedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  paymentInfo: Types.ChatPaymentInfo,
-|}>
-type _PendingMessageWasEditedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  text: HiddenString,
-|}>
-type _PrepareFulfillRequestFormPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
-type _PreviewConversationPayload = $ReadOnly<{|
-  participants?: Array<string>,
-  teamname?: string,
-  channelname?: string,
-  conversationIDKey?: Types.ConversationIDKey,
-  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction' | 'requestedPayment',
-|}>
-type _RequestInfoReceivedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  requestInfo: Types.ChatRequestInfo,
-|}>
+type _PaymentInfoReceivedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo|}>
+type _PendingMessageWasEditedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, text: HiddenString|}>
+type _PrepareFulfillRequestFormPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
+type _PreviewConversationPayload = $ReadOnly<{|participants?: Array<string>, teamname?: string, channelname?: string, conversationIDKey?: Types.ConversationIDKey, reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction' | 'requestedPayment'|}>
+type _RequestInfoReceivedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _ResetLetThemInPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  username: string,
-|}>
-type _SaveMinWriterRolePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  role: TeamsTypes.TeamRoleType,
-|}>
+type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, username: string|}>
+type _SaveMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
-type _SendTypingPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  typing: boolean,
-|}>
-type _SetConvExplodingModePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  seconds: number,
-|}>
-type _SetConvRetentionPolicyPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  policy: RetentionPolicy,
-|}>
-type _SetConversationOfflinePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  offline: boolean,
-|}>
+type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
+type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
+type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
+type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
 type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
-type _SetExplodingModeLockPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  unset?: boolean,
-|}>
+type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
-type _SetMinWriterRolePayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  role: TeamsTypes.TeamRoleType,
-|}>
+type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
-type _SetPendingConversationUsersPayload = $ReadOnly<{|
-  users: Array<string>,
-  fromSearch: boolean,
-|}>
-type _SetPendingModePayload = $ReadOnly<{|
-  pendingMode: Types.PendingMode,
-  noneDestination?: 'inbox' | 'thread',
-|}>
+type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
+type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
-type _ToggleLocalReactionPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
-  targetOrdinal: Types.Ordinal,
-  username: string,
-|}>
-type _ToggleMessageReactionPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  emoji: string,
-  ordinal: Types.Ordinal,
-|}>
+type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
+type _ToggleMessageReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, ordinal: Types.Ordinal|}>
 type _ToggleSmallTeamsExpandedPayload = void
+type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
+type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
+type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
-type _UpdateMoreToLoadPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  moreToLoad: boolean,
-|}>
-type _UpdateNotificationSettingsPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  notificationsDesktop: Types.NotificationsType,
-  notificationsMobile: Types.NotificationsType,
-  notificationsGlobalIgnoreMentions: boolean,
-|}>
-type _UpdateReactionsPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>,
-|}>
+type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
+type _UpdateMoreToLoadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, moreToLoad: boolean|}>
+type _UpdateNotificationSettingsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, notificationsDesktop: Types.NotificationsType, notificationsMobile: Types.NotificationsType, notificationsGlobalIgnoreMentions: boolean|}>
+type _UpdateReactionsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
 type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
@@ -399,6 +206,10 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
  * Actually start a conversation
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({payload, type: createConversation})
+/**
+ * Add an unfurl prompt to a message
+ */
+export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -419,6 +230,14 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  * Prime data to fulfill this message's request and navigate to the send form.
  */
 export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({payload, type: prepareFulfillRequestForm})
+/**
+ * Remove an unfurl
+ */
+export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, type: unfurlRemove})
+/**
+ * Response to an unfurl prompt
+ */
+export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) => ({payload, type: unfurlResolvePrompt})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -471,6 +290,10 @@ export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) 
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
+/**
+ * Update messages that we might have in the store
+ */
+export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({payload, type: updateMessages})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
@@ -633,8 +456,12 @@ export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeamsExpanded, _ToggleSmallTeamsExpandedPayload>
+export type UnfurlRemovePayload = $Call<typeof createUnfurlRemove, _UnfurlRemovePayload>
+export type UnfurlResolvePromptPayload = $Call<typeof createUnfurlResolvePrompt, _UnfurlResolvePromptPayload>
+export type UnfurlTogglePromptPayload = $Call<typeof createUnfurlTogglePrompt, _UnfurlTogglePromptPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
+export type UpdateMessagesPayload = $Call<typeof createUpdateMessages, _UpdateMessagesPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateReactionsPayload = $Call<typeof createUpdateReactions, _UpdateReactionsPayload>
@@ -724,8 +551,12 @@ export type Actions =
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
   | ToggleSmallTeamsExpandedPayload
+  | UnfurlRemovePayload
+  | UnfurlResolvePromptPayload
+  | UnfurlTogglePromptPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
+  | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload

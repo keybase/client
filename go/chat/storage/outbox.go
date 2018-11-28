@@ -515,8 +515,19 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 	}
 
 	// Sprinkle each outbox message in
+	threadOutboxIDs := make(map[string]bool)
+	for _, m := range thread.Messages {
+		outboxID := m.GetOutboxID()
+		if outboxID != nil {
+			threadOutboxIDs[outboxID.String()] = true
+		}
+	}
 	for _, obr := range obox.Records {
 		if !obr.ConvID.Eq(convID) {
+			continue
+		}
+		if threadOutboxIDs[obr.OutboxID.String()] {
+			o.Debug(ctx, "skipping outbox item already in the thread: %s", obr.OutboxID)
 			continue
 		}
 		st, err := obr.State.State()

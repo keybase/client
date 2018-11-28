@@ -1,11 +1,13 @@
 // @flow
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import {partition} from 'lodash-es'
 
 import Wallet from '.'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -84,7 +86,7 @@ const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp:
     .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
     .map(({paymentID}) => ({paymentID}))
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

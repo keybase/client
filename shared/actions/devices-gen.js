@@ -24,19 +24,12 @@ export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
 type _BadgeAppForDevicesPayload = $ReadOnly<{|ids: Array<string>|}>
-type _EndangeredTLFsLoadedPayload = $ReadOnly<{|
-  deviceID: Types.DeviceID,
-  tlfs: Array<string>,
-|}>
+type _EndangeredTLFsLoadedPayload = $ReadOnly<{|deviceID: Types.DeviceID, tlfs: Array<string>|}>
 type _LoadPayload = void
 type _LoadedPayload = $ReadOnly<{|devices: Array<Types.Device>|}>
 type _PaperKeyCreatedPayload = $ReadOnly<{|paperKey: HiddenString|}>
 type _RevokePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
-type _RevokedPayload = $ReadOnly<{|
-  deviceID: Types.DeviceID,
-  wasCurrentDevice: boolean,
-  deviceName: string,
-|}>
+type _RevokedPayload = $ReadOnly<{|deviceID: Types.DeviceID, wasCurrentDevice: boolean, deviceName: string|}>
 type _ShowDevicePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
 type _ShowPaperKeyPagePayload = void
 type _ShowRevokePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>

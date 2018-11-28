@@ -61,6 +61,7 @@ type configGetter interface {
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
+	GetUseDefaultLogFile() (bool, bool)
 	GetLogPrefix() string
 	GetLogFormat() string
 	GetMerkleKIDs() []string
@@ -584,12 +585,14 @@ type ServiceType interface {
 	IsDevelOnly() bool
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+	CanMakeNewProofs() bool
 }
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
 	GetDisplayPriority(n string) int
+	ListServicesThatAcceptNewProofs() []string
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

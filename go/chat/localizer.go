@@ -267,11 +267,12 @@ type localizerPipeline struct {
 
 	offline bool
 
-	started   bool
-	stopCh    chan struct{}
-	cancelChs map[string]chan struct{}
-	suspendWg sync.WaitGroup
-	jobQueue  chan *localizerPipelineJob
+	started        bool
+	stopCh         chan struct{}
+	cancelChs      map[string]chan struct{}
+	suspendCount   int
+	suspendWaiters []chan struct{}
+	jobQueue       chan *localizerPipelineJob
 
 	// testing
 	useGateCh   bool
@@ -350,7 +351,7 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 	if !s.started {
 		return false
 	}
-	s.suspendWg.Add(1)
+	s.suspendCount++
 	if len(s.cancelChs) == 0 {
 		return false
 	}
@@ -382,8 +383,30 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 	defer s.Trace(ctx, func() error { return nil }, "resume")()
 	s.Lock()
 	defer s.Unlock()
-	s.suspendWg.Done()
+	if s.suspendCount == 0 {
+		s.Debug(ctx, "resume: spurious resume call without suspend")
+		return false
+	}
+	s.suspendCount--
+	if s.suspendCount == 0 {
+		for _, cb := range s.suspendWaiters {
+			close(cb)
+		}
+		s.suspendWaiters = nil
+	}
 	return false
+}
+
+func (s *localizerPipeline) registerWaiter() chan struct{} {
+	s.Lock()
+	defer s.Unlock()
+	cb := make(chan struct{})
+	if s.suspendCount == 0 {
+		close(cb)
+		return cb
+	}
+	s.suspendWaiters = append(s.suspendWaiters, cb)
+	return cb
 }
 
 func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh chan struct{}) {
@@ -397,7 +420,7 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	} else {
 		s.Debug(job.ctx, "localizeJobPulled: waiting for resume")
 		go func() {
-			s.suspendWg.Wait()
+			<-s.registerWaiter()
 			close(waitCh)
 		}()
 	}
@@ -532,7 +555,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
-	if uberr, ok := err.(UnboxingError); ok {
+	if uberr, ok := err.(types.UnboxingError); ok {
 		return uberr.IsPermanent()
 	}
 	return false
@@ -898,7 +921,7 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	var rekeyInfo *chat1.ConversationErrorRekey
 
 	switch fromErr := fromErr.(type) {
-	case UnboxingError:
+	case types.UnboxingError:
 		switch conversationRemote.GetMembersType() {
 		case chat1.ConversationMembersType_KBFS:
 			switch fromErr := fromErr.Inner().(type) {

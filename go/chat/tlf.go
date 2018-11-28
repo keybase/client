@@ -231,14 +231,6 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 	res.NameIDBreaks.Breaks.Breaks = ib
-
-	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
-	// after send to IdentifyNotifier)
-	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT &&
-		len(res.NameIDBreaks.Breaks.Breaks) > 0 {
-		return res, libkb.NewIdentifySummaryError(res.NameIDBreaks.Breaks.Breaks[0])
-	}
-
 	return res, nil
 }
 
@@ -299,13 +291,6 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 	res.Breaks.Breaks = ib
-
-	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
-	// after send to IdentifyNotifier)
-	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT && len(res.Breaks.Breaks) > 0 {
-		return res, libkb.NewIdentifySummaryError(res.Breaks.Breaks[0])
-	}
-
 	return res, nil
 }
 

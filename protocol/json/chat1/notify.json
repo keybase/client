@@ -32,7 +32,7 @@
         "EXPUNGE_9",
         "EPHEMERAL_PURGE_10",
         "REACTION_UPDATE_11",
-        "MESSAGE_UNFURLED_12"
+        "MESSAGES_UPDATED_12"
       ]
     },
     {
@@ -284,26 +284,16 @@
     },
     {
       "type": "record",
-      "name": "UnfurlUpdateNotif",
+      "name": "MessagesUpdated",
       "fields": [
         {
           "type": "ConversationID",
           "name": "convID"
         },
         {
-          "type": "UIMessage",
-          "name": "msg"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UnfurlUpdateNotifs",
-      "fields": [
-        {
           "type": {
             "type": "array",
-            "items": "UnfurlUpdateNotif"
+            "items": "UIMessage"
           },
           "name": "updates"
         }
@@ -396,10 +386,10 @@
         },
         {
           "label": {
-            "name": "MESSAGE_UNFURLED",
+            "name": "MESSAGES_UPDATED",
             "def": false
           },
-          "body": "UnfurlUpdateNotifs"
+          "body": "MessagesUpdated"
         }
       ]
     },

@@ -287,16 +287,16 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		require.Equal(t, opts.MaxHits, len(res.Hits))
 		verifySearchDone(opts.MaxHits)
 
-		query = `h\..*`
-		res = runSearch(query, isRegex, opts)
-		require.Equal(t, opts.MaxHits, len(res.Hits))
-		verifySearchDone(opts.MaxHits)
-
 		// Test maxMessages
 		opts.MaxMessages = 2
 		res = runSearch(query, isRegex, opts)
 		require.Equal(t, opts.MaxMessages, len(res.Hits))
 		verifySearchDone(opts.MaxMessages)
+
+		query = `[A-Z]*`
+		res = runSearch(query, isRegex, opts)
+		require.Equal(t, 0, len(res.Hits))
+		verifySearchDone(0)
 
 		// Test invalid regex
 		_, err = tc1.chatLocalHandler().SearchRegexp(tc1.startCtx, chat1.SearchRegexpArg{

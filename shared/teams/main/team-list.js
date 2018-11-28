@@ -67,14 +67,13 @@ const TeamRow = ({
           </Box>
         </ClickableBox>
         {!Styles.isMobile && onOpenFolder && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
-        {!Styles.isMobile &&
-          onManageChat && (
-            <Icon
-              type="iconfont-chat"
-              style={{marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.tiny}}
-              onClick={onManageChat}
-            />
-          )}
+        {!Styles.isMobile && onManageChat && (
+          <Icon
+            type="iconfont-chat"
+            style={{marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.tiny}}
+            onClick={onManageChat}
+          />
+        )}
       </Box>
       {!Styles.isMobile && <Divider style={styles.divider} />}
     </Box>

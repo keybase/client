@@ -286,7 +286,7 @@ class EngineRpcCall {
 
         // We could have multiple things told to us!
         // $FlowIssue has no way to type this
-        const subSagaTask = yield Saga.fork(this._subSagas[raceWinner], result)
+        const subSagaTask = yield Saga._fork(this._subSagas[raceWinner], result)
         subSagaTasks.push(subSagaTask)
       } finally {
         if (yield Saga.cancelled()) {
