@@ -122,7 +122,7 @@ const load = () => {
       counterparty="G43289XXXXX34OPL"
       counterpartyType="stellarPublicKey"
       issuerDescription="example.com"
-      amountXLM="53.1688643 HUGS/G4....XHUZ"
+      amountXLM="53.1688643 HUGS"
       amountUser=""
     />
   ))

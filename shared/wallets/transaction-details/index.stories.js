@@ -77,7 +77,7 @@ const load = () => {
         counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
         counterpartyMeta={null}
         counterpartyType="stellarPublicKey"
-        amountXLM="53.1688643 HUGS/GD....VCNU"
+        amountXLM="53.1688643 HUGS"
         amountUser=""
         memo="Make sure to redeem that hug! 🤗"
         issuerDescription="example.com"
