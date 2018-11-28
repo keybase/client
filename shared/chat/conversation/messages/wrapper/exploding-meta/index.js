@@ -141,7 +141,7 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Text>
               </Box2>
             )}
-            <Icon type="iconfont-bomb" fontSize={bombIconSize} color={globalColors.black_75} />
+            <Icon type="iconfont-timer" fontSize={bombIconSize} color={globalColors.black_75} />
           </Box2>
         )
         break

@@ -77,7 +77,7 @@ class BottomLine extends PureComponent<Props> {
               fontSize={isMobile ? 40 : 28}
               style={platformStyles({
                 common: {
-                  color: this.props.isSelected ? globalColors.white : globalColors.black_20,
+                  color: this.props.isSelected ? globalColors.white : globalColors.black_40,
                 },
                 isMobile: {
                   marginTop: -8,
@@ -90,8 +90,8 @@ class BottomLine extends PureComponent<Props> {
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = (
             <Icon
-              color={globalColors.black_75}
-              type="iconfont-bomb"
+              color={this.props.isSelected ? globalColors.white : globalColors.black_40}
+              type="iconfont-timer"
               fontSize={isMobile ? 16 : 12}
               style={{alignSelf: 'flex-start'}}
             />
@@ -109,17 +109,17 @@ class BottomLine extends PureComponent<Props> {
               {snippetDecoration}
             </Box2>
           )}
-          {!exploded && !!this.props.snippet && (
-            <Markdown preview={true} style={style}>
-              {this.props.snippet}
-            </Markdown>
-          )}
+          {!exploded &&
+            !!this.props.snippet && (
+              <Markdown preview={true} style={style}>
+                {this.props.snippet}
+              </Markdown>
+            )}
         </Box2>
       )
     } else {
       return null
     }
-
     return (
       <Box
         style={collapseStyles([
@@ -140,7 +140,6 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-
 const styles = styleSheetCreate({
   outerBox: {
     ...globalStyles.flexBoxRow,
