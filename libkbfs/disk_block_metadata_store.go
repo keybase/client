@@ -54,7 +54,7 @@ type diskBlockMetadataStore struct {
 	missMeter *CountMeter
 	putMeter  *CountMeter
 
-	lock       sync.Mutex
+	lock       sync.RWMutex
 	db         *levelDb
 	shutdownCh chan struct{}
 }
@@ -101,11 +101,6 @@ func (s *diskBlockMetadataStore) Shutdown() {
 	s.putMeter.Shutdown()
 }
 
-// MarkMiss implements the BlockMetadataStore interface.
-func (s *diskBlockMetadataStore) MarkMiss(num int64) {
-	s.missMeter.Mark(num)
-}
-
 var _ BlockMetadataStore = (*diskBlockMetadataStore)(nil)
 
 // ErrBlockMetadataStoreShutdown is returned when methods are called on
@@ -120,8 +115,8 @@ func (ErrBlockMetadataStoreShutdown) Error() string {
 // GetMetadata implements the BlockMetadataStore interface.
 func (s *diskBlockMetadataStore) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (value BlockMetadataValue, err error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 
 	select {
 	case <-s.shutdownCh:
@@ -189,12 +184,22 @@ func (s *diskBlockMetadataStore) UpdateMetadata(ctx context.Context,
 // values.
 type xattrStore struct {
 	store BlockMetadataStore
+
+	// Track the hit rate and eviction rate. These are goroutine safe.
+	hitMeter  *CountMeter
+	missMeter *CountMeter
+	putMeter  *CountMeter
 }
 
 // NewXattrStoreFromBlockMetadataStore returns a XattrStore which is a wrapper
 // around the passed in store.
 func NewXattrStoreFromBlockMetadataStore(store BlockMetadataStore) XattrStore {
-	return xattrStore{store: store}
+	return xattrStore{
+		store:     store,
+		hitMeter:  NewCountMeter(),
+		missMeter: NewCountMeter(),
+		putMeter:  NewCountMeter(),
+	}
 }
 
 var _ XattrStore = (*xattrStore)(nil)
@@ -203,29 +208,41 @@ var _ XattrStore = (*xattrStore)(nil)
 func (s xattrStore) GetXattr(ctx context.Context,
 	blockID kbfsblock.ID, xattrType XattrType) ([]byte, error) {
 	blockMetadata, err := s.store.GetMetadata(ctx, blockID)
-	if err != nil {
+	switch errors.Cause(err) {
+	case ldberrors.ErrNotFound:
+		s.missMeter.Mark(1)
+		return nil, err
+	case nil:
+	default:
 		return nil, err
 	}
 
 	v, ok := blockMetadata.Xattr[xattrType]
 	if !ok {
-		s.store.MarkMiss(1)
+		s.missMeter.Mark(1)
 		return nil, ldberrors.ErrNotFound
 	}
 
+	s.hitMeter.Mark(1)
 	return v, nil
 }
 
 // SetXattr implements the XattrStore interface.
 func (s xattrStore) SetXattr(ctx context.Context,
 	blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) (err error) {
-	return s.store.UpdateMetadata(ctx, blockID, func(v *BlockMetadataValue) error {
-		if v.Xattr == nil {
-			v.Xattr = make(map[XattrType][]byte)
-		}
-		v.Xattr[xattrType] = xattrValue
-		return nil
-	})
+	if err = s.store.UpdateMetadata(ctx, blockID,
+		func(v *BlockMetadataValue) error {
+			if v.Xattr == nil {
+				v.Xattr = make(map[XattrType][]byte)
+			}
+			v.Xattr[xattrType] = xattrValue
+			return nil
+		}); err != nil {
+		return err
+	}
+
+	s.putMeter.Mark(1)
+	return nil
 }
 
 // NoopBlockMetadataStore satisfies the BlockMetadataStore interface but
@@ -245,9 +262,6 @@ func (NoopBlockMetadataStore) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, updater BlockMetadataUpdater) error {
 	return nil
 }
-
-// MarkMiss does nothing.
-func (NoopBlockMetadataStore) MarkMiss(int64) {}
 
 // Shutdown does nothing.
 func (NoopBlockMetadataStore) Shutdown() {}

@@ -1354,8 +1354,6 @@ type BlockMetadataStore interface {
 	// BlockMetadataValue is passed into the updater. After if updater returns
 	// nil, the updated metadata is stored.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, updater BlockMetadataUpdater) error
-	// MarkMiss marks miss(es) in the store's miss meter.
-	MarkMiss(num int64)
 	// Shutdown cleanly shuts down the disk block metadata cache.
 	Shutdown()
 }

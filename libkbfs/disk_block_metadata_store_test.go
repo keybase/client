@@ -60,7 +60,7 @@ func TestDiskXattr(t *testing.T) {
 	blockMetadataStore, tempdir := makeBlockMetadataStoreForTest(t)
 	defer shutdownBlockMetadataStoreTest(blockMetadataStore, tempdir)
 
-	xattrStore := xattrStore{store: blockMetadataStore}
+	xattrStore := NewXattrStoreFromBlockMetadataStore(blockMetadataStore)
 
 	ctx := context.Background()
 	blockID := kbfsblock.FakeID(23)

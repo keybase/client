@@ -4791,16 +4791,6 @@ func (mr *MockBlockMetadataStoreMockRecorder) UpdateMetadata(ctx, blockID, updat
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockBlockMetadataStore)(nil).UpdateMetadata), ctx, blockID, updater)
 }
 
-// MarkMiss mocks base method
-func (m *MockBlockMetadataStore) MarkMiss(num int64) {
-	m.ctrl.Call(m, "MarkMiss", num)
-}
-
-// MarkMiss indicates an expected call of MarkMiss
-func (mr *MockBlockMetadataStoreMockRecorder) MarkMiss(num interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkMiss", reflect.TypeOf((*MockBlockMetadataStore)(nil).MarkMiss), num)
-}
-
 // Shutdown mocks base method
 func (m *MockBlockMetadataStore) Shutdown() {
 	m.ctrl.Call(m, "Shutdown")
