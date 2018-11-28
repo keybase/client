@@ -19,11 +19,9 @@ import (
 )
 
 const (
-	fileIndirectBlockPrefetchPriority int           = -100
-	dirEntryPrefetchPriority          int           = -200
-	updatePointerPrefetchPriority     int           = 1
-	prefetchTimeout                   time.Duration = 24 * time.Hour
-	maxNumPrefetches                  int           = 10000
+	updatePointerPrefetchPriority int           = 1
+	prefetchTimeout               time.Duration = 24 * time.Hour
+	maxNumPrefetches              int           = 10000
 )
 
 type prefetcherConfig interface {
@@ -225,8 +223,6 @@ func (p *blockPrefetcher) completePrefetch(
 			delete(p.rescheduled, blockID)
 			defer pp.Close()
 			b := pp.req.block.NewEmpty()
-			// TODO: after we split out priority from whether to prefetch, make
-			// this a much higher priority.
 			err := <-p.retriever.Request(
 				pp.ctx, defaultOnDemandRequestPriority, pp.req.kmd, pp.req.ptr,
 				b, pp.req.lifetime, BlockRequestSolo)
@@ -298,9 +294,9 @@ top:
 func (p *blockPrefetcher) calculatePriority(
 	basePriority int, action BlockRequestAction) int {
 	if action.DeepSync() {
-		return defaultOnDemandRequestPriority - 1
+		return basePriority
 	}
-	return basePriority
+	return basePriority - 1
 }
 
 // request maps the parent->child block relationship in the prefetcher, and it
@@ -349,12 +345,11 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 func (p *blockPrefetcher) prefetchIndirectFileBlock(
 	ctx context.Context, parentBlockID kbfsblock.ID, b *FileBlock,
 	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
-	action BlockRequestAction) (numBlocks int, isTail bool) {
+	action BlockRequestAction, basePriority int) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
-	startingPriority := p.calculatePriority(
-		fileIndirectBlockPrefetchPriority, action)
-	for i, ptr := range b.IPtrs {
-		numBlocks += p.request(ctx, startingPriority-i, kmd,
+	newPriority := p.calculatePriority(basePriority, action)
+	for _, ptr := range b.IPtrs {
+		numBlocks += p.request(ctx, newPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
 			parentBlockID, isPrefetchNew, action)
 	}
@@ -364,12 +359,11 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(
 func (p *blockPrefetcher) prefetchIndirectDirBlock(
 	ctx context.Context, parentBlockID kbfsblock.ID, b *DirBlock,
 	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
-	action BlockRequestAction) (numBlocks int, isTail bool) {
+	action BlockRequestAction, basePriority int) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
-	startingPriority := p.calculatePriority(
-		fileIndirectBlockPrefetchPriority, action)
-	for i, ptr := range b.IPtrs {
-		numBlocks += p.request(ctx, startingPriority-i, kmd,
+	newPriority := p.calculatePriority(basePriority, action)
+	for _, ptr := range b.IPtrs {
+		numBlocks += p.request(ctx, newPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
 			parentBlockID, isPrefetchNew, action)
 	}
@@ -379,15 +373,13 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(
 func (p *blockPrefetcher) prefetchDirectDirBlock(
 	ctx context.Context, parentBlockID kbfsblock.ID, b *DirBlock,
 	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
-	action BlockRequestAction) (numBlocks int, isTail bool) {
+	action BlockRequestAction, basePriority int) (numBlocks int, isTail bool) {
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
-	startingPriority := p.calculatePriority(dirEntryPrefetchPriority, action)
+	newPriority := p.calculatePriority(basePriority, action)
 	totalChildEntries := 0
-	for i, entry := range dirEntries.dirEntries {
-		// Prioritize small files
-		priority := startingPriority - i
+	for _, entry := range dirEntries.dirEntries {
 		var block Block
 		switch entry.Type {
 		case Dir:
@@ -406,7 +398,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 		}
 		p.log.CDebugf(ctx, "Prefetching %v", entry.BlockPointer)
 		totalChildEntries++
-		numBlocks += p.request(ctx, priority, kmd, entry.BlockPointer,
+		numBlocks += p.request(ctx, newPriority, kmd, entry.BlockPointer,
 			block, lifetime, parentBlockID, isPrefetchNew, action)
 	}
 	if totalChildEntries == 0 {
@@ -443,7 +435,7 @@ func (p *blockPrefetcher) handlePrefetch(
 		if b.IsInd {
 			numBlocks, isTail = p.prefetchIndirectFileBlock(
 				pre.ctx, req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
-				childAction)
+				childAction, req.priority)
 		} else {
 			isTail = true
 		}
@@ -451,11 +443,11 @@ func (p *blockPrefetcher) handlePrefetch(
 		if b.IsInd {
 			numBlocks, isTail = p.prefetchIndirectDirBlock(
 				pre.ctx, req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
-				childAction)
+				childAction, req.priority)
 		} else {
 			numBlocks, isTail = p.prefetchDirectDirBlock(
 				pre.ctx, req.ptr.ID, b, req.kmd, req.lifetime, isPrefetchNew,
-				childAction)
+				childAction, req.priority)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
