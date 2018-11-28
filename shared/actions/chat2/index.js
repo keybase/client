@@ -1982,7 +1982,8 @@ const markThreadAsRead = (
     return
   }
 
-  if (!state.chat2.metaMap.get(conversationIDKey)) {
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
     logger.info('marking read bail on not in meta list. preview?')
     return
   }
@@ -2010,15 +2011,11 @@ const markThreadAsRead = (
     message = mmap.get(ordinal)
   }
 
-  if (!message) {
-    logger.info('marking read bail on no messages')
-    return
-  }
-
-  logger.info(`marking read messages ${conversationIDKey} ${message.id}`)
+  const readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+  logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
   return Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
-    msgID: message.id,
+    msgID: readMsgID,
   })
 }
 
