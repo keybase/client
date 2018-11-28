@@ -1212,9 +1212,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if !found {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	// NOTE: changing the name of an account does not advance its revision
-	// so only the bundle gets advanced here.
-	nextBundle := acctbundle.AdvanceBundle(*bundle)
+	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
 	return remote.Post(m.Ctx(), m.G(), nextBundle, version)
 }
 
