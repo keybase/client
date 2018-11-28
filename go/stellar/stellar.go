@@ -589,10 +589,13 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	}
 
 	if senderEntry.IsPrimary {
-		if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
-			// if the chat message fails to send, just log the error
-			m.CDebugf("failed to send chat SendPayment message: %s", err)
-		}
+		go func() {
+			mgo := m.WithCtx(context.Background())
+			if err := chatSendPaymentMessage(mgo, recipient, rres.StellarID); err != nil {
+				// if the chat message fails to send, just log the error
+				mgo.CDebugf("failed to send chat SendPayment message: %s", err)
+			}
+		}()
 	} else {
 		m.CDebugf("not sending chat message: sending from non-primary account")
 	}
