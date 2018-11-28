@@ -78,11 +78,29 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const decorate = shouldDecorateMessage(message, stateProps._you)
 
+  let failureDescription = ''
+  // TODO
+  let isErrorFixable = false
+  if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
+    failureDescription = message.errorReason
+    if (stateProps._you && ['pending', 'failed'].includes(message.submitState)) {
+      // This is a message still in the outbox, we can retry/edit to fix
+      failureDescription = `Failed to send: ${message.errorReason}`
+      isErrorFixable = true
+    }
+  }
+
+  // $ForceType
+  if (message.explodingUnreadable) {
+    failureDescription = 'This exploding message is not available to you.'
+  }
+
   return {
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
+    failureDescription,
     isEditing: ownProps.isEditing,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     isShowingUsername,

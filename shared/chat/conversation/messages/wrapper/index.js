@@ -22,6 +22,7 @@ export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
+  failureDescription: string,
   isRevoked: boolean,
   isShowingUsername: boolean,
   ordinal: Types.Ordinal,
@@ -94,6 +95,39 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return children
     }
   }
+
+  _isEdited = () =>
+    this.props.message.hasBeenEdited && (
+      <Kb.Text type="BodyTiny" style={styles.edited}>
+        EDITED
+      </Kb.Text>
+    )
+
+  _isFailed = () =>
+    !!this.props.failureDescription && (
+      // TODO failureDescription === 'Failed to send: message is too long'
+      <Kb.Text type="BodySmall">
+        <Kb.Text type="BodySmall" style={styles.fail}>
+          {this.props.failureDescription}.
+        </Kb.Text>
+        {!!this.props.onCancel && (
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={this.props.onCancel}>
+            Cancel
+          </Kb.Text>
+        )}
+        {!!this.props.onCancel && <Kb.Text type="BodySmall"> or </Kb.Text>}
+        {!!this.props.onEdit && (
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={this.props.onEdit}>
+            Edit
+          </Kb.Text>
+        )}
+        {!!this.props.onRetry && (
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={this.props.onRetry}>
+            Retry
+          </Kb.Text>
+        )}
+      </Kb.Text>
+    )
 
   _unfurlPrompts = () =>
     this.props.hasUnfurlPrompts && (
@@ -233,6 +267,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           {this._orangeLine()}
           {this._content([
             this._messageAndButtons(this.props.children),
+            this._isEdited(),
+            this._isFailed(),
             this._unfurlPrompts(),
             this._unfurlList(),
             this._reactionsRow(),
@@ -280,6 +316,7 @@ const styles = Styles.styleSheetCreate({
   }),
   menuButtonsWithAuthor: {marginTop: -16},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
+  edited: {color: Styles.globalColors.black_20},
 })
 
 export default WrapperMessage
