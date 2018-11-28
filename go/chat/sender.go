@@ -796,7 +796,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		break
 	}
 
-	// Write new message out to cache
+	// Write new message out to cache and other followup
 	var cerr error
 	var unboxedMsg chat1.MessageUnboxed
 	var convLocal *chat1.ConversationLocal
@@ -811,8 +811,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender, convID),
-			ConvID:  convID,
+			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
+				convID),
+			ConvID: convID,
 			DisplayDesktopNotification: false,
 			Conv: s.presentUIItem(convLocal),
 		})
@@ -821,7 +822,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		s.G().Unfurler.UnfurlAndSend(ctx, boxed.ClientHeader.Sender, convID, unboxedMsg)
+		go s.G().Unfurler.UnfurlAndSend(BackgroundContext(ctx, s.G()), boxed.ClientHeader.Sender, convID,
+			unboxedMsg)
 	}
 
 	return []byte{}, boxed, nil
@@ -1149,12 +1151,14 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 		// register this as a failure, but still attempt a retry
 		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
+			return obr, NewAttachmentUploadError(err.Error(), true)
 		}
-		return obr, NewAttachmentUploadError(errStr)
+		return obr, NewAttachmentUploadError(errStr, false)
 	case types.AttachmentUploaderTaskStatusUploading:
 		// Make sure we are actually trying to upload this guy
 		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
+			return obr, NewAttachmentUploadError(err.Error(), true)
 		}
 		return obr, errDelivererUploadInProgress
 	}
