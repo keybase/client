@@ -115,10 +115,10 @@ class ExplodingMeta extends React.Component<Props, State> {
     let children
     switch (this.state.mode) {
       case 'countdown':
-        let bombIconSize = isMobile ? 22 : 16
+        let timerIconSize = isMobile ? 22 : 16
         if (isAndroid) {
           // icon is 24 high and clips edge of container on android. workaround
-          bombIconSize = 21
+          timerIconSize = 21
         }
         children = (
           <Box2 direction="horizontal" gap="xtiny">
@@ -141,7 +141,7 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Text>
               </Box2>
             )}
-            <Icon type="iconfont-timer" fontSize={bombIconSize} color={globalColors.black_75} />
+            <Icon type="iconfont-timer" fontSize={timerIconSize} color={globalColors.black_75} />
           </Box2>
         )
         break

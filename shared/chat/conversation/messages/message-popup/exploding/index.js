@@ -76,15 +76,15 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
     const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
     // Android overflow doesn't work
-    const bombVerticalOffset = isMobile ? (isAndroid ? 10 : -30) : -20
+    const timerVerticalOffset = isMobile ? (isAndroid ? 10 : -30) : -20
     return (
       <Box2
         direction="vertical"
         fullWidth={true}
-        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + bombVerticalOffset}}
+        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + timerVerticalOffset}}
       >
         <Icon
-          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: bombVerticalOffset}}
+          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: timerVerticalOffset}}
           type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
         />
         <Box2 direction="vertical" gap="tiny" gapStart={true} gapEnd={true}>
