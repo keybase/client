@@ -838,7 +838,6 @@ type BuildPaymentLocalArg struct {
 	SessionID          int                  `codec:"sessionID" json:"sessionID"`
 	From               AccountID            `codec:"from" json:"from"`
 	FromPrimaryAccount bool                 `codec:"fromPrimaryAccount" json:"fromPrimaryAccount"`
-	FromSeqno          string               `codec:"fromSeqno" json:"fromSeqno"`
 	To                 string               `codec:"to" json:"to"`
 	ToIsAccountID      bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
 	Amount             string               `codec:"amount" json:"amount"`
@@ -851,7 +850,6 @@ type BuildPaymentLocalArg struct {
 type SendPaymentLocalArg struct {
 	SessionID     int                  `codec:"sessionID" json:"sessionID"`
 	From          AccountID            `codec:"from" json:"from"`
-	FromSeqno     string               `codec:"fromSeqno" json:"fromSeqno"`
 	To            string               `codec:"to" json:"to"`
 	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
 	Amount        string               `codec:"amount" json:"amount"`

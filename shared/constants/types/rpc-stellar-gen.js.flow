@@ -24,7 +24,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'stellar.1.local.buildPaymentLocal': {|
-    inParam: $ReadOnly<{|from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String|}>,
+    inParam: $ReadOnly<{|from: AccountID, fromPrimaryAccount: Boolean, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String|}>,
     outParam: BuildPaymentResLocal,
   |},
   'stellar.1.local.buildRequestLocal': {|
@@ -116,7 +116,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'stellar.1.local.sendPaymentLocal': {|
-    inParam: $ReadOnly<{|from: AccountID, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, asset: Asset, worthAmount: String, worthCurrency?: ?OutsideCurrencyCode, secretNote: String, publicMemo: String, quickReturn: Boolean|}>,
+    inParam: $ReadOnly<{|from: AccountID, to: String, toIsAccountID: Boolean, amount: String, asset: Asset, worthAmount: String, worthCurrency?: ?OutsideCurrencyCode, secretNote: String, publicMemo: String, quickReturn: Boolean|}>,
     outParam: SendPaymentResLocal,
   |},
   'stellar.1.local.setWalletAccountAsDefaultLocal': {|

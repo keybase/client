@@ -60,7 +60,6 @@ const buildPayment = (
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
-          fromSeqno: '',
           publicMemo: state.wallets.building.publicMemo.stringValue(),
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
@@ -155,7 +154,6 @@ const sendPayment = (state: TypedState) => {
       // FIXME -- support other assets.
       asset: emptyAsset,
       from: state.wallets.builtPayment.from,
-      fromSeqno: '',
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
       secretNote: state.wallets.building.secretNote.stringValue(),
