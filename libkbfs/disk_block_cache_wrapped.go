@@ -124,7 +124,8 @@ func (cache *diskBlockCacheWrapped) Get(
 	secondaryCache := cache.syncCache
 	if preferredCacheType == DiskBlockSyncCache {
 		if cache.syncCache != nil {
-			primaryCache, secondaryCache = secondaryCache, primaryCache
+			primaryCache, secondaryCache =
+				cache.syncCache, cache.workingSetCache
 		} else {
 			log := cache.config.MakeLogger("DBC")
 			log.Warning("Sync cache is preferred, but there is no sync cache")
@@ -153,6 +154,8 @@ func (cache *diskBlockCacheWrapped) Get(
 				// The cache will log the non-fatal error, so just return nil.
 				return buf, serverHalf, prefetchStatus, nil
 			}
+			// Remove the block from the non-preferred cache (which is
+			// set to be the secondary cache at this point).
 			cache.deleteGroup.Add(1)
 			go func() {
 				defer cache.deleteGroup.Done()
