@@ -8,11 +8,19 @@
   position: relative;
   width: 100%;
 }
-.WrapperMessage-hoverBox .menu-button {
+
+.WrapperMessage-hoverBox .WrapperMessage-buttons {
+  flex-direction: row;
+  max-width: 100%;
   visibility: hidden;
+  width: 100%;
 }
-.WrapperMessage-hoverBox:hover .menu-button {
+.WrapperMessage-hoverBox:hover .WrapperMessage-buttons {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
   visibility: visible;
+  width: 100%;
 }
 .WrapperMessage-hoverBox .unfurl-closebox {
   visibility: hidden;

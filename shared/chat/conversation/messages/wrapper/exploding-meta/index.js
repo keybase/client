@@ -233,8 +233,6 @@ const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
-      alignSelf: 'flex-end',
-      height: 19,
       position: 'relative',
     },
     isMobile: {

@@ -98,23 +98,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
   }
 
-  _menuButtons = () => {
-    this.props.decorate &&
-      menuButtons({
-        conversationIDKey: this.props.conversationIDKey,
-        exploded: this.props.exploded,
-        isRevoked: this.props.isRevoked,
-        isShowingUsername: this.props.isShowingUsername,
-        message: this.props.message,
-        ordinal: this.props.ordinal,
-        setAttachmentRef: this.props.setAttachmentRef,
-        setShowingPicker: this._setShowingPicker,
-        shouldShowPopup: this.props.shouldShowPopup,
-        showMenuButton: this.state.showMenuButton,
-        toggleShowingMenu: this.props.toggleShowingMenu,
-      })
-  }
-
   _unfurlPrompts = () =>
     this.props.hasUnfurlPrompts && (
       <UnfurlPromptList conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
@@ -167,21 +150,81 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
   }
 
-  _menuAreaWidth = () => {
+  _cachedMenuStyles = {}
+  _menuAreaStyle = () => {
+    // $ForceType
+    const exploding: boolean = this.props.message.exploding
     const iconSizes = [
-      this.props.message.isRevoked ? 16 : 0, // revoked
+      this.props.isRevoked ? 16 : 0, // revoked
       16, // reactji
-      this.props.showMenuButtons ? 16 : 0, // ... menu
+      16, // ... menu
+      exploding ? 46 : 0, // exploding
     ].filter(Boolean)
     const padding = 8
-    return iconSizes.length <= 0
-      ? 0
-      : iconSizes.reduce((total, size) => total + size, iconSizes.length - 1 * padding)
+    const width =
+      iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
+
+    const key = `${width}:${this.props.isShowingUsername ? 1 : 0}`
+
+    if (!this._cachedMenuStyles[key]) {
+      this._cachedMenuStyles[key] = Styles.collapseStyles([
+        styles.menuButtons,
+        {width},
+        this.props.isShowingUsername && styles.menuButtonsWithAuthor,
+      ])
+    }
+    return this._cachedMenuStyles[key]
+  }
+
+  _messageAndButtons = () => {
+    const showMenuButton = !Styles.isMobile && this.state.showMenuButton
+    // $ForceType
+    const exploding: boolean = this.props.message.exploding
+
+    if (this.props.decorate && !this.props.exploded) {
+      return (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          {this.props.children}
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()} gap="tiny" gapStart={true}>
+            {showMenuButton && (
+              <Kb.Box className="WrapperMessage-buttons">
+                <ReactButton
+                  conversationIDKey={this.props.conversationIDKey}
+                  ordinal={this.props.ordinal}
+                  onShowPicker={this._setShowingPicker}
+                  showBorder={false}
+                />
+                <Kb.Box ref={this.props.setAttachmentRef}>
+                  {this.props.shouldShowPopup && (
+                    <Kb.Icon
+                      type="iconfont-ellipsis"
+                      onClick={this.props.toggleShowingMenu}
+                      style={styles.ellipsis}
+                      fontSize={14}
+                    />
+                  )}
+                </Kb.Box>
+              </Kb.Box>
+            )}
+            {exploding && (
+              <ExplodingMeta
+                conversationIDKey={this.props.conversationIDKey}
+                onClick={this.props.toggleShowingMenu}
+                ordinal={this.props.message.ordinal}
+              />
+            )}
+            {this.props.isRevoked && (
+              <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
+            )}
+          </Kb.Box2>
+        </Kb.Box2>
+      )
+    } else {
+      return this.props.children
+    }
   }
 
   render() {
-    // const menuButtons = this._menuButtons()
-    // {menuButtons}
     return (
       <React.Fragment>
         <LongPressable
@@ -191,9 +234,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           {...this._containerProps()}
         >
           {this._orangeLine()}
-          <Kb.Box2 direction="horizontal" />
           {this._content([
-            this.props.children,
+            this._messageAndButtons(this.props.children),
             this._unfurlPrompts(),
             this._unfurlList(),
             this._reactionsRow(),
@@ -207,89 +249,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
-type MenuButtonsProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  exploded: boolean,
-  isRevoked: boolean,
-  isShowingUsername: boolean,
-  message: Types.Message,
-  ordinal: Types.Ordinal,
-  setAttachmentRef: (ref: ?React.Component<any>) => void,
-  setShowingPicker: boolean => void,
-  shouldShowPopup: boolean,
-  showMenuButton: boolean,
-  toggleShowingMenu: () => void,
-}
-const menuButtons = (props: MenuButtonsProps) => {
-  // $ForceType
-  const exploding: boolean = props.message.exploding
-
-  return (
-    <Kb.Box2
-      direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-      gap={!Styles.isMobile ? 'tiny' : undefined}
-      gapEnd={!Styles.isMobile}
-      style={styles.controls}
-    >
-      {!props.exploded && (
-        <Kb.Box2 direction="horizontal" centerChildren={true}>
-          {props.isRevoked && (
-            <Kb.Box style={styles.revokedIconWrapper}>
-              <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
-            </Kb.Box>
-          )}
-          {!Styles.isMobile && (
-            <Kb.Box2 direction="horizontal" style={styles.menuButtonsContainer}>
-              {props.showMenuButton && (
-                <Kb.Box
-                  className="menu-button"
-                  style={Styles.collapseStyles([
-                    styles.menuButtons,
-                    props.isShowingUsername && exploding && styles.menuButtonsPosition,
-                  ])}
-                >
-                  <ReactButton
-                    conversationIDKey={props.conversationIDKey}
-                    ordinal={props.ordinal}
-                    onShowPicker={props.setShowingPicker}
-                    showBorder={false}
-                    style={styles.reactButton}
-                  />
-                  <Kb.Box ref={props.setAttachmentRef}>
-                    {props.shouldShowPopup && (
-                      <Kb.Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={14} />
-                    )}
-                  </Kb.Box>
-                </Kb.Box>
-              )}
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      )}
-      {exploding && (
-        <ExplodingMeta
-          conversationIDKey={props.conversationIDKey}
-          onClick={props.toggleShowingMenu}
-          ordinal={props.ordinal}
-          style={props.isShowingUsername ? styles.explodingMetaPosition : undefined}
-        />
-      )}
-    </Kb.Box2>
-  )
-}
-
 const styles = Styles.styleSheetCreate({
   avatar: Styles.platformStyles({
-    common: {
-      marginTop: Styles.globalMargins.xtiny,
-    },
     isElectron: {
       marginLeft: Styles.globalMargins.small,
       marginTop: -Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      // TODO
-      marginLeft: 0,
     },
   }),
   authorContainer: Styles.platformStyles({
@@ -299,7 +263,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   contentUnderAuthorContainer: Styles.platformStyles({
-    common: {},
     isElectron: {
       paddingLeft:
         // Space for below the avatar
@@ -308,67 +271,18 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.mediumLarge, // avatar
       marginTop: -Styles.globalMargins.tiny,
     },
-    isMobile: {},
-  }),
-})
-
-const OLDstyles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    position: 'relative',
-    width: '100%',
-  },
-  controls: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      height: '100%',
-      maxHeight: '100%',
-      marginRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      alignSelf: 'flex-start',
-      marginTop: 2,
-    },
-    isMobile: {
-      alignSelf: 'flex-end',
-    },
-  }),
-  explodingMetaPosition: Styles.platformStyles({
-    isElectron: {
-      bottom: 0,
-      position: 'absolute',
-      right: Styles.globalMargins.small,
-    },
   }),
   menuButtons: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'flex-start',
-      position: 'absolute',
-      right: 0,
-      top: 0,
+    common: {
+      alignSelf: 'flex-start',
+      flexShrink: 0,
+      height: 16,
+      justifyContent: 'flex-end',
+      overflow: 'hidden',
     },
   }),
-  // This contains the menu buttons. The buttons aren't mounted / visible unless you mouse over. Because we don't want their appearance
-  // to resize the text and push things around with DOM flow we make this a fixed width and ensure the children (inside .menuButtons) are
-  // absolutely positioned. The height is 0 so it never pushes a line of text down
-  menuButtonsContainer: {
-    flexShrink: 0,
-    height: 0,
-    position: 'relative',
-    width: 53,
-  },
-  menuButtonsPosition: {
-    left: Styles.globalMargins.tiny,
-    position: 'relative',
-  },
-  orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
-  reactButton: {
-    marginTop: -3,
-  },
-  revokedIconWrapper: {
-    marginBottom: 1,
-  },
+  menuButtonsWithAuthor: {marginTop: -16},
+  ellipsis: {marginLeft: Styles.globalMargins.tiny},
 })
 
 export default WrapperMessage
