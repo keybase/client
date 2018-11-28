@@ -1,6 +1,8 @@
 .WrapperMessage-hoverBox {
   padding-bottom: 2px;
   padding-top: 2px;
+  padding-left: 56px;
+  padding-right: 8px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -25,4 +27,7 @@
 }
 .WrapperMessage-decorated:hover {
   background-color: #f7f9fc;
+}
+.WrapperMessage-author {
+  padding-left: 0;
 }

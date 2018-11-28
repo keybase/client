@@ -4,7 +4,6 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Kb from '../../../../../common-adapters'
 import {dismiss as dismissKeyboard} from '../../../../../util/keyboard'
 import * as Styles from '../../../../../styles'
-import WrapperAuthor from '../wrapper-author/container'
 import ReactionsRow from '../../reactions-row/container'
 import UnfurlPromptList from '../../unfurl/prompt-list/container'
 import UnfurlList from '../../unfurl/unfurl-list/container'
@@ -12,6 +11,7 @@ import ReactButton from '../../react-button/container'
 import MessagePopup from '../../message-popup'
 import ExplodingMeta from '../exploding-meta/container'
 import LongPressable from './long-pressable'
+import {formatTimeForChat} from '../../../../../util/timestamp'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
@@ -59,105 +59,147 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _dismissKeyboard = () => dismissKeyboard()
 
-  render() {
-    const props = this.props
-    const orangeLine = props.orangeLineAbove && <Kb.Box2 direction="vertical" style={styles.orangeLine} />
-    const children = props.type === 'children' && props.children
+  _orangeLine = () => this.props.orangeLineAbove && <Kb.Box2 direction="vertical" style={styles.orangeLine} />
 
-    // Additional checks on props.message.type to appease flow
-    const wrapperAuthor = props.type === 'wrapper-author' &&
-      (props.message.type === 'attachment' ||
-        props.message.type === 'text' ||
-        props.message.type === 'sendPayment' ||
-        props.message.type === 'requestPayment') && (
-        <WrapperAuthor
-          message={props.message}
-          previous={props.previous}
-          isEditing={props.isEditing}
-          measure={props.measure}
-          toggleMessageMenu={props.toggleShowingMenu}
-        />
+  _content = children => {
+    if (this.props.isShowingUsername) {
+      return (
+        <>
+          <Kb.Box2 direction="horizontal" style={styles.authorContainer} gap="tiny">
+            <Kb.Avatar
+              size={32}
+              username={this.props.message.author}
+              skipBackground={true}
+              onClick={this.props.onAuthorClick}
+              style={styles.avatar}
+            />
+            <Kb.ConnectedUsernames
+              colorBroken={true}
+              colorFollowing={true}
+              colorYou={true}
+              type="BodySmallSemibold"
+              usernames={[this.props.message.author]}
+              onUsernameClicked="profile"
+            />
+            <Kb.Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={styles.contentUnderAuthorContainer}
+            gap="tiny"
+          >
+            {children}
+          </Kb.Box2>
+        </>
       )
-
-    const buttons =
-      props.decorate &&
-      menuButtons({
-        conversationIDKey: props.conversationIDKey,
-        exploded: props.exploded,
-        isRevoked: props.isRevoked,
-        isShowingUsername: props.isShowingUsername,
-        message: props.message,
-        ordinal: props.ordinal,
-        setAttachmentRef: props.setAttachmentRef,
-        setShowingPicker: this._setShowingPicker,
-        shouldShowPopup: props.shouldShowPopup,
-        showMenuButton: this.state.showMenuButton,
-        toggleShowingMenu: props.toggleShowingMenu,
-      })
-
-    const unfurlPrompts = props.hasUnfurlPrompts && (
-      <UnfurlPromptList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-    )
-
-    // $ForceType
-    const unfurls = props.message.unfurls
-    const unfurlList = unfurls && !unfurls.isEmpty() && (
-      <UnfurlList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-    )
-
-    // $ForceType
-    const reactions = props.message.reactions
-    const reactionsRow = reactions && !reactions.isEmpty() && (
-      <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-    )
-
-    const popup = (props.message.type === 'text' ||
-      props.message.type === 'attachment' ||
-      props.message.type === 'sendPayment' ||
-      props.message.type === 'requestPayment') &&
-      props.shouldShowPopup && (
-        <MessagePopup
-          attachTo={props.getAttachmentRef}
-          message={props.message}
-          onHidden={props.toggleShowingMenu}
-          position="top center"
-          visible={props.showingMenu}
-        />
-      )
-
-    const longPressProps = {
-      className: Styles.classNames('WrapperMessage-hoverBox', {
-        'WrapperMessage-decorated': this.props.decorate,
-        active: this.props.showingMenu || this.state.showingPicker,
-      }),
-      ...(Styles.isMobile && this.props.decorate
-        ? {
-            onLongPress: this.props.toggleShowingMenu,
-            onPress: this._dismissKeyboard,
-            underlayColor: Styles.globalColors.blue5,
-          }
-        : {}),
+    } else {
+      return children
     }
+  }
 
+  _menuButtons = () => {
+    this.props.decorate &&
+      menuButtons({
+        conversationIDKey: this.props.conversationIDKey,
+        exploded: this.props.exploded,
+        isRevoked: this.props.isRevoked,
+        isShowingUsername: this.props.isShowingUsername,
+        message: this.props.message,
+        ordinal: this.props.ordinal,
+        setAttachmentRef: this.props.setAttachmentRef,
+        setShowingPicker: this._setShowingPicker,
+        shouldShowPopup: this.props.shouldShowPopup,
+        showMenuButton: this.state.showMenuButton,
+        toggleShowingMenu: this.props.toggleShowingMenu,
+      })
+  }
+
+  _unfurlPrompts = () =>
+    this.props.hasUnfurlPrompts && (
+      <UnfurlPromptList conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
+    )
+
+  _unfurlList = () =>
+    this.props.message.unfurls &&
+    !this.props.message.unfurls.isEmpty() && (
+      <UnfurlList conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
+    )
+
+  _reactionsRow = () =>
+    this.props.message.reactions &&
+    !this.props.message.reactions.isEmpty() && (
+      <ReactionsRow conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
+    )
+
+  _popup = () =>
+    (this.props.message.type === 'text' ||
+      this.props.message.type === 'attachment' ||
+      this.props.message.type === 'sendPayment' ||
+      this.props.message.type === 'requestPayment') &&
+    this.props.shouldShowPopup && (
+      <MessagePopup
+        attachTo={this.props.getAttachmentRef}
+        message={this.props.message}
+        onHidden={this.props.toggleShowingMenu}
+        position="top center"
+        visible={this.props.showingMenu}
+      />
+    )
+
+  _containerProps = () => {
+    if (Styles.isMobile) {
+      if (this.props.decorate) {
+        return {
+          onLongPress: this.props.toggleShowingMenu,
+          onPress: this._dismissKeyboard,
+          underlayColor: Styles.globalColors.blue5,
+        }
+      }
+    } else {
+      return {
+        className: Styles.classNames('WrapperMessage-hoverBox', {
+          'WrapperMessage-author': this.props.isShowingUsername, // TODO mobile
+          'WrapperMessage-decorated': this.props.decorate,
+          active: this.props.showingMenu || this.state.showingPicker,
+        }),
+      }
+    }
+  }
+
+  _menuAreaWidth = () => {
+    const iconSizes = [
+      this.props.message.isRevoked ? 16 : 0, // revoked
+      16, // reactji
+      this.props.showMenuButtons ? 16 : 0, // ... menu
+    ].filter(Boolean)
+    const padding = 8
+    return iconSizes.length <= 0
+      ? 0
+      : iconSizes.reduce((total, size) => total + size, iconSizes.length - 1 * padding)
+  }
+
+  render() {
+    // const menuButtons = this._menuButtons()
+    // {menuButtons}
     return (
       <React.Fragment>
         <LongPressable
           direction="vertical"
           fullWidth={true}
           onMouseOver={this._onMouseOver}
-          {...longPressProps}
+          {...this._containerProps()}
         >
-          {orangeLine}
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {children}
-            {wrapperAuthor}
-            {buttons}
-          </Kb.Box2>
-          {unfurlPrompts}
-          {unfurlList}
-          {reactionsRow}
+          {this._orangeLine()}
+          <Kb.Box2 direction="horizontal" />
+          {this._content([
+            this.props.children,
+            this._unfurlPrompts(),
+            this._unfurlList(),
+            this._reactionsRow(),
+          ])}
         </LongPressable>
-        {popup}
+        {this._popup()}
       </React.Fragment>
     )
   }
@@ -237,6 +279,40 @@ const menuButtons = (props: MenuButtonsProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  avatar: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      marginLeft: Styles.globalMargins.small,
+      marginTop: -Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      // TODO
+      marginLeft: 0,
+    },
+  }),
+  authorContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  contentUnderAuthorContainer: Styles.platformStyles({
+    common: {},
+    isElectron: {
+      paddingLeft:
+        // Space for below the avatar
+        Styles.globalMargins.tiny + // right margin
+        Styles.globalMargins.small + // left margin
+        Styles.globalMargins.mediumLarge, // avatar
+      marginTop: -Styles.globalMargins.tiny,
+    },
+    isMobile: {},
+  }),
+})
+
+const OLDstyles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     position: 'relative',

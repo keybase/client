@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {WrapperMessage} from '../'
 import * as Constants from '../../../../../constants/chat2'
+import * as MessageConstants from '../../../../../constants/chat2/message'
 import * as Types from '../../../../../constants/types/chat2'
 import {namedConnect} from '../../../../../util/container'
 
@@ -24,7 +25,7 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
     // special case. "You joined #<channel>" messages render with a blue user notice so don't decorate those
     return message.author !== you
   }
-  return Constants.decoratedMessageTypes.includes(message.type)
+  return decoratedMessageTypes.includes(message.type)
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -44,6 +45,23 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
+// Used to decide whether to show the author wrapper
+const showAuthorMessageTypes = ['attachment', 'requestPayment', 'sendPayment', 'text']
+
+// Used to decide whether to show react button / message menu
+const decoratedMessageTypes: Array<Types.MessageType> = [
+  'attachment',
+  'text',
+  'requestPayment',
+  'sendPayment',
+  'systemAddedToTeam',
+  'systemLeft',
+]
+
+// Used to decide whether to show the author for sequential messages
+const authorIsCollapsible = (m: Types.Message) =>
+  m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {ordinal, previous} = stateProps
   const {message} = ownProps
@@ -51,14 +69,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
-    Constants.authorIsCollapsible(message) &&
-    Constants.authorIsCollapsible(previous)
-  const isShowingUsername = !previous || !sequentialUserMessages
+    authorIsCollapsible(message) &&
+    authorIsCollapsible(previous)
 
   let type = 'children'
-  if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
-    type = 'wrapper-author'
-  }
+  // if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
+  // type = 'wrapper-author'
+  // }
+
+  const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
+  const timestamp = stateProps.lastPositionExists || !previous || enoughTimeBetween ? message.timestamp : null
+  const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
 
   const decorate = shouldDecorateMessage(message, stateProps._you)
 

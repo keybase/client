@@ -6,6 +6,7 @@ import {globalColors} from '../../../styles'
 import chooseEmoji from './react-button/emoji-picker/index.stories'
 import placeholder from './placeholder/index.stories'
 import reactButton from './react-button/index.stories'
+import wrapper from './wrapper/index.stories'
 import reactionTooltip from './reaction-tooltip/index.stories'
 import text from './text/index.stories'
 import accountPayment from './account-payment/index.stories'
@@ -13,8 +14,8 @@ import unfurl from './unfurl/index.stories'
 import UserNotice from './user-notice'
 
 const load = () => {
-  ;[chooseEmoji, placeholder, reactButton, reactionTooltip, text, accountPayment, unfurl].forEach(load =>
-    load()
+  ;[chooseEmoji, placeholder, reactButton, reactionTooltip, text, accountPayment, unfurl, wrapper].forEach(
+    load => load()
   )
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (

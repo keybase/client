@@ -11,8 +11,12 @@ import SystemSimpleToComplex from './system-simple-to-complex/container'
 import SystemText from './system-text/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
+import TextMessage from './text/container'
+import AttachmentMessage from './attachment/container'
+import PaymentMessage from './account-payment/container'
 import Placeholder from './placeholder/container'
 import WrapperMessage from './wrapper/wrapper-message/container'
+import WrapperAuthor from './wrapper/wrapper-author/container'
 import {namedConnect, compose, lifecycle} from '../../../util/container'
 
 type OwnProps = {|
@@ -44,7 +48,11 @@ class MessageFactory extends React.PureComponent<Props> {
 
     switch (this.props.message.type) {
       case 'text':
-        return <WrapperMessage {...messageWrapperProps} />
+        return (
+          <WrapperMessage {...messageWrapperProps}>
+            <TextMessage message={this.props.message} isEditing={this.props.isEditing} />
+          </WrapperMessage>
+        )
       case 'attachment':
         return <WrapperMessage {...messageWrapperProps} />
       case 'requestPayment':

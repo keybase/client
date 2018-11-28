@@ -53,15 +53,6 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
       marginBottom: Styles.globalMargins.xtiny,
     },
-    // See ReactionRow for where this calculation comes from
-    isElectron: {
-      marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.tiny,
-      width: '100%',
-    },
   }),
 })
 

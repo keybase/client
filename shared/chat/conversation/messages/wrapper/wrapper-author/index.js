@@ -91,33 +91,21 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
         </Kb.Text>
       )}
       {!!onCancel && <Kb.Text type="BodySmall"> or </Kb.Text>}
-      {!!onEdit && resolveByEdit && (
-        <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
-          Edit
-        </Kb.Text>
-      )}
-      {!!onRetry && !resolveByEdit && (
-        <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
-          Retry
-        </Kb.Text>
-      )}
+      {!!onEdit &&
+        resolveByEdit && (
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
+            Edit
+          </Kb.Text>
+        )}
+      {!!onRetry &&
+        !resolveByEdit && (
+          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
+            Retry
+          </Kb.Text>
+        )}
     </Kb.Text>
   )
 }
-
-const leftSide = props => (
-  <Kb.Box style={styles.leftSide}>
-    {props.includeHeader && (
-      <Kb.Avatar
-        size={32}
-        username={props.author}
-        skipBackground={true}
-        onClick={props.onAuthorClick}
-        style={styles.userAvatar}
-      />
-    )}
-  </Kb.Box>
-)
 
 const rightSide = props => {
   const content = (
@@ -137,7 +125,7 @@ const rightSide = props => {
     </>
   )
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}>
+    <Kb.Box style={Styles.collapseStyles([styles.rightSide, props.includeHeader && styles.nameAndTimestamp])}>
       {props.includeHeader && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.usernameTimestamp}>
           {username({
@@ -168,15 +156,16 @@ const rightSide = props => {
           content
         )}
       </Kb.Box>
-      {!!props.failureDescription && !props.exploded && (
-        <Failure
-          failureDescription={props.failureDescription}
-          isExplodingUnreadable={props.isExplodingUnreadable}
-          onRetry={props.onRetry}
-          onEdit={props.onEdit}
-          onCancel={props.onCancel}
-        />
-      )}
+      {!!props.failureDescription &&
+        !props.exploded && (
+          <Failure
+            failureDescription={props.failureDescription}
+            isExplodingUnreadable={props.isExplodingUnreadable}
+            onRetry={props.onRetry}
+            onEdit={props.onEdit}
+            onCancel={props.onCancel}
+          />
+        )}
       <Kb.Box style={styles.sendIndicator}>
         {props.isYou && (
           <SendIndicator
@@ -201,25 +190,48 @@ class WrapperAuthor extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={this.props.includeHeader ? styles.hasHeader : null}
-      >
-        {leftSide(this.props)}
-        {rightSide(this.props)}
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        {this.props.includeHeader && (
+          <Kb.Avatar
+            size={32}
+            username={this.props.author}
+            skipBackground={true}
+            onClick={this.props.onAuthorClick}
+            style={styles.avatar}
+          />
+        )}
       </Kb.Box2>
     )
   }
 }
+// {leftSide(this.props)}
+// {rightSide(this.props)}
 
 const styles = Styles.styleSheetCreate({
+  avatar: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      marginLeft: Styles.globalMargins.small,
+    },
+    isMobile: {
+      // TODO
+      marginLeft: 0,
+    },
+  }),
+})
+
+const OLDstyles = Styles.styleSheetCreate({
   edited: {color: Styles.globalColors.black_20},
   fail: {color: Styles.globalColors.red},
   failStyleUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...Styles.globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...Styles.globalStyles.flexBoxRow, flex: 1},
-  hasHeader: {paddingTop: Styles.globalMargins.xtiny},
+  topPadding: {paddingTop: Styles.globalMargins.xtiny},
+  nameAndTimestamp: Styles.platformStyles({
+    isElectron: {paddingTop: 16},
+  }),
   leftSide: Styles.platformStyles({
     common: {
       flexShrink: 0,
@@ -268,7 +280,6 @@ const styles = Styles.styleSheetCreate({
   userAvatar: {
     flexShrink: 0,
     height: 32,
-    paddingTop: Styles.globalMargins.xtiny,
     width: 32,
   },
   usernameTimestamp: {

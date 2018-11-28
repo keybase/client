@@ -275,14 +275,14 @@ const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSyst
   type: 'systemInviteAccepted',
 })
 
-const makeMessageSystemSimpleToComplex: I.RecordFactory<MessageTypes._MessageSystemSimpleToComplex> = I.Record(
-  {
-    ...makeMessageMinimum,
-    reactions: I.Map(),
-    team: '',
-    type: 'systemSimpleToComplex',
-  }
-)
+const makeMessageSystemSimpleToComplex: I.RecordFactory<
+  MessageTypes._MessageSystemSimpleToComplex
+> = I.Record({
+  ...makeMessageMinimum,
+  reactions: I.Map(),
+  team: '',
+  type: 'systemSimpleToComplex',
+})
 
 const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = I.Record({
   ...makeMessageMinimum,
@@ -1100,20 +1100,3 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '7 days', seconds: 86400 * 7},
   {text: 'Never explode (turn off)', seconds: 0},
 ].reverse()
-
-// Used to decide whether to show the author wrapper
-export const showAuthorMessageTypes = ['attachment', 'requestPayment', 'sendPayment', 'text']
-
-// Used to decide whether to show react button / message menu
-export const decoratedMessageTypes: Array<Types.MessageType> = [
-  'attachment',
-  'text',
-  'requestPayment',
-  'sendPayment',
-  'systemAddedToTeam',
-  'systemLeft',
-]
-
-// Used to decide whether to show the author for sequential messages
-export const authorIsCollapsible = (m: Types.Message) =>
-  m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'

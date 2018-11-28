@@ -98,8 +98,6 @@ const styles = styleSheetCreate({
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',
-    // refer to `WrapperAuthor` styles
-    marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
     paddingRight: 66,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
