@@ -749,7 +749,10 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 	t.Log("Move the block by getting it with a different preferred cache.")
 	_, _, _, err = cache.Get(ctx, tlf1, block1Ptr.ID, DiskBlockSyncCache)
 	require.NoError(t, err)
+	err = cache.waitForDeletes(ctx)
+	require.NoError(t, err)
 	require.Equal(t, 1, cache.syncCache.numBlocks)
+	require.Equal(t, 0, cache.workingSetCache.numBlocks)
 
 	t.Log("After the move, make sure the prefetch status is right.")
 	_, _, prefetchStatus, err := cache.Get(

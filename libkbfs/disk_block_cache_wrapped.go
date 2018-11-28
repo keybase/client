@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
@@ -40,6 +41,7 @@ type diskBlockCacheWrapped struct {
 	mtx             sync.RWMutex
 	workingSetCache *DiskBlockCacheLocal
 	syncCache       *DiskBlockCacheLocal
+	deleteGroup     kbfssync.RepeatedWaitGroup
 }
 
 var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
@@ -151,7 +153,11 @@ func (cache *diskBlockCacheWrapped) Get(
 				// The cache will log the non-fatal error, so just return nil.
 				return buf, serverHalf, prefetchStatus, nil
 			}
-			go secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
+			cache.deleteGroup.Add(1)
+			go func() {
+				defer cache.deleteGroup.Done()
+				secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
+			}()
 		}
 	}
 	return buf, serverHalf, prefetchStatus, err
@@ -190,7 +196,11 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 		err := cache.syncCache.Put(
 			ctx, tlfID, blockID, buf, serverHalf, cacheType)
 		if err == nil {
-			go workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
+			cache.deleteGroup.Add(1)
+			go func() {
+				defer cache.deleteGroup.Done()
+				workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
+			}()
 			return nil
 		}
 		// Otherwise drop through and put it into the working set cache.
@@ -199,7 +209,11 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	// the working set cache.
 	if cache.syncCache != nil {
 		syncCache := cache.syncCache
-		go syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+		cache.deleteGroup.Add(1)
+		go func() {
+			defer cache.deleteGroup.Done()
+			syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+		}()
 	}
 	return cache.workingSetCache.Put(
 		ctx, tlfID, blockID, buf, serverHalf, cacheType)
@@ -298,6 +312,10 @@ func (cache *diskBlockCacheWrapped) Status(
 		statuses[name] = status
 	}
 	return statuses
+}
+
+func (cache *diskBlockCacheWrapped) waitForDeletes(ctx context.Context) error {
+	return cache.deleteGroup.Wait(ctx)
 }
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.
