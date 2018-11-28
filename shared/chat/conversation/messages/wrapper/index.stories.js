@@ -29,7 +29,6 @@ const props = {
   ordinal: Types.numberToOrdinal(1),
   previous: null,
   shouldShowPopup: false,
-  type: 'wrapper-author',
 }
 
 const provider = Sb.createPropProviderWithCommon({

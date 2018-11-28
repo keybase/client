@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {WrapperMessage} from '../'
+import WrapperMessage from '.'
 import * as Constants from '../../../../../constants/chat2'
 import * as MessageConstants from '../../../../../constants/chat2/message'
 import * as Types from '../../../../../constants/types/chat2'
@@ -72,13 +72,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     authorIsCollapsible(message) &&
     authorIsCollapsible(previous)
 
-  let type = 'children'
-  // if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
-  // type = 'wrapper-author'
-  // }
-
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
-  const timestamp = stateProps.lastPositionExists || !previous || enoughTimeBetween ? message.timestamp : null
+  const timestamp = stateProps.orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
 
   const decorate = shouldDecorateMessage(message, stateProps._you)
@@ -97,7 +92,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ordinal,
     previous: ownProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
-    type,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
   }
 }

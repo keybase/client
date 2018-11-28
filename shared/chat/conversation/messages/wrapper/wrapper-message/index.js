@@ -30,9 +30,6 @@ export type Props = {|
   previous: ?Types.Message,
   children?: React.Node,
   isEditing: boolean,
-  // 'children': render children directly
-  // 'wrapper-author': additionally render WrapperAuthor and tell it the message type
-  type: 'wrapper-author' | 'children',
   orangeLineAbove: boolean,
   shouldShowPopup: boolean,
   hasUnfurlPrompts: boolean,
