@@ -8677,13 +8677,13 @@ func (mr *MockConfigMockRecorder) SetDelayedCancellationGracePeriod(arg0 interfa
 }
 
 // ResetCaches mocks base method
-func (m *MockConfig) ResetCaches(arg0 InitMode) {
-	m.ctrl.Call(m, "ResetCaches", arg0)
+func (m *MockConfig) ResetCaches() {
+	m.ctrl.Call(m, "ResetCaches")
 }
 
 // ResetCaches indicates an expected call of ResetCaches
-func (mr *MockConfigMockRecorder) ResetCaches(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetCaches", reflect.TypeOf((*MockConfig)(nil).ResetCaches), arg0)
+func (mr *MockConfigMockRecorder) ResetCaches() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetCaches", reflect.TypeOf((*MockConfig)(nil).ResetCaches))
 }
 
 // StorageRoot mocks base method
