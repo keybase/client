@@ -8,7 +8,7 @@ type OwnProps = {teamname: string}
 
 const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onHideSubteamsBanner: () =>
     dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawSubteamsBanner'})),
   onReadMore: () => openURL('https://keybase.io/docs/teams/design'),

@@ -84,6 +84,7 @@ const load = () => {
             onSelectUser={Sb.action('onSelectUser')}
             selectUpCounter={upCounter}
             selectDownCounter={downCounter}
+            setMentionHudIsShowing={Sb.action('setMentionHudIsShowing')}
             pickSelectedUserCounter={0}
             filter={filter}
             style={{flex: 1}}

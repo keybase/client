@@ -81,162 +81,56 @@ type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
 type _DismissFsErrorPayload = $ReadOnly<{|key: string|}>
-type _DownloadPayload = $ReadOnly<{|
-  path: Types.Path,
-  key: string,
-|}>
-type _DownloadProgressPayload = $ReadOnly<{|
-  key: string,
-  completePortion: number,
-  endEstimate?: number,
-|}>
-type _DownloadStartedPayload = $ReadOnly<{|
-  entryType?: Types.PathType,
-  key: string,
-  path: Types.Path,
-  localPath: Types.LocalPath,
-  intent: Types.DownloadIntent,
-  opID: RPCTypes.OpID,
-|}>
-type _DownloadSuccessPayload = $ReadOnly<{|
-  key: string,
-  mimeType: string,
-|}>
-type _EditSuccessPayload = $ReadOnly<{|
-  editID: Types.EditID,
-  parentPath: Types.Path,
-|}>
-type _FavoriteIgnoreErrorPayload = $ReadOnly<{|
-  path: Types.Path,
-  error: Types.FsError,
-|}>
+type _DownloadPayload = $ReadOnly<{|path: Types.Path, key: string|}>
+type _DownloadProgressPayload = $ReadOnly<{|key: string, completePortion: number, endEstimate?: number|}>
+type _DownloadStartedPayload = $ReadOnly<{|entryType?: Types.PathType, key: string, path: Types.Path, localPath: Types.LocalPath, intent: Types.DownloadIntent, opID: RPCTypes.OpID|}>
+type _DownloadSuccessPayload = $ReadOnly<{|key: string, mimeType: string|}>
+type _EditSuccessPayload = $ReadOnly<{|editID: Types.EditID, parentPath: Types.Path|}>
+type _FavoriteIgnoreErrorPayload = $ReadOnly<{|path: Types.Path, error: Types.FsError|}>
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
-type _FavoritesLoadedPayload = $ReadOnly<{|
-  private: I.Map<string, Types.Tlf>,
-  public: I.Map<string, Types.Tlf>,
-  team: I.Map<string, Types.Tlf>,
-|}>
-type _FilePreviewLoadPayload = $ReadOnly<{|
-  path: Types.Path,
-  identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior,
-|}>
-type _FilePreviewLoadedPayload = $ReadOnly<{|
-  path: Types.Path,
-  meta: Types.PathItem,
-|}>
-type _FolderListLoadPayload = $ReadOnly<{|
-  path: Types.Path,
-  refreshTag?: Types.RefreshTag,
-|}>
-type _FolderListLoadedPayload = $ReadOnly<{|
-  path: Types.Path,
-  pathItems: I.Map<Types.Path, Types.PathItem>,
-|}>
+type _FavoritesLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.Tlf>, public: I.Map<string, Types.Tlf>, team: I.Map<string, Types.Tlf>|}>
+type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path, identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior|}>
+type _FilePreviewLoadedPayload = $ReadOnly<{|path: Types.Path, meta: Types.PathItem|}>
+type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
+type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _FuseStatusPayload = void
-type _FuseStatusResultPayload = $ReadOnly<{|
-  prevStatus: ?RPCTypes.FuseStatus,
-  status: RPCTypes.FuseStatus,
-|}>
+type _FuseStatusResultPayload = $ReadOnly<{|prevStatus: ?RPCTypes.FuseStatus, status: RPCTypes.FuseStatus|}>
 type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
-type _JournalUpdatePayload = $ReadOnly<{|
-  syncingPaths: Array<Types.Path>,
-  totalSyncingBytes: number,
-  endEstimate?: ?number,
-|}>
-type _LetResetUserBackInPayload = $ReadOnly<{|
-  id: RPCTypes.TeamID,
-  username: string,
-|}>
-type _LoadingPathPayload = $ReadOnly<{|
-  path: Types.Path,
-  id: string,
-  done: boolean,
-|}>
-type _LocalHTTPServerInfoPayload = $ReadOnly<{|
-  address: string,
-  token: string,
-|}>
-type _MimeTypeLoadPayload = $ReadOnly<{|
-  path: Types.Path,
-  refreshTag?: Types.RefreshTag,
-|}>
-type _MimeTypeLoadedPayload = $ReadOnly<{|
-  path: Types.Path,
-  mimeType: Types.Mime,
-|}>
-type _MoveOrCopyOpenPayload = $ReadOnly<{|
-  routePath: I.List<string>,
-  path: Types.Path,
-  currentIndex: number,
-|}>
+type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
+type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
+type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
+type _LocalHTTPServerInfoPayload = $ReadOnly<{|address: string, token: string|}>
+type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
+type _MimeTypeLoadedPayload = $ReadOnly<{|path: Types.Path, mimeType: Types.Mime|}>
+type _MoveOrCopyOpenPayload = $ReadOnly<{|routePath: I.List<string>, path: Types.Path, currentIndex: number|}>
 type _MovePayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
-type _NewFolderNamePayload = $ReadOnly<{|
-  editID: Types.EditID,
-  name: string,
-|}>
+type _NewFolderNamePayload = $ReadOnly<{|editID: Types.EditID, name: string|}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
 type _NotifySyncActivityPayload = void
 type _NotifyTlfUpdatePayload = $ReadOnly<{|tlfPath: Types.Path|}>
-type _OpenAndUploadPayload = $ReadOnly<{|
-  type: Types.OpenDialogType,
-  parentPath: Types.Path,
-|}>
-type _OpenFilesFromWidgetPayload = $ReadOnly<{|
-  path: Types.Path,
-  type: Types.PathType,
-|}>
+type _OpenAndUploadPayload = $ReadOnly<{|type: Types.OpenDialogType, parentPath: Types.Path|}>
+type _OpenFilesFromWidgetPayload = $ReadOnly<{|path: Types.Path, type: Types.PathType|}>
 type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|path: string|}>
-type _OpenPathInFilesTabPayload = $ReadOnly<{|
-  path: Types.Path,
-  routePath?: I.List<string>,
-|}>
+type _OpenPathInFilesTabPayload = $ReadOnly<{|path: Types.Path, routePath?: I.List<string>|}>
 type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
-type _OpenPathItemPayload = $ReadOnly<{|
-  path: Types.Path,
-  routePath: I.List<string>,
-|}>
+type _OpenPathItemPayload = $ReadOnly<{|path: Types.Path, routePath: I.List<string>|}>
 type _OpenSecurityPreferencesPayload = void
-type _PickAndUploadPayload = $ReadOnly<{|
-  type: Types.MobilePickType,
-  parentPath: Types.Path,
-|}>
+type _PickAndUploadPayload = $ReadOnly<{|type: Types.MobilePickType, parentPath: Types.Path|}>
 type _PlaceholderActionPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
-type _SaveMediaPayload = $ReadOnly<{|
-  path: Types.Path,
-  key: string,
-|}>
-type _SetFlagsPayload = $ReadOnly<{|
-  kbfsOpening?: boolean,
-  kbfsInstalling?: boolean,
-  fuseInstalling?: boolean,
-  kextPermissionError?: boolean,
-  securityPrefsPrompted?: boolean,
-  showBanner?: boolean,
-|}>
-type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|
-  index: number,
-  path: Types.Path,
-|}>
+type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
+type _SetFlagsPayload = $ReadOnly<{|kbfsOpening?: boolean, kbfsInstalling?: boolean, fuseInstalling?: boolean, kextPermissionError?: boolean, securityPrefsPrompted?: boolean, showBanner?: boolean|}>
+type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
-type _ShareNativePayload = $ReadOnly<{|
-  path: Types.Path,
-  key: string,
-|}>
+type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
-type _SortSettingPayload = $ReadOnly<{|
-  path: Types.Path,
-  sortSetting: Types.SortSetting,
-|}>
+type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
 type _UninstallKBFSConfirmPayload = void
-type _UploadPayload = $ReadOnly<{|
-  parentPath: Types.Path,
-  localPath: string,
-|}>
+type _UploadPayload = $ReadOnly<{|parentPath: Types.Path, localPath: string|}>
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingSuccessPayload = $ReadOnly<{|path: Types.Path|}>
 type _UserFileEditsLoadPayload = void

@@ -91,18 +91,16 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
         </Kb.Text>
       )}
       {!!onCancel && <Kb.Text type="BodySmall"> or </Kb.Text>}
-      {!!onEdit &&
-        resolveByEdit && (
-          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
-            Edit
-          </Kb.Text>
-        )}
-      {!!onRetry &&
-        !resolveByEdit && (
-          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
-            Retry
-          </Kb.Text>
-        )}
+      {!!onEdit && resolveByEdit && (
+        <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
+          Edit
+        </Kb.Text>
+      )}
+      {!!onRetry && !resolveByEdit && (
+        <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
+          Retry
+        </Kb.Text>
+      )}
     </Kb.Text>
   )
 }
@@ -170,16 +168,15 @@ const rightSide = props => {
           content
         )}
       </Kb.Box>
-      {!!props.failureDescription &&
-        !props.exploded && (
-          <Failure
-            failureDescription={props.failureDescription}
-            isExplodingUnreadable={props.isExplodingUnreadable}
-            onRetry={props.onRetry}
-            onEdit={props.onEdit}
-            onCancel={props.onCancel}
-          />
-        )}
+      {!!props.failureDescription && !props.exploded && (
+        <Failure
+          failureDescription={props.failureDescription}
+          isExplodingUnreadable={props.isExplodingUnreadable}
+          onRetry={props.onRetry}
+          onEdit={props.onEdit}
+          onCancel={props.onCancel}
+        />
+      )}
       <Kb.Box style={styles.sendIndicator}>
         {props.isYou && (
           <SendIndicator

@@ -51,26 +51,13 @@ type _CancelPgpGenPayload = void
 type _CheckProofPayload = void
 type _CleanupUsernamePayload = void
 type _DropPgpPayload = $ReadOnly<{|kid: RPCTypes.KID|}>
-type _EditProfilePayload = $ReadOnly<{|
-  bio: string,
-  fullname: string,
-  location: string,
-|}>
+type _EditProfilePayload = $ReadOnly<{|bio: string, fullname: string, location: string|}>
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = $ReadOnly<{|shouldStoreKeyOnServer: boolean|}>
 type _GeneratePgpPayload = void
-type _OnClickAvatarPayload = $ReadOnly<{|
-  username: string,
-  openWebsite?: ?boolean,
-|}>
-type _OnClickFollowersPayload = $ReadOnly<{|
-  username: string,
-  openWebsite?: ?boolean,
-|}>
-type _OnClickFollowingPayload = $ReadOnly<{|
-  username: string,
-  openWebsite?: ?boolean,
-|}>
+type _OnClickAvatarPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
+type _OnClickFollowersPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
+type _OnClickFollowingPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
 type _OutputInstructionsActionLinkPayload = void
 type _RevokeFinishPayload = void
 type _RevokeFinishPayloadError = $ReadOnly<{|error: string|}>
@@ -80,25 +67,16 @@ type _SubmitBTCAddressPayload = void
 type _SubmitRevokeProofPayload = $ReadOnly<{|proofId: string|}>
 type _SubmitUsernamePayload = void
 type _SubmitZcashAddressPayload = void
-type _UpdateErrorTextPayload = $ReadOnly<{|
-  errorText?: ?string,
-  errorCode?: ?number,
-|}>
+type _UpdateErrorTextPayload = $ReadOnly<{|errorText?: ?string, errorCode?: ?number|}>
 type _UpdatePgpInfoPayload = $ReadOnly<{|info: $Shape<Types.PgpInfo>|}>
 type _UpdatePgpInfoPayloadError = $ReadOnly<{|error: Types.PgpInfoError|}>
 type _UpdatePgpPublicKeyPayload = $ReadOnly<{|publicKey: string|}>
 type _UpdatePlatformPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
-type _UpdateProofStatusPayload = $ReadOnly<{|
-  found: boolean,
-  status: RPCTypes.ProofStatus,
-|}>
+type _UpdateProofStatusPayload = $ReadOnly<{|found: boolean, status: RPCTypes.ProofStatus|}>
 type _UpdateProofTextPayload = $ReadOnly<{|proof: string|}>
 type _UpdateSigIDPayload = $ReadOnly<{|sigID: ?RPCTypes.SigID|}>
 type _UpdateUsernamePayload = $ReadOnly<{|username: string|}>
-type _UploadAvatarPayload = $ReadOnly<{|
-  filename: string,
-  crop?: RPCTypes.ImageCropRect,
-|}>
+type _UploadAvatarPayload = $ReadOnly<{|filename: string, crop?: RPCTypes.ImageCropRect|}>
 type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators

@@ -28,7 +28,7 @@ type IconProps = {
 }
 
 const ServiceIcon = (props: IconProps) => (
-  <Kb.ClickableBox onClick={props.onClick}>
+  <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
       <Kb.Icon
         type={serviceIdToIconFont(props.service)}
@@ -46,15 +46,20 @@ const ServiceIcon = (props: IconProps) => (
           <Kb.Icon
             type="icon-progress-grey-animated"
             color={Styles.globalColors.grey}
-            style={{height: 10, width: 10}}
+            style={styles.pendingIcon}
           />
         ))}
     </Kb.Box2>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={props.isActive ? styles.activeTabBar : styles.inactiveTabBar}
+    />
   </Kb.ClickableBox>
 )
 
 const ServiceTabBar = (props: Props) => (
-  <Kb.Box2 direction="horizontal">
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
     {Constants.services.map(service => (
       <ServiceIcon
         key={service}
@@ -84,13 +89,30 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   serviceIconContainer: {
+    flex: 1,
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
+    minWidth: 40,
   },
-  serviceIcon: {},
-  activeIcon: {},
-  inactiveIcon: {},
+  serviceIcon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   resultCount: {},
+  pendingIcon: {height: 10, width: 10},
+  tabBarContainer: {
+    height: 30,
+  },
+  activeTabBar: {
+    height: 1,
+    backgroundColor: Styles.globalColors.blue,
+  },
+  inactiveTabBar: {
+    height: 1,
+    backgroundColor: Styles.globalColors.black_20,
+  },
+  clickableServiceIcon: {
+    flex: 1,
+  },
 })
 
 export default ServiceTabBar

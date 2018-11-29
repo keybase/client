@@ -133,9 +133,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({loggedIn: false})
     case ConfigGen.updateFollowing: {
       const {isTracking, username} = action.payload
-      return state.updateIn(
-        ['following'],
-        following => (isTracking ? following.add(username) : following.delete(username))
+      return state.updateIn(['following'], following =>
+        isTracking ? following.add(username) : following.delete(username)
       )
     }
     case ConfigGen.globalError: {

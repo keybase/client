@@ -146,16 +146,15 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
               </Kb.ClickableBox>
             )}
           </Kb.Box2>
-          {!this.state.recipientPublicKey &&
-            this.props.onScanQRCode && (
-              <Kb.Icon
-                color={Styles.globalColors.black_40}
-                type="iconfont-qr-code"
-                fontSize={24}
-                onClick={this.props.onScanQRCode}
-                style={Kb.iconCastPlatformStyles(styles.qrCode)}
-              />
-            )}
+          {!this.state.recipientPublicKey && this.props.onScanQRCode && (
+            <Kb.Icon
+              color={Styles.globalColors.black_40}
+              type="iconfont-qr-code"
+              fontSize={24}
+              onClick={this.props.onScanQRCode}
+              style={Kb.iconCastPlatformStyles(styles.qrCode)}
+            />
+          )}
         </Kb.Box2>
         {!!this.props.errorMessage && (
           <Kb.Text type="BodySmall" style={styles.errorText}>

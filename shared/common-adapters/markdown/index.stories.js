@@ -286,10 +286,10 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
-                      : Array.isArray(v)
-                        ? v.map(o => ({type: o.type, content: o.content}))
-                        : v,
+                    ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
+                    : Array.isArray(v)
+                    ? v.map(o => ({type: o.type, content: o.content}))
+                    : v,
                 2
               ) +
               '\n```'}

@@ -34,15 +34,14 @@ const valuesCached = memoize3(
         hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
         conversation: v,
       }))
-      .sort(
-        (a, b) =>
-          a.hasBadge
-            ? b.hasBadge
-              ? b.conversation.timestamp - a.conversation.timestamp
-              : -1
-            : b.hasBadge
-              ? 1
-              : b.conversation.timestamp - a.conversation.timestamp
+      .sort((a, b) =>
+        a.hasBadge
+          ? b.hasBadge
+            ? b.conversation.timestamp - a.conversation.timestamp
+            : -1
+          : b.hasBadge
+          ? 1
+          : b.conversation.timestamp - a.conversation.timestamp
       )
       .take(maxShownConversations)
       .valueSeq()

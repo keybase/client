@@ -50,8 +50,8 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
                 ? `Encrypting and uploading ${fileName}...`
                 : `Encrypting and uploading ${files} files...`
               : totalSyncingBytes
-                ? 'Encrypting and uploading...'
-                : 'Done!'}
+              ? 'Encrypting and uploading...'
+              : 'Done!'}
           </Text>
           {!!(timeLeft && timeLeft.length) && (
             <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>

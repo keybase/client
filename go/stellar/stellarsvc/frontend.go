@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strconv"
 	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
@@ -850,30 +849,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	}
 	if fromInfo.available {
 		res.From = fromInfo.from
-		if arg.FromSeqno == "" {
-			readyChecklist.from = true
-		} else {
-			// Check that the seqno of the account matches the caller's expectation.
-			seqno, err := bpc.AccountSeqno(s.mctx(ctx), arg.From)
-			switch {
-			case err != nil:
-				log("AccountSeqno -> err:%v", err)
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "error",
-					Message: "Could not get seqno for source account.",
-				})
-			case seqno != arg.FromSeqno:
-				log("AccountSeqno -> got:%v != want:%v", seqno, arg.FromSeqno)
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "error",
-					Message: "Activity on account since initiating send. Take another look at account history.",
-				})
-			default:
-				readyChecklist.from = true
-				fromInfo.from = arg.From
-				fromInfo.available = true
-			}
-		}
+		readyChecklist.from = true
 	}
 
 	// -------------------- to --------------------
@@ -1269,15 +1245,6 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 		return res, fmt.Errorf("missing from account ID parameter")
 	}
 
-	var fromSeqno *uint64
-	if arg.FromSeqno != "" {
-		fsq, err := strconv.ParseUint(arg.FromSeqno, 10, 64)
-		if err != nil {
-			return res, fmt.Errorf("invalid from seqno (%v): %v", arg.FromSeqno, err)
-		}
-		fromSeqno = &fsq
-	}
-
 	to := arg.To
 	if arg.ToIsAccountID {
 		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
@@ -1308,7 +1275,7 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	mctx := libkb.NewMetaContext(ctx, s.G())
 	sendRes, err := stellar.SendPaymentGUI(mctx, s.remoter, stellar.SendPaymentArg{
 		From:           arg.From,
-		FromSeqno:      fromSeqno,
+		FromSeqno:      nil,
 		To:             stellarcommon.RecipientInput(to),
 		Amount:         arg.Amount,
 		DisplayBalance: displayBalance,

@@ -551,23 +551,28 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	if !ok {
 		return res, errors.New("invalid context with no chat metadata")
 	}
-	res, err = t.Identify(ctx, names, true,
-		func() keybase1.TLFID {
-			return keybase1.TLFID(tlfID.String())
-		},
-		func() keybase1.CanonicalTlfName {
-			return keybase1.CanonicalTlfName(impTeamName.String())
-		})
-	if err != nil {
-		return res, err
+	cb := make(chan struct{})
+	go func(ctx context.Context) {
+		res, err = t.Identify(ctx, names, true,
+			func() keybase1.TLFID {
+				return keybase1.TLFID(tlfID.String())
+			},
+			func() keybase1.CanonicalTlfName {
+				return keybase1.CanonicalTlfName(impTeamName.String())
+			})
+		close(cb)
+	}(BackgroundContext(ctx, t.G()))
+	switch identBehavior {
+	case keybase1.TLFIdentifyBehavior_CHAT_GUI:
+		// For GUI mode, let's just let this identify roll in the background. We will be sending up
+		// tracker breaks to the UI out of band with whatever chat operation has invoked us here.
+		return nil, nil
+	default:
+		<-cb
+		if err != nil {
+			return res, err
+		}
 	}
-
-	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
-	// after send to IdentifyNotifier)
-	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT && len(res) > 0 {
-		return res, libkb.NewIdentifySummaryError(res[0])
-	}
-
 	return res, nil
 }
 

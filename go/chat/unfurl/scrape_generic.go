@@ -136,7 +136,13 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 	generic.setFaviconURL(&defaultFaviconURL, 0)
 
 	// Run the Colly scraper
-	c := colly.NewCollector()
+	c := colly.NewCollector(
+		colly.UserAgent("Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"),
+	)
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("connection", "keep-alive")
+		r.Headers.Set("upgrade-insecure-requests", "1")
+	})
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
 		s.setAttr(ctx, "title", hostname, domain, generic, e)
 	})

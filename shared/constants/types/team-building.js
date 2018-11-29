@@ -44,6 +44,7 @@ export type TeamBuildingSubState = {
   teamBuildingSearchQuery: Query,
   teamBuildingSelectedService: ServiceIdWithContact,
   teamBuildingSearchLimit: number,
+  teamBuildingUserRecs: Array<User>,
 }
 
 export type RawSearchResult = {

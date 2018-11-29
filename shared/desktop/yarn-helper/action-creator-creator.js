@@ -155,17 +155,19 @@ function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   const created = []
-  files.filter(file => path.extname(file) === '.json').forEach(file => {
-    const ns = path.basename(file, '.json')
-    created.push(ns)
-    console.log(`Generating ${ns}`)
-    const desc = json5.parse(fs.readFileSync(path.join(root, file)))
-    const outPath = path.join(root, '..', ns + '-gen.js')
-    // $FlowIssue
-    const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
-    console.log(generated)
-    fs.writeFileSync(outPath, generated)
-  })
+  files
+    .filter(file => path.extname(file) === '.json')
+    .forEach(file => {
+      const ns = path.basename(file, '.json')
+      created.push(ns)
+      console.log(`Generating ${ns}`)
+      const desc = json5.parse(fs.readFileSync(path.join(root, file)))
+      const outPath = path.join(root, '..', ns + '-gen.js')
+      // $FlowIssue
+      const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
+      console.log(generated)
+      fs.writeFileSync(outPath, generated)
+    })
 
   console.log(`Generating typed-actions-gen`)
   const outPath = path.join(root, '..', 'typed-actions-gen.js')

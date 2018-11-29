@@ -108,12 +108,11 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               </Text>
             )}
             {!!this.props.progressLabel && <ProgressBar ratio={this.props.progress} />}
-            {!this.props.progressLabel &&
-              this.props.onDownloadAttachment && (
-                <Text type="BodySmall" style={linkStyle} onClick={this.props.onDownloadAttachment}>
-                  Download
-                </Text>
-              )}
+            {!this.props.progressLabel && this.props.onDownloadAttachment && (
+              <Text type="BodySmall" style={linkStyle} onClick={this.props.onDownloadAttachment}>
+                Download
+              </Text>
+            )}
             {this.props.onShowInFinder && (
               <Text type="BodySmall" style={linkStyle} onClick={this.props.onShowInFinder}>
                 Show in {fileUIName}

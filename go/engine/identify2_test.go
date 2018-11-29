@@ -1194,8 +1194,6 @@ func TestTrackThenRevokeThenIdentifyWithDifferentChatModes(t *testing.T) {
 
 	err = runIdentify(keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
-	err = runIdentify(keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT)
-	require.Error(t, err)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

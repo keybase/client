@@ -49,12 +49,15 @@ class GlobalError extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.error !== this.props.error) {
-      this.props.setTimeout(() => {
-        this.setState({
-          cachedDetails: this._detailsForError(this.props.error),
-          cachedSummary: this._summaryForError(this.props.error),
-        })
-      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
+      this.props.setTimeout(
+        () => {
+          this.setState({
+            cachedDetails: this._detailsForError(this.props.error),
+            cachedSummary: this._summaryForError(this.props.error),
+          })
+        },
+        this.props.error ? 0 : 7000
+      ) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
   }

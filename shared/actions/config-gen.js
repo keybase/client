@@ -52,33 +52,15 @@ export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
 // Payload Types
-type _BootstrapStatusLoadedPayload = $ReadOnly<{|
-  deviceID: string,
-  deviceName: string,
-  followers: Array<string>,
-  following: Array<string>,
-  loggedIn: boolean,
-  registered: boolean,
-  uid: string,
-  username: string,
-|}>
+type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _CheckForUpdatePayload = void
 type _CopyToClipboardPayload = $ReadOnly<{|text: string|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
-type _DaemonHandshakePayload = $ReadOnly<{|
-  firstTimeConnecting: boolean,
-  version: number,
-|}>
-type _DaemonHandshakeWaitPayload = $ReadOnly<{|
-  name: string,
-  version: number,
-  increment: boolean,
-  failedReason?: ?string,
-  failedFatal?: true,
-|}>
+type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean, version: number|}>
+type _DaemonHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, increment: boolean, failedReason?: ?string, failedFatal?: true|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
@@ -89,48 +71,22 @@ type _LoadedAvatarsPayload = $ReadOnly<{|avatars: I.Map<string, I.Map<number, st
 type _LoggedInPayload = $ReadOnly<{|causedByStartup: boolean|}>
 type _LoggedOutPayload = void
 type _LogoutHandshakePayload = $ReadOnly<{|version: number|}>
-type _LogoutHandshakeWaitPayload = $ReadOnly<{|
-  name: string,
-  version: number,
-  increment: boolean,
-|}>
+type _LogoutHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, increment: boolean|}>
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
-type _SetAccountsPayload = $ReadOnly<{|
-  defaultUsername: string,
-  usernames: Array<string>,
-|}>
+type _SetAccountsPayload = $ReadOnly<{|defaultUsername: string, usernames: Array<string>|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
-type _SetNotifySoundPayload = $ReadOnly<{|
-  sound: boolean,
-  writeFile: boolean,
-|}>
-type _SetOpenAtLoginPayload = $ReadOnly<{|
-  open: boolean,
-  writeFile: boolean,
-|}>
-type _SetStartupDetailsPayload = $ReadOnly<{|
-  startupWasFromPush: boolean,
-  startupConversation: ?ChatTypes.ConversationIDKey,
-  startupLink: string,
-  startupTab: ?Tabs.Tab,
-  startupFollowUser: string,
-|}>
+type _SetNotifySoundPayload = $ReadOnly<{|sound: boolean, writeFile: boolean|}>
+type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
+type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string|}>
 type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
-type _UpdateFollowingPayload = $ReadOnly<{|
-  username: string,
-  isTracking: boolean,
-|}>
-type _UpdateInfoPayload = $ReadOnly<{|
-  isOutOfDate: boolean,
-  critical: boolean,
-  message?: string,
-|}>
+type _UpdateFollowingPayload = $ReadOnly<{|username: string, isTracking: boolean|}>
+type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
 type _UpdateNowPayload = void
 type __avatarQueuePayload = void

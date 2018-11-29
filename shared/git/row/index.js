@@ -100,15 +100,14 @@ class Row extends React.Component<Props> {
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
                   <Kb.CopyText text={this.props.url} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
-                {!Styles.isMobile &&
-                  this.props.canDelete && (
-                    <Kb.Button
-                      type="Danger"
-                      small={true}
-                      label="Delete repo"
-                      onClick={this.props.onShowDelete}
-                    />
-                  )}
+                {!Styles.isMobile && this.props.canDelete && (
+                  <Kb.Button
+                    type="Danger"
+                    small={true}
+                    label="Delete repo"
+                    onClick={this.props.onShowDelete}
+                  />
+                )}
               </Kb.Box>
               <Kb.Box
                 style={{
@@ -124,28 +123,26 @@ class Row extends React.Component<Props> {
                     !!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''
                   }`}
                 </Kb.Text>
-                {!!this.props.teamname &&
-                  !!this.props.lastEditUser && (
-                    <Kb.Avatar
-                      username={this.props.lastEditUser}
-                      size={16}
-                      style={{marginLeft: Styles.isMobile ? 0 : 4}}
+                {!!this.props.teamname && !!this.props.lastEditUser && (
+                  <Kb.Avatar
+                    username={this.props.lastEditUser}
+                    size={16}
+                    style={{marginLeft: Styles.isMobile ? 0 : 4}}
+                  />
+                )}
+                {!!this.props.teamname && !!this.props.lastEditUser && (
+                  <Kb.Box style={{marginLeft: 2}}>
+                    <Kb.Usernames
+                      type="BodySmallSemibold"
+                      underline={true}
+                      colorFollowing={true}
+                      users={[
+                        {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
+                      ]}
+                      onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
                     />
-                  )}
-                {!!this.props.teamname &&
-                  !!this.props.lastEditUser && (
-                    <Kb.Box style={{marginLeft: 2}}>
-                      <Kb.Usernames
-                        type="BodySmallSemibold"
-                        underline={true}
-                        colorFollowing={true}
-                        users={[
-                          {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
-                        ]}
-                        onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
-                      />
-                    </Kb.Box>
-                  )}
+                  </Kb.Box>
+                )}
                 {Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
                 <Kb.Text type="BodySmall">
                   <Kb.Text type="BodySmall">
@@ -191,16 +188,15 @@ class Row extends React.Component<Props> {
                   )}
                 </Kb.Box>
               )}
-              {Styles.isMobile &&
-                this.props.canDelete && (
-                  <Kb.Button
-                    type="Danger"
-                    small={false}
-                    label="Delete repo"
-                    onClick={this.props.onShowDelete}
-                    style={{marginTop: Styles.globalMargins.tiny, alignSelf: 'flex-start'}}
-                  />
-                )}
+              {Styles.isMobile && this.props.canDelete && (
+                <Kb.Button
+                  type="Danger"
+                  small={false}
+                  label="Delete repo"
+                  onClick={this.props.onShowDelete}
+                  style={{marginTop: Styles.globalMargins.tiny, alignSelf: 'flex-start'}}
+                />
+              )}
             </Kb.Box>
           )}
         </Kb.Box>

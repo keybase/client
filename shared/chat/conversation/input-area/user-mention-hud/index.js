@@ -100,6 +100,8 @@ class MentionHud extends React.Component<MentionHudProps, State> {
 type ImplProps = MentionHudProps & {|data: Array<Data>, fullList: Array<Data>|}
 class MentionHudImpl extends React.Component<ImplProps> {
   componentDidUpdate(prevProps: ImplProps) {
+    this.props.setMentionHudIsShowing(this.props.data.length > 0)
+
     if (this.props.filter !== prevProps.filter || this.props.data.length !== prevProps.data.length) {
       this._safeHoverTime = Date.now() + 500
     }

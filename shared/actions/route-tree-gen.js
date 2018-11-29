@@ -23,38 +23,16 @@ export const switchRouteDef = 'route-tree:switchRouteDef'
 export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
-type _NavigateAppendPayload = $ReadOnly<{|
-  path: RCConstants.PropsPath<any>,
-  parentPath?: ?RCConstants.Path,
-|}>
-type _NavigateToPayload = $ReadOnly<{|
-  path: RCConstants.PropsPath<any>,
-  parentPath?: ?RCConstants.Path,
-|}>
+type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
+type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateUpPayload = void
-type _PutActionIfOnPathPayload = $ReadOnly<{|
-  expectedPath: RCConstants.Path,
-  otherAction: any,
-  parentPath?: ?RCConstants.Path,
-|}>
-type _RefreshRouteDefPayload = $ReadOnly<{|
-  loginRouteTree: RCConstants.RouteDefParams,
-  appRouteTree: RCConstants.RouteDefParams,
-|}>
+type _PutActionIfOnPathPayload = $ReadOnly<{|expectedPath: RCConstants.Path, otherAction: any, parentPath?: ?RCConstants.Path|}>
+type _RefreshRouteDefPayload = $ReadOnly<{|loginRouteTree: RCConstants.RouteDefParams, appRouteTree: RCConstants.RouteDefParams|}>
 type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>
 type _SetInitialRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams|}>
-type _SetRouteStatePayload = $ReadOnly<{|
-  path: RCConstants.Path,
-  partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>),
-|}>
-type _SwitchRouteDefPayload = $ReadOnly<{|
-  routeDef: RCConstants.RouteDefParams,
-  path?: ?RCConstants.Path,
-|}>
-type _SwitchToPayload = $ReadOnly<{|
-  path: RCConstants.Path,
-  parentPath?: ?RCConstants.Path,
-|}>
+type _SetRouteStatePayload = $ReadOnly<{|path: RCConstants.Path, partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)|}>
+type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, path?: ?RCConstants.Path|}>
+type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
 /**
