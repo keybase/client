@@ -609,6 +609,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, nam
 }
 
 func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
 		return t.lookupInternalName(ctx, name, public)

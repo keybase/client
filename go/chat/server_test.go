@@ -4485,10 +4485,14 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		msg1, _, _, _, ts1, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
 		require.NoError(t, err)
-		msg2, _, _, _, ts2, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		msg1 := prepareRes.Boxed
+		ts1 := prepareRes.TopicNameState
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
 		require.NoError(t, err)
+		msg2 := prepareRes.Boxed
+		ts2 := prepareRes.TopicNameState
 		require.True(t, ts1.Eq(*ts2))
 
 		/*_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
@@ -4499,13 +4503,13 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.IsType(t, libkb.ChatClientError{}, err)*/
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
-			MessageBoxed:   *msg1,
+			MessageBoxed:   msg1,
 			TopicNameState: ts1,
 		})
 		require.NoError(t, err)
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
-			MessageBoxed:   *msg2,
+			MessageBoxed:   msg2,
 			TopicNameState: ts2,
 		})
 		require.Error(t, err)
@@ -4551,8 +4555,9 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		msg, _, _, _, _, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
 		require.NoError(t, err)
+		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
 			MessageID: 10,
 		}
