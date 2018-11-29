@@ -26,12 +26,13 @@ fi
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 
+# Journaling is turned off by default for all tests, since some tests
+# depend on sync semantics.
+journalFlag="-enable-journal=${KBFS_JOURNAL_ENABLE:-false}"
+
 keybase -debug service &
 SERVICE=$!
-# Journaling is turned off for all tests until we change the tests to
-# turn it on/off when needed, since some tests depend on sync
-# semantics.
-KEYBASE_DEBUG=1 kbfsfuse -debug -disk-cache-mode=local -enable-journal=false -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -localuser= -md-version $KBFS_METADATA_VERSION -log-to-file /keybase &
+KEYBASE_DEBUG=1 kbfsfuse -debug -disk-cache-mode=local "$journalFlag" -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -localuser= -md-version $KBFS_METADATA_VERSION -log-to-file /keybase &
 KBFS=$!
 
 wait "$SERVICE"
