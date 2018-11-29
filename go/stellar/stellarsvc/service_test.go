@@ -1542,8 +1542,6 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.NoError(t, err)
 	err = remote.MigrateBundleToAccountBundles(m)
 	require.NoError(t, err)
-	v2Bundle, _, _, err = remote.FetchSecretlessBundle(ctx, g)
-	require.NoError(t, err)
 
 	// cannot use v1 endpoints after migration
 	_, _, _, err = remote.FetchV1Bundle(ctx, g)
@@ -1551,6 +1549,8 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	aerr = err.(libkb.AppStatusError)
 	actualStatus = keybase1.StatusCode(aerr.Code)
 	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	v2Bundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
 	v1BundlePrev, err := acctbundle.BundleFromBundleRestricted(*v2Bundle)
 	require.NoError(t, err)
 	v1Bundle = bundle.Advance(*v1BundlePrev)
@@ -1563,6 +1563,8 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	// can use v2 endpoints after migration
 	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
 	// add a non-primary account
+	v2Bundle, _, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
 	_, secretKey := randomStellarKeypair()
 	err = acctbundle.AddAccount(v2Bundle, secretKey, "shenanigans", false /* make primary */)
 	require.NoError(t, err)
