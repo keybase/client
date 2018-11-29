@@ -271,7 +271,7 @@ func (mm modeMinimal) LocalHTTPServerEnabled() bool {
 	return false
 }
 
-func (md modeMinimal) MaxCleanBlockCacheCapacity() uint64 {
+func (mm modeMinimal) MaxCleanBlockCacheCapacity() uint64 {
 	return math.MaxUint64
 }
 
@@ -429,35 +429,35 @@ type modeMemoryLimited struct {
 	InitMode
 }
 
-func (mc modeMemoryLimited) Type() InitModeType {
+func (mml modeMemoryLimited) Type() InitModeType {
 	return InitMemoryLimited
 }
 
-func (mc modeMemoryLimited) RekeyWorkers() int {
+func (mml modeMemoryLimited) RekeyWorkers() int {
 	return 0
 }
 
-func (mc modeMemoryLimited) RekeyQueueSize() int {
+func (mml modeMemoryLimited) RekeyQueueSize() int {
 	return 0
 }
 
-func (mc modeMemoryLimited) ConflictResolutionEnabled() bool {
+func (mml modeMemoryLimited) ConflictResolutionEnabled() bool {
 	return false
 }
 
-func (mc modeMemoryLimited) QuotaReclamationEnabled() bool {
+func (mml modeMemoryLimited) QuotaReclamationEnabled() bool {
 	return false
 }
 
-func (mc modeMemoryLimited) UnmergedTLFsEnabled() bool {
+func (mml modeMemoryLimited) UnmergedTLFsEnabled() bool {
 	return false
 }
 
-func (mc modeMemoryLimited) SendEditNotificationsEnabled() bool {
+func (mml modeMemoryLimited) SendEditNotificationsEnabled() bool {
 	return false
 }
 
-func (mc modeMemoryLimited) MaxCleanBlockCacheCapacity() uint64 {
+func (mml modeMemoryLimited) MaxCleanBlockCacheCapacity() uint64 {
 	return 1 * (1 << 20) // 1 MB
 }
 

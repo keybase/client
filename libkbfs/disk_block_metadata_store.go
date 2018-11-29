@@ -173,11 +173,7 @@ func (s *diskBlockMetadataStore) UpdateMetadata(ctx context.Context,
 	if encoded, err = s.config.Codec().Encode(value); err != nil {
 		return err
 	}
-	if err = s.db.PutWithMeter(bid, encoded, s.putMeter); err != nil {
-		return err
-	}
-
-	return nil
+	return s.db.PutWithMeter(bid, encoded, s.putMeter)
 }
 
 // xattrStore is a wrapper around BlockMetadataStore that handles xattr
