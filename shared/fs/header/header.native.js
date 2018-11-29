@@ -10,7 +10,7 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
     <Box style={styles.stylesFolderHeaderRow}>
       <BackButton onClick={onBack} />
       <Box style={styles.stylesFolderHeaderRoot}>
-        <Text type="BodyBig" style={styles.stylesTitle}>
+        <Text type="HeaderSmall" style={styles.stylesTitle}>
           {title}
         </Text>
       </Box>

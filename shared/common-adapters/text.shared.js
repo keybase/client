@@ -33,6 +33,7 @@ export const allTextTypes = {
   HeaderExtrabold: 'HeaderExtrabold',
   HeaderBig: 'HeaderBig',
   HeaderBigExtrabold: 'HeaderBigExtrabold',
+  HeaderSmall: 'HeaderSmall',
   HeaderLink: 'HeaderLink',
   Terminal: 'Terminal',
   TerminalComment: 'TerminalComment',

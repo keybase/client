@@ -71,6 +71,11 @@ const metaData: {[key: TextType]: MetaType} = {
       fontStyle: 'italic',
     },
   },
+  HeaderSmall: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 14,
+    styleOverride: globalStyles.fontSemibold,
+  },
   HeaderExtrabold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 20,
