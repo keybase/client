@@ -45,7 +45,7 @@ func acctBundlesEnabled(m libkb.MetaContext) bool {
 	return enabled
 }
 
-func buildV2ChainLinkPayload(m libkb.MetaContext, bundle stellar1.BundleRestricted, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, sigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
+func buildV2ChainLinkPayload(m libkb.MetaContext, bundle stellar1.BundleRestricted, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, deviceSigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
 	err := bundle.CheckInvariants()
 	if err != nil {
 		return nil, err
@@ -75,13 +75,9 @@ func buildV2ChainLinkPayload(m libkb.MetaContext, bundle stellar1.BundleRestrict
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	m.CDebugf("Stellar.PostWithChainLink: make sigs")
 
-	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccountBundle.Signers[0], sigKey)
+	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccountBundle.Signers[0], deviceSigKey)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +97,7 @@ func buildV2ChainLinkPayload(m libkb.MetaContext, bundle stellar1.BundleRestrict
 	return &payload, nil
 }
 
-func buildV1ChainLinkPayload(m libkb.MetaContext, bundleRestricted stellar1.BundleRestricted, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, sigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
+func buildV1ChainLinkPayload(m libkb.MetaContext, bundleRestricted stellar1.BundleRestricted, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, deviceSigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
 	v1Bundle, err := acctbundle.BundleFromBundleRestricted(bundleRestricted)
 	if err != nil {
 		return nil, err
@@ -133,7 +129,7 @@ func buildV1ChainLinkPayload(m libkb.MetaContext, bundleRestricted stellar1.Bund
 
 	m.CDebugf("Stellar.PostWithChainLink: make sigs")
 
-	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
+	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccount.Signers[0], deviceSigKey)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +169,7 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 		return err
 	}
 
-	sigKey, err := g.ActiveDevice.SigningKey()
+	deviceSigKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
 		return fmt.Errorf("signing key not found: (%v)", err)
 	}
@@ -184,12 +180,12 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 
 	var payload *libkb.JSONPayload
 	if v2Link {
-		payload, err = buildV2ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, sigKey)
+		payload, err = buildV2ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, deviceSigKey)
 		if err != nil {
 			return err
 		}
 	} else {
-		payload, err = buildV1ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, sigKey)
+		payload, err = buildV1ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, deviceSigKey)
 		if err != nil {
 			return err
 		}
