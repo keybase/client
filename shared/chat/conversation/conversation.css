@@ -8,7 +8,6 @@
   position: relative;
   width: 100%;
 }
-
 .WrapperMessage-hoverBox .WrapperMessage-buttons {
   display: none;
   flex-direction: row;
@@ -22,12 +21,6 @@
   max-width: 100%;
   width: 100%;
   margin-left: 8px;
-}
-.WrapperMessage-hoverBox .unfurl-closebox {
-  visibility: hidden;
-}
-.WrapperMessage-hoverBox:hover .unfurl-closebox {
-  visibility: visible;
 }
 .WrapperMessage-decorated {
 }

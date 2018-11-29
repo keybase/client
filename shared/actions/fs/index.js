@@ -406,13 +406,16 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
   //
-  // Note that this is not merely a filtered mapping from the refresh tags. If
-  // the user is in a different TLF, we remove the old tag so next time an
-  // action comes in, we'll fire the RPC. This might not be necessary based on
-  // current design, but just in case.
+  // Note that this is not merely a filtered mapping from the refresh tags.
+  // Since KBFS only sends us the latest subscribed TLF, if we get a TLF other
+  // than what our refreshTags suggest, the user must have been in a different
+  // TLF. In this case, we remove the old tag so next time an action comes in,
+  // we'll fire the RPC. This might not be necessary based on current design,
+  // but just in case.
   //
-  // It's important to not set the refreshTag in new actions, to make sure the
-  // related sagas won't skip the RPC.
+  // It's important to not set the refreshTag in the actions generated here, to
+  // make sure the related sagas won't skip the RPC (see `function*
+  // folderList`).
   const actions = []
   folderListRefreshTags.forEach((path, refreshTag) =>
     Types.pathIsInTlfPath(path, action.payload.tlfPath)
@@ -422,7 +425,7 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
   mimeTypeRefreshTags.forEach((path, refreshTag) =>
     Types.pathIsInTlfPath(path, action.payload.tlfPath)
       ? actions.push(Saga.put(FsGen.createMimeTypeLoad({path})))
-      : folderListRefreshTags.delete(refreshTag)
+      : mimeTypeRefreshTags.delete(refreshTag)
   )
   return Saga.all(actions)
 }

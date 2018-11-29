@@ -475,7 +475,7 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase
 				// A send of a `FSEditListResponse` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSEditListResponse(ctx, keybase1.FSEditListResponseArg{
+				}).FSEditListResponse(context.Background(), keybase1.FSEditListResponseArg{
 					Edits:     arg.Edits,
 					RequestID: arg.RequestID,
 				})
@@ -509,7 +509,7 @@ func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1
 				// A send of a `FSEditListRequest` RPC with the notification
 				(keybase1.NotifyFSRequestClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSEditListRequest(ctx, arg)
+				}).FSEditListRequest(context.Background(), arg)
 				wg.Done()
 			}()
 		}
@@ -537,7 +537,7 @@ func (n *NotifyRouter) HandleFSSyncStatus(ctx context.Context, arg keybase1.FSSy
 				// A send of a `FSSyncStatusResponse` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSSyncStatusResponse(ctx, keybase1.FSSyncStatusResponseArg{Status: arg.Status, RequestID: arg.RequestID})
+				}).FSSyncStatusResponse(context.Background(), keybase1.FSSyncStatusResponseArg{Status: arg.Status, RequestID: arg.RequestID})
 			}()
 		}
 		return true
@@ -561,7 +561,7 @@ func (n *NotifyRouter) HandleFSSyncEvent(ctx context.Context, arg keybase1.FSPat
 				// A send of a `FSSyncActivity` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSSyncActivity(ctx, arg)
+				}).FSSyncActivity(context.Background(), arg)
 			}()
 		}
 		return true

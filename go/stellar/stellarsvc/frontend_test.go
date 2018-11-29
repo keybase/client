@@ -886,7 +886,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 	// Does not test whether it has any effect.
 	_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		From:          accountIDSender,
-		FromSeqno:     "1928401923",
 		To:            tcs[1].Fu.Username,
 		ToIsAccountID: false,
 		Amount:        "1011.123",
@@ -1541,31 +1540,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "3.9999990 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$1.27 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
-
-	t.Logf("using FromSeqno")
-	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
-		From:       senderAccountID,
-		FromSeqno:  "12",
-		To:         tcs[1].Fu.Username,
-		Amount:     "3",
-		PublicMemo: "🥔🥔🥔🥔🥔🥔🥔🥔",
-	})
-	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
-	require.Equal(t, false, bres.ReadyToSend)
-	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "", bres.AmountErrMsg)
-	require.Equal(t, "", bres.SecretNoteErrMsg)
-	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg)
-	require.Equal(t, "$0.95 USD", bres.WorthDescription)
-	require.Equal(t, worthInfo, bres.WorthInfo)
-	require.True(t, bres.SendingIntentionXLM)
-	require.Equal(t, "3 XLM", bres.DisplayAmountXLM)
-	require.Equal(t, "$0.95 USD", bres.DisplayAmountFiat)
-	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "error",
-		Message: "Activity on account since initiating send. Take another look at account history.",
-	}})
 
 	tcs[0].Backend.Gift(senderAccountID, "30")
 

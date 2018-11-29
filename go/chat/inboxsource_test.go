@@ -108,7 +108,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	boxed, _, _, _, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
+	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -121,10 +121,11 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	boxed := prepareRes.Boxed
 
 	postRes, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
 		ConversationID: conv.GetConvID(),
-		MessageBoxed:   *boxed,
+		MessageBoxed:   boxed,
 	})
 	require.NoError(t, err)
 	boxed.ServerHeader = &postRes.MsgHeader
@@ -152,7 +153,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("receive oobm with version light years ahead of its current one")
 	_, err = tc.ChatG.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
-		conv.GetConvID(), *boxed, nil)
+		conv.GetConvID(), boxed, nil)
 	require.NoError(t, err)
 	assertInboxVersion(100)
 
