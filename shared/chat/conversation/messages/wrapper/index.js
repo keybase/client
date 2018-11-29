@@ -1,16 +1,18 @@
 // @flow
-import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
-import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
+import * as React from 'react'
 import * as Styles from '../../../../styles'
-import ReactionsRow from '../reactions-row/container'
-import UnfurlPromptList from '../unfurl/prompt-list/container'
-import UnfurlList from '../unfurl/unfurl-list/container'
-import ReactButton from '../react-button/container'
-import MessagePopup from '../message-popup'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
+import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
+import MessagePopup from '../message-popup'
+import ReactButton from '../react-button/container'
+import ReactionsRow from '../reactions-row/container'
+import UnfurlList from '../unfurl/unfurl-list/container'
+import UnfurlPromptList from '../unfurl/prompt-list/container'
+import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
@@ -51,6 +53,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
       this.props.measure()
     }
+
+    Object.keys(this.props).forEach(
+      k => this.props[k] !== prevProps[k] && console._log('aaa', k, prevProps[k], this.props[k])
+    )
   }
   _onMouseOver = Styles.isMobile
     ? () => {}
@@ -64,6 +70,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _orangeLine = () => this.props.orangeLineAbove && <Kb.Box2 direction="vertical" style={styles.orangeLine} />
 
+  _onAuthorClick = () => this.props.onAuthorClick()
+
   _content = children => {
     if (this.props.isShowingUsername) {
       return (
@@ -73,7 +81,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               size={32}
               username={this.props.message.author}
               skipBackground={true}
-              onClick={this.props.onAuthorClick}
+              onClick={this._onAuthorClick}
               style={styles.avatar}
             />
             <Kb.ConnectedUsernames
@@ -102,7 +110,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _isEdited = () =>
-    (this.props.message.hasBeenEdited: boolean) && (
+    // $ForceType
+    this.props.message.hasBeenEdited && (
       <Kb.Text type="BodyTiny" style={styles.edited}>
         EDITED
       </Kb.Text>
@@ -216,24 +225,46 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _messageAndButtons = children => {
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
+    const message = this.props.message
     // $ForceType
-    const exploding = this.props.message.exploding
+    const exploding = message.exploding
+    // $ForceType
+    const exploded = message.exploded
+    // $ForceType
+    const explodedBy = message.explodedBy
+    const retainHeight =
+      // $ForceType
+      message.failureDescription === 'This exploding message is not available to you' || exploded
+
+    const maybeExplodedChild = exploding ? (
+      <ExplodingHeightRetainer
+        explodedBy={explodedBy}
+        exploding={exploding}
+        measure={this.props.measure}
+        messageKey={Constants.getMessageKey(message)}
+        retainHeight={retainHeight}
+      >
+        {children}
+      </ExplodingHeightRetainer>
+    ) : (
+      children
+    )
 
     // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
     // but this creates complexity as we can't use box2 gap stuff since we can either
     // 1. Haven't mounted it yet
     // 2. Have mounted but its hidden w/ css
     // TODO cleaner way to do this, or speedup react button maybe
-    if (this.props.decorate && !this.props.exploded) {
+    if (this.props.decorate && !exploded) {
       return (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
-          {children}
+          {maybeExplodedChild}
           <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
             {exploding && (
               <ExplodingMeta
                 conversationIDKey={this.props.conversationIDKey}
                 onClick={this.props.toggleShowingMenu}
-                ordinal={this.props.message.ordinal}
+                ordinal={message.ordinal}
               />
             )}
             {this.props.isRevoked && (
@@ -248,7 +279,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Box className="WrapperMessage-buttons">
                 <ReactButton
                   conversationIDKey={this.props.conversationIDKey}
-                  ordinal={this.props.ordinal}
+                  ordinal={message.ordinal}
                   onShowPicker={this._setShowingPicker}
                   showBorder={false}
                 />
@@ -267,8 +298,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           </Kb.Box2>
         </Kb.Box2>
       )
+    } else if (exploding) {
+      // extra box so the hierarchy stays the same when exploding or you'll remount
+      return (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          {maybeExplodedChild}
+        </Kb.Box2>
+      )
     } else {
-      return children
+      return maybeExplodedChild
     }
   }
 
