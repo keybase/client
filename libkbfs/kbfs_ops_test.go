@@ -1477,7 +1477,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et EntryType) {
 	// Remove block from the server directly, and clear caches.
 	config.BlockOps().Delete(ctx, rootNode.GetFolderBranch().Tlf,
 		[]BlockPointer{ops.nodeCache.PathFromNode(nodeA).tailPointer()})
-	config.ResetCaches()
+	config.ResetCaches(NewInitModeFromType(InitDefault))
 
 	err = config.KBFSOps().RemoveEntry(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -4288,7 +4288,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 		bytes.Equal(zeroBytes[:], lowLevelConfig.Paths.ServerHalf.Bytes()))
 
 	t.Log("Read it back out unencrypted")
-	config.ResetCaches()
+	config.ResetCaches(NewInitModeFromType(InitDefault))
 	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.tlfID)
 	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
 	require.Len(t, syncConfig.Paths, len(pathsMap))

@@ -126,7 +126,7 @@ func TestGetRevisionByTime(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Clear the MD cache, to make sure it gets repopulated")
-	config.ResetCaches()
+	config.ResetCaches(NewInitModeFromType(InitDefault))
 
 	t.Log(ctx, "Check exact times")
 	rev, err := GetMDRevisionByTime(ctx, config, h, t2)
