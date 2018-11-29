@@ -589,9 +589,16 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	}
 
 	if senderEntry.IsPrimary {
-		if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
-			// if the chat message fails to send, just log the error
-			m.CDebugf("failed to send chat SendPayment message: %s", err)
+		sendChat := func(mctx libkb.MetaContext) {
+			if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
+				// if the chat message fails to send, just log the error
+				mctx.CDebugf("failed to send chat SendPayment message: %s", err)
+			}
+		}
+		if sendArg.QuickReturn {
+			go sendChat(m.WithCtx(context.Background()))
+		} else {
+			sendChat(m)
 		}
 	} else {
 		m.CDebugf("not sending chat message: sending from non-primary account")
@@ -995,7 +1002,6 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 	if err != nil {
 		return "", err
 	}
-	m.CDebugf("lookupRecipientAssertion: identify result for %v: %+v", assertion, idRes)
 	if idRes == nil {
 		return "", fmt.Errorf("missing identify result")
 	}

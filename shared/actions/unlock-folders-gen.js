@@ -27,11 +27,7 @@ type _CheckPaperKeyPayload = $ReadOnly<{|paperKey: string|}>
 type _CloseDonePayload = void
 type _ClosePopupPayload = void
 type _FinishPayload = void
-type _NewRekeyPopupPayload = $ReadOnly<{|
-  sessionID: number,
-  devices: Array<RPCTypes.Device>,
-  problemSet: RPCTypes.ProblemSet,
-|}>
+type _NewRekeyPopupPayload = $ReadOnly<{|sessionID: number, devices: Array<RPCTypes.Device>, problemSet: RPCTypes.ProblemSet|}>
 type _OnBackFromPaperKeyPayload = void
 type _OpenPopupPayload = void
 type _ToPaperKeyInputPayload = void

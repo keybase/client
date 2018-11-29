@@ -36,15 +36,13 @@ class LoginRender extends Component<Props> {
     return (
       <Kb.NativeScrollView>
         <Kb.Box style={styles.container}>
-          {isAndroid &&
-            !isDeviceSecureAndroid &&
-            !isAndroidNewerThanM && (
-              <Kb.Box style={deviceNotSecureStyle}>
-                <Kb.Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
-                  Since you don't have a lock screen, you'll have to type your passphrase everytime.
-                </Kb.Text>
-              </Kb.Box>
-            )}
+          {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
+            <Kb.Box style={deviceNotSecureStyle}>
+              <Kb.Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
+                Since you don't have a lock screen, you'll have to type your passphrase everytime.
+              </Kb.Text>
+            </Kb.Box>
+          )}
           <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
             <Dropdown
               type="Username"

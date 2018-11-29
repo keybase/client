@@ -17,11 +17,7 @@ export const receivedBadgeState = 'notifications:receivedBadgeState'
 export const setBadgeCounts = 'notifications:setBadgeCounts'
 
 // Payload Types
-type _BadgeAppPayload = $ReadOnly<{|
-  key: Types.NotificationKeys,
-  on: boolean,
-  count?: number,
-|}>
+type _BadgeAppPayload = $ReadOnly<{|key: Types.NotificationKeys, on: boolean, count?: number|}>
 type _ListenForKBFSNotificationsPayload = void
 type _ListenForNotificationsPayload = void
 type _ReceivedBadgeStatePayload = $ReadOnly<{|badgeState: RPCTypes.BadgeState|}>

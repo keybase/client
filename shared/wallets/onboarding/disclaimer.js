@@ -113,25 +113,26 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         buttonBarStyle={styles.buttonBar}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} />
-        <Kb.Text type="Header" style={styles.headerText}>
-          Almost done.
-        </Kb.Text>
-
-        <Kb.Text type="Header" style={styles.headerText}>
-          It's important you read this.
-        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.header}>
+          <Kb.Text type="Header" style={styles.headerText}>
+            Almost done.
+          </Kb.Text>
+          <Kb.Text type="Header" style={styles.headerText}>
+            It's important you read this.
+          </Kb.Text>
+        </Kb.Box2>
 
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContentContainer}>
           <Kb.Text type="Body" style={styles.bodyText}>
             We believe Keybase can help make cryptocurrency usable for 2 reasons:
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • we can make your Stellar private key sync with encryption across your devices, without exposing
             it to our servers. cool!
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • we can help you send and receive crypto just by knowing usernames. You can say goodbye to ugly
             "addresses" you have to pass around insecurely.
           </Kb.Text>
@@ -144,23 +145,23 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
             to solve payments because:
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it's ultra fast and ultra cheap
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it natively understands currencies and tokens
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • the network itself has a decentralized exchange built into it
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it doesn't burn more electricity than small nations
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             But there are a few things you must agree to understand before using Stellar on Keybase:
           </Kb.Text>
 
@@ -221,8 +222,12 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
 const styles = Styles.styleSheetCreate({
   bodyText: {
     color: Styles.globalColors.white,
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Styles.globalMargins.xsmall,
     textAlign: 'left',
+  },
+  bodyBullet: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
   buttonBar: Styles.platformStyles({
     isElectron: {
@@ -246,8 +251,14 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
+  header: {
+    marginTop: Styles.globalMargins.small,
+  },
   headerText: {
     color: Styles.globalColors.white,
+  },
+  labelStyle: {
+    color: Styles.globalColors.purple,
   },
   scrollView: {
     marginBottom: 0,

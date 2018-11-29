@@ -242,9 +242,6 @@ protocol local {
     // Exactly one of `from` and `fromPrimaryAccount` must be set.
     AccountID from,
     boolean fromPrimaryAccount, // Whether to send from the user's primary account.
-    // Stellar seqno of the sender when the user started the form.
-    // If it is old, the payment will be blocked.
-    string fromSeqno,
 
     // Recipient username, acctID, or assertion.
     // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
@@ -330,9 +327,6 @@ protocol local {
   SendPaymentResLocal sendPaymentLocal(
     int sessionID,
     AccountID from,
-    // Optional. Stellar seqno of the sender when the user started the form.
-    // If it is old, the payment will be blocked.
-    string fromSeqno,
     string to,                             // Username, acctID, or assertion. Examples: "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     boolean toIsAccountID,
     string amount,                         // Amount of the Stellar asset. Example: "30.005"

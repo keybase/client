@@ -362,16 +362,15 @@ class EditAvatar extends React.Component<_Props, State> {
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
             />
-            {!this.state.loading &&
-              !this.state.hasPreview && (
-                <Kb.Icon
-                  className="icon"
-                  color={Styles.globalColors.grey}
-                  fontSize={48}
-                  style={Kb.iconCastPlatformStyles(styles.icon)}
-                  type="iconfont-camera"
-                />
-              )}
+            {!this.state.loading && !this.state.hasPreview && (
+              <Kb.Icon
+                className="icon"
+                color={Styles.globalColors.grey}
+                fontSize={48}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                type="iconfont-camera"
+              />
+            )}
           </HoverBox>
           {this.state.hasPreview && (
             <input

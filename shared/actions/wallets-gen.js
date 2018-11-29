@@ -89,164 +89,62 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
-type _AddNewPaymentPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
-|}>
-type _AssetsReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  assets: Array<Types.Assets>,
-|}>
+type _AddNewPaymentPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
+type _AssetsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, assets: Array<Types.Assets>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
 type _BuildPaymentPayload = void
-type _BuiltPaymentReceivedPayload = $ReadOnly<{|
-  build: Types.BuiltPayment,
-  forBuilding: Types.Building,
-|}>
-type _BuiltRequestReceivedPayload = $ReadOnly<{|
-  build: Types.BuiltRequest,
-  forBuilding: Types.Building,
-|}>
-type _CancelPaymentPayload = $ReadOnly<{|
-  showAccount?: boolean,
-  paymentID: Types.PaymentID,
-|}>
-type _CancelRequestPayload = $ReadOnly<{|
-  conversationIDKey?: ChatTypes.ConversationIDKey,
-  ordinal?: ChatTypes.Ordinal,
-  requestID: StellarRPCTypes.KeybaseRequestID,
-|}>
-type _ChangeAccountNamePayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  name: string,
-|}>
-type _ChangeDisplayCurrencyPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  code: Types.CurrencyCode,
-|}>
+type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment, forBuilding: Types.Building|}>
+type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBuilding: Types.Building|}>
+type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
+type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
+type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
+type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _ChangedAccountNamePayloadError = $ReadOnly<{|
-  name: string,
-  error: string,
-|}>
+type _ChangedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
 type _CheckDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
 type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
 type _ClearErrorsPayload = void
 type _ClearNewPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _CreateNewAccountPayload = $ReadOnly<{|
-  name: string,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _CreatedNewAccountPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _CreatedNewAccountPayloadError = $ReadOnly<{|
-  name: string,
-  error: string,
-|}>
+type _CreateNewAccountPayload = $ReadOnly<{|name: string, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _CreatedNewAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _CreatedNewAccountPayloadError = $ReadOnly<{|name: string, error: string|}>
 type _DeleteAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DeletedAccountPayload = void
 type _DidSetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Currency>|}>
-type _DisplayCurrencyReceivedPayload = $ReadOnly<{|
-  accountID: ?Types.AccountID,
-  currency: Types.Currency,
-  setBuildingCurrency?: boolean,
-|}>
+type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _LinkExistingAccountPayload = $ReadOnly<{|
-  name: string,
-  secretKey: HiddenString,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _LinkedExistingAccountPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _LinkedExistingAccountPayloadError = $ReadOnly<{|
-  name: string,
-  secretKey: HiddenString,
-  error: string,
-|}>
+type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _LinkedExistingAccountPayloadError = $ReadOnly<{|name: string, secretKey: HiddenString, error: string|}>
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
-type _LoadDisplayCurrencyPayload = $ReadOnly<{|
-  accountID: ?Types.AccountID,
-  setBuildingCurrency?: boolean,
-|}>
+type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _LoadPaymentDetailPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
-|}>
+type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
-type _LoadSendAssetChoicesPayload = $ReadOnly<{|
-  from: Types.AccountID,
-  to: string,
-|}>
+type _LoadSendAssetChoicesPayload = $ReadOnly<{|from: Types.AccountID, to: string|}>
 type _LoadWalletDisclaimerPayload = void
-type _MarkAsReadPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  mostRecentID: Types.PaymentID,
-|}>
-type _OpenSendRequestFormPayload = $ReadOnly<{|
-  amount?: string,
-  currency?: string,
-  from?: Types.AccountID,
-  isRequest?: boolean,
-  publicMemo?: HiddenString,
-  recipientType?: Types.CounterpartyType,
-  secretNote?: HiddenString,
-  to?: string,
-|}>
-type _PaymentDetailReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  payment: Types.PaymentDetail,
-|}>
-type _PaymentsReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentCursor: ?StellarRPCTypes.PageCursor,
-  oldestUnread: Types.PaymentID,
-  payments: Array<Types.PaymentResult>,
-  pending: Array<Types.PaymentResult>,
-|}>
-type _RefreshPaymentsPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
-|}>
+type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: Types.PaymentID|}>
+type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
+type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
+type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
+type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
 type _RequestPaymentPayload = void
-type _RequestedPaymentPayload = $ReadOnly<{|
-  kbRqID: HiddenString,
-  lastSentXLM: boolean,
-  requestee: string,
-|}>
-type _SecretKeyReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  secretKey: HiddenString,
-|}>
+type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString, lastSentXLM: boolean, requestee: string|}>
+type _SecretKeyReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, secretKey: HiddenString|}>
 type _SecretKeySeenPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _SelectAccountPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  show?: boolean,
-|}>
+type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID, show?: boolean|}>
 type _SendAssetChoicesReceivedPayload = $ReadOnly<{|sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>|}>
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
-type _SentPaymentPayload = $ReadOnly<{|
-  kbTxID: HiddenString,
-  lastSentXLM: boolean,
-|}>
+type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString, lastSentXLM: boolean|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
@@ -256,23 +154,14 @@ type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
-type _SetLastSentXLMPayload = $ReadOnly<{|
-  lastSentXLM: boolean,
-  writeFile: boolean,
-|}>
+type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToSendPayload = $ReadOnly<{|readyToSend: boolean|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
-type _ValidatedAccountNamePayloadError = $ReadOnly<{|
-  name: string,
-  error: string,
-|}>
+type _ValidatedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
 type _ValidatedSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
-type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
-  secretKey: HiddenString,
-  error: string,
-|}>
+type _ValidatedSecretKeyPayloadError = $ReadOnly<{|secretKey: HiddenString, error: string|}>
 type _WalletDisclaimerReceivedPayload = $ReadOnly<{|accepted: boolean|}>
 
 // Action Creators

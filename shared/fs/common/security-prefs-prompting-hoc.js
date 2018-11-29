@@ -57,7 +57,7 @@ const ConnectedDesktopSecurityPrefs = connect<{||}, _, React.ComponentType<Merge
 
 const DesktopSecurityPrefsBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<MergedProps> {
-    render = () => !displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null
+    render = () => (!displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null)
   }
 
 const DesktopSecurityPrefsPromptingHoc = (ComposedComponent: React.ComponentType<any>) =>

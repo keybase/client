@@ -13,24 +13,16 @@ type IntroProps = {|
 const Intro = (props: IntroProps) => {
   const buttons = [
     <Kb.Button
-      labelStyle={{color: Styles.globalColors.purple}}
       style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
       fullWidth={true}
       key={0}
       type="Secondary"
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
+      labelStyle={styles.labelStyle}
     >
       <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
     </Kb.Button>,
-    <Kb.Button
-      style={styles.buttonStyle}
-      fullWidth={true}
-      key={1}
-      type="SecondaryColoredBackground"
-      onClick={() => props.setNextScreen('linkExisting')}
-      label="Link an existing Stellar account"
-    />,
   ]
   return (
     <WalletPopup
@@ -73,13 +65,14 @@ const Intro = (props: IntroProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.small, textAlign: 'center'},
+  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny, textAlign: 'center'},
   buttonLabelStyle: {color: Styles.globalColors.purple},
   buttonStyle: {width: '100%'},
   container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
   headerText: {
     color: Styles.globalColors.white,
-    marginBottom: Styles.globalMargins.medium,
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.medium,
     textAlign: 'center',
   },
   icon: {
@@ -87,7 +80,10 @@ const styles = Styles.styleSheetCreate({
     top: -10,
   },
   illustration: {
-    paddingBottom: Styles.globalMargins.medium,
+    paddingBottom: Styles.globalMargins.mediumLarge,
+  },
+  labelStyle: {
+    color: Styles.globalColors.purple,
   },
 })
 

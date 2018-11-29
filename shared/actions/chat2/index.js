@@ -379,8 +379,8 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
         UsersGen.createUpdateFullnames({usernameToFullname}),
       ]
     : conversationIDKey && isADelete
-      ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
-      : []
+    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+    : []
 }
 
 // We got errors from the service
@@ -1885,14 +1885,13 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
 
   // Collect preview information
-  const previewURLs = previews.map(
-    preview =>
-      preview &&
-      preview.location &&
-      preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
-      preview.location.url
-        ? preview.location.url
-        : ''
+  const previewURLs = previews.map(preview =>
+    preview &&
+    preview.location &&
+    preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+    preview.location.url
+      ? preview.location.url
+      : ''
   )
   const previewSpecs = previews.map(preview =>
     Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
@@ -1982,8 +1981,13 @@ const markThreadAsRead = (
     logger.info('marking read bail on no selected conversation')
     return
   }
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
+    logger.info('marking read bail on pending conversation')
+    return
+  }
 
-  if (!state.chat2.metaMap.get(conversationIDKey)) {
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
     logger.info('marking read bail on not in meta list. preview?')
     return
   }
@@ -2011,15 +2015,11 @@ const markThreadAsRead = (
     message = mmap.get(ordinal)
   }
 
-  if (!message) {
-    logger.info('marking read bail on no messages')
-    return
-  }
-
-  logger.info(`marking read messages ${conversationIDKey} ${message.id}`)
+  const readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+  logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
   return Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
-    msgID: message.id,
+    msgID: readMsgID,
   })
 }
 

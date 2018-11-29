@@ -94,8 +94,8 @@ const getFilteredRowsAndMetadata = memoize3((metaMap: Types.MetaMap, filter: str
   const lcFilter = filter.toLowerCase()
   const lcYou = username.toLowerCase()
   const rows: Array<RowItem> = metas
-    .map(
-      meta => (meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter))
+    .map(meta =>
+      meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter)
     )
     .filter(Boolean)
     .sort((a, b) => {

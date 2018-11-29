@@ -32,16 +32,15 @@ const Advanced = (props: Props) => (
         style={styles.checkbox}
       />
     </Kb.Box>
-    {!Styles.isMobile &&
-      !isLinux && (
-        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
-          <Kb.Checkbox
-            label="Open Keybase on startup"
-            checked={props.openAtLogin}
-            onCheck={props.onSetOpenAtLogin}
-          />
-        </Kb.Box>
-      )}
+    {!Styles.isMobile && !isLinux && (
+      <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+        <Kb.Checkbox
+          label="Open Keybase on startup"
+          checked={props.openAtLogin}
+          onCheck={props.onSetOpenAtLogin}
+        />
+      </Kb.Box>
+    )}
     <Developer {...props} />
   </Kb.Box>
 )

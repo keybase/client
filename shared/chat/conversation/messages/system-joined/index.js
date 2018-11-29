@@ -46,12 +46,11 @@ class Joined extends React.PureComponent<Props> {
           <Text type="BodySmall">
             joined {isBigTeam ? `#${channelname}` : teamname}
             {'. '}
-            {author === you &&
-              isBigTeam && (
-                <Text title="" onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmall">
-                  Manage channel subscriptions.
-                </Text>
-              )}
+            {author === you && isBigTeam && (
+              <Text title="" onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmall">
+                Manage channel subscriptions.
+              </Text>
+            )}
           </Text>
         }
       />
@@ -91,17 +90,16 @@ class JoinedUserNotice extends React.PureComponent<Props> {
           )}
           .
         </Text>
-        {author === you &&
-          isBigTeam && (
-            <Text
-              backgroundMode="Announcements"
-              onClick={onManageChannels}
-              style={{color: globalColors.blue}}
-              type="BodySmallSemibold"
-            >
-              Manage channel subscriptions.
-            </Text>
-          )}
+        {author === you && isBigTeam && (
+          <Text
+            backgroundMode="Announcements"
+            onClick={onManageChannels}
+            style={{color: globalColors.blue}}
+            type="BodySmallSemibold"
+          >
+            Manage channel subscriptions.
+          </Text>
+        )}
       </UserNotice>
     )
   }

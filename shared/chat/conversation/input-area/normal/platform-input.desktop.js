@@ -310,16 +310,15 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
                 type="iconfont-boom"
               />
             )}
-          {flags.explodingMessagesEnabled &&
-            this.props.showingMenu && (
-              <SetExplodingMessagePopup
-                attachTo={this.props.getAttachmentRef}
-                conversationIDKey={this.props.conversationIDKey}
-                onAfterSelect={this._inputFocus}
-                onHidden={this.props.toggleShowingMenu}
-                visible={this.props.showingMenu}
-              />
-            )}
+          {flags.explodingMessagesEnabled && this.props.showingMenu && (
+            <SetExplodingMessagePopup
+              attachTo={this.props.getAttachmentRef}
+              conversationIDKey={this.props.conversationIDKey}
+              onAfterSelect={this._inputFocus}
+              onHidden={this.props.toggleShowingMenu}
+              visible={this.props.showingMenu}
+            />
+          )}
           {this.state.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
           )}
