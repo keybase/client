@@ -257,6 +257,12 @@ func (j journalMDOps) getForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.Branc
 		return irmd, nil
 	}
 
+	if mStatus == kbfsmd.Unmerged {
+		// Journal users always store their unmerged heads locally, so
+		// no need to check with the server.
+		return ImmutableRootMetadata{}, nil
+	}
+
 	// Otherwise, consult the server instead.
 	return delegateFn(ctx, id, lockBeforeGet)
 }
