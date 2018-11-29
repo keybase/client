@@ -240,7 +240,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	// Setting this flag will enable KBFS debug logging to always
 	// be true in a mobile setting.
 	kbfsParams.Debug = true
-	kbfsParams.Mode = libkbfs.InitConstrainedString
+	kbfsParams.Mode = libkbfs.InitMemoryLimitedString
 	kbfsConfig, _ = libkbfs.Init(
 		context.Background(), extensionKbfsCtx, kbfsParams, sharingServiceCn{},
 		func() {}, kbCtx.Log)
