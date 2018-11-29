@@ -367,7 +367,7 @@ export const uiPaymentInfoToChatPaymentInfo = (
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
-    status: serviceStatus === 'claimable' ? 'cancelable' : serviceStatus,
+    status: serviceStatus,
     statusDescription: p.statusDescription,
     showCancel: p.showCancel,
     worth: p.worth,
@@ -1082,7 +1082,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'sendPayment': {
       // Is the payment pending?
       const paymentInfo = getPaymentMessageInfo(state, message)
-      if (!paymentInfo || ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))) {
+      if (!paymentInfo || ['claimable', 'pending', 'canceled'].includes(paymentInfo.get('status'))) {
         return false
       }
       return true

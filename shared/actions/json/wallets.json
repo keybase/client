@@ -64,7 +64,7 @@
       "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "cancelPayment": {
-      "_description": "Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.",
+      "_description": "Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.",
       "showAccount?": "boolean",
       "paymentID": "Types.PaymentID"
     },

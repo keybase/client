@@ -121,7 +121,7 @@ export type _BuiltRequest = {
 export type StatusSimplified =
   | 'none'
   | 'pending'
-  | 'cancelable'
+  | 'claimable'
   | 'canceled'
   | 'completed'
   | 'error'

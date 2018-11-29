@@ -304,7 +304,7 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({payload, type: validateSecretKey})
 /**
- * Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.
+ * Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.
  */
 export const createCancelPayment = (payload: _CancelPaymentPayload) => ({payload, type: cancelPayment})
 /**

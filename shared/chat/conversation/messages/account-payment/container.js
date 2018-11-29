@@ -37,7 +37,7 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
     case 'pending':
       return 'sending'
     case 'canceled': // fallthrough
-    case 'cancelable':
+    case 'claimable':
       return youAreSender ? 'sending' : 'attempting to send'
     case 'error':
       return youAreSender ? 'attempted to send' : 'attempted to send'

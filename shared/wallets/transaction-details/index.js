@@ -168,7 +168,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return Styles.globalColors.green
     case 'pending':
-    case 'cancelable':
+    case 'claimable':
       return Styles.globalColors.purple2
     case 'error':
     case 'canceled':
@@ -317,7 +317,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.WithTooltip
             containerStyle={styles.statusBox}
             text={
-              props.status === 'cancelable'
+              props.status === 'claimable'
                 ? `${
                     props.counterparty
                   } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
