@@ -1663,7 +1663,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
 
 	updateCh := make(chan kbfsblock.ID, 5)
-	config.cache = &cacheWithUpdateCh{cache, updateCh}
+	config.setDiskBlockCache(&cacheWithUpdateCh{cache, updateCh})
 
 	t.Log("Finish all the prefetching.")
 	close(prefetchSyncCh)

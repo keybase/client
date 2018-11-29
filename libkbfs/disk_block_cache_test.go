@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"math"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -117,16 +118,25 @@ func initDiskBlockCacheTest(t *testing.T) (*diskBlockCacheWrapped,
 }
 
 type testDiskBlockCacheGetter struct {
+	lock  sync.RWMutex
 	cache DiskBlockCache
 }
 
 func (dbcg *testDiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
+	dbcg.lock.RLock()
+	defer dbcg.lock.RUnlock()
 	return dbcg.cache
+}
+
+func (dbcg *testDiskBlockCacheGetter) setDiskBlockCache(c DiskBlockCache) {
+	dbcg.lock.Lock()
+	defer dbcg.lock.Unlock()
+	dbcg.cache = c
 }
 
 func newTestDiskBlockCacheGetter(t *testing.T,
 	cache DiskBlockCache) *testDiskBlockCacheGetter {
-	return &testDiskBlockCacheGetter{cache}
+	return &testDiskBlockCacheGetter{cache: cache}
 }
 
 func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
