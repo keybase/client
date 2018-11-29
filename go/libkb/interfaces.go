@@ -15,6 +15,7 @@ package libkb
 import (
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -661,6 +662,7 @@ type Stellar interface {
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
+	GetMigrationLock() *sync.Mutex
 }
 
 type DeviceEKStorage interface {

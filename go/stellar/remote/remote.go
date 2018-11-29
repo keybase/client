@@ -376,8 +376,8 @@ func postMigrationChecks(m libkb.MetaContext, preMigrationBundle stellar1.Bundle
 func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 	defer m.CTrace(fmt.Sprintf("Stellar MigrateBundleToAccountBundles"), func() error { return err })()
 
-	defer m.G().StellarBundleMu.Unlock()
-	m.G().StellarBundleMu.Lock()
+	defer m.G().GetStellar().GetMigrationLock().Unlock()
+	m.G().GetStellar().GetMigrationLock().Lock()
 	m.CDebugf("| Acquired Stellar Bundle Migration mutex")
 
 	if err = preMigrationChecks(m); err != nil {

@@ -50,7 +50,6 @@ type GlobalContext struct {
 	VDL              *VDebugLog    // verbose debug log
 	Env              *Env          // Env variables, cmdline args & config
 	SKBKeyringMu     *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	StellarBundleMu  *sync.Mutex   // Protects stellar bundle migration
 	Keyrings         *Keyrings     // Gpg Keychains holding keys
 	perUserKeyringMu *sync.Mutex
 	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
@@ -172,7 +171,6 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
-		StellarBundleMu:    new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
