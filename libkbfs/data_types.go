@@ -993,6 +993,27 @@ const (
 	BlockRequestWithDeepSync BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch | blockRequestSync | blockRequestDeepSync
 )
 
+func (bra BlockRequestAction) String() string {
+	if bra.DeepSync() {
+		return "deep-sync"
+	}
+	if bra == BlockRequestSolo {
+		return "solo"
+	}
+
+	attrs := make([]string, 0, 2)
+	if bra.Prefetch() {
+		attrs = append(attrs, "prefetch")
+	} else if bra.PrefetchTracked() {
+		attrs = append(attrs, "prefetch-tracked")
+	}
+
+	if bra.Sync() {
+		attrs = append(attrs, "sync")
+	}
+	return strings.Join(attrs, "|")
+}
+
 // Combine returns a new action by taking `other` into account.
 func (bra BlockRequestAction) Combine(
 	other BlockRequestAction) BlockRequestAction {

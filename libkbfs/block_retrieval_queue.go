@@ -287,7 +287,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	brq.log.CDebugf(ctx, "Request of %v, action=%d", ptr, action)
+	brq.log.CDebugf(ctx, "Request of %v, action=%s", ptr, action)
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)

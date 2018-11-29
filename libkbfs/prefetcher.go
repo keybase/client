@@ -397,7 +397,8 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 				"unknown type %d", entry.Type)
 			continue
 		}
-		p.log.CDebugf(ctx, "Prefetching %v, action=%d", entry.BlockPointer, action)
+		p.log.CDebugf(ctx,
+			"Prefetching %v, action=%s", entry.BlockPointer, action)
 		totalChildEntries++
 		numBlocks += p.request(ctx, newPriority, kmd, entry.BlockPointer,
 			block, lifetime, parentBlockID, isPrefetchNew, action)
