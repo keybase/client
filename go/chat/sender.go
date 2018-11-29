@@ -620,18 +620,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	if err != nil {
 		return res, err
 	}
-	var unboxed *chat1.MessageUnboxed
-	if conv != nil {
-		ub, err := s.boxer.UnboxMessage(ctx, boxed, *conv, &encInfo)
-		if err != nil {
-			s.Debug(ctx, "failed to unbox newly boxed message: %s", err)
-		} else {
-			unboxed = &ub
-		}
-	}
 	return types.SenderPrepareResult{
 		Boxed:               boxed,
-		Unboxed:             unboxed,
+		EncryptionInfo:      encInfo,
 		PendingAssetDeletes: pendingAssetDeletes,
 		AtMentions:          atMentions,
 		ChannelMention:      chanMention,
@@ -765,10 +756,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
 		}
-		if prepareRes.Unboxed == nil {
-			s.Debug(ctx, "Send: failed to get unboxed from Prepare")
-			return chat1.OutboxID{}, nil, errors.New("failed to get unboxed from newly boxed")
-		}
 		boxed = &prepareRes.Boxed
 
 		// Delete assets associated with a delete operation.
@@ -832,12 +819,18 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	var unboxedMsg chat1.MessageUnboxed
 	var convLocal *chat1.ConversationLocal
 	s.Debug(ctx, "sending local updates to chat sources")
-	if _, cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender, *prepareRes.Unboxed); cerr != nil {
-		s.Debug(ctx, "failed to push new message into convsource: %s", err)
+	// unbox using encryption info we already have
+	unboxed, err := s.boxer.UnboxMessage(ctx, *boxed, conv, &prepareRes.EncryptionInfo)
+	if err != nil {
+		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
+	} else {
+		if _, cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender, unboxed); cerr != nil {
+			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
+		}
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
 		*boxed, nil); err != nil {
-		s.Debug(ctx, "failed to update inbox: %s", err)
+		s.Debug(ctx, "Send: failed to update inbox: %s", err)
 	}
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {

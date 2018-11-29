@@ -53,14 +53,6 @@ func init() {
 	}
 }
 
-type BoxerEncryptionInfo struct {
-	Key                   types.CryptKey
-	SigningKeyPair        libkb.NaclSigningKeyPair
-	EphemeralSeed         *keybase1.TeamEk
-	PairwiseMACRecipients []keybase1.KID
-	Version               chat1.MessageBoxedVersion
-}
-
 type Boxer struct {
 	utils.DebugLabeler
 	globals.Contextified
@@ -286,7 +278,7 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
-	info *BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
+	info *types.BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
@@ -309,7 +301,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 				boxed.ClientHeader.TlfPublic))), nil
 	}
 	if info == nil {
-		info = new(BoxerEncryptionInfo)
+		info = new(types.BoxerEncryptionInfo)
 		keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 		encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 			tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
@@ -1297,7 +1289,7 @@ func dummySigningKey() libkb.NaclSigningKeyPair {
 }
 
 func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, signingKeyPair libkb.NaclSigningKeyPair) (res BoxerEncryptionInfo, err error) {
+	membersType chat1.ConversationMembersType, signingKeyPair libkb.NaclSigningKeyPair) (res types.BoxerEncryptionInfo, err error) {
 
 	tlfName := msg.ClientHeader.TlfName
 	version, err := b.GetBoxedVersion(*msg)
@@ -1367,7 +1359,7 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 			signingKeyPair = dummySigningKey()
 		}
 	}
-	return BoxerEncryptionInfo{
+	return types.BoxerEncryptionInfo{
 		Key:                   encryptionKey,
 		EphemeralSeed:         ephemeralSeed,
 		PairwiseMACRecipients: pairwiseMACRecipients,
@@ -1391,7 +1383,7 @@ func (b *Boxer) GetBoxedVersion(msg chat1.MessagePlaintext) (chat1.MessageBoxedV
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType,
-	signingKeyPair libkb.NaclSigningKeyPair, info *BoxerEncryptionInfo) (res chat1.MessageBoxed, err error) {
+	signingKeyPair libkb.NaclSigningKeyPair, info *types.BoxerEncryptionInfo) (res chat1.MessageBoxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
 	if len(tlfName) == 0 {
@@ -1405,7 +1397,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return res, err
 	}
 	if info == nil {
-		info = new(BoxerEncryptionInfo)
+		info = new(types.BoxerEncryptionInfo)
 		if *info, err = b.GetEncryptionInfo(ctx, &msg, membersType, signingKeyPair); err != nil {
 			return res, err
 		}

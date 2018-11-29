@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -188,9 +189,17 @@ type AttachmentUploadResult struct {
 	Metadata []byte
 }
 
+type BoxerEncryptionInfo struct {
+	Key                   CryptKey
+	SigningKeyPair        libkb.NaclSigningKeyPair
+	EphemeralSeed         *keybase1.TeamEk
+	PairwiseMACRecipients []keybase1.KID
+	Version               chat1.MessageBoxedVersion
+}
+
 type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
-	Unboxed             *chat1.MessageUnboxed
+	EncryptionInfo      BoxerEncryptionInfo
 	PendingAssetDeletes []chat1.Asset
 	AtMentions          []gregor1.UID
 	ChannelMention      chat1.ChannelMention
