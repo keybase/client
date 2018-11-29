@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../../../../common-adapters/index'
-import * as Sb from '../../../../../stories/storybook'
+import {Box} from '../../../../../../common-adapters/index'
+import * as Sb from '../../../../../../stories/storybook'
 
 import UnfurlGeneric from '.'
 

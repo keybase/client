@@ -26,11 +26,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     _you: state.config.username || '',
     conversationIDKey: ownProps.message.conversationIDKey,
+    hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
     orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
     shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
-    hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
   }
 }
 
@@ -92,6 +92,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     decorate: ownProps.decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     failureDescription,
+    hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
     isEditing: ownProps.isEditing,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     isShowingUsername,
@@ -101,7 +102,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ordinal,
     previous: ownProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
-    hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+    showSendIndicator: stateProps._you === message.author,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onCancel: allowCancelRetry
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)

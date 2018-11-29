@@ -1,10 +1,10 @@
 // @flow
-import * as Constants from '../../../../../constants/chat2'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Types from '../../../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as Constants from '../../../../../../constants/chat2'
+import * as Chat2Gen from '../../../../../../actions/chat2-gen'
+import * as Types from '../../../../../../constants/types/chat2'
+import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as I from 'immutable'
-import {namedConnect} from '../../../../../util/container'
+import {namedConnect} from '../../../../../../util/container'
 import UnfurlPromptList from '.'
 
 type OwnProps = {|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}

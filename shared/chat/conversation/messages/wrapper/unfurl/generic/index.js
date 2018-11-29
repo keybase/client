@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters/index'
-import * as Styles from '../../../../../styles'
-import {formatTimeForMessages} from '../../../../../util/timestamp'
+import * as Kb from '../../../../../../common-adapters/index'
+import * as Styles from '../../../../../../styles'
+import {formatTimeForMessages} from '../../../../../../util/timestamp'
 
 export type Props = {
   title: string,

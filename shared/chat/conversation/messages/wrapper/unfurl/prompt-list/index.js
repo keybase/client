@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2} from '../../../../../common-adapters/index'
-import Prompt from '../prompt'
-import type {Props as PromptProps} from '../prompt'
+import {Box2} from '../../../../../../common-adapters/index'
+import Prompt, {type Props as PromptProps} from '../prompt'
 
 export type Props = {
   prompts: Array<PromptProps>,

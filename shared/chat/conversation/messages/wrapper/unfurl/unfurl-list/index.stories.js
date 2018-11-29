@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../../../../common-adapters/index'
-import * as Sb from '../../../../../stories/storybook'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import {Box} from '../../../../../../common-adapters/index'
+import * as Sb from '../../../../../../stories/storybook'
+import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import UnfurlList from '.'
 
 const provider = Sb.createPropProviderWithCommon({

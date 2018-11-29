@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import * as Styles from '../../../../../styles'
-import {Box2} from '../../../../../common-adapters/index'
+import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../../../styles'
+import {Box2} from '../../../../../../common-adapters/index'
 import UnfurlGeneric from '../generic/container'
 
 export type UnfurlListItem = {

@@ -1,6 +1,6 @@
 // @flow
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import {namedConnect} from '../../../../../util/container'
+import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import {namedConnect} from '../../../../../../util/container'
 import UnfurlGeneric from '.'
 
 type OwnProps = {|

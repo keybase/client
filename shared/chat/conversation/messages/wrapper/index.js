@@ -10,8 +10,9 @@ import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
 import ReactButton from '../react-button/container'
 import ReactionsRow from '../reactions-row/container'
-import UnfurlList from '../unfurl/unfurl-list/container'
-import UnfurlPromptList from '../unfurl/prompt-list/container'
+import SendIndicator from './send-indicator'
+import UnfurlList from './unfurl/unfurl-list/container'
+import UnfurlPromptList from './unfurl/prompt-list/container'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
@@ -21,25 +22,26 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {|
+  children: React.Node | (({toggleShowingMenu: () => void}) => React.Node),
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
   failureDescription: string,
+  hasUnfurlPrompts: boolean,
+  isEditing: boolean,
   isRevoked: boolean,
   isShowingUsername: boolean,
-  ordinal: Types.Ordinal,
   measure: null | (() => void),
   message: Types.Message,
-  previous: ?Types.Message,
-  children: React.Node | (({toggleShowingMenu: () => void}) => React.Node),
-  isEditing: boolean,
-  orangeLineAbove: boolean,
-  shouldShowPopup: boolean,
-  hasUnfurlPrompts: boolean,
+  onAuthorClick: () => void,
+  onCancel: ?() => void,
   onEdit: ?() => void,
   onRetry: ?() => void,
-  onCancel: ?() => void,
-  onAuthorClick: () => void,
+  orangeLineAbove: boolean,
+  ordinal: Types.Ordinal,
+  previous: ?Types.Message,
+  shouldShowPopup: boolean,
+  showSendIndicator: boolean,
 |}
 
 type State = {
@@ -193,6 +195,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
   }
 
+  _sendIndicator = () => {
+    const message = this.props.message
+    const sent =
+      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
+    const failed =
+      message.type === 'text' || message.type === 'attachment' || message.submitState === 'failed'
+    this.props.showSendIndicator && (
+      <SendIndicator sent={sent} failed={failed} id={this.props.message.timestamp} />
+    )
+  }
+
   _cachedMenuStyles = {}
   _menuAreaStyle = () => {
     // $ForceType
@@ -325,6 +338,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             this._messageAndButtons(actualChild),
             this._isEdited(),
             this._isFailed(),
+            this._sendIndicator(),
             this._unfurlPrompts(),
             this._unfurlList(),
             this._reactionsRow(),
