@@ -30,7 +30,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
 		newTestLogMaker(t),
-		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()),
+		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
 		newTestDiskBlockCacheGetter(t, dbc),
 		newTestSyncedTlfGetterSetter(),

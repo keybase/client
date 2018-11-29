@@ -396,7 +396,7 @@ func MakeLocalTeams(teams []kbname.NormalizedUsername) []TeamInfo {
 // the smaller of <1/4 of available memory> and
 // <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
-func getDefaultCleanBlockCacheCapacity() uint64 {
+func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
 	capacity := uint64(MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
 	vmstat, err := mem.VirtualMemory()
 	if err == nil {
@@ -404,6 +404,9 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 		if ramBased < capacity {
 			capacity = ramBased
 		}
+	}
+	if capacity > mode.MaxCleanBlockCacheCapacity() {
+		capacity = mode.MaxCleanBlockCacheCapacity()
 	}
 	return capacity
 }
@@ -1005,7 +1008,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	log := c.MakeLogger("")
 	var capacity uint64
 	if c.bcache == nil {
-		capacity = getDefaultCleanBlockCacheCapacity()
+		capacity = getDefaultCleanBlockCacheCapacity(c.Mode())
 		log.Debug("setting default clean block cache capacity to %d",
 			capacity)
 	} else {

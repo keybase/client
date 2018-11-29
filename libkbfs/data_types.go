@@ -797,6 +797,9 @@ const (
 	// InitConstrained is a mode where KBFS reads and writes data, but
 	// constrains itself to using fewer resources (e.g. on mobile).
 	InitConstrained
+	// InitMemoryLimited is a mode where KBFS reads and writes data, but
+	// constrains its memory use even further.
+	InitMemoryLimited
 )
 
 func (im InitModeType) String() string {
@@ -809,6 +812,8 @@ func (im InitModeType) String() string {
 		return InitSingleOpString
 	case InitConstrained:
 		return InitConstrainedString
+	case InitMemoryLimited:
+		return InitMemoryLimitedString
 	default:
 		return "unknown"
 	}

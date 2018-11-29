@@ -7558,6 +7558,18 @@ func (mr *MockInitModeMockRecorder) ClientType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientType", reflect.TypeOf((*MockInitMode)(nil).ClientType))
 }
 
+// MaxCleanBlockCacheCapacity mocks base method
+func (m *MockInitMode) MaxCleanBlockCacheCapacity() uint64 {
+	ret := m.ctrl.Call(m, "MaxCleanBlockCacheCapacity")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+// MaxCleanBlockCacheCapacity indicates an expected call of MaxCleanBlockCacheCapacity
+func (mr *MockInitModeMockRecorder) MaxCleanBlockCacheCapacity() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxCleanBlockCacheCapacity", reflect.TypeOf((*MockInitMode)(nil).MaxCleanBlockCacheCapacity))
+}
+
 // MockinitModeGetter is a mock of initModeGetter interface
 type MockinitModeGetter struct {
 	ctrl     *gomock.Controller

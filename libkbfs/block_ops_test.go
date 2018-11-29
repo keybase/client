@@ -120,7 +120,7 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	codecGetter := newTestCodecGetter()
 	bserver := NewBlockServerMemory(lm.MakeLogger(""))
 	crypto := MakeCryptoCommon(codecGetter.Codec(), makeBlockCryptV1())
-	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
+	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault)))
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
 	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
