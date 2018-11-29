@@ -48,8 +48,8 @@ const provider = Sb.createPropProviderWithCommon({
   },
   WalletsIcon: ownProps => ({
     isNew: true,
-    onClick: Sb.action('onOpenWalletsForm'),
-    shouldRender: true,
+    onRequest: Sb.action('onRequestLumens'),
+    onSend: Sb.action('onSendLumens'),
     size: ownProps.size,
     style: ownProps.style,
   }),
@@ -100,6 +100,7 @@ const InputContainer = (props: Props) => {
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
+    showWalletsIcon: !props.isEditing && props.typing.size <= 1,
     typing: props.typing,
 
     editText: '',
