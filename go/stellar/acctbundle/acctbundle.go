@@ -314,28 +314,21 @@ var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 // bundle.  This advances the revision.  If it's already mobile-only,
 // this function will return ErrNoChangeNecessary.
 func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	ws, err := AccountWithSecret(a, accountID)
-	if err != nil {
-		return err
-	}
-	if ws.Mode == stellar1.AccountMode_MOBILE {
-		return ErrNoChangeNecessary
-	}
-	a.Revision++
-	a.Prev = a.OwnHash
-	a.OwnHash = nil
-
-	for i, vis := range a.Accounts {
-		if vis.AccountID == accountID {
-			if vis.Mode == stellar1.AccountMode_MOBILE {
+	var found bool
+	for i, account := range a.Accounts {
+		if account.AccountID == accountID {
+			if account.Mode == stellar1.AccountMode_MOBILE {
 				return ErrNoChangeNecessary
 			}
-			vis.Mode = stellar1.AccountMode_MOBILE
-			vis.AcctBundleRevision++
-			a.Accounts[i] = vis
+			account.Mode = stellar1.AccountMode_MOBILE
+			a.Accounts[i] = account
+			found = true
+			break
 		}
 	}
-
+	if !found {
+		return libkb.NotFoundError{}
+	}
 	return nil
 }
 
@@ -343,28 +336,21 @@ func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) 
 // bundle.  This advances the revision.  If it's already all-device,
 // this function will return ErrNoChangeNecessary.
 func MakeAllDevices(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	ws, err := AccountWithSecret(a, accountID)
-	if err != nil {
-		return err
-	}
-	if ws.Mode == stellar1.AccountMode_USER {
-		return ErrNoChangeNecessary
-	}
-	a.Revision++
-	a.Prev = a.OwnHash
-	a.OwnHash = nil
-
-	for i, vis := range a.Accounts {
-		if vis.AccountID == accountID {
-			if vis.Mode == stellar1.AccountMode_USER {
+	var found bool
+	for i, account := range a.Accounts {
+		if account.AccountID == accountID {
+			if account.Mode == stellar1.AccountMode_USER {
 				return ErrNoChangeNecessary
 			}
-			vis.Mode = stellar1.AccountMode_USER
-			vis.AcctBundleRevision++
-			a.Accounts[i] = vis
+			account.Mode = stellar1.AccountMode_USER
+			a.Accounts[i] = account
+			found = true
+			break
 		}
 	}
-
+	if !found {
+		return libkb.NotFoundError{}
+	}
 	return nil
 }
 

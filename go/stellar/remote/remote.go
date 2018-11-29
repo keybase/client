@@ -1113,9 +1113,12 @@ func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID 
 // SetAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
 // then send the new account bundle revision to the server.
 func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	bundle, _, _, err := FetchAccountBundle(ctx, g, accountID)
+	bundle, version, _, err := FetchAccountBundle(ctx, g, accountID)
 	if err != nil {
 		return err
+	}
+	if version == stellar1.BundleVersion_V1 {
+		return fmt.Errorf("mobile-only feature requires migration to v2 bundles")
 	}
 	err = acctbundle.MakeMobileOnly(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
@@ -1125,7 +1128,8 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	if err != nil {
 		return err
 	}
-	if err := postV2Bundle(ctx, g, bundle); err != nil {
+	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
+	if err := postV2Bundle(ctx, g, &nextBundle); err != nil {
 		g.Log.CDebugf(ctx, "SetAccountMobileOnly postV2Bundle error: %s", err)
 		return err
 	}
@@ -1137,11 +1141,13 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 // (so that any device can get the account secret keys) then send the new account bundle
 // to the server.
 func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	bundle, _, _, err := FetchAccountBundle(ctx, g, accountID)
+	bundle, version, _, err := FetchAccountBundle(ctx, g, accountID)
 	if err != nil {
 		return err
 	}
-
+	if version == stellar1.BundleVersion_V1 {
+		return fmt.Errorf("mobile-only feature requires migration to v2 bundles")
+	}
 	err = acctbundle.MakeAllDevices(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
 		g.Log.CDebugf(ctx, "MakeAccountAllDevices account %s is already in all-device mode", accountID)
@@ -1150,7 +1156,8 @@ func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountI
 	if err != nil {
 		return err
 	}
-	if err := postV2Bundle(ctx, g, bundle); err != nil {
+	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
+	if err := postV2Bundle(ctx, g, &nextBundle); err != nil {
 		g.Log.CDebugf(ctx, "MakeAccountAllDevices postV2Bundle error: %s", err)
 		return err
 	}
