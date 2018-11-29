@@ -816,15 +816,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// Write new message out to cache and other followup
 	var cerr error
-	var unboxedMsg chat1.MessageUnboxed
 	var convLocal *chat1.ConversationLocal
 	s.Debug(ctx, "sending local updates to chat sources")
 	// unbox using encryption info we already have
-	unboxed, err := s.boxer.UnboxMessage(ctx, *boxed, conv, &prepareRes.EncryptionInfo)
+	unboxedMsg, err := s.boxer.UnboxMessage(ctx, *boxed, conv, &prepareRes.EncryptionInfo)
 	if err != nil {
 		s.Debug(ctx, "Send: failed to unbox sent message: %s", err)
 	} else {
-		if _, cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender, unboxed); cerr != nil {
+		if _, cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender, unboxedMsg); cerr != nil {
 			s.Debug(ctx, "Send: failed to push new message into convsource: %s", err)
 		}
 	}
@@ -849,7 +848,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		go s.G().Unfurler.UnfurlAndSend(BackgroundContext(ctx, s.G()), boxed.ClientHeader.Sender, convID,
 			unboxedMsg)
 	}
-
 	return []byte{}, boxed, nil
 }
 

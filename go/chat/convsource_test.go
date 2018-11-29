@@ -999,11 +999,11 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		})
 		prepareRes, err := sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
-		msg := prepareRes.Boxed
+		msg = &prepareRes.Boxed
 
 		res, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.GetConvID(),
-			MessageBoxed:   msg,
+			MessageBoxed:   *msg,
 		})
 		require.NoError(t, err)
 		msg.ServerHeader = &res.MsgHeader
