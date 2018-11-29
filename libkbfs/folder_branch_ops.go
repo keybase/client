@@ -6118,10 +6118,8 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		return err
 	}
 
-	services, _ := fbo.serviceStatus.CurrentStatus()
-	if len(services) > 0 {
-		fbo.log.CDebugf(ctx, "Not fetching new updates while offline; "+
-			"failing services=%v", services)
+	if !fbo.config.MDServer().IsConnected() {
+		fbo.log.CDebugf(ctx, "Not fetching new updates while offline")
 		return nil
 	}
 
@@ -6195,7 +6193,6 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	if err := fbo.fbm.waitForSyncCacheCleans(ctx); err != nil {
 		return err
 	}
-
 	// A second journal flush if needed, to clear out any
 	// archive/remove calls caused by the above operations.
 	return WaitForTLFJournal(ctx, fbo.config, fbo.id(), fbo.log)
