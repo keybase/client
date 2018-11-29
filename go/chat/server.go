@@ -1819,29 +1819,12 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// List all the conversations on the team
-	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            nameInfo.ID,
-		TopicType:        arg.TopicType,
-		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
-	})
+	convs, err := h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
 	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
 		return res, err
 	}
-	if teamConvs.RateLimit != nil {
-		res.RateLimits = append(res.RateLimits, *teamConvs.RateLimit)
-	}
-
-	// Localize the conversations so we can find the conversation ID
-	teamConvsLocal, _, err := h.G().InboxSource.Localize(ctx, uid,
-		utils.RemoteConvs(teamConvs.Conversations), types.ConversationLocalizerBlocking)
-	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
-		return res, err
-	}
-
 	var convID chat1.ConversationID
-	for _, conv := range teamConvsLocal {
+	for _, conv := range convs {
 		topicName := utils.GetTopicName(conv)
 		if topicName != "" && topicName == arg.TopicName {
 			convID = conv.GetConvID()
@@ -1851,8 +1834,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
 	}
 
-	err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
-	if err != nil {
+	if err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
