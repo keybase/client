@@ -51,7 +51,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         type="Secondary"
         onClick={this.props.onAcceptDisclaimer}
         label={label}
-        labelStyle={{color: Styles.globalColors.purple}}
+        labelStyle={styles.labelStyle}
       />,
       <Kb.Button
         style={styles.buttonStyle}
@@ -216,6 +216,9 @@ const styles = Styles.styleSheetCreate({
   },
   headerText: {
     color: Styles.globalColors.white,
+  },
+  labelStyle: {
+    color: Styles.globalColors.purple,
   },
   scrollView: {
     marginBottom: 0,

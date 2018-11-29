@@ -13,13 +13,13 @@ type IntroProps = {|
 const Intro = (props: IntroProps) => {
   const buttons = [
     <Kb.Button
-      labelStyle={{color: Styles.globalColors.purple}}
       style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
       fullWidth={true}
       key={0}
       type="Secondary"
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
+      labelStyle={styles.labelStyle}
     >
       <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
     </Kb.Button>,
@@ -89,6 +89,9 @@ const styles = Styles.styleSheetCreate({
   },
   illustration: {
     paddingBottom: Styles.globalMargins.mediumLarge,
+  },
+  labelStyle: {
+    color: Styles.globalColors.purple,
   },
 })
 
