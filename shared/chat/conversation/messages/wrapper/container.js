@@ -9,7 +9,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {namedConnect} from '../../../../util/container'
 
 export type OwnProps = {|
-  children?: React.Node,
+  children: React.Node | (({toggleShowingMenu: () => void}) => React.Node),
   isEditing: boolean,
   measure: null | (() => void),
   message: Types.Message,
@@ -91,7 +91,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
-    decorate: ownProps.decorate,
+    decorate: !!ownProps.decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     failureDescription,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,

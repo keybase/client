@@ -16,30 +16,43 @@ import AttachmentMessage from './attachment/container'
 import PaymentMessage from './account-payment/container'
 import Placeholder from './placeholder/container'
 import WrapperMessage from './wrapper/container'
-import {namedConnect, compose, lifecycle} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  measure?: ?() => void,
+  measure: ?() => void,
   ordinal: Types.Ordinal,
   previous: ?Types.Ordinal,
 |}
 
-type Props = {
-  message: Types.Message,
-  previous: ?Types.Message,
+type Props = {|
   isEditing: boolean,
-  measure: null | (() => void),
+  measure: ?() => void,
+  message: ?Types.Message,
+  previous: ?Types.Message,
   you: string,
-}
+|}
 
 class MessageFactory extends React.PureComponent<Props> {
-  render() {
+  componentDidUpdate(prevProps) {
     if (!this.props.message) {
+      return
+    }
+    // If our message is the same id but anything else changed then we need to remeasure
+    if (
+      this.props.measure &&
+      this.props.message !== prevProps.message &&
+      (prevProps.message && this.props.message.ordinal === prevProps.message.ordinal)
+    ) {
+      this.props.measure()
+    }
+  }
+
+  render() {
+    const message = this.props.message
+    if (!message) {
       return null
     }
-
-    const message = this.props.message
 
     const messageWrapperProps = {
       isEditing: this.props.isEditing,
@@ -150,7 +163,7 @@ class MessageFactory extends React.PureComponent<Props> {
 }
 
 const mapStateToProps = (state, {ordinal, previous, conversationIDKey}) => {
-  const message: ?Types.Message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const isEditing = !!(message && editInfo && editInfo.ordinal === message.ordinal)
   const previousMessage = previous ? Constants.getMessage(state, conversationIDKey, previous) : null
@@ -167,24 +180,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   measure: ownProps.measure,
   message: stateProps.message,
   previous: stateProps.previous,
-  you: stateProps.username,
+  you: stateProps.you,
 })
 
-export default compose(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'MessageFactory'),
-  lifecycle({
-    componentDidUpdate(prevProps) {
-      if (!this.props.message) {
-        return
-      }
-      // If our message is the same id but anything else changed then we need to remeasure
-      if (
-        this.props.measure &&
-        this.props.message !== prevProps.message &&
-        (prevProps.message && this.props.message.ordinal === prevProps.message.ordinal)
-      ) {
-        this.props.measure()
-      }
-    },
-  })
-)(MessageFactory)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'MessageFactory')(
+  MessageFactory
+)

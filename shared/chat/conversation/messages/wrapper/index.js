@@ -110,14 +110,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _isEdited = () =>
     // $ForceType
     this.props.message.hasBeenEdited && (
-      <Kb.Text type="BodyTiny" style={styles.edited}>
+      <Kb.Text key="isEdited" type="BodyTiny" style={styles.edited}>
         EDITED
       </Kb.Text>
     )
 
   _isFailed = () =>
     !!this.props.failureDescription && (
-      <Kb.Text type="BodySmall">
+      <Kb.Text key="isFailed" type="BodySmall">
         <Kb.Text type="BodySmall" style={styles.fail}>
           {this.props.failureDescription}.{' '}
         </Kb.Text>
@@ -204,7 +204,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const sent =
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
     const failed =
-      // $ForceType
       (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
     return <SendIndicator sent={sent} failed={failed} id={this.props.message.timestamp} style={styles.send} />
   }
@@ -269,7 +268,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     // TODO cleaner way to do this, or speedup react button maybe
     if (this.props.decorate && !exploded) {
       return (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
           <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
             {exploding && (
@@ -313,7 +312,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     } else if (exploding) {
       // extra box so the hierarchy stays the same when exploding or you'll remount
       return (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
         </Kb.Box2>
       )

@@ -268,7 +268,6 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
-  showAuthorMessageTypes,
   shouldShowPopup,
   specialMentions,
   uiMessageEditToMessage,
