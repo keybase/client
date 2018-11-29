@@ -140,12 +140,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _unfurlList = () =>
+    // $ForceType
     this.props.message.unfurls &&
     !this.props.message.unfurls.isEmpty() && (
       <UnfurlList conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
     )
 
   _reactionsRow = () =>
+    // $ForceType
     this.props.message.reactions &&
     !this.props.message.reactions.isEmpty() && (
       <ReactionsRow conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
@@ -188,7 +190,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _cachedMenuStyles = {}
   _menuAreaStyle = () => {
-    const exploding = ((this.props.message.exploding: any): boolean)
+    // $ForceType
+    const exploding = this.props.message.exploding
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
       16, // reactji
@@ -213,14 +216,35 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _messageAndButtons = children => {
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
-    const exploding = ((this.props.message.exploding: any): boolean)
+    // $ForceType
+    const exploding = this.props.message.exploding
 
+    // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
+    // but this creates complexity as we can't use box2 gap stuff since we can either
+    // 1. Haven't mounted it yet
+    // 2. Have mounted but its hidden w/ css
+    // TODO cleaner way to do this, or speedup react button maybe
     if (this.props.decorate && !this.props.exploded) {
       return (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {children}
-          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()} gap="tiny" gapStart={true}>
-            {showMenuButton && (
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
+            {exploding && (
+              <ExplodingMeta
+                conversationIDKey={this.props.conversationIDKey}
+                onClick={this.props.toggleShowingMenu}
+                ordinal={this.props.message.ordinal}
+              />
+            )}
+            {this.props.isRevoked && (
+              <Kb.Icon
+                type="iconfont-exclamation"
+                color={Styles.globalColors.blue}
+                fontSize={14}
+                style={styles.revoked}
+              />
+            )}
+            {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
                 <ReactButton
                   conversationIDKey={this.props.conversationIDKey}
@@ -239,17 +263,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   )}
                 </Kb.Box>
               </Kb.Box>
-            )}
-            {exploding && (
-              <ExplodingMeta
-                conversationIDKey={this.props.conversationIDKey}
-                onClick={this.props.toggleShowingMenu}
-                ordinal={this.props.message.ordinal}
-              />
-            )}
-            {this.props.isRevoked && (
-              <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
-            )}
+            ) : null}
           </Kb.Box2>
         </Kb.Box2>
       )
@@ -291,28 +305,32 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 const styles = Styles.styleSheetCreate({
-  avatar: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-      marginTop: -Styles.globalMargins.tiny,
-    },
-  }),
   authorContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  avatar: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.small,
+      marginTop: -Styles.globalMargins.tiny,
+    },
+  }),
   contentUnderAuthorContainer: Styles.platformStyles({
     isElectron: {
+      marginTop: -Styles.globalMargins.tiny,
       paddingLeft:
         // Space for below the avatar
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.small + // left margin
         Styles.globalMargins.mediumLarge, // avatar
-      marginTop: -Styles.globalMargins.tiny,
     },
   }),
+  edited: {color: Styles.globalColors.black_20},
+  ellipsis: {marginLeft: Styles.globalMargins.tiny},
+  fail: {color: Styles.globalColors.red},
+  failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   menuButtons: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -323,10 +341,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   menuButtonsWithAuthor: {marginTop: -16},
-  ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  edited: {color: Styles.globalColors.black_20},
-  fail: {color: Styles.globalColors.red},
-  failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
+  orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
+  revoked: {marginLeft: Styles.globalMargins.tiny},
 })
 
 export default WrapperMessage
