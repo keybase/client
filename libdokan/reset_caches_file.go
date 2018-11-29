@@ -28,6 +28,6 @@ func (f *ResetCachesFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs 
 	if len(bs) == 0 {
 		return 0, nil
 	}
-	f.fs.config.ResetCaches(libkbfs.NewInitModeFromType(libkbfs.InitDefault))
+	f.fs.config.ResetCaches()
 	return len(bs), nil
 }

@@ -2352,7 +2352,7 @@ type Config interface {
 	SetDelayedCancellationGracePeriod(time.Duration)
 
 	// ResetCaches clears and re-initializes all data and key caches.
-	ResetCaches(InitMode)
+	ResetCaches()
 
 	// StorageRoot returns the path to the storage root for this config.
 	StorageRoot() string

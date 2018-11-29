@@ -436,7 +436,7 @@ func NewConfigLocal(mode InitMode,
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
-	config.ResetCaches(mode)
+	config.ResetCaches()
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 	config.SetUserHistory(kbfsedits.NewUserHistory())
@@ -998,7 +998,7 @@ func (c *ConfigLocal) StorageRoot() string {
 	return c.storageRoot
 }
 
-func (c *ConfigLocal) resetCachesWithoutShutdown(mode InitMode) DirtyBlockCache {
+func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
@@ -1008,7 +1008,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown(mode InitMode) DirtyBlockCache 
 	log := c.MakeLogger("")
 	var capacity uint64
 	if c.bcache == nil {
-		capacity = getDefaultCleanBlockCacheCapacity(mode)
+		capacity = getDefaultCleanBlockCacheCapacity(c.Mode())
 		log.Debug("setting default clean block cache capacity to %d",
 			capacity)
 	} else {
@@ -1051,8 +1051,8 @@ func (c *ConfigLocal) resetCachesWithoutShutdown(mode InitMode) DirtyBlockCache 
 }
 
 // ResetCaches implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) ResetCaches(mode InitMode) {
-	oldDirtyBcache := c.resetCachesWithoutShutdown(mode)
+func (c *ConfigLocal) ResetCaches() {
+	oldDirtyBcache := c.resetCachesWithoutShutdown()
 	jServer, err := GetJournalServer(c)
 	if err == nil {
 		if err := c.journalizeBcaches(jServer); err != nil {

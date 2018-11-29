@@ -457,6 +457,10 @@ func (mml modeMemoryLimited) SendEditNotificationsEnabled() bool {
 	return false
 }
 
+func (mml modeMemoryLimited) LocalHTTPServerEnabled() bool {
+	return false
+}
+
 func (mml modeMemoryLimited) MaxCleanBlockCacheCapacity() uint64 {
 	return 1 * (1 << 20) // 1 MB
 }

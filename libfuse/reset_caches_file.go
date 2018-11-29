@@ -43,7 +43,7 @@ func (f *ResetCachesFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	if len(req.Data) == 0 {
 		return nil
 	}
-	f.fs.config.ResetCaches(libkbfs.NewInitModeFromType(libkbfs.InitDefault))
+	f.fs.config.ResetCaches()
 	resp.Size = len(req.Data)
 	return nil
 }
