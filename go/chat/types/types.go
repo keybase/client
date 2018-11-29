@@ -188,6 +188,15 @@ type AttachmentUploadResult struct {
 	Metadata []byte
 }
 
+type SenderPrepareResult struct {
+	Boxed               chat1.MessageBoxed
+	Unboxed             chat1.MessageUnboxed
+	PendingAssetDeletes []chat1.Asset
+	AtMentions          []gregor1.UID
+	ChannelMention      chat1.ChannelMention
+	TopicNameState      *chat1.TopicNameState
+}
+
 type DummyAttachmentFetcher struct{}
 
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,

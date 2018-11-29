@@ -482,14 +482,14 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (res types.SenderPrepareResult, err error) {
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, fmt.Errorf("cannot send message without type")
+		return res, fmt.Errorf("cannot send message without type")
 	}
 
 	msg, uid, err := s.addSenderToMessage(plaintext)
 	if err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		return res, err
 	}
 
 	// Make sure our delete message gets everything it should
@@ -502,21 +502,21 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// Check for outboxID based edits
 		if err = s.resolveOutboxIDEdit(ctx, uid, convID, &msg); err != nil {
 			s.Debug(ctx, "Prepare: error resolving outboxID edit: %s", err)
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 
 		// Add and check prev pointers
 		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error adding prev pointers: %s", err)
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 
 		// First process the reactionMessage in case we convert it to a delete
 		header, body, err := s.processReactionMessage(ctx, uid, convID, msg)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error processing reactions: %s", err)
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 		msg.ClientHeader = header
 		msg.MessageBody = body
@@ -525,20 +525,20 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error getting deleted edits: %s", err)
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 
 		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error getting superdeder ephemeral metadata: %s", err)
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 		msg.ClientHeader.EphemeralMetadata = metadata
 	}
 
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(msg); err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		return res, err
 	}
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
@@ -546,14 +546,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, membersType)
 	if err != nil {
 		s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		return res, err
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
 		s.Debug(ctx, "Prepare: error getting signing key pair: %s", err)
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		return res, err
 	}
 
 	// Function to check that the header and body types match.
@@ -577,19 +577,19 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_EDIT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_SYSTEM:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			return res, err
 		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
 			s.G().GetUPAKLoader())
@@ -614,14 +614,19 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
 	if err != nil {
-		return nil, nil, nil, chanMention, nil, err
+		return res, err
 	}
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp, &encInfo)
 	if err != nil {
-		return nil, nil, nil, chanMention, nil, err
+		return res, err
 	}
-
-	return boxed, pendingAssetDeletes, atMentions, chanMention, topicNameState, nil
+	return types.SenderPrepareResult{
+		Boxed:               boxed,
+		PendingAssetDeletes: pendingAssetDeletes,
+		AtMentions:          atMentions,
+		ChannelMention:      chanMention,
+		TopicNameState:      topicNameState,
+	}, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
@@ -745,18 +750,17 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-		b, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
-			conv.GetMembersType(), &conv)
+		prepareRes, err := s.Prepare(ctx, msg, conv.GetMembersType(), &conv)
 		if err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
 		}
-		boxed = b
+		boxed = &prepareRes.Boxed
 
 		// Delete assets associated with a delete operation.
 		// Logs instead of returning an error. Assets can be left undeleted.
-		if len(pendingAssetDeletes) > 0 {
-			err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+		if len(prepareRes.PendingAssetDeletes) > 0 {
+			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
 			if err != nil {
 				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err.Error())
 			}
@@ -773,9 +777,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		rarg := chat1.PostRemoteArg{
 			ConversationID: convID,
 			MessageBoxed:   *boxed,
-			AtMentions:     atMentions,
-			ChannelMention: chanMention,
-			TopicNameState: topicNameState,
+			AtMentions:     prepareRes.AtMentions,
+			ChannelMention: prepareRes.ChannelMention,
+			TopicNameState: prepareRes.TopicNameState,
 		}
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
@@ -1424,7 +1428,7 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (types.SenderPrepareResult, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv)
 }
 
