@@ -75,7 +75,7 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 	if jServer, err := GetJournalServer(config); err == nil {
 		jServer.shutdownExistingJournals(ctx)
 	}
-	config.ResetCaches()
+	config.ResetCaches(config.Mode())
 	config.UserHistory().Clear()
 	config.Chat().ClearCache()
 	mdServer := config.MDServer()

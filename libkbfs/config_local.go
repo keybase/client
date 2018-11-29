@@ -396,7 +396,7 @@ func MakeLocalTeams(teams []kbname.NormalizedUsername) []TeamInfo {
 // the smaller of <1/4 of available memory> and
 // <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
-func getDefaultCleanBlockCacheCapacity() uint64 {
+func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
 	capacity := uint64(MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
 	vmstat, err := mem.VirtualMemory()
 	if err == nil {
@@ -404,6 +404,9 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 		if ramBased < capacity {
 			capacity = ramBased
 		}
+	}
+	if capacity > mode.MaxCleanBlockCacheCapacity() {
+		capacity = mode.MaxCleanBlockCacheCapacity()
 	}
 	return capacity
 }
@@ -433,7 +436,7 @@ func NewConfigLocal(mode InitMode,
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
-	config.ResetCaches()
+	config.ResetCaches(mode)
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 	config.SetUserHistory(kbfsedits.NewUserHistory())
@@ -995,7 +998,7 @@ func (c *ConfigLocal) StorageRoot() string {
 	return c.storageRoot
 }
 
-func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
+func (c *ConfigLocal) resetCachesWithoutShutdown(mode InitMode) DirtyBlockCache {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
@@ -1005,7 +1008,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	log := c.MakeLogger("")
 	var capacity uint64
 	if c.bcache == nil {
-		capacity = getDefaultCleanBlockCacheCapacity()
+		capacity = getDefaultCleanBlockCacheCapacity(mode)
 		log.Debug("setting default clean block cache capacity to %d",
 			capacity)
 	} else {
@@ -1048,8 +1051,8 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 }
 
 // ResetCaches implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) ResetCaches() {
-	oldDirtyBcache := c.resetCachesWithoutShutdown()
+func (c *ConfigLocal) ResetCaches(mode InitMode) {
+	oldDirtyBcache := c.resetCachesWithoutShutdown(mode)
 	jServer, err := GetJournalServer(c)
 	if err == nil {
 		if err := c.journalizeBcaches(jServer); err != nil {

@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -23,6 +24,8 @@ func NewInitModeFromType(t InitModeType) InitMode {
 		return modeSingleOp{modeDefault{}}
 	case InitConstrained:
 		return modeConstrained{modeDefault{}}
+	case InitMemoryLimited:
+		return modeMemoryLimited{modeConstrained{modeDefault{}}}
 	default:
 		panic(fmt.Sprintf("Unknown mode: %s", t))
 	}
@@ -139,6 +142,10 @@ func (md modeDefault) ClientType() keybase1.ClientType {
 
 func (md modeDefault) LocalHTTPServerEnabled() bool {
 	return true
+}
+
+func (md modeDefault) MaxCleanBlockCacheCapacity() uint64 {
+	return math.MaxUint64
 }
 
 // Minimal mode:
@@ -262,6 +269,10 @@ func (mm modeMinimal) ClientType() keybase1.ClientType {
 
 func (mm modeMinimal) LocalHTTPServerEnabled() bool {
 	return false
+}
+
+func (md modeMinimal) MaxCleanBlockCacheCapacity() uint64 {
+	return math.MaxUint64
 }
 
 // Single op mode:
@@ -410,6 +421,44 @@ func (mc modeConstrained) SendEditNotificationsEnabled() bool {
 
 func (mc modeConstrained) LocalHTTPServerEnabled() bool {
 	return true
+}
+
+// Memory limited mode
+
+type modeMemoryLimited struct {
+	InitMode
+}
+
+func (mc modeMemoryLimited) Type() InitModeType {
+	return InitMemoryLimited
+}
+
+func (mc modeMemoryLimited) RekeyWorkers() int {
+	return 0
+}
+
+func (mc modeMemoryLimited) RekeyQueueSize() int {
+	return 0
+}
+
+func (mc modeMemoryLimited) ConflictResolutionEnabled() bool {
+	return false
+}
+
+func (mc modeMemoryLimited) QuotaReclamationEnabled() bool {
+	return false
+}
+
+func (mc modeMemoryLimited) UnmergedTLFsEnabled() bool {
+	return false
+}
+
+func (mc modeMemoryLimited) SendEditNotificationsEnabled() bool {
+	return false
+}
+
+func (mc modeMemoryLimited) MaxCleanBlockCacheCapacity() uint64 {
+	return 1 * (1 << 20) // 1 MB
 }
 
 // Wrapper for tests.

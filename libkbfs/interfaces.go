@@ -2218,6 +2218,9 @@ type InitMode interface {
 	// ClientType indicates the type we should advertise to the
 	// Keybase service.
 	ClientType() keybase1.ClientType
+	// MaxCleanBlockCacheCapacity is the maximum number of bytes to be taken up
+	// by the clean block cache.
+	MaxCleanBlockCacheCapacity() uint64
 }
 
 type initModeGetter interface {
@@ -2349,7 +2352,7 @@ type Config interface {
 	SetDelayedCancellationGracePeriod(time.Duration)
 
 	// ResetCaches clears and re-initializes all data and key caches.
-	ResetCaches()
+	ResetCaches(InitMode)
 
 	// StorageRoot returns the path to the storage root for this config.
 	StorageRoot() string

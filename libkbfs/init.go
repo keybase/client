@@ -37,6 +37,9 @@ const (
 	// InitConstrainedString is for when KBFS will use constrained
 	// resources.
 	InitConstrainedString = "constrained"
+	// InitMemoryLimitedString is for when KBFS will use memory limited
+	// resources.
+	InitMemoryLimitedString = "memoryLimited"
 )
 
 // AdditionalProtocolCreator creates an additional protocol.
@@ -288,8 +291,9 @@ func AddFlagsWithDefaults(
 		"Encryption version to use when encrypting new blocks")
 	flags.StringVar(&params.Mode, "mode", defaultParams.Mode,
 		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
-			"heavy-weight it can be (%s, %s, %s or %s)", InitDefaultString,
-			InitMinimalString, InitSingleOpString, InitConstrainedString))
+			"heavy-weight it can be (%s, %s, %s, %s or %s)", InitDefaultString,
+			InitMinimalString, InitSingleOpString, InitConstrainedString,
+			InitMemoryLimitedString))
 
 	flags.Float64Var((*float64)(&params.DiskBlockCacheFraction),
 		"disk-block-cache-fraction", defaultParams.DiskBlockCacheFraction,
@@ -594,6 +598,9 @@ func doInit(
 	case InitConstrainedString:
 		log.CDebugf(ctx, "Initializing in constrained mode")
 		mode = InitConstrained
+	case InitMemoryLimitedString:
+		log.CDebugf(ctx, "Initializing in memoryLimited mode")
+		mode = InitMemoryLimited
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
