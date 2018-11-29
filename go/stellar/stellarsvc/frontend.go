@@ -373,6 +373,20 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
+	return s.getPendingPaymentsCached(ctx, arg)
+}
+
+func (s *Server) getPendingPaymentsCached(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
+	cached, err := s.memo.PendingPayments(arg.AccountID)
+	if err == nil {
+		s.G().Log.CDebugf(ctx, "Using cached pending payments for %s", arg.AccountID)
+		return cached, nil
+	}
+
+	return s.getPendingPaymentsNoCache(ctx, arg)
+}
+
+func (s *Server) getPendingPaymentsNoCache(ctx context.Context, arg stellar1.GetPendingPaymentsLocalArg) (payments []stellar1.PaymentOrErrorLocal, err error) {
 	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
 	if err != nil {
@@ -396,6 +410,8 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 			payments[i].Err = nil
 		}
 	}
+
+	s.memo.InsertPendingPayments(arg.AccountID, payments)
 
 	return payments, nil
 }
@@ -1287,6 +1303,11 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	if err != nil {
 		return res, err
 	}
+
+	// prime the cache
+	s.G().Log.CDebugf(ctx, "Priming pending payments cache for %s", arg.From)
+	s.getPendingPaymentsNoCache(ctx, stellar1.GetPendingPaymentsLocalArg{AccountID: arg.From})
+
 	return stellar1.SendPaymentResLocal{
 		KbTxID:  sendRes.KbTxID,
 		Pending: sendRes.Pending,

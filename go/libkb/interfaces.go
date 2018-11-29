@@ -660,6 +660,7 @@ type Stellar interface {
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
+	RefreshPayments(ctx context.Context, accountID stellar1.AccountID)
 }
 
 type DeviceEKStorage interface {

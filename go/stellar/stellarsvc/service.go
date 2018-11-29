@@ -26,6 +26,7 @@ type Server struct {
 	uiSource         UISource
 	remoter          remote.Remoter
 	buildPaymentSlot *slotctx.PrioritySlot
+	memo             *Memo
 }
 
 func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
@@ -34,6 +35,7 @@ func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Ser
 		uiSource:         uiSource,
 		remoter:          remoter,
 		buildPaymentSlot: slotctx.NewPriority(),
+		memo:             NewMemo(g),
 	}
 }
 
