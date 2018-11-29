@@ -15,7 +15,7 @@ import (
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, types.NameInfo, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (types.CryptKey, error)
@@ -30,7 +30,7 @@ type KeyFinder interface {
 
 type encItem struct {
 	key types.CryptKey
-	ni  *types.NameInfo
+	ni  types.NameInfo
 }
 
 type KeyFinderImpl struct {
@@ -121,7 +121,7 @@ func (k *KeyFinderImpl) writeDecKey(key string, v types.CryptKey) {
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
 
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
 	existing, ok := k.lookupEncKey(ckey)
