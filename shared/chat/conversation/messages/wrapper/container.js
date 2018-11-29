@@ -3,6 +3,8 @@ import * as React from 'react'
 import WrapperMessage from '.'
 import * as Constants from '../../../../constants/chat2'
 import * as MessageConstants from '../../../../constants/chat2/message'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import {namedConnect} from '../../../../util/container'
 
@@ -12,21 +14,8 @@ export type OwnProps = {|
   measure: null | (() => void),
   message: Types.Message,
   previous: ?Types.Message,
+  decorate?: boolean,
 |}
-
-const shouldDecorateMessage = (message: Types.Message, you: string) => {
-  if (
-    (message.type === 'text' || message.type === 'attachment') &&
-    (message.exploded || message.errorReason)
-  ) {
-    return false
-  }
-  if (message.type === 'systemJoined') {
-    // special case. "You joined #<channel>" messages render with a blue user notice so don't decorate those
-    return message.author !== you
-  }
-  return decoratedMessageTypes.includes(message.type)
-}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
@@ -45,18 +34,18 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-// Used to decide whether to show the author wrapper
-const showAuthorMessageTypes = ['attachment', 'requestPayment', 'sendPayment', 'text']
-
-// Used to decide whether to show react button / message menu
-const decoratedMessageTypes: Array<Types.MessageType> = [
-  'attachment',
-  'text',
-  'requestPayment',
-  'sendPayment',
-  'systemAddedToTeam',
-  'systemLeft',
-]
+const mapDisaptchToProps = dispatch => ({
+  _onAuthorClick: (username: string) =>
+    // isMobile
+    /* ? */ dispatch(ProfileGen.createShowUserProfile({username})),
+  // : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
+  _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
+  _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
+    dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
+})
 
 // Used to decide whether to show the author for sequential messages
 const authorIsCollapsible = (m: Types.Message) =>
@@ -76,19 +65,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const timestamp = stateProps.orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
 
-  const decorate = shouldDecorateMessage(message, stateProps._you)
+  // const decorate = shouldDecorateMessage(message, stateProps._you)
 
   let failureDescription = ''
-  // TODO
-  let isErrorFixable = false
+  let allowCancelRetry = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = message.errorReason
     if (stateProps._you && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix
       failureDescription = `Failed to send: ${message.errorReason}`
-      isErrorFixable = true
+      allowCancelRetry = true
     }
   }
+  const resolveByEdit: boolean =
+    // $ForceType
+    message.outboxID && stateProps._you && failureDescription === 'Failed to send: message is too long'
 
   // $ForceType
   if (message.explodingUnreadable) {
@@ -98,7 +89,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
-    decorate,
+    decorate: ownProps.decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     failureDescription,
     isEditing: ownProps.isEditing,
@@ -111,9 +102,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     previous: ownProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+    onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onCancel: allowCancelRetry
+      ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
+      : null,
+    onEdit: resolveByEdit ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
+    onRetry:
+      allowCancelRetry && !resolveByEdit
+        ? () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+        : null,
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'WrapperMessage')(
-  WrapperMessage
-)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDisaptchToProps,
+  mergeProps,
+  'WrapperMessage'
+)(WrapperMessage)

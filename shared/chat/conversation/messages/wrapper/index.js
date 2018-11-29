@@ -29,11 +29,15 @@ export type Props = {|
   measure: null | (() => void),
   message: Types.Message,
   previous: ?Types.Message,
-  children?: React.Node,
+  children: React.Node | (({toggleShowingMenu: () => void}) => React.Node),
   isEditing: boolean,
   orangeLineAbove: boolean,
   shouldShowPopup: boolean,
   hasUnfurlPrompts: boolean,
+  onEdit: ?() => void,
+  onRetry: ?() => void,
+  onCancel: ?() => void,
+  onAuthorClick: () => void,
 |}
 
 type State = {
@@ -42,6 +46,7 @@ type State = {
 }
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
   state = {showMenuButton: false, showingPicker: false}
+
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
       this.props.measure()
@@ -97,7 +102,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _isEdited = () =>
-    this.props.message.hasBeenEdited && (
+    (this.props.message.hasBeenEdited: boolean) && (
       <Kb.Text type="BodyTiny" style={styles.edited}>
         EDITED
       </Kb.Text>
@@ -105,24 +110,24 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _isFailed = () =>
     !!this.props.failureDescription && (
-      // TODO failureDescription === 'Failed to send: message is too long'
       <Kb.Text type="BodySmall">
         <Kb.Text type="BodySmall" style={styles.fail}>
-          {this.props.failureDescription}.
+          {this.props.failureDescription}.{' '}
         </Kb.Text>
         {!!this.props.onCancel && (
-          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={this.props.onCancel}>
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onCancel}>
             Cancel
           </Kb.Text>
         )}
-        {!!this.props.onCancel && <Kb.Text type="BodySmall"> or </Kb.Text>}
+        {!!this.props.onCancel &&
+          (!!this.props.onEdit || !!this.props.onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
         {!!this.props.onEdit && (
-          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={this.props.onEdit}>
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onEdit}>
             Edit
           </Kb.Text>
         )}
         {!!this.props.onRetry && (
-          <Kb.Text type="BodySmall" style={styles.failStyleUnderline} onClick={this.props.onRetry}>
+          <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onRetry}>
             Retry
           </Kb.Text>
         )}
@@ -183,8 +188,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _cachedMenuStyles = {}
   _menuAreaStyle = () => {
-    // $ForceType
-    const exploding: boolean = this.props.message.exploding
+    const exploding = ((this.props.message.exploding: any): boolean)
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
       16, // reactji
@@ -207,15 +211,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return this._cachedMenuStyles[key]
   }
 
-  _messageAndButtons = () => {
+  _messageAndButtons = children => {
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
-    // $ForceType
-    const exploding: boolean = this.props.message.exploding
+    const exploding = ((this.props.message.exploding: any): boolean)
 
     if (this.props.decorate && !this.props.exploded) {
       return (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
-          {this.props.children}
+          {children}
           <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()} gap="tiny" gapStart={true}>
             {showMenuButton && (
               <Kb.Box className="WrapperMessage-buttons">
@@ -251,11 +254,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         </Kb.Box2>
       )
     } else {
-      return this.props.children
+      return children
     }
   }
 
   render() {
+    // We support child functions just to plumb this callback. TODO cleaner way to do this
+    const actualChild =
+      typeof this.props.children === 'function'
+        ? this.props.children({toggleShowingMenu: this.props.toggleShowingMenu})
+        : this.props.children
     return (
       <React.Fragment>
         <LongPressable
@@ -266,7 +274,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         >
           {this._orangeLine()}
           {this._content([
-            this._messageAndButtons(this.props.children),
+            this._messageAndButtons(actualChild),
             this._isEdited(),
             this._isFailed(),
             this._unfurlPrompts(),
@@ -317,6 +325,8 @@ const styles = Styles.styleSheetCreate({
   menuButtonsWithAuthor: {marginTop: -16},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
   edited: {color: Styles.globalColors.black_20},
+  fail: {color: Styles.globalColors.red},
+  failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
 })
 
 export default WrapperMessage
