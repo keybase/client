@@ -143,21 +143,33 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _unfurlPrompts = () =>
     this.props.hasUnfurlPrompts && (
-      <UnfurlPromptList conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
+      <UnfurlPromptList
+        key="UnfurlPromptList"
+        conversationIDKey={this.props.conversationIDKey}
+        ordinal={this.props.ordinal}
+      />
     )
 
   _unfurlList = () =>
     // $ForceType
     this.props.message.unfurls &&
     !this.props.message.unfurls.isEmpty() && (
-      <UnfurlList conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
+      <UnfurlList
+        key="UnfurlList"
+        conversationIDKey={this.props.conversationIDKey}
+        ordinal={this.props.ordinal}
+      />
     )
 
   _reactionsRow = () =>
     // $ForceType
     this.props.message.reactions &&
     !this.props.message.reactions.isEmpty() && (
-      <ReactionsRow conversationIDKey={this.props.conversationIDKey} ordinal={this.props.ordinal} />
+      <ReactionsRow
+        key="ReactionsRow"
+        conversationIDKey={this.props.conversationIDKey}
+        ordinal={this.props.ordinal}
+      />
     )
 
   _popup = () =>
@@ -178,17 +190,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _containerProps = () => {
     if (Styles.isMobile) {
-      if (this.props.decorate) {
-        return {
-          onLongPress: this.props.toggleShowingMenu,
-          onPress: this._dismissKeyboard,
-          underlayColor: Styles.globalColors.blue5,
-        }
-      }
+      const props = this.props.isShowingUsername ? {} : {style: styles.containerNoUsername}
+      return this.props.decorate
+        ? {
+            ...props,
+            onLongPress: this.props.toggleShowingMenu,
+            onPress: this._dismissKeyboard,
+            underlayColor: Styles.globalColors.blue5,
+          }
+        : props
     } else {
       return {
         className: Styles.classNames('WrapperMessage-hoverBox', {
-          'WrapperMessage-author': this.props.isShowingUsername, // TODO mobile
+          'WrapperMessage-author': this.props.isShowingUsername,
           'WrapperMessage-decorated': this.props.decorate,
           active: this.props.showingMenu || this.state.showingPicker,
         }),
@@ -328,7 +342,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         ? this.props.children({toggleShowingMenu: this.props.toggleShowingMenu})
         : this.props.children
     return (
-      <React.Fragment>
+      <>
         <LongPressable
           direction="vertical"
           fullWidth={true}
@@ -347,7 +361,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           ])}
         </LongPressable>
         {this._popup()}
-      </React.Fragment>
+      </>
     )
   }
 }
@@ -366,6 +380,19 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.small,
       marginTop: -Styles.globalMargins.tiny,
     },
+    isMobile: {
+      marginLeft: Styles.globalMargins.tiny,
+    },
+  }),
+  containerNoUsername: Styles.platformStyles({
+    isMobile: {
+      paddingLeft:
+        // Space for below the avatar
+        Styles.globalMargins.tiny + // right margin
+        Styles.globalMargins.tiny + // left margin
+        Styles.globalMargins.mediumLarge, // avatar
+      paddingRight: Styles.globalMargins.tiny,
+    },
   }),
   contentUnderAuthorContainer: Styles.platformStyles({
     isElectron: {
@@ -375,6 +402,15 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.small + // left margin
         Styles.globalMargins.mediumLarge, // avatar
+    },
+    isMobile: {
+      marginTop: -12,
+      paddingLeft:
+        // Space for below the avatar
+        Styles.globalMargins.tiny + // right margin
+        Styles.globalMargins.tiny + // left margin
+        Styles.globalMargins.mediumLarge, // avatar
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
   edited: {color: Styles.globalColors.black_20},

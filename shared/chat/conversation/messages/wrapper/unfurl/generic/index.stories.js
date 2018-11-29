@@ -13,8 +13,8 @@ const full = {
   description:
     'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
   onClose: Sb.action('onClose'),
-  faviconURL: require('../../../../../images/mock/wsj.jpg'),
-  imageURL: require('../../../../../images/mock/wsj_image.jpg'),
+  faviconURL: require('../../../../../../images/mock/wsj.jpg'),
+  imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
   showImageOnSide: false,
 }
 
@@ -53,8 +53,8 @@ const fullGithub = {
   url: 'https://github.com/keybase/client"',
   siteName: 'GitHub',
   description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
-  faviconURL: require('../../../../../images/mock/github_fav.jpg'),
-  imageURL: require('../../../../../images/mock/github.jpg'),
+  faviconURL: require('../../../../../../images/mock/github_fav.jpg'),
+  imageURL: require('../../../../../../images/mock/github.jpg'),
   showImageOnSide: true,
   onClose: Sb.action('onClose'),
 }

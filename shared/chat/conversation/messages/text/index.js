@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate, isMobile} from '../../../../styles'
+import * as Styles from '../../../../styles'
 
 export type Props = {
   text: string,
@@ -17,7 +17,7 @@ const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentio
   <Markdown
     style={getStyle(type, isEditing)}
     meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
-    styleOverride={isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
+    styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
     allowFontScaling={true}
   >
     {text}
@@ -34,12 +34,12 @@ const getStyle = (type, isEditing) => {
 }
 
 const editing = {
-  backgroundColor: globalColors.yellow3,
+  backgroundColor: Styles.globalColors.yellow3,
   borderRadius: 2,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.tiny,
+  paddingRight: Styles.globalMargins.tiny,
 }
-const sent = platformStyles({
+const sent = Styles.platformStyles({
   isElectron: {
     // Make text selectable. On mobile we implement that differently.
     cursor: 'text',
@@ -47,6 +47,9 @@ const sent = platformStyles({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
     width: '100%',
+  },
+  isMobile: {
+    ...Styles.globalStyles.flexBoxColumn,
   },
 })
 const sentEditing = {
@@ -60,7 +63,7 @@ const pendingFailEditing = {
   ...pendingFail,
   ...editing,
 }
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   editing,
   pendingFail,
   pendingFailEditing,

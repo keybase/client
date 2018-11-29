@@ -36,12 +36,12 @@ const unfurls = [
         favicon: {
           height: 20,
           width: 20,
-          url: require('../../../../../images/mock/wsj.jpg'),
+          url: require('../../../../../../images/mock/wsj.jpg'),
         },
         image: {
           height: 400,
           width: 900,
-          url: require('../../../../../images/mock/wsj_image.jpg'),
+          url: require('../../../../../../images/mock/wsj_image.jpg'),
         },
       },
     },
@@ -59,12 +59,12 @@ const unfurls = [
         favicon: {
           height: 20,
           width: 20,
-          url: require('../../../../../images/mock/github_fav.jpg'),
+          url: require('../../../../../../images/mock/github_fav.jpg'),
         },
         image: {
           height: 150,
           width: 150,
-          url: require('../../../../../images/mock/github.jpg'),
+          url: require('../../../../../../images/mock/github.jpg'),
         },
       },
     },
