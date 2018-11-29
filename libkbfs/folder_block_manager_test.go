@@ -856,6 +856,8 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
 	status := dbc.Status(ctx)
 	require.Equal(t, uint64(2), status[syncCacheName].NumBlocks)
 

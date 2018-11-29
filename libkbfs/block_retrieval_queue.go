@@ -249,6 +249,9 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
 	PrefetchStatus, error) {
+	dbc := brq.config.DiskBlockCache()
+	preferredCacheType := action.CacheType()
+
 	// Attempt to retrieve the block from the cache. This might be a specific
 	// type where the request blocks are CommonBlocks, but that direction can
 	// Set correctly. The cache will never have CommonBlocks.
@@ -256,15 +259,19 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
 		block.Set(cachedBlock)
+		if preferredCacheType != DiskBlockAnyCache && dbc != nil {
+			// Switch the block's cache if needed.
+			_, _, _, _ = dbc.Get(
+				ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
+		}
 		return prefetchStatus, nil
 	}
 
 	// Check the disk cache.
-	dbc := brq.config.DiskBlockCache()
 	if dbc == nil {
 		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
-	preferredCacheType := action.CacheType()
+
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
 		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {

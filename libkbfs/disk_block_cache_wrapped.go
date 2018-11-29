@@ -208,15 +208,13 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 		}
 		// Otherwise drop through and put it into the working set cache.
 	}
-	// TODO: Allow more intelligent transitioning from the sync cache to
-	// the working set cache.
+	// No need to put it in the working cache if it's already in the
+	// sync cache.
 	if cache.syncCache != nil {
-		syncCache := cache.syncCache
-		cache.deleteGroup.Add(1)
-		go func() {
-			defer cache.deleteGroup.Done()
-			syncCache.Delete(ctx, []kbfsblock.ID{blockID})
-		}()
+		_, _, _, err := cache.syncCache.Get(ctx, tlfID, blockID, cacheType)
+		if err == nil {
+			return nil
+		}
 	}
 	return cache.workingSetCache.Put(
 		ctx, tlfID, blockID, buf, serverHalf, cacheType)
