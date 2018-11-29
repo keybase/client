@@ -1587,33 +1587,33 @@ func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 }
 
 // SetTlfSyncState implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
-	<-chan error, error) {
+func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
+	<-chan error, BlockOps, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 	if !ok {
-		return nil, errors.Errorf(
+		return nil, nil, errors.Errorf(
 			"invalid disk cache type to set TLF sync state: %T",
 			c.diskBlockCache)
 	}
 	if !diskCacheWrapped.IsSyncCacheEnabled() {
-		return nil, errors.New("sync block cache is not enabled")
+		return nil, nil, errors.New("sync block cache is not enabled")
 	}
 
 	if !c.IsTestMode() {
 		if c.storageRoot == "" {
-			return nil, errors.New(
+			return nil, nil, errors.New(
 				"empty storageRoot specified for non-test run")
 		}
 		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		defer ldb.Close()
 		tlfBytes, err := tlfID.MarshalText()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
 			err = ldb.Delete(tlfBytes, nil)
@@ -1623,12 +1623,12 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 			}
 			buf, err := c.codec.Encode(&config)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			err = ldb.Put(tlfBytes, buf, nil)
 		}
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -1651,8 +1651,17 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	}
 
 	c.syncedTlfs[tlfID] = config
-	<-c.bops.TogglePrefetcher(true)
-	return ch, nil
+	return ch, c.bops, nil
+}
+
+// SetTlfSyncState implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
+	<-chan error, error) {
+	ch, bops, err := c.setTlfSyncState(tlfID, config)
+	// Toggle the prefetcher outside of holding the lock, since the
+	// previous prefetcher might depend on accessing the config.
+	<-bops.TogglePrefetcher(true)
+	return ch, err
 }
 
 // PrefetchStatus implements the Config interface for ConfigLocal.

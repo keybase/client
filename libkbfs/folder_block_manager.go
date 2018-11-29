@@ -1308,7 +1308,8 @@ func (fbm *folderBlockManager) clearLastQRData() {
 
 func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 	defer fbm.cleanSyncCacheGroup.Done()
-	if !fbm.config.IsSyncedTlf(fbm.id) {
+	syncConfig := fbm.config.GetTlfSyncState(fbm.id)
+	if syncConfig.Mode == keybase1.FolderSyncMode_DISABLED {
 		return nil
 	}
 	dbc := fbm.config.DiskBlockCache()

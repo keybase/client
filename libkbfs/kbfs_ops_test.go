@@ -4327,3 +4327,175 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 		delete(pathsMap, p)
 	}
 }
+
+func TestKBFSOpsPartialSync(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
+	require.NoError(t, err)
+	defer ioutil.RemoveAll(tempdir)
+	dbc, err := newDiskBlockCacheWrapped(config, "")
+	require.NoError(t, err)
+	config.diskBlockCache = dbc
+	err = dbc.workingSetCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = dbc.syncCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.loadSyncedTlfsLocked()
+
+	// config2 is the writer.
+	config2 := ConfigAsUser(config, u1)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	kbfsOps2 := config2.KBFSOps()
+	// Turn the directories into indirect blocks when they have more
+	// than one entry, to make sure we sync the entire parent
+	// directories on partial paths.
+	config2.BlockSplitter().(*BlockSplitterSimple).maxDirEntriesPerBlock = 1
+
+	t.Log("Initialize the TLF")
+	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	aNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "a")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Set the sync config on first device")
+	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	syncConfig := keybase1.FolderSyncConfig{
+		Mode:  keybase1.FolderSyncMode_PARTIAL,
+		Paths: []string{"a/b/c"},
+	}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	t.Log("Root block and 'a' block should be synced")
+	checkSyncCache := func(expectedBlocks uint64) {
+		syncStatusMap := dbc.syncCache.Status(ctx)
+		require.Len(t, syncStatusMap, 1)
+		syncStatus, ok := syncStatusMap[syncCacheName]
+		require.True(t, ok)
+		require.Equal(t, expectedBlocks, syncStatus.NumBlocks)
+	}
+	checkSyncCache(2)
+
+	t.Log("First device completes synced path, along with others")
+	bNode, _, err := kbfsOps2.CreateDir(ctx, aNode, "b")
+	require.NoError(t, err)
+	b2Node, _, err := kbfsOps2.CreateDir(ctx, aNode, "b2")
+	require.NoError(t, err)
+	cNode, _, err := kbfsOps2.CreateDir(ctx, bNode, "c")
+	require.NoError(t, err)
+	c2Node, _, err := kbfsOps2.CreateDir(ctx, b2Node, "c2")
+	require.NoError(t, err)
+	dNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "d")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Blocks 'b' and 'c' should be synced, nothing else")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	// 8 blocks: root node (1 indirect, 2 direct), `a` node (1
+	// indirect, 2 direct), `b` node, `c` node (and the old archived
+	// ones have been GC'd from the sync cache).
+	checkSyncCache(8)
+
+	checkStatus := func(node Node, expectedStatus PrefetchStatus) {
+		md, err := kbfsOps.GetNodeMetadata(ctx, node)
+		require.NoError(t, err)
+		require.Equal(t, expectedStatus, md.PrefetchStatus)
+	}
+	// Note that we're deliberately passing in Nodes created by
+	// kbfsOps2 into kbfsOps here.  That's necessary to avoid
+	// prefetching on the normal path by kbfsOps on the lookups it
+	// would take to make those nodes.
+	checkStatus(rootNode, TriggeredPrefetch)
+	checkStatus(aNode, TriggeredPrefetch)
+	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
+	checkStatus(cNode, FinishedPrefetch)
+	checkStatus(b2Node, NoPrefetch)
+	checkStatus(c2Node, NoPrefetch)
+	checkStatus(dNode, NoPrefetch)
+
+	t.Log("Add more data under prefetched path")
+	eNode, _, err := kbfsOps2.CreateDir(ctx, cNode, "e")
+	require.NoError(t, err)
+	fNode, _, err := kbfsOps2.CreateFile(ctx, eNode, "f", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps2.Write(ctx, fNode, []byte("fdata"), 0)
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Check that two new blocks are synced")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkSyncCache(10)
+	checkStatus(rootNode, TriggeredPrefetch)
+	checkStatus(aNode, TriggeredPrefetch)
+	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
+	checkStatus(cNode, FinishedPrefetch)
+	checkStatus(eNode, FinishedPrefetch)
+	checkStatus(fNode, FinishedPrefetch)
+	checkStatus(b2Node, TriggeredPrefetch) // due to GetNodeMetadata(c2) above
+	checkStatus(c2Node, NoPrefetch)
+	checkStatus(dNode, NoPrefetch)
+
+	t.Log("Add something that's not synced")
+	gNode, _, err := kbfsOps2.CreateDir(ctx, dNode, "g")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Check that the updated root block is synced, but nothing new")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkSyncCache(10)
+	checkStatus(rootNode, TriggeredPrefetch)
+	checkStatus(aNode, TriggeredPrefetch)
+	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
+	checkStatus(cNode, FinishedPrefetch)
+	checkStatus(eNode, FinishedPrefetch)
+	checkStatus(fNode, FinishedPrefetch)
+	checkStatus(b2Node, TriggeredPrefetch)
+	checkStatus(c2Node, NoPrefetch)
+	checkStatus(dNode, NoPrefetch)
+	checkStatus(gNode, NoPrefetch)
+
+	t.Log("Sync the new path")
+	syncConfig.Paths = append(syncConfig.Paths, "d")
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkSyncCache(12)
+	checkStatus(rootNode, TriggeredPrefetch)
+	checkStatus(aNode, TriggeredPrefetch)
+	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
+	checkStatus(cNode, FinishedPrefetch)
+	checkStatus(eNode, FinishedPrefetch)
+	checkStatus(fNode, FinishedPrefetch)
+	checkStatus(b2Node, TriggeredPrefetch)
+	checkStatus(c2Node, NoPrefetch)
+	checkStatus(dNode, FinishedPrefetch)
+	checkStatus(gNode, FinishedPrefetch)
+}
