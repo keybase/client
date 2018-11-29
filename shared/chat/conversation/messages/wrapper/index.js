@@ -196,14 +196,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _sendIndicator = () => {
+    if (!this.props.showSendIndicator) {
+      return null
+    }
     const message = this.props.message
     const sent =
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
     const failed =
-      message.type === 'text' || message.type === 'attachment' || message.submitState === 'failed'
-    this.props.showSendIndicator && (
-      <SendIndicator sent={sent} failed={failed} id={this.props.message.timestamp} />
-    )
+      // $ForceType
+      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+    return <SendIndicator sent={sent} failed={failed} id={this.props.message.timestamp} style={styles.send} />
   }
 
   _cachedMenuStyles = {}
@@ -391,6 +393,13 @@ const styles = Styles.styleSheetCreate({
   menuButtonsWithAuthor: {marginTop: -16},
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
   revoked: {marginLeft: Styles.globalMargins.tiny},
+  send: Styles.platformStyles({
+    isElectron: {
+      pointerEvents: 'none',
+      position: 'absolute',
+      right: 0,
+    },
+  }),
 })
 
 export default WrapperMessage

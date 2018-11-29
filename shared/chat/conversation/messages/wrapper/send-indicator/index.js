@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
 const statusToIcon: {[key: IconStatus]: Kb.IconType} = {
@@ -14,10 +15,6 @@ const encryptingTimeout = 600
 const sentTimeout = 400
 
 const shownEncryptingSet = new Set()
-
-const SendIcon = (props: {status: IconStatus, style: any}) => (
-  <Kb.Icon type={statusToIcon[props.status]} style={{width: 24, height: 16, ...props.style}} />
-)
 
 type Props = Kb.PropsWithTimer<{
   sent: boolean,
@@ -102,13 +99,21 @@ class SendIndicator extends React.Component<Props, State> {
       return null
     }
     return (
-      <SendIcon
-        status={this.state.iconStatus}
-        style={{...this.props.style, opacity: this.state.visible ? 1 : 0}}
+      <Kb.Icon
+        type={statusToIcon[this.state.iconStatus]}
+        style={Styles.collapseStyles([
+          this.props.style,
+          this.state.visible ? styles.visible : styles.invisible,
+        ])}
       />
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  invisible: {height: 16, opacity: 0, width: 24},
+  visible: {height: 16, opacity: 1, width: 24},
+})
 
 const TimedSendIndicator = Kb.HOCTimers(SendIndicator)
 

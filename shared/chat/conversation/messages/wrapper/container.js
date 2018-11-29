@@ -64,8 +64,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
   const timestamp = stateProps.orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
-
-  // const decorate = shouldDecorateMessage(message, stateProps._you)
+  // $ForceType
+  const outboxID = message.outboxID
 
   let failureDescription = ''
   let allowCancelRetry = false
@@ -78,13 +78,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     }
   }
   const resolveByEdit: boolean =
-    // $ForceType
-    message.outboxID && stateProps._you && failureDescription === 'Failed to send: message is too long'
+    !!outboxID && !!stateProps._you && failureDescription === 'Failed to send: message is too long'
 
   // $ForceType
   if (message.explodingUnreadable) {
     failureDescription = 'This exploding message is not available to you.'
   }
+
+  // show send only if its possible we sent while you're looking at it
+  const showSendIndicator = stateProps._you === message.author && ordinal !== message.id
 
   return {
     children: ownProps.children,
@@ -98,20 +100,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isShowingUsername,
     measure: ownProps.measure,
     message: message,
-    orangeLineAbove: stateProps.orangeLineAbove,
-    ordinal,
-    previous: ownProps.previous,
-    shouldShowPopup: stateProps.shouldShowPopup,
-    showSendIndicator: stateProps._you === message.author,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onCancel: allowCancelRetry
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : null,
     onEdit: resolveByEdit ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry:
-      allowCancelRetry && !resolveByEdit
-        ? () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+      allowCancelRetry && !resolveByEdit && outboxID
+        ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
         : null,
+    orangeLineAbove: stateProps.orangeLineAbove,
+    ordinal,
+    previous: ownProps.previous,
+    shouldShowPopup: stateProps.shouldShowPopup,
+    showSendIndicator,
   }
 }
 
