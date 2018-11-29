@@ -403,6 +403,7 @@ func (c *ChatRPC) GetGroupedInbox(
 		Query: &chat1.GetInboxLocalQuery{
 			TopicType: &chatType,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
 	res, err := c.client.GetInboxAndUnboxLocal(ctx, arg)
 	if err != nil {
@@ -467,6 +468,7 @@ func (c *ChatRPC) GetChannels(
 			TopicType:     &chatType,
 			TlfVisibility: &expectedVisibility,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
 	res, err := c.client.GetInboxAndUnboxLocal(ctx, arg)
 	if err != nil {
