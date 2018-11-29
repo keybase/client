@@ -293,9 +293,6 @@ top:
 // high priority for a synced TLF.
 func (p *blockPrefetcher) calculatePriority(
 	basePriority int, action BlockRequestAction) int {
-	if action.DeepSync() {
-		return basePriority
-	}
 	return basePriority - 1
 }
 

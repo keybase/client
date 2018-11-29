@@ -795,7 +795,7 @@ func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
 	return fbo.config.BlockOps().BlockRetriever().Request(
-		ctx, defaultOnDemandRequestPriority, rmd, ptr, NewDirBlock(),
+		ctx, defaultOnDemandRequestPriority-1, rmd, ptr, NewDirBlock(),
 		TransientEntry, BlockRequestWithPrefetch)
 }
 

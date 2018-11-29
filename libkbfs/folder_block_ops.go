@@ -387,7 +387,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 			action = action.AddSync()
 		}
 		fbo.config.BlockOps().Prefetcher().ProcessBlockForPrefetch(ctx, ptr,
-			block, kmd, defaultOnDemandRequestPriority, lifetime,
+			block, kmd, defaultOnDemandRequestPriority-1, lifetime,
 			prefetchStatus, action)
 		return block, nil
 	}
