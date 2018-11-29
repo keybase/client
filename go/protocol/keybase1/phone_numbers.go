@@ -151,7 +151,6 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					err = i.DeletePhoneNumber(ctx, typedArgs[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
 			},
 			"setVisibilityPhoneNumber": {
 				MakeArg: func() interface{} {
@@ -167,7 +166,6 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					err = i.SetVisibilityPhoneNumber(ctx, typedArgs[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
 			},
 		},
 	}
