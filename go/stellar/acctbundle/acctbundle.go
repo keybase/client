@@ -99,6 +99,12 @@ func BundleFromBundleRestricted(br stellar1.BundleRestricted) (*stellar1.Bundle,
 	bundle.Accounts = make([]stellar1.BundleEntry, len(br.Accounts))
 	for i, acct := range br.Accounts {
 		signers := br.AccountBundles[acct.AccountID].Signers
+		if len(signers) != 1 {
+			return nil, fmt.Errorf("BundleFromBundleRestricted missing signer for %v", acct.AccountID)
+		}
+		if acct.Mode != stellar1.AccountMode_USER {
+			return nil, fmt.Errorf("BundleFromBundleRestricted account %v doesnt have mode USER", acct.AccountID)
+		}
 		bundle.Accounts[i] = stellar1.BundleEntry{
 			AccountID: acct.AccountID,
 			Name:      acct.Name,
