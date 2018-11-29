@@ -1066,5 +1066,9 @@ func (bra BlockRequestAction) AddSync() BlockRequestAction {
 	if bra.Prefetch() {
 		return BlockRequestWithDeepSync
 	}
+	// If the prefetch bit is NOT yet set (as when some component
+	// makes a solo request, for example), we should not kick off a
+	// deep sync since the action explicit prohibits any more blocks
+	// being fetched (and doing so will mess up sensitive tests).
 	return bra | blockRequestSync
 }
