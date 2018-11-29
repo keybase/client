@@ -1195,9 +1195,15 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
 	}
-	bundle, version, _, err := remote.FetchAccountBundle(m.Ctx(), m.G(), accountID)
+	bundle, version, _, err := remote.FetchSecretlessBundle(m.Ctx(), m.G())
 	if err != nil {
 		return err
+	}
+	if version == stellar1.BundleVersion_V1 {
+		bundle, _, _, err = remote.FetchWholeBundle(m.Ctx(), m.G())
+		if err != nil {
+			return err
+		}
 	}
 	var found bool
 	for i, acc := range bundle.Accounts {
@@ -1212,7 +1218,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if !found {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
+	nextBundle := acctbundle.AdvanceBundle(*bundle)
 	return remote.Post(m.Ctx(), m.G(), nextBundle, version)
 }
 
@@ -1225,7 +1231,6 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 		return err
 	}
 	var foundAccID, foundPrimary bool
-	var accountsToAdvance []stellar1.AccountID
 	for i, acc := range bundle.Accounts {
 		if acc.AccountID.Eq(accountID) {
 			if acc.IsPrimary {
@@ -1233,12 +1238,10 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 				return nil
 			}
 			bundle.Accounts[i].IsPrimary = true
-			accountsToAdvance = append(accountsToAdvance, acc.AccountID)
 			foundAccID = true
 		} else if acc.IsPrimary {
 			bundle.Accounts[i].IsPrimary = false
 			foundPrimary = true
-			accountsToAdvance = append(accountsToAdvance, acc.AccountID)
 		}
 
 		if foundAccID && foundPrimary {
@@ -1248,7 +1251,7 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 	if !foundAccID {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle := acctbundle.AdvanceAccounts(*bundle, accountsToAdvance)
+	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
 	var v2Link bool
 	v2Link = !(version == stellar1.BundleVersion_V1)
 	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle, v2Link)

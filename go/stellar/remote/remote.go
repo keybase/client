@@ -514,9 +514,11 @@ func incompatibleVersionError(inputError error) bool {
 }
 
 // FetchSecretlessBundle gets an account bundle from the server and decrypts it
-// but without any specified AccountID and therefore no secrets (signers)
-// if the FeatureStellarAcctBundles is true and the user is still on a v1 bundle,
-// this method will call `MigrateBundleToAccountBundles` and then fetch again.
+// but without any specified AccountID and therefore no secrets (signers).
+// This method is safe to call by any of a user's devices even if one or more of
+// the accounts is marked as being mobile only. If the FeatureStellarAcctBundles
+// is true and the user is still on a v1 bundle, this method will call
+// `MigrateBundleToAccountBundles` and then fetch again.
 func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchSecretlessBundle", func() error { return err })()
 
@@ -576,6 +578,9 @@ func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *
 }
 
 // FetchAccountBundle gets an account bundle from the server and decrypts it.
+// this method will bubble up an error if it's called by a Desktop device for
+// an account that is mobile only. If you don't need the secrets, use
+// FetchSecretlessBundle instead.
 func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
 
