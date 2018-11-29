@@ -614,7 +614,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
 	// it a bit to do it here.
-	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp)
+	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp, nil)
 	if err != nil {
 		return nil, nil, nil, chanMention, nil, err
 	}

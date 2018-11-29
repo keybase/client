@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -15,7 +16,7 @@ import (
 )
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfoUntrusted) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfoUntrusted) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
@@ -96,7 +97,7 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 }
 
 func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfoUntrusted, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info types.NameInfoUntrusted, err error) {
 
 	if lquery == nil {
 		return nil, info, nil
@@ -208,9 +209,9 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
-	lquery *chat1.GetInboxLocalQuery) (*types.NameInfoUntrusted, error) {
+	lquery *chat1.GetInboxLocalQuery) (res types.NameInfoUntrusted, err error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
-		return nil, nil
+		return res, errors.New("invalid name query")
 	}
 	return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupIDUntrusted(ctx, lquery.Name.Name,
 		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)

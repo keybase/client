@@ -53,6 +53,11 @@ func init() {
 	}
 }
 
+type BoxerKeys struct {
+	Key           types.CryptKey
+	EphemeralSeed *keybase1.TeamEk
+}
+
 type Boxer struct {
 	utils.DebugLabeler
 	globals.Contextified
@@ -256,6 +261,10 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 	return convMembersType
 }
 
+func (b *Boxer) GetKeys(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo) (res BoxerKeys, err error) {
+	return res, err
+}
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -277,7 +286,8 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 // non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
+func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
+	keys *BoxerKeys) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
@@ -1228,7 +1238,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, c
 	for i := 0; i < numUnboxThreads; i++ {
 		eg.Go(func() error {
 			for msg := range boxCh {
-				decmsg, err := b.UnboxMessage(ctx, msg, conv)
+				decmsg, err := b.UnboxMessage(ctx, msg, conv, nil)
 				if err != nil {
 					return err
 				}
@@ -1286,7 +1296,7 @@ func dummySigningKey() libkb.NaclSigningKeyPair {
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	membersType chat1.ConversationMembersType,
-	signingKeyPair libkb.NaclSigningKeyPair) (res *chat1.MessageBoxed, err error) {
+	signingKeyPair libkb.NaclSigningKeyPair, keys *BoxerKeys) (res *chat1.MessageBoxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
 	if len(tlfName) == 0 {
