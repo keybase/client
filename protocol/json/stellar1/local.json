@@ -1178,10 +1178,6 @@
           "type": "boolean"
         },
         {
-          "name": "fromSeqno",
-          "type": "string"
-        },
-        {
           "name": "to",
           "type": "string"
         },
@@ -1227,10 +1223,6 @@
         {
           "name": "from",
           "type": "AccountID"
-        },
-        {
-          "name": "fromSeqno",
-          "type": "string"
         },
         {
           "name": "to",
