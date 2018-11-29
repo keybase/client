@@ -53,10 +53,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
       this.props.measure()
     }
-
-    Object.keys(this.props).forEach(
-      k => this.props[k] !== prevProps[k] && console._log('aaa', k, prevProps[k], this.props[k])
-    )
   }
   _onMouseOver = Styles.isMobile
     ? () => {}
