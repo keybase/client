@@ -454,6 +454,10 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 			chat1.ConversationStatus_FAVORITE,
 			chat1.ConversationStatus_MUTED,
 		},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+		},
 		SkipBgLoads: true,
 	}
 	username := idx.G().Env.GetUsername().String()

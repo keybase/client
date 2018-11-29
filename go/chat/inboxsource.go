@@ -491,11 +491,13 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		if query != nil && query.SkipBgLoads {
 			continue
 		}
-		// Queue all these convs up to be loaded by the background loader Only
-		// load first 100 non KBFS convs so we don't get the conv loader too
-		// backed up
-		if bgEnqueued < 100 &&
-			conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS {
+		// Queue all these convs up to be loaded by the background loader. Only
+		// load first 100 non KBFS convs, ACTIVE convs so we don't get the conv
+		// loader too backed up.
+		if conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS &&
+			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
+				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
+			bgEnqueued < 100 {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
