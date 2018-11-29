@@ -53,9 +53,12 @@ func init() {
 	}
 }
 
-type BoxerKeys struct {
-	Key           types.CryptKey
-	EphemeralSeed *keybase1.TeamEk
+type BoxerEncryptionInfo struct {
+	Key                   types.CryptKey
+	SigningKeyPair        libkb.NaclSigningKeyPair
+	EphemeralSeed         *keybase1.TeamEk
+	PairwiseMACRecipients []keybase1.KID
+	Version               chat1.MessageBoxedVersion
 }
 
 type Boxer struct {
@@ -261,10 +264,6 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 	return convMembersType
 }
 
-func (b *Boxer) GetKeys(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo) (res BoxerKeys, err error) {
-	return res, err
-}
-
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -287,7 +286,7 @@ func (b *Boxer) GetKeys(ctx context.Context, boxed chat1.MessageBoxed, conv type
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
-	keys *BoxerKeys) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
+	info *BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
@@ -1292,31 +1291,19 @@ func dummySigningKey() libkb.NaclSigningKeyPair {
 	return *dummySigningKeyPtr
 }
 
-// BoxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
-// finds the most recent key for the TLF.
-func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType,
-	signingKeyPair libkb.NaclSigningKeyPair, keys *BoxerKeys) (res *chat1.MessageBoxed, err error) {
-	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
+func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlaintext,
+	membersType chat1.ConversationMembersType, signingKeyPair libkb.NaclSigningKeyPair) (res BoxerEncryptionInfo, err error) {
+
 	tlfName := msg.ClientHeader.TlfName
-	if len(tlfName) == 0 {
-		return nil, NewBoxingError("blank TLF name given", true)
+	version, err := b.GetBoxedVersion(*msg)
+	if err != nil {
+		return res, err
 	}
-
-	version := CurrentMessageBoxedVersion
-	if b.boxVersionForTesting != nil {
-		version = *b.boxVersionForTesting
-	}
-
-	if msg.IsEphemeral() && version == chat1.MessageBoxedVersion_V1 {
-		return nil, fmt.Errorf("cannot use exploding messages with V1")
-	}
-
 	encryptionKey, nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
 	if err != nil {
-		return nil, NewBoxingCryptKeysError(err)
+		return res, NewBoxingCryptKeysError(err)
 	}
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 
@@ -1329,7 +1316,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
 			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
-			return nil, NewBoxingCryptKeysError(err)
+			return res, NewBoxingCryptKeysError(err)
 		}
 		ephemeralSeed = &ek
 		// V3 is "V2 plus support for exploding messages", and V4 is "V3 plus
@@ -1358,10 +1345,10 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		shouldPairwiseMAC, recipients, err := CtxKeyFinder(ctx, b.G()).ShouldPairwiseMAC(
 			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
-			return nil, err
+			return res, err
 		} else if shouldPairwiseMAC {
 			if len(recipients) == 0 {
-				return nil, fmt.Errorf("unexpected empty pairwise recipients list")
+				return res, fmt.Errorf("unexpected empty pairwise recipients list")
 			}
 			pairwiseMACRecipients = recipients
 			// As noted above, bump the version to V4 when we're MAC'ing.
@@ -1375,23 +1362,59 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 			signingKeyPair = dummySigningKey()
 		}
 	}
+	return BoxerEncryptionInfo{
+		Key:                   encryptionKey,
+		EphemeralSeed:         ephemeralSeed,
+		PairwiseMACRecipients: pairwiseMACRecipients,
+		Version:               version,
+		SigningKeyPair:        signingKeyPair,
+	}, nil
+}
 
-	err = b.attachMerkleRoot(ctx, &msg, version)
+func (b *Boxer) GetBoxedVersion(msg chat1.MessagePlaintext) (chat1.MessageBoxedVersion, error) {
+	version := CurrentMessageBoxedVersion
+	if b.boxVersionForTesting != nil {
+		version = *b.boxVersionForTesting
+	}
+	if msg.IsEphemeral() && version == chat1.MessageBoxedVersion_V1 {
+		return version, fmt.Errorf("cannot use exploding messages with V1")
+	}
+	return version, nil
+}
+
+// BoxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
+// finds the most recent key for the TLF.
+func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
+	membersType chat1.ConversationMembersType,
+	signingKeyPair libkb.NaclSigningKeyPair, info *BoxerEncryptionInfo) (res *chat1.MessageBoxed, err error) {
+	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
+	tlfName := msg.ClientHeader.TlfName
+	if len(tlfName) == 0 {
+		return nil, NewBoxingError("blank TLF name given", true)
+	}
+	version, err := b.GetBoxedVersion(msg)
 	if err != nil {
 		return nil, err
 	}
-
-	if len(msg.ClientHeader.TlfName) == 0 {
-		msg := fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName,
-			msg.ClientHeader.TlfName)
-		return nil, NewBoxingError(msg, true)
+	if err = b.attachMerkleRoot(ctx, &msg, version); err != nil {
+		return nil, err
 	}
-
-	boxed, err := b.box(ctx, msg, encryptionKey, ephemeralSeed, signingKeyPair, version, pairwiseMACRecipients)
+	if info == nil {
+		info = new(BoxerEncryptionInfo)
+		if *info, err = b.GetEncryptionInfo(ctx, &msg, membersType, signingKeyPair); err != nil {
+			return nil, err
+		}
+		if len(msg.ClientHeader.TlfName) == 0 {
+			msg := fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName,
+				msg.ClientHeader.TlfName)
+			return nil, NewBoxingError(msg, true)
+		}
+	}
+	boxed, err := b.box(ctx, msg, info.Key, info.EphemeralSeed, info.SigningKeyPair, info.Version,
+		info.PairwiseMACRecipients)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
-
 	return boxed, nil
 }
 

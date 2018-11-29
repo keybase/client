@@ -612,9 +612,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		*msg.ClientHeader.KbfsCryptKeysUsed = false
 	}
 
-	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
-	// it a bit to do it here.
-	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp, nil)
+	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
+	if err != nil {
+		return nil, nil, nil, chanMention, nil, err
+	}
+	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp, &encInfo)
 	if err != nil {
 		return nil, nil, nil, chanMention, nil, err
 	}
