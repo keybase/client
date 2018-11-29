@@ -960,6 +960,7 @@ const (
 	blockRequestTrackedInPrefetch BlockRequestAction = 1 << iota
 	blockRequestPrefetch
 	blockRequestSync
+	blockRequestDeepSync
 
 	// BlockRequestSolo indicates that no action should take place
 	// after fetching the block.  However, a TLF that is configured to
@@ -983,9 +984,13 @@ const (
 	BlockRequestWithPrefetch BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch
 	// BlockRequestWithSyncAndPrefetch indicates that the block should
 	// be stored in the sync cache after fetching it, as well as
-	// triggering a deep prefetch of all the child blocks rooted at
-	// the requested one.
+	// triggering a prefetch of one level of child blocks (and the
+	// syncing doesn't propagate to the child blocks).
 	BlockRequestWithSyncAndPrefetch BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch | blockRequestSync
+	// BlockRequestWithDeepSync is the same as above, except both the
+	// prefetching and the sync flags propagate to the child, so the
+	// whole tree root at the block is prefetched and synced.
+	BlockRequestWithDeepSync BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch | blockRequestSync | blockRequestDeepSync
 )
 
 // Combine returns a new action by taking `other` into account.
@@ -1015,11 +1020,30 @@ func (bra BlockRequestAction) Sync() bool {
 // DeepSync returns true if the action indicates a deep-syncing of the
 // block tree rooted at the given block.
 func (bra BlockRequestAction) DeepSync() bool {
-	return bra.Prefetch() && bra.Sync()
+	return bra == BlockRequestWithDeepSync
 }
 
-// WithoutPrefetch returns a new action similar to `bra` but with no
-// additional prefetching.
-func (bra BlockRequestAction) WithoutPrefetch() BlockRequestAction {
-	return bra &^ blockRequestPrefetch
+// ChildAction returns the action that should propagate down to any
+// children of this block.
+func (bra BlockRequestAction) ChildAction() BlockRequestAction {
+	if bra.DeepSync() {
+		return bra
+	}
+	return bra &^ (blockRequestPrefetch | blockRequestSync)
+}
+
+// SoloAction returns a solo-fetch action based on `bra` (e.g.,
+// preserving the sync bit but nothing else).
+func (bra BlockRequestAction) SoloAction() BlockRequestAction {
+	return bra & blockRequestSync
+}
+
+// AddSync returns a new action that adds syncing in addition to the
+// original request.  For prefetch requests, it returns a deep-sync
+// request (unlike `Combine`, which just adds the regular sync bit).
+func (bra BlockRequestAction) AddSync() BlockRequestAction {
+	if bra.Prefetch() {
+		return BlockRequestWithDeepSync
+	}
+	return bra | blockRequestSync
 }

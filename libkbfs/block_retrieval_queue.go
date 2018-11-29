@@ -408,7 +408,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	if brq.config.IsSyncedTlf(kmd.TlfID()) {
-		action = action.Combine(BlockRequestSoloWithSync)
+		action = action.AddSync()
 	}
 	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
 }

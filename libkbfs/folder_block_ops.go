@@ -384,7 +384,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		// correctly according to the new on-demand fetch priority.
 		action := BlockRequestWithPrefetch
 		if fbo.config.IsSyncedTlf(fbo.id()) {
-			action = BlockRequestWithSyncAndPrefetch
+			action = action.AddSync()
 		}
 		fbo.config.BlockOps().Prefetcher().ProcessBlockForPrefetch(ctx, ptr,
 			block, kmd, defaultOnDemandRequestPriority, lifetime,

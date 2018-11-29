@@ -527,7 +527,7 @@ func testPrefetcherForSyncedTLF(
 	var block Block = &DirBlock{}
 	action := BlockRequestWithPrefetch
 	if explicitSync {
-		action = BlockRequestWithSyncAndPrefetch
+		action = BlockRequestWithDeepSync
 	}
 	ch := q.Request(
 		context.Background(), defaultOnDemandRequestPriority, kmd, rootPtr,

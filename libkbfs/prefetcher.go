@@ -315,6 +315,10 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 			NoPrefetch, action, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
+	}
+	// If this is a new prefetch, or if we need to update the action,
+	// send a new request.
+	if !isPrefetchWaiting || pre.req.action != action.Combine(pre.req.action) {
 		ch := p.retriever.Request(
 			pre.ctx, priority, kmd, ptr, block, lifetime, action)
 		p.inFlightFetches.In() <- ch
@@ -396,7 +400,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 				"unknown type %d", entry.Type)
 			continue
 		}
-		p.log.CDebugf(ctx, "Prefetching %v", entry.BlockPointer)
+		p.log.CDebugf(ctx, "Prefetching %v, action=%d", entry.BlockPointer, action)
 		totalChildEntries++
 		numBlocks += p.request(ctx, newPriority, kmd, entry.BlockPointer,
 			block, lifetime, parentBlockID, isPrefetchNew, action)
@@ -414,22 +418,10 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 // currently in the prefetch tree) with a parent of `pre.req.ptr.ID` must be
 // added to the tree.
 func (p *blockPrefetcher) handlePrefetch(
-	pre *prefetch, isPrefetchNew bool, action BlockRequestAction) (
+	pre *prefetch, isPrefetchNew bool, action BlockRequestAction, b Block) (
 	numBlocks int, isTail bool, err error) {
 	req := pre.req
-	b := req.block.NewEmpty()
-	err = <-p.retriever.Request(
-		pre.ctx, defaultOnDemandRequestPriority, req.kmd, req.ptr, b,
-		req.lifetime, BlockRequestSolo)
-	if err != nil {
-		p.log.CDebugf(pre.ctx, "failed to retrieve block %s to handle its "+
-			"prefetch: %+v", req.ptr.ID, err)
-		return 0, false, err
-	}
-	childAction := action
-	if !action.DeepSync() {
-		childAction = action.WithoutPrefetch()
-	}
+	childAction := action.ChildAction()
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
@@ -637,6 +629,19 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				ctx = pre.ctx
 			}
 			p.log.CDebugf(ctx, "Handling request for %v", req.ptr)
+
+			// Ensure the block is in the right cache.
+			b := req.block.NewEmpty()
+			err := <-p.retriever.Request(
+				ctx, defaultOnDemandRequestPriority, req.kmd,
+				req.ptr, b, req.lifetime, req.action.SoloAction())
+			if err != nil {
+				p.log.CWarningf(ctx, "error requesting for block %s: "+
+					"%+v", req.ptr.ID, err)
+				// There's nothing for us to do when there's an error.
+				continue
+			}
+
 			if req.prefetchStatus == FinishedPrefetch {
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
@@ -705,7 +710,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 							pre)
 					}
 					newAction := pre.req.action.Combine(req.action)
-					if newAction != req.action {
+					if newAction != pre.req.action {
 						// This can happen for example if the
 						// prefetcher doesn't know about a deep sync
 						// but now one has been created.
@@ -755,7 +760,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// `numBlocks` now represents only the number of blocks to add
 			// to the tree from `pre` to its roots, inclusive.
 			numBlocks, isTail, err := p.handlePrefetch(
-				pre, !isPrefetchWaiting, req.action)
+				pre, !isPrefetchWaiting, req.action, b)
 			if err != nil {
 				p.log.CWarningf(ctx, "error handling prefetch for block %s: "+
 					"%+v", req.ptr.ID, err)
