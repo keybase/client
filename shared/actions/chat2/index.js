@@ -1981,6 +1981,10 @@ const markThreadAsRead = (
     logger.info('marking read bail on no selected conversation')
     return
   }
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
+    logger.info('marking read bail on pending conversation')
+    return
+  }
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
