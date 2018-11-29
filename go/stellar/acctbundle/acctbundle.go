@@ -64,7 +64,6 @@ func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 	for i, acct := range bundle.Accounts {
 		r.Accounts[i] = newEntry(acct.AccountID, acct.Name, acct.IsPrimary, acct.Mode)
 		r.AccountBundles[acct.AccountID] = stellar1.AccountBundle{
-			Revision:  1,
 			AccountID: acct.AccountID,
 			Signers:   acct.Signers,
 		}
@@ -116,7 +115,6 @@ func BundleFromBundleRestricted(br stellar1.BundleRestricted) (*stellar1.Bundle,
 
 func newAccountBundle(accountID stellar1.AccountID, secretKey stellar1.SecretKey) stellar1.AccountBundle {
 	return stellar1.AccountBundle{
-		Revision:  1,
 		AccountID: accountID,
 		Signers:   []stellar1.SecretKey{secretKey},
 	}
@@ -416,7 +414,6 @@ func decodeAndUnboxAcctBundle(m libkb.MetaContext, finder PukFinder, encB64 stri
 	if ab.AccountID != parentEntry.AccountID {
 		return nil, errors.New("account bundle and parent entry account ID mismatch")
 	}
-	ab.Revision = parentEntry.AcctBundleRevision
 
 	return ab, nil
 }
@@ -774,7 +771,6 @@ func AddAccount(bundle *stellar1.BundleRestricted, secretKey stellar1.SecretKey,
 		Name:               name,
 	})
 	bundle.AccountBundles[accountID] = stellar1.AccountBundle{
-		Revision:  1,
 		AccountID: accountID,
 		Signers:   []stellar1.SecretKey{secretKey},
 	}

@@ -173,6 +173,9 @@ func (r BundleRestricted) CheckInvariants() error {
 		if entry.Mode == AccountMode_NONE {
 			return errors.New("account missing mode")
 		}
+		if entry.AcctBundleRevision < 1 {
+			return fmt.Errorf("account bundle revision %v < 1 for %v", entry.AcctBundleRevision, entry.AccountID)
+		}
 	}
 	if !foundPrimary && len(r.Accounts) > 0 {
 		return errors.New("missing primary account")
@@ -183,9 +186,6 @@ func (r BundleRestricted) CheckInvariants() error {
 	for accID, accBundle := range r.AccountBundles {
 		if accID != accBundle.AccountID {
 			return fmt.Errorf("account ID mismatch in bundle for %v", accID)
-		}
-		if accBundle.Revision < 1 {
-			return fmt.Errorf("account bundle revision %v < 1 for %v", r.Revision, accID)
 		}
 	}
 	return nil
