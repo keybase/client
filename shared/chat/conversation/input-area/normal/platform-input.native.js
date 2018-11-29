@@ -138,9 +138,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText =
-        isLargeScreen && !this.props.showWalletsIcon ? 'Write an exploding message' : 'Exploding message'
+    if (this.props.isExploding && isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'
+    } else if (this.props.isExploding && !isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
