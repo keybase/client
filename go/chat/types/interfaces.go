@@ -38,12 +38,12 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
-	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
-	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (*NameInfo, error)
+	LookupIDUntrusted(ctx context.Context, name string, public bool) (NameInfoUntrusted, error)
+	LookupID(ctx context.Context, name string, public bool) (NameInfo, error)
+	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (CryptKey, *NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
@@ -130,7 +130,7 @@ type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error)
+		conv *chat1.Conversation) (SenderPrepareResult, error)
 }
 
 type InboxSource interface {
@@ -176,7 +176,7 @@ type InboxSource interface {
 	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfoUntrusted, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }

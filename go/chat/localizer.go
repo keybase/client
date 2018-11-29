@@ -821,7 +821,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
-	var info *types.NameInfo
+	var info types.NameInfo
 	var ierr error
 	switch conversationRemote.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE:
