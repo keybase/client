@@ -165,7 +165,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'attachment' ||
       this.props.message.type === 'sendPayment' ||
       this.props.message.type === 'requestPayment') &&
-    this.props.shouldShowPopup && (
+    this.props.shouldShowPopup &&
+    this.props.showingMenu && (
       <MessagePopup
         attachTo={this.props.getAttachmentRef}
         message={this.props.message}
