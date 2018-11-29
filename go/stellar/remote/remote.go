@@ -280,7 +280,7 @@ func preMigrationChecks(m libkb.MetaContext) error {
 	// because there is a bundle to fetch but it has not been migrated
 	// this is what we're expecting for an account that has not yet
 	// been migrated
-	existingBundle, _, _, err := FetchV2BundleWithArgs(m.Ctx(), m.G(), libkb.HTTPArgs{})
+	existingBundle, _, _, err := FetchV2BundleForAccount(m.Ctx(), m.G(), nil)
 	expectedErrorStatus := keybase1.StatusCode_SCStellarIncompatibleVersion
 	if err == nil {
 		return AlreadyMigratedError{}
@@ -481,8 +481,13 @@ func postV2Bundle(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.
 	return err
 }
 
-func FetchV2BundleWithArgs(ctx context.Context, g *libkb.GlobalContext, fetchArgs libkb.HTTPArgs) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.FetchV2BundleWithArgs", func() error { return err })()
+func FetchV2BundleForAccount(ctx context.Context, g *libkb.GlobalContext, accountID *stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.FetchV2BundleForAccount", func() error { return err })()
+
+	fetchArgs := libkb.HTTPArgs{}
+	if accountID != nil {
+		fetchArgs = libkb.HTTPArgs{"account_id": libkb.S{Val: string(*accountID)}}
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -518,7 +523,7 @@ func incompatibleVersionError(inputError error) bool {
 func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchSecretlessBundle", func() error { return err })()
 
-	acctBundle, version, pukGen, err = FetchV2BundleWithArgs(ctx, g, libkb.HTTPArgs{})
+	acctBundle, version, pukGen, err = FetchV2BundleForAccount(ctx, g, nil)
 	if err != nil && incompatibleVersionError(err) {
 		m := libkb.NewMetaContext(ctx, g)
 		m.CDebugf("requested v2 secretless bundle but not migrated yet.")
@@ -530,7 +535,7 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 				m.CDebugf("migration failed. suggest turning off the feature flag and investigating.")
 				return nil, 0, 0, err
 			}
-			return FetchV2BundleWithArgs(ctx, g, libkb.HTTPArgs{})
+			return FetchV2BundleForAccount(ctx, g, nil)
 		}
 
 		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(ctx, g)
@@ -580,8 +585,7 @@ func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *
 func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
 
-	fetchArgs := libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}}
-	acctBundle, version, pukGen, err = FetchV2BundleWithArgs(ctx, g, fetchArgs)
+	acctBundle, version, pukGen, err = FetchV2BundleForAccount(ctx, g, &accountID)
 	if err != nil && incompatibleVersionError(err) {
 		g.Log.CDebugf(ctx, "requested v2 account bundle but not migrated yet. replacing with v1.")
 		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(ctx, g)
