@@ -308,37 +308,42 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			NewPermanentUnboxingError(fmt.Errorf("visibility mismatch: %v != %v", conv.IsPublic(),
 				boxed.ClientHeader.TlfPublic))), nil
 	}
-	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
-	encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
-		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
-	if err != nil {
-		// Post-process error from this
-		uberr = b.detectPermanentError(err, tlfName)
-		if uberr.IsPermanent() {
-			return b.makeErrorMessage(ctx, boxed, uberr), nil
-		}
-		return chat1.MessageUnboxed{}, uberr
-	}
-
-	// If the message is exploding, load the ephemeral key.
-	var ephemeralSeed *keybase1.TeamEk
-	if boxed.IsEphemeral() {
-		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
-			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
-			boxed.EphemeralMetadata().Generation)
+	if info == nil {
+		info = new(BoxerEncryptionInfo)
+		keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
+		encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
+			tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
+			conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 		if err != nil {
-			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
+			// Post-process error from this
 			uberr = b.detectPermanentError(err, tlfName)
 			if uberr.IsPermanent() {
 				return b.makeErrorMessage(ctx, boxed, uberr), nil
 			}
 			return chat1.MessageUnboxed{}, uberr
 		}
-		ephemeralSeed = &ek
+
+		// If the message is exploding, load the ephemeral key.
+		var ephemeralSeed *keybase1.TeamEk
+		if boxed.IsEphemeral() {
+			ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
+				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
+				boxed.EphemeralMetadata().Generation)
+			if err != nil {
+				b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
+				uberr = b.detectPermanentError(err, tlfName)
+				if uberr.IsPermanent() {
+					return b.makeErrorMessage(ctx, boxed, uberr), nil
+				}
+				return chat1.MessageUnboxed{}, uberr
+			}
+			ephemeralSeed = &ek
+		}
+		info.Key = encryptionKey
+		info.EphemeralSeed = ephemeralSeed
 	}
 
-	unboxed, ierr := b.unbox(ctx, boxed, conv.GetMembersType(), encryptionKey, ephemeralSeed)
+	unboxed, ierr := b.unbox(ctx, boxed, conv.GetMembersType(), info.Key, info.EphemeralSeed)
 	if ierr == nil {
 		ierr = b.checkInvariants(ctx, conv.GetConvID(), boxed, unboxed)
 	}

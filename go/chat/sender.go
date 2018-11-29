@@ -620,8 +620,18 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	if err != nil {
 		return res, err
 	}
+	var unboxed *chat1.MessageUnboxed
+	if conv != nil {
+		ub, err := s.boxer.UnboxMessage(ctx, boxed, *conv, &encInfo)
+		if err != nil {
+			s.Debug(ctx, "failed to unbox newly boxed message: %s", err)
+		} else {
+			unboxed = &ub
+		}
+	}
 	return types.SenderPrepareResult{
 		Boxed:               boxed,
+		Unboxed:             unboxed,
 		PendingAssetDeletes: pendingAssetDeletes,
 		AtMentions:          atMentions,
 		ChannelMention:      chanMention,
@@ -745,15 +755,19 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		// do nothing
 	}
 
+	var prepareRes types.SenderPrepareResult
 	var plres chat1.PostRemoteRes
 	// Try this up to 5 times in case we are trying to set the topic name, and the topic name
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-		prepareRes, err := s.Prepare(ctx, msg, conv.GetMembersType(), &conv)
-		if err != nil {
+		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, err
+		}
+		if prepareRes.Unboxed == nil {
+			s.Debug(ctx, "Send: failed to get unboxed from Prepare")
+			return chat1.OutboxID{}, nil, errors.New("failed to get unboxed from newly boxed")
 		}
 		boxed = &prepareRes.Boxed
 
@@ -818,7 +832,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	var unboxedMsg chat1.MessageUnboxed
 	var convLocal *chat1.ConversationLocal
 	s.Debug(ctx, "sending local updates to chat sources")
-	if unboxedMsg, _, cerr = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); cerr != nil {
+	if _, cerr = s.G().ConvSource.PushUnboxed(ctx, convID, boxed.ClientHeader.Sender, *prepareRes.Unboxed); cerr != nil {
 		s.Debug(ctx, "failed to push new message into convsource: %s", err)
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,

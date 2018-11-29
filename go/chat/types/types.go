@@ -190,7 +190,7 @@ type AttachmentUploadResult struct {
 
 type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
-	Unboxed             chat1.MessageUnboxed
+	Unboxed             *chat1.MessageUnboxed
 	PendingAssetDeletes []chat1.Asset
 	AtMentions          []gregor1.UID
 	ChannelMention      chat1.ChannelMention
