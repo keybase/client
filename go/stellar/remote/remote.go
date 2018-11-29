@@ -546,7 +546,7 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 		newAccountBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
 		for accountID, ab := range acctBundle.AccountBundles {
 			newAb := ab.DeepCopy()
-			newAb.Signers = []stellar1.SecretKey{}
+			newAb.Signers = nil
 			newAccountBundles[accountID] = newAb
 		}
 		acctBundle.AccountBundles = newAccountBundles
