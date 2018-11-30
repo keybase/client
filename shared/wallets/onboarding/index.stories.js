@@ -15,7 +15,12 @@ const load = () => {
     ))
     .add('Intro', () => <Intro onClose={action('onClose')} setNextScreen={action('setNextScreen')} />)
     .add('Disclaimer', () => (
-      <Disclaimer onAcceptDisclaimer={action('onAcceptDisclaimer')} onNotNow={action('onNotNow')} />
+      <Disclaimer
+        acceptingDisclaimerDelay={false}
+        onAcceptDisclaimer={action('onAcceptDisclaimer')}
+        onCheckDisclaimer={action('onCheckDisclaimer')}
+        onNotNow={action('onNotNow')}
+      />
     ))
 }
 
