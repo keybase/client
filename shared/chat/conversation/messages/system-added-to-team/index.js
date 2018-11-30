@@ -1,10 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import UserNotice, {SmallUserNotice} from '../user-notice'
-import {Box, Text, Icon, ConnectedUsernames, EmojiIfExists} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import {SmallUserNotice} from '../user-notice'
 
 type Props = {
   isAdmin: boolean,
@@ -28,21 +27,21 @@ const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.message.addee === props.you) {
     return (
-      <Text onClick={props.onManageChannels} type={textType}>
+      <Kb.Text onClick={props.onManageChannels} type={textType}>
         Manage your channel subscriptions
-      </Text>
+      </Kb.Text>
     )
   } else if (props.isAdmin) {
     return (
-      <Text onClick={props.onViewTeam} type={textType}>
+      <Kb.Text onClick={props.onViewTeam} type={textType}>
         Manage members
-      </Text>
+      </Kb.Text>
     )
   } else {
     return (
-      <Text onClick={props.onViewTeam} type={textType}>
+      <Kb.Text onClick={props.onViewTeam} type={textType}>
         See all members
-      </Text>
+      </Kb.Text>
     )
   }
 }
@@ -62,7 +61,7 @@ const YouOrUsername = ({
   if (username === you) {
     return capitalize ? 'You' : 'you'
   }
-  return <ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} />
+  return <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[username]} />
 }
 
 const AddedToTeam = (props: Props) => {
@@ -70,65 +69,43 @@ const AddedToTeam = (props: Props) => {
     return <YouAddedToTeam {...props} />
   }
   return (
-    <SmallUserNotice
-      avatarUsername={props.message.addee}
-      onAvatarClicked={() => props.onClickUserAvatar(props.message.addee)}
-      topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[props.message.addee]} />}
-      title={formatTimeForMessages(props.message.timestamp)}
-      bottomLine={
-        <Text type="BodySmall">
-          was added by <YouOrUsername username={props.message.adder} you={props.you} capitalize={false} />.{' '}
-          <ManageComponent {...props} />
-        </Text>
-      }
-    />
+    <Kb.Text type="BodySmall" style={{flex: 1}}>
+      was added by <YouOrUsername username={props.message.adder} you={props.you} capitalize={false} />.{' '}
+      <ManageComponent {...props} />
+    </Kb.Text>
   )
 }
 
 class YouAddedToTeam extends React.PureComponent<Props> {
   render() {
-    const {adder, addee, timestamp} = this.props.message
+    const {adder, addee} = this.props.message
     const {teamname, you, onViewTeam} = this.props
-
     return (
-      <UserNotice
-        style={{marginTop: globalMargins.small}}
-        teamname={teamname}
-        bgColor={globalColors.blue4}
-        onClickAvatar={onViewTeam}
+      <Kb.Text
+        type="BodySmallSemibold"
+        backgroundMode="Announcements"
+        style={{color: Styles.globalColors.black_40, textAlign: 'center', flex: 1}}
       >
-        <Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-          {formatTimeForMessages(timestamp)}
-        </Text>
-        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-          <Text
-            type="BodySmallSemibold"
-            backgroundMode="Announcements"
-            style={{color: globalColors.black_40, textAlign: 'center'}}
-          >
-            <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
-            <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
-            <Text
-              onClick={onViewTeam}
-              style={{color: globalColors.black_60}}
-              type="BodySmallSemiboldSecondaryLink"
-            >
-              {teamname}
-            </Text>
-            .{' '}
-            <Text type="BodySmallSemibold">
-              Say hi!{' '}
-              <EmojiIfExists
-                style={isMobile ? {display: 'inline-block'} : null}
-                emojiName=":wave:"
-                size={14}
-              />
-            </Text>
-          </Text>
-          <ManageComponent {...this.props} />
-        </Box>
-      </UserNotice>
+        <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
+        <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
+        <Kb.Text
+          onClick={onViewTeam}
+          style={{color: Styles.globalColors.black_60}}
+          type="BodySmallSemiboldSecondaryLink"
+        >
+          {teamname}
+        </Kb.Text>
+        .{' '}
+        <Kb.Text type="BodySmallSemibold">
+          Say hi!{' '}
+          <Kb.EmojiIfExists
+            style={Styles.isMobile ? {display: 'inline-block'} : null}
+            emojiName=":wave:"
+            size={14}
+          />
+        </Kb.Text>
+        <ManageComponent {...this.props} />
+      </Kb.Text>
     )
   }
 }

@@ -64,9 +64,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
   const timestamp = stateProps.orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
-  const isShowingUsername =
-    ['attachment', 'requestPayment', 'sendPayment', 'text', 'setChannelname'].includes(message.type) &&
-    (!previous || !sequentialUserMessages || !!timestamp)
+  let showUsername = ''
+  switch (message.type) {
+    case 'attachment':
+    case 'requestPayment':
+    case 'sendPayment':
+    case 'text':
+    case 'setChannelname':
+      showUsername = !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
+      break
+    case 'systemAddedToTeam':
+      showUsername = message.addee
+      break
+  }
   // $ForceType
   const outboxID = message.outboxID
 
@@ -117,7 +127,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     failureDescription,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
-    isShowingUsername,
+    showUsername,
     measure: ownProps.measure,
     message: message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),

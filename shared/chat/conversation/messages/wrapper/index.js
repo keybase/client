@@ -41,7 +41,7 @@ export type Props = {|
   failureDescription: string,
   hasUnfurlPrompts: boolean,
   isRevoked: boolean,
-  isShowingUsername: boolean,
+  showUsername: string,
   measure: ?() => void,
   message: Types.Message,
   onAuthorClick: () => void,
@@ -86,13 +86,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _onAuthorClick = () => this.props.onAuthorClick()
 
   _authorAndContent = children => {
-    if (this.props.isShowingUsername) {
+    if (this.props.showUsername) {
       return (
         <>
           <Kb.Box2 direction="horizontal" style={styles.authorContainer} gap="tiny">
             <Kb.Avatar
               size={32}
-              username={this.props.message.author}
+              username={this.props.showUsername}
               skipBackground={true}
               onClick={this._onAuthorClick}
               style={styles.avatar}
@@ -102,7 +102,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               colorFollowing={true}
               colorYou={true}
               type="BodySmallSemibold"
-              usernames={[this.props.message.author]}
+              usernames={[this.props.showUsername]}
               onUsernameClicked="profile"
             />
             <Kb.Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Kb.Text>
@@ -206,7 +206,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _containerProps = () => {
     if (Styles.isMobile) {
-      const props = this.props.isShowingUsername ? {} : {style: styles.containerNoUsername}
+      const props = this.props.showUsername ? {} : {style: styles.containerNoUsername}
       return this.props.decorate
         ? {
             ...props,
@@ -218,7 +218,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     } else {
       return {
         className: Styles.classNames('WrapperMessage-hoverBox', {
-          'WrapperMessage-author': this.props.isShowingUsername,
+          'WrapperMessage-author': this.props.showUsername,
           'WrapperMessage-decorated': this.props.decorate,
           active: this.props.showingMenu || this.state.showingPicker,
         }),
@@ -252,13 +252,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
 
-    const key = `${width}:${this.props.isShowingUsername ? 1 : 0}`
+    const key = `${width}:${this.props.showUsername ? 1 : 0}`
 
     if (!this._cachedMenuStyles[key]) {
       this._cachedMenuStyles[key] = Styles.collapseStyles([
         styles.menuButtons,
         {width},
-        this.props.isShowingUsername && styles.menuButtonsWithAuthor,
+        this.props.showUsername && styles.menuButtonsWithAuthor,
       ])
     }
     return this._cachedMenuStyles[key]
