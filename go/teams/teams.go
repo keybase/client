@@ -55,6 +55,11 @@ func (t *Team) CanSkipKeyRotation() bool {
 		return false
 	}
 
+	if t.IsOpen() {
+		// Skip all rotations in open teams.
+		return true
+	}
+
 	// If cannot decide because of an error, return default false.
 	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
 	if err != nil {

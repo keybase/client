@@ -34,18 +34,11 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err == nil && role.IsOrAbove(keybase1.TeamRole_ADMIN)
 	}
 	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() && isAdmin() {
-		if needRP, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
-			// If sweepOpenTeamResetAndDeletedMembers does not do anything to
-			// the team, do not load team again later.
-			needTeamReload = needRP
+		_, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to sweep deleted members: %s", err)
 		}
-
-		// * NOTE * Still call the regular rotate key routine even if
-		// sweep succeeds and posts link.
-
-		// In normal case, it will reload team, see that generation is
-		// higher than one requested in CLKR (because we rotated key
-		// during sweeping), and then bail out.
+		return nil
 	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
@@ -166,8 +159,8 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 		opts := ChangeMembershipOptions{
 			// Make it possible for user to come back in once they reprovision.
 			Permanent: false,
-			// Coming from CLKR, we want to ensure team key is rotated.
-			SkipKeyRotation: false,
+			// Skip key rotation for open teams.
+			SkipKeyRotation: true,
 		}
 		if err := team.ChangeMembershipWithOptions(ctx, changeReq, opts); err != nil {
 			return err
