@@ -105,6 +105,23 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   return {allowCancelRetry, failureDescription}
 }
 
+const getDecorate = (message, you) => {
+  switch (message.type) {
+    case 'text':
+      return !message.exploded && !message.errorReason
+    case 'attachment':
+      return !message.exploded && !message.errorReason
+    case 'requestPayment':
+    case 'sendPayment':
+    case 'systemAddedToTeam':
+    case 'systemLeft':
+      return true
+    case 'systemJoined':
+      return message.author !== you
+  }
+  return false
+}
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {previous, message, _you} = stateProps
   let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
@@ -112,29 +129,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const outboxID = message.outboxID
   let {allowCancelRetry, failureDescription} = getFailureDescriptionAllowCancel(message, _you)
   const resolveByEdit: boolean =
-    !!outboxID && !!stateProps._you && failureDescription === 'Failed to send: message is too long'
+    !!outboxID && !!_you && failureDescription === 'Failed to send: message is too long'
 
   // show send only if its possible we sent while you're looking at it
-  const showSendIndicator = stateProps._you === message.author && message.ordinal !== message.id
-
-  let decorate = false
-  switch (message.type) {
-    case 'text':
-      decorate = !message.exploded && !message.errorReason
-      break
-    case 'attachment':
-      decorate = !message.exploded && !message.errorReason
-      break
-    case 'requestPayment':
-    case 'sendPayment':
-    case 'systemAddedToTeam':
-    case 'systemLeft':
-      decorate = true
-      break
-    case 'systemJoined':
-      decorate = message.author !== stateProps._you
-      break
-  }
+  const showSendIndicator = _you === message.author && message.ordinal !== message.id
+  const decorate = getDecorate(message, _you)
+  const onCancel = allowCancelRetry
+    ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
+    : null
+  const onRetry =
+    allowCancelRetry && !resolveByEdit && outboxID
+      ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
+      : null
 
   return {
     conversationIDKey: stateProps.conversationIDKey,
@@ -146,14 +152,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     measure: ownProps.measure,
     message: message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
-    onCancel: allowCancelRetry
-      ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
-      : null,
+    onCancel,
     onEdit: resolveByEdit ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
-    onRetry:
-      allowCancelRetry && !resolveByEdit && outboxID
-        ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
-        : null,
+    onRetry,
     orangeLineAbove: stateProps.orangeLineAbove,
     previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,

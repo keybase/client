@@ -71,18 +71,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       }
     }
   }
-  _onMouseOver = Styles.isMobile
-    ? () => {}
-    : () => {
-        this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
-      }
+  _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
-
   _dismissKeyboard = () => dismissKeyboard()
-
   _orangeLine = () => this.props.orangeLineAbove && <Kb.Box2 direction="vertical" style={styles.orangeLine} />
-
   _onAuthorClick = () => this.props.onAuthorClick()
 
   _authorAndContent = children => {
@@ -222,6 +215,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           'WrapperMessage-decorated': this.props.decorate,
           active: this.props.showingMenu || this.state.showingPicker,
         }),
+        onMouseOver: this._onMouseOver,
       }
     }
   }
@@ -414,7 +408,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         {LongPressable({
-          onMouseOver: this._onMouseOver,
           ...this._containerProps(),
           children: [
             this._orangeLine(),
