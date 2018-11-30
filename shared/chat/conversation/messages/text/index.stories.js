@@ -22,7 +22,7 @@ const provider = Sb.createPropProviderWithCommon({
 
 const Wrapped = props => (
   <Box2 direction="vertical">
-    <Text {...props} />
+    <Text {...props} onOpenInFilesTab={Sb.action('onOpenInFilesTab')} />
   </Box2>
 )
 
@@ -34,6 +34,11 @@ const load = () => {
         <Wrapped {...props} />
         <Wrapped {...props} text="world" />
         <Wrapped {...props} text="editing" isEditing={true} />
+        <Wrapped
+          {...props}
+          text="contains a /keybase/private/alice,bob#charlie,david thing"
+          mentionsAt={I.Set(['mention'])}
+        />
         <Wrapped {...props} text="contains a @mention thing" mentionsAt={I.Set(['mention'])} />
         <Wrapped
           {...props}

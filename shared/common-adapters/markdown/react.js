@@ -278,6 +278,13 @@ const reactComponentsForMarkdownType = {
       {output(node.content, {...state, inBlockQuote: true})}
     </Box>
   ),
+  kbfsPath: (node, output, state) => {
+    return (
+      <Text type="BodyPrimaryLink" onClick={node.onClick} key={state.key}>
+        {node.content}
+      </Text>
+    )
+  },
   mention: (node, output, state) => {
     return (
       <Mention

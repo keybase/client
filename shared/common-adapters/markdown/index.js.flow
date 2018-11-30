@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
+import type {Path} from '../../constants/types/fs'
 import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
@@ -26,6 +27,7 @@ export type MarkdownMeta = {
   mentionsAt: MentionsAt,
   mentionsChannelName: MentionsChannelName,
   mentionsChannel: MentionsChannel,
+  onOpenInFilesTab: (Path)=>void,
 }
 
 export type Props = {

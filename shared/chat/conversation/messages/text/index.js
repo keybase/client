@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import * as FsTypes from '../../../../constants/types/fs'
 import {Markdown} from '../../../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate, isMobile} from '../../../../styles'
 
@@ -11,12 +12,21 @@ export type Props = {
   mentionsAt: Types.MentionsAt,
   mentionsChannel: Types.MentionsChannel,
   mentionsChannelName: Types.MentionsChannelName,
+  onOpenInFilesTab: FsTypes.Path => void,
 }
 
-const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => (
+const MessageText = ({
+  text,
+  type,
+  isEditing,
+  mentionsAt,
+  mentionsChannel,
+  mentionsChannelName,
+  onOpenInFilesTab,
+}: Props) => (
   <Markdown
     style={getStyle(type, isEditing)}
-    meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
+    meta={{mentionsAt, mentionsChannel, mentionsChannelName, onOpenInFilesTab}}
     styleOverride={isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
     allowFontScaling={true}
   >

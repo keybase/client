@@ -609,7 +609,11 @@ const _getRouteChangeActionForOpen = (
   route: any
 ) => {
   const routeChange =
-    action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, 'folder', route])
+    action.type === FsGen.openPathItem
+      ? navigateAppend([route])
+      : isMobile
+      ? navigateTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder', route])
+      : navigateTo([Tabs.fsTab, 'folder', route])
   return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
 
