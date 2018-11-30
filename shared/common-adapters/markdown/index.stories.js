@@ -87,9 +87,16 @@ These should have the trailing punctuation outside the link:
   amazon.co.uk.
   keybase.io,
   keybase.io.
+  http://keybase.io/mikem,
+  http://keybase.io/mikem;
+  http://keybase.io/mikem:
+  http://keybase.io/mikem!
   keybase.io?
   *http://keybase.io/*.
   *http://keybase.io/~_*
+Paranthesis stuff:
+  https://en.wikipedia.org/wiki/J/Z_(New_York_City_Subway_service)
+  (https://keybase.io/)
 `,
   Quotes: `> this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.
