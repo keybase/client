@@ -657,9 +657,8 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 		return res, err
 	}
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      public,
-		ForceRepoll: true,
+		ID:     teamID,
+		Public: public,
 	})
 	if err != nil {
 		return res, err
