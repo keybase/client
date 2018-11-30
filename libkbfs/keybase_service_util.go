@@ -57,14 +57,17 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 			"%+v", err)
 	}
 
+	// Launch auth refreshes in the background, in case we are
+	// currently disconnected from one of these servers.
 	mdServer := config.MDServer()
 	if mdServer != nil {
-		mdServer.RefreshAuthToken(ctx)
+		go mdServer.RefreshAuthToken(context.Background())
 	}
 	bServer := config.BlockServer()
 	if bServer != nil {
-		bServer.RefreshAuthToken(ctx)
+		go bServer.RefreshAuthToken(context.Background())
 	}
+
 	config.KBFSOps().RefreshCachedFavorites(ctx)
 	config.KBFSOps().PushStatusChange()
 	return wg
