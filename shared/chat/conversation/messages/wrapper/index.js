@@ -82,7 +82,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (this.props.showUsername) {
       return (
         <>
-          <Kb.Box2 direction="horizontal" style={styles.authorContainer} gap="tiny">
+          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
             <Kb.Avatar
               size={32}
               username={this.props.showUsername}
@@ -101,6 +101,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             <Kb.Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Kb.Text>
           </Kb.Box2>
           <Kb.Box2
+            key="content"
             direction="vertical"
             fullWidth={true}
             style={styles.contentUnderAuthorContainer}
@@ -189,6 +190,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
       <MessagePopup
+        key="popup"
         attachTo={this.props.getAttachmentRef}
         message={this.props.message}
         onHidden={this.props.toggleShowingMenu}
@@ -238,8 +240,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const exploding = this.props.message.exploding
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
-      16, // reactji
-      16, // ... menu
+      Styles.isMobile ? 0 : 16, // reactji
+      Styles.isMobile ? 0 : 16, // ... menu
       exploding ? 46 : 0, // exploding
     ].filter(Boolean)
     const padding = 8

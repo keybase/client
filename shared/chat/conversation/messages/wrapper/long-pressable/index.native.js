@@ -6,7 +6,7 @@ import {NativeTouchableHighlight, NativeView} from '../../../../../common-adapte
 const LongPressable = (props: {children: React.Node}) => {
   const {children, ...rest} = props
   return (
-    <NativeTouchableHighlight {...rest}>
+    <NativeTouchableHighlight key='longPressbale' {...rest}>
       <NativeView>{children}</NativeView>
     </NativeTouchableHighlight>
   )
