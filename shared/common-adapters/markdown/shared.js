@@ -112,7 +112,7 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const valid = `[:,]*[\\w=#%~\\-_~&@+\\u00c0-\\uffff]`
+    const valid = `[:,!]*[\\w=#%~\\-_~&@+\\u00c0-\\uffff]`
     const paranthesisPaired = `([(]${valid}+[)])`
     const afterDomain = `(?:\\/|${paranthesisPaired}|${valid}|[.?]+[\\w/=])`
     const r = new RegExp(
