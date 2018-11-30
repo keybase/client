@@ -16,6 +16,8 @@ type OwnProps = {|
 const mapStateToProps = (state, ownProps) => {
   const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname
   return {
+    addee: ownProps.message.addee,
+    adder: ownProps.message.adder,
     isAdmin: isAdmin(getRole(state, teamname)),
     teamname,
     you: state.config.username || '',
@@ -36,8 +38,9 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  addee: stateProps.addee,
+  adder: stateProps.adder,
   isAdmin: stateProps.isAdmin,
-  message: ownProps.message,
   onClickUserAvatar: dispatchProps.onClickUserAvatar,
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),

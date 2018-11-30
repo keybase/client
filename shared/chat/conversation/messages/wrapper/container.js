@@ -53,9 +53,7 @@ const mapDisaptchToProps = dispatch => ({
 const authorIsCollapsible = (m: Types.Message) =>
   m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {previous, message} = stateProps
-
+const getUsernameToShow = (message, previous, you, orangeLineAbove) => {
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
@@ -63,40 +61,52 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     authorIsCollapsible(previous)
 
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
-  const timestamp = stateProps.orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
-  let showUsername = ''
+  const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   switch (message.type) {
     case 'attachment':
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
     case 'setChannelname':
-      showUsername = !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
-      break
+      return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
     case 'systemAddedToTeam':
-      showUsername = message.addee
-      break
+      return message.addee === you ? '' : message.addee
+    case 'systemJoined':
+      return message.author === you ? '' : message.author
+    case 'systemLeft':
+    case 'setDescription':
+      return message.author
   }
-  // $ForceType
-  const outboxID = message.outboxID
+  return ''
+}
 
+const getFailureDescriptionAllowCancel = (message, you) => {
   let failureDescription = ''
   let allowCancelRetry = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = message.errorReason
-    if (stateProps._you && ['pending', 'failed'].includes(message.submitState)) {
+    if (you && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix
       failureDescription = `Failed to send: ${message.errorReason}`
       allowCancelRetry = true
     }
   }
-  const resolveByEdit: boolean =
-    !!outboxID && !!stateProps._you && failureDescription === 'Failed to send: message is too long'
-
   // $ForceType
   if (message.explodingUnreadable) {
     failureDescription = 'This exploding message is not available to you.'
   }
+
+  return {allowCancelRetry, failureDescription}
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const {previous, message, _you} = stateProps
+  let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
+  // $ForceType
+  const outboxID = message.outboxID
+  let {allowCancelRetry, failureDescription} = getFailureDescriptionAllowCancel(message, _you)
+  const resolveByEdit: boolean =
+    !!outboxID && !!stateProps._you && failureDescription === 'Failed to send: message is too long'
 
   // show send only if its possible we sent while you're looking at it
   const showSendIndicator = stateProps._you === message.author && message.ordinal !== message.id
@@ -127,7 +137,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     failureDescription,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
-    showUsername,
     measure: ownProps.measure,
     message: message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
@@ -143,6 +152,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     showSendIndicator,
+    showUsername,
   }
 }
 
