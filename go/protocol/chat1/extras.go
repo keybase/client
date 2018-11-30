@@ -1888,13 +1888,15 @@ func (u UnfurlRaw) String() string {
 	return "<unknown>"
 }
 
-func (g UnfurlGenericRaw) String() string {
-	yield := func(s *string) string {
-		if s == nil {
-			return ""
-		}
-		return *s
+func yieldStr(s *string) string {
+	if s == nil {
+		return ""
 	}
+	return *s
+}
+
+func (g UnfurlGenericRaw) String() string {
+
 	publishTime := ""
 	if g.PublishTime != nil {
 		publishTime = fmt.Sprintf("%v", time.Unix(int64(*g.PublishTime), 0))
@@ -1905,14 +1907,15 @@ SiteName: %s
 PublishTime: %s
 Description: %s
 ImageUrl: %s
-FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
-		yield(g.ImageUrl), yield(g.FaviconUrl))
+FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yieldStr(g.Description),
+		yieldStr(g.ImageUrl), yieldStr(g.FaviconUrl))
 }
 
 func (g UnfurlGiphyRaw) String() string {
+
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
-ImageUrl: %s`, g.FaviconURL, g.ImageURL)
+ImageUrl: %s`, yieldStr(g.FaviconUrl), g.ImageUrl)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

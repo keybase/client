@@ -8,6 +8,20 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
+func assetToImageDisplay(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset,
+	srv types.AttachmentURLSrv) (res chat1.UnfurlImageDisplay) {
+	// double check type before charging forward
+	typ, err := asset.Metadata.AssetType()
+	if err != nil || typ != chat1.AssetMetadataType_IMAGE {
+		return res
+	}
+	return chat1.UnfurlImageDisplay{
+		Height: asset.Metadata.Image().Height,
+		Width:  asset.Metadata.Image().Width,
+		Url:    srv.GetUnfurlAssetURL(ctx, convID, asset),
+	}
+}
+
 func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
 	unfurl chat1.UnfurlGeneric) (res chat1.UnfurlGenericDisplay) {
 	res.Title = unfurl.Title
@@ -16,18 +30,41 @@ func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convI
 	res.PublishTime = unfurl.PublishTime
 	res.Description = unfurl.Description
 	if unfurl.Image != nil {
-		res.Image = &chat1.UnfurlImageDisplay{
-			Height: unfurl.Image.Metadata.Image().Height,
-			Width:  unfurl.Image.Metadata.Image().Width,
-			Url:    srv.GetUnfurlAssetURL(ctx, convID, *unfurl.Image),
-		}
+		res.Image = new(chat1.UnfurlImageDisplay)
+		*res.Image = assetToImageDisplay(ctx, convID, *unfurl.Image, srv)
 	}
 	if unfurl.Favicon != nil {
-		res.Favicon = &chat1.UnfurlImageDisplay{
-			Height: unfurl.Favicon.Metadata.Image().Height,
-			Width:  unfurl.Favicon.Metadata.Image().Width,
-			Url:    srv.GetUnfurlAssetURL(ctx, convID, *unfurl.Favicon),
-		}
+		res.Favicon = new(chat1.UnfurlImageDisplay)
+		*res.Favicon = assetToImageDisplay(ctx, convID, *unfurl.Favicon, srv)
+	}
+	return res
+}
+
+func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
+	unfurl chat1.UnfurlGiphy) (res chat1.UnfurlGiphyDisplay) {
+	typ, err := unfurl.Image.Metadata.AssetType()
+	if err != nil {
+		return res
+	}
+	var height, width int
+	switch typ {
+	case chat1.AssetMetadataType_IMAGE:
+		height = unfurl.Image.Metadata.Image().Height
+		width = unfurl.Image.Metadata.Image().Width
+	case chat1.AssetMetadataType_VIDEO:
+		height = unfurl.Image.Metadata.Video().Height
+		width = unfurl.Image.Metadata.Video().Width
+	default:
+		return res
+	}
+	res.Image = chat1.UnfurlImageDisplay{
+		Height: height,
+		Width:  width,
+		Url:    srv.GetUnfurlAssetURL(ctx, convID, unfurl.Image),
+	}
+	if unfurl.Favicon != nil {
+		res.Favicon = new(chat1.UnfurlImageDisplay)
+		*res.Favicon = assetToImageDisplay(ctx, convID, *unfurl.Favicon, srv)
 	}
 	return res
 }
@@ -42,6 +79,8 @@ func DisplayUnfurl(ctx context.Context, srv types.AttachmentURLSrv, convID chat1
 	case chat1.UnfurlType_GENERIC:
 		return chat1.NewUnfurlDisplayWithGeneric(displayUnfurlGeneric(ctx, srv, convID, unfurl.Generic())),
 			nil
+	case chat1.UnfurlType_GIPHY:
+		return chat1.NewUnfurlDisplayWithGiphy(displayUnfurlGiphy(ctx, srv, convID, unfurl.Giphy())), nil
 	case chat1.UnfurlType_YOUTUBE:
 		return chat1.NewUnfurlDisplayWithYoutube(chat1.UnfurlYoutubeDisplay{}), nil
 	default:

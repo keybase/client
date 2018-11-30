@@ -53,7 +53,7 @@ func IsDomain(domain, target string) bool {
 }
 
 func ClassifyDomain(domain string) chat1.UnfurlType {
-	if IsDomain(domain, "giphy") {
+	if IsDomain(domain, "giphy") || domain == "gph.is" {
 		return chat1.UnfurlType_GIPHY
 	}
 	return chat1.UnfurlType_GENERIC

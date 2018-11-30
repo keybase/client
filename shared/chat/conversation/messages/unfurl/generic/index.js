@@ -126,6 +126,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       width: 16,
       height: 16,
+      borderRadius: Styles.borderRadius,
     },
   }),
 })

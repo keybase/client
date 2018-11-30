@@ -35,7 +35,7 @@ func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
 		store:        store,
 		ri:           ri,
 		s3signer:     s3signer,
-		maxAssetSize: 2000000,
+		maxAssetSize: 10000000,
 	}
 }
 
@@ -91,8 +91,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
-	if atyp != chat1.AssetMetadataType_IMAGE {
-		return res, fmt.Errorf("invalid asset for unfurl package: %v", atyp)
+	if atyp != chat1.AssetMetadataType_IMAGE && uploadContentType != "image/gif" {
+		return res, fmt.Errorf("invalid asset for unfurl package: %v mime: %s", atyp, uploadContentType)
 	}
 
 	s3params, err := p.ri().GetS3Params(ctx, convID)
@@ -154,6 +154,23 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 			}
 		}
 		return chat1.NewUnfurlWithGeneric(g), nil
+	case chat1.UnfurlType_GIPHY:
+		var g chat1.UnfurlGiphy
+		asset, err := p.assetFromURL(ctx, raw.Giphy().ImageUrl, uid, convID)
+		if err != nil {
+			// if we don't get the image, then just bail out of here
+			p.Debug(ctx, "Package: failed to get image asset URL: %s", err)
+			return res, errors.New("image not available for giphy unfurl")
+		}
+		g.Image = asset
+		if raw.Giphy().FaviconUrl != nil {
+			if asset, err := p.assetFromURL(ctx, *raw.Giphy().FaviconUrl, uid, convID); err != nil {
+				p.Debug(ctx, "Package: failed to get favicon asset URL: %s", err)
+			} else {
+				g.Favicon = &asset
+			}
+		}
+		return chat1.NewUnfurlWithGiphy(g), nil
 	default:
 		return res, errors.New("not implemented")
 	}

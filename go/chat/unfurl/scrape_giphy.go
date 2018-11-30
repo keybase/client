@@ -21,9 +21,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 		s.Debug(ctx, "scrapeGiphy: failed to find an image, just returning generic unfurl")
 		return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 	}
-	giphy.ImageURL = *generic.ImageUrl
-	if generic.FaviconUrl != nil {
-		giphy.FaviconURL = *generic.FaviconUrl
-	}
+	giphy.ImageUrl = *generic.ImageUrl
+	giphy.FaviconUrl = generic.FaviconUrl
 	return chat1.NewUnfurlRawWithGiphy(giphy), nil
 }

@@ -91,14 +91,20 @@ func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
 }
 
 type UnfurlGiphyRaw struct {
-	FaviconURL string `codec:"faviconURL" json:"faviconURL"`
-	ImageURL   string `codec:"imageURL" json:"imageURL"`
+	FaviconUrl *string `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
+	ImageUrl   string  `codec:"imageUrl" json:"imageUrl"`
 }
 
 func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 	return UnfurlGiphyRaw{
-		FaviconURL: o.FaviconURL,
-		ImageURL:   o.ImageURL,
+		FaviconUrl: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FaviconUrl),
+		ImageUrl: o.ImageUrl,
 	}
 }
 
@@ -262,14 +268,20 @@ func (o UnfurlYoutube) DeepCopy() UnfurlYoutube {
 }
 
 type UnfurlGiphy struct {
-	Favicon Asset `codec:"favicon" json:"favicon"`
-	Image   Asset `codec:"image" json:"image"`
+	Favicon *Asset `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image   Asset  `codec:"image" json:"image"`
 }
 
 func (o UnfurlGiphy) DeepCopy() UnfurlGiphy {
 	return UnfurlGiphy{
-		Favicon: o.Favicon.DeepCopy(),
-		Image:   o.Image.DeepCopy(),
+		Favicon: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Favicon),
+		Image: o.Image.DeepCopy(),
 	}
 }
 
@@ -459,14 +471,20 @@ func (o UnfurlYoutubeDisplay) DeepCopy() UnfurlYoutubeDisplay {
 }
 
 type UnfurlGiphyDisplay struct {
-	Favicon UnfurlImageDisplay `codec:"favicon" json:"favicon"`
-	Image   UnfurlImageDisplay `codec:"image" json:"image"`
+	Favicon *UnfurlImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image   UnfurlImageDisplay  `codec:"image" json:"image"`
 }
 
 func (o UnfurlGiphyDisplay) DeepCopy() UnfurlGiphyDisplay {
 	return UnfurlGiphyDisplay{
-		Favicon: o.Favicon.DeepCopy(),
-		Image:   o.Image.DeepCopy(),
+		Favicon: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Favicon),
+		Image: o.Image.DeepCopy(),
 	}
 }
 
