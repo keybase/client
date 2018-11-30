@@ -207,7 +207,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([
                     styles.emojiIconWrapper,
-                    !Styles.isMobile && (this.props.showBorder ? {top: 3} : {top: 1}),
+                    !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
                     !this.state.applyClasses &&
                       (iconIndex === this.state.iconIndex
                         ? {transform: 'translateX(-8px)'}
@@ -219,23 +219,22 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             ))
           )}
         </Box2>
-        {this.state.showingPicker &&
-          !Styles.isMobile && (
-            <FloatingBox
-              attachTo={this._getAttachmentRef}
-              containerStyle={styles.emojiContainer}
-              position="bottom left"
-              onHidden={() => this._setShowingPicker(false)}
-            >
-              <Picker
-                autoFocus={true}
-                emoji="star-struck"
-                title="reacjibase"
-                onClick={this._onAddReaction}
-                backgroundImageFn={backgroundImageFn}
-              />
-            </FloatingBox>
-          )}
+        {this.state.showingPicker && !Styles.isMobile && (
+          <FloatingBox
+            attachTo={this._getAttachmentRef}
+            containerStyle={styles.emojiContainer}
+            position="bottom left"
+            onHidden={() => this._setShowingPicker(false)}
+          >
+            <Picker
+              autoFocus={true}
+              emoji="star-struck"
+              title="reacjibase"
+              onClick={this._onAddReaction}
+              backgroundImageFn={backgroundImageFn}
+            />
+          </FloatingBox>
+        )}
       </ButtonBox>
     )
   }
@@ -286,7 +285,6 @@ const styles = Styles.styleSheetCreate({
       width: 37,
     },
     isElectron: {
-      width: 16,
       minHeight: 18,
       overflow: 'hidden',
     },

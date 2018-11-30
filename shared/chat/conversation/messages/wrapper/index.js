@@ -378,6 +378,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   ordinal={message.ordinal}
                   onShowPicker={this._setShowingPicker}
                   showBorder={false}
+                  style={styles.reactButton}
                 />
                 <Kb.Box ref={this.props.setAttachmentRef}>
                   {this.props.shouldShowPopup && (
@@ -496,6 +497,9 @@ const styles = Styles.styleSheetCreate({
   }),
   menuButtonsWithAuthor: {marginTop: -16},
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
+  reactButton: Styles.platformStyles({
+    isElectron: {width: 16},
+  }),
   revoked: {marginLeft: Styles.globalMargins.tiny},
   send: Styles.platformStyles({
     isElectron: {
