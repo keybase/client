@@ -479,14 +479,6 @@ const (
 )
 
 const (
-	KexScryptCost       = 32768
-	KexScryptR          = 8
-	KexScryptP          = 1
-	KexScryptKeylen     = 32
-	KexSessionIDEntropy = 65 // kex doc specifies 65 bits of entropy
-)
-
-const (
 	Kex2PhraseEntropy  = 88
 	Kex2PhraseEntropy2 = 99 // we've upped the entropy to 99 bits after the 2018 NCC Audit
 	Kex2ScryptCost     = 1 << 17
