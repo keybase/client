@@ -2437,7 +2437,7 @@ export type SeqType =
   | 3 // SEMIPRIVATE_3
 
 export type Seqno = Int64
-export type ServiceDisplayConfig = $ReadOnly<{priority: Int, key: String, group?: ?String}>
+export type ServiceDisplayConfig = $ReadOnly<{creationDisabled: Boolean, priority: Int, key: String, group?: ?String}>
 export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
 export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>}>
 export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>

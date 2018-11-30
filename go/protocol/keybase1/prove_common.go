@@ -373,15 +373,17 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 }
 
 type ServiceDisplayConfig struct {
-	Priority int     `codec:"priority" json:"priority"`
-	Key      string  `codec:"key" json:"key"`
-	Group    *string `codec:"group,omitempty" json:"group,omitempty"`
+	CreationDisabled bool    `codec:"creationDisabled" json:"creation_disabled"`
+	Priority         int     `codec:"priority" json:"priority"`
+	Key              string  `codec:"key" json:"key"`
+	Group            *string `codec:"group,omitempty" json:"group,omitempty"`
 }
 
 func (o ServiceDisplayConfig) DeepCopy() ServiceDisplayConfig {
 	return ServiceDisplayConfig{
-		Priority: o.Priority,
-		Key:      o.Key,
+		CreationDisabled: o.CreationDisabled,
+		Priority:         o.Priority,
+		Key:              o.Key,
 		Group: (func(x *string) *string {
 			if x == nil {
 				return nil
