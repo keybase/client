@@ -147,6 +147,7 @@ const load = () => {
     .addDecorator(story => <Box style={{padding: 20}}>{story()}</Box>)
     .addDecorator(scrollViewDecorator)
     .add('Basic', () => <PlainInput {...commonProps} />)
+    .add('Max Length=10', () => <PlainInput {...commonProps} maxLength={10} />)
     .add('Different text type', () => <PlainInput {...commonProps} textType="BodyExtrabold" />)
     .add('Larger text type', () => <PlainInput {...commonProps} textType="HeaderBig" />)
     .add('Password', () => <PlainInput {...commonProps} type="password" />)
