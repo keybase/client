@@ -4,6 +4,19 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import SystemAddedToTeam from '../system-added-to-team/container'
+import SystemGitPush from '../system-git-push/container'
+import SystemInviteAccepted from '../system-invite-accepted/container'
+import SystemJoined from '../system-joined/container'
+import SystemLeft from '../system-left/container'
+import SystemSimpleToComplex from '../system-simple-to-complex/container'
+import SystemText from '../system-text/container'
+import SetDescription from '../set-description/container'
+import SetChannelname from '../set-channelname/container'
+import TextMessage from '../text/container'
+import AttachmentMessage from '../attachment/container'
+import PaymentMessage from '../account-payment/container'
+import Placeholder from '../placeholder/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
@@ -22,23 +35,20 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {|
-  children: React.Node | (({toggleShowingMenu: () => void}) => React.Node),
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
   failureDescription: string,
   hasUnfurlPrompts: boolean,
-  isEditing: boolean,
   isRevoked: boolean,
   isShowingUsername: boolean,
-  measure: null | (() => void),
+  measure: ?() => void,
   message: Types.Message,
   onAuthorClick: () => void,
   onCancel: ?() => void,
   onEdit: ?() => void,
   onRetry: ?() => void,
   orangeLineAbove: boolean,
-  ordinal: Types.Ordinal,
   previous: ?Types.Message,
   shouldShowPopup: boolean,
   showSendIndicator: boolean,
@@ -52,8 +62,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   state = {showMenuButton: false, showingPicker: false}
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
-      this.props.measure()
+    if (this.props.measure) {
+      const changed =
+        this.props.orangeLineAbove !== prevProps.orangeLineAbove || this.props.message !== prevProps.message
+
+      if (changed) {
+        this.props.measure()
+      }
     }
   }
   _onMouseOver = Styles.isMobile
@@ -70,7 +85,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _onAuthorClick = () => this.props.onAuthorClick()
 
-  _content = children => {
+  _authorAndContent = children => {
     if (this.props.isShowingUsername) {
       return (
         <>
@@ -147,7 +162,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       <UnfurlPromptList
         key="UnfurlPromptList"
         conversationIDKey={this.props.conversationIDKey}
-        ordinal={this.props.ordinal}
+        ordinal={this.props.message.ordinal}
       />
     )
 
@@ -158,7 +173,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       <UnfurlList
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
-        ordinal={this.props.ordinal}
+        ordinal={this.props.message.ordinal}
       />
     )
 
@@ -169,7 +184,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       <ReactionsRow
         key="ReactionsRow"
         conversationIDKey={this.props.conversationIDKey}
-        ordinal={this.props.ordinal}
+        ordinal={this.props.message.ordinal}
       />
     )
 
@@ -249,18 +264,73 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return this._cachedMenuStyles[key]
   }
 
-  _messageAndButtons = children => {
+  _messageAndButtons = () => {
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
     const message = this.props.message
-    // $ForceType
-    const exploding = message.exploding
-    // $ForceType
-    const exploded = message.exploded
-    // $ForceType
-    const explodedBy = message.explodedBy
+    let child
+    let exploding = false
+    let exploded = false
+    let explodedBy = null
+    switch (message.type) {
+      case 'text':
+        exploding = message.exploding
+        exploded = message.exploded
+        explodedBy = message.explodedBy
+        child = <TextMessage message={message} />
+        break
+      case 'attachment':
+        exploding = message.exploding
+        exploded = message.exploded
+        explodedBy = message.explodedBy
+        child = <AttachmentMessage message={message} toggleMessageMenu={this.props.toggleShowingMenu} />
+        break
+      case 'requestPayment':
+        child = <PaymentMessage message={message} />
+        break
+      case 'sendPayment':
+        child = <PaymentMessage message={message} />
+        break
+      case 'placeholder':
+        child = <Placeholder message={message} />
+        break
+      case 'systemInviteAccepted':
+        child = <SystemInviteAccepted message={message} />
+        break
+      case 'systemSimpleToComplex':
+        child = <SystemSimpleToComplex message={message} />
+        break
+      case 'systemGitPush':
+        child = <SystemGitPush message={message} />
+        break
+      case 'systemAddedToTeam':
+        child = <SystemAddedToTeam message={message} />
+        break
+      case 'systemJoined':
+        child = <SystemJoined message={message} />
+        break
+      case 'systemText':
+        child = <SystemText message={message} />
+        break
+      case 'systemLeft':
+        child = <SystemLeft message={message} />
+        break
+      case 'setDescription':
+        child = <SetDescription message={message} />
+        break
+      case 'setChannelname':
+        child = <SetChannelname message={message} />
+        break
+      case 'deleted':
+        return null
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(message.type);
+      */
+        return null
+    }
     const retainHeight =
-      // $ForceType
-      message.failureDescription === 'This exploding message is not available to you' || exploded
+      this.props.failureDescription === 'This exploding message is not available to you' || exploded
 
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
@@ -270,10 +340,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         messageKey={Constants.getMessageKey(message)}
         retainHeight={retainHeight}
       >
-        {children}
+        {child}
       </ExplodingHeightRetainer>
     ) : (
-      children
+      child
     )
 
     // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
@@ -337,11 +407,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   render() {
-    // We support child functions just to plumb this callback. TODO cleaner way to do this
-    const actualChild =
-      typeof this.props.children === 'function'
-        ? this.props.children({toggleShowingMenu: this.props.toggleShowingMenu})
-        : this.props.children
+    if (!this.props.message) {
+      return null
+    }
     return (
       <>
         {LongPressable({
@@ -349,8 +417,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           ...this._containerProps(),
           children: [
             this._orangeLine(),
-            this._content([
-              this._messageAndButtons(actualChild),
+            this._authorAndContent([
+              this._messageAndButtons(),
               this._isEdited(),
               this._isFailed(),
               this._sendIndicator(),

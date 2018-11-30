@@ -1,5 +1,4 @@
 // @flow
-import * as React from 'react'
 import WrapperMessage from '.'
 import * as Constants from '../../../../constants/chat2'
 import * as MessageConstants from '../../../../constants/chat2/message'
@@ -8,37 +7,40 @@ import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import {namedConnect} from '../../../../util/container'
 
-export type OwnProps = {|
-  children: React.Node | (({toggleShowingMenu: () => void}) => React.Node),
-  isEditing: boolean,
-  measure: null | (() => void),
-  message: Types.Message,
-  previous: ?Types.Message,
-  decorate?: boolean,
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  measure: ?() => void,
+  ordinal: Types.Ordinal,
+  previous: ?Types.Ordinal,
 |}
 
+// If there is no matching message treat it like a deleted
+const missingMessage = MessageConstants.makeMessageDeleted({})
+
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
+  const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
+  const previous = ownProps.previous
+    ? Constants.getMessage(state, ownProps.conversationIDKey, ownProps.previous)
+    : null
+  const orangeLineAbove = state.chat2.orangeLineMap.get(ownProps.conversationIDKey) === message.id
   const unfurlPrompts =
-    ownProps.message.type === 'text'
-      ? state.chat2.unfurlPromptMap.getIn([ownProps.message.conversationIDKey, ownProps.message.id])
+    message.type === 'text'
+      ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
       : null
+
   return {
-    _you: state.config.username || '',
-    conversationIDKey: ownProps.message.conversationIDKey,
+    _you: state.config.username,
+    conversationIDKey: ownProps.conversationIDKey,
     hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
-    orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
-    ordinal: ownProps.message.ordinal,
-    previous: ownProps.previous,
-    shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
+    message,
+    orangeLineAbove,
+    previous,
+    shouldShowPopup: Constants.shouldShowPopup(state, message),
   }
 }
 
 const mapDisaptchToProps = dispatch => ({
-  _onAuthorClick: (username: string) =>
-    // isMobile
-    /* ? */ dispatch(ProfileGen.createShowUserProfile({username})),
-  // : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onAuthorClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
     dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
   _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
@@ -52,8 +54,7 @@ const authorIsCollapsible = (m: Types.Message) =>
   m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {ordinal, previous} = stateProps
-  const {message} = ownProps
+  const {previous, message} = stateProps
 
   const sequentialUserMessages =
     previous &&
@@ -63,7 +64,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
   const timestamp = stateProps.orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
-  const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
+  const isShowingUsername =
+    ['attachment', 'requestPayment', 'sendPayment', 'text', 'setChannelname'].includes(message.type) &&
+    (!previous || !sequentialUserMessages || !!timestamp)
   // $ForceType
   const outboxID = message.outboxID
 
@@ -86,16 +89,33 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 
   // show send only if its possible we sent while you're looking at it
-  const showSendIndicator = stateProps._you === message.author && ordinal !== message.id
+  const showSendIndicator = stateProps._you === message.author && message.ordinal !== message.id
+
+  let decorate = false
+  switch (message.type) {
+    case 'text':
+      decorate = !message.exploded && !message.errorReason
+      break
+    case 'attachment':
+      decorate = !message.exploded && !message.errorReason
+      break
+    case 'requestPayment':
+    case 'sendPayment':
+    case 'systemAddedToTeam':
+    case 'systemLeft':
+      decorate = true
+      break
+    case 'systemJoined':
+      decorate = message.author !== stateProps._you
+      break
+  }
 
   return {
-    children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
-    decorate: !!ownProps.decorate,
+    decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     failureDescription,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
-    isEditing: ownProps.isEditing,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     isShowingUsername,
     measure: ownProps.measure,
@@ -110,8 +130,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
         : null,
     orangeLineAbove: stateProps.orangeLineAbove,
-    ordinal,
-    previous: ownProps.previous,
+    previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     showSendIndicator,
   }
