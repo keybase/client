@@ -67,6 +67,9 @@ func (c *cmdWalletDump) Run() (err error) {
 		for j, signer := range accountBundle.Signers {
 			dui.Printf("Signers[%v]: %v\n", j, signer.SecureNoLogString())
 		}
+		if len(accountBundle.Signers) == 0 {
+			dui.Printf("Signers[0]: not present in bundle\n")
+		}
 		dui.Printf("Mode: %v\n", account.Mode)
 	}
 	return nil

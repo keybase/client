@@ -240,7 +240,7 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 		return res, err
 	}
 	for _, account := range prevBundle.Accounts {
-		if account.AccountID.Eq(accountID) && account.Mode == stellar1.AccountMode_USER {
+		if account.AccountID.Eq(accountID) {
 			signers := prevBundle.AccountBundles[account.AccountID].Signers
 			if len(signers) == 0 {
 				return res, fmt.Errorf("no secret keys found for account")

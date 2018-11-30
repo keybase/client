@@ -43,7 +43,22 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 	if err != nil {
 		return dump, err
 	}
-	bundle, _, _, err := remote.FetchWholeBundle(ctx, s.G())
+
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	if err != nil {
+		return dump, err
+	}
+	newAccBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
+	for _, acct := range bundle.Accounts {
+		singleBundle, _, _, err := remote.FetchAccountBundle(ctx, s.G(), acct.AccountID)
+		if err != nil {
+			// if we can't fetch the secret for this account, just continue on
+			continue
+		}
+		accBundle := singleBundle.AccountBundles[acct.AccountID]
+		newAccBundles[acct.AccountID] = accBundle
+	}
+	bundle.AccountBundles = newAccBundles
 
 	return *bundle, err
 }
