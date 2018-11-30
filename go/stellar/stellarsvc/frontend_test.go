@@ -340,7 +340,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.NoError(t, err)
 
 	mctx := libkb.NewMetaContextBackground(tcs[0].G)
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	bundle, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
@@ -571,7 +571,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 
 	t.Logf("can't create wallet before disclaimer")
 	mctx := tcs[0].MetaContext()
-	_, err = stellar.CreateWallet(mctx, false)
+	_, err = stellar.CreateWallet(mctx)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 

@@ -1663,7 +1663,7 @@
     },
     "walletDumpLocal": {
       "request": [],
-      "response": "BundleRestricted"
+      "response": "Bundle"
     },
     "walletGetAccountsCLILocal": {
       "request": [],

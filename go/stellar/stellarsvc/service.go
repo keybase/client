@@ -287,8 +287,8 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	flaggedForV2 := remote.AcctBundlesEnabled(mctx)
-	_, err = stellar.CreateWallet(mctx, flaggedForV2)
+
+	_, err = stellar.CreateWallet(mctx)
 	return err
 }
 
@@ -341,7 +341,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		return ret, err
 	}
 
-	currentBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	currentBundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return nil, err
 	}
