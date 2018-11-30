@@ -126,8 +126,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             Cancel
           </Kb.Text>
         )}
-        {!!this.props.onCancel &&
-          (!!this.props.onEdit || !!this.props.onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
+        {!!this.props.onCancel && (!!this.props.onEdit || !!this.props.onRetry) && (
+          <Kb.Text type="BodySmall"> or </Kb.Text>
+        )}
         {!!this.props.onEdit && (
           <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onEdit}>
             Edit
@@ -343,23 +344,22 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         : this.props.children
     return (
       <>
-        <LongPressable
-          direction="vertical"
-          fullWidth={true}
-          onMouseOver={this._onMouseOver}
-          {...this._containerProps()}
-        >
-          {this._orangeLine()}
-          {this._content([
-            this._messageAndButtons(actualChild),
-            this._isEdited(),
-            this._isFailed(),
-            this._sendIndicator(),
-            this._unfurlPrompts(),
-            this._unfurlList(),
-            this._reactionsRow(),
-          ])}
-        </LongPressable>
+        {LongPressable({
+          onMouseOver: this._onMouseOver,
+          ...this._containerProps(),
+          children: [
+            this._orangeLine(),
+            this._content([
+              this._messageAndButtons(actualChild),
+              this._isEdited(),
+              this._isFailed(),
+              this._sendIndicator(),
+              this._unfurlPrompts(),
+              this._unfurlList(),
+              this._reactionsRow(),
+            ]),
+          ],
+        })}
         {this._popup()}
       </>
     )

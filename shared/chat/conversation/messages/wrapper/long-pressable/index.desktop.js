@@ -1,6 +1,4 @@
 // @flow
-import {Box} from '../../../../../common-adapters'
-
-// See '.js.flow' for explanation
-
-export default Box
+import * as React from 'react'
+const LongPressable = (p: any) => <div {...p} />
+export default LongPressable
