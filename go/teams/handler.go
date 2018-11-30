@@ -34,11 +34,16 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err == nil && role.IsOrAbove(keybase1.TeamRole_ADMIN)
 	}
 	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() && isAdmin() {
-		_, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted)
+		// Even though this is open team, and we are aiming to not rotate them,
+		// the server asked us specifically to do so with this CLKR. We have to
+		// obey, otherwise that CLKR will stay undone and server will keep
+		// asking users to rotate.
+		postedLink, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, true /* rotate */)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to sweep deleted members: %s", err)
+		} else if postedLink {
+			return nil
 		}
-		return nil
 	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
@@ -69,7 +74,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 }
 
 func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalContext,
-	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
+	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser, rotate bool) (postedLink bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
@@ -158,21 +163,19 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 
 		opts := ChangeMembershipOptions{
 			// Make it possible for user to come back in once they reprovision.
-			Permanent: false,
-			// Skip key rotation for open teams.
-			SkipKeyRotation: true,
+			Permanent:       false,
+			SkipKeyRotation: !rotate,
 		}
 		if err := team.ChangeMembershipWithOptions(ctx, changeReq, opts); err != nil {
 			return err
 		}
 
-		// Notify the caller that we posted a sig and they have to
-		// load team again.
-		needRepoll = true
+		// Notify the caller that we posted a sig.
+		postedLink = true
 		return nil
 	})
 
-	return needRepoll, err
+	return postedLink, err
 }
 
 func refreshKBFSFavoritesCache(g *libkb.GlobalContext) {

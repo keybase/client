@@ -1217,7 +1217,10 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 
 		teamID = t.ID
 		rotateKey = t.IsOpen() && !settings.Open
-		return t.PostTeamSettings(ctx, settings)
+		// Even if rotateKey is true, we are rotating as separate link right now.
+		// This is because rotation in TeamSettings link used to not be allowed,
+		// so not every client in the wild can parse a team with that.
+		return t.PostTeamSettings(ctx, settings, false /* rotate */)
 	})
 	if err != nil {
 		return err
