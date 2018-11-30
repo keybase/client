@@ -258,7 +258,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this._cachedMenuStyles[key] = Styles.collapseStyles([
         styles.menuButtons,
         {width},
-        this.props.showUsername && styles.menuButtonsWithAuthor,
+        !!this.props.showUsername && styles.menuButtonsWithAuthor,
       ])
     }
     return this._cachedMenuStyles[key]

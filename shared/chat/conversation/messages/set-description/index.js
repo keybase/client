@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as Types from '../../../../constants/types/chat2'
 
-type Props = {
+type Props = {|
   message: Types.MessageSetDescription,
-}
+|}
 
 export default (props: Props) => {
   const desc = props.message.newDescription.stringValue()

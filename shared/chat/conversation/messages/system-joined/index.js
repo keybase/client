@@ -12,7 +12,7 @@ type Props = {|
   isBigTeam: boolean,
   onManageChannels: () => void,
   teamname: string,
-  timestamp: string,
+  timestamp: number,
 |}
 
 const Joined = (props: Props) =>

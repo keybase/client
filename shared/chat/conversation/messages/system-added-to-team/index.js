@@ -12,6 +12,7 @@ type Props = {|
   onManageChannels: () => void,
   onViewTeam: () => void,
   teamname: string,
+  timestamp: number,
   you: string,
 |}
 

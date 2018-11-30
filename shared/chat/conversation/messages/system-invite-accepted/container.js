@@ -1,12 +1,10 @@
 // @flow
 import SystemInviteAccepted from '.'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Route from '../../../../actions/route-tree'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import {teamsTab} from '../../../../constants/tabs'
-import {connect, isMobile} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
 type OwnProps = {|
   message: Types.MessageSystemInviteAccepted,
@@ -18,18 +16,21 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onClickUserAvatar: (username: string) =>
-    isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-  onViewTeam: (teamname: string) => {
+  _onViewTeam: (teamname: string) => {
     dispatch(Route.navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
     dispatch(Route.setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
   },
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  message: ownProps.message,
+  onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
+  teamname: stateProps.teamname,
+  you: stateProps.you,
+})
+
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  mergeProps
 )(SystemInviteAccepted)
