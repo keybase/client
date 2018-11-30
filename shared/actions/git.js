@@ -6,6 +6,7 @@ import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTree from '../route-tree'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
@@ -109,12 +110,9 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
   }).then(() => GitGen.createLoadGitRepo({teamname: action.payload.teamname, username: null}))
 
 let _wasOnGitTab = false
-const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
+const clearBadgesAfterNav = (state: TypedState, action: RouteTreeGen.SwitchToPayload) => {
   // on the git tab?
-  const list = I.List(action.payload.path)
-  const root = list.first()
-
-  if (root === Tabs.gitTab) {
+  if (Constants.isLookingAtGit(state, action)) {
     _wasOnGitTab = true
   } else if (_wasOnGitTab) {
     _wasOnGitTab = false
