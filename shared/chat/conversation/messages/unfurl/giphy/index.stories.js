@@ -8,6 +8,8 @@ import UnfurlGiphy from '.'
 const full = {
   faviconURL: require('../../../../../images/mock/wsj.jpg'),
   imageURL: require('../../../../../images/mock/wsj_image.jpg'),
+  imageHeight: 640,
+  imageWidth: 640,
   onClose: Sb.action('onClose'),
 }
 

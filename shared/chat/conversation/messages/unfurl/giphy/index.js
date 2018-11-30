@@ -4,6 +4,8 @@ import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
 
 export type Props = {
+  imageHeight: number,
+  imageWidth: number,
   imageURL: string,
   faviconURL?: string,
   onClose?: () => void,
@@ -29,7 +31,16 @@ class UnfurlGiphy extends React.Component<Props> {
               />
             )}
           </Kb.Box2>
-          <Kb.Image src={this.props.imageURL} style={styles.image} />
+          <Kb.Image
+            src={this.props.imageURL}
+            style={Styles.collapseStyles([
+              {
+                width: this.props.imageWidth,
+                height: this.props.imageHeight,
+              },
+              styles.image,
+            ])}
+          />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -53,18 +64,22 @@ const styles = Styles.styleSheetCreate({
     height: 16,
     borderRadius: Styles.borderRadius,
   },
-  siteNameContainer: {
-    alignSelf: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  image: {
-    maxWidth: 320,
-    maxHeight: 250,
-  },
+  siteNameContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+      justifyContent: 'space-between',
+    },
+    isMobile: {
+      padding: Styles.globalMargins.tiny,
+    },
+  }),
   quoteContainer: {
     backgroundColor: Styles.globalColors.lightGrey,
     paddingLeft: Styles.globalMargins.xtiny,
     alignSelf: 'stretch',
+  },
+  image: {
+    borderRadius: Styles.borderRadius,
   },
   innerContainer: Styles.platformStyles({
     common: {
@@ -75,7 +90,6 @@ const styles = Styles.styleSheetCreate({
       borderWidth: 1,
       borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
-      padding: Styles.globalMargins.tiny,
     },
   }),
 })
