@@ -103,7 +103,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               colorYou={true}
               type="BodySmallSemibold"
               usernames={[this.props.showUsername]}
-              onUsernameClicked="profile"
+              onUsernameClicked={this._onAuthorClick}
             />
             <Kb.Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Kb.Text>
           </Kb.Box2>

@@ -4,8 +4,9 @@ import * as Constants from '../../../../constants/chat2'
 import * as MessageConstants from '../../../../constants/chat2/message'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
+import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Types from '../../../../constants/types/chat2'
-import {namedConnect} from '../../../../util/container'
+import {namedConnect, isMobile} from '../../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -40,7 +41,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDisaptchToProps = dispatch => ({
-  _onAuthorClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  _onAuthorClick: (username: string) =>
+    isMobile
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
   _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
     dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
   _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
