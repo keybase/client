@@ -1882,6 +1882,8 @@ func (u UnfurlRaw) String() string {
 	switch typ {
 	case UnfurlType_GENERIC:
 		return u.Generic().String()
+	case UnfurlType_GIPHY:
+		return u.Giphy().String()
 	}
 	return "<unknown>"
 }
@@ -1905,6 +1907,12 @@ Description: %s
 ImageUrl: %s
 FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
 		yield(g.ImageUrl), yield(g.FaviconUrl))
+}
+
+func (g UnfurlGiphyRaw) String() string {
+	return fmt.Sprintf(`GIPHY SPECIAL
+FaviconUrl: %s
+ImageUrl: %s`, g.FaviconURL, g.ImageURL)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

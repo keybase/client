@@ -12,7 +12,8 @@
       "name": "UnfurlType",
       "symbols": [
         "GENERIC_0",
-        "YOUTUBE_1"
+        "YOUTUBE_1",
+        "GIPHY_2"
       ]
     },
     {
@@ -67,6 +68,20 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphyRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "faviconURL"
+        },
+        {
+          "type": "string",
+          "name": "imageURL"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlRaw",
       "switch": {
@@ -87,6 +102,13 @@
             "def": false
           },
           "body": "UnfurlYoutubeRaw"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyRaw"
         }
       ]
     },
@@ -142,6 +164,20 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphy",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "favicon"
+        },
+        {
+          "type": "Asset",
+          "name": "image"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "Unfurl",
       "switch": {
@@ -162,6 +198,13 @@
             "def": false
           },
           "body": "UnfurlYoutube"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphy"
         }
       ]
     },
@@ -249,6 +292,20 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphyDisplay",
+      "fields": [
+        {
+          "type": "UnfurlImageDisplay",
+          "name": "favicon"
+        },
+        {
+          "type": "UnfurlImageDisplay",
+          "name": "image"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlDisplay",
       "switch": {
@@ -269,6 +326,13 @@
             "def": false
           },
           "body": "UnfurlYoutubeDisplay"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyDisplay"
         }
       ]
     },

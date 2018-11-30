@@ -5,7 +5,8 @@ protocol unfurl {
 
     enum UnfurlType {
       GENERIC_0,
-      YOUTUBE_1
+      YOUTUBE_1,
+      GIPHY_2
     }
 
 
@@ -23,9 +24,15 @@ protocol unfurl {
         // TODO
     }
 
+    record UnfurlGiphyRaw {
+      string faviconURL;
+      string imageURL;
+    }
+
     variant UnfurlRaw switch (UnfurlType unfurlType) {
       case GENERIC: UnfurlGenericRaw;
       case YOUTUBE: UnfurlYoutubeRaw;
+      case GIPHY: UnfurlGiphyRaw;
     }
 
     record UnfurlGeneric {
@@ -42,39 +49,51 @@ protocol unfurl {
         // TODO
     }
 
+    record UnfurlGiphy {
+      Asset favicon;
+      Asset image;
+    }
+
     variant Unfurl switch (UnfurlType unfurlType) {
       case GENERIC: UnfurlGeneric;
       case YOUTUBE: UnfurlYoutube;
+      case GIPHY: UnfurlGiphy;
     }
 
     record UnfurlResult {
-        Unfurl unfurl;
-        string url;
+      Unfurl unfurl;
+      string url;
     }
 
     record UnfurlImageDisplay {
-        string url;
-        int height;
-        int width;
+      string url;
+      int height;
+      int width;
     }
 
     record UnfurlGenericDisplay {
-        string title;
-        string url;
-        string siteName;
-        union { null, UnfurlImageDisplay } favicon;
-        union { null, UnfurlImageDisplay } image;
-        union { null, int } publishTime;
-        union { null, string } description;
+      string title;
+      string url;
+      string siteName;
+      union { null, UnfurlImageDisplay } favicon;
+      union { null, UnfurlImageDisplay } image;
+      union { null, int } publishTime;
+      union { null, string } description;
     }
 
     record UnfurlYoutubeDisplay {
         // TODO
     }
 
+    record UnfurlGiphyDisplay {
+      UnfurlImageDisplay favicon;
+      UnfurlImageDisplay image;
+    }
+
     variant UnfurlDisplay switch (UnfurlType unfurlType) {
-        case GENERIC: UnfurlGenericDisplay;
-        case YOUTUBE: UnfurlYoutubeDisplay;
+      case GENERIC: UnfurlGenericDisplay;
+      case YOUTUBE: UnfurlYoutubeDisplay;
+      case GIPHY: UnfurlGiphyDisplay;
     }
 
     enum UnfurlMode {
