@@ -24,13 +24,17 @@ type Server struct {
 	libkb.Contextified
 	uiSource UISource
 	remoter  remote.Remoter
+	wallet   *WalletState
 }
 
 func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
+	w := NewWalletState(g, remoter)
+	go w.RefreshAll(context.Background())
 	return &Server{
 		Contextified: libkb.NewContextified(g),
 		uiSource:     uiSource,
-		remoter:      remoter,
+		remoter:      w,
+		wallet:       w,
 	}
 }
 
@@ -120,7 +124,11 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	err = stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	if err == nil {
+		s.wallet.RefreshAll(ctx)
+	}
+	return err
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
