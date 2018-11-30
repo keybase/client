@@ -164,7 +164,7 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	unboxInfo := newBasicUnboxConversationInfo(convID, membersType, nil, vis)
-	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo)
+	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo, nil)
 	if err != nil {
 		h.Debug(ctx, "UnboxPushNotification: unbox failed, bailing: %s", err)
 		return res, err

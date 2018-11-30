@@ -30,12 +30,13 @@ func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *k
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
+	firstMessageBoxed := prepareRes.Boxed
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 	return ctx, tc, world, func() chat1.RemoteInterface { return ri }, baseSender, listener, res
@@ -252,12 +253,11 @@ func TestConvLoaderPageBack(t *testing.T) {
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 		}
-		boxed, err := NewBoxer(tc.Context()).BoxMessage(ctx, pt, conv.GetMembersType(), skp)
+		boxed, err := NewBoxer(tc.Context()).BoxMessage(ctx, pt, conv.GetMembersType(), skp, nil)
 		require.NoError(t, err)
-		require.NotNil(t, boxed)
 		_, err = ri().PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.GetConvID(),
-			MessageBoxed:   *boxed,
+			MessageBoxed:   boxed,
 		})
 		require.NoError(t, err)
 	}
