@@ -179,23 +179,26 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 }
 
 const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) => {
-  if (status !== 'completed') {
-    return capitalize(status)
-  }
-
-  switch (yourRole) {
-    case 'senderOnly':
-      return 'Sent'
-    case 'receiverOnly':
-      return 'Received'
-    case 'senderAndReceiver':
-      return 'Sent'
+  switch (status) {
+    case 'claimable':
+      return 'Cancelable'
+    case 'completed':
+      switch (yourRole) {
+        case 'senderOnly':
+          return 'Sent'
+        case 'receiverOnly':
+          return 'Received'
+        case 'senderAndReceiver':
+          return 'Sent'
+        default:
+          /*::
+          declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+          ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
+          */
+          throw new Error(`Unexpected role ${yourRole}`)
+      }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
-      */
-      throw new Error(`Unexpected role ${yourRole}`)
+      return capitalize(status)
   }
 }
 
