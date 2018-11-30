@@ -3,6 +3,8 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
+import {escapePath} from '../../constants/fs'
+import {stringToPath} from '../../constants/types/fs'
 import Markdown, {type MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
@@ -219,6 +221,8 @@ this is too long: @01234567890abcdef`,
       /keybase/private/
       /keybase/team/keybase
       /keybase/team/keybase/blahblah
+      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
+      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
       /keybase/team/keybase/blahblah/
       /keybase/private/songgao/🍻
       /keybase/private/songgao/🍻/🍹.png/

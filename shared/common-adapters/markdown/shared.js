@@ -3,7 +3,8 @@ import logger from '../../logger'
 import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
 import {isMobile} from '../../constants/platform'
-import {stringToPath} from '../../constants/types/fs'
+import {stringToPath, pathToString} from '../../constants/types/fs'
+import {unescapePath} from '../../constants/fs'
 import Text from '../text'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
@@ -85,7 +86,7 @@ function createKbfsPathRegex(): ?RegExp {
   const teamName = `${username}(\\.${username})*`
   const tlfType = `/(private|public|team)`
   const tlf = `/((private|public)/${usernames}(#${usernames})?|team/${teamName})`
-  const inTlf = `/\\S*[^/\\s]+` // don't include any trailing slash
+  const inTlf = `/(\\S|\\\\\\\\|\\\\ )*[^/\\s]+` // don't include any trailing slash
   return new RegExp(`^/keybase((${tlf}(${inTlf})?)|(${tlfType}))?`)
 }
 
@@ -333,11 +334,14 @@ const rules = {
       }
       return null
     },
-    parse: (capture, parse, state) => ({
-      type: 'kbfsPath',
-      content: capture[0],
-      onClick: () => state.markdownMeta.onOpenInFilesTab(stringToPath(capture[0])),
-    }),
+    parse: (capture, parse, state) => {
+      const content = pathToString(unescapePath(capture[0]))
+      return {
+        type: 'kbfsPath',
+        content,
+        onClick: () => state.markdownMeta.onOpenInFilesTab(stringToPath(content)),
+      }
+    },
   },
   mention: {
     // A decent enough starting template
