@@ -231,7 +231,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
     const failed =
       (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
-    return <SendIndicator sent={sent} failed={failed} id={this.props.message.timestamp} style={styles.send} />
+    return (
+      <SendIndicator
+        key="sendIndicator"
+        sent={sent}
+        failed={failed}
+        id={this.props.message.timestamp}
+        style={styles.send}
+      />
+    )
   }
 
   _cachedMenuStyles = {}
@@ -450,6 +458,7 @@ const styles = Styles.styleSheetCreate({
   }),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
+      paddingBottom: 2,
       paddingLeft:
         // Space for below the avatar
         Styles.globalMargins.tiny + // right margin
@@ -485,10 +494,11 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'flex-start',
       flexShrink: 0,
-      height: 16,
       justifyContent: 'flex-end',
       overflow: 'hidden',
     },
+    isElectron: {height: 16},
+    isMobile: {height: 21},
   }),
   menuButtonsWithAuthor: {marginTop: -16},
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},

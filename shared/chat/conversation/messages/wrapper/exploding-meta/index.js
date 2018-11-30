@@ -97,11 +97,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     let children
     switch (this.state.mode) {
       case 'countdown':
-        let bombIconSize = Styles.isMobile ? 22 : 14
-        if (Styles.isAndroid) {
-          // icon is 24 high and clips edge of container on android. workaround
-          bombIconSize = 21
-        }
+        const bombIconSize = Styles.isMobile ? 21 : 14
         children = (
           <Kb.Box2 direction="horizontal" gap="xtiny">
             {this.props.pending ? (
@@ -215,7 +211,7 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.tiny,
       position: 'relative',
     },
-    isMobile: {height: 22},
+    isMobile: {height: 21},
   }),
   countdown: Styles.platformStyles({
     common: {color: Styles.globalColors.white, fontWeight: 'bold'},
