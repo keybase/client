@@ -24,10 +24,10 @@ export type MarkdownCreateComponent = (
 ) => ?React.Node
 
 export type MarkdownMeta = {
-  mentionsAt: MentionsAt,
-  mentionsChannelName: MentionsChannelName,
-  mentionsChannel: MentionsChannel,
-  onOpenInFilesTab: (Path)=>void,
+  mentionsAt?: MentionsAt,
+  mentionsChannelName?: MentionsChannelName,
+  mentionsChannel?: MentionsChannel,
+  onOpenInFilesTab?: (Path)=>void,
 }
 
 export type Props = {

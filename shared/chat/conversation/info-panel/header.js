@@ -21,6 +21,8 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../styles'
+import * as FsTypes from '../../../constants/types/fs'
+import OpenInFilesTabHoc from '../../../fs/common/open-in-files-tab-hoc'
 
 type SmallProps = {
   teamname: string,
@@ -67,6 +69,7 @@ type BigProps = {|
   description: ?string,
   teamname: string,
   onEditChannel: () => void,
+  onOpenInFilesTab: FsTypes.Path => void,
 |}
 
 const EditBox = isMobile
@@ -78,7 +81,7 @@ const EditBox = isMobile
       },
     })
 
-const BigTeamHeader = (props: BigProps) => {
+const BigTeamHeader = OpenInFilesTabHoc((props: BigProps) => {
   return (
     <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
       <Box style={styles.channelnameContainer}>
@@ -92,10 +95,14 @@ const BigTeamHeader = (props: BigProps) => {
           </EditBox>
         )}
       </Box>
-      {!!props.description && <Markdown style={styles.description}>{props.description}</Markdown>}
+      {!!props.description && (
+        <Markdown style={styles.description} meta={{onOpenInFilesTab: props.onOpenInFilesTab}}>
+          {props.description}
+        </Markdown>
+      )}
     </Box2>
   )
-}
+})
 
 const styles = styleSheetCreate({
   channelnameContainer: {

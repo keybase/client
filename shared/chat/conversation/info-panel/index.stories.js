@@ -53,6 +53,7 @@ const provider = Sb.createPropProviderWithCommon({
   OnlyValidConversations: () => onlyValidConversationsProps,
   LifecycleNotifications: () => notificationProps,
   RetentionPicker: retentionPickerPropSelector,
+  OpenInFilesTabHoc: o => ({...o, onOpenInFilesTab: Sb.action('onOpenInFilesTab')}),
 })
 
 const commonProps = {
@@ -125,7 +126,7 @@ const bigTeamCommonProps = {
   ...teamCommonProps,
   smallTeam: false,
   admin: false,
-  description: 'The best channel',
+  description: 'The best channel. /keybase/team/kbkbfstest.sub/best-folder',
   onEditChannel: Sb.action('onEditChannel'),
 }
 

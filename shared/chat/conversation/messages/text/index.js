@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as FsTypes from '../../../../constants/types/fs'
 import {Markdown} from '../../../../common-adapters'
+import OpenInFilesTabHoc from '../../../../fs/common/open-in-files-tab-hoc'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate, isMobile} from '../../../../styles'
 
 export type Props = {
@@ -78,4 +79,4 @@ const styles = styleSheetCreate({
   sentEditing,
 })
 
-export default MessageText
+export default OpenInFilesTabHoc(MessageText)
