@@ -275,14 +275,14 @@ const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSyst
   type: 'systemInviteAccepted',
 })
 
-const makeMessageSystemSimpleToComplex: I.RecordFactory<
-  MessageTypes._MessageSystemSimpleToComplex
-> = I.Record({
-  ...makeMessageMinimum,
-  reactions: I.Map(),
-  team: '',
-  type: 'systemSimpleToComplex',
-})
+const makeMessageSystemSimpleToComplex: I.RecordFactory<MessageTypes._MessageSystemSimpleToComplex> = I.Record(
+  {
+    ...makeMessageMinimum,
+    reactions: I.Map(),
+    team: '',
+    type: 'systemSimpleToComplex',
+  }
+)
 
 const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = I.Record({
   ...makeMessageMinimum,
