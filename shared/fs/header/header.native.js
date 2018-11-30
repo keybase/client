@@ -45,8 +45,7 @@ const styles = styleSheetCreate({
     minHeight: 64,
   },
   stylesFolderHeaderRoot: {
-    paddingTop: 9,
-    paddingBottom: 21,
+    paddingTop: 14,
     flexShrink: 1,
     flexGrow: 1,
   },

@@ -23,7 +23,7 @@ export const HeaderHocHeader = ({
     {customComponent}
     {!!title && (
       <Box style={_titleStyle}>
-        <Text type="BodyBig">{title}</Text>
+        <Text type="HeaderSmall">{title}</Text>
       </Box>
     )}
     {onCancel && (

@@ -10,7 +10,7 @@ import {
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 import type {Props} from './index.types'
 
 // width of containers for back button and info button.
@@ -63,7 +63,11 @@ const ChannelHeader = (props: Props) => (
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
       <Avatar teamname={props.teamName} size={16} />
       <Text
-        type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
+        type={isMobile
+          ? 'HeaderSmall'
+          : props.smallTeam
+            ? 'BodyBig'
+            : 'BodySmallSemibold'}
         lineClamp={1}
         ellipsizeMode="middle"
         style={{color: props.smallTeam ? globalColors.black_75 : globalColors.black_40}}
@@ -75,7 +79,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName}>
+        <Text type={isMobile ? 'HeaderSmall' : 'BodyBig'} style={styles.channelName}>
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
