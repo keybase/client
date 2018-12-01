@@ -266,6 +266,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png'),
   },
+  'icon-fancy-unfurl-preview-desktop-96-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png'),
+  },
+  'icon-fancy-unfurl-preview-mobile-128-128': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
+  },
   'icon-file-24': {
     extension: 'png',
     isFont: false,
@@ -1621,20 +1631,10 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-wallet-64.png'),
   },
-  'icon-fancy-unfurl-preview-mobile-128-128': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
-  },
   'icon-wallet-add-48': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-wallet-add-48.png'),
-  },
-  'icon-fancy-unfurl-preview-desktop-96-96': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png'),
   },
   'icon-wallet-open-32': {
     extension: 'png',
@@ -1831,6 +1831,16 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-contact-card': {
+    charCode: 0xe96d,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-contact-card-2': {
+    charCode: 0xe96e,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-crown-admin': {
     charCode: 0xe914,
     gridSize: 16,
@@ -1978,6 +1988,11 @@ const iconMeta_ = {
   },
   'iconfont-identity-reddit': {
     charCode: 0xe932,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-identity-stellar': {
+    charCode: 0xe96f,
     gridSize: 16,
     isFont: true,
   },
@@ -2162,9 +2177,9 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-return': {
+    charCode: 0xe96a,
     gridSize: 16,
     isFont: true,
-    charCode: 0xe96a,
   },
   'iconfont-search': {
     charCode: 0xe958,
@@ -2176,28 +2191,13 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-contact-card': {
-    gridSize: 16,
-    isFont: true,
-    charCode: 0xe96d,
-  },
   'iconfont-star': {
     charCode: 0xe95a,
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-contact-card-2': {
-    gridSize: 16,
-    charCode: 0xe96e,
-    isFont: true,
-  },
   'iconfont-stellar-request': {
     charCode: 0xe955,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-identity-stellar': {
-    charCode: 0xe96f,
     gridSize: 16,
     isFont: true,
   },

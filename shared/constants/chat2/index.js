@@ -20,11 +20,11 @@ import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
+  attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
-  attachmentFullscreenMessage: null,
   inboxFilter: '',
   inboxHasLoaded: false,
   isExplodingNew: true,

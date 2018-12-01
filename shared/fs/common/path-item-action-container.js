@@ -215,8 +215,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // request it regardless whether we have it or not. The FS saga takes care
     // of preventing the RPC if it's already subscribed.
     copyPath,
-    download,
     deleteFileOrFolder,
+    download,
     ignoreFolder,
     itemStyles,
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
@@ -230,11 +230,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     needLoadMimeType: type === 'file',
     path,
     pathElements,
-    type,
     saveMedia,
     shareNative,
     showInSystemFileManager,
     size: pathItem.size,
+    type,
   }
 }
 

@@ -8,9 +8,31 @@ import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
+  'Blank lines': `
+
+        hello
+
+
+        world
+
+
+      `,
+  'Code block': `\`\`\`this is a code block\`\`\`
+\`\`\`
+this is a code block that starts with a newline\`\`\`
+\`\`\`
+this is a code block that starts with a newline and ends with a newline
+\`\`\`
+\`\`\`
+
+this is a code block with two newline above\`\`\`
+`,
   'Escaped chars': '\\*foo\\* I should see asterisks',
   'Messed up':
     'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
+  'NOJIMACode block': `\`\`\`
+
+this is a code block with two newline above\`\`\``,
   Quotes: `> this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.
 > outside code: \`This is an inline block of code in a quote\` outside again
@@ -20,12 +42,6 @@ line
 code in quote
 \`\`\`
 `,
-  accidentalBoldLists: `
-  List of this:
-   * a
-   * b
-   * c
-  `,
   'Quotes 2': `> this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.
 > outside code: \`This is an inline block of code in a quote\` outside again
@@ -37,59 +53,26 @@ something unrelated
 
 > Separate paragraph
 `,
-  boldweirdness: `How are you *today*?`,
   'Quotes 3': `> _foo_ and *bar*! \`\`\`
 a = 1
 \`\`\`
 `,
-  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   'Quotes 4': `> one _line_ *quote*`,
-  debugging: `\` \` hi \` \``,
-  'NOJIMACode block': `\`\`\`
-
-this is a code block with two newline above\`\`\``,
-  inlineCodeWeirdness: `\` \` hi \` \``,
-  'Blank lines': `
-
-        hello
-
-
-        world
-
-
-      `,
-  inlineCodeWeirdness2: `\` \` hi \n\` \``,
-  'Code block': `\`\`\`this is a code block\`\`\`
-\`\`\`
-this is a code block that starts with a newline\`\`\`
-\`\`\`
-this is a code block that starts with a newline and ends with a newline
-\`\`\`
-\`\`\`
-
-this is a code block with two newline above\`\`\`
-`,
-  mailto: `email bob@keybase.io`,
   'Quotes 5': `> text here and a \`\`\`code blcok\`\`\``,
-  nonemoji: `:party-parrot:`,
   'Quotes 6': `> \`\`\`code block\`\`\``,
-  normal: `I think we should try to use \`if else\` statements \`\`\`
-if (var == "foo")
-  echo "foo";
-else echo "bar";\`\`\`
-     How about *bold* and _italic?_ nice. :smile:
-a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
-a whole bunch of string emojis :thumbsup: :cry: :fireworks:
-Now youre thinking with ~portals~ crypto.
-how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
   'Quotes super nested': `> > > > > > > > > foo bar`,
-  paragraphs: `this is a sentence.
-this is the next line
-and another with two below
-
-this is the one below.`,
+  accidentalBoldLists: `
+  List of this:
+   * a
+   * b
+   * c
+  `,
   bigemoji: ':thumbsup::100:',
-  transparentEmojis: ` 😀 😁 😍 ☝️ `,
+  boldweirdness: `How are you *today*?`,
+  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
+  debugging: `\` \` hi \` \``,
+  inlineCodeWeirdness: `\` \` hi \` \``,
+  inlineCodeWeirdness2: `\` \` hi \n\` \``,
   links: `
 Ignore:
   a...b,
@@ -141,15 +124,32 @@ Paranthesis stuff:
   https://en.wikipedia.org/wiki/J/Z_(New_York_City_Subway_service)
   (https://keybase.io/)
 `,
-  underscoreweirdness: `under_score the first, \`under_score the second\``,
+  mailto: `email bob@keybase.io`,
+  nonemoji: `:party-parrot:`,
+  normal: `I think we should try to use \`if else\` statements \`\`\`
+if (var == "foo")
+  echo "foo";
+else echo "bar";\`\`\`
+     How about *bold* and _italic?_ nice. :smile:
+a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
+a whole bunch of string emojis :thumbsup: :cry: :fireworks:
+Now youre thinking with ~portals~ crypto.
+how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
+  paragraphs: `this is a sentence.
+this is the next line
+and another with two below
+
+this is the one below.`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
-  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
   'special chars in code block': `I think we should try to use \`if else\` statements \`\`\`if (var == "foo")
   echo "foo";
 else echo "bar";
   // this should be *asterisk* \`\`\``,
+  transparentEmojis: ` 😀 😁 😍 ☝️ `,
+  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
   transparentEmojis3: `😶`,
+  underscoreweirdness: `under_score the first, \`under_score the second\``,
 }
 
 const mockMeta = {

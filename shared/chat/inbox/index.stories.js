@@ -114,8 +114,8 @@ const mapPropProviderProps = {
     teamname: 'Keybase',
   },
   bigTeamAHeader: {
-    memberCount: 0,
-    badgeSubscribe: false, // Handled by PropProviders.TeamDropdownMenu
+    badgeSubscribe: false,
+    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
     teamname: 'Keybase',
   },
   bigTeamBChannel1: {
@@ -129,6 +129,57 @@ const mapPropProviderProps = {
     channelname: 'ignore-selected-below',
     teamname: 'techtonica',
   },
+  bigTeamBChannel3: {
+    ...commonBigChannel,
+    channelname: 'random',
+    isMuted: true,
+    teamname: 'techtonica',
+  },
+  bigTeamBChannel4: {
+    ...commonBigChannel,
+    channelname: 'happy-hour',
+    isMuted: true,
+    teamname: 'techtonica',
+  },
+  bigTeamBHeader: {
+    badgeSubscribe: false,
+    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
+    teamname: 'techtonica',
+  },
+  bigTeamDivider1: {
+    badgeCount: 4,
+  },
+  bigTeamFilterAChannel1: {
+    ...commonBigFilter,
+    channelname: 'general',
+  },
+  bigTeamFilterAChannel2: {
+    ...commonBigFilter,
+    channelname: 'random',
+  },
+  bigTeamFilterBChannel1: {
+    ...commonBigFilter,
+    channelname: 'this-is-a-very-long-channel-name',
+    teamname: 'stripe.usa',
+  },
+
+  // Big Team A
+  bigTeamFilterCChannel1: {
+    ...commonBigFilter,
+    channelname: 'general',
+    teamname: 'this.is.a.very.long.team.name.situation',
+  },
+  smallFilterTeamA: {
+    ...commonSmallFilter,
+  },
+  smallFilterTeamB: {
+    ...commonSmallFilter,
+    paricipants: ['chris'],
+  },
+  smallFilterTeamC: {
+    ...commonSmallFilter,
+    teamname: 'pokerpals',
+  },
   smallTeamA: {
     ...commonSmallTeam,
     conversationIDKey: '3',
@@ -139,12 +190,8 @@ const mapPropProviderProps = {
     teamname: 'fortgreenmoms',
     timestamp: 'Tue',
   },
-  bigTeamBChannel3: {
-    ...commonBigChannel,
-    channelname: 'random',
-    isMuted: true,
-    teamname: 'techtonica',
-  },
+
+  // Big Team B
   smallTeamB: {
     ...commonSmallTeam,
     conversationIDKey: '1',
@@ -154,12 +201,6 @@ const mapPropProviderProps = {
     snippet: 'in the top-drawer i believe',
     subColor: globalColors.black_75,
     usernameColor: globalColors.black_75,
-  },
-  bigTeamBChannel4: {
-    ...commonBigChannel,
-    channelname: 'happy-hour',
-    isMuted: true,
-    teamname: 'techtonica',
   },
   smallTeamC: {
     ...commonSmallTeam,
@@ -171,11 +212,6 @@ const mapPropProviderProps = {
     snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
   },
-  bigTeamBHeader: {
-    badgeSubscribe: false,
-    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
-    teamname: 'techtonica',
-  },
   smallTeamD: {
     ...commonSmallTeam,
     conversationIDKey: '5',
@@ -186,11 +222,6 @@ const mapPropProviderProps = {
     showBold: false,
     snippet: "I don't know that I would want.",
     timestamp: '5:12 pm',
-  },
-
-  // Big Team A
-  bigTeamDivider1: {
-    badgeCount: 4,
   },
   smallTeamE: {
     ...commonSmallTeam,
@@ -207,10 +238,6 @@ const mapPropProviderProps = {
     timestamp: '5:13 pm',
     usernameColor: isMobile ? commonSmallTeam.usernameColor : globalColors.white,
   },
-  bigTeamFilterAChannel1: {
-    ...commonBigFilter,
-    channelname: 'general',
-  },
   smallTeamF: {
     ...commonSmallTeam,
     conversationIDKey: '6',
@@ -222,12 +249,8 @@ const mapPropProviderProps = {
     subColor: globalColors.black_40,
     usernameColor: globalColors.black_40,
   },
-  bigTeamFilterAChannel2: {
-    ...commonBigFilter,
-    channelname: 'random',
-  },
 
-  // Big Team B
+  // Small Teams Filter
   smallTeamG: {
     ...commonSmallTeam,
     conversationIDKey: '7',
@@ -236,22 +259,12 @@ const mapPropProviderProps = {
     snippetDecoration: '💣',
     timestamp: '11:06 am',
   },
-  bigTeamFilterBChannel1: {
-    ...commonBigFilter,
-    channelname: 'this-is-a-very-long-channel-name',
-    teamname: 'stripe.usa',
-  },
   smallTeamH: {
     conversationIDKey: '8',
     participants: ['ayoubd'],
     snippet: 'lol',
     snippetDecoration: '💥',
     timestamp: '1:37 pm',
-  },
-  bigTeamFilterCChannel1: {
-    ...commonBigFilter,
-    channelname: 'general',
-    teamname: 'this.is.a.very.long.team.name.situation',
   },
   smallTeamI: {
     ...commonSmallTeam,
@@ -262,10 +275,7 @@ const mapPropProviderProps = {
     timestamp: '12:08 am',
   },
 
-  // Small Teams Filter
-  smallFilterTeamA: {
-    ...commonSmallFilter,
-  },
+  // Big Teams Filter
   smallTeamJ: {
     ...commonSmallTeam,
     conversationIDKey: '10',
@@ -274,12 +284,6 @@ const mapPropProviderProps = {
     snippetDecoration: '',
     timestamp: '2:56 pm',
   },
-  smallFilterTeamB: {
-    ...commonSmallFilter,
-    paricipants: ['chris'],
-  },
-
-  // Big Teams Filter
   smallTeamK: {
     ...commonSmallTeam,
     conversationIDKey: '11',
@@ -287,10 +291,6 @@ const mapPropProviderProps = {
     snippet: 'scoop die whoop',
     snippetDecoration: '',
     timestamp: '1:05 pm',
-  },
-  smallFilterTeamC: {
-    ...commonSmallFilter,
-    teamname: 'pokerpals',
   },
   smallTeamL: {
     ...commonSmallTeam,
