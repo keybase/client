@@ -2,7 +2,9 @@ package unfurl
 
 import (
 	"context"
+	"strings"
 
+	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -13,6 +15,14 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 	if err = s.addGenericScraperToCollector(ctx, c, generic, uri, "giphy.com"); err != nil {
 		return res, err
 	}
+	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
+		attr := strings.ToLower(e.Attr("property"))
+		if attr == "og:video" {
+			giphy.VideoUrl = e.Attr("content")
+		} else {
+			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
+		}
+	})
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}

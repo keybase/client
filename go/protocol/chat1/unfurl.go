@@ -93,6 +93,7 @@ func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
 type UnfurlGiphyRaw struct {
 	FaviconUrl *string `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
 	ImageUrl   string  `codec:"imageUrl" json:"imageUrl"`
+	VideoUrl   string  `codec:"videoUrl" json:"videoUrl"`
 }
 
 func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
@@ -105,6 +106,7 @@ func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 			return &tmp
 		})(o.FaviconUrl),
 		ImageUrl: o.ImageUrl,
+		VideoUrl: o.VideoUrl,
 	}
 }
 
@@ -270,6 +272,7 @@ func (o UnfurlYoutube) DeepCopy() UnfurlYoutube {
 type UnfurlGiphy struct {
 	Favicon *Asset `codec:"favicon,omitempty" json:"favicon,omitempty"`
 	Image   Asset  `codec:"image" json:"image"`
+	Video   Asset  `codec:"video" json:"video"`
 }
 
 func (o UnfurlGiphy) DeepCopy() UnfurlGiphy {
@@ -282,6 +285,7 @@ func (o UnfurlGiphy) DeepCopy() UnfurlGiphy {
 			return &tmp
 		})(o.Favicon),
 		Image: o.Image.DeepCopy(),
+		Video: o.Video.DeepCopy(),
 	}
 }
 
@@ -473,6 +477,7 @@ func (o UnfurlYoutubeDisplay) DeepCopy() UnfurlYoutubeDisplay {
 type UnfurlGiphyDisplay struct {
 	Favicon *UnfurlImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
 	Image   UnfurlImageDisplay  `codec:"image" json:"image"`
+	Video   UnfurlImageDisplay  `codec:"video" json:"video"`
 }
 
 func (o UnfurlGiphyDisplay) DeepCopy() UnfurlGiphyDisplay {
@@ -485,6 +490,7 @@ func (o UnfurlGiphyDisplay) DeepCopy() UnfurlGiphyDisplay {
 			return &tmp
 		})(o.Favicon),
 		Image: o.Image.DeepCopy(),
+		Video: o.Video.DeepCopy(),
 	}
 }
 

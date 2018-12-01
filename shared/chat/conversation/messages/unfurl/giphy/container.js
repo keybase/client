@@ -14,6 +14,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     imageHeight: unfurl.image.height,
     imageWidth: unfurl.image.width,
     imageURL: unfurl.image.url,
+    videoHeight: unfurl.video.height,
+    videoWidth: unfurl.video.width,
+    videoURL: unfurl.video.url,
     faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
     onClose,
   }

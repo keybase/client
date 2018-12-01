@@ -81,6 +81,10 @@
         {
           "type": "string",
           "name": "imageUrl"
+        },
+        {
+          "type": "string",
+          "name": "videoUrl"
         }
       ]
     },
@@ -180,6 +184,10 @@
         {
           "type": "Asset",
           "name": "image"
+        },
+        {
+          "type": "Asset",
+          "name": "video"
         }
       ]
     },
@@ -311,6 +319,10 @@
         {
           "type": "UnfurlImageDisplay",
           "name": "image"
+        },
+        {
+          "type": "UnfurlImageDisplay",
+          "name": "video"
         }
       ]
     },

@@ -1915,7 +1915,8 @@ func (g UnfurlGiphyRaw) String() string {
 
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
-ImageUrl: %s`, yieldStr(g.FaviconUrl), g.ImageUrl)
+ImageUrl: %s
+VideoUrl: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.VideoUrl)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

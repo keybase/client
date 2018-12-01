@@ -27,6 +27,7 @@ protocol unfurl {
     record UnfurlGiphyRaw {
       union { null, string } faviconUrl;
       string imageUrl;
+      string videoUrl;
     }
 
     variant UnfurlRaw switch (UnfurlType unfurlType) {
@@ -52,6 +53,7 @@ protocol unfurl {
     record UnfurlGiphy {
       union { null, Asset } favicon;
       Asset image;
+      Asset video;
     }
 
     variant Unfurl switch (UnfurlType unfurlType) {
@@ -88,6 +90,7 @@ protocol unfurl {
     record UnfurlGiphyDisplay {
       union { null, UnfurlImageDisplay } favicon;
       UnfurlImageDisplay image;
+      UnfurlImageDisplay video;
     }
 
     variant UnfurlDisplay switch (UnfurlType unfurlType) {
