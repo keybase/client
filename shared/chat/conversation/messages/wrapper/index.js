@@ -81,7 +81,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _authorAndContent = children => {
     if (this.props.showUsername) {
       return (
-        <>
+        <React.Fragment key="authorAndContent">
           <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
             <Kb.Avatar
               size={32}
@@ -109,7 +109,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           >
             {children}
           </Kb.Box2>
-        </>
+        </React.Fragment>
       )
     } else {
       return children
@@ -280,13 +280,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
-        child = Styles.isMobile ? (
-          <Kb.Box2 direction="vertical">
-            <TextMessage key="text" message={message} />
-          </Kb.Box2>
-        ) : (
-          <TextMessage key="text" message={message} />
-        )
+        child = <TextMessage key="text" message={message} />
         break
       case 'attachment':
         exploding = message.exploding

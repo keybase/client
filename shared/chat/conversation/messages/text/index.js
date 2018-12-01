@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Markdown} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 export type Props = {
@@ -13,16 +13,26 @@ export type Props = {
   mentionsChannelName: Types.MentionsChannelName,
 }
 
-const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => (
-  <Markdown
-    style={getStyle(type, isEditing)}
-    meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
-    styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
-    allowFontScaling={true}
-  >
-    {text}
-  </Markdown>
-)
+const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => {
+  const markdown = (
+    <Kb.Markdown
+      style={getStyle(type, isEditing)}
+      meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
+      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
+      allowFontScaling={true}
+    >
+      {text}
+    </Kb.Markdown>
+  )
+
+  return Styles.isMobile ? (
+    <Kb.Box2 direction="vertical" style={styles.wrapper}>
+      {markdown}
+    </Kb.Box2>
+  ) : (
+    markdown
+  )
+}
 
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {
@@ -69,6 +79,7 @@ const styles = Styles.styleSheetCreate({
   pendingFailEditing,
   sent,
   sentEditing,
+  wrapper: {alignSelf: 'flex-start'},
 })
 
 export default MessageText
