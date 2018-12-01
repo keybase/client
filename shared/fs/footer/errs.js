@@ -75,18 +75,12 @@ const Errs = (props: ErrsProps) => (
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: Styles.globalColors.red,
-    padding: Styles.globalMargins.xtiny,
     alignItems: 'center',
+    backgroundColor: Styles.globalColors.red,
+    borderBottomColor: Styles.globalColors.white_20,
     borderBottomWidth: 1,
     borderStyle: 'solid',
-    borderBottomColor: Styles.globalColors.white_20,
-  },
-  textBox: {
-    flexShrink: 1,
-  },
-  text: {
-    color: Styles.globalColors.white,
+    padding: Styles.globalMargins.xtiny,
   },
   icon: Styles.platformStyles({
     common: {
@@ -96,13 +90,19 @@ const styles = Styles.styleSheetCreate({
       lineHeight: '26px',
     },
   }),
+  moreContainer: {
+    backgroundColor: Styles.globalColors.white,
+    justifyContent: 'center',
+  },
   rightContainer: {
     alignItems: 'center',
     marginLeft: 'auto', // pushes to right
   },
-  moreContainer: {
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'center',
+  text: {
+    color: Styles.globalColors.white,
+  },
+  textBox: {
+    flexShrink: 1,
   },
 })
 

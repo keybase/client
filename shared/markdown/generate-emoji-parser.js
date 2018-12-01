@@ -69,7 +69,7 @@ function genEmojiData() {
 
   emojiLiterals.sort((a, b) => b.length - a.length)
 
-  return {emojiIndexByChar, emojiIndexByName, emojiLiterals, emojiCharacters}
+  return {emojiCharacters, emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
 function buildEmojiFile() {

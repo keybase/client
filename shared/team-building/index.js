@@ -123,23 +123,23 @@ class TeamBuilding extends React.PureComponent<Props, void> {
 }
 
 const styles = Styles.styleSheetCreate({
-  recText: {
-    marginLeft: Styles.globalMargins.small,
-  },
   container: Styles.platformStyles({
     common: {
       flex: 1,
       minHeight: 200,
+      paddingBottom: Styles.globalMargins.small,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
-      paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
-      width: 470,
       height: 434,
+      width: 470,
     },
   }),
+  recText: {
+    marginLeft: Styles.globalMargins.small,
+  },
 })
 
 export default TeamBuilding

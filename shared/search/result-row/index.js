@@ -158,8 +158,8 @@ const _clickableBoxStyleCommon = {
   width: '100%',
   ...(isMobile
     ? {
-        minHeight: 56,
         maxHeight: 56,
+        minHeight: 56,
       }
     : {
         maxHeight: 48,

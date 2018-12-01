@@ -135,10 +135,10 @@ const props = {
   onOpenPrivateFolder: Sb.action('onOpenPrivateFolder'),
   onPushProfile: Sb.action('onPushProfile'),
   onRecheckProof: Sb.action('onRecheckProof'),
+  onRequestLumens: Sb.action('onRequestLumens'),
   onRevokeProof: Sb.action('onRevokeProof'),
   onSearch: Sb.action('onSearch'),
   onSendLumens: Sb.action('onSendLumens'),
-  onRequestLumens: Sb.action('onRequestLumens'),
   onUnfollow: Sb.action('onUnfollow'),
   onUserClick: Sb.action('showUserProfile'),
   onViewProof: Sb.action('onViewProof'),
@@ -182,13 +182,13 @@ const proofsPending = proofsDefault.map((proof, idx) => ({
 const provider = (cfProps =>
   Sb.createPropProviderWithCommon({
     ConnectedFolders: () => ({
+      loadTlfs: Sb.action('loadTlfs'),
       tlfs: [
         {...cfProps, isPublic: true, isSelf: true, text: `public/meatball`},
         {...cfProps, isPublic: true, isSelf: false, text: `public/meatball,songgao`},
         {...cfProps, isPublic: false, isSelf: true, text: `private/meatball`},
         {...cfProps, isPublic: false, isSelf: false, text: `private/meatball,songgao`},
       ],
-      loadTlfs: Sb.action('loadTlfs'),
     }),
   }))({
   openInFilesTab: Sb.action('openInFilesTab'),

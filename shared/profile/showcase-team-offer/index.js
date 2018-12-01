@@ -31,10 +31,10 @@ const TeamRow = ({
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        minHeight: isMobile ? 64 : 48,
         marginRight: globalMargins.small,
-        paddingTop: globalMargins.tiny,
+        minHeight: isMobile ? 64 : 48,
         paddingBottom: globalMargins.tiny,
+        paddingTop: globalMargins.tiny,
       }}
     >
       <Box style={{display: 'flex', position: 'relative'}}>
@@ -125,8 +125,8 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
-  marginTop: 35,
   marginBottom: isMobile ? globalMargins.xtiny : 55,
+  marginTop: 35,
   minWidth: isMobile ? undefined : 600,
 }
 

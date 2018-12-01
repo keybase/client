@@ -56,7 +56,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
       }
       const secretNote =
         this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
-      const newSelection = {start: selection.start + emoji.length, end: selection.start + emoji.length}
+      const newSelection = {end: selection.start + emoji.length, start: selection.start + emoji.length}
       this.props.onChangeSecretNote(secretNote)
       this.setState({secretNote}, () => {
         const noteInput = this._note.current
@@ -195,9 +195,9 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   container: {
+    marginTop: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.tiny,
   },
   divider: {
     marginTop: Styles.globalMargins.tiny,

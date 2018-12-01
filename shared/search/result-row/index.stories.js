@@ -32,19 +32,19 @@ export type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
 
 const defaultConnectPropsMap: ConnectPropsMap = {
   jzila: {
+    leftFollowingState: 'NotFollowing',
     leftFullname: 'John Zila',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'jzila',
 
+    leftUsername: 'jzila',
+    rightFollowingState: 'NotFollowing',
     rightIcon: null,
     rightIconOpaque: true,
+
     rightService: null,
     rightUsername: null,
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NotFollowing',
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
@@ -62,10 +62,10 @@ const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProp
 const defaultOwnProps: OwnProps = {
   disableIfInTeamName: '',
   id: 'jzila',
-  searchKey: 'search key',
-  selected: false,
   onClick: Sb.action('On click'),
   onMouseOver: Sb.action('On mouse over'),
+  searchKey: 'search key',
+  selected: false,
 }
 
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)

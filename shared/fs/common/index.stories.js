@@ -11,35 +11,35 @@ import PathItemAction from './path-item-action'
 const pathItemActionPopupProps = (path: Types.Path) => {
   const pathElements = Types.getPathElements(path)
   return {
-    size: 0,
-    type: 'folder',
+    childrenFiles: 0,
+    childrenFolders: 0,
+    copyPath: Sb.action('copyPath'),
+    download: Sb.action('download'),
+    ignoreFolder: Sb.action('ignoreFolder'),
+    itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
     lastModifiedTimestamp: 0,
     lastWriter: 'meatball',
-    childrenFolders: 0,
-    childrenFiles: 0,
-    itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
     name: Types.getPathNameFromElems(pathElements),
-    path,
-    pathElements,
+    onHidden: Sb.action('onHidden'),
     ...(isMobile
       ? {
           saveMedia: Sb.action('saveMedia'),
           shareNative: Sb.action('shareNative'),
         }
       : {}),
+    path,
+    pathElements,
     showInSystemFileManager: Sb.action('showInSystemFileManager'),
-    ignoreFolder: Sb.action('ignoreFolder'),
-    download: Sb.action('download'),
-    copyPath: Sb.action('copyPath'),
-    onHidden: Sb.action('onHidden'),
+    size: 0,
+    type: 'folder',
   }
 }
 
 export const commonProvider = {
-  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
   ConnectedDownloadTrackingHoc: () => ({
     downloading: false,
   }),
+  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
 }
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)

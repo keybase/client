@@ -51,7 +51,7 @@ const words = ['At', 'Et', 'Itaque', 'Nam', 'Nemo', 'Quis', 'Sed', 'Temporibus',
 // messagesThreshold number of consecutive messages with the same timestamp
 const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
   const r = new Sb.Rnd(1337)
-  const origin = {year: 2018, month: 0, day: 0}
+  const origin = {day: 0, month: 0, year: 2018}
 
   let messagesThreshold: number = 0
   let generatedCount: number = 0
@@ -125,6 +125,11 @@ const provider = Sb.createPropProviderWithCommon({
   ...ReactButtonProvider,
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,
+  BottomMessage: p => ({
+    measure: null,
+    showResetParticipants: null,
+    showSuperseded: null,
+  }),
   Channel: p => ({name: p.name}),
   ExplodingMeta: (p: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
     // no exploding messages here
@@ -135,24 +140,11 @@ const provider = Sb.createPropProviderWithCommon({
     pending: false,
   }),
   Mention: p => ({username: p.username}),
-  BottomMessage: p => ({
-    showResetParticipants: null,
-    showSuperseded: null,
-    measure: null,
-  }),
-  TopMessage: p => ({
-    conversationIDKey,
-    hasOlderResetConversation: false,
-    showRetentionNotice: false,
-    loadMoreType: 'moreToLoad',
-    showTeamOffer: false,
-    measure: p.measure,
-  }),
   MessageFactory: ({ordinal, previous, measure}) => ({
-    message: ordinalToMessage(ordinal),
-    previous: ordinalToMessage(previous),
     isEditing: false,
     measure,
+    message: ordinalToMessage(ordinal),
+    previous: ordinalToMessage(previous),
   }),
   MessagePopupText: p => ({
     attachTo: null,
@@ -174,25 +166,14 @@ const provider = Sb.createPropProviderWithCommon({
     visible: false,
     yourMessage: false,
   }),
-  WrapperMessage: p => {
-    const {children, isEditing, measure, message, previous} = p
-    // Want to mimick the timestamp logic in WrapperMessage
-    const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
-    return {
-      children,
-      conversationIDKey: message.conversationIDKey,
-      decorate: true,
-      exploded: false,
-      isEditing,
-      measure,
-      message,
-      orangeLineAbove: false,
-      ordinal: message.ordinal,
-      previous,
-      timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
-      type: ['text', 'attachment'].includes(message.type) ? 'wrapper-author' : 'children',
-    }
-  },
+  TopMessage: p => ({
+    conversationIDKey,
+    hasOlderResetConversation: false,
+    loadMoreType: 'moreToLoad',
+    measure: p.measure,
+    showRetentionNotice: false,
+    showTeamOffer: false,
+  }),
   WrapperAuthor: p => ({
     author: p.message.author,
     conversationIDKey: p.message.conversationIDKey,
@@ -225,6 +206,25 @@ const provider = Sb.createPropProviderWithCommon({
     toggleMessageMenu: Sb.action('toggleMessageMenu'),
     type: p.message.type,
   }),
+  WrapperMessage: p => {
+    const {children, isEditing, measure, message, previous} = p
+    // Want to mimick the timestamp logic in WrapperMessage
+    const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
+    return {
+      children,
+      conversationIDKey: message.conversationIDKey,
+      decorate: true,
+      exploded: false,
+      isEditing,
+      measure,
+      message,
+      orangeLineAbove: false,
+      ordinal: message.ordinal,
+      previous,
+      timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
+      type: ['text', 'attachment'].includes(message.type) ? 'wrapper-author' : 'children',
+    }
+  },
 })
 
 type Props = {}

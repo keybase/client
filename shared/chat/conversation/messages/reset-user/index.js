@@ -16,7 +16,7 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
   <Box style={containerStyle}>
     <Icon
       type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-      style={{margin: globalMargins.medium, height: 64}}
+      style={{height: 64, margin: globalMargins.medium}}
     />
     <Box style={textContainerStyle}>
       <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
@@ -41,8 +41,8 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
       </Text>
       <Box
         style={{
-          marginTop: globalMargins.medium,
           marginBottom: globalMargins.medium,
+          marginTop: globalMargins.medium,
           ...globalStyles.flexBoxRow,
         }}
       >
@@ -51,7 +51,7 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
           backgroundMode="Terminal"
           onClick={viewProfile}
           label="View profile"
-          style={{marginRight: 8, backgroundColor: globalColors.black_20}}
+          style={{backgroundColor: globalColors.black_20, marginRight: 8}}
         />
         <Button
           type="Secondary"
@@ -83,9 +83,9 @@ const containerStyle = {
 
 const textContainerStyle = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
   paddingLeft: 64,
   paddingRight: 64,
-  alignItems: 'center',
 }
 
 const bulletStyle = {

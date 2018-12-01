@@ -20,9 +20,9 @@ type Props = {
 const gitPushType = invert(RPCTypes.gitGitPushType)
 
 const connectedUsernamesProps = {
-  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
+  onUsernameClicked: 'profile',
   type: 'BodySmallSemibold',
   underline: true,
 }

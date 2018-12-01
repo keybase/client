@@ -16,10 +16,10 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
         ...globalStyles.flexBoxColumn,
         ...stylePadding,
         alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: globalColors.white,
-        padding: globalMargins.small,
+        justifyContent: 'center',
         maxWidth: 560,
+        padding: globalMargins.small,
       }}
     >
       <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
@@ -44,14 +44,14 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
 )
 
 const stylePadding = platformStyles({
-  isMobile: {
-    paddingTop: globalMargins.xlarge,
-  },
   isElectron: {
     marginBottom: 40,
     marginLeft: 80,
     marginRight: 80,
     marginTop: 40,
+  },
+  isMobile: {
+    paddingTop: globalMargins.xlarge,
   },
 })
 
@@ -59,16 +59,16 @@ const styleButtonBox = platformStyles({
   common: {
     marginTop: globalMargins.xlarge,
   },
-  isMobile: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1,
-    alignItems: 'stretch',
-    width: '100%',
-    flexDirection: 'column-reverse',
-    paddingTop: globalMargins.xlarge,
-  },
   isElectron: {
     ...globalStyles.flexBoxRow,
+  },
+  isMobile: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    flex: 1,
+    flexDirection: 'column-reverse',
+    paddingTop: globalMargins.xlarge,
+    width: '100%',
   },
 })
 

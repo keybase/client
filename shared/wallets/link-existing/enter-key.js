@@ -72,6 +72,15 @@ const styles = Styles.styleSheetCreate({
       wordWrap: 'break-word',
     },
   }),
+  infoText: Styles.platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+  }),
   input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
   inputContainer: Styles.platformStyles({
     common: {
@@ -86,15 +95,6 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  infoText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
     },
   }),
 })

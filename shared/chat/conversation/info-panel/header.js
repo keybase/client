@@ -72,10 +72,10 @@ type BigProps = {|
 const EditBox = isMobile
   ? ClickableBox
   : glamorous(ClickableBox)({
-      opacity: 0,
       '.header-row:hover &': {
         opacity: 1,
       },
+      opacity: 0,
     })
 
 const BigTeamHeader = (props: BigProps) => {
@@ -100,8 +100,8 @@ const BigTeamHeader = (props: BigProps) => {
 const styles = styleSheetCreate({
   channelnameContainer: {
     alignSelf: 'center',
-    marginTop: globalMargins.medium,
     marginBottom: 2,
+    marginTop: globalMargins.medium,
     position: 'relative',
   },
   description: {
@@ -119,10 +119,10 @@ const styles = styleSheetCreate({
   flexOne: {flex: 1},
   gear: platformStyles({
     common: {
-      paddingRight: 16,
-      paddingLeft: 16,
-      width: gearIconSize,
       height: gearIconSize,
+      paddingLeft: 16,
+      paddingRight: 16,
+      width: gearIconSize,
     },
     isMobile: {
       marginRight: 16,

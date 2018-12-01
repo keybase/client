@@ -109,7 +109,7 @@ const marginStyle = {
 }
 
 const styles = styleSheetCreate({
-  arrow: {marginTop: 3, marginRight: -3},
+  arrow: {marginRight: -3, marginTop: 3},
   center: {
     justifyContent: 'center',
     textAlign: 'center',

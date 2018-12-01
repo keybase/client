@@ -82,9 +82,9 @@ const searchResultCounts = (state: TypedState) => {
             true
           ).then(users =>
             TeamBuildingGen.createSearchResultsLoaded({
-              users,
               query: teamBuildingSearchQuery,
               service,
+              users,
             })
           )
           yield Saga.put(action)
@@ -105,9 +105,9 @@ const search = (state: TypedState) => {
   return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true).then(
     users =>
       TeamBuildingGen.createSearchResultsLoaded({
-        users,
         query: teamBuildingSearchQuery,
         service: teamBuildingSelectedService,
+        users,
       })
   )
 }

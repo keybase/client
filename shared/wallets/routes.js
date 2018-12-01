@@ -53,9 +53,9 @@ const walletChildren = {
         children: {},
         component: ConfirmForm,
         tags: makeLeafTags({
+          hideStatusBar: true,
           layerOnTop: !isMobile,
           renderTopmostOnly: true,
-          hideStatusBar: true,
         }),
       },
       createNewAccount,
@@ -67,14 +67,14 @@ const walletChildren = {
       },
       qrScan: {
         component: QRScan,
-        tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
+        tags: makeLeafTags({hideStatusBar: true, layerOnTop: true}),
       },
     },
     component: SendForm,
     tags: makeLeafTags({
+      hideStatusBar: true,
       layerOnTop: !isMobile,
       renderTopmostOnly: true,
-      hideStatusBar: true,
     }),
   },
   settings: {

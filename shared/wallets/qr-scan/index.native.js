@@ -40,53 +40,53 @@ const QRScan = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  bottomContainer: {
+    paddingBottom: Styles.globalMargins.xlarge,
+    paddingLeft: Styles.globalMargins.large,
+    paddingRight: Styles.globalMargins.large,
+  },
+  camera: {
+    alignSelf: 'center',
+    height: '100%',
+    width: '100%',
+  },
+  cameraContainer: {
+    alignSelf: 'center',
+    backgroundColor: Styles.globalColors.black_75,
+    borderColor: Styles.globalColors.purple3,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 4,
+    height: 200,
+    overflow: 'hidden',
+    position: 'relative',
+    width: 200,
+  },
+  cancel: {
+    alignSelf: 'flex-start',
+    color: Styles.globalColors.white,
+    minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
+    paddingBottom: 8,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: 8,
+  },
+  container: {
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.purple,
+  },
+  header: {
+    backgroundColor: Styles.globalColors.transparent,
+    width: '100%',
+  },
   text: {
     color: Styles.globalColors.white,
     textAlign: 'center',
   },
   topContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
     flexGrow: 1,
-  },
-  bottomContainer: {
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
-    paddingBottom: Styles.globalMargins.xlarge,
-  },
-  cancel: {
-    alignSelf: 'flex-start',
-    color: Styles.globalColors.white,
-    paddingBottom: 8,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: 8,
-    minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
-  },
-  header: {
-    backgroundColor: Styles.globalColors.transparent,
-    width: '100%',
-  },
-  camera: {
-    width: '100%',
-    height: '100%',
-    alignSelf: 'center',
-  },
-  container: {
-    backgroundColor: Styles.globalColors.purple,
-    alignItems: 'center',
-  },
-  cameraContainer: {
-    alignSelf: 'center',
-    backgroundColor: Styles.globalColors.black_75,
-    borderStyle: 'solid',
-    borderColor: Styles.globalColors.purple3,
-    borderRadius: Styles.borderRadius,
-    borderWidth: 4,
-    height: 200,
-    overflow: 'hidden',
-    position: 'relative',
-    width: 200,
+    justifyContent: 'center',
   },
 })
 

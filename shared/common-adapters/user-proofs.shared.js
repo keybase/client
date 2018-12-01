@@ -60,22 +60,22 @@ function proofColor(proof: Proof, forIcon: boolean): string {
 
 function iconNameForProof({type}: {type: PlatformsExpandedType}): IconType {
   const types = {
-    none: 'iconfont-close',
-    keybase: 'iconfont-close',
-    twitter: 'iconfont-identity-twitter',
+    btc: 'iconfont-identity-bitcoin',
+    dns: 'iconfont-identity-website',
+    dnsOrGenericWebSite: 'iconfont-identity-website',
     facebook: 'iconfont-identity-facebook',
     github: 'iconfont-identity-github',
-    reddit: 'iconfont-identity-reddit',
-    pgp: 'iconfont-identity-pgp',
     hackernews: 'iconfont-identity-hn',
-    rooter: 'iconfont-thunderbolt',
-    btc: 'iconfont-identity-bitcoin',
-    zcash: 'iconfont-identity-zcash',
-    dnsOrGenericWebSite: 'iconfont-identity-website',
     http: 'iconfont-identity-website',
     https: 'iconfont-identity-website',
+    keybase: 'iconfont-close',
+    none: 'iconfont-close',
+    pgp: 'iconfont-identity-pgp',
+    reddit: 'iconfont-identity-reddit',
+    rooter: 'iconfont-thunderbolt',
+    twitter: 'iconfont-identity-twitter',
     web: 'iconfont-identity-website',
-    dns: 'iconfont-identity-website',
+    zcash: 'iconfont-identity-zcash',
   }
 
   return types[type]

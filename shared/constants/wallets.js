@@ -43,38 +43,38 @@ const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   publicMemo: new HiddenString(''),
   recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
-  to: '',
   sendAssetChoices: null,
+  to: '',
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
   banners: null,
+  displayAmountFiat: '',
+  displayAmountXLM: '',
   from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
   readyToSend: false,
   secretNoteErrMsg: new HiddenString(''),
+  sendingIntentionXLM: false,
   toErrMsg: '',
   worthAmount: '',
   worthCurrency: '',
   worthDescription: '',
   worthInfo: '',
-  displayAmountXLM: '',
-  displayAmountFiat: '',
-  sendingIntentionXLM: false,
 })
 
 const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   amountErrMsg: '',
   banners: null,
+  displayAmountFiat: '',
+  displayAmountXLM: '',
   readyToRequest: false,
   secretNoteErrMsg: new HiddenString(''),
+  sendingIntentionXLM: false,
   toErrMsg: '',
   worthDescription: '',
   worthInfo: '',
-  displayAmountXLM: '',
-  displayAmountFiat: '',
-  sendingIntentionXLM: false,
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -114,32 +114,32 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
     banners: b.banners,
+    displayAmountFiat: b.displayAmountFiat,
+    displayAmountXLM: b.displayAmountXLM,
     from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
+    sendingIntentionXLM: b.sendingIntentionXLM,
     toErrMsg: b.toErrMsg,
     worthAmount: b.worthAmount,
     worthCurrency: b.worthCurrency,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
-    displayAmountXLM: b.displayAmountXLM,
-    displayAmountFiat: b.displayAmountFiat,
-    sendingIntentionXLM: b.sendingIntentionXLM,
   })
 
 const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
   makeBuiltRequest({
     amountErrMsg: b.amountErrMsg,
     banners: b.banners,
+    displayAmountFiat: b.displayAmountFiat,
+    displayAmountXLM: b.displayAmountXLM,
     readyToRequest: b.readyToRequest,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
+    sendingIntentionXLM: b.sendingIntentionXLM,
     toErrMsg: b.toErrMsg,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
-    displayAmountXLM: b.displayAmountXLM,
-    displayAmountFiat: b.displayAmountFiat,
-    sendingIntentionXLM: b.sendingIntentionXLM,
   })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
@@ -161,44 +161,44 @@ const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
 
 const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   assetCode: '',
+  availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
   issuerAccountID: '',
   issuerName: '',
   issuerVerifiedDomain: '',
   name: '',
-  worth: '',
-  availableToSendWorth: '',
   reserves: I.List(),
+  worth: '',
 })
 
 const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
   makeAssets({
     assetCode: w.assetCode,
+    availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
-    worth: w.worth,
-    availableToSendWorth: w.availableToSendWorth,
     reserves: I.List((w.reserves || []).map(makeReserve)),
+    worth: w.worth,
   })
 
 const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
-  description: '',
   code: '',
-  symbol: '',
+  description: '',
   name: '',
+  symbol: '',
 })
 
 const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
   makeCurrencies({
-    description: w.description,
     code: w.code,
-    symbol: w.symbol,
+    description: w.description,
     name: w.name,
+    symbol: w.symbol,
   })
 
 const _defaultPaymentCommon = {
@@ -223,8 +223,8 @@ const _defaultPaymentCommon = {
 
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
-  unread: false,
   section: 'none',
+  unread: false,
 }
 
 const _defaultPaymentDetail = {
@@ -247,10 +247,10 @@ const makePaymentDetail: I.RecordFactory<Types._PaymentDetail> = I.Record(_defau
 const makePayment: I.RecordFactory<Types._Payment> = I.Record(_defaultPayment)
 
 const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
-  description: '',
   code: '',
-  symbol: '',
+  description: '',
   name: '',
+  symbol: '',
 })
 
 const partyToDescription = (type, username, assertion, name, id): string => {
@@ -431,25 +431,25 @@ const paymentToYourInfoAndCounterparty = (
         throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
       }
       return {
-        yourRole: 'senderAndReceiver',
         counterparty: p.source,
         counterpartyType: 'otherAccount',
         yourAccountName: p.source,
+        yourRole: 'senderAndReceiver',
       }
 
     case 'increase':
       return {
-        yourRole: 'receiverOnly',
         counterparty: p.source,
         counterpartyType: partyTypeToCounterpartyType(p.sourceType),
         yourAccountName: p.sourceType === 'ownaccount' ? p.target : '',
+        yourRole: 'receiverOnly',
       }
     case 'decrease':
       return {
-        yourRole: 'senderOnly',
         counterparty: p.target,
         counterpartyType: partyTypeToCounterpartyType(p.targetType),
         yourAccountName: p.sourceType === 'ownaccount' ? p.source : '',
+        yourRole: 'senderOnly',
       }
 
     default:

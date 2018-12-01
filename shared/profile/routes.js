@@ -23,28 +23,24 @@ import ChooseAsset from '../wallets/send-form/choose-asset/container'
 import QRScan from '../wallets/qr-scan/container'
 
 const proveEnterUsername = makeRouteDefNode({
-  component: ProveEnterUsername,
   children: {
+    confirmOrPending: {
+      component: ConfirmOrPending,
+    },
     postProof: {
-      component: PostProof,
       children: {
         confirmOrPending: {
           component: ConfirmOrPending,
         },
       },
-    },
-    confirmOrPending: {
-      component: ConfirmOrPending,
+      component: PostProof,
     },
   },
+  component: ProveEnterUsername,
 })
 
 const profileRoute = makeRouteDefNode({
-  component: Profile,
-  initialState: {currentFriendshipsTab: 'Followers'},
-  tags: makeLeafTags({underNotch: true, title: 'Profile'}),
   children: {
-    profile: () => profileRoute,
     addToTeam: {
       children: {
         controlledRolePicker: {
@@ -56,9 +52,6 @@ const profileRoute = makeRouteDefNode({
       component: AddToTeam,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    editProfile: {
-      component: EditProfile,
-    },
     editAvatar: {
       component: EditAvatar,
       tags: makeLeafTags({layerOnTop: !isMobile}),
@@ -66,23 +59,27 @@ const profileRoute = makeRouteDefNode({
     editAvatarPlaceholder: {
       component: EditAvatarPlaceholder,
     },
+    editProfile: {
+      component: EditProfile,
+    },
     nonUserProfile: {
-      component: NonUserProfile,
       children: {
         profile: () => profileRoute,
       },
+      component: NonUserProfile,
     },
+    pgp: pgpRoutes,
+    profile: () => profileRoute,
     proveEnterUsername,
     proveWebsiteChoice: {
-      component: ProveWebsiteChoice,
       children: {
         proveEnterUsername,
       },
+      component: ProveWebsiteChoice,
     },
     revoke: {
       component: RevokeContainer,
     },
-    pgp: pgpRoutes,
     search: {
       children: {},
       component: SearchPopup,
@@ -98,22 +95,25 @@ const profileRoute = makeRouteDefNode({
         [WalletConstants.confirmFormRouteKey]: {
           children: {},
           component: ConfirmForm,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
         [WalletConstants.chooseAssetFormRouteKey]: {
           children: {},
           component: ChooseAsset,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
         qrScan: {
           component: QRScan,
-          tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
+          tags: makeLeafTags({hideStatusBar: true, layerOnTop: true}),
         },
       },
       component: SendForm,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+      tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
   },
+  component: Profile,
+  initialState: {currentFriendshipsTab: 'Followers'},
+  tags: makeLeafTags({title: 'Profile', underNotch: true}),
 })
 
 export default profileRoute

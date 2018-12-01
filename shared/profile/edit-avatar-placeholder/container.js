@@ -15,8 +15,8 @@ const mapStateToProps = state => {
   const userProofs = trackerState && trackerState.proofs
   const hasAvatarProof = userProofs && userProofs.some(p => p.type === 'github' || p.type === 'twitter')
   return {
-    keybaseUsername: username,
     hasAvatar: hasAvatarProof,
+    keybaseUsername: username,
   }
 }
 

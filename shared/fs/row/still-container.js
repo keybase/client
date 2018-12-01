@@ -13,9 +13,9 @@ type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
+  _downloads: state.fs.downloads,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
-  _downloads: state.fs.downloads,
 })
 
 const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinationPickerIndex}: OwnProps) => {

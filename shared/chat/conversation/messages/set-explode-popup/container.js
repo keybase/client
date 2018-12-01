@@ -30,12 +30,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   attachTo: ownProps.attachTo,
-  visible: ownProps.visible,
-  onHidden: ownProps.onHidden,
   isNew: stateProps.isNew,
-  selected: stateProps.selected,
-  onSelect: dispatchProps.onSelect,
   items: stateProps.items,
+  onHidden: ownProps.onHidden,
+  onSelect: dispatchProps.onSelect,
+  selected: stateProps.selected,
+  visible: ownProps.visible,
 })
 
 const SetExplodePopup = connect<OwnProps, _, _, _, _>(

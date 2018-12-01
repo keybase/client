@@ -17,7 +17,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
     onAddPeople: () => {
       dispatch(
         navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
+          [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
           [teamsTab]
         )
       )
@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
     onInvite: () => {
       dispatch(
         navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
+          [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
           [teamsTab]
         )
       )

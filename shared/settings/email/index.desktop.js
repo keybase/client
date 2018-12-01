@@ -17,17 +17,17 @@ class UpdateEmail extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      originalEmail: props.email || '',
-      email: props.email || '',
       edited: false,
+      email: props.email || '',
+      originalEmail: props.email || '',
     }
   }
 
   handleEmailChange(email: string) {
     const edited = email !== this.state.originalEmail
     this.setState({
-      email,
       edited,
+      email,
     })
   }
 

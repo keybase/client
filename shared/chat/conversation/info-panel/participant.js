@@ -76,7 +76,7 @@ const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
             marginRight: globalMargins.tiny,
           }}
         >
-          <Box style={{width: isMobile ? 48 : 32, height: isMobile ? 48 : 32, ...globalStyles.flexBoxCenter}}>
+          <Box style={{height: isMobile ? 48 : 32, width: isMobile ? 48 : 32, ...globalStyles.flexBoxCenter}}>
             <Icon type="iconfont-new" fontSize={isMobile ? 24 : 16} color={globalColors.blue} />
           </Box>
           <Text

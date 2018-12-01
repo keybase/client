@@ -35,8 +35,8 @@ class AvatarRender extends React.PureComponent<Props> {
             }}
             className={Styles.classNames(
               {
-                'avatar-border-team': this.props.isTeam,
                 'avatar-border': !this.props.isTeam,
+                'avatar-border-team': this.props.isTeam,
               },
               avatarSizeClasName
             )}

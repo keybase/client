@@ -6,10 +6,10 @@ import Chat from '.'
 import {Box} from '../../common-adapters/index'
 
 const actions = {
+  onRefresh: Sb.action('onRefresh'),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
     Sb.action('onUnfurlSave')(mode, whitelist)
   },
-  onRefresh: Sb.action('onRefresh'),
 }
 
 const props = {

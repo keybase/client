@@ -68,10 +68,10 @@ const parsedSearchResults = {
           id: 'marcopolo',
           prettyName: 'Marco Munizaga',
           serviceMap: {
-            twitter: 'open_sourcery',
             facebook: 'mmunizaga1337',
             github: 'marcopolo',
             keybase: 'marcopolo',
+            twitter: 'open_sourcery',
           },
         },
         {

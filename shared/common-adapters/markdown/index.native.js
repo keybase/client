@@ -235,8 +235,8 @@ const styles = styleSheetCreate({
   },
   codeSnippetBlockText: {
     ...globalStyles.fontTerminal,
-    fontSize: 15,
     color: globalColors.black_75,
+    fontSize: 15,
   },
   italic: {color: undefined, fontStyle: 'italic', fontWeight: undefined},
   // The Text component adds default styles which we need to unset so that

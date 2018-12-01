@@ -12,9 +12,9 @@ type OwnProps = {|
 
 const mapStateToProps = (state, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
+  isError: state.chat2.pendingStatus === 'failed',
   isLoading: WaitingConstants.anyWaiting(state, Constants.waitingKeyCreating),
   showAddParticipants: state.chat2.pendingMode === 'searchingForUsers',
-  isError: state.chat2.pendingStatus === 'failed',
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -30,8 +30,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     str = participants.join(', ')
   }
   return {
-    isLoading: stateProps.isLoading,
     isError: stateProps.isError,
+    isLoading: stateProps.isLoading,
     onStart: () => dispatchProps.onStart(participants),
     participants: str,
     showAddParticipants: stateProps.showAddParticipants,

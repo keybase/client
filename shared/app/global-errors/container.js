@@ -25,13 +25,13 @@ const mapDispatchToProps = dispatch => ({
       dispatch(RouteTreeGen.createSwitchTo({path: [settingsTab]}))
       dispatch(
         RouteTreeGen.createNavigateTo({
+          parentPath: [settingsTab],
           path: [
             {
               props: {heading: 'Oh no, a bug!'},
               selected: feedbackTab,
             },
           ],
-          parentPath: [settingsTab],
         })
       )
     } else {

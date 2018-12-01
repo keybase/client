@@ -17,14 +17,14 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
   avatarTeam: 'avatarTeam',
   avatarUser: 'avatarUser',
   bio: 'bio',
-  proof: 'proof',
-  device: 'device',
-  follow: 'follow',
   chat: 'chat',
-  paperkey: 'paperkey',
-  team: 'team',
+  device: 'device',
   folder: 'folder',
+  follow: 'follow',
   gitRepo: 'gitRepo',
+  paperkey: 'paperkey',
+  proof: 'proof',
+  team: 'team',
   teamShowcase: 'teamShowcase',
 }
 
@@ -32,63 +32,63 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
   avatarUser: 'NEW! Change your photo from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
-  proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
+  chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
   device: `Install Keybase on your ${
     isMobile ? 'computer' : 'phone'
   }. Until you have at least 2 devices, you risk losing data.`,
-  follow:
-    'Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.',
-  chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
-  paperkey:
-    'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
-  team:
-    'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
   folder:
     'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
+  follow:
+    'Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.',
   gitRepo:
     'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
+  paperkey:
+    'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
+  proof: 'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
+  team:
+    'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
 }
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   avatarTeam: 'Edit team avatar',
   avatarUser: 'Edit avatar',
   bio: 'Edit Profile',
-  proof: 'Prove your identities',
-  device: isMobile ? 'Get the download link' : 'Get the app',
-  follow: 'Browse people',
   chat: 'Start a chat',
-  paperkey: 'Create a paper key',
-  team: 'Create a team!',
+  device: isMobile ? 'Get the download link' : 'Get the app',
   folder: 'Open a private folder',
+  follow: 'Browse people',
   gitRepo: isMobile ? 'Create a repo' : 'Create a personal git repo',
+  paperkey: 'Create a paper key',
+  proof: 'Prove your identities',
+  team: 'Create a team!',
   teamShowcase: 'Set publicity settings',
 }
 export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   avatarTeam: false,
   avatarUser: false,
   bio: false,
-  proof: true,
-  device: true,
-  follow: true,
   chat: true,
-  paperkey: false,
-  team: true,
+  device: true,
   folder: true,
+  follow: true,
   gitRepo: true,
+  paperkey: false,
+  proof: true,
+  team: true,
   teamShowcase: true,
 }
 export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   avatarTeam: isMobile ? 'icon-onboarding-team-avatar-48' : 'icon-onboarding-team-avatar-32',
   avatarUser: isMobile ? 'icon-onboarding-user-avatar-48' : 'icon-onboarding-user-avatar-32',
   bio: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
-  proof: isMobile ? 'icon-onboarding-proofs-48' : 'icon-onboarding-proofs-32',
-  device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-32',
-  follow: isMobile ? 'icon-onboarding-follow-48' : 'icon-onboarding-follow-32',
   chat: isMobile ? 'icon-onboarding-chat-48' : 'icon-onboarding-chat-32',
-  paperkey: isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32',
-  team: isMobile ? 'icon-onboarding-team-48' : 'icon-onboarding-team-32',
+  device: isMobile ? 'icon-onboarding-computer-48' : 'icon-onboarding-phone-32',
   folder: isMobile ? 'icon-onboarding-folder-48' : 'icon-onboarding-folder-32',
+  follow: isMobile ? 'icon-onboarding-follow-48' : 'icon-onboarding-follow-32',
   gitRepo: isMobile ? 'icon-onboarding-git-48' : 'icon-onboarding-git-32',
+  paperkey: isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32',
+  proof: isMobile ? 'icon-onboarding-proofs-48' : 'icon-onboarding-proofs-32',
+  team: isMobile ? 'icon-onboarding-team-48' : 'icon-onboarding-team-32',
   teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
 }
 
@@ -102,13 +102,13 @@ export const reduceRPCItemToPeopleItem = (
     const todoType = todoTypeEnumToType[(item.data.todo && item.data.todo.t) || 0]
     return list.push(
       makeTodo({
-        type: 'todo',
         badged: badged,
-        todoType,
-        instructions: todoTypeToInstructions[todoType],
         confirmLabel: todoTypeToConfirmLabel[todoType],
         dismissable: todoTypeToDismissable[todoType],
         icon: todoTypeToIcon[todoType],
+        instructions: todoTypeToInstructions[todoType],
+        todoType,
+        type: 'todo',
       })
     )
   } else if (item.data.t === RPCTypes.homeHomeScreenItemType.people) {
@@ -122,10 +122,10 @@ export const reduceRPCItemToPeopleItem = (
       }
       return list.push(
         makeFollowedNotificationItem({
-          type: 'notification',
+          badged,
           newFollows: [makeFollowedNotification({username: follow.user.username})],
           notificationTime: new Date(follow.followTime),
-          badged,
+          type: 'notification',
         })
       )
     } else if (
@@ -146,15 +146,15 @@ export const reduceRPCItemToPeopleItem = (
       const notificationTime = new Date(maxNotificationTime)
       return list.push(
         makeFollowedNotificationItem({
-          type: 'notification',
+          badged,
           newFollows: followers.map(follow =>
             makeFollowedNotification({
               username: follow.user.username,
             })
           ),
           notificationTime,
-          badged,
           numAdditional: multiFollow.numOthers,
+          type: 'notification',
         })
       )
     }
@@ -163,13 +163,13 @@ export const reduceRPCItemToPeopleItem = (
 }
 
 export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
-  type: 'todo',
   badged: false,
-  todoType: 'none',
-  instructions: '',
   confirmLabel: '',
   dismissable: false,
   icon: 'iconfont-close',
+  instructions: '',
+  todoType: 'none',
+  type: 'todo',
 })
 
 export const makeFollowedNotification: I.RecordFactory<Types._FollowedNotification> = I.Record({
@@ -177,24 +177,24 @@ export const makeFollowedNotification: I.RecordFactory<Types._FollowedNotificati
 })
 
 export const makeFollowedNotificationItem: I.RecordFactory<Types._FollowedNotificationItem> = I.Record({
-  type: 'notification',
+  badged: false,
   newFollows: [],
   notificationTime: new Date(),
-  badged: false,
   numAdditional: 0,
+  type: 'notification',
 })
 
 export const makeFollowSuggestion: I.RecordFactory<Types._FollowSuggestion> = I.Record({
-  username: '',
-  fullName: null,
   followsMe: false,
+  fullName: null,
   iFollow: false,
+  username: '',
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  lastViewed: new Date(),
-  version: -1,
-  oldItems: I.List(),
-  newItems: I.List(),
   followSuggestions: I.List(),
+  lastViewed: new Date(),
+  newItems: I.List(),
+  oldItems: I.List(),
+  version: -1,
 })

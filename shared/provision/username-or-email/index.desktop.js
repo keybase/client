@@ -62,8 +62,8 @@ class UsernameOrEmail extends Component<Props, State> {
 }
 
 const stylesContainer = {
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
 }
 const stylesInput = {

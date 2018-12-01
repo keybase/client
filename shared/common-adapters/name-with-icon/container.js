@@ -46,10 +46,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 
   return {
     ...props,
-    username,
-    teamname,
     clickType,
     onClick: functionOnClick,
+    teamname,
+    username,
   }
 }
 

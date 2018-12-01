@@ -12,55 +12,55 @@ import {
 
 const defaultConnectPropsMap: RowConnectPropsMap = {
   chris: {
+    leftFollowingState: 'Following',
     leftFullname: 'chris on GitHub',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'chris',
 
+    leftUsername: 'chris',
+    rightFollowingState: 'NoState',
     rightIcon: 'iconfont-identity-github',
     rightIconOpaque: true,
+
     rightService: 'GitHub',
     rightUsername: 'chrisname',
-
-    leftFollowingState: 'Following',
-    rightFollowingState: 'NoState',
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
   },
   cjb: {
+    leftFollowingState: 'NotFollowing',
     leftFullname: 'cjb on facebook',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'cjb',
 
+    leftUsername: 'cjb',
+    rightFollowingState: 'NoState',
     rightIcon: 'iconfont-identity-facebook',
     rightIconOpaque: true,
+
     rightService: 'Facebook',
     rightUsername: 'cjbname',
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NoState',
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
   },
   jzila: {
+    leftFollowingState: 'NotFollowing',
     leftFullname: 'jzila on twitter',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'jzila',
 
+    leftUsername: 'jzila',
+    rightFollowingState: 'NoState',
     rightIcon: 'iconfont-identity-twitter',
     rightIconOpaque: true,
+
     rightService: 'Twitter',
     rightUsername: 'jzilatwit',
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NoState',
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
@@ -82,19 +82,19 @@ const onMouseOver = Sb.action('onMouseOver')
 const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: OwnProps): Props => {
   return {
     ...ownProps,
-    pending: false,
     items: Object.keys(rowConnectPropsMap),
     onMouseOver,
+    pending: false,
     selectedId: null,
     showSearchSuggestions: false,
   }
 }
 
 const defaultOwnProps: OwnProps = {
-  searchKey: 'search-key',
-  onShowTracker: Sb.action('onShowTracker'),
-  onClick: Sb.action('onClick'),
   disableIfInTeamName: '',
+  onClick: Sb.action('onClick'),
+  onShowTracker: Sb.action('onShowTracker'),
+  searchKey: 'search-key',
 }
 
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)

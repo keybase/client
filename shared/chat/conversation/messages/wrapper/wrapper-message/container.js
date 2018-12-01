@@ -36,11 +36,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     _you: state.config.username || '',
     conversationIDKey: ownProps.message.conversationIDKey,
+    hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
     orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
     shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
-    hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
   }
 }
 
@@ -67,6 +67,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
+    hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
     isEditing: ownProps.isEditing,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     isShowingUsername,
@@ -77,7 +78,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     previous: ownProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     type,
-    hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
   }
 }
 

@@ -54,7 +54,7 @@ export function stat(filepath: string): Promise<StatResult> {
       if (err) {
         return reject(err)
       }
-      resolve({size: stats.size, lastModified: stats.mtime.getTime()})
+      resolve({lastModified: stats.mtime.getTime(), size: stats.size})
     })
   })
 }

@@ -69,14 +69,14 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
-  containerBox: {
-    overflow: 'hidden',
-  },
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_40,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
+  containerBox: {
+    overflow: 'hidden',
+  },
   icon: {
     alignSelf: 'center',
     height: 32,

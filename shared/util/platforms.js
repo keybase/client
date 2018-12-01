@@ -11,13 +11,13 @@ const ProveMessages = {
   hackernews: 'Prove your Hacker News',
   http: 'Prove your HTTP website',
   https: 'Prove your HTTPS website',
-  web: 'Prove your website',
   keybase: '',
   none: '',
   pgp: 'Add a PGP key',
   reddit: 'Prove your Reddit',
   rooter: 'Prove your Rooter',
   twitter: 'Prove your Twitter',
+  web: 'Prove your website',
   zcash: 'Set a Zcash address',
 }
 

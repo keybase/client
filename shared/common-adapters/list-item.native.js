@@ -17,8 +17,8 @@ class ListItem extends Component<Props> {
             style={{
               ...globalStyles.flexBoxColumn,
               ...iconContainerThemed[this.props.type],
-              height,
               alignItems: 'center',
+              height,
               justifyContent: 'center',
             }}
           >
@@ -52,11 +52,11 @@ class ListItem extends Component<Props> {
 }
 
 const iconContainerThemed = {
-  Small: {
-    width: 48,
-  },
   Large: {
     width: 64,
+  },
+  Small: {
+    width: 48,
   },
 }
 
@@ -67,11 +67,11 @@ function actionStyle(extraMargin) {
 function bodyContainerStyle(swipeToAction) {
   return {
     flex: 2,
-    marginLeft: 8,
-    marginBottom: 8,
-    marginTop: 8,
-    marginRight: swipeToAction ? 0 : 16,
     justifyContent: 'center',
+    marginBottom: 8,
+    marginLeft: 8,
+    marginRight: swipeToAction ? 0 : 16,
+    marginTop: 8,
   }
 }
 

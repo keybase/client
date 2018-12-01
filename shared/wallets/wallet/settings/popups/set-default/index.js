@@ -58,15 +58,6 @@ const SetDefaultAccountPopup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  avatarAndIcon: Styles.platformStyles({
-    common: {
-      position: 'relative',
-      marginBottom: Styles.globalMargins.large,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.large,
-    },
-  }),
   avatar: Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -76,8 +67,17 @@ const styles = Styles.styleSheetCreate({
       top: 26,
     },
     isMobile: {
-      left: -8,
       bottom: -2,
+      left: -8,
+    },
+  }),
+  avatarAndIcon: Styles.platformStyles({
+    common: {
+      marginBottom: Styles.globalMargins.large,
+      position: 'relative',
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.large,
     },
   }),
   flexOne: {flex: 1},

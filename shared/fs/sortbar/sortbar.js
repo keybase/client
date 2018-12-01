@@ -87,6 +87,15 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  icon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
+  loading: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginLeft: 'auto',
+    marginRight: 32,
+  },
   sortBar: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
@@ -99,15 +108,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     justifyContent: 'flex-start',
     minHeight: Styles.isMobile ? 32 : 24,
-  },
-  icon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  loading: {
-    ...Styles.globalStyles.flexBoxRow,
-    marginLeft: 'auto',
-    marginRight: 32,
-    alignItems: 'center',
   },
   text: Styles.platformStyles({
     isMobile: {

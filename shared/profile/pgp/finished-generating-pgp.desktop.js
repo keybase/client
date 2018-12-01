@@ -26,7 +26,7 @@ class FinishedGeneratedPgp extends Component<Props, State> {
 
   render() {
     return (
-      <StandardScreen notification={{type: 'success', message: 'Success!'}} style={{alignSelf: 'stretch'}}>
+      <StandardScreen notification={{message: 'Success!', type: 'success'}} style={{alignSelf: 'stretch'}}>
         <PlatformIcon style={styleIcon} platform="pgp" overlay="icon-proof-success" />
         <Text style={styleTitle} type="Header">
           Here is your unique public key!
@@ -100,8 +100,8 @@ const stylePgpKeyString = platformStyles({
 const styleUploadContainer = {
   ...globalStyles.flexBoxColumn,
   flexShrink: 0,
-  textAlign: 'left',
   marginTop: globalMargins.small,
+  textAlign: 'left',
 }
 
 const styleUploadTextSublabel = {

@@ -8,9 +8,9 @@ import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
 const mapStateToProps = (state, {routeProps}) => {
   const path = routeProps.get('path', Constants.defaultPath)
   return {
-    sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
     _tlfs: state.fs.tlfs,
     _username: state.config.username,
+    sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
   }
 }
 

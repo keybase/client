@@ -14,17 +14,17 @@ const mapStateToProps = state => {
   return {
     accountID,
     assets: Constants.getAssets(state, accountID),
-    payments: Constants.getPayments(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
+    payments: Constants.getPayments(state, accountID),
   }
 }
 
 const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
-  navigateAppend,
-  navigateUp,
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
+  navigateAppend,
+  navigateUp,
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

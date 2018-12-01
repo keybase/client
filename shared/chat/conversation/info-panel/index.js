@@ -16,8 +16,8 @@ const border = `1px solid ${globalColors.black_10}`
 const listStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  paddingBottom: globalMargins.medium,
   flex: 1,
+  paddingBottom: globalMargins.medium,
   ...(isMobile
     ? {}
     : {
@@ -27,7 +27,7 @@ const listStyle = {
       }),
 }
 
-const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
+const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
 type InfoPanelProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,
@@ -117,12 +117,12 @@ const retentionStyles = {
     },
   }),
   dropdownStyle: platformStyles({
+    isElectron: {
+      marginRight: 45 - 16,
+      width: 'auto',
+    },
     isMobile: {
       width: '100%',
-    },
-    isElectron: {
-      width: 'auto',
-      marginRight: 45 - 16,
     },
   }),
 }
@@ -432,11 +432,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
     const props = this.props
     const participants: Array<ParticipantRow> = props.participants.map(p => ({
-      type: 'participant',
-      key: p.username,
-      username: p.username,
       fullname: p.fullname,
+      key: p.username,
       onShowProfile: props.onShowProfile,
+      type: 'participant',
+      username: p.username,
     }))
 
     const participantCount = participants.length
@@ -446,95 +446,95 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
       const smallTeamHeaderRow = {
-        type: 'small team header',
-        key: 'small team header',
-        teamname,
         isSmallTeam: props.smallTeam,
+        key: 'small team header',
         participantCount,
+        teamname,
+        type: 'small team header',
       }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
-          {type: 'spacer', key: nextKey(), height: globalMargins.small},
+          {height: globalMargins.small, key: nextKey(), type: 'spacer'},
           smallTeamHeaderRow,
           {
-            type: 'divider',
             key: nextKey(),
             marginBottom: 20,
             marginTop: 20,
+            type: 'divider',
           },
           {
-            type: 'notifications',
             key: 'notifications',
+            type: 'notifications',
           },
           {
-            type: 'divider',
             key: nextKey(),
-            marginTop: 8,
             marginBottom: 8,
+            marginTop: 8,
+            type: 'divider',
           },
           {
-            type: 'retention',
-            key: 'retention',
             canSetRetention: props.canSetRetention,
-            teamname: props.teamname || '',
             entityType: 'small team',
+            key: 'retention',
+            teamname: props.teamname || '',
+            type: 'retention',
           },
           {
-            type: 'divider',
             key: nextKey(),
-            marginTop: 8,
             marginBottom: 8,
+            marginTop: 8,
+            type: 'divider',
           },
           {
             canSetMinWriterRole: props.canSetMinWriterRole,
             isSmallTeam: true,
-            type: 'min writer role',
             key: 'min writer role',
+            type: 'min writer role',
           },
           ...(props.canDeleteHistory
             ? [
                 {
-                  type: 'divider',
-                  marginTop: 8,
                   key: nextKey(),
                   marginBottom: globalMargins.small,
+                  marginTop: 8,
+                  type: 'divider',
                 },
                 {
-                  type: 'clear entire conversation',
                   key: 'clear entire conversation',
                   onShowClearConversationDialog: props.onShowClearConversationDialog,
+                  type: 'clear entire conversation',
                 },
               ]
             : []),
           {
-            type: 'divider',
-            marginTop: 8,
             key: nextKey(),
+            marginTop: 8,
+            type: 'divider',
           },
           {
-            type: 'participant count',
             key: 'participant count',
             label: 'In this team',
             participantCount,
+            type: 'participant count',
           },
         ]
       } else {
         // Big team.
         const headerRow = {
-          type: 'big team header',
-          key: 'big team header',
           canEditChannel: props.canEditChannel,
-          onEditChannel: props.onEditChannel,
-          description: props.description,
-          teamname,
           channelname,
+          description: props.description,
+          key: 'big team header',
+          onEditChannel: props.onEditChannel,
+          teamname,
+          type: 'big team header',
         }
         const participantCountRow = {
-          type: 'participant count',
           key: 'participant count',
           label: 'In this channel',
           participantCount,
+          type: 'participant count',
         }
 
         if (props.isPreview) {
@@ -542,26 +542,26 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           headerRows = [
             headerRow,
             {
-              type: 'spacer',
-              key: nextKey(),
               height: globalMargins.tiny,
+              key: nextKey(),
+              type: 'spacer',
             },
             {
-              type: 'join channel',
               key: 'join channel',
-              teamname,
               onJoinChannel: props.onJoinChannel,
+              teamname,
+              type: 'join channel',
             },
             {
-              type: 'divider',
               key: nextKey(),
               marginBottom: globalMargins.tiny,
+              type: 'divider',
             },
             smallTeamHeaderRow,
             {
-              type: 'divider',
               key: nextKey(),
               marginTop: globalMargins.tiny,
+              type: 'divider',
             },
             participantCountRow,
           ]
@@ -570,78 +570,78 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           headerRows = [
             headerRow,
             {
-              type: 'spacer',
-              key: nextKey(),
               height: globalMargins.tiny,
+              key: nextKey(),
+              type: 'spacer',
             },
             ...(props.channelname !== 'general'
               ? [
                   {
-                    type: 'leave channel',
                     key: 'leave channel',
                     onLeaveConversation: props.onLeaveConversation,
+                    type: 'leave channel',
                   },
                 ]
               : []),
             {
-              type: 'divider',
               key: nextKey(),
               marginBottom: globalMargins.tiny,
+              type: 'divider',
             },
             smallTeamHeaderRow,
             {
-              type: 'divider',
               key: nextKey(),
               marginTop: globalMargins.tiny,
-            },
-            {
-              type: 'notifications',
-              key: 'notifications',
-            },
-            {
               type: 'divider',
-              key: nextKey(),
-              marginTop: 8,
-              marginBottom: 8,
             },
             {
-              type: 'retention',
-              key: 'retention',
+              key: 'notifications',
+              type: 'notifications',
+            },
+            {
+              key: nextKey(),
+              marginBottom: 8,
+              marginTop: 8,
+              type: 'divider',
+            },
+            {
               canSetRetention: props.canSetRetention,
               entityType: 'channel',
+              key: 'retention',
               teamname: props.teamname || '',
+              type: 'retention',
             },
             {
-              type: 'divider',
               key: nextKey(),
-              marginTop: 8,
               marginBottom: 8,
+              marginTop: 8,
+              type: 'divider',
             },
             {
               canSetMinWriterRole: props.canSetMinWriterRole,
               isSmallTeam: false,
-              type: 'min writer role',
               key: 'min writer role',
+              type: 'min writer role',
             },
             ...(props.canDeleteHistory
               ? [
                   {
-                    type: 'divider',
-                    marginTop: 8,
                     key: nextKey(),
                     marginBottom: globalMargins.small,
+                    marginTop: 8,
+                    type: 'divider',
                   },
                   {
-                    type: 'clear entire conversation',
                     key: 'clear entire conversation',
                     onShowClearConversationDialog: props.onShowClearConversationDialog,
+                    type: 'clear entire conversation',
                   },
                 ]
               : []),
             {
-              type: 'divider',
-              marginTop: 8,
               key: nextKey(),
+              marginTop: 8,
+              type: 'divider',
             },
             participantCountRow,
           ]
@@ -649,69 +649,69 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       rows = headerRows.concat(participants)
       if (props.admin && props.teamname && !props.isPreview) {
-        rows = rows.concat({type: 'add people', key: 'add people', teamname: props.teamname})
+        rows = rows.concat({key: 'add people', teamname: props.teamname, type: 'add people'})
       }
     } else {
       // Conversation.
       rows = participants.concat([
         {
-          type: 'divider',
           key: nextKey(),
           marginBottom: 10,
           marginTop: 10,
+          type: 'divider',
         },
         {
-          type: 'turn into team',
           key: 'turn into team',
           onShowNewTeamDialog: props.onShowNewTeamDialog,
+          type: 'turn into team',
         },
         {
-          type: 'divider',
           key: nextKey(),
           marginTop: 10,
-        },
-        {
-          type: 'notifications',
-          key: 'notifications',
-        },
-        {
           type: 'divider',
-          key: nextKey(),
-          marginTop: 8,
-          marginBottom: 8,
         },
         {
-          type: 'retention',
-          key: 'retention',
+          key: 'notifications',
+          type: 'notifications',
+        },
+        {
+          key: nextKey(),
+          marginBottom: 8,
+          marginTop: 8,
+          type: 'divider',
+        },
+        {
           canSetRetention: true,
           entityType: 'adhoc',
+          key: 'retention',
+          type: 'retention',
         },
         {
-          type: 'divider',
-          marginTop: 8,
           key: nextKey(),
           marginBottom: globalMargins.small,
+          marginTop: 8,
+          type: 'divider',
         },
         {
-          type: 'clear entire conversation',
           key: 'clear entire conversation',
           onShowClearConversationDialog: props.onShowClearConversationDialog,
+          type: 'clear entire conversation',
         },
         {
-          type: 'divider',
-          marginTop: 8,
           key: nextKey(),
           marginBottom: globalMargins.small,
+          marginTop: 8,
+          type: 'divider',
         },
         {
-          type: 'block this conversation',
           key: 'block this conversation',
           onShowBlockConversationDialog: props.onShowBlockConversationDialog,
+          type: 'block this conversation',
         },
         {
-          type: 'spacer',
-          key: nextKey(),
           height: globalMargins.small,
+          key: nextKey(),
+          type: 'spacer',
         },
       ])
     }

@@ -6,10 +6,10 @@ import * as Styles from '../styles'
 
 const FadeBox = Styles.glamorous.div({
   ...Styles.transition('opacity'),
-  '&.visible': {
+  '&.active': {
     opacity: 1,
   },
-  '&.active': {
+  '&.visible': {
     opacity: 1,
   },
   opacity: 0,

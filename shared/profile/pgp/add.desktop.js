@@ -80,13 +80,13 @@ const styleIcon = {
 }
 
 const styleHeader = {
-  marginTop: globalMargins.medium,
   alignSelf: 'center',
+  marginTop: globalMargins.medium,
 }
 
 const styleInfoMessage = (errorText: boolean) => ({
-  marginTop: globalMargins.small,
   alignSelf: 'center',
+  marginTop: globalMargins.small,
 })
 
 const styleActions = {

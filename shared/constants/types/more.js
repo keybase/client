@@ -1,34 +1,34 @@
 // @flow strict
 
 const provablePlatformsMap = {
-  twitter: true,
-  reddit: true,
+  dns: true,
   facebook: true,
   github: true,
   hackernews: true,
-  dns: true,
   http: true,
   https: true,
-  web: true,
+  reddit: true,
   rooter: __DEV__,
+  twitter: true,
+  web: true,
 }
 
 const platformsExpandedMap = {
   // Flow needs this to be duplicated
-  twitter: true,
-  reddit: true,
+  btc: true,
+  dns: true,
+  dnsOrGenericWebSite: true,
   facebook: true,
   github: true,
   hackernews: true,
-  dns: true,
   http: true,
   https: true,
-  web: true,
-  rooter: __DEV__,
-  btc: true,
-  zcash: true,
-  dnsOrGenericWebSite: true,
   pgp: true,
+  reddit: true,
+  rooter: __DEV__,
+  twitter: true,
+  web: true,
+  zcash: true,
 }
 
 export type ProvablePlatformsType = $Keys<typeof provablePlatformsMap>

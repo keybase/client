@@ -65,9 +65,9 @@ const styles = Styles.styleSheetCreate({
   },
   scrollView: Styles.platformStyles({
     common: {
-      width: '100%',
       flexGrow: 1,
       flexShrink: 1,
+      width: '100%',
     },
     isElectron: {minHeight: '100%'},
   }),

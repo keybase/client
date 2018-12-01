@@ -73,17 +73,17 @@ export const PeoplePageSearchBar = (
 const styleRowContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'center',
-  height: 48,
-  position: 'absolute',
-  top: 0,
-  right: 0,
   backgroundColor: globalColors.white_90,
+  height: 48,
+  justifyContent: 'center',
+  position: 'absolute',
+  right: 0,
+  top: 0,
   zIndex: 1,
 }
 
 export const PeoplePageList = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
+  <Box style={{...globalStyles.flexBoxColumn, marginTop: 48, position: 'relative', width: '100%'}}>
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}

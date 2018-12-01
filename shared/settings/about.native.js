@@ -7,10 +7,10 @@ import {Box, Icon, Text} from '../common-adapters/mobile.native'
 import type {Props} from './about'
 
 const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1, alignItems: 'center', justifyContent: 'center'}}>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}>
     <Icon type="icon-keybase-logo-64" />
     <Text
-      style={{textAlign: 'center', paddingTop: globalMargins.large, marginBottom: globalMargins.large}}
+      style={{marginBottom: globalMargins.large, paddingTop: globalMargins.large, textAlign: 'center'}}
       type="Body"
     >
       You are running version <Text type="BodySemibold">{version}</Text>

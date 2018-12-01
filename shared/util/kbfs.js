@@ -12,9 +12,9 @@ export function parseFolderNameToUsers(yourUsername: ?string, folderName: string
   }))
 
   const readersParsed = readers.split(',').map(u => ({
+    readOnly: true,
     username: u,
     you: yourUsername === u,
-    readOnly: true,
   }))
 
   return writersParsed.concat(readersParsed).filter(u => !!u.username)

@@ -37,6 +37,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
   onCancelPayment: () =>
     dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID'), showAccount: true})),
+  onChat: (username: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({
@@ -44,8 +46,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         paymentID: routeProps.get('paymentID'),
       })
     ),
-  onChat: (username: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 

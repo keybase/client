@@ -23,10 +23,10 @@ const Search = (props: Props) => (
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   // StandardScreen supplies padding we don't want.
-  paddingTop: 0,
   paddingBottom: 0,
   paddingLeft: 0,
   paddingRight: 0,
+  paddingTop: 0,
 }
 
 export default Search

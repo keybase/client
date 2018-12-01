@@ -29,7 +29,7 @@ export const Usernames = (following: string[] = defaultFollowing, you: string = 
   Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
     const {usernames, onUsernameClicked, skipSelf, ...props} = ownProps
     const users = (usernames || [])
-      .map(username => ({username, following: following.includes(username), you: username === you}))
+      .map(username => ({following: following.includes(username), username, you: username === you}))
       .filter(u => !skipSelf || !u.you)
 
     let mockedOnUsernameClick
@@ -63,23 +63,23 @@ export const Avatar = (following: string[] = defaultFollowing, followers: string
 
 export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
   TeamDropdownMenu: (ownProps: TeamDropdownMenuOwnProps): TeamDropdownMenuProps => ({
-    loadOperations: action('_loadOperations'),
-    hasCanPerform: true,
     attachTo: ownProps.attachTo,
     badgeSubscribe: false,
     canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,
+    hasCanPerform: true,
     isSmallTeam: ownProps.isSmallTeam,
+    loadOperations: action('_loadOperations'),
     manageChannelsSubtitle: ownProps.isSmallTeam ? 'Turns this into a big team' : '',
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
     memberCount: (teamMemberCounts && teamMemberCounts[ownProps.teamname]) || 100,
-    teamname: ownProps.teamname,
-    visible: ownProps.visible,
     onAddPeople: action('onAddPeople'),
     onHidden: ownProps.onHidden,
     onInvite: action('onInvite'),
     onLeaveTeam: action('onLeaveTeam'),
     onManageChannels: action('onManageChannels'),
     onViewTeam: action('onViewTeam'),
+    teamname: ownProps.teamname,
+    visible: ownProps.visible,
   }),
 })
 
@@ -89,27 +89,27 @@ const CopyText = () => ({
 
 // $ForceType
 const Channel = ({name, convID, key, style}) => ({
-  name,
   convID,
   key,
-  style,
+  name,
   onClick: action('onClickChannel'),
+  style,
 })
 
 const usernameToTheme = {
   following: 'follow',
-  notFollowing: 'nonFollow',
   myUsername: 'highlight',
   noTheme: 'none',
+  notFollowing: 'nonFollow',
 }
 
 // $ForceType
 const Mention = ({username, key, style}) => ({
-  username,
   key,
+  onClick: action('onClick Mention'),
   style,
   theme: usernameToTheme[username] || (isSpecialMention(username) ? 'highlight' : 'none'),
-  onClick: action('onClick Mention'),
+  username,
 })
 
 export const NameWithIcon = () => ({
@@ -139,8 +139,8 @@ export const Common = () => ({
   ...WaitingButton(),
   ...CopyText(),
   ...NameWithIcon(),
-  Mention,
   Channel,
+  Mention,
 })
 
 export const createPropProviderWithCommon = (custom: ?Object) =>

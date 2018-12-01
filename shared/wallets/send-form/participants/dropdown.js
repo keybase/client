@@ -59,27 +59,27 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  dropdownEntry: {
+    padding: Styles.globalMargins.xtiny,
+  },
+  spinner: Styles.platformStyles({
+    isElectron: {
+      height: 20,
+      marginRight: Styles.globalMargins.small,
+      width: 20,
+    },
+    isMobile: {
+      height: 28,
+      marginRight: Styles.globalMargins.xtiny,
+      width: 28,
+    },
+  }),
   text: Styles.platformStyles({
     isElectron: {
       maxWidth: 140,
       overflow: 'hidden',
-      whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
     },
   }),
-  spinner: Styles.platformStyles({
-    isElectron: {
-      marginRight: Styles.globalMargins.small,
-      height: 20,
-      width: 20,
-    },
-    isMobile: {
-      marginRight: Styles.globalMargins.xtiny,
-      height: 28,
-      width: 28,
-    },
-  }),
-  dropdownEntry: {
-    padding: Styles.globalMargins.xtiny,
-  },
 })

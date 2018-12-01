@@ -45,20 +45,20 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       flexGrow: 1,
       flexShrink: 1,
-      width: '100%',
       maxHeight: '100%',
-    },
-  }),
-  textContainer: Styles.platformStyles({
-    isElectron: {
-      position: 'absolute',
-      textAlign: 'center',
-      bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+      width: '100%',
     },
   }),
   textColor: {
     color: Styles.globalColors.white_40,
   },
+  textContainer: Styles.platformStyles({
+    isElectron: {
+      bottom: -26,
+      position: 'absolute',
+      textAlign: 'center', // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+    },
+  }),
 })
 
 export default Root

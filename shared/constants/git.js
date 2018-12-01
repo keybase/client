@@ -79,8 +79,8 @@ const parseRepos = (
     }
   })
   return {
-    repos,
     errors,
+    repos,
   }
 }
 

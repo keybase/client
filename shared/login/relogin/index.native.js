@@ -10,14 +10,14 @@ import type {Props} from '.'
 class LoginRender extends Component<Props> {
   render() {
     const inputProps = {
-      hintText: 'Passphrase',
-      style: {marginBottom: 0},
-      onChangeText: passphrase => this.props.passphraseChange(passphrase),
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
-      onEnterKeyDown: () => this.props.onSubmit(),
-      errorText: this.props.error,
-      key: this.props.inputKey,
       autoFocus: true,
+      errorText: this.props.error,
+      hintText: 'Passphrase',
+      key: this.props.inputKey,
+      onChangeText: passphrase => this.props.passphraseChange(passphrase),
+      onEnterKeyDown: () => this.props.onSubmit(),
+      style: {marginBottom: 0},
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
       // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
       // making this uncontrolled fixes this
       uncontrolled: true,
@@ -25,8 +25,8 @@ class LoginRender extends Component<Props> {
 
     const checkboxProps = [
       {
-        label: 'Show typing',
         checked: this.props.showTyping,
+        label: 'Show typing',
         onCheck: check => {
           this.props.showTypingChange(check)
         },
@@ -82,9 +82,9 @@ class LoginRender extends Component<Props> {
           </Kb.Text>
           <Kb.Text
             style={{
+              alignSelf: 'center',
               margin: Styles.globalMargins.small,
               marginTop: Styles.globalMargins.large,
-              alignSelf: 'center',
             }}
             type="BodySmallSecondaryLink"
             onClick={this.props.onFeedback}
@@ -98,23 +98,23 @@ class LoginRender extends Component<Props> {
 }
 
 const styles = {
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    backgroundColor: Styles.globalColors.white,
-  },
   card: {
     marginTop: Styles.globalMargins.medium,
     width: '100%',
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.white,
+    flex: 1,
   },
 }
 
 const deviceNotSecureStyle = {
   alignSelf: 'stretch',
   backgroundColor: Styles.globalColors.yellow,
-  paddingTop: Styles.globalMargins.tiny,
   paddingBottom: Styles.globalMargins.tiny,
+  paddingTop: Styles.globalMargins.tiny,
 }
 
 export default LoginRender

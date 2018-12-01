@@ -58,9 +58,9 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
             }
           case 'sticky':
             return {
-              mode: newGlueTTL > 0 ? 'sticky' : 'hidden',
-              glueTTL: newGlueTTL,
               displayDuration: newDisplayDuration,
+              glueTTL: newGlueTTL,
+              mode: newGlueTTL > 0 ? 'sticky' : 'hidden',
             }
           default:
             /*::
@@ -99,36 +99,36 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
           if (isUploading) {
             this._startTicker()
             return {
-              mode: 'count-down',
-              glueTTL: initialGlueTTL,
               displayDuration: newDisplayDuration,
+              glueTTL: initialGlueTTL,
+              mode: 'count-down',
             }
           }
           return prevState
         case 'count-down':
           if (isUploading) {
             return {
-              mode,
-              glueTTL,
               displayDuration: newDisplayDuration,
+              glueTTL,
+              mode,
             }
           }
           return {
-            mode: glueTTL > 0 ? 'sticky' : 'hidden',
-            glueTTL,
             displayDuration: newDisplayDuration,
+            glueTTL,
+            mode: glueTTL > 0 ? 'sticky' : 'hidden',
           }
         case 'sticky':
           return isUploading
             ? {
-                mode: 'count-down',
                 displayDuration: newDisplayDuration,
                 glueTTL: initialGlueTTL,
+                mode: 'count-down',
               }
             : {
-                mode,
-                glueTTL,
                 displayDuration: newDisplayDuration,
+                glueTTL,
+                mode,
               }
         default:
           /*::
@@ -142,8 +142,8 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     state = this._updateState(
       {
         displayDuration: 0,
-        mode: 'hidden',
         glueTTL: 0,
+        mode: 'hidden',
       },
       this.props
     )

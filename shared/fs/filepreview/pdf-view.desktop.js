@@ -13,8 +13,8 @@ const PdfView = (props: PdfViewProps) => (
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexGrow,
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
   marginLeft: -globalMargins.medium,
   marginRight: -globalMargins.medium,

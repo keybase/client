@@ -44,12 +44,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   if (stateProps.canManageChat) {
     items.push({
       onClick: dispatchProps.onManageChat,
-      title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
+      title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
     })
   }
   if (stateProps.canLeaveTeam) {
-    items.push({onClick: dispatchProps.onLeaveTeam, title: 'Leave team', danger: true})
+    items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
   }
   if (stateProps.canCreateSubteam) {
     items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})

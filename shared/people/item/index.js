@@ -39,11 +39,11 @@ export default (props: Props) => (
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,
-  paddingTop: globalMargins.tiny,
-  paddingLeft: 12,
-  paddingBottom: globalMargins.tiny,
-  position: 'relative',
   borderBottomWidth: 1,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: 12,
+  paddingTop: globalMargins.tiny,
+  position: 'relative',
   ...(isMobile ? null : {borderStyle: 'solid'}),
 }
 
@@ -51,10 +51,10 @@ const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
 
 const childrenContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  paddingRight: isMobile ? 100 : 80,
-  width: 'auto',
   overflow: 'hidden',
+  paddingRight: isMobile ? 100 : 80,
   position: 'relative',
+  width: 'auto',
 }
 
 const timestampContainerStyle = {

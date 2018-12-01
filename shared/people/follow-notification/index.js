@@ -16,14 +16,14 @@ import {globalStyles, globalColors, globalMargins, platformStyles} from '../../s
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
-  onUsernameClicked: 'profile',
-  inline: true,
   colorFollowing: true,
-  type: 'BodySemibold',
-  underline: true,
+  inline: true,
   joinerStyle: {
     fontWeight: 'normal',
   },
+  onUsernameClicked: 'profile',
+  type: 'BodySemibold',
+  underline: true,
 }
 
 export type NewFollow = Types.FollowedNotification
@@ -91,7 +91,7 @@ export const MultiFollowNotification = (props: Props) => {
       <Text
         type="Body"
         style={platformStyles({
-          common: {marginTop: 2, marginBottom: globalMargins.xtiny},
+          common: {marginBottom: globalMargins.xtiny, marginTop: 2},
           isElectron: {display: 'inline'},
         })}
       >
@@ -107,7 +107,7 @@ export const MultiFollowNotification = (props: Props) => {
         following you.
       </Text>
       <ScrollView
-        {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+        {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={scrollViewContainerStyle}
       >
         {usernames.map(username => (
@@ -126,16 +126,16 @@ export const MultiFollowNotification = (props: Props) => {
 
 const multiIconContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  width: isMobile ? 48 : 32,
   height: isMobile ? 48 : 32,
   position: 'relative',
+  width: isMobile ? 48 : 32,
 }
 
 const multiMetaContainerStyle = {
   ...globalStyles.flexBoxColumn,
+  left: 0,
   position: 'absolute',
   right: 0,
-  left: 0,
   top: isMobile ? 30 : 20,
 }
 
@@ -149,5 +149,5 @@ const scrollViewContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...(isMobile
     ? null
-    : {...globalStyles.flexBoxRow, width: '100%', height: 32, flexWrap: 'wrap', overflow: 'hidden'}),
+    : {...globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),
 }

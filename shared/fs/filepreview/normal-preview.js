@@ -47,19 +47,6 @@ class NormalPreview extends React.PureComponent<NormalPreviewProps, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  outerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    height: '100%',
-    position: 'relative',
-  },
-  greyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.flexGrow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    backgroundColor: Styles.globalColors.blue5,
-  },
   contentContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -72,22 +59,35 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
+  greyContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexGrow,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.blue5,
+    flex: 1,
+    justifyContent: 'center',
+  },
   loading: Styles.platformStyles({
     common: {
       height: 32,
       width: 32,
     },
     isElectron: {
+      left: 40,
       position: 'absolute',
       top: 86,
-      left: 40,
     },
     isMobile: {
+      left: 0,
       position: 'absolute',
       top: 0,
-      left: 0,
     },
   }),
+  outerContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    height: '100%',
+    position: 'relative',
+  },
 })
 
 // TODO: figure out typing here

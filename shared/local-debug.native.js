@@ -37,12 +37,12 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
   isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
-  printRPCBytes: false, // Print raw b64-encoded bytes going over the wire
-  printRPCStats: false, // print detailed info on stats
-  printRPCWaitingSession: false,
-  printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
-  printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
-  printRPC: false, // Print rpc traffic
+  printOutstandingRPCs: false, // Print raw b64-encoded bytes going over the wire
+  printOutstandingTimerListeners: false, // print detailed info on stats
+  printRPC: false,
+  printRPCBytes: false, // Periodically print rpcs we're waiting for
+  printRPCStats: false, // Periodically print listeners to the second clock
+  printRPCWaitingSession: false, // Print rpc traffic
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false,

@@ -15,57 +15,57 @@ import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-
 
 const connectPropsMap: RowConnectPropsMap = {
   chris: {
+    leftFollowingState: 'Following',
     leftFullname: 'chris',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'Chris Coyne',
 
+    leftUsername: 'Chris Coyne',
+    rightFollowingState: 'NoState',
     rightIcon: null,
     rightIconOpaque: true,
+
     rightService: null,
     rightUsername: null,
-
-    leftFollowingState: 'Following',
-    rightFollowingState: 'NoState',
-    userIsInTeam: false,
     userAlreadySelected: false,
+    userIsInTeam: false,
     userIsSelectable: true,
   },
   cjb: {
+    leftFollowingState: 'NotFollowing',
     leftFullname: 'cjb',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'Chris Ball',
 
+    leftUsername: 'Chris Ball',
+    rightFollowingState: 'NoState',
     rightIcon: null,
     rightIconOpaque: true,
+
     rightService: null,
     rightUsername: null,
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NoState',
-    userIsInTeam: false,
     userAlreadySelected: false,
+    userIsInTeam: false,
     userIsSelectable: true,
   },
   jzila: {
+    leftFollowingState: 'NotFollowing',
     leftFullname: 'jzila',
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-    leftUsername: 'John Zila',
 
+    leftUsername: 'John Zila',
+    rightFollowingState: 'NoState',
     rightIcon: null,
     rightIconOpaque: true,
+
     rightService: null,
     rightUsername: null,
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NoState',
-    userIsInTeam: false,
     userAlreadySelected: false,
+    userIsInTeam: false,
     userIsSelectable: true,
   },
 }
@@ -78,55 +78,55 @@ const participantProviderProperties = {
 const provider = Sb.createPropProviderWithCommon(participantProviderProperties)
 
 const primaryAccount: Account = {
-  name: 'Primary Account',
   contents: '2000 XLM',
   id: stringToAccountID('fakeaccountID'),
   isDefault: true,
+  name: 'Primary Account',
 }
 
 const accounts = [
   primaryAccount,
   {
-    name: 'Secondary Account',
     contents: '6435 XLM',
     id: stringToAccountID('fakeaccountID2'),
     isDefault: false,
+    name: 'Secondary Account',
   },
   {
-    name: 'third Account',
     contents: '10 XLM',
     id: stringToAccountID('fakeaccountID3'),
     isDefault: false,
+    name: 'third Account',
   },
 ]
 
 const keybaseUserProps = {
   isRequest: false,
-  recipientUsername: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
+  onScanQRCode: null,
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
-  onRemoveProfile: Sb.action('onRemoveProfile'),
-  onChangeRecipient: Sb.action('onChangeRecipient'),
-  onScanQRCode: null,
+  recipientUsername: '',
 }
 
 const stellarPublicKeyProps = {
   keyCounter: 0,
-  recipientPublicKey: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onScanQRCode: Sb.action('onScanQRCode'),
+  recipientPublicKey: '',
   setReadyToSend: Sb.action('setReadyToSend'),
 }
 
 const otherAccountProps = {
-  user: 'cjb',
-  fromAccount: primaryAccount,
   allAccounts: accounts,
+  fromAccount: primaryAccount,
   onChangeFromAccount: Sb.action('onChangeFromAccount'),
   onChangeRecipient: Sb.action('onChangeRecipient'),
-  onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
+  onLinkAccount: Sb.action('onLinkAccount'),
   showSpinner: false,
+  user: 'cjb',
 }
 
 const load = () => {

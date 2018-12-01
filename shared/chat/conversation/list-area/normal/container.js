@@ -30,16 +30,16 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  copyToClipboard: dispatchProps.copyToClipboard,
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
+  copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
   listScrollDownCounter: ownProps.listScrollDownCounter,

@@ -46,14 +46,14 @@ const mapDispatchToProps = (dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(
       TeamsGen.createAddToTeam({
-        teamname,
-        username,
         role,
         sendChatNotification: sendNotification,
+        teamname,
+        username,
       })
     ),
   _onEditMember: (teamname, username, role) =>
-    dispatch(TeamsGen.createEditMembership({teamname, username, role})),
+    dispatch(TeamsGen.createEditMembership({role, teamname, username})),
   onCancel: () => dispatch(navigateUp()),
 })
 
@@ -74,9 +74,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     // $FlowIssue
     ...ownProps,
     allowOwner: isOwner(stateProps.yourRole),
+    currentType: user ? user.type : 'reader',
     onComplete,
     showSendNotification,
-    currentType: user ? user.type : 'reader',
   }
 }
 
@@ -88,14 +88,14 @@ export default compose(
   ),
   withStateHandlers(
     ({currentType}: {currentType: Types.TeamRoleType}) => ({
+      confirm: false,
       selectedRole: currentType,
       sendNotification: false,
-      confirm: false,
     }),
     {
+      setConfirm: () => confirm => ({confirm}),
       setSelectedRole: () => (selectedRole: Types.TeamRoleType) => ({selectedRole}),
       setSendNotification: () => sendNotification => ({sendNotification}),
-      setConfirm: () => confirm => ({confirm}),
     }
   )
 )(RolePicker)

@@ -166,7 +166,7 @@ type WrapperState = {|
 |}
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
-  state = {secretKey: '', name: ''}
+  state = {name: '', secretKey: ''}
   _onKeyChange = (secretKey: string) => this.setState({secretKey})
   _onNameChange = (name: string) => this.setState({name})
   _onDone = () => this.props.onDone(this.state.secretKey, this.state.name)

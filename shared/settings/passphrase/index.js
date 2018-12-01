@@ -27,10 +27,10 @@ class UpdatePassphrase extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
+      canSave: false,
       passphrase: '',
       passphraseConfirm: '',
       showTyping: false,
-      canSave: false,
     }
   }
 

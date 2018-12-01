@@ -29,17 +29,17 @@ const mapStateToProps = state => {
   }
 
   return {
-    recipientType,
-    yourUsername: state.config.username,
     fromAccountAssets: fromAccount.balanceDescription,
     fromAccountIsDefault: fromAccount.isDefault,
     fromAccountName: fromAccount.name,
-    recipientStellarAddress,
-    recipientAccountName,
-    recipientAccountIsDefault,
     recipientAccountAssets,
+    recipientAccountIsDefault,
+    recipientAccountName,
     recipientFullName,
+    recipientStellarAddress,
+    recipientType,
     recipientUsername,
+    yourUsername: state.config.username,
   }
 }
 

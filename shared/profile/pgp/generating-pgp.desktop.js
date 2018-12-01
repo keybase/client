@@ -38,8 +38,8 @@ const styleHeader = {
 }
 
 const styleBody = {
-  marginTop: globalMargins.small,
   marginBottom: globalMargins.large,
+  marginTop: globalMargins.small,
 }
 
 const styleCancelButton = {

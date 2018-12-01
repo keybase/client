@@ -7,67 +7,67 @@ import UnfurlList from '.'
 
 const provider = Sb.createPropProviderWithCommon({
   UnfurlGeneric: p => ({
-    title: p.unfurl.title,
-    url: p.unfurl.url,
-    siteName: p.unfurl.siteName,
     description: p.unfurl.description,
-    publishTime: p.unfurl.publishTime,
     faviconURL: p.unfurl.faviconURL,
     imageURL: p.unfurl.image ? p.unfurl.image.url : undefined,
     onClose: p.onClose,
+    publishTime: p.unfurl.publishTime,
     showImageOnSide: p.unfurl.image ? p.unfurl.image.height >= p.unfurl.image.width : false,
+    siteName: p.unfurl.siteName,
+    title: p.unfurl.title,
+    url: p.unfurl.url,
   }),
 })
 
 const unfurls = [
   {
     onClose: Sb.action('onClose'),
-    url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
     unfurl: {
-      unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
       generic: {
-        title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
-        url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
-        siteName: 'WSJ',
-        publishTime: 1542241021655,
         description:
           'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
-        onClose: Sb.action('onClose'),
         favicon: {
           height: 20,
-          width: 20,
           url: require('../../../../../images/mock/wsj.jpg'),
+          width: 20,
         },
         image: {
           height: 400,
-          width: 900,
           url: require('../../../../../images/mock/wsj_image.jpg'),
+          width: 900,
         },
+        onClose: Sb.action('onClose'),
+        publishTime: 1542241021655,
+        siteName: 'WSJ',
+        title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
+        url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
       },
+      unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
     },
+    url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
   },
   {
     onClose: Sb.action('onClose'),
-    url: 'https://github.com/keybase/client"',
     unfurl: {
-      unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
       generic: {
-        title: 'keybase/client',
-        url: 'https://github.com/keybase/client"',
-        siteName: 'GitHub',
         description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
         favicon: {
           height: 20,
-          width: 20,
           url: require('../../../../../images/mock/github_fav.jpg'),
+          width: 20,
         },
         image: {
           height: 150,
-          width: 150,
           url: require('../../../../../images/mock/github.jpg'),
+          width: 150,
         },
+        siteName: 'GitHub',
+        title: 'keybase/client',
+        url: 'https://github.com/keybase/client"',
       },
+      unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
     },
+    url: 'https://github.com/keybase/client"',
   },
 ]
 

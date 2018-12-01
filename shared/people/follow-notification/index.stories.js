@@ -6,40 +6,40 @@ import FollowNotification from '.'
 import moment from 'moment'
 
 const singleFollowProps1 = {
-  type: 'notification',
-  newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
+  newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   notificationTime: new Date(),
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
 const singleFollowProps2 = {
-  type: 'notification',
-  newFollows: [C.makeFollowedNotification({username: 'max'})],
   badged: false,
+  newFollows: [C.makeFollowedNotification({username: 'max'})],
   notificationTime: moment()
     .subtract(3, 'days')
     .toDate(),
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
 const multiFollowProps1 = {
-  type: 'notification',
+  badged: true,
   newFollows: [
     C.makeFollowedNotification({username: 'max'}),
     C.makeFollowedNotification({username: 'mmaxim'}),
     C.makeFollowedNotification({username: 'chrisnojima'}),
   ],
-  badged: true,
   notificationTime: moment()
     .subtract(3, 'weeks')
     .toDate(),
   numAdditional: 0,
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
 const multiFollowProps2 = {
-  type: 'notification',
+  badged: false,
   newFollows: [
     C.makeFollowedNotification({username: 'max'}),
     C.makeFollowedNotification({username: 'mmaxim'}),
@@ -54,12 +54,12 @@ const multiFollowProps2 = {
     C.makeFollowedNotification({username: 'mlsteele'}),
     C.makeFollowedNotification({username: 'joshblum'}),
   ],
-  badged: false,
   notificationTime: moment()
     .subtract(3, 'months')
     .toDate(),
   numAdditional: 5,
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
 const load = () => {

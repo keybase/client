@@ -27,7 +27,7 @@ const mapStateToProps = (state, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   _onSetDescription: (description: string) => {
-    dispatch(TeamsGen.createEditTeamDescription({teamname: routeProps.get('teamname'), description}))
+    dispatch(TeamsGen.createEditTeamDescription({description, teamname: routeProps.get('teamname')}))
     dispatch(navigateUp())
   },
   onClose: () => dispatch(navigateUp()),

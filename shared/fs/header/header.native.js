@@ -33,11 +33,8 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
 )
 
 const styles = styleSheetCreate({
-  stylesFolderHeaderRow: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    paddingTop: 12,
-    minHeight: 64,
+  stylesAddNewBox: {
+    minWidth: 50,
   },
   stylesFolderHeaderContainer: {
     ...globalStyles.flexBoxColumn,
@@ -45,23 +42,26 @@ const styles = styleSheetCreate({
     minHeight: 64,
   },
   stylesFolderHeaderRoot: {
-    paddingTop: 9,
-    paddingBottom: 21,
-    flexShrink: 1,
     flexGrow: 1,
+    flexShrink: 1,
+    paddingBottom: 21,
+    paddingTop: 9,
+  },
+  stylesFolderHeaderRow: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    minHeight: 64,
+    paddingTop: 12,
   },
   stylesIcons: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     padding: globalMargins.tiny,
-    paddingRight: globalMargins.small - 4,
     paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small - 4,
   },
   stylesTitle: {
     textAlign: 'center',
-  },
-  stylesAddNewBox: {
-    minWidth: 50,
   },
 })
 export default Header

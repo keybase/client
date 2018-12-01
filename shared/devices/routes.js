@@ -9,13 +9,9 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
 const routeTree = makeRouteDefNode({
   children: {
-    error: {
-      component: ErrorPage,
-      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
-    },
     codePage: {
       component: CodePage,
-      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
+      tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
     },
     devicePage: {
       children: {
@@ -25,6 +21,10 @@ const routeTree = makeRouteDefNode({
         },
       },
       component: DevicePage,
+    },
+    error: {
+      component: ErrorPage,
+      tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
     },
     paperKey: {component: PaperKey},
   },

@@ -24,8 +24,8 @@ const Progress = ({completePortion, text, width}: ProgressProps) => (
 
 const stylesOuter = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'flex-start',
   alignItems: 'center',
+  justifyContent: 'flex-start',
 }
 
 const stylesTubeBox = {

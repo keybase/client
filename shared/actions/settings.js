@@ -52,9 +52,9 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
       return
     }
     yield Saga.call(RPCTypes.accountPassphraseChangeRpcPromise, {
+      force: true,
       oldPassphrase: '',
       passphrase: newPassphrase.stringValue(),
-      force: true,
     })
     yield Saga.put(navigateUp())
   } catch (error) {
@@ -103,9 +103,9 @@ function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
 
     const [result] = yield Saga.all([
       Saga.call(RPCTypes.apiserverPostJSONRpcPromise, {
-        endpoint: 'account/subscribe',
-        args: [],
         JSONPayload,
+        args: [],
+        endpoint: 'account/subscribe',
       }),
       Saga.call(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
         settings: {
@@ -129,8 +129,8 @@ function* _reclaimInviteSaga(
   const {inviteId} = invitesReclaimAction.payload
   try {
     yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      endpoint: 'cancel_invitation',
       args: [{key: 'invitation_id', value: inviteId}],
+      endpoint: 'cancel_invitation',
     })
     yield Saga.put(SettingsGen.createInvitesReclaimed())
   } catch (e) {
@@ -146,8 +146,8 @@ function* _reclaimInviteSaga(
 
 function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
   const json: ?{body: string} = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-    endpoint: 'invitations_sent',
     args: [],
+    endpoint: 'invitations_sent',
   })
 
   const results: {
@@ -174,10 +174,10 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
       key: i.invitation_id,
       // type will get filled in later
       type: '',
-      username: i.username,
       uid: i.uid,
-      // First ten chars of invite code is sufficient
       url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
+      // First ten chars of invite code is sufficient
+      username: i.username,
     }
     // Here's an algorithm for interpreting invitation entries.
     // 1: username+uid => accepted invite, else
@@ -195,8 +195,8 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.createInvitesRefreshed({
       invites: {
         acceptedInvites,
-        pendingInvites,
         error: null,
+        pendingInvites,
       },
     })
   )
@@ -213,8 +213,8 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
     }
 
     const response: ?{body: string} = yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      endpoint: 'send_invitation',
       args,
+      endpoint: 'send_invitation',
     })
     if (response) {
       const parsedBody = JSON.parse(response.body)
@@ -232,11 +232,11 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
       yield Saga.put(
         navigateAppend([
           {
-            selected: 'inviteSent',
             props: {
               email,
               link,
             },
+            selected: 'inviteSent',
           },
         ])
       )
@@ -267,8 +267,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
     [
       Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-        endpoint: 'account/subscriptions',
         args: [],
+        endpoint: 'account/subscriptions',
       }),
       Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
     ]
@@ -299,8 +299,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   results.notifications[Constants.securityGroup] = {
     settings: [
       {
-        name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
+        name: 'plaintextmobile',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
         ],
@@ -309,8 +309,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
         ? []
         : [
             {
-              name: 'defaultsoundmobile',
               description: 'Use mobile system default notification sound',
+              name: 'defaultsoundmobile',
               subscribed: !!chatGlobalSettings.settings[
                 `${ChatTypes.commonGlobalAppNotificationSetting.defaultsoundmobile}`
               ],
@@ -322,9 +322,9 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
 
   const settingsToPayload = s =>
     ({
+      description: s.description,
       name: s.name,
       subscribed: s.subscribed,
-      description: s.description,
     } || [])
 
   const groups = results.notifications

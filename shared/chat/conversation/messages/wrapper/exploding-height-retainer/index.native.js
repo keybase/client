@@ -225,17 +225,17 @@ const AshTower = (props: {explodedBy: ?string, numImages: number, showExploded: 
 }
 const styles = styleSheetCreate({
   ashes: {
-    width: 400,
     height: 80,
+    width: 400,
   },
   emojiTower: {
     ...globalStyles.flexBoxColumn,
+    bottom: 0,
+    overflow: 'hidden',
     position: 'absolute',
     right: 0,
     top: 0,
-    bottom: 0,
     width: 20,
-    overflow: 'hidden',
   },
   exploded: {
     backgroundColor: globalColors.white,
@@ -246,20 +246,20 @@ const styles = styleSheetCreate({
   },
   slider: {
     backgroundColor: globalColors.white,
+    bottom: 0,
     height: '100%',
+    left: 0,
     overflow: 'hidden',
     position: 'absolute',
     top: 0,
-    bottom: 0,
-    left: 0,
   },
   tagBox: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'flex-end',
-    position: 'absolute',
-    right: 0,
     bottom: 2,
     minWidth: 200,
+    position: 'absolute',
+    right: 0,
   },
 })
 export default ExplodingHeightRetainer

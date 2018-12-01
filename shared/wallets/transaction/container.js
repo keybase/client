@@ -15,8 +15,8 @@ export type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
-  _you: state.config.username,
   _unread: Constants.isPaymentUnread(state, ownProps.accountID, ownProps.paymentID),
+  _you: state.config.username,
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -51,11 +51,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 
   return {
-    yourRole,
-    counterparty,
-    counterpartyType,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
+    counterparty,
+    counterpartyType,
     memo,
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
@@ -69,6 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
     unread: stateProps._unread,
+    yourRole,
   }
 }
 

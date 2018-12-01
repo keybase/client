@@ -75,8 +75,8 @@ const _backButtonIconColorThemed = {
 
 const _containerStyle = {
   ...Styles.globalStyles.flexBoxColumn,
-  position: 'relative',
   height: '100%',
+  position: 'relative',
   width: '100%',
 }
 

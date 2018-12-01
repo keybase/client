@@ -69,23 +69,23 @@ const styleEntry = {
 const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  height: 80,
   justifyContent: 'center',
   width: 80,
-  height: 80,
 }
 
 const styleIcon = {
-  width: 48,
   height: 48,
+  width: 48,
 }
 
 const styleInfoContainer = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'flex-start',
-  textAlign: 'left',
   marginLeft: globalMargins.small,
+  textAlign: 'left',
 }
 
 export default ChoiceList

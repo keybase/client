@@ -13,8 +13,8 @@ type OwnProps = {|
 const mapStateToProps = state => {
   const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
-    kbfsEnabled,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
+    kbfsEnabled,
     showSecurityPrefsLink: !kbfsEnabled && state.fs.flags.kextPermissionError,
   }
 }

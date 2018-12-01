@@ -17,8 +17,8 @@ const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
   alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const styleIcon = {

@@ -27,11 +27,11 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     channelMentionFilter: '',
     channelMentionHudIsShowing: false,
     channelMentionPopupOpen: false,
+    downArrowCounter: 0,
     mentionFilter: '',
     mentionHudIsShowing: false,
     mentionPopupOpen: false,
     pickSelectedCounter: 0,
-    downArrowCounter: 0,
     upArrowCounter: 0,
   }
 
@@ -96,11 +96,11 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         const newText = text.slice(0, startOfWordIdx) + newWord + text.slice(pos)
         const newPos = startOfWordIdx + newWord.length
         return {
-          text: newText,
           selection: {
-            start: newPos,
             end: newPos,
+            start: newPos,
           },
+          text: newText,
         }
       })
     }
@@ -108,7 +108,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _onChangeText = (nextText: string) => {
     this.props.onChangeText(nextText)
-    const selection = this._inputRef ? this._inputRef.selection() : {start: 0, end: 0}
+    const selection = this._inputRef ? this._inputRef.selection() : {end: 0, start: 0}
     const word = this._getWordAtCursor(nextText, selection.start)
     const isPopupOpen = this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
     if (!isPopupOpen && selection.start === selection.end) {

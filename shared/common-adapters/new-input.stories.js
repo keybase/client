@@ -8,13 +8,13 @@ import NewInput from './new-input'
 
 const actions = {
   onBlur: action('onBlur'),
-  onClick: action('onClick'),
   onChangeText: action('onChangeText'),
+  onClick: action('onClick'),
+  onEndEditing: action('onEndEditing'),
+  onEnterKeyDown: action('onEnterKeyDown'),
   onFocus: action('onFocus'),
   onKeyDown: action('onKeyDown'),
   onKeyUp: action('onKeyUp'),
-  onEndEditing: action('onEndEditing'),
-  onEnterKeyDown: action('onEnterKeyDown'),
 }
 
 const load = () => {

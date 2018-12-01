@@ -17,21 +17,21 @@ const Container = ({children, onBack, style, outerStyle}: Props) => {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
+  flex: 1,
   justifyContent: 'flex-start',
   padding: 64,
-  flex: 1,
 }
 
 const stylesInnerContainer = {
   ...globalStyles.flexBoxColumn,
   alignSelf: 'stretch',
-  width: '100%',
   height: '100%',
+  width: '100%',
 }
 
 const stylesButton = {
-  zIndex: 9999,
   position: 'absolute',
+  zIndex: 9999,
 }
 
 export default Container

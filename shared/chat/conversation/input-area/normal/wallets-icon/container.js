@@ -47,8 +47,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const to = otherParticipants.first()
   return {
     isNew: stateProps.isNew,
-    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
     onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
+    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
     shouldRender: true,
     size: ownProps.size,
     style: ownProps.style,

@@ -16,13 +16,12 @@ type State = {|
 const mapStateToProps = ({conversations}: State) => ({conversations})
 
 const mapDispatchToProps = dispatch => ({
-  onViewAll: () => dispatch(Chat2Gen.createOpenChatFromWidget({})),
   _onSelectConversation: (conversationIDKey: ChatTypes.ConversationIDKey) =>
     dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey})),
+  onViewAll: () => dispatch(Chat2Gen.createOpenChatFromWidget({})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  onViewAll: dispatchProps.onViewAll,
   convRows: stateProps.conversations
     .slice(0, ownProps.convLimit ? ownProps.convLimit : stateProps.conversations.length)
     .map(c => ({
@@ -30,6 +29,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       onSelectConversation: () => dispatchProps._onSelectConversation(c.conversationIDKey),
       ...c,
     })),
+  onViewAll: dispatchProps.onViewAll,
 })
 
 export default remoteConnect<OwnProps, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(

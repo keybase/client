@@ -41,10 +41,10 @@ export const makeDevice: I.RecordFactory<Types._Device> = I.Record({
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   deviceMap: I.Map(),
   endangeredTLFMap: I.Map(),
+  isNew: I.Set(),
   justRevokedSelf: '',
   newPaperkey: new HiddenString(''),
   selectedDeviceID: null,
-  isNew: I.Set(),
 })
 
 const emptyDevice = makeDevice()

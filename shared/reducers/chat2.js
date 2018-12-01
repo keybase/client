@@ -298,7 +298,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           return l
         }
         // $FlowIssue it's not really possible to do anything to a message in general
-        return l.concat({ordinal, msg: msg.message.set('ordinal', ordinal)})
+        return l.concat({msg: msg.message.set('ordinal', ordinal), ordinal})
       }, [])
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
         if (!messages) {

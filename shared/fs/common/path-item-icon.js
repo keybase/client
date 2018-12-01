@@ -51,8 +51,8 @@ const PathItemIcon = ({spec, style, size}: PathItemIconProps) => {
           style={iconCastPlatformStyles(
             Styles.collapseStyles([
               !!size && {
-                width: size,
                 height: size,
+                width: size,
               },
               style,
             ])

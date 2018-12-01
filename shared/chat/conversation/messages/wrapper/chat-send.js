@@ -5,9 +5,9 @@ import {Icon, type IconType, HOCTimers, type PropsWithTimer} from '../../../../c
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
 const statusToIcon: {[key: IconStatus]: IconType} = {
   encrypting: 'icon-message-status-encrypting-24',
+  error: 'icon-message-status-error-24',
   sending: 'icon-message-status-sending-24',
   sent: 'icon-message-status-sent-24',
-  error: 'icon-message-status-error-24',
 }
 
 const encryptingTimeout = 600
@@ -16,7 +16,7 @@ const sentTimeout = 400
 const shownEncryptingSet = new Set()
 
 const SendIcon = (props: {status: IconStatus, style: any}) => (
-  <Icon type={statusToIcon[props.status]} style={{width: 24, height: 16, ...props.style}} />
+  <Icon type={statusToIcon[props.status]} style={{height: 16, width: 24, ...props.style}} />
 )
 
 type Props = PropsWithTimer<{

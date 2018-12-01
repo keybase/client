@@ -76,6 +76,7 @@ class Header extends Component<Props> {
 Header.defaultProps = {type: 'Default', windowDragging: true}
 
 const styles = {
+  closeIcon: collapseStyles([desktopStyles.windowDraggingClickable, desktopStyles.clickable]),
   container: collapseStyles([
     globalStyles.flexBoxRow,
     desktopStyles.noSelect,
@@ -84,22 +85,21 @@ const styles = {
       paddingRight: 10,
     },
   ]),
+  defaultContainer: {
+    paddingBottom: 6,
+    paddingTop: 6,
+  },
   logo: {
-    width: 22,
     height: 22,
     marginRight: 8,
-  },
-  defaultContainer: {
-    paddingTop: 6,
-    paddingBottom: 6,
-  },
-  strongContainer: {
-    backgroundColor: globalColors.blue,
-    paddingTop: 6,
-    paddingBottom: 12,
+    width: 22,
   },
 
-  closeIcon: collapseStyles([desktopStyles.windowDraggingClickable, desktopStyles.clickable]),
+  strongContainer: {
+    backgroundColor: globalColors.blue,
+    paddingBottom: 12,
+    paddingTop: 6,
+  },
 }
 
 export default Header

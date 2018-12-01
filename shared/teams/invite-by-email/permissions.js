@@ -32,7 +32,7 @@ export const getAndroidContacts: () => Promise<ContactsResult> = () =>
                 if (err) {
                   reject(err)
                 } else {
-                  resolve({hasPermission: true, contacts})
+                  resolve({contacts, hasPermission: true})
                 }
               })
             } else {
@@ -47,7 +47,7 @@ export const getAndroidContacts: () => Promise<ContactsResult> = () =>
           if (err) {
             reject(err)
           } else {
-            resolve({hasPermission: true, contacts})
+            resolve({contacts, hasPermission: true})
           }
         })
       } else {
@@ -62,7 +62,7 @@ export const getiOSContacts: () => Promise<ContactsResult> = () =>
       if (err) {
         reject(err)
       } else {
-        resolve({hasPermission: true, contacts})
+        resolve({contacts, hasPermission: true})
       }
     })
   })

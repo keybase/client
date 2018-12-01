@@ -20,39 +20,36 @@ import UserEmail from './email/container'
 import SecurityPrefs from '../fs/common/security-prefs-container.desktop'
 
 const routeTree = makeRouteDefNode({
-  defaultSelected: Constants.landingTab,
-  containerComponent: Settings,
   children: {
     [Constants.landingTab]: {
-      component: LandingContainer,
       children: {
-        changePassphrase: {
-          component: Passphrase,
-        },
         changeEmail: {
           component: UserEmail,
+        },
+        changePassphrase: {
+          component: Passphrase,
         },
         // changePlan: {
         // component: PlanDetails,
         // },
       },
+      component: LandingContainer,
     },
     [Constants.updatePaymentTab]: {
       component: UpdatePayment,
     },
     [Constants.invitationsTab]: {
-      component: InvitationsContainer,
       children: {
         inviteSent: {
           component: InviteGenerated,
         },
       },
+      component: InvitationsContainer,
     },
     [Constants.notificationsTab]: {
       component: NotificationsContainer,
     },
     [Constants.deleteMeTab]: {
-      component: DeleteContainer,
       children: {
         deleteConfirm: {
           component: DeleteConfirm,
@@ -63,28 +60,31 @@ const routeTree = makeRouteDefNode({
           tags: makeLeafTags({modal: true}),
         },
       },
+      component: DeleteContainer,
     },
     [Constants.advancedTab]: {
-      component: AdvancedContainer,
       children: {
         dbNukeConfirm: {
           component: DBNukeConfirm,
           tags: makeLeafTags({modal: true}),
         },
       },
+      component: AdvancedContainer,
     },
     [Constants.fsTab]: {
-      component: FilesContainer,
       children: {
         securityPrefs: {
           component: SecurityPrefs,
         },
       },
+      component: FilesContainer,
     },
     [Constants.chatTab]: {
       component: ChatContainer,
     },
   },
+  containerComponent: Settings,
+  defaultSelected: Constants.landingTab,
 })
 
 export default routeTree

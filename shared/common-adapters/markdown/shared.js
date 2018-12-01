@@ -153,7 +153,7 @@ const emailRegex = {
     const r = /^( *)(([\w-_.]*)@([\w-]+(\.[\w-]+)+))\b/i
     const result = r.exec(source)
     if (result) {
-      result.groups = {tld: result[5], emailAdress: result[2]}
+      result.groups = {emailAdress: result[2], tld: result[5]}
       return result
     }
     return null
@@ -163,8 +163,8 @@ const inlineEmailMatch = SimpleMarkdown.inlineRegex(emailRegex)
 
 const wrapInParagraph = (parse, content, state) => [
   {
-    type: 'paragraph',
     content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
+    type: 'paragraph',
   },
 ]
 
@@ -179,103 +179,6 @@ const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules = {
-  newline: {
-    // handle newlines, keep this to handle \n w/ other matchers
-    ...SimpleMarkdown.defaultRules.newline,
-    // original
-    // match: blockRegex(/^(?:\n *)*\n/),
-    // ours: handle \n inside text also
-    match: SimpleMarkdown.anyScopeRegex(/^\n/),
-  },
-  escape: {
-    // handle escaped chars, keep this to handle escapes globally
-    ...SimpleMarkdown.defaultRules.escape,
-  },
-  fence: {
-    // aka the ``` code blocks
-    ...SimpleMarkdown.defaultRules.fence,
-    order: 0,
-    // original:
-    // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
-    // ours: three ticks (anywhere) and remove any newlines in front and one in back
-    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/),
-    parse: function(capture, parse, state) {
-      return {
-        content: capture[1],
-        lang: undefined,
-        type: 'fence',
-      }
-    },
-  },
-  quotedFence: {
-    // The ``` code blocks in a quote block >
-    // i.e.
-    // > They wrote ```
-    //  foo = true
-    // ```
-    // It's much easier and cleaner to make this a separate rule
-    ...SimpleMarkdown.defaultRules.fence,
-    order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
-    // Example: https://regex101.com/r/ZiDBsO/6
-    match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
-    parse: function(capture, parse, state) {
-      const preContent =
-        isMobile && !!capture[1]
-          ? wrapInParagraph(parse, capture[1], state)
-          : SimpleMarkdown.parseInline(parse, capture[1], state)
-      return {
-        content: [
-          ...preContent,
-          {
-            content: capture[2],
-            type: 'fence',
-          },
-        ],
-        type: 'blockQuote',
-      }
-    },
-  },
-  inlineCode: {
-    ...SimpleMarkdown.defaultRules.inlineCode,
-    // original:
-    // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
-    // ours: only allow a single backtick
-    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
-  },
-  paragraph: {
-    ...SimpleMarkdown.defaultRules.paragraph,
-    // original:
-    // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
-    // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
-    match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
-    parse: (capture, parse, state) => {
-      // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-      const content = isMobile ? capture[1].replace(/\n$/, '') : capture[1]
-      return {
-        content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
-      }
-    },
-  },
-  strong: {
-    ...SimpleMarkdown.defaultRules.strong,
-    // original
-    // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
-    // ours: single stars
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/)),
-  },
-  em: {
-    ...SimpleMarkdown.defaultRules.em,
-    // original is pretty long so not inlining it here
-    // ours: wrapped in _'s
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/)),
-  },
-  del: {
-    ...SimpleMarkdown.defaultRules.del,
-    // original:
-    // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
-    // ours: single tilde doesn't cross a newline
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
-  },
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
     // match: blockRegex(/^( *>[^\n]+(\n[^\n]+)*\n*)+\n{2,}/),
@@ -284,15 +187,6 @@ const rules = {
     // ours: Everything in the quote has to be preceded by >
     // unless it has the start of a fence
     // e.g. https://regex101.com/r/ZiDBsO/8
-    parse: (capture, parse, state) => {
-      const content = capture[0].replace(/^ *> */gm, '')
-      const blockQuoteRecursionLevel = state.blockQuoteRecursionLevel || 0
-      const nextState = {...state, blockQuoteRecursionLevel: blockQuoteRecursionLevel + 1}
-
-      return {
-        content: parse(content, nextState),
-      }
-    },
     match: (source, state, lookbehind) => {
       if (state.blockQuoteRecursionLevel > 6) {
         return null
@@ -306,6 +200,126 @@ const rules = {
         return match
       }
       return null
+    },
+    parse: (capture, parse, state) => {
+      const content = capture[0].replace(/^ *> */gm, '')
+      const blockQuoteRecursionLevel = state.blockQuoteRecursionLevel || 0
+      const nextState = {...state, blockQuoteRecursionLevel: blockQuoteRecursionLevel + 1}
+
+      return {
+        content: parse(content, nextState),
+      }
+    },
+  },
+  channel: {
+    // Just needs to be a higher order than mentions
+    match: (source, state, lookBehind) => {
+      const channelRegex = createChannelRegex(state.markdownMeta)
+      if (!channelRegex) {
+        return null
+      }
+
+      const matches = SimpleMarkdown.inlineRegex(channelRegex)(source, state, lookBehind)
+      // Also check that the lookBehind is not text
+      if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
+        return matches
+      }
+
+      return null
+    },
+    order: SimpleMarkdown.defaultRules.autolink.order + 0.5,
+    parse: (capture, parse, state) => ({
+      content: capture[1],
+      convID: channelNameToConvID(state.markdownMeta, capture[1]),
+      type: 'channel',
+    }),
+  },
+  del: {
+    ...SimpleMarkdown.defaultRules.del,
+    // original:
+    // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
+    // ours: single tilde doesn't cross a newline
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
+  },
+  em: {
+    ...SimpleMarkdown.defaultRules.em,
+    // original is pretty long so not inlining it here
+    // ours: wrapped in _'s
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/)),
+  },
+  emoji: {
+    match: SimpleMarkdown.inlineRegex(emojiRegex),
+    order: SimpleMarkdown.defaultRules.text.order - 0.5,
+    parse: function(capture, parse, state) {
+      // If it's a unicode emoji, let's get it's shortname
+      const shortName = emojiIndexByChar[capture[0]]
+      return {content: shortName || capture[0]}
+    },
+  },
+  escape: {
+    // handle escaped chars, keep this to handle escapes globally
+    ...SimpleMarkdown.defaultRules.escape,
+  },
+  fallbackParagraph: {
+    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
+    // $FlowIssue - tricky to get this to type properly
+    order: 10000,
+    parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
+  },
+  fence: {
+    // aka the ``` code blocks
+    ...SimpleMarkdown.defaultRules.fence,
+    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/),
+    // original:
+    // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
+    // ours: three ticks (anywhere) and remove any newlines in front and one in back
+    order: 0,
+    parse: function(capture, parse, state) {
+      return {
+        content: capture[1],
+        lang: undefined,
+        type: 'fence',
+      }
+    },
+  },
+  inlineCode: {
+    ...SimpleMarkdown.defaultRules.inlineCode,
+    // original:
+    // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
+    // ours: only allow a single backtick
+    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
+  },
+  link: {
+    match: (source, state, lookBehind) => {
+      const matches = inlineLinkMatch(source, state, lookBehind)
+      // If there is a match, let's also check if it's a valid tld
+      if (
+        matches &&
+        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
+        matches.groups &&
+        tldExp.exec(matches.groups.tld)
+      ) {
+        return matches
+      }
+      return null
+    },
+    order: SimpleMarkdown.defaultRules.newline.order + 0.5,
+    parse: function(capture, parse, state) {
+      return {content: capture[2], spaceInFront: capture[1]}
+    },
+  },
+  mailto: {
+    match: (source, state, lookBehind) => {
+      const matches = inlineEmailMatch(source, state, lookBehind)
+      // If there is a match, let's also check if it's a valid tld
+      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
+        return matches
+      }
+      return null
+    },
+    order: SimpleMarkdown.defaultRules.text.order - 0.4,
+    parse: function(capture, parse, state) {
+      return {content: capture[2], mailto: `mailto:${capture[2]}`, spaceInFront: capture[1]}
     },
   },
   mention: {
@@ -326,32 +340,71 @@ const rules = {
       return null
     },
     parse: capture => ({
-      type: 'mention',
       content: capture[1],
+      type: 'mention',
     }),
   },
-  channel: {
-    // Just needs to be a higher order than mentions
-    order: SimpleMarkdown.defaultRules.autolink.order + 0.5,
-    match: (source, state, lookBehind) => {
-      const channelRegex = createChannelRegex(state.markdownMeta)
-      if (!channelRegex) {
-        return null
+  newline: {
+    // handle newlines, keep this to handle \n w/ other matchers
+    ...SimpleMarkdown.defaultRules.newline,
+    // original
+    // match: blockRegex(/^(?:\n *)*\n/),
+    // ours: handle \n inside text also
+    match: SimpleMarkdown.anyScopeRegex(/^\n/),
+  },
+  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
+  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
+  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
+  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
+  // it won't match.
+  paragraph: {
+    ...SimpleMarkdown.defaultRules.paragraph,
+    // original:
+    // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
+    // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
+    match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
+    parse: (capture, parse, state) => {
+      // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
+      const content = isMobile ? capture[1].replace(/\n$/, '') : capture[1]
+      return {
+        content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
       }
-
-      const matches = SimpleMarkdown.inlineRegex(channelRegex)(source, state, lookBehind)
-      // Also check that the lookBehind is not text
-      if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
-        return matches
-      }
-
-      return null
     },
-    parse: (capture, parse, state) => ({
-      type: 'channel',
-      content: capture[1],
-      convID: channelNameToConvID(state.markdownMeta, capture[1]),
-    }),
+  },
+  quotedFence: {
+    // The ``` code blocks in a quote block >
+    // i.e.
+    // > They wrote ```
+    //  foo = true
+    // ```
+    // It's much easier and cleaner to make this a separate rule
+    ...SimpleMarkdown.defaultRules.fence,
+    match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
+    // Example: https://regex101.com/r/ZiDBsO/6
+    order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
+    parse: function(capture, parse, state) {
+      const preContent =
+        isMobile && !!capture[1]
+          ? wrapInParagraph(parse, capture[1], state)
+          : SimpleMarkdown.parseInline(parse, capture[1], state)
+      return {
+        content: [
+          ...preContent,
+          {
+            content: capture[2],
+            type: 'fence',
+          },
+        ],
+        type: 'blockQuote',
+      }
+    },
+  },
+  strong: {
+    ...SimpleMarkdown.defaultRules.strong,
+    // original
+    // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
+    // ours: single stars
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/)),
   },
   text: {
     ...SimpleMarkdown.defaultRules.text,
@@ -361,59 +414,6 @@ const rules = {
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: (source, state, lookBehind) =>
       isMobile && !state.inParagraph ? null : textMatch(source, state, lookBehind),
-  },
-  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
-  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
-  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
-  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
-  // it won't match.
-  fallbackParagraph: {
-    order: 10000,
-    // $FlowIssue - tricky to get this to type properly
-    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
-    parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
-  },
-  emoji: {
-    order: SimpleMarkdown.defaultRules.text.order - 0.5,
-    match: SimpleMarkdown.inlineRegex(emojiRegex),
-    parse: function(capture, parse, state) {
-      // If it's a unicode emoji, let's get it's shortname
-      const shortName = emojiIndexByChar[capture[0]]
-      return {content: shortName || capture[0]}
-    },
-  },
-  link: {
-    order: SimpleMarkdown.defaultRules.newline.order + 0.5,
-    match: (source, state, lookBehind) => {
-      const matches = inlineLinkMatch(source, state, lookBehind)
-      // If there is a match, let's also check if it's a valid tld
-      if (
-        matches &&
-        (!lookBehind.length || beforeLinkRegex.exec(lookBehind)) &&
-        matches.groups &&
-        tldExp.exec(matches.groups.tld)
-      ) {
-        return matches
-      }
-      return null
-    },
-    parse: function(capture, parse, state) {
-      return {spaceInFront: capture[1], content: capture[2]}
-    },
-  },
-  mailto: {
-    order: SimpleMarkdown.defaultRules.text.order - 0.4,
-    match: (source, state, lookBehind) => {
-      const matches = inlineEmailMatch(source, state, lookBehind)
-      // If there is a match, let's also check if it's a valid tld
-      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
-        return matches
-      }
-      return null
-    },
-    parse: function(capture, parse, state) {
-      return {spaceInFront: capture[1], content: capture[2], mailto: `mailto:${capture[2]}`}
-    },
   },
 }
 
@@ -455,10 +455,10 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     let output
     try {
       parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
-        inline: false,
+        disableAutoBlockNewlines: true,
         // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
         // So we add our own new line
-        disableAutoBlockNewlines: true,
+        inline: false,
         markdownMeta: this.props.meta,
       })
 

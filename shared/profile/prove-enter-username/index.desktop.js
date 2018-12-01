@@ -123,15 +123,15 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  position: 'absolute',
   alignItems: 'center',
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 1,
-  minHeight: globalMargins.large,
   backgroundColor: globalColors.red,
+  justifyContent: 'center',
+  left: 0,
+  minHeight: globalMargins.large,
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 1,
 }
 
 const styleErrorBannerText = {
@@ -140,10 +140,10 @@ const styleErrorBannerText = {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
+  position: 'relative',
 }
 
 const styleClose = collapseStyles([
@@ -157,8 +157,8 @@ const styleClose = collapseStyles([
 
 const styleInput = {
   alignSelf: 'center',
-  marginTop: globalMargins.small,
   marginBottom: 0,
+  marginTop: globalMargins.small,
   width: 460,
 }
 
@@ -167,13 +167,13 @@ const styleYellowBanner = {
   alignItems: 'center',
   backgroundColor: globalColors.yellow,
   borderRadius: 3,
-  marginTop: globalMargins.small,
   marginBottom: -globalMargins.tiny,
+  marginTop: globalMargins.small,
   minWidth: 460,
-  paddingTop: globalMargins.xsmall,
   paddingBottom: globalMargins.xsmall,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
+  paddingTop: globalMargins.xsmall,
 }
 
 const styleInfoNote = {

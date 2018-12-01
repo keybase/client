@@ -30,14 +30,14 @@ const mapStateToProps = (state, {routeProps}): StateProps => {
   const teamname = routeProps.get('teamname')
 
   return {
-    teamname: teamname,
-    loading: anyWaiting(state, teamWaitingKey(teamname)),
-    following: amIFollowing(state, username),
-    follower: amIBeingFollowed(state, username),
-    yourOperations: getCanPerform(state, teamname),
+    _memberInfo: getTeamMembers(state, teamname),
     _username: username,
     _you: state.config.username,
-    _memberInfo: getTeamMembers(state, teamname),
+    follower: amIBeingFollowed(state, username),
+    following: amIFollowing(state, username),
+    loading: anyWaiting(state, teamWaitingKey(teamname)),
+    teamname: teamname,
+    yourOperations: getCanPerform(state, teamname),
   }
 }
 
@@ -52,7 +52,9 @@ type DispatchProps = {|
 |}
 
 const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
-  onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
+  _onChat: username => {
+    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
+  },
   _onEditMembership: (name: string, username: string) =>
     dispatch(
       navigateAppend([
@@ -62,16 +64,14 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}):
         },
       ])
     ),
-  _onRemoveMember: (teamname: string, username: string) => {
-    dispatch(navigateAppend([{props: {teamname, username}, selected: 'reallyRemoveMember'}]))
-  },
   _onLeaveTeam: (teamname: string) => {
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
-  _onChat: username => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
+  _onRemoveMember: (teamname: string, username: string) => {
+    dispatch(navigateAppend([{props: {teamname, username}, selected: 'reallyRemoveMember'}]))
   },
   onBack: () => dispatch(navigateUp()),
+  onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
@@ -79,12 +79,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   const yourInfo = stateProps._you && stateProps._memberInfo.get(stateProps._you)
   const userInfo = stateProps._memberInfo.get(stateProps._username)
   const you = {
-    username: stateProps._you,
     type: yourInfo && yourInfo.type,
+    username: stateProps._you,
   }
   const user = {
-    username: stateProps._username,
     type: userInfo && userInfo.type,
+    username: stateProps._username,
   }
   // If they're an owner, you need to be an owner to edit them
   // otherwise you just need to be an admin
@@ -94,8 +94,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     ...stateProps,
     ...dispatchProps,
     admin,
-    user,
-    you,
     onChat: () => dispatchProps._onChat(stateProps._username),
     onEditMembership: () => dispatchProps._onEditMembership(stateProps.teamname, stateProps._username),
     onRemoveMember: () => {
@@ -105,6 +103,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
         dispatchProps._onRemoveMember(stateProps.teamname, stateProps._username)
       }
     },
+    user,
+    you,
   }
 }
 

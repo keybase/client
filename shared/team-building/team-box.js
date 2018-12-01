@@ -44,15 +44,15 @@ const TeamBox = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    isElectron: {
-      height: 40,
-    },
     common: {
       ...Styles.globalStyles.rounded,
       borderColor: Styles.globalColors.black_20,
-      borderWidth: 1,
       borderStyle: 'solid',
+      borderWidth: 1,
       flex: 1,
+    },
+    isElectron: {
+      height: 40,
     },
   }),
 })

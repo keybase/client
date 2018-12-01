@@ -52,8 +52,8 @@ const commonLoadingProps = {
 
 // MessageSendPayment ===================================
 const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
-  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
   _you: state.config.username,
+  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
 })
 
 const sendMapDispatchToProps = dispatch => ({
@@ -71,7 +71,7 @@ const sendMapDispatchToProps = dispatch => ({
         path: [
           ...WalletConstants.rootWalletPath,
           'wallet',
-          {selected: 'transactionDetails', props: {accountID, paymentID}},
+          {props: {accountID, paymentID}, selected: 'transactionDetails'},
         ],
       })
     )
@@ -133,8 +133,8 @@ const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
 
 // MessageRequestPayment ================================
 const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
-  requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
+  requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
 })
 
 const requestMapDispatchToProps = (dispatch, ownProps: RequestOwnProps) => ({

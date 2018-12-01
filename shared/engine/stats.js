@@ -2,9 +2,9 @@
 // RPC stats. Not keeping this in redux so we don't get any thrashing
 
 const _stats = {
+  eof: 0,
   in: {},
   out: {},
-  eof: 0,
 }
 
 export const gotStat = (method: string, incoming: boolean) => {

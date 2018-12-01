@@ -74,44 +74,44 @@ const ServiceTabBar = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  activeTabBar: {
+    backgroundColor: Styles.globalColors.blue,
+    height: 1,
+  },
+  clickableServiceIcon: {
+    flex: 1,
+  },
   container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.rounded,
+      borderColor: Styles.globalColors.black_20,
+      borderStyle: 'solid',
+      borderWidth: 1,
+    },
     isElectron: {
       height: 40,
       marginLeft: Styles.globalMargins.small,
       marginTop: Styles.globalMargins.large, // small
       width: 370,
     },
-    common: {
-      ...Styles.globalStyles.rounded,
-      borderColor: Styles.globalColors.black_20,
-      borderWidth: 1,
-      borderStyle: 'solid',
-    },
   }),
+  inactiveTabBar: {
+    backgroundColor: Styles.globalColors.black_20,
+    height: 1,
+  },
+  pendingIcon: {height: 10, width: 10},
+  resultCount: {},
+  serviceIcon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   serviceIconContainer: {
     flex: 1,
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
     minWidth: 40,
   },
-  serviceIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  resultCount: {},
-  pendingIcon: {height: 10, width: 10},
   tabBarContainer: {
     height: 30,
-  },
-  activeTabBar: {
-    height: 1,
-    backgroundColor: Styles.globalColors.blue,
-  },
-  inactiveTabBar: {
-    height: 1,
-    backgroundColor: Styles.globalColors.black_20,
-  },
-  clickableServiceIcon: {
-    flex: 1,
   },
 })
 

@@ -191,17 +191,17 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
 }
 
 const styles = Styles.styleSheetCreate({
-  joinerStyle: Styles.platformStyles({
-    isElectron: {
-      textDecoration: 'none',
-    },
-  }),
   inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
+    },
+  }),
+  joinerStyle: Styles.platformStyles({
+    isElectron: {
+      textDecoration: 'none',
     },
   }),
   nonInlineStyle: Styles.platformStyles({

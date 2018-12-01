@@ -38,22 +38,22 @@ const getIcon = invertColors => {
 
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
-    index: htmlFile,
-    width: 360,
-    height: 480,
-    resizable: false,
     hasShadow: true,
-    transparent: true,
-    preloadWindow: true,
+    height: 480,
     icon: getIcon(false),
+    index: htmlFile,
+    preloadWindow: true,
+    resizable: false,
+    showDockIcon: true,
+    transparent: true,
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
-    showDockIcon: true,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
     },
+    width: 360,
   })
 
   const updateIcon = invertColors => {

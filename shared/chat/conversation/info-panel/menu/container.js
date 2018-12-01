@@ -34,9 +34,9 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
   // skip a bunch of stuff for menus that aren't visible
   if (!visible) {
     return {
-      hasCanPerform: false,
       badgeSubscribe: false,
       canAddPeople: false,
+      hasCanPerform: false,
       isSmallTeam: false,
       manageChannelsSubtitle: '',
       manageChannelsTitle: '',
@@ -56,9 +56,9 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
     : 'Subscribe to channels...'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
   return {
-    hasCanPerform,
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
+    hasCanPerform,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
@@ -72,7 +72,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onAddPeople: () => {
     dispatch(
       navigateTo(
-        [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
+        [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
         [teamsTab]
       )
     )
@@ -81,21 +81,21 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onInvite: () => {
     dispatch(
       navigateTo(
-        [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
+        [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
         [teamsTab]
       )
     )
     dispatch(switchTo([teamsTab]))
   },
   onLeaveTeam: () => {
-    dispatch(navigateAppend([{selected: 'reallyLeaveTeam', props: {teamname}}]))
+    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
   onManageChannels: () => {
-    dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
+    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
     dispatch(createAddTeamWithChosenChannels({teamname}))
   },
   onViewTeam: () => {
-    dispatch(navigateTo([{selected: 'team', props: {teamname}}], [teamsTab]))
+    dispatch(navigateTo([{props: {teamname}, selected: 'team'}], [teamsTab]))
     dispatch(switchTo([teamsTab]))
   },
 })

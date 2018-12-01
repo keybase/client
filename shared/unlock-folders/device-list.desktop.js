@@ -13,8 +13,8 @@ export type Props = {
 class DeviceRow extends Component<{device: _Device}, void> {
   render() {
     const icon = {
-      desktop: 'icon-computer-32',
       backup: 'icon-paper-key-32',
+      desktop: 'icon-computer-32',
       mobile: 'icon-phone-32',
     }[this.props.device.type]
 
@@ -56,47 +56,47 @@ export default class DeviceList extends Component<Props> {
 }
 
 const styles = {
-  infoText: {
-    marginTop: 5,
-    marginBottom: 8,
-    paddingLeft: 55,
-    paddingRight: 55,
-    textAlign: 'center',
-  },
-
-  devicesContainer: {
-    height: 162,
-    width: 440,
-    overflowY: 'scroll',
-    backgroundColor: globalColors.lightGrey,
-    alignSelf: 'center',
-    paddingTop: globalMargins.small,
-    paddingBottom: globalMargins.small,
+  accessFolders: {
+    marginRight: 0,
   },
 
   buttonsContainer: {
     ...globalStyles.flexBoxRow,
-    marginTop: globalMargins.small,
-    marginRight: 30,
     alignSelf: 'center',
+    marginRight: 30,
+    marginTop: globalMargins.small,
+  },
+
+  devicesContainer: {
+    alignSelf: 'center',
+    backgroundColor: globalColors.lightGrey,
+    height: 162,
+    overflowY: 'scroll',
+    paddingBottom: globalMargins.small,
+    paddingTop: globalMargins.small,
+    width: 440,
   },
 
   enterPaperKey: {
     height: 32,
-    width: 236,
     marginRight: 7,
+    width: 236,
   },
 
-  accessFolders: {
-    marginRight: 0,
+  infoText: {
+    marginBottom: 8,
+    marginTop: 5,
+    paddingLeft: 55,
+    paddingRight: 55,
+    textAlign: 'center',
   },
 }
 
 const deviceRowStyles = {
   iconWrapper: {
-    width: 24,
-    marginLeft: 33,
     display: 'flex',
     justifyContent: 'center',
+    marginLeft: 33,
+    width: 24,
   },
 }

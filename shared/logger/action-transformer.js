@@ -23,9 +23,9 @@ const pathActionTransformer = (action, oldState) => {
   const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
   return {
     payload: {
-      prevPath,
-      path,
       parentPath,
+      path,
+      prevPath,
     },
     type: action.type,
   }

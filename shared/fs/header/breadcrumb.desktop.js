@@ -60,25 +60,36 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  breadcrumbLastItemBox: {
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+  breadcrumbNonLastItemBox: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.black_60,
+      flexShrink: 0,
+      maxWidth: 120,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
   container: {
     ...Styles.globalStyles.flexBoxRow,
-    left: 0,
-    right: 0,
-    flexGrow: 1,
     alignItems: 'center',
+    flexGrow: 1,
+    left: 0,
     paddingLeft: 16,
     paddingRight: 16,
+    right: 0,
   },
   folderBreadcrumb: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    paddingLeft: 0,
-    paddingRight: 0,
     flexShrink: 0,
     flexWrap: 'wrap',
-  },
-  teamAvatar: {
-    marginRight: Styles.globalMargins.xtiny,
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   icon: Styles.platformStyles({
     common: {
@@ -89,25 +100,14 @@ const styles = Styles.styleSheetCreate({
       verticalAlign: 'bottom',
     },
   }),
-  breadcrumbNonLastItemBox: Styles.platformStyles({
-    isElectron: {
-      maxWidth: 120,
-      flexShrink: 0,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      color: Styles.globalColors.black_60,
-      whiteSpace: 'nowrap',
-    },
-  }),
-  breadcrumbLastItemBox: {
-    display: 'flex',
-    flexWrap: 'wrap',
-  },
   lastNameText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-word',
     },
   }),
+  teamAvatar: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
 })
 
 export default Breadcrumb

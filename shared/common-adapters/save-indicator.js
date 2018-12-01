@@ -118,7 +118,7 @@ class SaveIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', lastJustSaved: new Date(0)}
+    this.state = {lastJustSaved: new Date(0), lastSave: new Date(0), saveState: 'steady', saving: false}
   }
 
   _runStateMachine = () => {

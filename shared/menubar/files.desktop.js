@@ -168,52 +168,63 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.black_60},
-  iconStyle: {
-    width: 16,
-    height: 16,
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  tlfContainer: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black,
-  },
-  tlfSectionHeaderContainer: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.black_05,
-    color: Styles.globalColors.black_40,
-    paddingTop: Styles.globalMargins.xtiny,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  tlfRowContainer: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  tlfRowAvatar: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  tlfTopLine: {
-    justifyContent: 'space-between',
-  },
-  tlfTime: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  tlfParticipants: {
-    fontSize: 12,
-  },
-  fileUpdateRow: {
-    marginTop: Styles.globalMargins.xtiny,
-    alignItems: 'center',
-  },
   fileUpdateName: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },
   }),
+  fileUpdateRow: {
+    alignItems: 'center',
+    marginTop: Styles.globalMargins.xtiny,
+  },
+  iconBadge: {
+    height: 12,
+    width: 12,
+  },
+  iconBadgeBox: {
+    marginLeft: -12,
+    marginRight: 12,
+    marginTop: 12,
+    width: 0,
+    zIndex: 100,
+  },
+  iconStyle: {
+    height: 16,
+    marginRight: Styles.globalMargins.xtiny,
+    width: 16,
+  },
+  tlfContainer: {
+    backgroundColor: Styles.globalColors.white,
+    color: Styles.globalColors.black,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  tlfParticipants: {
+    fontSize: 12,
+  },
+  tlfRowAvatar: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+  tlfRowContainer: {
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  tlfSectionHeader: {
+    backgroundColor: Styles.globalColors.black_05,
+    color: Styles.globalColors.black_40,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+  tlfSectionHeaderContainer: {
+    backgroundColor: Styles.globalColors.white,
+  },
+  tlfTime: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+  tlfTopLine: {
+    justifyContent: 'space-between',
+  },
   toggleButton: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_05,
@@ -229,15 +240,4 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-  iconBadge: {
-    width: 12,
-    height: 12,
-  },
-  iconBadgeBox: {
-    marginLeft: -12,
-    marginRight: 12,
-    marginTop: 12,
-    width: 0,
-    zIndex: 100,
-  },
 })

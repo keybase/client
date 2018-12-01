@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
       dispatch(
         flags.newTeamBuildingForChat
           ? RouteTreeGen.createNavigateAppend({
-              path: [{selected: 'newChat', props: {}}],
+              path: [{props: {}, selected: 'newChat'}],
             })
           : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
       )

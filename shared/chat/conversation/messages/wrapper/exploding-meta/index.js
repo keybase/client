@@ -214,12 +214,12 @@ const styles = styleSheetCreate({
       position: 'absolute',
     },
     isElectron: {
-      top: -6,
       left: 0,
+      top: -6,
     },
     isMobile: {
-      top: -22,
       left: 0,
+      top: -22,
     },
   }),
   boomIconContainer: platformStyles({

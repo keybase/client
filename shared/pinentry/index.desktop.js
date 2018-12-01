@@ -70,10 +70,10 @@ class Pinentry extends Component<Props, State> {
       },
       [RPCTypes.passphraseCommonPassphraseType.paperKey]: {
         floatingHintTextOverride: 'Paperkey',
-        multiline: true,
-        rowsMax: 2,
         hintText:
           'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
+        multiline: true,
+        rowsMax: 2,
       },
     }[this.props.type]
 
@@ -141,9 +141,9 @@ Pinentry.defaultProps = {
 }
 
 const checkboxStyle = {
-  zIndex: 9999,
   color: globalColors.black,
   marginLeft: 10,
+  zIndex: 9999,
 }
 
 export default Pinentry

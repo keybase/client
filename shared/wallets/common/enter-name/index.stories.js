@@ -11,8 +11,8 @@ const enterNameProps = {
 
 const nameErrorProps = {
   ...enterNameProps,
-  name: 'this is too long',
   error: 'Error: name too long',
+  name: 'this is too long',
 }
 
 const load = () => {

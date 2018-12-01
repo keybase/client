@@ -37,21 +37,21 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         },
       ])
     ),
-  _onShowSecretKey: (accountID: Types.AccountID, walletName: ?string) =>
-    dispatch(
-      ownProps.navigateAppend([
-        {
-          props: {accountID, walletName},
-          selected: 'exportSecretKey',
-        },
-      ])
-    ),
   _onSettings: (accountID: Types.AccountID) =>
     dispatch(
       ownProps.navigateAppend([
         {
           props: {accountID},
           selected: 'settings',
+        },
+      ])
+    ),
+  _onShowSecretKey: (accountID: Types.AccountID, walletName: ?string) =>
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          props: {accountID, walletName},
+          selected: 'exportSecretKey',
         },
       ])
     ),
@@ -67,8 +67,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser', false),
   onSendToStellarAddress: () =>
     dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey', false),
-  onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID, stateProps.walletName),
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
+  onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID, stateProps.walletName),
 })
 
 export default connect<OwnProps, _, _, _, _>(

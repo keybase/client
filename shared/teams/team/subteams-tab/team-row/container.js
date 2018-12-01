@@ -32,13 +32,13 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
   return {
-    name: ownProps.teamname,
-    membercount: stateProps.members,
     isNew: false,
     isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
+    membercount: stateProps.members,
+    name: ownProps.teamname,
     newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
-    onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
     onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
+    onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
   }
 }

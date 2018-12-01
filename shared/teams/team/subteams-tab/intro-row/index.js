@@ -87,18 +87,9 @@ const styles = styleSheetCreate({
       alignItems: 'center',
     },
   }),
-  text: platformStyles({
-    common: {
-      marginBottom: globalMargins.small,
-    },
-    isMobile: {
-      textAlign: 'center',
-    },
-  }),
-  readmore: {
-    marginTop: globalMargins.small,
+  iconClose: {
+    padding: globalMargins.tiny,
   },
-
   iconCloseContainer: platformStyles({
     common: {
       position: 'absolute',
@@ -112,9 +103,18 @@ const styles = styleSheetCreate({
       top: globalMargins.small,
     },
   }),
-  iconClose: {
-    padding: globalMargins.tiny,
+
+  readmore: {
+    marginTop: globalMargins.small,
   },
+  text: platformStyles({
+    common: {
+      marginBottom: globalMargins.small,
+    },
+    isMobile: {
+      textAlign: 'center',
+    },
+  }),
 })
 
 export default Banner

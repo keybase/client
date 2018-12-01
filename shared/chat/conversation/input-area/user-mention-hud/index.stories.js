@@ -16,8 +16,8 @@ const UpDownFilterHoc = compose(
     },
     {
       increaseDownCounter: ({downCounter}) => () => ({downCounter: downCounter + 1}),
-      setFilter: () => filter => ({filter}),
       increaseUpCounter: ({upCounter}) => () => ({upCounter: upCounter + 1}),
+      setFilter: () => filter => ({filter}),
     }
   ),
   Component => props => (
@@ -79,7 +79,7 @@ const load = () => {
             loading={false}
             selectedIndex={0}
             setSelectedIndex={Sb.action('setSelectedIndex')}
-            users={[{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}]}
+            users={[{fullName: 'Marco Munizaga', username: 'marcopolo'}, {fullName: '', username: 'trex'}]}
             onPickUser={Sb.action('onPickUser')}
             onSelectUser={Sb.action('onSelectUser')}
             selectUpCounter={upCounter}

@@ -28,11 +28,11 @@ const mapStateToProps = (state, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
     dispatch(navigateUp())
   },
+  loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
   onBack: () => {
     dispatch(navigateUp())
     dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
@@ -86,17 +86,17 @@ export default compose(
   withStateHandlers(
     {role: 'writer', selectedTeams: {}, sendNotification: true},
     {
-      setSendNotification: () => sendNotification => ({sendNotification}),
       onRoleChange: () => role => ({role}),
       setSelectedTeams: () => selectedTeams => ({selectedTeams}),
+      setSendNotification: () => sendNotification => ({sendNotification}),
     }
   ),
   withHandlers({
+    onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
     onToggle: props => (teamname: string) =>
       props.setSelectedTeams({
         ...props.selectedTeams,
         [teamname]: !props.selectedTeams[teamname],
       }),
-    onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
   })
 )(HeaderOnMobile(Render))

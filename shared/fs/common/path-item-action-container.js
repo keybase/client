@@ -17,19 +17,19 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => ({
+  _downloads: state.fs.downloads,
+  _fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
-  _fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
-  _downloads: state.fs.downloads,
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
-  loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
-  ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
+  ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
+  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
+  loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   moveOrCopy: () => {
     dispatch(FsGen.createSetMoveOrCopySource({path}))
     dispatch(
@@ -187,13 +187,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
             const isFolder =
               _pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type === 'folder'
             return {
-              childrenFolders: childrenFolders + (isFolder ? 1 : 0),
               childrenFiles: childrenFiles + (isFolder ? 0 : 1),
+              childrenFolders: childrenFolders + (isFolder ? 1 : 0),
             }
           },
-          {childrenFolders: 0, childrenFiles: 0}
+          {childrenFiles: 0, childrenFolders: 0}
         )
-      : {childrenFolders: 0, childrenFiles: 0}
+      : {childrenFiles: 0, childrenFolders: 0}
   const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
     showInSystemFileManager,
@@ -206,35 +206,35 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     moveOrCopy,
   } = getRootMenuActionsByPathLevel(pathElements.length, stateProps, dispatchProps, path)
   return {
-    type,
-    lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
-    lastWriter: pathItem.lastWriter.username,
-    name: pathElements[pathElements.length - 1],
-    size: pathItem.size,
-    // The file content could change, resulting in a mime type change. So just
-    // request it regardless whether we have it or not. The FS saga takes care
-    // of preventing the RPC if it's already subscribed.
-    needLoadMimeType: type === 'file',
-    needFolderList: type === 'folder' && pathElements.length >= 3,
-    childrenFolders,
-    childrenFiles,
-    path,
-    pathElements,
-    itemStyles,
-    loadMimeType,
-    loadFolderList,
     actionIconClassName,
     actionIconFontSize,
     actionIconWhite,
-    // menu actions
-    showInSystemFileManager,
+    childrenFiles,
+    childrenFolders,
+    // The file content could change, resulting in a mime type change. So just
+    // request it regardless whether we have it or not. The FS saga takes care
+    // of preventing the RPC if it's already subscribed.
+    copyPath,
+    download,
+    deleteFileOrFolder,
     ignoreFolder,
+    itemStyles,
+    lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
+    lastWriter: pathItem.lastWriter.username,
+    loadFolderList,
+    loadMimeType,
+    moveOrCopy,
+    name: pathElements[pathElements.length - 1],
+    needFolderList: type === 'folder' && pathElements.length >= 3,
+    // menu actions
+    needLoadMimeType: type === 'file',
+    path,
+    pathElements,
+    type,
     saveMedia,
     shareNative,
-    download,
-    copyPath,
-    deleteFileOrFolder,
-    moveOrCopy,
+    showInSystemFileManager,
+    size: pathItem.size,
   }
 }
 

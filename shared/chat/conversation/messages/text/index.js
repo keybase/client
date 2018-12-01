@@ -45,8 +45,8 @@ const sent = platformStyles({
     cursor: 'text',
     userSelect: 'text',
     whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
     width: '100%',
+    wordBreak: 'break-word',
   },
 })
 const sentEditing = {

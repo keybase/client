@@ -126,15 +126,15 @@ const mapDispatchToProps = (
   dispatch,
   {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
-  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
+  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
       navigateTo(
         [
           {
+            props: {days, entityType, onCancel, onConfirm},
             selected: 'retentionWarning',
-            props: {days, onCancel, onConfirm, entityType},
           },
         ],
         parentPath
@@ -147,7 +147,7 @@ const mapDispatchToProps = (
       teamname && dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname}))
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
-      conversationIDKey && dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
+      conversationIDKey && dispatch(createSetConvRetentionPolicy({conversationIDKey, policy}))
     } else {
       throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
     }

@@ -194,7 +194,7 @@ class Row extends React.Component<Props> {
                   small={false}
                   label="Delete repo"
                   onClick={this.props.onShowDelete}
-                  style={{marginTop: Styles.globalMargins.tiny, alignSelf: 'flex-start'}}
+                  style={{alignSelf: 'flex-start', marginTop: Styles.globalMargins.tiny}}
                 />
               )}
             </Kb.Box>
@@ -204,8 +204,8 @@ class Row extends React.Component<Props> {
           style={{
             ...(this.props.expanded
               ? {
-                  height: 6,
                   backgroundColor: Styles.globalColors.blueGrey,
+                  height: 6,
                 }
               : {}),
           }}
@@ -256,8 +256,8 @@ const _metaStyle = {
 const _rowTopStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  paddingLeft: Styles.globalMargins.tiny,
   marginBottom: Styles.globalMargins.xtiny,
+  paddingLeft: Styles.globalMargins.tiny,
 }
 
 const _rowStyle = {
@@ -270,8 +270,8 @@ const _rowStyle = {
 }
 const _rowClickStyle = {
   ...Styles.globalStyles.flexBoxColumn,
-  paddingTop: Styles.globalMargins.tiny,
   paddingBottom: Styles.globalMargins.tiny,
+  paddingTop: Styles.globalMargins.tiny,
   width: '100%',
 }
 

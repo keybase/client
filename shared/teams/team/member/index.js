@@ -50,7 +50,7 @@ export const TeamMember = (props: Props) => {
         >
           <Avatar
             onClick={props.onOpenProfile}
-            style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
+            style={{alignSelf: 'center', marginRight: globalMargins.tiny}}
             username={user.username}
             showFollowingStatus={true}
             size={64}
@@ -59,28 +59,28 @@ export const TeamMember = (props: Props) => {
             <Icon
               type={roleIconMap[user.type]}
               style={{
-                margin: globalMargins.tiny,
                 alignSelf: 'center',
+                margin: globalMargins.tiny,
               }}
               fontSize={28}
             />
           )}
           <Avatar
-            style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
+            style={{alignSelf: 'center', marginLeft: globalMargins.tiny}}
             isTeam={true}
             teamname={props.teamname}
             size={64}
           />
         </Box>
         <Box
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', margin: globalMargins.small, height: 20}}
+          style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 20, margin: globalMargins.small}}
         >
-          {props.loading && <ProgressIndicator style={{alignSelf: 'center', width: 20, height: 20}} />}
+          {props.loading && <ProgressIndicator style={{alignSelf: 'center', height: 20, width: 20}} />}
         </Box>
         <Usernames
           type="HeaderBig"
           colorFollowing={!(you && you.username === user.username)} // De-colorize if this is own member page
-          users={[{username: user.username, following: props.following}]}
+          users={[{following: props.following, username: user.username}]}
           onUsernameClicked={props.onOpenProfile}
         />
         <Text type="BodySmall">

@@ -8,16 +8,16 @@ const load = () => {
     <ChoiceList
       options={[
         {
-          title: 'Host a TXT file',
           description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
           icon: 'icon-file-txt-48',
           onClick: () => action('first'),
+          title: 'Host a TXT file',
         },
         {
-          title: 'Set a DNS',
           description: 'Place a Keybase proof in your DNS records.',
           icon: 'icon-dns-48',
           onClick: () => action('second'),
+          title: 'Set a DNS',
         },
       ]}
     />

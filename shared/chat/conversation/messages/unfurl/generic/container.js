@@ -11,15 +11,15 @@ type OwnProps = {|
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {unfurl, onClose} = ownProps
   return {
+    description: unfurl.description || undefined,
+    faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
+    imageURL: unfurl.image ? unfurl.image.url : undefined,
+    onClose,
+    publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
+    showImageOnSide: unfurl.image ? unfurl.image.height >= unfurl.image.width : false,
+    siteName: unfurl.siteName,
     title: unfurl.title,
     url: unfurl.url,
-    siteName: unfurl.siteName,
-    description: unfurl.description || undefined,
-    publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
-    imageURL: unfurl.image ? unfurl.image.url : undefined,
-    faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
-    showImageOnSide: unfurl.image ? unfurl.image.height >= unfurl.image.width : false,
-    onClose,
   }
 }
 

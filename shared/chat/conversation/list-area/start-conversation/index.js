@@ -54,6 +54,9 @@ const styles = styleSheetCreate({
     padding: 8,
     width: '100%',
   },
+  error: {
+    color: globalColors.red,
+  },
   header: {
     marginLeft: globalMargins.medium,
     marginRight: globalMargins.medium,
@@ -61,9 +64,6 @@ const styles = styleSheetCreate({
   },
   spacer: {
     flex: 1,
-  },
-  error: {
-    color: globalColors.red,
   },
 })
 

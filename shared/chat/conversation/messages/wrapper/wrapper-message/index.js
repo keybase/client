@@ -46,7 +46,7 @@ type State = {
   showMenuButton: boolean,
 }
 class _WrapperMessage extends React.Component<Props & OverlayParentProps, State> {
-  state = {showingPicker: false, showMenuButton: false}
+  state = {showMenuButton: false, showingPicker: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
       this.props.measure()
@@ -67,13 +67,13 @@ class _WrapperMessage extends React.Component<Props & OverlayParentProps, State>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         <HoverBox
           className={Styles.classNames('WrapperMessage-hoverBox', {
-            active: props.showingMenu || this.state.showingPicker,
             'WrapperMessage-decorated': props.decorate,
+            active: props.showingMenu || this.state.showingPicker,
           })}
           {...(Styles.isMobile && props.decorate
             ? {
-                onPress: this._dismissKeyboard,
                 onLongPress: props.toggleShowingMenu,
+                onPress: this._dismissKeyboard,
                 underlayColor: Styles.globalColors.blue5,
               }
             : {})}
@@ -105,7 +105,6 @@ class _WrapperMessage extends React.Component<Props & OverlayParentProps, State>
                 )}
               {props.decorate &&
                 menuButtons({
-                  shouldShowPopup: props.shouldShowPopup,
                   conversationIDKey: props.conversationIDKey,
                   exploded: props.exploded,
                   isRevoked: props.isRevoked,
@@ -114,6 +113,7 @@ class _WrapperMessage extends React.Component<Props & OverlayParentProps, State>
                   ordinal: props.ordinal,
                   setAttachmentRef: props.setAttachmentRef,
                   setShowingPicker: this._setShowingPicker,
+                  shouldShowPopup: props.shouldShowPopup,
                   showMenuButton: this.state.showMenuButton,
                   toggleShowingMenu: props.toggleShowingMenu,
                 })}

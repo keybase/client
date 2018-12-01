@@ -13,12 +13,12 @@ const mapStateToProps = () => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(navigateUp()),
   onSubmit: (paperKey: string) => {
     dispatch(createCheckPaperKey({paperKey}))
     dispatch(navigateUp())
     dispatch(navigateUp())
   },
-  onBack: () => dispatch(navigateUp()),
 })
 
 export default connect<OwnProps, _, _, _, _>(

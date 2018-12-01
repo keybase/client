@@ -139,13 +139,13 @@ class UserInput extends Component<Props, State> {
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          minHeight: 48,
           alignItems: 'center',
           marginLeft: globalMargins.tiny,
+          minHeight: 48,
         }}
       >
         <Box
-          style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center', flexWrap: 'wrap'}}
+          style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, flexWrap: 'wrap'}}
           onClick={this.focus}
           onMouseDown={this._preventInputDefocus}
         >
@@ -187,7 +187,7 @@ class UserInput extends Component<Props, State> {
         {onClearSearch && !this.props.hideClearSearch && (
           <Icon
             type="iconfont-remove"
-            style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
+            style={{height: 16, marginRight: globalMargins.tiny, width: 16}}
             onClick={onClearSearch}
           />
         )}
@@ -199,37 +199,37 @@ class UserInput extends Component<Props, State> {
 const _pillStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.flexBoxCenter,
-  height: 24,
-  paddingLeft: globalMargins.xtiny,
+  borderColor: globalColors.black_10,
+  borderRadius: 24,
   // 2 pixel fudge to accomodate built-in padding to iconfont-close
+  borderStyle: 'solid',
+  borderWidth: 1,
+  height: 24,
+  margin: 2,
+  marginRight: globalMargins.xtiny,
+  paddingBottom: globalMargins.xtiny,
+  paddingLeft: globalMargins.xtiny,
   paddingRight: globalMargins.tiny - 2,
   paddingTop: globalMargins.xtiny,
-  paddingBottom: globalMargins.xtiny,
-  marginRight: globalMargins.xtiny,
-  margin: 2,
-  borderRadius: 24,
-  borderWidth: 1,
-  borderStyle: 'solid',
-  borderColor: globalColors.black_10,
 }
 
 const _inputLineStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   height: 24,
-  marginTop: 2,
   marginBottom: 2,
+  marginTop: 2,
   overflow: 'hidden',
 }
 
 const _inputStyle = platformStyles({
   isElectron: {
     ...getTextStyle('BodySemibold'),
-    flex: 1,
-    color: globalColors.black_75,
     border: 'none',
-    outline: 'none',
+    color: globalColors.black_75,
+    flex: 1,
     lineHeight: 22,
+    outline: 'none',
     padding: 0,
   },
 })
