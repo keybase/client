@@ -27,7 +27,7 @@ var _ keybase1.EmailsInterface = (*EmailsHandler)(nil)
 func (h *EmailsHandler) AddEmail(ctx context.Context, arg keybase1.AddEmailArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#AddEmail", func() error { return err })()
-	return emails.AddEmail(mctx, arg.Email)
+	return emails.AddEmail(mctx, arg.Email, arg.Visibility)
 }
 
 func (h *EmailsHandler) DeleteEmail(ctx context.Context, arg keybase1.DeleteEmailArg) (err error) {
@@ -65,4 +65,12 @@ func (h *EmailsHandler) GetEmails(ctx context.Context, sessionID int) ([]keybase
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#GetEmails", func() error { return err })()
 	return emails.GetEmails(mctx)
+}
+
+func (h *EmailsHandler) BulkLookupEmails(ctx context.Context, arg keybase1.BulkLookupEmailsArg) ([]keybase1.EmailLookupResult, error) {
+	var err error
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("EmailsHandler#BulkLookupEmails", func() error { return err })()
+	return nil, nil
+
 }

@@ -8,12 +8,13 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func AddEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
+func AddEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, visibility keybase1.IdentityVisibility) error {
 	payload := make(libkb.JSONPayload)
 	payload["email"] = email
+	payload["visibility"] = visibility
 
 	arg := libkb.APIArg{
-		Endpoint:    "email/add.json",
+		Endpoint:    "email/add",
 		JSONPayload: payload,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
@@ -27,7 +28,7 @@ func DeleteEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 	payload["email"] = email
 
 	arg := libkb.APIArg{
-		Endpoint:    "email/delete.json",
+		Endpoint:    "email/delete",
 		JSONPayload: payload,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
@@ -41,7 +42,7 @@ func SetPrimaryEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error 
 	payload["email"] = email
 
 	arg := libkb.APIArg{
-		Endpoint:    "email/set-primary.json",
+		Endpoint:    "email/set-primary",
 		JSONPayload: payload,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
@@ -56,7 +57,7 @@ func EditEmail(mctx libkb.MetaContext, oldEmail keybase1.EmailAddress, email key
 	payload["email"] = email
 
 	arg := libkb.APIArg{
-		Endpoint:    "email/edit.json",
+		Endpoint:    "email/edit",
 		JSONPayload: payload,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
@@ -70,7 +71,7 @@ func SendVerificationEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) 
 	payload["email"] = email
 
 	arg := libkb.APIArg{
-		Endpoint:    "email/send-verify.json",
+		Endpoint:    "email/send-verify",
 		JSONPayload: payload,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
@@ -85,7 +86,7 @@ func SetVisibilityEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, vis
 	payload["visibility"] = visibility
 
 	arg := libkb.APIArg{
-		Endpoint:    "email/set-visibility.json",
+		Endpoint:    "email/set-visibility",
 		JSONPayload: payload,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
@@ -93,6 +94,29 @@ func SetVisibilityEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, vis
 	_, err := mctx.G().API.PostJSON(arg)
 	return err
 }
+
 func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
 	return libkb.LoadUserEmails(mctx.G())
+}
+
+type emailLookupApiResult struct {
+	libkb.AppStatusEmbed
+	result []keybase1.EmailLookupResult `json:"resolutions"`
+}
+
+func BulkLookupEmails(mctx libkb.MetaContext, contactEmail []string) ([]keybase1.EmailLookupResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["emails"] = contactEmail
+
+	arg := libkb.APIArg{
+		Endpoint:    "email/bulk-lookup",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var resp emailLookupApiResult
+	err := mctx.G().API.PostDecode(arg, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.result, nil
 }

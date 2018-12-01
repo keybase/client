@@ -27,11 +27,24 @@ func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
 	return keybase1.EmailAddress(email)
 }
 
+func autoverifyEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
+	payload := make(libkb.JSONPayload)
+	payload["email"] = email
+
+	arg := libkb.APIArg{
+		Endpoint:    "test/verify_email_auto",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	err := mctx.G().API.PostJSON(arg)
+	return err
+}
+
 func TestEmailHappyPath(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestEmailHappyPath", 1)
 	defer tc.Cleanup()
 
-	_, err := kbtest.CreateAndSignupFakeUser("emai", tc.G)
+	me, err := kbtest.CreateAndSignupFakeUser("emai", tc.G)
 	require.NoError(t, err)
 
 	email1 := randomEmailAddress(t)
@@ -40,7 +53,8 @@ func TestEmailHappyPath(t *testing.T) {
 
 	mctx := libkb.NewMetaContextForTest(tc)
 
-	err = AddEmail(mctx, email1)
+	err = AddEmail(mctx, email1, keybase1.IdentityVisibility_PUBLIC)
+	fmt.Println(err)
 	require.NoError(t, err)
 
 	err = EditEmail(mctx, email1, email2)
@@ -48,6 +62,8 @@ func TestEmailHappyPath(t *testing.T) {
 
 	emails, err := GetEmails(mctx)
 	require.NoError(t, err)
+
+	var oldPrimary keybase1.EmailAddress
 
 	require.Len(t, emails, 2)
 	found := false
@@ -57,6 +73,9 @@ func TestEmailHappyPath(t *testing.T) {
 			found = true
 			require.False(t, email.IsVerified)
 			require.False(t, email.IsPrimary)
+		}
+		if email.IsPrimary {
+			oldPrimary = email.Email
 		}
 	}
 	require.True(t, found)
@@ -76,6 +95,9 @@ func TestEmailHappyPath(t *testing.T) {
 	}
 	require.True(t, found)
 
+	err = SetPrimaryEmail(mctx, oldPrimary)
+	require.NoError(t, err)
+
 	err = DeleteEmail(mctx, email2)
 	require.NoError(t, err)
 
@@ -89,4 +111,31 @@ func TestEmailHappyPath(t *testing.T) {
 		}
 	}
 	require.False(t, found)
+
+	err = autoverifyEmail(oldPrimary)
+	require.NoError(t, err)
+
+	contactList := []string{
+		"notanemail",
+		string(email1),
+		string(email2),
+		string(oldPrimary),
+		"avalid@email.com",
+	}
+	resolutions, err := BulkLookupEmails(mctx, contactList)
+	require.NoError(t, err)
+
+	expectedResolutions := []keybase1.EmailLookupResult{
+		keybase1.EmailLookupResult{Uid: nil, EmailAddress: "notanemail"},
+		keybase1.EmailLookupResult{Uid: nil, EmailAddress: string(email1)},
+		keybase1.EmailLookupResult{Uid: nil, EmailAddress: string(email2)},
+		keybase1.EmailLookupResult{Uid: me.UID, EmailAddress: string(oldPrimary)},
+		keybase1.EmailLookupResult{Uid: nil, EmailAddress: "avalid@email.com"},
+	}
+
+	require.Equal(t, resolutions, expectedResolutions)
+
+	fmt.Println(contactList)
+	fmt.Println(resolutions)
+	TODO
 }

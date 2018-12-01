@@ -2,11 +2,17 @@
 protocol emails {
     import idl "common.avdl";
 
-    void addEmail(int sessionID, EmailAddress email);
+    record EmailLookupResult {
+        EmailAddress email;
+        union { null, UID } uid;
+    }
+
+    void addEmail(int sessionID, EmailAddress email, IdentityVisibility visibility);
     void deleteEmail(int sessionID, EmailAddress email);
     void editEmail(int sessionID, EmailAddress oldEmail, EmailAddress email);
     void setPrimaryEmail(int sessionID, EmailAddress email);
     void sendVerificationEmail(int sessionID, EmailAddress email);
+    array<EmailLookupResult> bulkLookupEmails(int sessionID, array<string> emailContacts);
     void setVisibilityEmail(int sessionID, EmailAddress email, IdentityVisibility visibility);
     array<Email> getEmails(int sessionID);
 }

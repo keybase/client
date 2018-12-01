@@ -6,7 +6,25 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "EmailLookupResult",
+      "fields": [
+        {
+          "type": "EmailAddress",
+          "name": "email"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "uid"
+        }
+      ]
+    }
+  ],
   "messages": {
     "addEmail": {
       "request": [
@@ -17,6 +35,10 @@
         {
           "name": "email",
           "type": "EmailAddress"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
         }
       ],
       "response": null
@@ -76,6 +98,25 @@
         }
       ],
       "response": null
+    },
+    "bulkLookupEmails": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "emailContacts",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "EmailLookupResult"
+      }
     },
     "setVisibilityEmail": {
       "request": [
