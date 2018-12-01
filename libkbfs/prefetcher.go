@@ -419,7 +419,7 @@ func (p *blockPrefetcher) handlePrefetch(
 	pre *prefetch, isPrefetchNew bool, action BlockRequestAction, b Block) (
 	numBlocks int, isTail bool, err error) {
 	req := pre.req
-	childAction := action.ChildAction()
+	childAction := action.ChildAction(b)
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
@@ -666,13 +666,15 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// Always short circuit a finished prefetch.
 				continue
 			}
-			if !req.action.Prefetch() {
+			if !req.action.Prefetch(b) {
 				p.log.CDebugf(ctx, "skipping prefetch for block %s, action %d",
 					req.ptr.ID, req.action)
 				continue
 			}
 			if req.prefetchStatus == TriggeredPrefetch &&
-				!req.action.DeepSync() {
+				!req.action.DeepSync() &&
+				(!isPrefetchWaiting ||
+					req.action.Sync() == pre.req.action.Sync()) {
 				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
 					"%s", req.ptr.ID)
 				continue
@@ -858,7 +860,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
-	} else if !action.Prefetch() {
+	} else if !action.Prefetch(block) {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,

@@ -233,6 +233,79 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 		indBlock2, NoPrefetch, TransientEntry)
 }
 
+func testPrefetcherIndirectDirBlockTail(
+	t *testing.T, q *blockRetrievalQueue, bg *fakeBlockGetter,
+	config *testBlockRetrievalConfig, withSync bool) {
+	t.Log("Initialize an indirect dir block pointing to 2 dir data blocks.")
+	ptrs := []IndirectDirPtr{
+		makeFakeIndirectDirPtr(t, "a"),
+		makeFakeIndirectDirPtr(t, "b"),
+	}
+	rootPtr := makeRandomBlockPointer(t)
+	rootBlock := &DirBlock{IPtrs: ptrs, Children: make(map[string]DirEntry)}
+	rootBlock.IsInd = true
+	indBlock1 := makeFakeDirBlock(t, "a")
+	indBlock2 := makeFakeDirBlock(t, "b")
+
+	_, continueChRootBlock := bg.setBlockToReturn(rootPtr, rootBlock)
+	_, continueChIndBlock1 :=
+		bg.setBlockToReturn(ptrs[0].BlockPointer, indBlock1)
+	_, continueChIndBlock2 :=
+		bg.setBlockToReturn(ptrs[1].BlockPointer, indBlock2)
+
+	block := NewDirBlock()
+	action := BlockRequestPrefetchTail
+	if withSync {
+		action = BlockRequestPrefetchTailWithSync
+	}
+	ch := q.Request(
+		context.Background(),
+		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		TransientEntry, action)
+	continueChRootBlock <- nil
+	err := <-ch
+	require.NoError(t, err)
+	require.Equal(t, rootBlock, block)
+
+	if withSync {
+		t.Log("Release the prefetched indirect blocks.")
+		continueChIndBlock1 <- nil
+		continueChIndBlock2 <- nil
+	}
+
+	t.Log("Wait for the prefetch to finish.")
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+
+	t.Log("Ensure that the prefetched blocks are in the cache.")
+	rootStatus := NoPrefetch
+	if withSync {
+		rootStatus = TriggeredPrefetch
+		testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
+			indBlock1, NoPrefetch, TransientEntry)
+		testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
+			indBlock2, NoPrefetch, TransientEntry)
+	}
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
+		rootStatus, TransientEntry)
+
+}
+
+func TestPrefetcherIndirectDirBlockTail(t *testing.T) {
+	t.Log("Test indirect dir block tail prefetching.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+
+	testPrefetcherIndirectDirBlockTail(t, q, bg, config, false)
+}
+
+func TestPrefetcherIndirectDirBlockTailWithSync(t *testing.T) {
+	t.Log("Test indirect dir block tail prefetching with sync.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+
+	testPrefetcherIndirectDirBlockTail(t, q, bg, config, true)
+}
+
 func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Test direct dir block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
