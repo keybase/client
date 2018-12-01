@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
+import UnfurlImage from '../image'
 
 export type Props = {
   imageHeight: number,
@@ -31,16 +32,13 @@ class UnfurlGiphy extends React.Component<Props> {
               />
             )}
           </Kb.Box2>
-          <Kb.Image
-            src={this.props.imageURL}
-            style={Styles.collapseStyles([
-              {
-                width: this.props.imageWidth,
-                height: this.props.imageHeight,
-              },
-              styles.image,
-            ])}
-          />
+          <Kb.Box2 direction="horizontal" style={styles.imageContainer}>
+            <UnfurlImage
+              url={this.props.imageURL}
+              height={this.props.imageHeight}
+              width={this.props.imageWidth}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -70,7 +68,9 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'space-between',
     },
     isMobile: {
-      padding: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xxtiny,
     },
   }),
   quoteContainer: {
@@ -78,9 +78,11 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.xtiny,
     alignSelf: 'stretch',
   },
-  image: {
-    borderRadius: Styles.borderRadius,
-  },
+  imageContainer: Styles.platformStyles({
+    isMobile: {
+      padding: Styles.globalMargins.xtiny,
+    },
+  }),
   innerContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
