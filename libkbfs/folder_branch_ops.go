@@ -2146,10 +2146,33 @@ func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
 	return fbo.blocks.GetChildren(ctx, lState, md.ReadOnly(), dirPath)
 }
 
+func (fbo *folderBranchOps) transformReadError(
+	ctx context.Context, err error) error {
+	if errors.Cause(err) != context.DeadlineExceeded {
+		return err
+	}
+
+	if fbo.config.IsSyncedTlf(fbo.id()) {
+		fbo.log.CWarningf(ctx, "Got a read timeout on a synced TLF: %+v", err)
+		return err
+	}
+
+	// For unsynced TLFs, return a specific error to let the system
+	// know to show a sync recommendation.
+	h, hErr := fbo.GetTLFHandle(ctx, nil)
+	if hErr != nil {
+		fbo.log.CDebugf(
+			ctx, "Couldn't get handle while transforming error: %+v", hErr)
+		return err
+	}
+	return errors.WithStack(OfflineUnsyncedError{h})
+}
+
 func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %s", getNodeIDStr(dir))
 	defer func() {
+		err = fbo.transformReadError(ctx, err)
 		fbo.deferLog.CDebugf(ctx, "GetDirChildren %s done, %d entries: %+v",
 			getNodeIDStr(dir), len(children), err)
 	}()
@@ -2364,6 +2387,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
 	defer func() {
+		err = fbo.transformReadError(ctx, err)
 		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %v %+v",
 			getNodeIDStr(dir), name, getNodeIDStr(node), err)
 	}()
@@ -2413,6 +2437,9 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 // tests.
 func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	de DirEntry, err error) {
+	defer func() {
+		err = fbo.transformReadError(ctx, err)
+	}()
 	err = fbo.checkNodeForRead(ctx, node)
 	if err != nil {
 		return DirEntry{}, err
@@ -4161,6 +4188,7 @@ func (fbo *folderBranchOps) Read(
 	fbo.log.CDebugf(ctx, "Read %s %d %d", getNodeIDStr(file),
 		len(dest), off)
 	defer func() {
+		err = fbo.transformReadError(ctx, err)
 		fbo.deferLog.CDebugf(ctx, "Read %s %d %d (n=%d) done: %+v",
 			getNodeIDStr(file), len(dest), off, n, err)
 	}()

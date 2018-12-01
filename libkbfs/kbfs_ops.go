@@ -476,10 +476,27 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 	return fs.resetTlfID(ctx, h)
 }
 
+func (fs *KBFSOpsStandard) transformReadError(
+	ctx context.Context, h *TlfHandle, err error) error {
+	if errors.Cause(err) != context.DeadlineExceeded {
+		return err
+	}
+
+	if fs.config.IsSyncedTlf(h.tlfID) {
+		fs.log.CWarningf(ctx, "Got a read timeout on a synced TLF: %+v", err)
+		return err
+	}
+
+	// For unsynced TLFs, return a specific error to let the system
+	// know to show a sync recommendation.
+	return errors.WithStack(OfflineUnsyncedError{h})
+}
+
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	mdops MDOps, h *TlfHandle, fb FolderBranch, create bool, fop FavoritesOp) (
 	initialized bool, md ImmutableRootMetadata, id tlf.ID, err error) {
 	defer func() {
+		err = fs.transformReadError(ctx, h, err)
 		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
 			!initialized && err == nil {
 			kbpki := fs.config.KBPKI()
@@ -660,7 +677,10 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	node Node, ei EntryInfo, err error) {
 	fs.log.CDebugf(ctx, "getMaybeCreateRootNode(%s, %v, %v)",
 		h.GetCanonicalPath(), branch, create)
-	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
+	defer func() {
+		err = fs.transformReadError(ctx, h, err)
+		fs.deferLog.CDebugf(ctx, "Done: %#v", err)
+	}()
 
 	if branch != MasterBranch && create {
 		return nil, EntryInfo{}, errors.Errorf(
