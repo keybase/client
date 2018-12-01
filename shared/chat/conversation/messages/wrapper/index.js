@@ -97,8 +97,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               type="BodySmallSemibold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
+              containerStyle={styles.fast}
             />
-            <Kb.Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Kb.Text>
+            <Kb.Text type="BodyTiny" style={styles.fast}>
+              {formatTimeForChat(this.props.message.timestamp)}
+            </Kb.Text>
           </Kb.Box2>
           <Kb.Box2
             key="content"
@@ -446,6 +449,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
+const fast = {backgroundColor: Styles.globalColors.fastBlank}
 const styles = Styles.styleSheetCreate({
   authorContainer: Styles.platformStyles({
     common: {
@@ -459,6 +463,7 @@ const styles = Styles.styleSheetCreate({
       marginTop: -Styles.globalMargins.tiny,
     },
     isMobile: {
+      ...fast,
       marginLeft: Styles.globalMargins.tiny,
     },
   }),
@@ -496,6 +501,7 @@ const styles = Styles.styleSheetCreate({
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
+  fast,
   menuButtons: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
