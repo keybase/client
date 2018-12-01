@@ -31,13 +31,19 @@ func (s *Scraper) makeCollector() *colly.Collector {
 	return c
 }
 
-func (s *Scraper) Scrape(ctx context.Context, uri string) (res chat1.UnfurlRaw, err error) {
+func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.UnfurlType) (res chat1.UnfurlRaw, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Scrape")()
-	typ, domain, err := ClassifyDomainFromURI(uri)
-	if err != nil {
-		return res, err
+	var unfurlTyp chat1.UnfurlType
+	var domain string
+	if forceTyp != nil {
+		unfurlTyp = *forceTyp
+	} else {
+		var err error
+		if unfurlTyp, domain, err = ClassifyDomainFromURI(uri); err != nil {
+			return res, err
+		}
 	}
-	switch typ {
+	switch unfurlTyp {
 	case chat1.UnfurlType_GENERIC:
 		return s.scrapeGeneric(ctx, uri, domain)
 	case chat1.UnfurlType_GIPHY:
