@@ -9,7 +9,7 @@ import type {_ConversationMeta} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isIOS, isAndroid} from '../platform'
+import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
@@ -306,7 +306,7 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
-const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blueGrey
+const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform

@@ -32,14 +32,9 @@ class _SimpleTopLine extends React.Component<Props> {
   }
 
   render() {
-    const boldOverride = this.props.showBold ? Styles.globalStyles.fontBold : null
+    const boldStyle = this.props.showBold ? styles.bold : null
     return (
-      <Kb.Box
-        style={{
-          ...Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
-        }}
-      >
+      <Kb.Box style={styles.container}>
         {this.props.showGear && (
           <TeamMenu
             visible={this.props.showingMenu}
@@ -49,28 +44,15 @@ class _SimpleTopLine extends React.Component<Props> {
             teamname={(this.props.participants.length && this.props.participants[0]) || ''}
           />
         )}
-        <Kb.Box
-          style={{
-            ...Styles.globalStyles.flexBoxRow,
-            flexGrow: 1,
-            height: Styles.isMobile ? 21 : 17,
-            position: 'relative',
-          }}
-        >
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxRow,
-              ...Styles.globalStyles.fillAbsolute,
-              alignItems: 'center',
-            }}
-          >
+        <Kb.Box style={styles.insideContainer}>
+          <Kb.Box style={styles.nameContainer}>
             {this.props.teamname && this.props.channelname ? (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
                 <Kb.Text
                   type="BodySemibold"
                   style={Styles.collapseStyles([
                     styles.teamTextStyle,
-                    boldOverride,
+                    boldStyle,
                     {color: this.props.usernameColor},
                   ])}
                 >
@@ -80,16 +62,13 @@ class _SimpleTopLine extends React.Component<Props> {
             ) : (
               <Kb.PlaintextUsernames
                 type="BodySemibold"
-                containerStyle={{
-                  ...boldOverride,
-                  color: this.props.usernameColor,
-                  paddingRight: 7,
-                  ...(Styles.isMobile
-                    ? {
-                        backgroundColor: this.props.backgroundColor,
-                      }
-                    : {}),
-                }}
+                containerStyle={Styles.collapseStyles([
+                  styles.name,
+                  boldStyle,
+                  Styles.isMobile
+                    ? {backgroundColor: this.props.backgroundColor, color: this.props.usernameColor}
+                    : {color: this.props.usernameColor},
+                ])}
                 users={this.props.participants.map(p => ({username: p}))}
                 title={this.props.participants.join(', ')}
               />
@@ -97,15 +76,14 @@ class _SimpleTopLine extends React.Component<Props> {
           </Kb.Box>
         </Kb.Box>
         <Kb.Text
-          key="0"
+          key="timestamp"
           type="BodySmall"
           className={Styles.classNames({'small-team-timestamp': this.props.showGear})}
-          style={Styles.platformStyles({
-            common: {
-              ...boldOverride,
-              color: this.props.hasBadge ? Styles.globalColors.blue : this.props.subColor,
-            },
-          })}
+          style={Styles.collapseStyles([
+            boldStyle,
+            styles.timestamp,
+            !this.props.hasBadge && {color: this.props.subColor},
+          ])}
         >
           {this.props.timestamp}
         </Kb.Text>
@@ -118,25 +96,40 @@ class _SimpleTopLine extends React.Component<Props> {
             color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
             fontSize={14}
-            style={{position: 'relative', right: Styles.globalMargins.xtiny}}
+            style={styles.icon}
           />
         )}
-        {this.props.hasBadge ? <Kb.Box key="1" style={unreadDotStyle} /> : null}
+        {this.props.hasBadge ? <Kb.Box key="unreadDot" style={styles.unreadDotStyle} /> : null}
       </Kb.Box>
     )
   }
 }
 const SimpleTopLine = Kb.OverlayParentHOC(_SimpleTopLine)
 
-const unreadDotStyle = {
-  backgroundColor: Styles.globalColors.orange,
-  borderRadius: 6,
-  height: 8,
-  marginLeft: 4,
-  width: 8,
-}
-
 const styles = Styles.styleSheetCreate({
+  bold: {...Styles.globalStyles.fontBold},
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
+  icon: {
+    position: 'relative',
+    right: Styles.globalMargins.xtiny,
+  },
+  insideContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    flexGrow: 1,
+    height: Styles.isMobile ? 21 : 17,
+    position: 'relative',
+  },
+  name: {
+    paddingRight: 7,
+  },
+  nameContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.globalStyles.fillAbsolute,
+    alignItems: 'center',
+  },
   teamTextStyle: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
@@ -144,6 +137,17 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
+  timestamp: {
+    backgroundColor: Styles.globalColors.fastBlank,
+    color: Styles.globalColors.blue,
+  },
+  unreadDotStyle: {
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: 6,
+    height: 8,
+    marginLeft: 4,
+    width: 8,
+  },
 })
 
 export {SimpleTopLine}
