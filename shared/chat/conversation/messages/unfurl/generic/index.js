@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
+import UnfurlImage from '../image'
 
 export type Props = {
   title: string,
@@ -11,6 +12,8 @@ export type Props = {
   description?: string,
   publishTime?: number,
   imageURL?: string,
+  imageHeight?: number,
+  imageWidth?: number,
   faviconURL?: string,
   onClose?: () => void,
   showImageOnSide: boolean,
@@ -49,9 +52,18 @@ class UnfurlGeneric extends React.Component<Props> {
             {this.props.title}
           </Kb.Text>
           {!!this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
-          {!!this.props.imageURL && !Styles.isMobile && !this.props.showImageOnSide && (
-            <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />
-          )}
+          {!!this.props.imageURL &&
+            !!this.props.imageHeight &&
+            !!this.props.imageWidth &&
+            !Styles.isMobile &&
+            !this.props.showImageOnSide && (
+              <UnfurlImage
+                url={this.props.imageURL}
+                height={this.props.imageHeight}
+                width={this.props.imageWidth}
+                style={styles.bottomImage}
+              />
+            )}
         </Kb.Box2>
         {!!this.props.imageURL && !Styles.isMobile && this.props.showImageOnSide && (
           <Kb.Image src={this.props.imageURL} style={styles.sideImage} />
@@ -104,15 +116,9 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
     },
   }),
-  bottomImage: Styles.platformStyles({
-    common: {
-      marginTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      maxWidth: 320,
-      maxHeight: 180,
-    },
-  }),
+  bottomImage: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
   sideImage: Styles.platformStyles({
     isElectron: {
       maxWidth: 80,

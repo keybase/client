@@ -9,6 +9,7 @@ export type Props = {
   height: number,
   width: number,
   url: string,
+  style?: Object,
 }
 
 const clampImageSize = ({width = 0, height = 0}, maxSize) =>
@@ -35,7 +36,10 @@ class UnfurlImage extends React.Component<Props> {
   }
   render() {
     return (
-      <Kb.Image src={this.props.url} style={Styles.collapseStyles([this._getDimensions(), styles.image])} />
+      <Kb.Image
+        src={this.props.url}
+        style={Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])}
+      />
     )
   }
 }
