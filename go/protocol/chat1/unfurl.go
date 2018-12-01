@@ -90,14 +90,36 @@ func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
 	return UnfurlYoutubeRaw{}
 }
 
+type UnfurlGiphyVideo struct {
+	Url    string `codec:"url" json:"url"`
+	Height int    `codec:"height" json:"height"`
+	Width  int    `codec:"width" json:"width"`
+}
+
+func (o UnfurlGiphyVideo) DeepCopy() UnfurlGiphyVideo {
+	return UnfurlGiphyVideo{
+		Url:    o.Url,
+		Height: o.Height,
+		Width:  o.Width,
+	}
+}
+
 type UnfurlGiphyRaw struct {
-	FaviconUrl *string `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
-	ImageUrl   string  `codec:"imageUrl" json:"imageUrl"`
-	VideoUrl   string  `codec:"videoUrl" json:"videoUrl"`
+	ImageUrl   string            `codec:"imageUrl" json:"imageUrl"`
+	Video      *UnfurlGiphyVideo `codec:"video,omitempty" json:"video,omitempty"`
+	FaviconUrl *string           `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
 }
 
 func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 	return UnfurlGiphyRaw{
+		ImageUrl: o.ImageUrl,
+		Video: (func(x *UnfurlGiphyVideo) *UnfurlGiphyVideo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Video),
 		FaviconUrl: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -105,8 +127,6 @@ func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 			tmp := (*x)
 			return &tmp
 		})(o.FaviconUrl),
-		ImageUrl: o.ImageUrl,
-		VideoUrl: o.VideoUrl,
 	}
 }
 
@@ -271,8 +291,8 @@ func (o UnfurlYoutube) DeepCopy() UnfurlYoutube {
 
 type UnfurlGiphy struct {
 	Favicon *Asset `codec:"favicon,omitempty" json:"favicon,omitempty"`
-	Image   Asset  `codec:"image" json:"image"`
-	Video   Asset  `codec:"video" json:"video"`
+	Image   *Asset `codec:"image,omitempty" json:"image,omitempty"`
+	Video   *Asset `codec:"video,omitempty" json:"video,omitempty"`
 }
 
 func (o UnfurlGiphy) DeepCopy() UnfurlGiphy {
@@ -284,8 +304,20 @@ func (o UnfurlGiphy) DeepCopy() UnfurlGiphy {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Favicon),
-		Image: o.Image.DeepCopy(),
-		Video: o.Video.DeepCopy(),
+		Image: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Image),
+		Video: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Video),
 	}
 }
 
@@ -476,8 +508,8 @@ func (o UnfurlYoutubeDisplay) DeepCopy() UnfurlYoutubeDisplay {
 
 type UnfurlGiphyDisplay struct {
 	Favicon *UnfurlImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
-	Image   UnfurlImageDisplay  `codec:"image" json:"image"`
-	Video   UnfurlImageDisplay  `codec:"video" json:"video"`
+	Image   *UnfurlImageDisplay `codec:"image,omitempty" json:"image,omitempty"`
+	Video   *UnfurlImageDisplay `codec:"video,omitempty" json:"video,omitempty"`
 }
 
 func (o UnfurlGiphyDisplay) DeepCopy() UnfurlGiphyDisplay {
@@ -489,8 +521,20 @@ func (o UnfurlGiphyDisplay) DeepCopy() UnfurlGiphyDisplay {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Favicon),
-		Image: o.Image.DeepCopy(),
-		Video: o.Video.DeepCopy(),
+		Image: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Image),
+		Video: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Video),
 	}
 }
 

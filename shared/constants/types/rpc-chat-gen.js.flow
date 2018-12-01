@@ -1092,9 +1092,10 @@ export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {u
 export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?Asset, image?: ?Asset, publishTime?: ?Int, description?: ?String}>
 export type UnfurlGenericDisplay = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?UnfurlImageDisplay, image?: ?UnfurlImageDisplay, publishTime?: ?Int, description?: ?String}>
 export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
-export type UnfurlGiphy = $ReadOnly<{favicon?: ?Asset, image: Asset, video: Asset}>
-export type UnfurlGiphyDisplay = $ReadOnly<{favicon?: ?UnfurlImageDisplay, image: UnfurlImageDisplay, video: UnfurlImageDisplay}>
-export type UnfurlGiphyRaw = $ReadOnly<{faviconUrl?: ?String, imageUrl: String, videoUrl: String}>
+export type UnfurlGiphy = $ReadOnly<{favicon?: ?Asset, image?: ?Asset, video?: ?Asset}>
+export type UnfurlGiphyDisplay = $ReadOnly<{favicon?: ?UnfurlImageDisplay, image?: ?UnfurlImageDisplay, video?: ?UnfurlImageDisplay}>
+export type UnfurlGiphyRaw = $ReadOnly<{imageUrl: String, video?: ?UnfurlGiphyVideo, faviconUrl?: ?String}>
+export type UnfurlGiphyVideo = $ReadOnly<{url: String, height: Int, width: Int}>
 export type UnfurlImageDisplay = $ReadOnly<{url: String, height: Int, width: Int}>
 export type UnfurlMode =
   | 0 // ALWAYS_0

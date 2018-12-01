@@ -69,22 +69,43 @@
     },
     {
       "type": "record",
+      "name": "UnfurlGiphyVideo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnfurlGiphyRaw",
       "fields": [
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGiphyVideo"
+          ],
+          "name": "video"
+        },
         {
           "type": [
             null,
             "string"
           ],
           "name": "faviconUrl"
-        },
-        {
-          "type": "string",
-          "name": "imageUrl"
-        },
-        {
-          "type": "string",
-          "name": "videoUrl"
         }
       ]
     },
@@ -182,11 +203,17 @@
           "name": "favicon"
         },
         {
-          "type": "Asset",
+          "type": [
+            null,
+            "Asset"
+          ],
           "name": "image"
         },
         {
-          "type": "Asset",
+          "type": [
+            null,
+            "Asset"
+          ],
           "name": "video"
         }
       ]
@@ -317,11 +344,17 @@
           "name": "favicon"
         },
         {
-          "type": "UnfurlImageDisplay",
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
           "name": "image"
         },
         {
-          "type": "UnfurlImageDisplay",
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
           "name": "video"
         }
       ]

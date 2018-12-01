@@ -8,9 +8,7 @@ export type Props = {
   imageHeight: number,
   imageWidth: number,
   imageURL: string,
-  videoHeight: number,
-  videoWidth: number,
-  videoURL: string,
+  isVideo: boolean,
   faviconURL?: string,
   onClose?: () => void,
 }
@@ -40,12 +38,7 @@ class UnfurlGiphy extends React.Component<Props> {
               url={this.props.imageURL}
               height={this.props.imageHeight}
               width={this.props.imageWidth}
-            />
-            <UnfurlImage
-              url={this.props.videoURL}
-              height={this.props.videoHeight}
-              width={this.props.videoWidth}
-              isVideo={true}
+              isVideo={this.props.isVideo}
             />
           </Kb.Box2>
         </Kb.Box2>

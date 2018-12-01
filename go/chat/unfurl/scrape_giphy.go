@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/gocolly/colly"
@@ -11,6 +12,7 @@ import (
 func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.UnfurlRaw, err error) {
 	c := s.makeCollector()
 	var giphy chat1.UnfurlGiphyRaw
+	var video chat1.UnfurlGiphyVideo
 	generic := new(scoredGenericRaw)
 	if err = s.addGenericScraperToCollector(ctx, c, generic, uri, "giphy.com"); err != nil {
 		return res, err
@@ -18,7 +20,16 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
 		if attr == "og:video" {
-			giphy.VideoUrl = e.Attr("content")
+			video.Url = e.Attr("content")
+		} else if attr == "og:video:width" {
+			if width, err := strconv.Atoi(e.Attr("content")); err == nil {
+				video.Width = width
+			}
+
+		} else if attr == "og:video:height" {
+			if height, err := strconv.Atoi(e.Attr("content")); err == nil {
+				video.Height = height
+			}
 		} else {
 			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
 		}
@@ -30,6 +41,9 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 		// If we couldn't find an image, then just return the generic
 		s.Debug(ctx, "scrapeGiphy: failed to find an image, just returning generic unfurl")
 		return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
+	}
+	if len(video.Url) > 0 && video.Height > 0 && video.Width > 0 {
+		giphy.Video = &video
 	}
 	giphy.ImageUrl = *generic.ImageUrl
 	giphy.FaviconUrl = generic.FaviconUrl

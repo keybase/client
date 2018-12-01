@@ -43,22 +43,18 @@ class UnfurlImage extends React.Component<Props> {
   }
 
   render() {
-    const {height, width} = this._getDimensions()
+    const style = Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])
     return this.props.isVideo ? (
       <video
         ref={ref => {
           this.vidRef = ref
         }}
         src={this.props.url}
-        width={this.props.width}
-        height={this.props.height}
+        style={style}
         loop={true}
       />
     ) : (
-      <Kb.Image
-        src={this.props.url}
-        style={Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])}
-      />
+      <Kb.Image src={this.props.url} style={style} />
     )
   }
 }
