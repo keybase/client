@@ -8,7 +8,7 @@ import {Avatars, TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
 export type Props = {
-  backgroundColor: string,
+  backgroundColor: ?string,
   channelname?: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
