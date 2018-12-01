@@ -280,49 +280,61 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
-        child = <TextMessage message={message} />
+        child = Styles.isMobile ? (
+          <Kb.Box2 direction="vertical">
+            <TextMessage key="text" message={message} />
+          </Kb.Box2>
+        ) : (
+          <TextMessage key="text" message={message} />
+        )
         break
       case 'attachment':
         exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
-        child = <AttachmentMessage message={message} toggleMessageMenu={this.props.toggleShowingMenu} />
+        child = (
+          <AttachmentMessage
+            key="attachment"
+            message={message}
+            toggleMessageMenu={this.props.toggleShowingMenu}
+          />
+        )
         break
       case 'requestPayment':
-        child = <PaymentMessage message={message} />
+        child = <PaymentMessage key="requestPayment" message={message} />
         break
       case 'sendPayment':
-        child = <PaymentMessage message={message} />
+        child = <PaymentMessage key="sendPayment" message={message} />
         break
       case 'placeholder':
-        child = <Placeholder message={message} />
+        child = <Placeholder key="placeholder" message={message} />
         break
       case 'systemInviteAccepted':
-        child = <SystemInviteAccepted message={message} />
+        child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
         break
       case 'systemSimpleToComplex':
-        child = <SystemSimpleToComplex message={message} />
+        child = <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
         break
       case 'systemGitPush':
-        child = <SystemGitPush message={message} />
+        child = <SystemGitPush key="systemGitPush" message={message} />
         break
       case 'systemAddedToTeam':
-        child = <SystemAddedToTeam message={message} />
+        child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
         break
       case 'systemJoined':
-        child = <SystemJoined message={message} />
+        child = <SystemJoined key="systemJoined" message={message} />
         break
       case 'systemText':
-        child = <SystemText message={message} />
+        child = <SystemText key="systemText" message={message} />
         break
       case 'systemLeft':
-        child = <SystemLeft message={message} />
+        child = <SystemLeft key="systemLeft" message={message} />
         break
       case 'setDescription':
-        child = <SetDescription message={message} />
+        child = <SetDescription key="setDescription" message={message} />
         break
       case 'setChannelname':
-        child = <SetChannelname message={message} />
+        child = <SetChannelname key="setChannelname" message={message} />
         break
       case 'deleted':
         return null
