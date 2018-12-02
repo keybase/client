@@ -86,7 +86,16 @@ func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg
 		return err
 	}
 
-	_, err = sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, false /* rotate */)
+	role, err := team.myRole(ctx)
+	if err != nil {
+		return err
+	}
+	if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		return fmt.Errorf("OpenSweep request for team %s but our role is: %s", team.ID, role.String())
+	}
+
+	rotate := !team.CanSkipKeyRotation()
+	_, err = sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, rotate)
 	return err
 }
 
