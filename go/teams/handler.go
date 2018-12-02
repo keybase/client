@@ -73,12 +73,30 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 	})
 }
 
+func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenSweepMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, fmt.Sprintf("HandleOpenTeamSweepRequest(teamID=%s,len(resetUsers)=%d)", msg.TeamID, len(msg.ResetUsersUntrusted)), func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		Public:      msg.TeamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, false /* rotate */)
+	return err
+}
+
 func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalContext,
 	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser, rotate bool) (postedLink bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
-	defer g.CTrace(ctx, "sweepOpenTeamResetAndDeletedMembers", func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("sweepOpenTeamResetAndDeletedMembers(rotate=%t)", rotate),
+		func() error { return err })()
 
 	// Go through resetUsersUntrusted and fetch non-cached latest
 	// EldestSeqnos/Status.

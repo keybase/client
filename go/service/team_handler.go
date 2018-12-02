@@ -51,6 +51,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.sharingBeforeSignup(ctx, cli, item)
 	case "team.openreq":
 		return true, r.openTeamAccessRequest(ctx, cli, item)
+	case "team.opensweep":
+		return true, r.openTeamSweepResetUsersRequest(ctx, cli, item)
 	case "team.change":
 		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{})
 	case "team.force_repoll":
@@ -334,6 +336,23 @@ func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.Inc
 	}
 
 	r.G().Log.CDebugf(ctx, "dismissing team.openreq item since it succeeded")
+	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) openTeamSweepResetUsersRequest(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "teamHandler: team.opensweep received")
+	var msg keybase1.TeamOpenSweepMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling team.opensweep item: %s", err)
+		return err
+	}
+	r.G().Log.CDebugf(ctx, "team.opensweep unmarshaled: %+v", msg)
+
+	if err := teams.HandleOpenTeamSweepRequest(ctx, r.G(), msg); err != nil {
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "dismissing team.opensweep item since it succeeded")
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
