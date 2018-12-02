@@ -36,6 +36,9 @@ class UnfurlImage extends React.Component<Props> {
       maxSize
     )
   }
+  _getOrient() {
+    return this.props.height > this.props.width ? 'height' : 'width'
+  }
 
   render() {
     const style = Styles.collapseStyles([
@@ -44,7 +47,7 @@ class UnfurlImage extends React.Component<Props> {
       this.props.style,
     ])
     return this.props.isVideo ? (
-      <Video url={this.props.url} style={style} />
+      <Video url={this.props.url} orient={this._getOrient()} style={style} />
     ) : (
       <Kb.Image src={this.props.url} style={style} />
     )

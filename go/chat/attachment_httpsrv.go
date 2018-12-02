@@ -274,6 +274,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
 		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
+		orient := req.URL.Query().Get("orient")
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
 				<head>
@@ -286,10 +287,14 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 					</script>
 				</head>
 				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" onloadeddata="playVideo()" style="width: 100%%; border-radius: 8px" src="%s" playsinline webkit-playsinline loop autoplay muted />
+					<div style="display:flex; flex-direction: row; justify-content: flex-start">
+						<div style="flex: 1">
+						<video id="vid" onloadeddata="playVideo()" style="%s: 100%%; border-radius: 8px" src="%s" playsinline webkit-playsinline loop autoplay muted />
+						</div>
+					</div>
 				</body>
 			</html>
-		`, req.URL.String()+"&contentforce=true"))); err != nil {
+		`, orient, req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
 		}
 		return true
