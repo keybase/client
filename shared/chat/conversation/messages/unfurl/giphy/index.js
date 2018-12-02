@@ -8,6 +8,7 @@ export type Props = {
   imageHeight: number,
   imageWidth: number,
   imageURL: string,
+  isVideo: boolean,
   faviconURL?: string,
   onClose?: () => void,
 }
@@ -32,13 +33,12 @@ class UnfurlGiphy extends React.Component<Props> {
               />
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" style={styles.imageContainer}>
-            <UnfurlImage
-              url={this.props.imageURL}
-              height={this.props.imageHeight}
-              width={this.props.imageWidth}
-            />
-          </Kb.Box2>
+          <UnfurlImage
+            url={this.props.imageURL}
+            height={this.props.imageHeight}
+            width={this.props.imageWidth}
+            isVideo={this.props.isVideo}
+          />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -54,7 +54,7 @@ const styles = Styles.styleSheetCreate({
       maxWidth: 500,
     },
     isMobile: {
-      paddingRight: 66,
+      paddingRight: 0,
     },
   }),
   favicon: {
@@ -80,7 +80,8 @@ const styles = Styles.styleSheetCreate({
   },
   imageContainer: Styles.platformStyles({
     isMobile: {
-      padding: Styles.globalMargins.xtiny,
+      alignSelf: 'flex-start',
+      padding: Styles.globalMargins.xxtiny,
     },
   }),
   innerContainer: Styles.platformStyles({
@@ -92,6 +93,7 @@ const styles = Styles.styleSheetCreate({
       borderWidth: 1,
       borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
 })

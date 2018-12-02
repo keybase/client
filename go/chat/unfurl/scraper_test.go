@@ -126,6 +126,11 @@ func TestScraper(t *testing.T) {
 			require.NotNil(t, r.FaviconUrl)
 			require.NotNil(t, e.FaviconUrl)
 			require.Equal(t, *e.FaviconUrl, *r.FaviconUrl)
+			require.NotNil(t, r.Video)
+			require.NotNil(t, e.Video)
+			require.Equal(t, e.Video.Url, r.Video.Url)
+			require.Equal(t, e.Video.Height, r.Video.Height)
+			require.Equal(t, e.Video.Width, r.Video.Width)
 		default:
 			require.Fail(t, "unknown unfurl typ")
 		}
@@ -217,5 +222,10 @@ func TestScraper(t *testing.T) {
 	testCase("giphy0", chat1.NewUnfurlRawWithGiphy(chat1.UnfurlGiphyRaw{
 		ImageUrl:   "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif",
 		FaviconUrl: strPtr("https://giphy.com/static/img/icons/apple-touch-icon-180px.png"),
+		Video: &chat1.UnfurlGiphyVideo{
+			Url:    "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy.mp4",
+			Height: 480,
+			Width:  480,
+		},
 	}), forceGiphy)
 }

@@ -1874,16 +1874,16 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	return 100 * (1 - (len(missingIDs) / numMessages))
 }
 
-func (u UnfurlRaw) String() string {
+func (u UnfurlRaw) UnsafeDebugString() string {
 	typ, err := u.UnfurlType()
 	if err != nil {
 		return "<error>"
 	}
 	switch typ {
 	case UnfurlType_GENERIC:
-		return u.Generic().String()
+		return u.Generic().UnsafeDebugString()
 	case UnfurlType_GIPHY:
-		return u.Giphy().String()
+		return u.Giphy().UnsafeDebugString()
 	}
 	return "<unknown>"
 }
@@ -1895,7 +1895,7 @@ func yieldStr(s *string) string {
 	return *s
 }
 
-func (g UnfurlGenericRaw) String() string {
+func (g UnfurlGenericRaw) UnsafeDebugString() string {
 
 	publishTime := ""
 	if g.PublishTime != nil {
@@ -1911,11 +1911,16 @@ FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yieldStr(g.Description
 		yieldStr(g.ImageUrl), yieldStr(g.FaviconUrl))
 }
 
-func (g UnfurlGiphyRaw) String() string {
+func (g UnfurlGiphyRaw) UnsafeDebugString() string {
 
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
-ImageUrl: %s`, yieldStr(g.FaviconUrl), g.ImageUrl)
+ImageUrl: %s
+Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
+}
+
+func (v UnfurlGiphyVideo) String() string {
+	return fmt.Sprintf("[url: %s width: %d height: %d]", v.Url, v.Width, v.Height)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

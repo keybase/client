@@ -28,5 +28,5 @@ func main() {
 		fmt.Printf("error scraping URL: %v\n", err)
 		os.Exit(3)
 	}
-	fmt.Printf("%s\n", res)
+	fmt.Printf("%s\n", res.UnsafeDebugString())
 }

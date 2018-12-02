@@ -42,25 +42,39 @@ func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convI
 
 func displayUnfurlGiphy(ctx context.Context, srv types.AttachmentURLSrv, convID chat1.ConversationID,
 	unfurl chat1.UnfurlGiphy) (res chat1.UnfurlGiphyDisplay) {
-	typ, err := unfurl.Image.Metadata.AssetType()
-	if err != nil {
-		return res
+
+	giphyAssetToDisplay := func(asset chat1.Asset) (res *chat1.UnfurlImageDisplay, err error) {
+		var height, width int
+		typ, err := asset.Metadata.AssetType()
+		if err != nil {
+			return res, err
+		}
+		switch typ {
+		case chat1.AssetMetadataType_IMAGE:
+			height = asset.Metadata.Image().Height
+			width = asset.Metadata.Image().Width
+		case chat1.AssetMetadataType_VIDEO:
+			height = asset.Metadata.Video().Height
+			width = asset.Metadata.Video().Width
+		default:
+			return res, errors.New("unknown asset type")
+		}
+		return &chat1.UnfurlImageDisplay{
+			Height: height,
+			Width:  width,
+			Url:    srv.GetUnfurlAssetURL(ctx, convID, asset),
+		}, nil
 	}
-	var height, width int
-	switch typ {
-	case chat1.AssetMetadataType_IMAGE:
-		height = unfurl.Image.Metadata.Image().Height
-		width = unfurl.Image.Metadata.Image().Width
-	case chat1.AssetMetadataType_VIDEO:
-		height = unfurl.Image.Metadata.Video().Height
-		width = unfurl.Image.Metadata.Video().Width
-	default:
-		return res
+	var err error
+	if unfurl.Image != nil {
+		if res.Image, err = giphyAssetToDisplay(*unfurl.Image); err != nil {
+			return res
+		}
 	}
-	res.Image = chat1.UnfurlImageDisplay{
-		Height: height,
-		Width:  width,
-		Url:    srv.GetUnfurlAssetURL(ctx, convID, unfurl.Image),
+	if unfurl.Video != nil {
+		if res.Video, err = giphyAssetToDisplay(*unfurl.Video); err != nil {
+			return res
+		}
 	}
 	if unfurl.Favicon != nil {
 		res.Favicon = new(chat1.UnfurlImageDisplay)

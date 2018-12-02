@@ -4,11 +4,13 @@ import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
 import {clamp} from 'lodash-es'
 import {imgMaxWidth} from '../../attachment/image/image-render'
+import {Video} from './video'
 
 export type Props = {
   height: number,
   width: number,
   url: string,
+  isVideo: boolean,
   style?: Object,
 }
 
@@ -34,12 +36,20 @@ class UnfurlImage extends React.Component<Props> {
       maxSize
     )
   }
+  _getOrient() {
+    return this.props.height > this.props.width ? 'height' : 'width'
+  }
+
   render() {
-    return (
-      <Kb.Image
-        src={this.props.url}
-        style={Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])}
-      />
+    const style = Styles.collapseStyles([
+      this._getDimensions(),
+      this.props.isVideo ? styles.video : styles.image,
+      this.props.style,
+    ])
+    return this.props.isVideo ? (
+      <Video url={this.props.url} orient={this._getOrient()} style={style} />
+    ) : (
+      <Kb.Image src={this.props.url} style={style} />
     )
   }
 }
@@ -47,6 +57,10 @@ class UnfurlImage extends React.Component<Props> {
 const styles = Styles.styleSheetCreate({
   image: {
     borderRadius: Styles.borderRadius,
+  },
+  video: {
+    position: 'relative',
+    alignSelf: 'flex-start',
   },
 })
 

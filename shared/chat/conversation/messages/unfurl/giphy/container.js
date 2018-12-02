@@ -11,9 +11,10 @@ type OwnProps = {|
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {unfurl, onClose} = ownProps
   return {
-    imageHeight: unfurl.image.height,
-    imageWidth: unfurl.image.width,
-    imageURL: unfurl.image.url,
+    imageHeight: unfurl.image ? unfurl.image.height : unfurl.video ? unfurl.video.height : 0,
+    imageWidth: unfurl.image ? unfurl.image.width : unfurl.video ? unfurl.video.width : 0,
+    imageURL: unfurl.image ? unfurl.image.url : unfurl.video ? unfurl.video.url : '',
+    isVideo: !!unfurl.video,
     faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
     onClose,
   }
