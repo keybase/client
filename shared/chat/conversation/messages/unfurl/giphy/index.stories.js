@@ -11,6 +11,7 @@ const full = {
   imageHeight: 471,
   imageWidth: 900,
   onClose: Sb.action('onClose'),
+  isVideo: false,
 }
 
 const noClose = {

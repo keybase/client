@@ -4,6 +4,7 @@ import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
 import {clamp} from 'lodash-es'
 import {imgMaxWidth} from '../../attachment/image/image-render'
+import {Video} from './video'
 
 export type Props = {
   height: number,
@@ -25,7 +26,6 @@ const clampImageSize = ({width = 0, height = 0}, maxSize) =>
       }
 
 class UnfurlImage extends React.Component<Props> {
-  vidRef: any
   _getDimensions() {
     const maxSize = Math.min(imgMaxWidth(), 320)
     return clampImageSize(
@@ -36,23 +36,15 @@ class UnfurlImage extends React.Component<Props> {
       maxSize
     )
   }
-  componentDidMount = () => {
-    if (this.vidRef) {
-      this.vidRef.play()
-    }
-  }
 
   render() {
-    const style = Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])
+    const style = Styles.collapseStyles([
+      this._getDimensions(),
+      this.props.isVideo ? styles.video : styles.image,
+      this.props.style,
+    ])
     return this.props.isVideo ? (
-      <video
-        ref={ref => {
-          this.vidRef = ref
-        }}
-        src={this.props.url}
-        style={style}
-        loop={true}
-      />
+      <Video url={this.props.url} style={style} />
     ) : (
       <Kb.Image src={this.props.url} style={style} />
     )
@@ -62,6 +54,10 @@ class UnfurlImage extends React.Component<Props> {
 const styles = Styles.styleSheetCreate({
   image: {
     borderRadius: Styles.borderRadius,
+  },
+  video: {
+    position: 'relative',
+    alignSelf: 'flex-start',
   },
 })
 
