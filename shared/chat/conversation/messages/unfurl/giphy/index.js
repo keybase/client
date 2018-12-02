@@ -19,7 +19,7 @@ class UnfurlGiphy extends React.Component<Props> {
       <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
         {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
         <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
-          <Kb.Box2 style={styles.siteNameContainer} fullWidth={true} gap="tiny" direction="horizontal">
+          <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
             <Kb.Box2 direction="horizontal" gap="tiny">
               {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
               <Kb.Text type="BodySmall">Giphy</Kb.Text>
@@ -90,10 +90,10 @@ const styles = Styles.styleSheetCreate({
       minWidth: 150,
     },
     isMobile: {
-      flex: 1,
       borderWidth: 1,
       borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
 })
