@@ -41,11 +41,7 @@ class UnfurlImage extends React.Component<Props> {
   }
 
   render() {
-    const style = Styles.collapseStyles([
-      this._getDimensions(),
-      this.props.isVideo ? styles.video : styles.image,
-      this.props.style,
-    ])
+    const style = Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])
     return this.props.isVideo ? (
       <Video url={this.props.url} orient={this._getOrient()} style={style} />
     ) : (
@@ -57,10 +53,6 @@ class UnfurlImage extends React.Component<Props> {
 const styles = Styles.styleSheetCreate({
   image: {
     borderRadius: Styles.borderRadius,
-  },
-  video: {
-    position: 'relative',
-    alignSelf: 'flex-start',
   },
 })
 
