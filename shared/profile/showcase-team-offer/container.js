@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import Render from './index'
 import {compose, connect, lifecycle, type RouteProps} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
-import {HeaderOnMobile} from '../../common-adapters'
+import {HeaderOrPopup} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
 
 type OwnProps = RouteProps<{}, {}>
@@ -24,7 +24,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
-  onBack: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
@@ -32,6 +32,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
+    customCancelText: 'Close',
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
@@ -53,4 +54,4 @@ export default compose(
       this.props.loadTeams()
     },
   })
-)(HeaderOnMobile(Render))
+)(HeaderOrPopup(Render))
