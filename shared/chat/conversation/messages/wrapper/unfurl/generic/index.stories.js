@@ -15,6 +15,8 @@ const full = {
   onClose: Sb.action('onClose'),
   faviconURL: require('../../../../../../images/mock/wsj.jpg'),
   imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
+  imageWidth: 900,
+  imageHeight: 471,
   showImageOnSide: false,
 }
 

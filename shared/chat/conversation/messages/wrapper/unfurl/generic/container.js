@@ -17,6 +17,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     description: unfurl.description || undefined,
     publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
     imageURL: unfurl.image ? unfurl.image.url : undefined,
+    imageHeight: unfurl.image ? unfurl.image.height : undefined,
+    imageWidth: unfurl.image ? unfurl.image.width : undefined,
     faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
     showImageOnSide: unfurl.image ? unfurl.image.height >= unfurl.image.width : false,
     onClose,
