@@ -102,8 +102,6 @@ func TestResolvePhoneToUser(t *testing.T) {
 }
 
 func TestServerTrustResolveInvalidInput(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -114,7 +112,6 @@ func TestServerTrustResolveInvalidInput(t *testing.T) {
 		require.IsType(t, libkb.ResolutionError{}, err)
 		resErr := err.(libkb.ResolutionError)
 		require.Equal(t, libkb.ResolutionErrorInvalidInput, resErr.Kind)
-		// fails here, so it's a different issue than settings being private.
 	}
 
 	_, _, err := ann.tc.G.Resolver.ResolveUser(ann.MetaContext(), "111@phone")
@@ -219,8 +216,6 @@ func TestPhoneNumberNotifications(t *testing.T) {
 }
 
 func TestImplicitTeamWithEmail(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -258,6 +253,9 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	// Verifying an email should RSVP the invitation which will notify
 	// (using SBS gregor msg) ann to resolve it.
 	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
+	require.NoError(t, err)
+	// TODO want client
+	err = emails.SetVisibilityEmail(bob.MetaContext(), keybase1.EmailAddress(email), keybase1.IdentityVisibility_PUBLIC)
 	require.NoError(t, err)
 
 	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: teamID}, seqnoAfterResolve)

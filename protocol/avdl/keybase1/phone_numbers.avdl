@@ -10,11 +10,14 @@ protocol phoneNumbers {
       PhoneNumber phoneNumber;
       @jsonkey("verified")
       boolean verified;
+      @jsonkey("visibility")
+      IdentityVisibility visibility;
       @jsonkey("ctime")
       UnixTime ctime;
     }
 
     void addPhoneNumber(int sessionID, PhoneNumber phoneNumber, IdentityVisibility visibility);
+    void editPhoneNumber(int sessionID, PhoneNumber phoneNumber, PhoneNumber oldPhoneNumber, IdentityVisibility visibility);
     void verifyPhoneNumber(int sessionID, PhoneNumber phoneNumber, string code);
     array<UserPhoneNumber> getPhoneNumbers(int sessionID);
     void deletePhoneNumber(int sessionID, PhoneNumber phoneNumber);

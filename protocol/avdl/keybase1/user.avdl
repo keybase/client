@@ -45,6 +45,7 @@ protocol user {
     EmailAddress email;
     boolean isVerified;
     boolean isPrimary;
+    IdentityVisibility visibility;
   }
 
   record UserSettings {

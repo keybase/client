@@ -4,6 +4,7 @@
 package emails
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -51,21 +52,6 @@ func SetPrimaryEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error 
 	return err
 }
 
-func EditEmail(mctx libkb.MetaContext, oldEmail keybase1.EmailAddress, email keybase1.EmailAddress) error {
-	payload := make(libkb.JSONPayload)
-	payload["old_email"] = oldEmail
-	payload["email"] = email
-
-	arg := libkb.APIArg{
-		Endpoint:    "email/edit",
-		JSONPayload: payload,
-		SessionType: libkb.APISessionTypeREQUIRED,
-	}
-
-	_, err := mctx.G().API.PostJSON(arg)
-	return err
-}
-
 func SendVerificationEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 	payload := make(libkb.JSONPayload)
 	payload["email"] = email
@@ -99,24 +85,26 @@ func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
 	return libkb.LoadUserEmails(mctx.G())
 }
 
-type emailLookupApiResult struct {
-	libkb.AppStatusEmbed
-	result []keybase1.EmailLookupResult `json:"resolutions"`
-}
+// type emailLookupApiResult struct {
+// 	libkb.AppStatusEmbed
+// 	Solutions []keybase1.EmailLookupResult `json:"resolutions"`
+// }
 
-func BulkLookupEmails(mctx libkb.MetaContext, contactEmail []string) ([]keybase1.EmailLookupResult, error) {
-	payload := make(libkb.JSONPayload)
-	payload["emails"] = contactEmail
+// func BulkLookupEmails(mctx libkb.MetaContext, contactEmails []string) ([]keybase1.EmailLookupResult, error) {
+// 	payload := make(libkb.JSONPayload)
+// 	payload["emails"] = contactEmails
 
-	arg := libkb.APIArg{
-		Endpoint:    "email/bulk-lookup",
-		JSONPayload: payload,
-		SessionType: libkb.APISessionTypeREQUIRED,
-	}
-	var resp emailLookupApiResult
-	err := mctx.G().API.PostDecode(arg, &resp)
-	if err != nil {
-		return nil, err
-	}
-	return resp.result, nil
-}
+// 	arg := libkb.APIArg{
+// 		Endpoint:    "email/bulk-lookup",
+// 		JSONPayload: payload,
+// 		SessionType: libkb.APISessionTypeREQUIRED,
+// 	}
+// 	var resp emailLookupApiResult
+// 	err := mctx.G().API.PostDecode(arg, &resp)
+// 	// fmt.Printf("RES! %+v\n", res.Body)
+// 	fmt.Printf("RES! %+v\n", resp)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp.solutions, nil
+// }

@@ -129,9 +129,10 @@ func (o UserSummary) DeepCopy() UserSummary {
 }
 
 type Email struct {
-	Email      EmailAddress `codec:"email" json:"email"`
-	IsVerified bool         `codec:"isVerified" json:"isVerified"`
-	IsPrimary  bool         `codec:"isPrimary" json:"isPrimary"`
+	Email      EmailAddress       `codec:"email" json:"email"`
+	IsVerified bool               `codec:"isVerified" json:"isVerified"`
+	IsPrimary  bool               `codec:"isPrimary" json:"isPrimary"`
+	Visibility IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
 func (o Email) DeepCopy() Email {
@@ -139,6 +140,7 @@ func (o Email) DeepCopy() Email {
 		Email:      o.Email.DeepCopy(),
 		IsVerified: o.IsVerified,
 		IsPrimary:  o.IsPrimary,
+		Visibility: o.Visibility.DeepCopy(),
 	}
 }
 

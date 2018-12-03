@@ -405,12 +405,12 @@ func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 	return resp.VerificationCode, nil
 }
 
-func VerifyEmailAuto(mctx libkb.MetaContext, email string) error {
+func VerifyEmailAuto(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 	arg := libkb.APIArg{
 		Endpoint:    "test/verify_email_auto",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"email": libkb.S{Val: email},
+			"email": libkb.S{Val: string(email)},
 		},
 	}
 	_, err := mctx.G().API.Post(arg)

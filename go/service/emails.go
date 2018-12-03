@@ -45,7 +45,11 @@ func (h *EmailsHandler) SetPrimaryEmail(ctx context.Context, arg keybase1.SetPri
 func (h *EmailsHandler) EditEmail(ctx context.Context, arg keybase1.EditEmailArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#EditEmail", func() error { return err })()
-	return emails.EditEmail(mctx, arg.OldEmail, arg.Email)
+	err = emails.DeleteEmail(mctx, arg.OldEmail)
+	if err != nil {
+		return err
+	}
+	return emails.AddEmail(mctx, arg.Email, arg.Visibility)
 }
 
 func (h *EmailsHandler) SendVerificationEmail(ctx context.Context, arg keybase1.SendVerificationEmailArg) (err error) {

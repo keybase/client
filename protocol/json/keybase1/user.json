@@ -144,6 +144,10 @@
         {
           "type": "boolean",
           "name": "isPrimary"
+        },
+        {
+          "type": "IdentityVisibility",
+          "name": "visibility"
         }
       ]
     },

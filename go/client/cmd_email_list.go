@@ -14,18 +14,18 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdListPhoneNumbers struct {
+type CmdListEmails struct {
 	libkb.Contextified
 	json bool
 }
 
-func NewCmdListPhoneNumbers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	cmd := &CmdListPhoneNumbers{
+func NewCmdListEmails(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cmd := &CmdListEmails{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
 		Name:  "list",
-		Usage: "List phone numbers attached to your account",
+		Usage: "List emails attached to your account",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "j, json",
@@ -38,7 +38,7 @@ func NewCmdListPhoneNumbers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 	}
 }
 
-func (c *CmdListPhoneNumbers) ParseArgv(ctx *cli.Context) error {
+func (c *CmdListEmails) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
 		return errors.New("list takes no positional arguments")
 	}
@@ -46,12 +46,12 @@ func (c *CmdListPhoneNumbers) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdListPhoneNumbers) Run() error {
-	cli, err := GetPhoneNumbersClient(c.G())
+func (c *CmdListEmails) Run() error {
+	cli, err := GetEmailsClient(c.G())
 	if err != nil {
 		return err
 	}
-	resp, err := cli.GetPhoneNumbers(context.Background(), 0)
+	resp, err := cli.GetEmails(context.Background(), 0)
 	if err != nil {
 		return err
 	}
@@ -68,13 +68,13 @@ func (c *CmdListPhoneNumbers) Run() error {
 
 	for _, p := range resp {
 		visibilityName := keybase1.IdentityVisibilityRevMap[p.Visibility]
-		ui.Printf("%s (visibility: %s, verified: %t, added on: %s)\n", p.PhoneNumber,
-			visibilityName, p.Verified, p.Ctime.Time().Format("2006-01-02"))
+		ui.Printf("%s (visibility: %s, verified: %t, primary: %t)\n", p.Email,
+			visibilityName, p.IsVerified, p.IsPrimary)
 	}
 	return nil
 }
 
-func (c *CmdListPhoneNumbers) GetUsage() libkb.Usage {
+func (c *CmdListEmails) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

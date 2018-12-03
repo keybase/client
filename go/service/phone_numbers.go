@@ -33,7 +33,17 @@ var _ keybase1.PhoneNumbersInterface = (*PhoneNumbersHandler)(nil)
 func (h *PhoneNumbersHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
-	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
+}
+
+func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.EditPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber)
+	if err != nil {
+		return err
+	}
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {

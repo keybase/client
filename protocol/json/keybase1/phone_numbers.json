@@ -22,6 +22,11 @@
           "jsonkey": "verified"
         },
         {
+          "type": "IdentityVisibility",
+          "name": "visibility",
+          "jsonkey": "visibility"
+        },
+        {
           "type": "UnixTime",
           "name": "ctime",
           "jsonkey": "ctime"
@@ -72,6 +77,27 @@
         },
         {
           "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "editPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "oldPhoneNumber",
           "type": "PhoneNumber"
         },
         {

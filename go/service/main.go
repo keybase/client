@@ -149,6 +149,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
+		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 	}
 	walletHandler := newWalletHandler(xp, g)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))

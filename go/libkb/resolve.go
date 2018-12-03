@@ -441,7 +441,7 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 		arg = NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
 		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
 	case "email":
-		arg = NewAPIArgWithMetaContext(m, "user/emails_search")
+		arg = NewAPIArgWithMetaContext(m, "email/search")
 		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
 	default:
 		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}

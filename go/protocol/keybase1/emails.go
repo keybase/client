@@ -38,9 +38,10 @@ type DeleteEmailArg struct {
 }
 
 type EditEmailArg struct {
-	SessionID int          `codec:"sessionID" json:"sessionID"`
-	OldEmail  EmailAddress `codec:"oldEmail" json:"oldEmail"`
-	Email     EmailAddress `codec:"email" json:"email"`
+	SessionID  int                `codec:"sessionID" json:"sessionID"`
+	OldEmail   EmailAddress       `codec:"oldEmail" json:"oldEmail"`
+	Email      EmailAddress       `codec:"email" json:"email"`
+	Visibility IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
 type SetPrimaryEmailArg struct {

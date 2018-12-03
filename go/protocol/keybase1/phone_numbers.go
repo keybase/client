@@ -10,15 +10,17 @@ import (
 
 // Phone number support for TOFU chats.
 type UserPhoneNumber struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone_number"`
-	Verified    bool        `codec:"verified" json:"verified"`
-	Ctime       UnixTime    `codec:"ctime" json:"ctime"`
+	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phone_number"`
+	Verified    bool               `codec:"verified" json:"verified"`
+	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
+	Ctime       UnixTime           `codec:"ctime" json:"ctime"`
 }
 
 func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 	return UserPhoneNumber{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 		Verified:    o.Verified,
+		Visibility:  o.Visibility.DeepCopy(),
 		Ctime:       o.Ctime.DeepCopy(),
 	}
 }
@@ -59,6 +61,13 @@ type AddPhoneNumberArg struct {
 	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
+type EditPhoneNumberArg struct {
+	SessionID      int                `codec:"sessionID" json:"sessionID"`
+	PhoneNumber    PhoneNumber        `codec:"phoneNumber" json:"phoneNumber"`
+	OldPhoneNumber PhoneNumber        `codec:"oldPhoneNumber" json:"oldPhoneNumber"`
+	Visibility     IdentityVisibility `codec:"visibility" json:"visibility"`
+}
+
 type VerifyPhoneNumberArg struct {
 	SessionID   int         `codec:"sessionID" json:"sessionID"`
 	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
@@ -82,6 +91,7 @@ type SetVisibilityPhoneNumberArg struct {
 
 type PhoneNumbersInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
+	EditPhoneNumber(context.Context, EditPhoneNumberArg) error
 	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
 	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 	DeletePhoneNumber(context.Context, DeletePhoneNumberArg) error
@@ -104,6 +114,21 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 						return
 					}
 					err = i.AddPhoneNumber(ctx, typedArgs[0])
+					return
+				},
+			},
+			"editPhoneNumber": {
+				MakeArg: func() interface{} {
+					var ret [1]EditPhoneNumberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EditPhoneNumberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EditPhoneNumberArg)(nil), args)
+						return
+					}
+					err = i.EditPhoneNumber(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -177,6 +202,11 @@ type PhoneNumbersClient struct {
 
 func (c PhoneNumbersClient) AddPhoneNumber(ctx context.Context, __arg AddPhoneNumberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.addPhoneNumber", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PhoneNumbersClient) EditPhoneNumber(ctx context.Context, __arg EditPhoneNumberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.editPhoneNumber", []interface{}{__arg}, nil)
 	return
 }
 

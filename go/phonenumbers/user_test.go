@@ -22,7 +22,7 @@ func TestSetPhoneNumber(t *testing.T) {
 
 	mctx := libkb.NewMetaContextForTest(tc)
 
-	err = AddPhoneNumber(mctx, phoneNumber)
+	err = AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE)
 	require.NoError(t, err)
 
 	code, err := kbtest.GetPhoneVerificationCode(mctx, phoneNumber)
@@ -31,13 +31,21 @@ func TestSetPhoneNumber(t *testing.T) {
 
 	err = VerifyPhoneNumber(mctx, phoneNumber, code)
 	require.NoError(t, err)
+	err = SetVisibilityPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
 
 	resp, err := GetPhoneNumbers(mctx)
 	require.NoError(t, err)
-
 	require.Len(t, resp, 1)
 	require.Equal(t, phoneNumber, resp[0].PhoneNumber)
 	require.True(t, resp[0].Verified)
+
+	err = DeletePhoneNumber(mctx, phoneNumber)
+	require.NoError(t, err)
+
+	resp, err = GetPhoneNumbers(mctx)
+	require.NoError(t, err)
+	require.Len(t, resp, 0)
 }
 
 func TestBadPhoneNumbers(t *testing.T) {
@@ -48,7 +56,7 @@ func TestBadPhoneNumbers(t *testing.T) {
 	require.NoError(t, err)
 
 	mctx := libkb.NewMetaContextForTest(tc)
-	require.Error(t, AddPhoneNumber(mctx, "14155552671"))
-	require.Error(t, AddPhoneNumber(mctx, "014155552671"))
-	require.Error(t, AddPhoneNumber(mctx, "784111222"))
+	require.Error(t, AddPhoneNumber(mctx, "14155552671", keybase1.IdentityVisibility_PUBLIC))
+	require.Error(t, AddPhoneNumber(mctx, "014155552671", keybase1.IdentityVisibility_PUBLIC))
+	require.Error(t, AddPhoneNumber(mctx, "784111222", keybase1.IdentityVisibility_PUBLIC))
 }

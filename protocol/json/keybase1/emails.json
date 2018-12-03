@@ -69,6 +69,10 @@
         {
           "name": "email",
           "type": "EmailAddress"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
         }
       ],
       "response": null

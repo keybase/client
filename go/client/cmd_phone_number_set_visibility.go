@@ -36,8 +36,8 @@ func NewCmdSetVisibilityPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalC
 }
 
 func (c *CmdSetVisibilityPhoneNumber) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
-		return errors.New("delete requires one argument (phone number)")
+	if len(ctx.Args()) != 2 {
+		return errors.New("set-visibility requires two arguments (phone number, visibility)")
 	}
 	c.PhoneNumber = ctx.Args()[0]
 	v := ctx.Args()[1]

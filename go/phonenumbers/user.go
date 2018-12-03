@@ -9,9 +9,10 @@ import (
 )
 
 // AddPhoneNumber calls API to add phone number to currently logged in account.
-func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
+func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, visibility keybase1.IdentityVisibility) error {
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
+	payload["visibility"] = visibility
 
 	arg := libkb.APIArg{
 		Endpoint:    "user/phone_numbers",
