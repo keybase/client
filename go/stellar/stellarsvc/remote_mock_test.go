@@ -784,11 +784,7 @@ func (r *BackendMock) AcquireAutoClaimLock(ctx context.Context, tc *TestContext)
 	if !r.autoclaimEnabled[uid] {
 		return "", fmt.Errorf("Autoclaims are not enabled for %q", tc.Fu.Username)
 	}
-	if r.autoclaimLocks[uid] {
-		msg := "AcquireAutoClaimLock called while already locked"
-		tc.T.Fatal(msg)
-		return "", fmt.Errorf("%s", msg)
-	}
+	require.False(tc.T, r.autoclaimLocks[uid], "Lock already acquired")
 	r.autoclaimLocks[uid] = true
 	return "autoclaim_test_token", nil
 }
