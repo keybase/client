@@ -103,10 +103,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     cancelButtonLabel: 'Cancel',
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
-    onCancel:
-      paymentInfo.status === 'cancelable' && youAreSender
-        ? () => dispatchProps.onCancel(paymentInfo.paymentID)
-        : null,
+    onCancel: paymentInfo.showCancel ? () => dispatchProps.onCancel(paymentInfo.paymentID) : null,
     onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
     onSeeDetails:

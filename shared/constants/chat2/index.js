@@ -238,6 +238,7 @@ export {
   inboxUIItemToConversationMeta,
   isDecryptingSnippet,
   makeConversationMeta,
+  shouldShowWalletsIcon,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,

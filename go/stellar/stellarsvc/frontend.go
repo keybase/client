@@ -435,10 +435,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		StatusSimplified:     summary.StatusSimplified,
 		StatusDescription:    summary.StatusDescription,
 		StatusDetail:         summary.StatusDetail,
+		ShowCancel:           summary.ShowCancel,
 		AmountDescription:    summary.AmountDescription,
 		Delta:                summary.Delta,
 		Worth:                summary.Worth,
 		WorthCurrency:        summary.WorthCurrency,
+		CurrentWorth:         summary.CurrentWorth,
+		CurrentWorthCurrency: summary.CurrentWorthCurrency,
 		FromType:             summary.FromType,
 		ToType:               summary.ToType,
 		FromAccountID:        summary.FromAccountID,
@@ -453,8 +456,6 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		NoteErr:              summary.NoteErr,
 		PublicNote:           details.Memo,
 		PublicNoteType:       details.MemoType,
-		CurrentWorth:         summary.CurrentWorth,
-		CurrentWorthCurrency: summary.CurrentWorthCurrency,
 		ExternalTxURL:        details.ExternalTxURL,
 	}
 

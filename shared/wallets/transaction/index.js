@@ -281,12 +281,12 @@ const TimestampLine = (props: TimestampLineProps) => {
   const human = formatTimeForMessages(timestamp)
   const tooltip = formatTimeForStellarTooltip(timestamp)
   let status = capitalize(props.status)
-  // 'cancelable' -> show 'pending' and completed -> show nothing
+  // 'claimable' -> show 'pending' and completed -> show nothing
   switch (status) {
     case 'Completed':
       status = null
       break
-    case 'Cancelable':
+    case 'Claimable':
       status = 'Pending'
       break
   }
@@ -347,7 +347,7 @@ export const Transaction = (props: Props) => {
       */
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
-  const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
+  const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
   const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>

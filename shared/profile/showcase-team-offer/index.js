@@ -1,18 +1,7 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-import {
-  Avatar,
-  Box,
-  Button,
-  ClickableBox,
-  Divider,
-  InfoNote,
-  Meta,
-  PopupDialog,
-  ScrollView,
-  Text,
-} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import {teamWaitingKey} from '../../constants/teams'
 
 import type {RowProps, Props} from './index'
@@ -27,76 +16,65 @@ const TeamRow = ({
   waiting,
   isExplicitMember,
 }: RowProps) => (
-  <Box style={globalStyles.flexBoxColumn}>
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        minHeight: isMobile ? 64 : 48,
-        marginRight: globalMargins.small,
-        paddingTop: globalMargins.tiny,
-        paddingBottom: globalMargins.tiny,
-      }}
-    >
-      <Box style={{display: 'flex', position: 'relative'}}>
-        <Avatar
-          isTeam={true}
-          size={isMobile ? 48 : 32}
-          style={{marginLeft: globalMargins.tiny}}
-          teamname={name}
-        />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySemibold">{name}</Text>
-          {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
-        </Box>
-      </Box>
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
+      <Kb.Avatar isTeam={true} size={Styles.isMobile ? 48 : 32} teamname={name} />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
+          <Kb.Text type="BodySemibold" lineClamp={1}>
+            {name}
+          </Kb.Text>
+          {isOpen && <Kb.Meta title="open" style={styles.meta} backgroundColor={Styles.globalColors.green} />}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" style={styles.teamText}>
+          <Kb.Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
       {showcased || canShowcase || waiting ? (
-        <Button
-          label={showcased ? 'Published' : 'Publish'}
-          onClick={() => onPromote(!showcased)}
-          small={true}
-          style={{minWidth: 72}}
-          type={showcased ? 'PrimaryGreenActive' : 'PrimaryGreen'}
-          waiting={waiting}
-        />
+        <Kb.Box2 direction="vertical">
+          <Kb.Button
+            label={showcased ? 'Published' : 'Publish'}
+            onClick={() => onPromote(!showcased)}
+            small={true}
+            type={showcased ? 'PrimaryGreenActive' : 'PrimaryGreen'}
+            waiting={waiting}
+          />
+        </Kb.Box2>
       ) : (
-        <Text style={{color: globalColors.black_40, width: isMobile ? '35%' : '25%'}} type="BodySmall">
-          {isExplicitMember
-            ? 'Admins aren’t allowing members to publish.'
-            : 'You are not a member. Add yourself to publish.'}
-        </Text>
+        <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
+          <Kb.Text style={styles.membershipText} type="BodySmall">
+            {isExplicitMember
+              ? 'Admins aren’t allowing members to publish.'
+              : 'Add yourself to the team first.'}
+          </Kb.Text>
+        </Kb.Box2>
       )}
-    </Box>
-    {!isMobile && <Divider style={{marginLeft: 48}} />}
-  </Box>
+    </Kb.Box2>
+    {!Styles.isMobile && <Kb.Divider style={{marginLeft: 48}} />}
+  </Kb.Box2>
+)
+
+const ShowcaseTeamOfferHeader = () => (
+  <Kb.Box style={styles.headerContainer}>
+    {!Styles.isMobile && (
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
+        <Kb.Text type="Header">Publish the teams you’re in</Kb.Text>
+      </Kb.Box2>
+    )}
+    <Kb.InfoNote containerStyle={styles.noteContainer}>
+      <Kb.Text style={styles.noteText} type="BodySmall">
+        Promoting a team will encourage others to ask to join. The team's description and number of members
+        will be public.
+      </Kb.Text>
+    </Kb.InfoNote>
+  </Kb.Box>
 )
 
 const ShowcaseTeamOffer = (props: Props) => (
-  <Box style={styleContainer}>
-    <Text style={{paddingBottom: globalMargins.small}} type="Header">
-      Publish the teams you're in
-    </Text>
-    <InfoNote>
-      <Text
-        style={{
-          paddingBottom: globalMargins.small,
-          paddingLeft: globalMargins.large,
-          paddingRight: globalMargins.large,
-          paddingTop: globalMargins.tiny,
-          textAlign: 'center',
-        }}
-        type="BodySmall"
-      >
-        Promoting a team will encourage others to ask to join. The team's description and number of members
-        will be public.
-      </Text>
-    </InfoNote>
-
-    <ScrollView style={{flexShrink: 1, width: '100%'}}>
+  <Kb.Box2 direction="vertical" style={styles.container}>
+    {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
+    <Kb.ScrollView>
+      {Styles.isMobile && <ShowcaseTeamOfferHeader />}
       {props.teamnames &&
         props.teamnames.map(name => (
           <TeamRow
@@ -114,31 +92,77 @@ const ShowcaseTeamOffer = (props: Props) => (
             waiting={!!props.waiting[teamWaitingKey(name)]}
           />
         ))}
-    </ScrollView>
-    <ClickableBox onClick={props.onBack} style={{flexGrow: 1}}>
-      <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
-    </ClickableBox>
-  </Box>
+    </Kb.ScrollView>
+  </Kb.Box2>
 )
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  marginTop: 35,
-  marginBottom: isMobile ? globalMargins.xtiny : 55,
-  minWidth: isMobile ? undefined : 600,
-}
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 600,
+      maxWidth: 600,
+    },
+  }),
+  headerContainer: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.mediumLarge,
+    },
+  }),
+  headerText: {
+    marginBottom: Styles.globalMargins.xsmall,
+  },
+  membershipText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_40,
+    },
+    isElectron: {
+      textAlign: 'right',
+    },
+    isMobile: {
+      textAlign: 'center',
+    },
+  }),
+  membershipTextContainer: {
+    flexShrink: 1,
+  },
+  meta: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.xtiny,
+    marginTop: 2,
+  },
+  noteContainer: Styles.platformStyles({
+    isMobile: {
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
+  noteText: {
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.large,
+    paddingRight: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.tiny,
+    textAlign: 'center',
+  },
+  teamNameContainer: {
+    flexShrink: 1,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
+  teamRowContainer: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      minHeight: Styles.isMobile ? 64 : 48,
+    },
+  }),
+  teamText: {
+    alignSelf: 'flex-start',
+  },
+})
 
-const styleMeta = {
-  alignSelf: 'center',
-  marginLeft: globalMargins.xtiny,
-  marginTop: 2,
-}
-
-const PopupWrapped = (props: Props) => (
-  <PopupDialog styleCover={{zIndex: 20}} onClose={props.onBack}>
-    <ShowcaseTeamOffer {...props} />
-  </PopupDialog>
-)
-export default (isMobile ? ShowcaseTeamOffer : PopupWrapped)
+export default ShowcaseTeamOffer

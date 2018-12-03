@@ -585,13 +585,14 @@ type ServiceType interface {
 	IsDevelOnly() bool
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs() bool
+	DisplayPriority() int
 }
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
-	GetDisplayPriority(n string) int
 	ListServicesThatAcceptNewProofs() []string
 }
 

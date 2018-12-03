@@ -1103,6 +1103,7 @@ export const constantsStatusCode = {
   scsigcannotverify: 1002,
   scsigwrongkey: 1008,
   scsigoldseqno: 1010,
+  scsigcreationdisallowed: 1016,
   scbadtracksession: 1301,
   scdevicebadname: 1404,
   scdevicenameinuse: 1408,
@@ -2437,7 +2438,7 @@ export type SeqType =
   | 3 // SEMIPRIVATE_3
 
 export type Seqno = Int64
-export type ServiceDisplayConfig = $ReadOnly<{priority: Int, key: String, group?: ?String}>
+export type ServiceDisplayConfig = $ReadOnly<{creationDisabled: Boolean, priority: Int, key: String, group?: ?String}>
 export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
 export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>}>
 export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>
@@ -2520,6 +2521,7 @@ export type StatusCode =
   | 1002 // SCSigCannotVerify_1002
   | 1008 // SCSigWrongKey_1008
   | 1010 // SCSigOldSeqno_1010
+  | 1016 // SCSigCreationDisallowed_1016
   | 1301 // SCBadTrackSession_1301
   | 1404 // SCDeviceBadName_1404
   | 1408 // SCDeviceNameInUse_1408

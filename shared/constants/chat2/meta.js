@@ -11,6 +11,7 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
+import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
@@ -307,6 +308,12 @@ export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
 const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
+// show wallets icon for one-on-one conversations
+export const shouldShowWalletsIcon = (meta: Types.ConversationMeta, yourUsername: string) =>
+  flags.walletsEnabled &&
+  meta.teamType === 'adhoc' &&
+  meta.participants.filter(u => u !== yourUsername).size === 1
+
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform

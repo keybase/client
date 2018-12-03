@@ -51,7 +51,7 @@ class UnfurlGeneric extends React.Component<Props> {
           <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
             {this.props.title}
           </Kb.Text>
-          {!!this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
+          {!!this.props.description && <Kb.Text type="Body" lineClamp={5}>{this.props.description}</Kb.Text>}
           {!!this.props.imageURL &&
             !!this.props.imageHeight &&
             !!this.props.imageWidth &&
