@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -2395,5 +2396,7 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 }
 
 func (h *Server) GiphySearch(ctx context.Context, query *string) (res []chat1.GiphySearchResult, err error) {
-	return res, err
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GiphySearch")()
+	return giphy.Search(ctx, query)
 }

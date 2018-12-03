@@ -814,7 +814,7 @@ export type GetThreadReason =
   | 8 // KBFSFILEACTIVITY_8
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
-export type GiphySearchResult = $ReadOnly<{targetUrl: String, previewUrl: String, previewWidth: String, previewHeight: String, previewIsVideo: Boolean}>
+export type GiphySearchResult = $ReadOnly<{targetUrl: String, previewUrl: String, previewWidth: Int, previewHeight: Int, previewIsVideo: Boolean}>
 export type GlobalAppNotificationSetting =
   | 0 // NEWMESSAGES_0
   | 1 // PLAINTEXTMOBILE_1

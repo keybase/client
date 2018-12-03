@@ -2688,11 +2688,11 @@
           "name": "previewUrl"
         },
         {
-          "type": "string",
+          "type": "int",
           "name": "previewWidth"
         },
         {
-          "type": "string",
+          "type": "int",
           "name": "previewHeight"
         },
         {

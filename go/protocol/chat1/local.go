@@ -4429,8 +4429,8 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 type GiphySearchResult struct {
 	TargetUrl      string `codec:"targetUrl" json:"targetUrl"`
 	PreviewUrl     string `codec:"previewUrl" json:"previewUrl"`
-	PreviewWidth   string `codec:"previewWidth" json:"previewWidth"`
-	PreviewHeight  string `codec:"previewHeight" json:"previewHeight"`
+	PreviewWidth   int    `codec:"previewWidth" json:"previewWidth"`
+	PreviewHeight  int    `codec:"previewHeight" json:"previewHeight"`
 	PreviewIsVideo bool   `codec:"previewIsVideo" json:"previewIsVideo"`
 }
 

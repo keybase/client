@@ -933,8 +933,8 @@ protocol local {
   record GiphySearchResult {
     string targetUrl;
     string previewUrl;
-    string previewWidth;
-    string previewHeight;
+    int previewWidth;
+    int previewHeight;
     boolean previewIsVideo;
   }
   array<GiphySearchResult> giphySearch(union { null, string } query);
