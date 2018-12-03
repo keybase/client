@@ -6,8 +6,8 @@ import * as Sb from '../../../../../../stories/storybook'
 import UnfurlGiphy from '.'
 
 const full = {
-  faviconURL: require('../../../../../images/mock/wsj.jpg'),
-  imageURL: require('../../../../../images/mock/wsj_image.jpg'),
+  faviconURL: require('../../../../../../images/mock/wsj.jpg'),
+  imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
   imageHeight: 471,
   imageWidth: 900,
   onClose: Sb.action('onClose'),
