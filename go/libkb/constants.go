@@ -312,6 +312,8 @@ const (
 	SCStellarNeedDisclaimer            = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
 	SCStellarDeviceNotMobile           = int(keybase1.StatusCode_SCStellarDeviceNotMobile)
 	SCStellarMobileOnlyPurgatory       = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
+	SCStellarIncompatibleVersion       = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
+	SCStellarMissingAccount            = int(keybase1.StatusCode_SCStellarMissingAccount)
 )
 
 const (

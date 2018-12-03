@@ -56,7 +56,7 @@ protocol bundle {
   // by BundleSecret's version field.
 
   // --------------------------------------------------------------------------
-  // V1 
+  // V1
   // --------------------------------------------------------------------------
 
   record BundleVisibleV1 {
@@ -93,7 +93,7 @@ protocol bundle {
     Hash prev; // SHA256 of previous msgpack(EncryptedBundle)
     array<BundleVisibleEntryV2> accounts;
   }
-  
+
   record BundleSecretV2 {
     Hash visibleHash; // SHA256 of msgpack(BundleVisibleV2)
     array<BundleSecretEntryV2> accounts;
@@ -107,7 +107,7 @@ protocol bundle {
     BundleRevision acctBundleRevision; // revision of AccountBundleSecret
     Hash encAcctBundleHash;   // SHA256 of msgpack(EncryptedAccountBundle) for this account
   }
-  
+
   // V2 Secret attributes of an account.
   record BundleSecretEntryV2 {
     AccountID accountID; // this is here to check that the bundle isn't corrupt
@@ -115,7 +115,7 @@ protocol bundle {
   }
 
   // --------------------------------------------------------------------------
-  // Unsupported 
+  // Unsupported
   // --------------------------------------------------------------------------
 
   record BundleSecretUnsupported {}
@@ -165,7 +165,7 @@ protocol bundle {
   }
 
   record AccountBundleSecretUnsupported {}
- 
+
   // ==========================================================================
   // Unversioned structs for local use only.
   // ==========================================================================
@@ -205,7 +205,7 @@ protocol bundle {
     // bundles containing secret keys
     map<AccountID, AccountBundle> accountBundles;
   }
-  
+
   // Combined account entry for local use only.
   record BundleEntryRestricted {
     AccountID accountID;
@@ -218,7 +218,6 @@ protocol bundle {
 
   // Unversioned struct for local use only.
   record AccountBundle {
-    BundleRevision revision;
     Hash prev;
     // SHA256 of this msgpack(EncryptedAccountBundle)
     // Not serialized. Only set if this bundle was decrypted.

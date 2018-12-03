@@ -183,6 +183,7 @@ const (
 	StatusCode_SCStellarNeedDisclaimer            StatusCode = 3109
 	StatusCode_SCStellarDeviceNotMobile           StatusCode = 3110
 	StatusCode_SCStellarMobileOnlyPurgatory       StatusCode = 3111
+	StatusCode_SCStellarIncompatibleVersion       StatusCode = 3112
 	StatusCode_SCNISTWrongSize                    StatusCode = 3201
 	StatusCode_SCNISTBadMode                      StatusCode = 3202
 	StatusCode_SCNISTHashWrongSize                StatusCode = 3203
@@ -382,6 +383,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCStellarNeedDisclaimer":            3109,
 	"SCStellarDeviceNotMobile":           3110,
 	"SCStellarMobileOnlyPurgatory":       3111,
+	"SCStellarIncompatibleVersion":       3112,
 	"SCNISTWrongSize":                    3201,
 	"SCNISTBadMode":                      3202,
 	"SCNISTHashWrongSize":                3203,
@@ -579,6 +581,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3109: "SCStellarNeedDisclaimer",
 	3110: "SCStellarDeviceNotMobile",
 	3111: "SCStellarMobileOnlyPurgatory",
+	3112: "SCStellarIncompatibleVersion",
 	3201: "SCNISTWrongSize",
 	3202: "SCNISTBadMode",
 	3203: "SCNISTHashWrongSize",

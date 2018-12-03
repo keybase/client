@@ -885,14 +885,14 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
-	bundle, _, err := remote.Fetch(context.Background(), tc.G)
+	bundle, _, _, err := remote.FetchWholeBundle(context.Background(), tc.G)
 	require.NoError(r.T, err)
 	for _, account := range bundle.Accounts {
 		if _, found := r.accounts[account.AccountID]; found {
 			continue
 		}
 		acc := r.addAccountByID(account.AccountID, false /* funded */)
-		acc.secretKey = stellar1.SecretKey(account.Signers[0])
+		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
 		res = append(res, acc)
 	}
 	return res
