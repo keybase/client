@@ -37,32 +37,32 @@ func NewCmdOneshot(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		Flags: flags,
 		Description: `"keybase oneshot" is used to establish a temporary device that will
-be thrown away after the corresponding "keybase service" process exits (or
-logout is called). For instance, you can use this, instead of login, for
-running keybase in a Docker container.
+  be thrown away after the corresponding "keybase service" process exits (or
+  logout is called). For instance, you can use this, instead of login, for
+  running keybase in a Docker container.
 
-It won't write any credential information out disk, and it won't make any
-changes to the user's sigchain. It will rather hold the given paperkey in
-memory for as long as the service is running (or until "keybase logout" is
-called) and then will disappear.
+  It won't write any credential information out disk, and it won't make any
+  changes to the user's sigchain. It will rather hold the given paperkey in
+  memory for as long as the service is running (or until "keybase logout" is
+  called) and then will disappear.
 
-It needs a username and a paperkey to work, either passed in via standard input,
-command-line flags, or the environment.
+  It needs a username and a paperkey to work, either passed in via standard input,
+  command-line flags, or the environment.
 
-The default way to pass a paperkey into oneshot is via standard input.
-On a terminal, you'll get a familiar passphrase prompt. In a script or
-programmatic environment, when standard input is not a terminal, you can pipe
-the paper key to standard input, with or without a trailing newline.
+  The default way to pass a paperkey into oneshot is via standard input.
+  On a terminal, you'll get a familiar passphrase prompt. In a script or
+  programmatic environment, when standard input is not a terminal, you can pipe
+  the paper key to standard input, with or without a trailing newline.
 
-Otherwise, and this is more dangerous, you can pass a paperkey via the environment
-or via command line flags. Other processes running on the machine can inspect these
-data, so be very careful with this input choice.
+  Otherwise, and this is more dangerous, you can pass a paperkey via the environment
+  or via command line flags. Other processes running on the machine can inspect these
+  data, so be very careful with this input choice.
 
-Also note that by default keybase shouldn't be run as root, but in Docker (or
-other containers), root can be the best option, so you can use "keybase oneshot"
-in concert with the KEYBASE_ALLOW_ROOT=1 environment variable.
+  Also note that by default keybase shouldn't be run as root, but in Docker (or
+  other containers), root can be the best option, so you can use "keybase oneshot"
+  in concert with the KEYBASE_ALLOW_ROOT=1 environment variable.
 
-Some features won't work in oneshot mode, like ephemeral messaging.`,
+  Some features won't work in oneshot mode, like ephemeral messaging.`,
 	}
 	return cmd
 }

@@ -64,15 +64,16 @@ On signup - When you sign up, you can also "select" a PGP key for use with keyba
   previously updated. This feature is for updating PGP subkeys, identities, and
   signatures, but cannot be used to change PGP primary keys.
 
-'keybase pgp select' - Pull a PGP key out of your GPG keyring, and "select" it
-  for use on keybase. This will: (1) sign it into your signature chain with your
-  local device key; (2) push this signature and the public PGP key half to the
-  server; (3) copy a version of secret key to your local keybase keychain;
-  and (4) encrypt this copy with your keybase passphrase via local-key security
-  (see "keybase help keyring"). Keybase takes steps (3) and (4) so that subsequent
+'keybase pgp select' - Look at the local GnuGP keychain for available secret keys.
+  It then makes those keys available for use with keybase. The steps involved are:
+  (1a) sign a signature chain link with the selected PGP key and the existing device
+  key; (1b) push this signature and the public PGP key to the server; and if "--import"
+  flag is passed: (2a) copy the PGP secret half into your local Keybase keyring;
+  and (2b) encrypt this secret key with Keybase's local key security mechanism.
+  Keybase optionalls takes steps (2a) and (2b) so that subsequent
   PGP operations (like sign and decrypt) don't need to access your GPG keyring again.
   Once running this command, you wind up in state similar to that following
-  "keybase pgp gen" above. The difference is that you've used gpg to generate
+  "keybase pgp gen" above. The difference is that you've used GnuPG to generate
   the key rather than keybase.
 
 'keybase pgp sign/encrypt/verify/decrypt' - These commands don't access your local
@@ -117,8 +118,9 @@ EdDSA keys; (2) per-device Curve25519 DH keys; and (3) any PGP private keys
 that are "selected", "imported" or "generated" into Keybase (see "keybase help gpg").
 Keys of the first two varieties never leave the device. Keys of the third variety
 can leave the device if the user explicitly requests a passphrase-encrypted
-synchronization with the Keybase server. All three varieties of keys are protected
-with LKS encryption as described above.
+synchronization with the Keybase server, or when the user syncs her PGP private
+key via 'keybase pgp push-private' and 'keybase pgp pull-private'. All three
+varieties of keys are protected with LKS encryption as described above.
 
 When a user on OSX clicks "remember my passphrase" in a dialog box, the
 symmetric LKS secret key is written to the OS keychain. The encrypted asymmetric
