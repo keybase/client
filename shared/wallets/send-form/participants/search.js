@@ -115,14 +115,16 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
             containerStyle={styles.resultsFloatingContainer}
             propagateOutsideClicks={true}
           >
-            <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
-              <ResultsList
-                searchKey={searchKey}
-                onClick={this.props.onClickResult}
-                onShowTracker={this.props.onShowTracker}
-                disableListBuilding={true}
-                style={styles.list}
-              />
+            <Kb.Box2 direction="vertical" style={styles.resultsFloatingInnerContainer}>
+              <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
+                <ResultsList
+                  searchKey={searchKey}
+                  onClick={this.props.onClickResult}
+                  onShowTracker={this.props.onShowTracker}
+                  disableListBuilding={true}
+                  style={styles.list}
+                />
+              </Kb.Box2>
             </Kb.Box2>
           </Kb.FloatingBox>
         )}
@@ -133,22 +135,18 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
 
 const styles = Styles.styleSheetCreate({
   resultsFloatingContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-      justifyContent: 'flex-start',
-    },
+    isMobile: {marginTop: 146},
+  }),
+  resultsFloatingInnerContainer: Styles.platformStyles({
     isElectron: {
       borderBottomLeftRadius: 4,
       borderBottomRightRadius: 4,
       height: 429,
-      maxHeight: 429,
       overflow: 'hidden',
       width: 360,
     },
     isMobile: {
       flexGrow: 1,
-      marginTop: 146,
       width: '100%',
     },
   }),
