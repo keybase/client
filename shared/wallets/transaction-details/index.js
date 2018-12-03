@@ -168,7 +168,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return Styles.globalColors.green
     case 'pending':
-    case 'cancelable':
+    case 'claimable':
       return Styles.globalColors.purple2
     case 'error':
     case 'canceled':
@@ -179,23 +179,26 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 }
 
 const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) => {
-  if (status !== 'completed') {
-    return capitalize(status)
-  }
-
-  switch (yourRole) {
-    case 'senderOnly':
-      return 'Sent'
-    case 'receiverOnly':
-      return 'Received'
-    case 'senderAndReceiver':
-      return 'Sent'
+  switch (status) {
+    case 'claimable':
+      return 'Cancelable'
+    case 'completed':
+      switch (yourRole) {
+        case 'senderOnly':
+          return 'Sent'
+        case 'receiverOnly':
+          return 'Received'
+        case 'senderAndReceiver':
+          return 'Sent'
+        default:
+          /*::
+          declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+          ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
+          */
+          throw new Error(`Unexpected role ${yourRole}`)
+      }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
-      */
-      throw new Error(`Unexpected role ${yourRole}`)
+      return capitalize(status)
   }
 }
 
@@ -317,7 +320,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.WithTooltip
             containerStyle={styles.statusBox}
             text={
-              props.status === 'cancelable'
+              props.status === 'claimable'
                 ? `${
                     props.counterparty
                   } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
