@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -23,17 +22,15 @@ type UISource interface {
 
 type Server struct {
 	libkb.Contextified
-	uiSource         UISource
-	remoter          remote.Remoter
-	buildPaymentSlot *slotctx.PrioritySlot
+	uiSource UISource
+	remoter  remote.Remoter
 }
 
 func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
 	return &Server{
-		Contextified:     libkb.NewContextified(g),
-		uiSource:         uiSource,
-		remoter:          remoter,
-		buildPaymentSlot: slotctx.NewPriority(),
+		Contextified: libkb.NewContextified(g),
+		uiSource:     uiSource,
+		remoter:      remoter,
 	}
 }
 

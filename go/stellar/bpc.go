@@ -28,10 +28,6 @@ type BuildPaymentCache interface {
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
 }
 
-func GetBuildPaymentCache(mctx libkb.MetaContext) BuildPaymentCache {
-	return getGlobal(mctx.G()).getBuildPaymentCache()
-}
-
 // Each instance is tied to a UV login. Must be discarded when switching users.
 // Threadsafe.
 // CORE-8119: Make all of these methods hit caches when called repeatedly.

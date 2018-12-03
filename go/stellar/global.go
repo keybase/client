@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
@@ -44,6 +45,8 @@ type Stellar struct {
 	disclaimerLock     sync.Mutex
 	disclaimerAccepted *keybase1.UserVersion // A UV who has accepted the disclaimer.
 
+	buildPaymentSlot *slotctx.PrioritySlot
+
 	badger *badges.Badger
 }
 
@@ -55,6 +58,7 @@ func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.B
 		remoter:          remoter,
 		hasWalletCache:   make(map[keybase1.UserVersion]bool),
 		federationClient: getFederationClient(g),
+		buildPaymentSlot: slotctx.NewPriority(),
 		badger:           badger,
 	}
 }
