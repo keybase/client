@@ -46,9 +46,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
-      (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
-        i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-      i.localMetadata.resetParticipants
+    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+    i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
@@ -203,7 +203,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   const resetParticipants = I.Set(
     (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
       i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-      i.resetParticipants
+    i.resetParticipants
       ? i.resetParticipants
       : []
   )
@@ -321,10 +321,10 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
   const subColor = isError
     ? globalColors.red
     : isSelected
-    ? globalColors.white
-    : hasUnread
-    ? globalColors.black_75
-    : globalColors.black_40
+      ? globalColors.white
+      : hasUnread
+        ? globalColors.black_75
+        : globalColors.black_40
   const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 
