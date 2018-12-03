@@ -12,10 +12,13 @@ const mapDispatchToProps = dispatch => ({
   onOpenInFilesTab: (path: Types.Path) => dispatch(FsGen.createOpenPathInFilesTab({path})),
 })
 
-export default <T>(ComposedComponent: React.ComponentType<T & Props>) =>
-  namedConnect<T, T & Props, React.ComponentType<T & Props>, _, _>(
+function OpenInFilesTabHoc<T>(ComposedComponent: React.ComponentType<T & Props>): React.ComponentType<T> {
+  return namedConnect<T, T & Props, React.ComponentType<T & Props>, _, _>(
     () => ({}),
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d}),
     'OpenInFilesTabHoc'
   )(ComposedComponent)
+}
+
+export default OpenInFilesTabHoc

@@ -21,7 +21,6 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../styles'
-import * as FsTypes from '../../../constants/types/fs'
 import OpenInFilesTabHoc, {
   type Props as OpenInFilesTabHocProps,
 } from '../../../fs/common/open-in-files-tab-hoc'
@@ -71,7 +70,6 @@ type BigProps = {|
   description: ?string,
   teamname: string,
   onEditChannel: () => void,
-  onOpenInFilesTab: FsTypes.Path => void,
 |}
 
 type BigTeamHeaderProps = BigProps & OpenInFilesTabHocProps
