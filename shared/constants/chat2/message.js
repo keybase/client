@@ -1080,7 +1080,6 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'requestPayment':
       return true
     case 'sendPayment': {
-      // Is the payment pending?
       const paymentInfo = getPaymentMessageInfo(state, message)
       if (!paymentInfo || ['claimable', 'pending', 'canceled'].includes(paymentInfo.get('status'))) {
         return false
