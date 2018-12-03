@@ -290,6 +290,26 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 	return nil
 }
 
+func (t *txlogger) FindFirstUnclaimedFor(uv keybase1.UserVersion) (*stellar1.PaymentDetails, error) {
+	for _, tx := range t.transactions {
+		typ, err := tx.Summary.Typ()
+		if err != nil {
+			return nil, err
+		}
+		if typ != stellar1.PaymentSummaryType_RELAY {
+			continue
+		}
+		relay := tx.Summary.Relay()
+		if relay.Claim != nil {
+			continue
+		}
+		if relay.To.Eq(uv) {
+			return &tx, nil
+		}
+	}
+	return nil, nil
+}
+
 type FakeAccount struct {
 	T             testing.TB
 	accountID     stellar1.AccountID
@@ -806,26 +826,13 @@ func (r *BackendMock) NextAutoClaim(ctx context.Context, tc *TestContext) (*stel
 	require.True(tc.T, r.autoclaimEnabled[uid], "autoclaims have to be enabled for uid")
 	require.True(tc.T, r.autoclaimLocks[uid], "Lock has to be called first before NextAutoClaim")
 
-	fmt.Printf("NextAutoClaim %d\n", len(r.txLog.transactions))
-	for _, tx := range r.txLog.transactions {
-		typ, err := tx.Summary.Typ()
-		require.NoError(tc.T, err)
-		fmt.Printf("Summary: %+v %v\n", tx.Summary, typ)
-		if typ != stellar1.PaymentSummaryType_RELAY {
-			continue
-		}
-		relay := tx.Summary.Relay()
-		if relay.Claim != nil {
-			continue
-		}
-		if relay.To.Eq(caller) {
-			tc.T.Logf("Found Relay without claim for UID %s: txid: %s", caller.Uid, relay.KbTxID)
-			return &stellar1.AutoClaim{
-				KbTxID: relay.KbTxID,
-			}, nil
-		}
+	payment, err := r.txLog.FindFirstUnclaimedFor(caller)
+	require.NoError(tc.T, err)
+	if payment != nil {
+		return &stellar1.AutoClaim{
+			KbTxID: payment.Summary.Relay().KbTxID,
+		}, nil
 	}
-
 	return nil, nil
 }
 
