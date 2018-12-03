@@ -62,7 +62,7 @@ func NewCmdOneshot(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
   other containers), root can be the best option, so you can use "keybase oneshot"
   in concert with the KEYBASE_ALLOW_ROOT=1 environment variable.
 
-  Some features won't work in oneshot mode, like ephemeral messaging.`,
+  Some features won't work in oneshot mode, like exploding messages.`,
 	}
 	return cmd
 }
