@@ -713,6 +713,8 @@ func testRelayReset(t *testing.T, yank bool) {
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
 
+	tcs[0].Srv.wallet.RefreshAll(context.Background())
+
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Amount:    "4",
