@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"encoding/hex"
 	"strings"
 	"testing"
 	"time"
@@ -619,4 +620,84 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 	teamAfter, err := GetForTestByStringName(context.Background(), tc.G, sub)
 	require.NoError(t, err)
 	require.EqualValues(t, oldGeneration+1, teamAfter.Generation())
+}
+
+func TestRotationWhenClosingOpenTeam(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	tryCloseTeam := func(rotateWithSettings bool) {
+		t.Logf("tryCloseTeam(rotateWithSettings=%t)", rotateWithSettings)
+
+		b, err := libkb.RandBytes(4)
+		require.NoError(tc.T, err)
+
+		teamName := hex.EncodeToString(b)
+		_, err = CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{
+			Open:   true,
+			JoinAs: keybase1.TeamRole_WRITER,
+		})
+		require.NoError(tc.T, err)
+
+		teamObj, err := GetForTestByStringName(context.Background(), tc.G, teamName)
+		require.NoError(t, err)
+
+		currentGen := teamObj.Generation()
+
+		if rotateWithSettings {
+			err = teamObj.PostTeamSettings(context.Background(), keybase1.TeamSettings{
+				Open: false,
+			}, true /* rotate */)
+			require.NoError(t, err)
+		} else {
+			err = ChangeTeamSettings(context.Background(), tc.G, teamName, keybase1.TeamSettings{
+				Open: false,
+			})
+			require.NoError(t, err)
+		}
+
+		teamObj, err = GetForTestByStringName(context.Background(), tc.G, teamName)
+		require.NoError(t, err)
+		require.Equal(t, currentGen+1, teamObj.Generation())
+	}
+
+	// Try to close team using PostTeamSettings(rotate=true) which posts
+	// TeamSettings link with per-team-key in it. So it closes team and rotates
+	// key in one link.
+	tryCloseTeam(true)
+
+	// Close team using ChangeTeamSettings service_helper API, which posts two
+	// links, to stay compatible with older clients sigchain parsers.
+	tryCloseTeam(false)
+}
+
+func TestRemoveFromOpenTeam(t *testing.T) {
+	// Removals from open teams should not cause rotation.
+	tc, _, otherA, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	teamObj, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	currentGen := teamObj.Generation()
+
+	err = SetRoleWriter(context.Background(), tc.G, name, otherA.Username)
+	require.NoError(t, err)
+
+	err = RemoveMember(context.Background(), tc.G, name, otherA.Username)
+	require.NoError(t, err)
+
+	// Expecting generation to stay the same after removal.
+	teamObj, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	require.Equal(t, currentGen, teamObj.Generation())
 }

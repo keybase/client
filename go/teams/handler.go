@@ -34,18 +34,31 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err == nil && role.IsOrAbove(keybase1.TeamRole_ADMIN)
 	}
 	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() && isAdmin() {
-		if needRP, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
+		// NOTE: This code path should be unused. Server should not issue CLKRs
+		// with ResetUsersUntrusted for open teams anymore. Instead, there is a
+		// new work type to sweep reset users: OPENSWEEP. See
+		// `HandleOpenTeamSweepRequest`.
+
+		// Even though this is open team, and we are aiming to not rotate them,
+		// the server asked us specifically to do so with this CLKR. We have to
+		// obey, otherwise that CLKR will stay undone and server will keep
+		// asking users to rotate.
+		postedLink, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, true /* rotate */)
+		if err != nil {
+			g.Log.CDebugf(ctx, "Failed to sweep deleted members: %s", err)
+		} else {
 			// If sweepOpenTeamResetAndDeletedMembers does not do anything to
-			// the team, do not load team again later.
-			needTeamReload = needRP
+			// the team, do not load team again later. Otherwise, if new link
+			// was posted, we need to reload.
+			needTeamReload = postedLink
 		}
 
-		// * NOTE * Still call the regular rotate key routine even if
-		// sweep succeeds and posts link.
+		// NOTE: Still call the regular rotate key routine even if sweep
+		// succeeds and posts link.
 
-		// In normal case, it will reload team, see that generation is
-		// higher than one requested in CLKR (because we rotated key
-		// during sweeping), and then bail out.
+		// In normal case, it will reload team, see that generation is higher
+		// than one requested in CLKR (because we rotated key during sweeping),
+		// and then bail out.
 	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
@@ -75,12 +88,42 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 	})
 }
 
+func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenSweepMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, fmt.Sprintf("HandleOpenTeamSweepRequest(teamID=%s,len(resetUsers)=%d)", msg.TeamID, len(msg.ResetUsersUntrusted)), func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		Public:      msg.TeamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	role, err := team.myRole(ctx)
+	if err != nil {
+		return err
+	}
+	if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+		return fmt.Errorf("OpenSweep request for team %s but our role is: %s", team.ID, role.String())
+	}
+
+	// CanSkipKeyRotation() should return `true` for open teams, so sweeping
+	// will not rotate. But assume the possibility of OPENSWEEP being sent for
+	// non-open teams.
+	rotate := !team.CanSkipKeyRotation()
+	_, err = sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, rotate)
+	return err
+}
+
 func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalContext,
-	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
+	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser, rotate bool) (postedLink bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
-	defer g.CTrace(ctx, "sweepOpenTeamResetAndDeletedMembers", func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("sweepOpenTeamResetAndDeletedMembers(rotate=%t)", rotate),
+		func() error { return err })()
 
 	// Go through resetUsersUntrusted and fetch non-cached latest
 	// EldestSeqnos/Status.
@@ -165,21 +208,19 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 
 		opts := ChangeMembershipOptions{
 			// Make it possible for user to come back in once they reprovision.
-			Permanent: false,
-			// Coming from CLKR, we want to ensure team key is rotated.
-			SkipKeyRotation: false,
+			Permanent:       false,
+			SkipKeyRotation: !rotate,
 		}
 		if err := team.ChangeMembershipWithOptions(ctx, changeReq, opts); err != nil {
 			return err
 		}
 
-		// Notify the caller that we posted a sig and they have to
-		// load team again.
-		needRepoll = true
+		// Notify the caller that we posted a sig.
+		postedLink = true
 		return nil
 	})
 
-	return needRepoll, err
+	return postedLink, err
 }
 
 func refreshKBFSFavoritesCache(g *libkb.GlobalContext) {

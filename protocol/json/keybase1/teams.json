@@ -1584,6 +1584,25 @@
     },
     {
       "type": "record",
+      "name": "TeamOpenSweepMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamCLKRResetUser"
+          },
+          "name": "resetUsersUntrusted",
+          "jsonkey": "reset_users"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamKBFSKeyRefresher",
       "fields": [
         {

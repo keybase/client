@@ -55,6 +55,11 @@ func (t *Team) CanSkipKeyRotation() bool {
 		return false
 	}
 
+	if t.IsOpen() {
+		// Skip all rotations in open teams.
+		return true
+	}
+
 	// If cannot decide because of an error, return default false.
 	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
 	if err != nil {
@@ -1649,7 +1654,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) 
 	return subteams, nil
 }
 
-func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSettings) error {
+func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSettings, rotate bool) error {
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
 	}
@@ -1672,12 +1677,37 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		Public:   t.IsPublic(),
 	}
 
-	err = t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+	payloadArgs := sigPayloadArgs{}
+	var maybeEKPayload *teamEKPayload
+	if rotate {
+		// Create empty Members section. We are not changing memberships, but
+		// it's needed for key rotation.
+		memSet := newMemberSet()
+		section.Members, err = memSet.Section()
+		if err != nil {
+			return err
+		}
+		secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+		if err != nil {
+			return err
+		}
+		section.PerTeamKey = perTeamKeySection
+		payloadArgs.secretBoxes = secretBoxes
+		payloadArgs.teamEKPayload = teamEKPayload
+		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
+	}
+
+	err = t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, payloadArgs)
 	if err != nil {
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	if rotate {
+		t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true, Misc: true})
+		t.storeTeamEKPayload(ctx, maybeEKPayload)
+	} else {
+		t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	}
 	return nil
 }
 

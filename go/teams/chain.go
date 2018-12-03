@@ -1551,6 +1551,9 @@ func (t *teamSigchainPlayer) addInnerLink(
 		err = enforce(LinkRules{
 			Admin:    TristateOptional,
 			Settings: TristateRequire,
+			// Allow key rotation in settings link. Closing an open team
+			// should rotate team key.
+			PerTeamKey: TristateOptional,
 			// At the moment the only team setting is banned in implicit teams.
 			// But in the future there could be allowed settings that also use this link type.
 			AllowInImplicitTeam: true,
@@ -1568,6 +1571,22 @@ func (t *teamSigchainPlayer) addInnerLink(
 		err = t.parseTeamSettings(team.Settings, &res.newState)
 		if err != nil {
 			return res, err
+		}
+
+		// When team is changed from open to closed, per-team-key should be rotated. But
+		// this is not enforced.
+
+		if team.PerTeamKey != nil {
+			lastKey, err := res.newState.GetLatestPerTeamKey()
+			if err != nil {
+				return res, fmt.Errorf("getting previous per-team-key: %s", err)
+			}
+			newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
+			if err != nil {
+				return res, err
+			}
+			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
+			res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 		}
 	case libkb.LinkTypeDeleteRoot:
 		return res, NewTeamDeletedError()

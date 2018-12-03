@@ -1925,6 +1925,28 @@ func (o TeamSeitanMsg) DeepCopy() TeamSeitanMsg {
 	}
 }
 
+type TeamOpenSweepMsg struct {
+	TeamID              TeamID              `codec:"teamID" json:"team_id"`
+	ResetUsersUntrusted []TeamCLKRResetUser `codec:"resetUsersUntrusted" json:"reset_users"`
+}
+
+func (o TeamOpenSweepMsg) DeepCopy() TeamOpenSweepMsg {
+	return TeamOpenSweepMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		ResetUsersUntrusted: (func(x []TeamCLKRResetUser) []TeamCLKRResetUser {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamCLKRResetUser, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ResetUsersUntrusted),
+	}
+}
+
 type TeamKBFSKeyRefresher struct {
 	Generation int             `codec:"generation" json:"generation"`
 	AppType    TeamApplication `codec:"appType" json:"appType"`
