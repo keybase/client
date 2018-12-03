@@ -655,6 +655,21 @@ type TeamAuditor interface {
 	OnLogout(m MetaContext)
 }
 
+// MiniChatPayment is the argument for sending an in-chat payment.
+type MiniChatPayment struct {
+	Username NormalizedUsername
+	Amount   string
+	Currency string
+}
+
+// MiniChatPaymentResult is the result of sending an in-chat payment to
+// one username.
+type MiniChatPaymentResult struct {
+	Username  NormalizedUsername
+	PaymentID stellar1.PaymentID
+	Error     error
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletSoft(context.Context)
@@ -663,6 +678,7 @@ type Stellar interface {
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
+	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 }
 
 type DeviceEKStorage interface {

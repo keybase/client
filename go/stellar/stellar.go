@@ -606,21 +606,6 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	}, nil
 }
 
-// MiniChatPayment is the argument for sending an in-chat payment.
-type MiniChatPayment struct {
-	Username libkb.NormalizedUsername
-	Amount   string
-	Currency string
-}
-
-// MiniChatPaymentResult is the result of sending an in-chat payment to
-// one username.
-type MiniChatPaymentResult struct {
-	Username  libkb.NormalizedUsername
-	PaymentID stellar1.PaymentID
-	Error     error
-}
-
 type miniPrepared struct {
 	Username libkb.NormalizedUsername
 	Post     stellar1.PaymentDirectPost
@@ -631,7 +616,7 @@ type miniPrepared struct {
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
+func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
 	// look up sender account
 	sender, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
 	if err != nil {
@@ -648,7 +633,7 @@ func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments 
 	sp := NewFastSeqnoProvider(m, remoter)
 
 	for _, payment := range payments {
-		go func(p MiniChatPayment) {
+		go func(p libkb.MiniChatPayment) {
 			prepared <- prepareMiniChatPayment(m, remoter, sp, senderSeed, p)
 		}(payment)
 	}
@@ -660,11 +645,11 @@ func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments 
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
-	resultList := make([]MiniChatPaymentResult, len(payments))
+	resultList := make([]libkb.MiniChatPaymentResult, len(payments))
 
 	// need to submit tx one at a time, in order
 	for i := 0; i < len(preparedList); i++ {
-		mcpResult := MiniChatPaymentResult{Username: preparedList[i].Username}
+		mcpResult := libkb.MiniChatPaymentResult{Username: preparedList[i].Username}
 		if preparedList[i].Error != nil {
 			mcpResult.Error = preparedList[i].Error
 		} else {
@@ -683,7 +668,7 @@ func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments 
 	return resultList, nil
 }
 
-func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment MiniChatPayment) *miniPrepared {
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
 	result := &miniPrepared{Username: payment.Username}
 
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)

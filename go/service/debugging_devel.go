@@ -174,12 +174,12 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		return "", nil
 	case "minichatpayment":
 		parsed := chatwallet.FindChatTxCandidates(strings.Join(args, " "))
-		minis := make([]stellar.MiniChatPayment, len(parsed))
+		minis := make([]libkb.MiniChatPayment, len(parsed))
 		for i, p := range parsed {
 			if p.Username == nil {
 				return "", fmt.Errorf("missing username")
 			}
-			mini := stellar.MiniChatPayment{
+			mini := libkb.MiniChatPayment{
 				Username: libkb.NewNormalizedUsername(*p.Username),
 				Amount:   p.Amount,
 				Currency: p.CurrencyCode,
