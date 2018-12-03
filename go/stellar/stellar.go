@@ -1002,7 +1002,6 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 	if err != nil {
 		return "", err
 	}
-	m.CDebugf("lookupRecipientAssertion: identify result for %v: %+v", assertion, idRes)
 	if idRes == nil {
 		return "", fmt.Errorf("missing identify result")
 	}

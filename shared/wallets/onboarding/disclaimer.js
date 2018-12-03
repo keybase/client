@@ -7,60 +7,101 @@ import {WalletPopup} from '../common'
 import {addTicker, removeTicker, type TickerID} from '../../util/second-timer'
 
 type DisclaimerProps = {|
+  acceptingDisclaimerDelay: boolean,
   onAcceptDisclaimer: () => void,
+  onCheckDisclaimer: () => void,
   onNotNow: () => void,
 |}
 
 type DisclaimerState = {|
-  secondsLeft: number,
+  secondsLeftAfterAccept: number,
+  secondsLeftBeforeAccept: number,
 |}
 
 class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
-  state = {secondsLeft: 5}
-  timer: ?TickerID = null
+  state = {secondsLeftAfterAccept: 6, secondsLeftBeforeAccept: 5}
+  afterTimer: ?TickerID = null
+  beforeTimer: ?TickerID = null
 
-  tick = () => {
-    this.setState({secondsLeft: this.state.secondsLeft - 1}, () => {
-      if (this.state.secondsLeft === 0 && this.timer) {
-        removeTicker(this.timer)
+  afterTick = () => {
+    this.setState({secondsLeftAfterAccept: this.state.secondsLeftAfterAccept - 1}, () => {
+      if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
+        removeTicker(this.afterTimer)
+        this.props.onCheckDisclaimer()
+      }
+    })
+  }
+
+  beforeTick = () => {
+    this.setState({secondsLeftBeforeAccept: this.state.secondsLeftBeforeAccept - 1}, () => {
+      if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
+        removeTicker(this.beforeTimer)
       }
     })
   }
 
   componentWillUnmount() {
     if (!__STORYBOOK__) {
-      this.timer && removeTicker(this.timer)
+      this.afterTimer && removeTicker(this.afterTimer)
+      this.beforeTimer && removeTicker(this.beforeTimer)
     }
   }
 
   componentDidMount() {
     if (!__STORYBOOK__) {
-      this.timer = addTicker(this.tick)
+      this.beforeTimer = addTicker(this.beforeTick)
     }
   }
 
+  componentDidUpdate(prevProps: DisclaimerProps) {
+    if (this.props.acceptingDisclaimerDelay && !prevProps.acceptingDisclaimerDelay) {
+      // Start the after countdown
+      this.afterTimer = addTicker(this.afterTick)
+    }
+  }
   render() {
-    const label = 'Yes, I agree'.concat(this.state.secondsLeft ? ` (${this.state.secondsLeft})` : '')
+    const afterLabel = `Opening your Wallet`.concat(
+      this.state.secondsLeftAfterAccept ? ` (${this.state.secondsLeftAfterAccept})` : ''
+    )
+    const beforeLabel = 'Yes, I agree'.concat(
+      this.state.secondsLeftBeforeAccept ? ` (${this.state.secondsLeftBeforeAccept})` : ''
+    )
     const buttons = [
-      <Kb.WaitingButton
-        style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
-        waitingKey={Constants.acceptDisclaimerWaitingKey}
-        disabled={this.state.secondsLeft > 0}
-        key={0}
-        fullWidth={true}
-        type="Secondary"
-        onClick={this.props.onAcceptDisclaimer}
-        label={label}
-      />,
       <Kb.Button
+        disabled={this.props.acceptingDisclaimerDelay}
         style={styles.buttonStyle}
-        key={1}
+        key={2}
         fullWidth={true}
         type="SecondaryColoredBackground"
         onClick={this.props.onNotNow}
         label="Not now"
       />,
     ]
+
+    buttons.unshift(
+      this.props.acceptingDisclaimerDelay ? (
+        <Kb.Button
+          style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
+          disabled={true}
+          key={0}
+          fullWidth={true}
+          type="Secondary"
+          onClick={this.props.onCheckDisclaimer}
+          label={afterLabel}
+        />
+      ) : (
+        <Kb.WaitingButton
+          style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
+          waitingKey={Constants.acceptDisclaimerWaitingKey}
+          disabled={this.state.secondsLeftBeforeAccept > 0}
+          key={1}
+          fullWidth={true}
+          type="Secondary"
+          onClick={this.props.onAcceptDisclaimer}
+          label={beforeLabel}
+        />
+      )
+    )
 
     return (
       <WalletPopup
@@ -72,25 +113,26 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         buttonBarStyle={styles.buttonBar}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} />
-        <Kb.Text type="Header" style={styles.headerText}>
-          Almost done.
-        </Kb.Text>
-
-        <Kb.Text type="Header" style={styles.headerText}>
-          It's important you read this.
-        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.header}>
+          <Kb.Text type="Header" style={styles.headerText}>
+            Almost done.
+          </Kb.Text>
+          <Kb.Text type="Header" style={styles.headerText}>
+            It's important you read this.
+          </Kb.Text>
+        </Kb.Box2>
 
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContentContainer}>
           <Kb.Text type="Body" style={styles.bodyText}>
             We believe Keybase can help make cryptocurrency usable for 2 reasons:
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • we can make your Stellar private key sync with encryption across your devices, without exposing
             it to our servers. cool!
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • we can help you send and receive crypto just by knowing usernames. You can say goodbye to ugly
             "addresses" you have to pass around insecurely.
           </Kb.Text>
@@ -103,23 +145,23 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
             to solve payments because:
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it's ultra fast and ultra cheap
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it natively understands currencies and tokens
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • the network itself has a decentralized exchange built into it
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             • it doesn't burn more electricity than small nations
           </Kb.Text>
 
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
             But there are a few things you must agree to understand before using Stellar on Keybase:
           </Kb.Text>
 
@@ -180,8 +222,12 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
 const styles = Styles.styleSheetCreate({
   bodyText: {
     color: Styles.globalColors.white,
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Styles.globalMargins.xsmall,
     textAlign: 'left',
+  },
+  bodyBullet: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
   buttonBar: Styles.platformStyles({
     isElectron: {
@@ -205,8 +251,14 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
+  header: {
+    marginTop: Styles.globalMargins.small,
+  },
   headerText: {
     color: Styles.globalColors.white,
+  },
+  labelStyle: {
+    color: Styles.globalColors.purple,
   },
   scrollView: {
     marginBottom: 0,

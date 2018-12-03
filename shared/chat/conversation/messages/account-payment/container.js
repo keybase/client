@@ -82,8 +82,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         canceled,
         claimButtonLabel:
           !youAreSender && cancelable && !acceptedDisclaimer
-            ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
-                paymentInfo.amountDescription}`
+            ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
             : '',
         icon: pending ? 'iconfont-clock' : 'iconfont-stellar-send',
         loading: false,
@@ -115,9 +114,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         pending: false,
         sendButtonLabel: youAreSender
           ? ''
-          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
-              requestInfo.amountDescription
-            }`,
+          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
       }
     }
     default:

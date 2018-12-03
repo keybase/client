@@ -84,34 +84,34 @@ func urlReencode(s string) string {
 
 type RedditServiceType struct{ libkb.BaseServiceType }
 
-func (t RedditServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *RedditServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 var redditUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`)
 
-func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
+func (t *RedditServiceType) NormalizeUsername(s string) (string, error) {
 	if !redditUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
+func (t *RedditServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
-func (t RedditServiceType) GetTypeName() string { return "reddit" }
+func (t *RedditServiceType) GetTypeName() string { return "reddit" }
 
-func (t RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
+func (t *RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
 
-func (t RedditServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *RedditServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *RedditServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
 
-func (t RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.PostProofRes,
+func (t *RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.PostProofRes,
 	kbUsername string, sigID keybase1.SigID) (res string, err error) {
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
@@ -170,20 +170,20 @@ func (t RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.Po
 	return
 }
 
-func (t RedditServiceType) DisplayName(un string) string { return "Reddit" }
+func (t *RedditServiceType) DisplayName(un string) string { return "Reddit" }
 
-func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }
 
-func (t RedditServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+func (t *RedditServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	// Anything is fine. We might get rid of the body later.
 	return nil
 }
 
-func (t RedditServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *RedditServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &RedditChecker{l}
 }

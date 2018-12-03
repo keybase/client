@@ -572,7 +572,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 
-	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv)
+	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv, nil)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -1057,7 +1057,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 				return nil, OfflineError{}
 			}
 
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv, nil)
 			if err != nil {
 				return res, err
 			}

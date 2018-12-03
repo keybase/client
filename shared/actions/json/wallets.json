@@ -11,7 +11,6 @@
     },
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer",
-      "nextScreen": "Types.NextScreenAfterAcceptance"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -40,6 +39,10 @@
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltRequest",
       "forBuilding": "Types.Building"
+    },
+    "checkDisclaimer": {
+      "_description": "Discover whether the user has accepted the Stellar disclaimer",
+      "nextScreen": "Types.NextScreenAfterAcceptance"
     },
     "clearBuilding": {
       "_description": "Clear a payment or request that was being prepared"

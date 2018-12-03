@@ -4,7 +4,7 @@ import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // When accepting the Stellar disclaimer, next path after acceptance
-export type NextScreenAfterAcceptance = 'linkExisting' | 'openWallet'
+export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
@@ -229,6 +229,7 @@ export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
   acceptedDisclaimer: boolean,
+  acceptingDisclaimerDelay: boolean,
   accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,

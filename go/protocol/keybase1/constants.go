@@ -65,6 +65,7 @@ const (
 	StatusCode_SCSigCannotVerify                  StatusCode = 1002
 	StatusCode_SCSigWrongKey                      StatusCode = 1008
 	StatusCode_SCSigOldSeqno                      StatusCode = 1010
+	StatusCode_SCSigCreationDisallowed            StatusCode = 1016
 	StatusCode_SCBadTrackSession                  StatusCode = 1301
 	StatusCode_SCDeviceBadName                    StatusCode = 1404
 	StatusCode_SCDeviceNameInUse                  StatusCode = 1408
@@ -263,6 +264,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCSigCannotVerify":                  1002,
 	"SCSigWrongKey":                      1008,
 	"SCSigOldSeqno":                      1010,
+	"SCSigCreationDisallowed":            1016,
 	"SCBadTrackSession":                  1301,
 	"SCDeviceBadName":                    1404,
 	"SCDeviceNameInUse":                  1408,
@@ -459,6 +461,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1002: "SCSigCannotVerify",
 	1008: "SCSigWrongKey",
 	1010: "SCSigOldSeqno",
+	1016: "SCSigCreationDisallowed",
 	1301: "SCBadTrackSession",
 	1404: "SCDeviceBadName",
 	1408: "SCDeviceNameInUse",

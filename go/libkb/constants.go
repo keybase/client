@@ -226,6 +226,7 @@ const (
 	SCKeyRevoked                       = int(keybase1.StatusCode_SCKeyRevoked)
 	SCSigCannotVerify                  = int(keybase1.StatusCode_SCSigCannotVerify)
 	SCSibkeyAlreadyExists              = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
+	SCSigCreationDisallowed            = int(keybase1.StatusCode_SCSigCreationDisallowed)
 	SCDecryptionKeyNotFound            = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession                  = int(keybase1.StatusCode_SCBadTrackSession)
 	SCDeviceBadName                    = int(keybase1.StatusCode_SCDeviceBadName)
@@ -476,14 +477,6 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
-)
-
-const (
-	KexScryptCost       = 32768
-	KexScryptR          = 8
-	KexScryptP          = 1
-	KexScryptKeylen     = 32
-	KexSessionIDEntropy = 65 // kex doc specifies 65 bits of entropy
 )
 
 const (

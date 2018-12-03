@@ -47,20 +47,19 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
+func (t *KBFSNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res types.NameInfoUntrusted, err error) {
 	ni, err := t.LookupID(ctx, name, public)
 	if err != nil {
 		return res, err
 	}
-	return &types.NameInfoUntrusted{
+	return types.NameInfoUntrusted{
 		ID:            ni.ID,
 		CanonicalName: ni.CanonicalName,
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, keys types.AllCryptKeys, err error) {
+func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public bool) (res types.NameInfo, keys types.AllCryptKeys, err error) {
 	var lastErr error
-	res = types.NewNameInfo()
 	keys = types.NewAllCryptKeys()
 	visibility := keybase1.TLFVisibility_PRIVATE
 	if public {
@@ -101,14 +100,14 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 	return res, keys, lastErr
 }
 
-func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
+func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, public bool) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
 	res, _, err = t.loadAll(ctx, tlfName, public)
 	return res, err
 }
 
-func (t *KBFSNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
-	return nil, fmt.Errorf("LookupName not implemented for KBFSNameInfoSource")
+func (t *KBFSNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res types.NameInfo, err error) {
+	return res, fmt.Errorf("LookupName not implemented for KBFSNameInfoSource")
 }
 
 func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {
@@ -118,7 +117,7 @@ func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, p
 }
 
 func (t *KBFSNameInfoSource) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, "EncryptionKey(%s,%v)", tlfName, public)()
 	ni, allKeys, err := t.loadAll(ctx, tlfName, public)
 	if err != nil {

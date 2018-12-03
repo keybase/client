@@ -52,9 +52,9 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 
 	boxer := NewBoxer(tc.Context())
 	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
-	kbfsBoxed, _, _, _, _, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv)
+	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
-	require.NotNil(t, kbfsBoxed)
+	kbfsBoxed := prepareRes.Boxed
 	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(time.Now()),
 		MessageID: 2,
@@ -71,17 +71,17 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		MessageType: chat1.MessageType_TEXT,
 	}
 	teamPlain := textMsgWithHeader(t, "team", header)
-	teamBoxed, _, _, _, _, err := sender.Prepare(ctx, teamPlain,
+	prepareRes, err = sender.Prepare(ctx, teamPlain,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv)
 	require.NoError(t, err)
-	require.NotNil(t, teamBoxed)
+	teamBoxed := prepareRes.Boxed
 	teamBoxed.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(time.Now()),
 		MessageID: 3,
 	}
 
 	checkUnbox := func() {
-		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{*teamBoxed, *kbfsBoxed}, conv)
+		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{teamBoxed, kbfsBoxed}, conv)
 		require.NoError(t, err)
 		require.Len(t, unboxed, 2)
 		for _, u := range unboxed {

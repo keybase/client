@@ -233,6 +233,11 @@
       "name": "ServiceDisplayConfig",
       "fields": [
         {
+          "type": "boolean",
+          "name": "creationDisabled",
+          "jsonkey": "creation_disabled"
+        },
+        {
           "type": "int",
           "name": "priority"
         },

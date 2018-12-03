@@ -112,7 +112,13 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+\u00c0-\uffff]|[.?]+[\w/=])*)?)/i
+    const valid = `[:,!]*[\\w=#%~\\-_~&@+\\u00c0-\\uffff]`
+    const paranthesisPaired = `([(]${valid}+[)])`
+    const afterDomain = `(?:\\/|${paranthesisPaired}|${valid}|[.?]+[\\w/=])`
+    const r = new RegExp(
+      `^( *)((https?:\\/\\/)?[\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
+      'i'
+    )
     const result = r.exec(source)
     if (result) {
       result.groups = {tld: result[4]}
@@ -255,13 +261,13 @@ const rules = {
     // original
     // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
     // ours: single stars
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/)),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\\n])+?)\*(?!\*)/)),
   },
   em: {
     ...SimpleMarkdown.defaultRules.em,
     // original is pretty long so not inlining it here
     // ours: wrapped in _'s
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/)),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\\n])+?)_(?!_)/)),
   },
   del: {
     ...SimpleMarkdown.defaultRules.del,
