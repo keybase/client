@@ -682,6 +682,7 @@ func testPrefetcherForSyncedTLF(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	waitChCh := make(chan (<-chan struct{}), 1)
+	statusCh := make(chan PrefetchByteStatus)
 	go func() {
 		waitCh, err := q.Prefetcher().WaitChannelForBlockPrefetch(ctx, rootPtr)
 		if err != nil {
@@ -689,6 +690,8 @@ func testPrefetcherForSyncedTLF(
 		} else {
 			waitChCh <- waitCh
 		}
+		status, _ := q.Prefetcher().Status(ctx, rootPtr)
+		statusCh <- status
 		continueChFileC <- nil
 		continueChDirB <- nil
 		// After this, the prefetch worker can either pick up the third child of
@@ -712,6 +715,18 @@ func testPrefetcherForSyncedTLF(
 		t.Fatal(ctx.Err())
 	}
 	// Release after getting waitCh.
+	notifySyncCh(t, prefetchSyncCh)
+	select {
+	case status := <-statusCh:
+		// The root block has 3 children (the root block itself
+		// doesn't count in the bytes total).
+		require.Equal(t, uint64(3*testFakeBlockSize), status.SubtreeBytesTotal)
+		require.Equal(t, uint64(0), status.SubtreeBytesFetched)
+		require.Equal(t, config.Clock().Now(), status.Start)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	// Release after getting status.
 	notifySyncCh(t, prefetchSyncCh)
 	// Release after prefetching fileC
 	notifySyncCh(t, prefetchSyncCh)
@@ -1847,7 +1862,6 @@ func TestPrefetcherReschedules(t *testing.T) {
 	})
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
-		t.Log("ZERO\n")
 		return &backoff.ZeroBackOff{}
 	}
 	notifySyncCh(t, prefetchSyncCh)
