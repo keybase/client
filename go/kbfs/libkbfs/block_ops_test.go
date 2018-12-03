@@ -87,6 +87,7 @@ type testBlockOpsConfig struct {
 	diskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
+	clock Clock
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -115,6 +116,10 @@ func (config testBlockOpsConfig) BlockCryptVersion() kbfscrypto.EncryptionVer {
 	return kbfscrypto.EncryptionSecretbox
 }
 
+func (config testBlockOpsConfig) Clock() Clock {
+	return config.clock
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
 	codecGetter := newTestCodecGetter()
@@ -124,7 +129,7 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
 	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
-		stgs, testInitModeGetter{InitDefault}}
+		stgs, testInitModeGetter{InitDefault}, newTestClockNow()}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
