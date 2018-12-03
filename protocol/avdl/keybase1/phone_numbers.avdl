@@ -28,7 +28,7 @@ protocol phoneNumbers {
     }
 
     void addPhoneNumber(int sessionID, PhoneNumber phoneNumber, IdentityVisibility visibility);
-    void editPhoneNumber(int sessionID, PhoneNumber phoneNumber, PhoneNumber oldPhoneNumber, IdentityVisibility visibility);
+    void editPhoneNumber(int sessionID, PhoneNumber oldPhoneNumber, PhoneNumber phoneNumber, IdentityVisibility visibility);
     void verifyPhoneNumber(int sessionID, PhoneNumber phoneNumber, string code);
     array<UserPhoneNumber> getPhoneNumbers(int sessionID);
     void deletePhoneNumber(int sessionID, PhoneNumber phoneNumber);

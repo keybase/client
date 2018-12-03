@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -258,9 +259,8 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 
 	// Verifying an email should RSVP the invitation which will notify
 	// (using SBS gregor msg) ann to resolve it.
-	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
+	err = kbtest.VerifyEmailAuto(bob.MetaContext(), keybase1.EmailAddress(email))
 	require.NoError(t, err)
-	// TODO want client
 	err = emails.SetVisibilityEmail(bob.MetaContext(), keybase1.EmailAddress(email), keybase1.IdentityVisibility_PUBLIC)
 	require.NoError(t, err)
 

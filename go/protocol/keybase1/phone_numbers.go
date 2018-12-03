@@ -91,8 +91,8 @@ type AddPhoneNumberArg struct {
 
 type EditPhoneNumberArg struct {
 	SessionID      int                `codec:"sessionID" json:"sessionID"`
-	PhoneNumber    PhoneNumber        `codec:"phoneNumber" json:"phoneNumber"`
 	OldPhoneNumber PhoneNumber        `codec:"oldPhoneNumber" json:"oldPhoneNumber"`
+	PhoneNumber    PhoneNumber        `codec:"phoneNumber" json:"phoneNumber"`
 	Visibility     IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 

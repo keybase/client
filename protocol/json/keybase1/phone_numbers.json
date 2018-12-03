@@ -125,11 +125,11 @@
           "type": "int"
         },
         {
-          "name": "phoneNumber",
+          "name": "oldPhoneNumber",
           "type": "PhoneNumber"
         },
         {
-          "name": "oldPhoneNumber",
+          "name": "phoneNumber",
           "type": "PhoneNumber"
         },
         {
