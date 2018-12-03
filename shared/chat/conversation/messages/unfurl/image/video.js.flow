@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './video.types'
-declare export class Video extends React.Component<Props> {}
