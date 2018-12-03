@@ -39,40 +39,40 @@ func (rc *GithubChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 
 type GithubServiceType struct{ libkb.BaseServiceType }
 
-func (t GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 var githubUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9][a-z0-9-]{0,38})$`)
 
-func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
+func (t *GithubServiceType) NormalizeUsername(s string) (string, error) {
 	if !githubUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t GithubServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
+func (t *GithubServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
 }
 
-func (t GithubServiceType) GetPrompt() string {
+func (t *GithubServiceType) GetPrompt() string {
 	return "Your username on Github"
 }
 
-func (t GithubServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *GithubServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t GithubServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *GithubServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please <strong>publicly</strong> post the following Gist,
 and name it <strong><color name="red">keybase.md</color></strong>`)
 }
 
-func (t GithubServiceType) DisplayName(un string) string { return "Github" }
-func (t GithubServiceType) GetTypeName() string          { return "github" }
+func (t *GithubServiceType) DisplayName(un string) string { return "Github" }
+func (t *GithubServiceType) GetTypeName() string          { return "github" }
 
-func (t GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = libkb.FmtMarkup("Permission denied! Make sure your gist is <strong>public</strong>.")
 	} else {
@@ -80,12 +80,12 @@ func (t GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.Pr
 	}
 	return
 }
-func (t GithubServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+func (t *GithubServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t GithubServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *GithubServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &GithubChecker{l}
 }
