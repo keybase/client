@@ -67,7 +67,7 @@ const walletChildren = {
       },
       qrScan: {
         component: QRScan,
-        tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: true, underNotch: true}),
       },
     },
     component: SendForm,
