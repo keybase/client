@@ -266,7 +266,7 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	bob := tt.addUser("bob")
 	tt.logUserNames()
 
-	teamID, teamName := ann.createTeam2()
+	_, teamName := ann.createTeam2()
 	team := teamName.String()
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 	err := teams.ChangeTeamSettings(context.Background(), ann.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
@@ -276,9 +276,8 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 
 	bob.kickTeamRekeyd()
 	bob.reset()
-
 	// Wait for change membership link after bob resets
-	ann.waitForRotateByID(teamID, keybase1.Seqno(4))
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(4))
 
 	bob.loginAfterResetPukless()
 	_, err = bob.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: team})
