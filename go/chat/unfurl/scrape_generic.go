@@ -117,32 +117,22 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 	}
 }
 
-func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
-	hostname, err := GetHostname(uri)
-	if err != nil {
-		return res, err
-	}
-
+func (s *Scraper) addGenericScraperToCollector(ctx context.Context, c *colly.Collector,
+	generic *scoredGenericRaw, uri, domain string) error {
 	// default favicon location as a fallback
 	defaultFaviconURL, err := GetDefaultFaviconURL(uri)
 	if err != nil {
-		return res, err
+		return err
 	}
-
-	// setup some defaults with score 0 and hope we can find better info.
-	generic := new(scoredGenericRaw)
+	hostname, err := GetHostname(uri)
+	if err != nil {
+		return err
+	}
 	generic.setURL(uri, 0)
 	generic.setSiteName(domain, 0)
 	generic.setFaviconURL(&defaultFaviconURL, 0)
 
 	// Run the Colly scraper
-	c := colly.NewCollector(
-		colly.UserAgent("Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"),
-	)
-	c.OnRequest(func(r *colly.Request) {
-		r.Headers.Set("connection", "keep-alive")
-		r.Headers.Set("upgrade-insecure-requests", "1")
-	})
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
 		s.setAttr(ctx, "title", hostname, domain, generic, e)
 	})
@@ -165,15 +155,23 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		attr := strings.ToLower(e.Attr("property"))
 		s.setAttr(ctx, attr, hostname, domain, generic, e)
 	})
+	return nil
+}
+
+func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
+	// setup some defaults with score 0 and hope we can find better info.
+	generic := new(scoredGenericRaw)
+	c := s.makeCollector()
+	if err = s.addGenericScraperToCollector(ctx, c, generic, uri, domain); err != nil {
+		return res, err
+	}
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
-
 	// Try to get Apple touch icon from known URL if we are going to use one that is worse
 	if generic.faviconURLScore < getAppleTouchFaviconScoreFromPath() {
 		s.Debug(ctx, "scrapeGeneric: favicon score below Apple touch score, trying to find it")
 		s.tryAppleTouchIcon(ctx, generic, uri, domain)
 	}
-
 	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }
