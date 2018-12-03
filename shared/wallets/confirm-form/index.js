@@ -24,7 +24,7 @@ type ConfirmSendProps = {|
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />
+    {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
         onBack={props.onBack}

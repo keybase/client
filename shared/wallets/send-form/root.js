@@ -27,7 +27,7 @@ const PoweredByStellar = () => (
 
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />
+    {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header onBack={Styles.isMobile ? props.onClose : null} />
       {props.children}
