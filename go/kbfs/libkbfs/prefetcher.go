@@ -48,7 +48,6 @@ type prefetchRequest struct {
 	// obseleted is a channel that can be used to cancel this request while
 	// it is waiting in the queue if the prefetch is no longer necessary.
 	obseleted <-chan struct{}
-	statusCh  chan<- PrefetchByteStatus
 }
 
 type ctxPrefetcherTagKey int
@@ -107,6 +106,8 @@ type blockPrefetcher struct {
 	prefetchCancelCh channels.Channel
 	// channel to reschedule prefetches
 	prefetchRescheduleCh channels.Channel
+	// channel to get prefetch status
+	prefetchStatusCh channels.Channel
 	// channel to allow synchronization on completion
 	inFlightFetches channels.Channel
 	// protects shutdownCh
@@ -148,6 +149,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		prefetchRequestCh:     NewInfiniteChannelWrapper(),
 		prefetchCancelCh:      NewInfiniteChannelWrapper(),
 		prefetchRescheduleCh:  NewInfiniteChannelWrapper(),
+		prefetchStatusCh:      NewInfiniteChannelWrapper(),
 		inFlightFetches:       NewInfiniteChannelWrapper(),
 		shutdownCh:            make(chan struct{}),
 		almostDoneCh:          make(chan struct{}, 1),
@@ -470,7 +472,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		obseleted := make(chan struct{})
 		req := &prefetchRequest{
 			ptr, info.EncodedSize, block.NewEmptier(), kmd, priority,
-			lifetime, NoPrefetch, action, nil, obseleted, nil}
+			lifetime, NoPrefetch, action, nil, obseleted}
 		pre = p.newPrefetch(1, uint64(info.EncodedSize), false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -731,6 +733,20 @@ func (p *blockPrefetcher) stopIfNeeded(
 	return doStop, doCancel
 }
 
+type prefetchStatusRequest struct {
+	ptr BlockPointer
+	ch  chan<- PrefetchByteStatus
+}
+
+func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
+	pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
+	if !isPrefetchWaiting {
+		req.ch <- PrefetchByteStatus{}
+	} else {
+		req.ch <- pre.PrefetchByteStatus
+	}
+}
+
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> {c, d}, e -> {f, g}}:
@@ -773,6 +789,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		p.prefetchRequestCh.Close()
 		p.prefetchCancelCh.Close()
 		p.prefetchRescheduleCh.Close()
+		p.prefetchStatusCh.Close()
 		p.inFlightFetches.Close()
 	}()
 	isShuttingDown := false
@@ -782,14 +799,27 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			if p.inFlightFetches.Len() == 0 &&
 				p.prefetchRequestCh.Len() == 0 &&
 				p.prefetchCancelCh.Len() == 0 &&
-				p.prefetchRescheduleCh.Len() == 0 {
+				p.prefetchRescheduleCh.Len() == 0 &&
+				p.prefetchStatusCh.Len() == 0 {
 				return
 			}
 		} else if testSyncCh != nil {
 			// Only sync if we aren't shutting down.
 			<-testSyncCh
 		}
+
+		// First fulfill any status requests since the user could be
+		// waiting for them.
 		select {
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
+			continue
+		default:
+		}
+
+		select {
+		case req := <-p.prefetchStatusCh.Out():
+			p.handleStatusRequest(req.(*prefetchStatusRequest))
 		case chInterface := <-shuttingDownCh:
 			p.log.Debug("shutting down")
 			ch := chInterface.(<-chan error)
@@ -833,24 +863,16 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 
 			p.clearRescheduleState(req.ptr.ID)
 
-			// If this request is just asking for the wait channel or
-			// byte status, send it now.  (This is processed in the
-			// same queue as the prefetch requests, to guarantee an
-			// initial prefetch request has always been processed
-			// before the wait channel request is processed.)
+			// If this request is just asking for the wait channel,
+			// send it now.  (This is processed in the same queue as
+			// the prefetch requests, to guarantee an initial prefetch
+			// request has always been processed before the wait
+			// channel request is processed.)
 			if req.sendCh != nil {
 				if !isPrefetchWaiting {
 					req.sendCh <- p.closedCh
 				} else {
 					req.sendCh <- pre.waitCh
-				}
-				continue
-			}
-			if req.statusCh != nil {
-				if !isPrefetchWaiting {
-					req.statusCh <- PrefetchByteStatus{}
-				} else {
-					req.statusCh <- pre.PrefetchByteStatus
 				}
 				continue
 			}
@@ -1146,7 +1168,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	action BlockRequestAction) {
 	req := &prefetchRequest{
 		ptr, block.GetEncodedSize(), block.NewEmptier(), kmd, priority,
-		lifetime, prefetchStatus, action, nil, nil, nil}
+		lifetime, prefetchStatus, action, nil, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -1181,7 +1203,7 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, 0, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c, nil, nil}
+		ptr, 0, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c, nil}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:
@@ -1206,11 +1228,10 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 func (p *blockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (
 	PrefetchByteStatus, error) {
 	c := make(chan PrefetchByteStatus, 1)
-	req := &prefetchRequest{
-		ptr, 0, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, nil, nil, c}
+	req := &prefetchStatusRequest{ptr, c}
 
 	select {
-	case p.prefetchRequestCh.In() <- req:
+	case p.prefetchStatusCh.In() <- req:
 	case <-p.shutdownCh:
 		return PrefetchByteStatus{}, errors.New("Already shut down")
 	case <-ctx.Done():

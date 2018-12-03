@@ -3198,6 +3198,14 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	}
 	res.PrefetchStatus = fbo.config.PrefetchStatus(ctx, fbo.id(),
 		res.BlockInfo.BlockPointer)
+	if res.PrefetchStatus == TriggeredPrefetch {
+		byteStatus, err := fbo.config.BlockOps().Prefetcher().Status(
+			ctx, res.BlockInfo.BlockPointer)
+		if err != nil {
+			return res, err
+		}
+		res.PrefetchByteStatus = &byteStatus
+	}
 	return res, nil
 }
 
