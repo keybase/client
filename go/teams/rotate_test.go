@@ -673,3 +673,31 @@ func TestRotationWhenClosingOpenTeam(t *testing.T) {
 	// links, to stay compatible with older clients sigchain parsers.
 	tryCloseTeam(false)
 }
+
+func TestRemoveFromOpenTeam(t *testing.T) {
+	// Removals from open teams should not cause rotation.
+	tc, _, otherA, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	teamObj, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	currentGen := teamObj.Generation()
+
+	err = SetRoleWriter(context.Background(), tc.G, name, otherA.Username)
+	require.NoError(t, err)
+
+	err = RemoveMember(context.Background(), tc.G, name, otherA.Username)
+	require.NoError(t, err)
+
+	// Expecting generation to stay the same after removal.
+	teamObj, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	require.Equal(t, currentGen, teamObj.Generation())
+}
