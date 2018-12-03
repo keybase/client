@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -1742,4 +1743,12 @@ func HasAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (bool, e
 
 func InformAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) {
 	getGlobal(g).informAcceptedDisclaimer(ctx)
+}
+
+func RandomBuildPaymentID() (stellar1.BuildPaymentID, error) {
+	randBytes, err := libkb.RandBytes(15)
+	if err != nil {
+		return "", err
+	}
+	return stellar1.BuildPaymentID("bb" + hex.EncodeToString(randBytes)), nil
 }
