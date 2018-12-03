@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import * as FsTypes from '../../../../constants/types/fs'
 import {Markdown} from '../../../../common-adapters'
 import OpenInFilesTabHoc, {
   type Props as OpenInFilesTabHocProps,
