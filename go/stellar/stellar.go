@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
+	"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
 )
 
@@ -602,6 +604,142 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		TxID:    rres.StellarID,
 		Pending: rres.Pending,
 	}, nil
+}
+
+// MiniChatPayment is the argument for sending an in-chat payment.
+type MiniChatPayment struct {
+	Username libkb.NormalizedUsername
+	Amount   string
+	Currency string
+}
+
+// MiniChatPaymentResult is the result of sending an in-chat payment to
+// one username.
+type MiniChatPaymentResult struct {
+	Username  libkb.NormalizedUsername
+	PaymentID stellar1.PaymentID
+	Error     error
+}
+
+type miniPrepared struct {
+	Username libkb.NormalizedUsername
+	Post     stellar1.PaymentDirectPost
+	Seqno    uint64
+	Error    error
+}
+
+// SendMiniChatPayments sends multiple payments from one sender to multiple
+// different recipients as fast as it can.  These come from chat messages
+// like "+1XLM@alice +2XLM@charlie".
+func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
+	// look up sender account
+	sender, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	if err != nil {
+		return nil, err
+	}
+	senderSeed, err := stellarnet.NewSeedStr(sender.Signers[0].SecureNoLogString())
+	if err != nil {
+		return nil, err
+	}
+
+	prepared := make(chan *miniPrepared)
+
+	// make an autoincrementing seqnoprovider that is goroutine safe
+	sp := NewFastSeqnoProvider(m, remoter)
+
+	for _, payment := range payments {
+		go func(p MiniChatPayment) {
+			prepared <- prepareMiniChatPayment(m, remoter, sp, senderSeed, p)
+		}(payment)
+	}
+
+	// prepared chan could be out of order, so sort by seqno
+	preparedList := make([]*miniPrepared, len(payments))
+	for i := 0; i < len(payments); i++ {
+		preparedList[i] = <-prepared
+	}
+	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
+
+	resultList := make([]MiniChatPaymentResult, len(payments))
+
+	// need to submit tx one at a time, in order
+	for i := 0; i < len(preparedList); i++ {
+		mcpResult := MiniChatPaymentResult{Username: preparedList[i].Username}
+		if preparedList[i].Error != nil {
+			mcpResult.Error = preparedList[i].Error
+		} else {
+			// submit the transaction
+			m.CDebugf("submitting payment seqno %d", preparedList[i].Seqno)
+			submitRes, err := remoter.SubmitPayment(m.Ctx(), preparedList[i].Post)
+			if err != nil {
+				mcpResult.Error = err
+			} else {
+				mcpResult.PaymentID = stellar1.NewPaymentID(submitRes.StellarID)
+			}
+		}
+		resultList[i] = mcpResult
+	}
+
+	return resultList, nil
+}
+
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment MiniChatPayment) *miniPrepared {
+	result := &miniPrepared{Username: payment.Username}
+
+	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	if recipient.AccountID == nil {
+		result.Error = errors.New("user has no stellar account")
+		return result
+	}
+
+	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	xlmAmount := payment.Amount
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+	}
+
+	result.Post = stellar1.PaymentDirectPost{
+		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
+		To:              &recipient.User.UV,
+		DisplayAmount:   payment.Amount,
+		DisplayCurrency: payment.Currency,
+		QuickReturn:     true,
+	}
+
+	var signResult stellarnet.SignResult
+	if funded {
+		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp)
+	} else {
+		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp)
+	}
+	if err != nil {
+		result.Error = err
+		return result
+	}
+	result.Post.SignedTransaction = signResult.Signed
+	result.Seqno = signResult.Seqno
+	return result
+
 }
 
 // sendRelayPayment sends XLM through a relay account.

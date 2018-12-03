@@ -9,14 +9,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	chatwallet "github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 	"golang.org/x/net/context"
 )
 
@@ -165,6 +172,30 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		wg.Wait()
 		return "", nil
+	case "minichatpayment":
+		parsed := chatwallet.FindChatTxCandidates(strings.Join(args, " "))
+		minis := make([]stellar.MiniChatPayment, len(parsed))
+		for i, p := range parsed {
+			if p.Username == nil {
+				return "", fmt.Errorf("missing username")
+			}
+			mini := stellar.MiniChatPayment{
+				Username: libkb.NewNormalizedUsername(*p.Username),
+				Amount:   p.Amount,
+				Currency: p.CurrencyCode,
+			}
+			minis[i] = mini
+		}
+		remote := remote.NewRemoteNet(t.G())
+		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
+
+		results, err := stellar.SendMiniChatPayments(m, remote, minis)
+		if err != nil {
+			return "", err
+		}
+		log("send mini results: %+v", results)
+		return "success", nil
+
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

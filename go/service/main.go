@@ -67,6 +67,7 @@ type Service struct {
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
+	stellarRemote        remote.Remoter
 }
 
 type Shutdowner interface {
@@ -90,6 +91,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
+		stellarRemote:    remote.NewRemoteNet(g),
 	}
 }
 
@@ -150,7 +152,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 	}
-	walletHandler := newWalletHandler(xp, g)
+	walletHandler := newWalletHandler(xp, g, d.stellarRemote)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
@@ -324,7 +326,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()), d.badger)
+	stellar.ServiceInit(d.G(), d.stellarRemote, d.badger)
 	return nil
 }
 
@@ -562,7 +564,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
-		d.gregor.PushHandler(stellargregor.New(d.G(), remote.NewRemoteNet(d.G())))
+		d.gregor.PushHandler(stellargregor.New(d.G(), d.stellarRemote))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))

@@ -21,13 +21,13 @@ type walletHandler struct {
 
 var _ stellar1.LocalInterface = (*walletHandler)(nil)
 
-func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext) *walletHandler {
+func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext, remote remote.Remoter) *walletHandler {
 	h := &walletHandler{
 		Contextified: libkb.NewContextified(g),
 		BaseHandler:  NewBaseHandler(g, xp),
 	}
 
-	h.Server = stellarsvc.New(g, h, remote.NewRemoteNet(g))
+	h.Server = stellarsvc.New(g, h, remote)
 
 	return h
 }
