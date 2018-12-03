@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -989,6 +991,49 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	checker.assertBundle(t, acctBundle, 4, 3, stellar1.AccountMode_USER)
+}
+
+func TestAutoClaimLoop(t *testing.T) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingFull})
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "100")
+	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
+		Recipient:  tcs[1].Fu.Username,
+		Amount:     "3",
+		Asset:      stellar1.AssetNative(),
+		ForceRelay: true,
+	})
+	require.NoError(t, err)
+
+	acceptDisclaimer(tcs[1])
+	tcs[1].Backend.ImportAccountsForUser(tcs[1])
+	tcs[1].Backend.EnableAutoclaimMock(tcs[1])
+
+	tcs[1].G.GetStellar().KickAutoClaimRunner(tcs[1].MetaContext(), gregor1.MsgID{})
+
+	var found bool
+	for i := 0; i < 10; i++ {
+		time.Sleep(500 * time.Millisecond)
+		payment := tcs[1].Backend.txLog.Find(sendRes.KbTxID.String())
+		claim := payment.Summary.Relay().Claim
+		if claim != nil {
+			require.Equal(t, stellar1.TransactionStatus_SUCCESS, claim.TxStatus)
+			require.Equal(t, stellar1.RelayDirection_CLAIM, claim.Dir)
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Fatal("Timed out waiting for auto claim")
+	}
+
+	fmt.Printf("%+v\n", tcs[0].Backend.accounts)
+	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
