@@ -34,6 +34,11 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err == nil && role.IsOrAbove(keybase1.TeamRole_ADMIN)
 	}
 	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() && isAdmin() {
+		// NOTE: This code path should be unused. Server should not issue CLKRs
+		// with ResetUsersUntrusted for open teams anymore. Instead, there is a
+		// new work type to sweep reset users: OPENSWEEP. See
+		// `HandleOpenTeamSweepRequest`.
+
 		// Even though this is open team, and we are aiming to not rotate them,
 		// the server asked us specifically to do so with this CLKR. We have to
 		// obey, otherwise that CLKR will stay undone and server will keep
@@ -41,9 +46,19 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		postedLink, err := sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, true /* rotate */)
 		if err != nil {
 			g.Log.CDebugf(ctx, "Failed to sweep deleted members: %s", err)
-		} else if postedLink {
-			return nil
+		} else {
+			// If sweepOpenTeamResetAndDeletedMembers does not do anything to
+			// the team, do not load team again later. Otherwise, if new link
+			// was posted, we need to reload.
+			needTeamReload = postedLink
 		}
+
+		// NOTE: Still call the regular rotate key routine even if sweep
+		// succeeds and posts link.
+
+		// In normal case, it will reload team, see that generation is higher
+		// than one requested in CLKR (because we rotated key during sweeping),
+		// and then bail out.
 	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
@@ -94,6 +109,9 @@ func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg
 		return fmt.Errorf("OpenSweep request for team %s but our role is: %s", team.ID, role.String())
 	}
 
+	// CanSkipKeyRotation() should return `true` for open teams, so sweeping
+	// will not rotate. But assume the possibility of OPENSWEEP being sent for
+	// non-open teams.
 	rotate := !team.CanSkipKeyRotation()
 	_, err = sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, rotate)
 	return err
