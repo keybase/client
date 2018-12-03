@@ -40,6 +40,8 @@ const props = {
   you: 'cjb',
   yourAccountName: '',
   yourRole: 'senderOnly',
+  issuerDescription: '',
+  issuerAccountID: null,
 }
 
 const load = () => {
@@ -67,6 +69,19 @@ const load = () => {
         counterpartyType="stellarPublicKey"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
+      />
+    ))
+    .add('Sending to Stellar public key (non-native asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
+        counterpartyMeta={null}
+        counterpartyType="stellarPublicKey"
+        amountXLM="53.1688643 HUGS"
+        amountUser=""
+        memo="Make sure to redeem that hug! 🤗"
+        issuerDescription="example.com"
+        issuerAccountID={stringToAccountID('GD6TAJEGIL7PZFBPSZLCBTQCW45YT6UZJ6YS274OAFVBLQSMJTETVCNU')}
       />
     ))
     .add('Sending to Keybase user (pending)', () => (

@@ -83,6 +83,10 @@ protocol local {
     string currentWorth;            // "$379.12 USD" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+                                    // ("example.com") if domain is verified by stellard.
+    union{ null, AccountID } issuerAccountID;
+
     // What type to display the sender and recipient as.
     // Either neither or both are OWNACCOUNT.
     ParticipantType fromType; // cannot be SBS
@@ -143,6 +147,10 @@ protocol local {
                                     // at this payment. Both can be "".
     string currentWorth;            // "$379.12 CAD" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
+
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+                                    // ("example.com") if domain is verified by stellard.
+    union{ null, AccountID } issuerAccountID;
 
     // What type to display the sender and recipient as.
     // Either neither or both are OWNACCOUNT.

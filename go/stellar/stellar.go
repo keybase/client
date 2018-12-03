@@ -1075,29 +1075,82 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
 
-// Example: "157.5000000 XLM"
-// Example: "12.9000000 USD/GB...VTUK"
-func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
-	if asset.IsNativeXLM() {
-		return FormatAmountDescriptionXLM(amount)
-	}
+// Return an error if asset is completely outside of what we understand, like
+// asset unknown types or unexpected length.
+func assertAssetIsSane(asset stellar1.Asset) error {
 	switch asset.Type {
 	case "credit_alphanum4", "credit_alphanum12":
 	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
 	default:
-		return "", fmt.Errorf("unrecognized asset type: %v", asset.Type)
+		return fmt.Errorf("unrecognized asset type: %v", asset.Type)
 	}
 	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
 	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
-		return "", fmt.Errorf("invalid asset code: %v", asset.Code)
+		return fmt.Errorf("invalid asset code: %v", asset.Code)
+	}
+	return nil
+}
+
+// Example: "157.5000000 XLM"
+// Example: "12.9000000 USD"
+//   (where USD is a non-native asset issued by someone).
+// User interfaces should be careful to never give user just amount + asset
+// code, but annotate when it's a non-native asset and make Issuer ID and
+// Verified Domain visible.
+// If you are coming from CLI, FormatAmountDescriptionAssetEx might be a better
+// choice which is more verbose about non-native assets.
+func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(amount)
+	}
+	if err := assertAssetIsSane(asset); err != nil {
+		return "", err
+	}
+	// Sanity check asset issuer.
+	if _, err := libkb.ParseStellarAccountID(asset.Issuer); err != nil {
+		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
+	}
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, asset.Code)
+}
+
+// FormatAmountDescriptionAssetEx is a more verbose version of FormatAmountDescriptionAsset.
+// In case of non-native asset, it includes issuer domain (or "Unknown") and issuer ID.
+// Example: "157.5000000 XLM"
+// Example: "1,000.15 CATS/catmoney.example.com (GDWVJEG7CMYKRYGB2MWSRZNSPCWIGGA4FRNFTQBIR6RAEPNEGGEH4XYZ)"
+// Example: "1,000.15 BTC/Unknown (GBPEHURSE52GCBRPDWNV2VL3HRLCI42367OGRPBOO3AW6VAYEW5EO5PM)"
+func FormatAmountDescriptionAssetEx(amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(amount)
+	}
+	if err := assertAssetIsSane(asset); err != nil {
+		return "", err
 	}
 	// Sanity check asset issuer.
 	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
 	if err != nil {
 		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
-		fmt.Sprintf("%v/%v", asset.Code, issuerAccountID.LossyAbbreviation()))
+	amountFormatted, err := FormatAmount(amount, false /* precisionTwo */, FmtRound)
+	if err != nil {
+		return "", err
+	}
+	var issuerDesc string
+	if asset.VerifiedDomain != "" {
+		issuerDesc = asset.VerifiedDomain
+	} else {
+		issuerDesc = "Unknown"
+	}
+	return fmt.Sprintf("%s %s/%s (%s)", amountFormatted, asset.Code, issuerDesc, issuerAccountID.String()), nil
+}
+
+// FormatAssetIssuerString returns "Unknown issuer" if asset does not have a
+// verified domain, or returns asset verified domain if it does (e.g.
+// "example.com").
+func FormatAssetIssuerString(asset stellar1.Asset) string {
+	if asset.VerifiedDomain != "" {
+		return asset.VerifiedDomain
+	}
+	return "Unknown issuer"
 }
 
 // Example: "157.5000000 XLM"

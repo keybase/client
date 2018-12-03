@@ -172,6 +172,17 @@
           "name": "currentWorthCurrency"
         },
         {
+          "type": "string",
+          "name": "issuerDescription"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "issuerAccountID"
+        },
+        {
           "type": "ParticipantType",
           "name": "fromType"
         },
@@ -330,6 +341,17 @@
         {
           "type": "string",
           "name": "currentWorthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "issuerDescription"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "issuerAccountID"
         },
         {
           "type": "ParticipantType",

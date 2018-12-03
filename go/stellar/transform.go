@@ -381,6 +381,12 @@ func newPaymentLocal(mctx libkb.MetaContext,
 	}
 	loc.AmountDescription = formatted
 
+	if !asset.IsNativeXLM() {
+		loc.IssuerDescription = FormatAssetIssuerString(asset)
+		issuerAcc := stellar1.AccountID(asset.Issuer)
+		loc.IssuerAccountID = &issuerAcc
+	}
+
 	if asset.IsNativeXLM() && exchRate != nil {
 		outsideAmount, err := stellarnet.ConvertXLMToOutside(amount, exchRate.Rate)
 		if err != nil {
