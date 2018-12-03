@@ -36,6 +36,38 @@
     },
     {
       "type": "record",
+      "name": "PhoneNumberLookupResult",
+      "fields": [
+        {
+          "type": "PhoneNumber",
+          "name": "phoneNumber",
+          "jsonkey": "phone_number"
+        },
+        {
+          "type": "PhoneNumber",
+          "name": "coercedPhoneNumber",
+          "jsonkey": "coerced_phone_number"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err",
+          "jsonkey": "err"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "uid",
+          "jsonkey": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PhoneNumberAddedMsg",
       "fields": [
         {
@@ -165,6 +197,39 @@
         }
       ],
       "response": null
+    },
+    "bulkLookupPhoneNumbers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumberContacts",
+          "type": {
+            "type": "array",
+            "items": "PhoneNumber"
+          }
+        },
+        {
+          "name": "regionCodes",
+          "type": {
+            "type": "array",
+            "items": "RegionCode"
+          }
+        },
+        {
+          "name": "userRegionCode",
+          "type": [
+            null,
+            "RegionCode"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PhoneNumberLookupResult"
+      }
     }
   },
   "namespace": "keybase.1"

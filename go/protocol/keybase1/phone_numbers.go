@@ -25,6 +25,34 @@ func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 	}
 }
 
+type PhoneNumberLookupResult struct {
+	PhoneNumber        PhoneNumber `codec:"phoneNumber" json:"phone_number"`
+	CoercedPhoneNumber PhoneNumber `codec:"coercedPhoneNumber" json:"coerced_phone_number"`
+	Err                *string     `codec:"err,omitempty" json:"err,omitempty"`
+	Uid                *UID        `codec:"uid,omitempty" json:"uid,omitempty"`
+}
+
+func (o PhoneNumberLookupResult) DeepCopy() PhoneNumberLookupResult {
+	return PhoneNumberLookupResult{
+		PhoneNumber:        o.PhoneNumber.DeepCopy(),
+		CoercedPhoneNumber: o.CoercedPhoneNumber.DeepCopy(),
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
+		Uid: (func(x *UID) *UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Uid),
+	}
+}
+
 type PhoneNumberAddedMsg struct {
 	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
 }
@@ -89,6 +117,13 @@ type SetVisibilityPhoneNumberArg struct {
 	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
+type BulkLookupPhoneNumbersArg struct {
+	SessionID           int           `codec:"sessionID" json:"sessionID"`
+	PhoneNumberContacts []PhoneNumber `codec:"phoneNumberContacts" json:"phoneNumberContacts"`
+	RegionCodes         []RegionCode  `codec:"regionCodes" json:"regionCodes"`
+	UserRegionCode      *RegionCode   `codec:"userRegionCode,omitempty" json:"userRegionCode,omitempty"`
+}
+
 type PhoneNumbersInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	EditPhoneNumber(context.Context, EditPhoneNumberArg) error
@@ -96,6 +131,7 @@ type PhoneNumbersInterface interface {
 	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 	DeletePhoneNumber(context.Context, DeletePhoneNumberArg) error
 	SetVisibilityPhoneNumber(context.Context, SetVisibilityPhoneNumberArg) error
+	BulkLookupPhoneNumbers(context.Context, BulkLookupPhoneNumbersArg) ([]PhoneNumberLookupResult, error)
 }
 
 func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
@@ -192,6 +228,21 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					return
 				},
 			},
+			"bulkLookupPhoneNumbers": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkLookupPhoneNumbersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkLookupPhoneNumbersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkLookupPhoneNumbersArg)(nil), args)
+						return
+					}
+					ret, err = i.BulkLookupPhoneNumbers(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -228,5 +279,10 @@ func (c PhoneNumbersClient) DeletePhoneNumber(ctx context.Context, __arg DeleteP
 
 func (c PhoneNumbersClient) SetVisibilityPhoneNumber(ctx context.Context, __arg SetVisibilityPhoneNumberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PhoneNumbersClient) BulkLookupPhoneNumbers(ctx context.Context, __arg BulkLookupPhoneNumbersArg) (res []PhoneNumberLookupResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.bulkLookupPhoneNumbers", []interface{}{__arg}, &res)
 	return
 }

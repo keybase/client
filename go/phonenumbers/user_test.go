@@ -15,7 +15,7 @@ func TestSetPhoneNumber(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestPhoneNumbers", 1)
 	defer tc.Cleanup()
 
-	_, err := kbtest.CreateAndSignupFakeUser("phon", tc.G)
+	me, err := kbtest.CreateAndSignupFakeUser("phon", tc.G)
 	require.NoError(t, err)
 
 	phoneNumber := keybase1.PhoneNumber("+14155552671")
@@ -39,6 +39,28 @@ func TestSetPhoneNumber(t *testing.T) {
 	require.Len(t, resp, 1)
 	require.Equal(t, phoneNumber, resp[0].PhoneNumber)
 	require.True(t, resp[0].Verified)
+
+	contactList := []keybase1.PhoneNumber{
+		"+1-415-555-2671",
+	}
+	regionCodes := []keybase1.RegionCode{
+		"us",
+	}
+	userRegionCode := keybase1.RegionCode("us")
+	resolutions, err := BulkLookupPhoneNumbers(mctx, contactList, regionCodes, &userRegionCode)
+	require.NoError(t, err)
+
+	myUID := me.GetUID()
+	expectedResolutions := []keybase1.PhoneNumberLookupResult{
+		keybase1.PhoneNumberLookupResult{
+			PhoneNumber:        "+1-415-555-2671",
+			CoercedPhoneNumber: "+14155552671",
+			Err:                nil,
+			Uid:                &myUID,
+		},
+	}
+
+	require.Equal(t, expectedResolutions, resolutions)
 
 	err = DeletePhoneNumber(mctx, phoneNumber)
 	require.NoError(t, err)

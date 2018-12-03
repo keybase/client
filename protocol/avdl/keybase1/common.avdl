@@ -46,6 +46,10 @@ protocol Common {
   @typedef("string")
   record PhoneNumber {}
 
+  // 2-letter country region code
+  @typedef("string")
+  record RegionCode {}
+
   // Chain link IDs
   @typedef("string")
   record LinkID {}

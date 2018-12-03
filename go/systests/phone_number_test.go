@@ -44,8 +44,6 @@ func TestTeamWithPhoneNumber(t *testing.T) {
 }
 
 func TestResolvePhoneToUser(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -82,6 +80,14 @@ func TestResolvePhoneToUser(t *testing.T) {
 		Code:         code,
 	}
 	err = cli2.Run()
+	require.NoError(t, err)
+
+	cli3 := &client.CmdSetVisibilityPhoneNumber{
+		Contextified: libkb.NewContextified(bob.tc.G),
+		PhoneNumber:  "+" + phone,
+		Visibility:   keybase1.IdentityVisibility_PUBLIC,
+	}
+	err = cli3.Run()
 	require.NoError(t, err)
 
 	for _, u := range tt.users {

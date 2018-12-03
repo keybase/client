@@ -4,7 +4,6 @@
 package emails
 
 import (
-	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -85,26 +84,24 @@ func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
 	return libkb.LoadUserEmails(mctx.G())
 }
 
-// type emailLookupApiResult struct {
-// 	libkb.AppStatusEmbed
-// 	Solutions []keybase1.EmailLookupResult `json:"resolutions"`
-// }
+type emailLookupAPIResult struct {
+	libkb.AppStatusEmbed
+	Resolutions []keybase1.EmailLookupResult `json:"resolutions"`
+}
 
-// func BulkLookupEmails(mctx libkb.MetaContext, contactEmails []string) ([]keybase1.EmailLookupResult, error) {
-// 	payload := make(libkb.JSONPayload)
-// 	payload["emails"] = contactEmails
+func BulkLookupEmails(mctx libkb.MetaContext, contactEmails []string) ([]keybase1.EmailLookupResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["emails"] = contactEmails
 
-// 	arg := libkb.APIArg{
-// 		Endpoint:    "email/bulk-lookup",
-// 		JSONPayload: payload,
-// 		SessionType: libkb.APISessionTypeREQUIRED,
-// 	}
-// 	var resp emailLookupApiResult
-// 	err := mctx.G().API.PostDecode(arg, &resp)
-// 	// fmt.Printf("RES! %+v\n", res.Body)
-// 	fmt.Printf("RES! %+v\n", resp)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return resp.solutions, nil
-// }
+	arg := libkb.APIArg{
+		Endpoint:    "email/bulk-lookup",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var resp emailLookupAPIResult
+	err := mctx.G().API.PostDecode(arg, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Resolutions, nil
+}

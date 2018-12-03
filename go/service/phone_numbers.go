@@ -70,6 +70,13 @@ func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg 
 	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
+func (h *PhoneNumbersHandler) BulkLookupPhoneNumbers(ctx context.Context, arg keybase1.BulkLookupPhoneNumbersArg) ([]keybase1.PhoneNumberLookupResult, error) {
+	var err error
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#BulkLookupPhoneNumbers", func() error { return err })()
+	return phonenumbers.BulkLookupPhoneNumbers(mctx, arg.PhoneNumberContacts, arg.RegionCodes, arg.UserRegionCode)
+}
+
 const phoneNumbersGregorHandlerName = "phoneHandler"
 
 type phoneNumbersGregorHandler struct {

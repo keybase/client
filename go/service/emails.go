@@ -75,6 +75,5 @@ func (h *EmailsHandler) BulkLookupEmails(ctx context.Context, arg keybase1.BulkL
 	var err error
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#BulkLookupEmails", func() error { return err })()
-	return nil, nil
-
+	return emails.BulkLookupEmails(mctx, arg.EmailContacts)
 }
