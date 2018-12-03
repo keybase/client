@@ -156,6 +156,7 @@ export const constantsStatusCode = {
   scsigcannotverify: 1002,
   scsigwrongkey: 1008,
   scsigoldseqno: 1010,
+  scsigcreationdisallowed: 1016,
   scbadtracksession: 1301,
   scdevicebadname: 1404,
   scdevicenameinuse: 1408,
