@@ -604,16 +604,27 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   }
 }
 
+const _getRouteChangeForOpenMobile = (
+  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
+  route: any
+) =>
+  action.type === FsGen.openPathItem
+    ? navigateAppend([route])
+    : navigateTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder', route])
+
+const _getRouteChangeForOpenDesktop = (
+  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
+  route: any
+) =>
+  action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, 'folder', route])
+
 const _getRouteChangeActionForOpen = (
   action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
   route: any
 ) => {
-  const routeChange =
-    action.type === FsGen.openPathItem
-      ? navigateAppend([route])
-      : isMobile
-      ? navigateTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder', route])
-      : navigateTo([Tabs.fsTab, 'folder', route])
+  const routeChange = isMobile
+    ? _getRouteChangeForOpenMobile(action, route)
+    : _getRouteChangeForOpenDesktop(action, route)
   return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
 

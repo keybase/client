@@ -22,7 +22,9 @@ import {
   styleSheetCreate,
 } from '../../../styles'
 import * as FsTypes from '../../../constants/types/fs'
-import OpenInFilesTabHoc from '../../../fs/common/open-in-files-tab-hoc'
+import OpenInFilesTabHoc, {
+  type Props as OpenInFilesTabHocProps,
+} from '../../../fs/common/open-in-files-tab-hoc'
 
 type SmallProps = {
   teamname: string,
@@ -72,6 +74,8 @@ type BigProps = {|
   onOpenInFilesTab: FsTypes.Path => void,
 |}
 
+type BigTeamHeaderProps = BigProps & OpenInFilesTabHocProps
+
 const EditBox = isMobile
   ? ClickableBox
   : glamorous(ClickableBox)({
@@ -81,7 +85,7 @@ const EditBox = isMobile
       },
     })
 
-const BigTeamHeader = OpenInFilesTabHoc((props: BigProps) => {
+const BigTeamHeader = OpenInFilesTabHoc<BigProps>((props: BigTeamHeaderProps) => {
   return (
     <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
       <Box style={styles.channelnameContainer}>
