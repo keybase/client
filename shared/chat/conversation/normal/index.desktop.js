@@ -5,6 +5,7 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
+import Giphy from '../giphy'
 import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
@@ -126,6 +127,7 @@ class Conversation extends React.PureComponent<Props, State> {
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
+        <Giphy />
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
           isPending={this.props.isPending}

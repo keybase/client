@@ -12,6 +12,7 @@ export type Props = {
   url: string,
   isVideo: boolean,
   style?: Object,
+  maxSize?: number,
 }
 
 const clampImageSize = ({width = 0, height = 0}, maxSize) =>
@@ -27,7 +28,7 @@ const clampImageSize = ({width = 0, height = 0}, maxSize) =>
 
 class UnfurlImage extends React.Component<Props> {
   _getDimensions() {
-    const maxSize = Math.min(imgMaxWidth(), 320)
+    const maxSize = Math.min(imgMaxWidth(), this.props.maxSize ? this.props.maxSize : 320)
     return clampImageSize(
       {
         height: this.props.height,
