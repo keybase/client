@@ -24,6 +24,7 @@ type ConfirmSendProps = {|
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
         onBack={props.onBack}
@@ -102,7 +103,14 @@ const styles = Styles.styleSheetCreate({
       height: 525,
       width: 360,
     },
+    isMobile: {
+      flexGrow: 1,
+      flexShrink: 1,
+      width: '100%',
+      maxHeight: '100%',
+    },
   }),
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
   scrollView: {
     flexGrow: 0,
     flexShrink: 1,

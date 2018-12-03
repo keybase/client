@@ -108,7 +108,7 @@ const chatChildren = {
       [WalletConstants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
       },
       [WalletConstants.chooseAssetFormRouteKey]: {
         children: {},
@@ -121,7 +121,7 @@ const chatChildren = {
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
   },
 }
 

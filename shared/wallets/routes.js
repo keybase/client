@@ -55,7 +55,7 @@ const walletChildren = {
         tags: makeLeafTags({
           layerOnTop: !isMobile,
           renderTopmostOnly: true,
-          hideStatusBar: true,
+          underNotch: true,
         }),
       },
       createNewAccount,
@@ -74,7 +74,7 @@ const walletChildren = {
     tags: makeLeafTags({
       layerOnTop: !isMobile,
       renderTopmostOnly: true,
-      hideStatusBar: true,
+      underNotch: true,
     }),
   },
   settings: {
