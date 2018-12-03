@@ -14,6 +14,7 @@ export type GifPreview = {
 
 export type Props = {
   previews: Array<GifPreview>,
+  onClick: string => void,
 }
 
 const gridWidth = 100
@@ -28,17 +29,19 @@ class GiphySearch extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        {this.props.previews.map(p => {
+        {(this.props.previews || []).map(p => {
           const margin = this._getMargin(p.previewWidth)
           return (
             <Kb.Box2 direction="horizontal" style={styles.imageContainer}>
-              <UnfurlImage
-                url={p.previewUrl}
-                height={gridWidth}
-                width={this._scaledWidth(p.previewWidth)}
-                isVideo={p.previewIsVideo}
-                style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}, styles.image])}
-              />
+              <Kb.ClickableBox onClick={() => this.props.onClick(p.targetUrl)}>
+                <UnfurlImage
+                  url={p.previewUrl}
+                  height={gridWidth}
+                  width={this._scaledWidth(p.previewWidth)}
+                  isVideo={p.previewIsVideo}
+                  style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}, styles.image])}
+                />
+              </Kb.ClickableBox>
             </Kb.Box2>
           )
         })}

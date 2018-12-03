@@ -2674,6 +2674,32 @@
           "body": "string"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "targetUrl"
+        },
+        {
+          "type": "string",
+          "name": "previewUrl"
+        },
+        {
+          "type": "string",
+          "name": "previewWidth"
+        },
+        {
+          "type": "string",
+          "name": "previewHeight"
+        },
+        {
+          "type": "boolean",
+          "name": "previewIsVideo"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4027,6 +4053,21 @@
         }
       ],
       "response": null
+    },
+    "giphySearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "GiphySearchResult"
+      }
     }
   },
   "namespace": "chat.1"

@@ -928,4 +928,14 @@ protocol local {
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+
+  // Giphy search
+  record GiphySearchResult {
+    string targetUrl;
+    string previewUrl;
+    string previewWidth;
+    string previewHeight;
+    boolean previewIsVideo;
+  }
+  array<GiphySearchResult> giphySearch(union { null, string } query);
 }

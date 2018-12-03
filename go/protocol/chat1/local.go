@@ -4426,6 +4426,24 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	}
 }
 
+type GiphySearchResult struct {
+	TargetUrl      string `codec:"targetUrl" json:"targetUrl"`
+	PreviewUrl     string `codec:"previewUrl" json:"previewUrl"`
+	PreviewWidth   string `codec:"previewWidth" json:"previewWidth"`
+	PreviewHeight  string `codec:"previewHeight" json:"previewHeight"`
+	PreviewIsVideo bool   `codec:"previewIsVideo" json:"previewIsVideo"`
+}
+
+func (o GiphySearchResult) DeepCopy() GiphySearchResult {
+	return GiphySearchResult{
+		TargetUrl:      o.TargetUrl,
+		PreviewUrl:     o.PreviewUrl,
+		PreviewWidth:   o.PreviewWidth,
+		PreviewHeight:  o.PreviewHeight,
+		PreviewIsVideo: o.PreviewIsVideo,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -4845,6 +4863,10 @@ type SaveUnfurlSettingsArg struct {
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
 }
 
+type GiphySearchArg struct {
+	Query *string `codec:"query,omitempty" json:"query,omitempty"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4908,6 +4930,7 @@ type LocalInterface interface {
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
+	GiphySearch(context.Context, *string) ([]GiphySearchResult, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5824,6 +5847,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"giphySearch": {
+				MakeArg: func() interface{} {
+					var ret [1]GiphySearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GiphySearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GiphySearchArg)(nil), args)
+						return
+					}
+					ret, err = i.GiphySearch(ctx, typedArgs[0].Query)
+					return
+				},
+			},
 		},
 	}
 }
@@ -6149,5 +6187,11 @@ func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsD
 
 func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GiphySearch(ctx context.Context, query *string) (res []GiphySearchResult, err error) {
+	__arg := GiphySearchArg{Query: query}
+	err = c.Cli.Call(ctx, "chat.1.local.giphySearch", []interface{}{__arg}, &res)
 	return
 }

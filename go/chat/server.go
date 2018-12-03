@@ -2393,3 +2393,7 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 		Whitelist: wm,
 	})
 }
+
+func (h *Server) GiphySearch(ctx context.Context, query *string) (res []chat1.GiphySearchResult, err error) {
+	return res, err
+}
