@@ -336,7 +336,6 @@ const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
       }
     }
   } finally {
-    // TODO handle error
     yield Saga.put(WaitingGen.createDecrementWaiting({key: waitingKeys}))
   }
 }
