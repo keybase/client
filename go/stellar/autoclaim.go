@@ -8,23 +8,22 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar/remote"
 )
 
 // Claims relay payments in the background.
 // Threadsafe.
 type AutoClaimRunner struct {
-	startOnce  sync.Once
-	shutdownCh chan struct{}
-	kickCh     chan gregor.MsgID
-	remoter    remote.Remoter
+	startOnce   sync.Once
+	shutdownCh  chan struct{}
+	kickCh      chan gregor.MsgID
+	walletState *WalletState
 }
 
-func NewAutoClaimRunner(remoter remote.Remoter) *AutoClaimRunner {
+func NewAutoClaimRunner(walletState *WalletState) *AutoClaimRunner {
 	return &AutoClaimRunner{
-		shutdownCh: make(chan struct{}, 1),
-		kickCh:     make(chan gregor.MsgID, 100),
-		remoter:    remoter,
+		shutdownCh:  make(chan struct{}, 1),
+		kickCh:      make(chan gregor.MsgID, 100),
+		walletState: walletState,
 	}
 }
 
@@ -104,7 +103,7 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 		mctx.CDebugf(fmt.Sprintf("AutoClaimRunnner round[%v] ", i) + fmt.Sprintf(format, args...))
 	}
 	log("step begin")
-	token, err := r.remoter.AcquireAutoClaimLock(mctx.Ctx())
+	token, err := r.walletState.AcquireAutoClaimLock(mctx.Ctx())
 	if err != nil {
 		return autoClaimLoopActionSnooze, err
 	}
@@ -113,12 +112,12 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 		return autoClaimLoopActionSnooze, nil
 	}
 	defer func() {
-		rerr := r.remoter.ReleaseAutoClaimLock(mctx.Ctx(), token)
+		rerr := r.walletState.ReleaseAutoClaimLock(mctx.Ctx(), token)
 		if rerr != nil {
 			log("error releasing autoclaim lock: %v", rerr)
 		}
 	}()
-	ac, err := r.remoter.NextAutoClaim(mctx.Ctx())
+	ac, err := r.walletState.NextAutoClaim(mctx.Ctx())
 	if err != nil {
 		return autoClaimLoopActionSnooze, err
 	}
@@ -153,7 +152,7 @@ func (r *AutoClaimRunner) claim(mctx libkb.MetaContext, kbTxID stellar1.KeybaseT
 	// Explicitly CLAIM. We don't want to accidentally auto YANK.
 	dir := stellar1.RelayDirection_CLAIM
 	// Use the user's autoclaim lock that we acquired.
-	_, err = Claim(mctx.Ctx(), mctx.G(), r.remoter,
+	_, err = Claim(mctx.Ctx(), mctx.G(), r.walletState,
 		kbTxID.String(), into, &dir, &token)
 	return err
 }

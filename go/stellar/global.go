@@ -17,16 +17,17 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
-func ServiceInit(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.Badger) {
+func ServiceInit(g *libkb.GlobalContext, walletState *WalletState, badger *badges.Badger) {
 	if g.Env.GetRunMode() != libkb.ProductionRunMode {
 		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 	}
-	g.SetStellar(NewStellar(g, remoter, badger))
+	g.SetStellar(NewStellar(g, walletState, badger))
 }
 
 type Stellar struct {
 	libkb.Contextified
-	remoter remote.Remoter
+	remoter     remote.Remoter
+	walletState *WalletState
 
 	serverConfLock   sync.Mutex
 	cachedServerConf stellar1.StellarServerDefinitions
@@ -54,10 +55,11 @@ type Stellar struct {
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
-func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.Badger) *Stellar {
+func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges.Badger) *Stellar {
 	return &Stellar{
 		Contextified:     libkb.NewContextified(g),
-		remoter:          remoter,
+		remoter:          walletState,
+		walletState:      walletState,
 		hasWalletCache:   make(map[keybase1.UserVersion]bool),
 		federationClient: getFederationClient(g),
 		buildPaymentSlot: slotctx.NewPriority(),
@@ -130,7 +132,7 @@ func (s *Stellar) KickAutoClaimRunner(mctx libkb.MetaContext, trigger gregor.Msg
 	s.autoClaimRunnerLock.Lock()
 	defer s.autoClaimRunnerLock.Unlock()
 	if s.autoClaimRunner == nil {
-		s.autoClaimRunner = NewAutoClaimRunner(s.remoter)
+		s.autoClaimRunner = NewAutoClaimRunner(s.walletState)
 	}
 	s.autoClaimRunner.Kick(mctx, trigger)
 }
@@ -182,6 +184,19 @@ func (s *Stellar) UpdateUnreadCount(ctx context.Context, accountID stellar1.Acco
 
 	s.badger.SetWalletAccountUnreadCount(ctx, accountID, unread)
 	return nil
+}
+
+// SendMiniChatPayments sends multiple payments from one sender to multiple
+// different recipients as fast as it can.  These come from chat messages
+// like "+1XLM@alice +2XLM@charlie".
+func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
+	return SendMiniChatPayments(mctx, s.walletState, payments)
+}
+
+func (s *Stellar) RefreshWalletState(ctx context.Context) {
+	if err := s.walletState.RefreshAll(ctx); err != nil {
+		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
+	}
 }
 
 type hasAcceptedDisclaimerDBEntry struct {
