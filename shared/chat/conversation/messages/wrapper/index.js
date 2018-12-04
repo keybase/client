@@ -75,7 +75,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   _dismissKeyboard = () => dismissKeyboard()
-  _orangeLine = () => this.props.orangeLineAbove && <Kb.Box2 direction="vertical" style={styles.orangeLine} />
+  _orangeLine = () =>
+    this.props.orangeLineAbove && <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   _onAuthorClick = () => this.props.onAuthorClick()
 
   _authorAndContent = children => {
