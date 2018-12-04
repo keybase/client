@@ -204,6 +204,19 @@
       ],
       "response": null
     },
+    "setVisibilityAllPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
     "bulkLookupPhoneNumbers": {
       "request": [
         {

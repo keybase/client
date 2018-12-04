@@ -139,6 +139,19 @@
       ],
       "response": null
     },
+    "setVisibilityAllEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
     "getEmails": {
       "request": [
         {

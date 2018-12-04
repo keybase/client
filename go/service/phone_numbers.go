@@ -70,6 +70,12 @@ func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg 
 	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
+func (h *PhoneNumbersHandler) SetVisibilityAllPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityAllPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityAllPhoneNumber", func() error { return err })()
+	return phonenumbers.SetVisibilityAllPhoneNumber(mctx, arg.Visibility)
+}
+
 func (h *PhoneNumbersHandler) BulkLookupPhoneNumbers(ctx context.Context, arg keybase1.BulkLookupPhoneNumbersArg) ([]keybase1.PhoneNumberLookupResult, error) {
 	var err error
 	mctx := libkb.NewMetaContext(ctx, h.G())

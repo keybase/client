@@ -65,6 +65,11 @@ type SetVisibilityEmailArg struct {
 	Visibility IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
+type SetVisibilityAllEmailArg struct {
+	SessionID  int                `codec:"sessionID" json:"sessionID"`
+	Visibility IdentityVisibility `codec:"visibility" json:"visibility"`
+}
+
 type GetEmailsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -77,6 +82,7 @@ type EmailsInterface interface {
 	SendVerificationEmail(context.Context, SendVerificationEmailArg) error
 	BulkLookupEmails(context.Context, BulkLookupEmailsArg) ([]EmailLookupResult, error)
 	SetVisibilityEmail(context.Context, SetVisibilityEmailArg) error
+	SetVisibilityAllEmail(context.Context, SetVisibilityAllEmailArg) error
 	GetEmails(context.Context, int) ([]Email, error)
 }
 
@@ -189,6 +195,21 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setVisibilityAllEmail": {
+				MakeArg: func() interface{} {
+					var ret [1]SetVisibilityAllEmailArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetVisibilityAllEmailArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetVisibilityAllEmailArg)(nil), args)
+						return
+					}
+					err = i.SetVisibilityAllEmail(ctx, typedArgs[0])
+					return
+				},
+			},
 			"getEmails": {
 				MakeArg: func() interface{} {
 					var ret [1]GetEmailsArg
@@ -244,6 +265,11 @@ func (c EmailsClient) BulkLookupEmails(ctx context.Context, __arg BulkLookupEmai
 
 func (c EmailsClient) SetVisibilityEmail(ctx context.Context, __arg SetVisibilityEmailArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c EmailsClient) SetVisibilityAllEmail(ctx context.Context, __arg SetVisibilityAllEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityAllEmail", []interface{}{__arg}, nil)
 	return
 }
 

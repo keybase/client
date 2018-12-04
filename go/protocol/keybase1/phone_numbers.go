@@ -123,6 +123,11 @@ type SetVisibilityPhoneNumberArg struct {
 	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
+type SetVisibilityAllPhoneNumberArg struct {
+	SessionID  int                `codec:"sessionID" json:"sessionID"`
+	Visibility IdentityVisibility `codec:"visibility" json:"visibility"`
+}
+
 type BulkLookupPhoneNumbersArg struct {
 	SessionID           int              `codec:"sessionID" json:"sessionID"`
 	PhoneNumberContacts []RawPhoneNumber `codec:"phoneNumberContacts" json:"phoneNumberContacts"`
@@ -137,6 +142,7 @@ type PhoneNumbersInterface interface {
 	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 	DeletePhoneNumber(context.Context, DeletePhoneNumberArg) error
 	SetVisibilityPhoneNumber(context.Context, SetVisibilityPhoneNumberArg) error
+	SetVisibilityAllPhoneNumber(context.Context, SetVisibilityAllPhoneNumberArg) error
 	BulkLookupPhoneNumbers(context.Context, BulkLookupPhoneNumbersArg) ([]PhoneNumberLookupResult, error)
 }
 
@@ -234,6 +240,21 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setVisibilityAllPhoneNumber": {
+				MakeArg: func() interface{} {
+					var ret [1]SetVisibilityAllPhoneNumberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetVisibilityAllPhoneNumberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetVisibilityAllPhoneNumberArg)(nil), args)
+						return
+					}
+					err = i.SetVisibilityAllPhoneNumber(ctx, typedArgs[0])
+					return
+				},
+			},
 			"bulkLookupPhoneNumbers": {
 				MakeArg: func() interface{} {
 					var ret [1]BulkLookupPhoneNumbersArg
@@ -285,6 +306,11 @@ func (c PhoneNumbersClient) DeletePhoneNumber(ctx context.Context, __arg DeleteP
 
 func (c PhoneNumbersClient) SetVisibilityPhoneNumber(ctx context.Context, __arg SetVisibilityPhoneNumberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PhoneNumbersClient) SetVisibilityAllPhoneNumber(ctx context.Context, __arg SetVisibilityAllPhoneNumberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityAllPhoneNumber", []interface{}{__arg}, nil)
 	return
 }
 

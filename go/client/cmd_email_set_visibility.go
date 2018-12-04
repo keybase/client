@@ -27,8 +27,8 @@ func NewCmdSetVisibilityEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	}
 	return cli.Command{
 		Name:         "set-visibility",
-		Usage:        "Allow or disallow Keybase users from looking you up by your email",
-		ArgumentHelp: "<email> <private|public>",
+		Usage:        "Allow or disallow Keybase users from looking you up by your email. Pass 'all' to update visibility for all records.",
+		ArgumentHelp: "<email|'all'> <private|public>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "set-visibility", c)
 		},
@@ -52,6 +52,12 @@ func (c *CmdSetVisibilityEmail) Run() error {
 	cli, err := GetEmailsClient(c.G())
 	if err != nil {
 		return err
+	}
+	if strings.ToLower(c.Email) == "all" {
+		arg := keybase1.SetVisibilityAllEmailArg{
+			Visibility: c.Visibility,
+		}
+		return cli.SetVisibilityAllEmail(context.Background(), arg)
 	}
 	arg := keybase1.SetVisibilityEmailArg{
 		Email:      keybase1.EmailAddress(c.Email),

@@ -27,8 +27,8 @@ func NewCmdSetVisibilityPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalC
 	}
 	return cli.Command{
 		Name:         "set-visibility",
-		Usage:        "Allow or disallow Keybase users from looking you up by your phone number",
-		ArgumentHelp: "<phone number> <private|public>",
+		Usage:        "Allow or disallow Keybase users from looking you up by your phone number. Pass 'all' to update visibility for all records.",
+		ArgumentHelp: "<phone number|'all'> <private|public>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "set-visibility", c)
 		},
@@ -52,6 +52,12 @@ func (c *CmdSetVisibilityPhoneNumber) Run() error {
 	cli, err := GetPhoneNumbersClient(c.G())
 	if err != nil {
 		return err
+	}
+	if strings.ToLower(c.PhoneNumber) == "all" {
+		arg := keybase1.SetVisibilityAllPhoneNumberArg{
+			Visibility: c.Visibility,
+		}
+		return cli.SetVisibilityAllPhoneNumber(context.Background(), arg)
 	}
 	arg := keybase1.SetVisibilityPhoneNumberArg{
 		PhoneNumber: keybase1.PhoneNumber(c.PhoneNumber),

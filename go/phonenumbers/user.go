@@ -90,6 +90,21 @@ func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 	return err
 }
 
+func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.IdentityVisibility) error {
+	payload := make(libkb.JSONPayload)
+	payload["visibility"] = visibility
+	payload["all"] = true
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_number_visibility",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.PostJSON(arg)
+	return err
+}
+
 type phoneLookupAPIResult struct {
 	libkb.AppStatusEmbed
 	Resolutions []keybase1.PhoneNumberLookupResult `json:"resolutions"`

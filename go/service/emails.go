@@ -64,6 +64,12 @@ func (h *EmailsHandler) SetVisibilityEmail(ctx context.Context, arg keybase1.Set
 	return emails.SetVisibilityEmail(mctx, arg.Email, arg.Visibility)
 }
 
+func (h *EmailsHandler) SetVisibilityAllEmail(ctx context.Context, arg keybase1.SetVisibilityAllEmailArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("EmailsHandler#SetVisibilityAllEmailArg", func() error { return err })()
+	return emails.SetVisibilityAllEmail(mctx, arg.Visibility)
+}
+
 func (h *EmailsHandler) GetEmails(ctx context.Context, sessionID int) (ret []keybase1.Email, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#GetEmails", func() error { return err })()

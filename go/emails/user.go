@@ -80,6 +80,21 @@ func SetVisibilityEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, vis
 	return err
 }
 
+func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityVisibility) error {
+	payload := make(libkb.JSONPayload)
+	payload["visibility"] = visibility
+	payload["all"] = true
+
+	arg := libkb.APIArg{
+		Endpoint:    "email/set-visibility",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.PostJSON(arg)
+	return err
+}
+
 func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
 	return libkb.LoadUserEmails(mctx.G())
 }
