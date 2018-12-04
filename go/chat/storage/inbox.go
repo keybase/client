@@ -26,6 +26,13 @@ import (
 
 const inboxVersion = 22
 
+type InboxFlushMode int
+
+const (
+	InboxFlushModeActive InboxFlushMode = iota
+	InboxFlushModeDelegate
+)
+
 type queryHash []byte
 
 func (q queryHash) Empty() bool {
@@ -78,21 +85,38 @@ type Inbox struct {
 	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
+
+	flushMode InboxFlushMode
 }
 
 var addHookOnce sync.Once
 
-func NewInbox(g *globals.Context) *Inbox {
+func FlushMode(mode InboxFlushMode) func(*Inbox) {
+	return func(i *Inbox) {
+		i.SetFlushMode(mode)
+	}
+}
+
+func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	// add a logout hook to clear the in-memory inbox cache, but only add it once:
 	addHookOnce.Do(func() {
 		g.ExternalG().AddLogoutHook(inboxMemCache)
 	})
 
-	return &Inbox{
+	i := &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
 		baseBox:      newBaseBox(g),
+		flushMode:    InboxFlushModeActive,
 	}
+	for _, c := range config {
+		c(i)
+	}
+	return i
+}
+
+func (i *Inbox) SetFlushMode(mode InboxFlushMode) {
+	i.flushMode = mode
 }
 
 func (i *Inbox) dbKey(uid gregor1.UID) libkb.DbKey {
@@ -197,24 +221,40 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 	}
 }
 
-func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxDiskData) Error {
+func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) Error {
+	ibox := inboxMemCache.Get(uid)
+	if ibox == nil {
+		i.Debug(ctx, "Flush: no inbox in memory, not doing anything")
+		return nil
+	}
+	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
+	i.Debug(ctx, "Flush: version: %d disk version: %d server version: %d convs: %d",
+		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
+	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
+		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
+	}
+	i.writeMobileSharedInbox(ctx, *ibox, uid)
+	return nil
+}
 
+func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxDiskData) Error {
 	// Get latest server version
 	vers, err := i.G().ServerCacheVersions.Fetch(ctx)
 	if err != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to fetch server versions: %s", err.Error())
 	}
-
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
 	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d convs: %d",
 		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	inboxMemCache.Put(uid, &ibox)
-	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
-		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
+	switch i.flushMode {
+	case InboxFlushModeActive:
+		return i.Flush(ctx, uid)
+	case InboxFlushModeDelegate:
+		return nil
 	}
-	i.writeMobileSharedInbox(ctx, ibox, uid)
 	return nil
 }
 
