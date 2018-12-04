@@ -267,7 +267,7 @@ func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 		// Wrap this child so that it will show all the repos.
 		ctx := libkbfs.CtxWithRandomIDReplayable(
 			context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rn.am.log)
-		fs, err := libfs.NewFS(
+		fs, err := libfs.NewReadonlyFS(
 			ctx, rn.am.config, h, rn.GetFolderBranch().Branch, kbfsRepoDir, "",
 			keybase1.MDPriorityNormal)
 		if err != nil {

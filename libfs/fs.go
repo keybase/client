@@ -110,7 +110,8 @@ func (e ErrNotADirectory) Error() string {
 
 func newFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
-	uniqID string, priority keybase1.MDPriority, unwrap bool) (*FS, error) {
+	uniqID string, priority keybase1.MDPriority, unwrap, readonly bool) (
+	*FS, error) {
 	rootNodeGetter := config.KBFSOps().GetOrCreateRootNode
 	if branch != libkbfs.MasterBranch {
 		rootNodeGetter = config.KBFSOps().GetRootNode
@@ -122,6 +123,9 @@ func newFS(ctx context.Context, config libkbfs.Config,
 	}
 	if unwrap {
 		rootNode = rootNode.Unwrap()
+	}
+	if readonly {
+		rootNode = libkbfs.ReadonlyNode{Node: rootNode}
 	}
 	if subdir != "" {
 		subdir = path.Clean(subdir)
@@ -204,7 +208,21 @@ outer:
 func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
-	return newFS(ctx, config, tlfHandle, branch, subdir, uniqID, priority, true)
+	return newFS(
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, true, false)
+}
+
+// NewReadonlyFS returns a new FS instance, chroot'd to the given TLF
+// and subdir within that TLF, but all the nodes are read-only.
+// `subdir` must exist, and point to a directory, before this function
+// is called.  `uniqID` needs to uniquely identify this instance among
+// all users of this TLF globally; for example, a device ID combined
+// with a local tempfile name is recommended.
+func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	uniqID string, priority keybase1.MDPriority) (*FS, error) {
+	return newFS(
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false, true)
 }
 
 // NewFS returns a new FS instance, chroot'd to the given TLF and
@@ -217,7 +235,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false)
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false, false)
 }
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a
