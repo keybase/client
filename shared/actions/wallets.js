@@ -24,12 +24,8 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload) => {
-  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
-    // didn't change state.building; no need to call build
-    return
-  }
-  return (state.wallets.building.isRequest
+const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload) =>
+  (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
@@ -71,7 +67,6 @@ const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload)
       throw error
     }
   })
-}
 
 const spawnBuildPayment = (
   state: TypedState,
