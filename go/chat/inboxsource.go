@@ -373,10 +373,10 @@ type HybridInboxSource struct {
 	utils.DebugLabeler
 	*baseInboxSource
 
-	started    bool
-	stopCh     chan struct{}
-	flushDelay time.Duration
-	flushCh    chan struct{} // testing only
+	started     bool
+	stopCh      chan struct{}
+	flushDelay  time.Duration
+	testFlushCh chan struct{} // testing only
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -417,7 +417,6 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 	s.Debug(ctx, "Stop")
 	if s.started {
 		close(s.stopCh)
-		s.stopCh = make(chan struct{})
 		s.started = false
 	}
 	ch := make(chan struct{})
@@ -430,8 +429,8 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 	appState := s.G().AppState.State()
 	doFlush := func() {
 		s.createInbox().Flush(ctx, uid)
-		if s.flushCh != nil {
-			s.flushCh <- struct{}{}
+		if s.testFlushCh != nil {
+			s.testFlushCh <- struct{}{}
 		}
 	}
 	for {

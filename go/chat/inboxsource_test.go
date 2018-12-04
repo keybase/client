@@ -184,7 +184,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	require.NoError(t, err)
 	inbox := hbs.createInbox()
 	flushCh := make(chan struct{}, 10)
-	hbs.flushCh = flushCh
+	hbs.testFlushCh = flushCh
 	_, _, err = inbox.ReadAll(ctx, uid, false)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
