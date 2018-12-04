@@ -15,6 +15,16 @@ const load = () => {
     .add('Centered with no wallet icon', () => (
       <AccountEntry {...account} isDefault={true} center={true} showWalletIcon={false} />
     ))
+    .add('Centered with short name', () => (
+      <AccountEntry
+        {...account}
+        name="a"
+        keybaseUser=""
+        isDefault={true}
+        center={true}
+        showWalletIcon={false}
+      />
+    ))
 }
 
 export default load
