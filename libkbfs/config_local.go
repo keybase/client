@@ -1500,7 +1500,7 @@ func (c *ConfigLocal) MakeDiskQuotaCacheIfNotExists() error {
 
 // MakeBlockMetadataStoreIfNotExists implements the Config interface for
 // ConfigLocal. If error happens, a Noop one is populated.
-func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() error {
+func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	defer func() {
@@ -1509,12 +1509,11 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() error {
 	if c.blockMetadataStore != nil {
 		return nil
 	}
-	bms, err := newDiskBlockMetadataStore(c)
+	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
 	if err != nil {
-		bms = NoopBlockMetadataStore{}
+		// TODO: open read-only instead
 		return err
 	}
-	c.blockMetadataStore = bms
 	return nil
 }
 
