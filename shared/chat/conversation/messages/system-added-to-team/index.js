@@ -88,7 +88,7 @@ const YouAddedToTeam = (props: Props) => {
         <Kb.Text
           type="BodySmallSemibold"
           backgroundMode="Announcements"
-          style={{color: Styles.globalColors.black_40, textAlign: 'center', flex: 1}}
+          style={{color: Styles.globalColors.black_40, textAlign: 'center'}}
         >
           <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
           <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
