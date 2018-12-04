@@ -55,7 +55,7 @@ func TestFindCandidates(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		ret := findChatTxCandidates(testCase.in)
+		ret := FindChatTxCandidates(testCase.in)
 		require.Equal(t, testCase.out, ret, testCase.in)
 	}
 
