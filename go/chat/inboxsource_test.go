@@ -3,11 +3,13 @@ package chat
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"sync"
 
 	context "golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -159,4 +161,47 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("sync was triggered")
 	require.Equal(t, 1, syncCalled)
+}
+
+func TestInboxSourceFlushLoop(t *testing.T) {
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	<-tc.Context().ConvLoader.Stop(context.TODO())
+	ibs := tc.Context().InboxSource
+	hbs, ok := ibs.(*HybridInboxSource)
+	if !ok {
+		t.Skip()
+	}
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	_, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HIHI",
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	inbox := hbs.createInbox()
+	flushCh := make(chan struct{}, 10)
+	hbs.flushCh = flushCh
+	_, _, err = inbox.ReadAll(ctx, uid, false)
+	require.Error(t, err)
+	require.IsType(t, storage.MissError{}, err)
+	world.Fc.Advance(time.Hour)
+	select {
+	case <-flushCh:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no flush")
+	}
+	_, rc, err := inbox.ReadAll(ctx, uid, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
 }

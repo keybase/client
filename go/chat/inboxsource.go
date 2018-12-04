@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
 
@@ -376,8 +375,8 @@ type HybridInboxSource struct {
 
 	started    bool
 	stopCh     chan struct{}
-	clock      clockwork.Clock
 	flushDelay time.Duration
+	flushCh    chan struct{} // testing only
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -388,7 +387,6 @@ func NewHybridInboxSource(g *globals.Context,
 	s := &HybridInboxSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
-		clock:        clockwork.NewRealClock(),
 		flushDelay:   time.Minute,
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
@@ -405,9 +403,9 @@ func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	defer s.Unlock()
 	s.Debug(ctx, "Start")
 	if s.started {
-		close(s.stopCh)
-		s.stopCh = make(chan struct{})
+		return
 	}
+	s.stopCh = make(chan struct{})
 	s.started = true
 	go s.inboxFlushLoop(uid, s.stopCh)
 }
@@ -416,7 +414,7 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 	<-s.baseInboxSource.Stop(ctx)
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "Start")
+	s.Debug(ctx, "Stop")
 	if s.started {
 		close(s.stopCh)
 		s.stopCh = make(chan struct{})
@@ -432,8 +430,11 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 	appState := s.G().AppState.State()
 	for {
 		select {
-		case <-s.clock.After(s.flushDelay):
+		case <-s.G().Clock().After(s.flushDelay):
 			s.createInbox().Flush(ctx, uid)
+			if s.flushCh != nil {
+				s.flushCh <- struct{}{}
+			}
 		case appState = <-s.G().AppState.NextUpdate(&appState):
 			switch appState {
 			case keybase1.AppState_BACKGROUND:
