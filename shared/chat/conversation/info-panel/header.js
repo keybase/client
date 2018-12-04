@@ -21,9 +21,6 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../styles'
-import OpenInFilesTabHoc, {
-  type Props as OpenInFilesTabHocProps,
-} from '../../../fs/common/open-in-files-tab-hoc'
 
 type SmallProps = {
   teamname: string,
@@ -72,7 +69,7 @@ type BigProps = {|
   onEditChannel: () => void,
 |}
 
-type BigTeamHeaderProps = BigProps & OpenInFilesTabHocProps
+type BigTeamHeaderProps = BigProps
 
 const EditBox = isMobile
   ? ClickableBox
@@ -83,7 +80,7 @@ const EditBox = isMobile
       },
     })
 
-const BigTeamHeader = OpenInFilesTabHoc<BigProps>((props: BigTeamHeaderProps) => {
+const BigTeamHeader = (props: BigTeamHeaderProps) => {
   return (
     <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
       <Box style={styles.channelnameContainer}>
@@ -97,14 +94,10 @@ const BigTeamHeader = OpenInFilesTabHoc<BigProps>((props: BigTeamHeaderProps) =>
           </EditBox>
         )}
       </Box>
-      {!!props.description && (
-        <Markdown style={styles.description} meta={{onOpenInFilesTab: props.onOpenInFilesTab}}>
-          {props.description}
-        </Markdown>
-      )}
+      {!!props.description && <Markdown style={styles.description}>{props.description}</Markdown>}
     </Box2>
   )
-})
+}
 
 const styles = styleSheetCreate({
   channelnameContainer: {

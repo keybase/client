@@ -53,7 +53,6 @@ const provider = Sb.createPropProviderWithCommon({
   OnlyValidConversations: () => onlyValidConversationsProps,
   LifecycleNotifications: () => notificationProps,
   RetentionPicker: retentionPickerPropSelector,
-  OpenInFilesTabHoc: o => ({...o, onOpenInFilesTab: Sb.action('onOpenInFilesTab')}),
 })
 
 const commonProps = {

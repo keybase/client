@@ -2,9 +2,6 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
-import OpenInFilesTabHoc, {
-  type Props as OpenInFilesTabHocProps,
-} from '../../../../fs/common/open-in-files-tab-hoc'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate, isMobile} from '../../../../styles'
 
 export type OwnProps = {
@@ -16,20 +13,12 @@ export type OwnProps = {
   mentionsChannelName: Types.MentionsChannelName,
 }
 
-export type Props = OwnProps & OpenInFilesTabHocProps
+export type Props = OwnProps
 
-const MessageText = ({
-  text,
-  type,
-  isEditing,
-  mentionsAt,
-  mentionsChannel,
-  mentionsChannelName,
-  onOpenInFilesTab,
-}: Props) => (
+const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => (
   <Markdown
     style={getStyle(type, isEditing)}
-    meta={{mentionsAt, mentionsChannel, mentionsChannelName, onOpenInFilesTab}}
+    meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
     styleOverride={isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
     allowFontScaling={true}
   >
@@ -81,4 +70,4 @@ const styles = styleSheetCreate({
   sentEditing,
 })
 
-export default OpenInFilesTabHoc<OwnProps>(MessageText)
+export default MessageText

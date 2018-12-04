@@ -3,8 +3,6 @@ import logger from '../../logger'
 import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
 import {isMobile} from '../../constants/platform'
-import {stringToPath, pathToString} from '../../constants/types/fs'
-import {unescapePath} from '../../constants/fs'
 import Text from '../text'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
@@ -81,19 +79,16 @@ function createChannelRegex(meta: ?MarkdownMeta): ?RegExp {
 }
 
 function createKbfsPathRegex(): ?RegExp {
-  const username = `([a-zA-Z0-9]+_?)+` // from go/kbun/username.go
-  const usernames = `${username}(,${username})*`
-  const teamName = `${username}(\\.${username})*`
-  const tlfType = `/(private|public|team)`
-  const tlf = `/((private|public)/${usernames}(#${usernames})?|team/${teamName})`
-  const inTlf = `/(\\S|\\\\\\\\|\\\\ )*[^/\\s]+` // don't include any trailing slash
-  return new RegExp(`^/keybase((${tlf}(${inTlf})?)|(${tlfType}))?`)
+  const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
+  const usernames = `${username}(?:,${username})*`
+  const teamName = `${username}(?:\\.${username})*`
+  const tlfType = `/(?:private|public|team)`
+  const tlf = `/(?:(?:private|public)/${usernames}(#${usernames})?|team/${teamName})`
+  const inTlf = `/(?:\\\\\\\\|\\\\ |\\S)+`
+  return new RegExp(`^(/keybase(?:(?:${tlf}(${inTlf})?)|(?:${tlfType}))?/?)(?=\\s|$)`)
 }
 
-const kbfsPathRegex = createKbfsPathRegex()
-
-const getKbfsPathRegex = (meta: ?MarkdownMeta): ?RegExp =>
-  meta && meta.onOpenInFilesTab ? kbfsPathRegex : null
+const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
 
 function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
   return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
@@ -322,26 +317,17 @@ const rules = {
   kbfsPath: {
     order: SimpleMarkdown.defaultRules.autolink.order - 0.1, // lower than mention
     match: (source, state, lookBehind) => {
-      const kbfsPathRegex = getKbfsPathRegex(state.markdownMeta)
-      if (!kbfsPathRegex) {
-        return null
-      }
-
-      const matches = SimpleMarkdown.inlineRegex(kbfsPathRegex)(source, state, lookBehind)
+      const matches = kbfsPathMatcher(source, state, lookBehind)
       // Also check that the lookBehind is not text
       if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
       }
       return null
     },
-    parse: (capture, parse, state) => {
-      const content = pathToString(unescapePath(capture[0]))
-      return {
-        type: 'kbfsPath',
-        content,
-        onClick: () => state.markdownMeta.onOpenInFilesTab(stringToPath(content)),
-      }
-    },
+    parse: capture => ({
+      type: 'kbfsPath',
+      content: capture[1],
+    }),
   },
   mention: {
     // A decent enough starting template

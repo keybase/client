@@ -5,6 +5,7 @@ import {isMobile} from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/chat2'
 import Text from '../text'
+import KbfsPath from './kbfs-path-container'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
 import Box from '../box'
@@ -279,11 +280,7 @@ const reactComponentsForMarkdownType = {
     </Box>
   ),
   kbfsPath: (node, output, state) => {
-    return (
-      <Text type="BodyPrimaryLink" onClick={node.onClick} key={state.key}>
-        {node.content}
-      </Text>
-    )
+    return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
   mention: (node, output, state) => {
     return (

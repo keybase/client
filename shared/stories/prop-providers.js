@@ -11,6 +11,8 @@ import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon
 import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
+import {unescapePath} from '../constants/fs'
+import {type OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
 
 /*
  * Some common prop factory creators.
@@ -96,6 +98,12 @@ const Channel = ({name, convID, key, style}) => ({
   onClick: action('onClickChannel'),
 })
 
+const KbfsPath = ({escapedPath, allowFontScaling}: KbfsPathProps) => ({
+  path: unescapePath(escapedPath),
+  onClick: action('onClickKbfsPath'),
+  allowFontScaling,
+})
+
 const usernameToTheme = {
   following: 'follow',
   notFollowing: 'nonFollow',
@@ -141,6 +149,7 @@ export const Common = () => ({
   ...NameWithIcon(),
   Mention,
   Channel,
+  KbfsPath,
 })
 
 export const createPropProviderWithCommon = (custom: ?Object) =>

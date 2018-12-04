@@ -18,7 +18,6 @@ const props = {
 const provider = Sb.createPropProviderWithCommon({
   Channel: p => ({name: p.name}),
   Mention: p => ({username: p.username}),
-  OpenInFilesTabHoc: o => ({...o, onOpenInFilesTab: Sb.action('onOpenInFilesTab')}),
 })
 
 const Wrapped = props => (

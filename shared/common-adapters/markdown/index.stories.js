@@ -138,6 +138,33 @@ this is a code block with two newline above\`\`\`
 
       `,
   bigemoji: ':thumbsup::100:',
+  kbfsPaths: `
+      /keybase ha
+      /keybase/哟
+      before/keybase
+      之前/keybase
+      /keybase/private /keybase
+      /keybase/public
+      /keybase/team
+      /keybase/private/
+      /keybase/team/keybase
+      /keybase/team/keybase/blahblah
+      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
+      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
+      /keybase/team/keybase/blahblah/
+      /keybase/private/songgao/🍻
+      /keybase/private/songgao/🍻/🍹.png/
+      /keybase/private/songgao/囧/yo
+      /keybase/private/songgao,strib#jzila,jakob223/file
+      /keybase/private/songgao,strib#jzila/file
+      /keybase/private/song-gao,strib#jzila/file
+      /keybase/team/keybase,blah
+      /keybase/team/keybase.blah
+      /keybaseprivate
+      /keybaseprivate/team
+      /keybase/teamaa/keybase
+      /foo
+      /keybase`, // <--- end of string
 }
 
 const mockMeta = {
@@ -147,7 +174,6 @@ const mockMeta = {
   }),
   mentionsChannel: 'all',
   mentionsAt: I.Set(['following', 'notFollowing', 'myUsername', 'noTheme']),
-  onOpenInFilesTab: Sb.action('onOpenInFilesTab'),
 }
 
 const mocksWithMeta = {
@@ -211,34 +237,6 @@ this is too long: @01234567890abcdef`,
     text: `Hey @channel, theres *FREE* pizza in the kitchen!`,
     meta: mockMeta,
   },
-  kbfsPaths: {
-    text: `
-      /keybase ha
-      /keybase/哟
-      /keybase/private /keybase
-      /keybase/public
-      /keybase/team
-      /keybase/private/
-      /keybase/team/keybase
-      /keybase/team/keybase/blahblah
-      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
-      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
-      /keybase/team/keybase/blahblah/
-      /keybase/private/songgao/🍻
-      /keybase/private/songgao/🍻/🍹.png/
-      /keybase/private/songgao/囧/yo
-      /keybase/private/songgao,strib#jzila,jakob223/file
-      /keybase/private/songgao,strib#jzila/file
-      /keybase/private/song-gao,strib#jzila/file
-      /keybase/team/keybase,blah
-      /keybase/team/keybase.blah
-      /keybaseprivate
-      /keybaseprivate/team
-      /keybase/teamaa/keybase
-      /foo
-      `,
-    meta: mockMeta,
-  },
 }
 
 const perfTestCase = new RegExp(`
@@ -276,7 +274,7 @@ const randomGenerated = {
   'Case 6': generateCase('case 6'),
 }
 
-const provider = Sb.createPropProviderWithCommon({})
+export const provider = Sb.createPropProviderWithCommon({})
 
 class ShowAST extends React.Component<
   {text: string, simple: boolean, meta: ?MarkdownMeta},

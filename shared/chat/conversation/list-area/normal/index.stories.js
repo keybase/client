@@ -135,7 +135,6 @@ const provider = Sb.createPropProviderWithCommon({
     pending: false,
   }),
   Mention: p => ({username: p.username}),
-  OpenInFilesTabHoc: o => ({...o, onOpenInFilesTab: Sb.action('onOpenInFilesTab')}),
   BottomMessage: p => ({
     showResetParticipants: null,
     showSuperseded: null,
