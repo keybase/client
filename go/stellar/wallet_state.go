@@ -88,7 +88,7 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(ctx context.Context) error {
-	bundle, _, err := remote.Fetch(ctx, w.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, w.G())
 	if err != nil {
 		return err
 	}

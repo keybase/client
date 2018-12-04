@@ -606,11 +606,11 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 // like "+1XLM@alice +2XLM@charlie".
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
 	// look up sender account
-	sender, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
 	if err != nil {
 		return nil, err
 	}
-	senderSeed, err := stellarnet.NewSeedStr(sender.Signers[0].SecureNoLogString())
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	if err != nil {
 		return nil, err
 	}
