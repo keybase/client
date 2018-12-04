@@ -145,7 +145,9 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory 
 		if !found {
 			return ibox, MissError{}
 		}
-		inboxMemCache.Put(uid, &ibox)
+		if useInMemory {
+			inboxMemCache.Put(uid, &ibox)
+		}
 	}
 	// Check on disk server version against known server version
 	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
@@ -221,13 +223,12 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 	}
 }
 
-func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) Error {
+func (i *Inbox) flushLocked(ctx context.Context, uid gregor1.UID) Error {
 	ibox := inboxMemCache.Get(uid)
 	if ibox == nil {
 		i.Debug(ctx, "Flush: no inbox in memory, not doing anything")
 		return nil
 	}
-	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
 	i.Debug(ctx, "Flush: version: %d disk version: %d server version: %d convs: %d",
 		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
@@ -235,6 +236,13 @@ func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) Error {
 	}
 	i.writeMobileSharedInbox(ctx, *ibox, uid)
 	return nil
+}
+
+func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Flush(%s)", uid))()
+	return i.flushLocked(ctx, uid)
 }
 
 func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxDiskData) Error {
@@ -246,12 +254,12 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxD
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
-	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d convs: %d",
-		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
+	i.Debug(ctx, "writeDiskInbox: uid: %s version: %d disk version: %d server version: %d convs: %d",
+		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	inboxMemCache.Put(uid, &ibox)
 	switch i.flushMode {
 	case InboxFlushModeActive:
-		return i.Flush(ctx, uid)
+		return i.flushLocked(ctx, uid)
 	case InboxFlushModeDelegate:
 		return nil
 	}

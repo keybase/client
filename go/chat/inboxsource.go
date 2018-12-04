@@ -428,20 +428,23 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) {
 	ctx := context.Background()
 	appState := s.G().AppState.State()
+	doFlush := func() {
+		s.createInbox().Flush(ctx, uid)
+		if s.flushCh != nil {
+			s.flushCh <- struct{}{}
+		}
+	}
 	for {
 		select {
 		case <-s.G().Clock().After(s.flushDelay):
-			s.createInbox().Flush(ctx, uid)
-			if s.flushCh != nil {
-				s.flushCh <- struct{}{}
-			}
+			doFlush()
 		case appState = <-s.G().AppState.NextUpdate(&appState):
 			switch appState {
 			case keybase1.AppState_BACKGROUND:
-				s.createInbox().Flush(ctx, uid)
+				doFlush()
 			}
 		case <-stopCh:
-			s.createInbox().Flush(ctx, uid)
+			doFlush()
 			return
 		}
 	}

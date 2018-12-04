@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
+
 	"sync"
 
 	context "golang.org/x/net/context"
@@ -164,10 +166,11 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 }
 
 func TestInboxSourceFlushLoop(t *testing.T) {
-	ctx, world, ri, _, sender, _ := setupTest(t, 1)
+	ctx, world, ri, _, sender, _ := setupTest(t, 2)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	u2 := world.GetUsers()[1]
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	<-tc.Context().ConvLoader.Stop(context.TODO())
@@ -176,18 +179,8 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	if !ok {
 		t.Skip()
 	}
-	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
-	_, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        conv.Metadata.IdTriple,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			MessageType: chat1.MessageType_TEXT,
-		},
-		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "HIHI",
-		}),
-	}, 0, nil)
+	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	_, err := hbs.ReadUnverified(ctx, uid, true, nil, nil)
 	require.NoError(t, err)
 	inbox := hbs.createInbox()
 	flushCh := make(chan struct{}, 10)
@@ -195,13 +188,28 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	_, _, err = inbox.ReadAll(ctx, uid, false)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
+	_, rc, err := inbox.ReadAll(ctx, uid, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
 	world.Fc.Advance(time.Hour)
 	select {
 	case <-flushCh:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no flush")
 	}
-	_, rc, err := inbox.ReadAll(ctx, uid, false)
+	_, rc, err = inbox.ReadAll(ctx, uid, false)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rc))
+
+	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
+	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.Equal(t, 1, len(rc))
+	tc.Context().AppState.Update(keybase1.AppState_BACKGROUND)
+	select {
+	case <-flushCh:
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no flush")
+	}
+	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.Equal(t, 2, len(rc))
 }
