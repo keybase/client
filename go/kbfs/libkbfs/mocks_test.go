@@ -6514,9 +6514,9 @@ func (mr *MockPrefetcherMockRecorder) WaitChannelForBlockPrefetch(ctx, ptr inter
 }
 
 // Status mocks base method
-func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (PrefetchByteStatus, error) {
+func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error) {
 	ret := m.ctrl.Call(m, "Status", ctx, ptr)
-	ret0, _ := ret[0].(PrefetchByteStatus)
+	ret0, _ := ret[0].(PrefetchProgress)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

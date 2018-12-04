@@ -1690,11 +1690,11 @@ type KeyOps interface {
 		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
 }
 
-// PrefetchByteStatus tracks the number of bytes fetched for the block
+// PrefetchProgress tracks the number of bytes fetched for the block
 // tree rooted at a given block, along with the known total number of
 // bytes in that tree, and the start time of the prefetch.  Note that
 // the total can change over time as more blocks are downloaded.
-type PrefetchByteStatus struct {
+type PrefetchProgress struct {
 	SubtreeBytesFetched uint64
 	SubtreeBytesTotal   uint64
 	Start               time.Time
@@ -1716,7 +1716,7 @@ type Prefetcher interface {
 		<-chan struct{}, error)
 	// Status returns the current status of the prefetch for the block
 	// tree rooted at the given pointer.
-	Status(ctx context.Context, ptr BlockPointer) (PrefetchByteStatus, error)
+	Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(BlockPointer)

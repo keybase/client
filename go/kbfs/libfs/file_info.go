@@ -76,9 +76,9 @@ func (fi *FileInfo) IsDir() bool {
 // KBFSMetadataForSimpleFS contains the KBFS metadata needed to answer a
 // simpleFSStat call.
 type KBFSMetadataForSimpleFS struct {
-	LastWriter         keybase1.User
-	PrefetchStatus     keybase1.PrefetchStatus
-	PrefetchByteStatus libkbfs.PrefetchByteStatus
+	LastWriter       keybase1.User
+	PrefetchStatus   keybase1.PrefetchStatus
+	PrefetchProgress libkbfs.PrefetchProgress
 }
 
 // KBFSMetadataForSimpleFSGetter is an interface for something that can return
@@ -125,8 +125,8 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 	}
 
 	status := KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}
-	if md.PrefetchByteStatus != nil {
-		status.PrefetchByteStatus = *md.PrefetchByteStatus
+	if md.PrefetchProgress != nil {
+		status.PrefetchProgress = *md.PrefetchProgress
 	}
 
 	lastWriterName := md.LastWriterUnverified

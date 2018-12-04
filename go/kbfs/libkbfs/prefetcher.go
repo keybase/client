@@ -73,7 +73,7 @@ type prefetch struct {
 	cancel  context.CancelFunc
 	waitCh  chan struct{}
 
-	PrefetchByteStatus
+	PrefetchProgress
 }
 
 func (p *prefetch) Close() {
@@ -192,7 +192,7 @@ func (p *blockPrefetcher) newPrefetch(
 		ctx:               ctx,
 		cancel:            cancel,
 		waitCh:            make(chan struct{}),
-		PrefetchByteStatus: PrefetchByteStatus{
+		PrefetchProgress: PrefetchProgress{
 			SubtreeBytesTotal: bytes,
 			Start:             p.config.Clock().Now(),
 		},
@@ -735,15 +735,15 @@ func (p *blockPrefetcher) stopIfNeeded(
 
 type prefetchStatusRequest struct {
 	ptr BlockPointer
-	ch  chan<- PrefetchByteStatus
+	ch  chan<- PrefetchProgress
 }
 
 func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
 	pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 	if !isPrefetchWaiting {
-		req.ch <- PrefetchByteStatus{}
+		req.ch <- PrefetchProgress{}
 	} else {
-		req.ch <- pre.PrefetchByteStatus
+		req.ch <- pre.PrefetchProgress
 	}
 }
 
@@ -1226,25 +1226,25 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 // Status implements the Prefetcher interface for
 // blockPrefetcher.
 func (p *blockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (
-	PrefetchByteStatus, error) {
-	c := make(chan PrefetchByteStatus, 1)
+	PrefetchProgress, error) {
+	c := make(chan PrefetchProgress, 1)
 	req := &prefetchStatusRequest{ptr, c}
 
 	select {
 	case p.prefetchStatusCh.In() <- req:
 	case <-p.shutdownCh:
-		return PrefetchByteStatus{}, errors.New("Already shut down")
+		return PrefetchProgress{}, errors.New("Already shut down")
 	case <-ctx.Done():
-		return PrefetchByteStatus{}, ctx.Err()
+		return PrefetchProgress{}, ctx.Err()
 	}
 	// Wait for response.
 	select {
 	case status := <-c:
 		return status, nil
 	case <-p.shutdownCh:
-		return PrefetchByteStatus{}, errors.New("Already shut down")
+		return PrefetchProgress{}, errors.New("Already shut down")
 	case <-ctx.Done():
-		return PrefetchByteStatus{}, ctx.Err()
+		return PrefetchProgress{}, ctx.Err()
 	}
 }
 
