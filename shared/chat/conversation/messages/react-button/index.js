@@ -24,6 +24,7 @@ export type Props = {|
   onLongPress?: () => void,
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  getAttachmentRef?: () => ?React.Component<any>,
   ordinal: Types.Ordinal,
   style?: Styles.StylesCrossPlatform,
 |}
@@ -96,6 +97,7 @@ const iconCycle = [
   'iconfont-reacji-sheep',
 ]
 export type NewReactionButtonProps = {|
+  getAttachmentRef?: () => ?React.Component<any>,
   onAddReaction: (emoji: string) => void,
   onLongPress?: () => void,
   onOpenEmojiPicker: () => void,
@@ -166,8 +168,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this.props.onShowPicker && this.props.onShowPicker(false)
   }
 
-  _getAttachmentRef = () => this._attachmentRef
-
   render() {
     return (
       <ButtonBox
@@ -184,7 +184,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         ])}
       >
         <Box2
-          ref={attachmentRef => (this._attachmentRef = attachmentRef)}
           centerChildren={true}
           fullHeight={true}
           direction="horizontal"
@@ -219,22 +218,23 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             ))
           )}
         </Box2>
-        {this.state.showingPicker && !Styles.isMobile && (
-          <FloatingBox
-            attachTo={this._getAttachmentRef}
-            containerStyle={styles.emojiContainer}
-            position="bottom left"
-            onHidden={() => this._setShowingPicker(false)}
-          >
-            <Picker
-              autoFocus={true}
-              emoji="star-struck"
-              title="reacjibase"
-              onClick={this._onAddReaction}
-              backgroundImageFn={backgroundImageFn}
-            />
-          </FloatingBox>
-        )}
+        {this.state.showingPicker &&
+          !Styles.isMobile && (
+            <FloatingBox
+              attachTo={this.props.getAttachmentRef}
+              containerStyle={styles.emojiContainer}
+              position="top right"
+              onHidden={() => this._setShowingPicker(false)}
+            >
+              <Picker
+                autoFocus={true}
+                emoji="star-struck"
+                title="reacjibase"
+                onClick={this._onAddReaction}
+                backgroundImageFn={backgroundImageFn}
+              />
+            </FloatingBox>
+          )}
       </ButtonBox>
     )
   }

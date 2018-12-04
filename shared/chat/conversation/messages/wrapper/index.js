@@ -197,7 +197,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         attachTo={this.props.getAttachmentRef}
         message={this.props.message}
         onHidden={this.props.toggleShowingMenu}
-        position="top center"
+        position="top right"
         visible={this.props.showingMenu}
       />
     )
@@ -221,6 +221,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           active: this.props.showingMenu || this.state.showingPicker,
         }),
         onMouseOver: this._onMouseOver,
+        // attach popups to the message itself
+        ref: this.props.setAttachmentRef,
       }
     }
   }
@@ -392,8 +394,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   onShowPicker={this._setShowingPicker}
                   showBorder={false}
                   style={styles.reactButton}
+                  getAttachmentRef={this.props.getAttachmentRef}
                 />
-                <Kb.Box ref={this.props.setAttachmentRef}>
+                <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
                       type="iconfont-ellipsis"
