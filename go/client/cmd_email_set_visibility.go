@@ -37,7 +37,7 @@ func NewCmdSetVisibilityEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 
 func (c *CmdSetVisibilityEmail) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
-		return errors.New("set-visibility requires two arguments (email, visibility)")
+		return errors.New("invalid number of arguments.")
 	}
 	c.Email = ctx.Args()[0]
 	v := ctx.Args()[1]

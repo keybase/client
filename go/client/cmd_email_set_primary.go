@@ -34,7 +34,7 @@ func NewCmdSetPrimaryEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 
 func (c *CmdSetPrimaryEmail) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return errors.New("set-primary requires one argument (email)")
+		return errors.New("invalid number of arguments.")
 	}
 	c.Email = ctx.Args()[0]
 	return nil

@@ -37,7 +37,7 @@ func NewCmdAddEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 func (c *CmdAddEmail) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
-		return errors.New("add requires two arguments (email, visibility)")
+		return errors.New("invalid number of arguments.")
 	}
 	c.Email = ctx.Args()[0]
 	visibility, ok := keybase1.IdentityVisibilityMap[strings.ToUpper(ctx.Args()[1])]
@@ -61,7 +61,7 @@ func (c *CmdAddEmail) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("A verification code has been sent to your email.`")
+	fmt.Println("A verification code has been sent to your email.")
 	return nil
 }
 

@@ -2244,7 +2244,7 @@ export type PerUserKeyGeneration = Int
 export type PhoneLookupResult = $ReadOnly<{uid: UID, username: String, ctime: UnixTime}>
 export type PhoneNumber = String
 export type PhoneNumberAddedMsg = $ReadOnly<{phoneNumber: PhoneNumber}>
-export type PhoneNumberLookupResult = $ReadOnly<{phoneNumber: PhoneNumber, coercedPhoneNumber: PhoneNumber, err?: ?String, uid?: ?UID}>
+export type PhoneNumberLookupResult = $ReadOnly<{phoneNumber: RawPhoneNumber, coercedPhoneNumber: PhoneNumber, err?: ?String, uid?: ?UID}>
 export type PhoneNumberSupersededMsg = $ReadOnly<{phoneNumber: PhoneNumber}>
 export type PhoneNumberVerifiedMsg = $ReadOnly<{phoneNumber: PhoneNumber}>
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
@@ -2361,6 +2361,7 @@ export type PushReason =
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
+export type RawPhoneNumber = String
 export type Reachability = $ReadOnly<{reachable: Reachable}>
 export type Reachable =
   | 0 // UNKNOWN_0

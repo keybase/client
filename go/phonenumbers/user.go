@@ -95,7 +95,7 @@ type phoneLookupAPIResult struct {
 	Resolutions []keybase1.PhoneNumberLookupResult `json:"resolutions"`
 }
 
-func BulkLookupPhoneNumbers(mctx libkb.MetaContext, phoneNumberContacts []keybase1.PhoneNumber, regionCodes []keybase1.RegionCode, userRegionCode *keybase1.RegionCode) ([]keybase1.PhoneNumberLookupResult, error) {
+func BulkLookupPhoneNumbers(mctx libkb.MetaContext, phoneNumberContacts []keybase1.RawPhoneNumber, regionCodes []keybase1.RegionCode, userRegionCode *keybase1.RegionCode) ([]keybase1.PhoneNumberLookupResult, error) {
 	payload := make(libkb.JSONPayload)
 	payload["phone_numbers"] = phoneNumberContacts
 	payload["region_codes"] = regionCodes

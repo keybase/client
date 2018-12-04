@@ -1015,6 +1015,9 @@ func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *json
 	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
 		return nil, perrInner
 	}
+	if perr != nil {
+		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, "json select error in pvl interp")
+	}
 	results := []string{}
 	for _, object := range jsonResults {
 		s, err := jsonhelpers.JSONStringSimple(object)

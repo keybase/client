@@ -64,15 +64,13 @@ func (h *EmailsHandler) SetVisibilityEmail(ctx context.Context, arg keybase1.Set
 	return emails.SetVisibilityEmail(mctx, arg.Email, arg.Visibility)
 }
 
-func (h *EmailsHandler) GetEmails(ctx context.Context, sessionID int) ([]keybase1.Email, error) {
-	var err error
+func (h *EmailsHandler) GetEmails(ctx context.Context, sessionID int) (ret []keybase1.Email, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#GetEmails", func() error { return err })()
 	return emails.GetEmails(mctx)
 }
 
-func (h *EmailsHandler) BulkLookupEmails(ctx context.Context, arg keybase1.BulkLookupEmailsArg) ([]keybase1.EmailLookupResult, error) {
-	var err error
+func (h *EmailsHandler) BulkLookupEmails(ctx context.Context, arg keybase1.BulkLookupEmailsArg) (ret []keybase1.EmailLookupResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("EmailsHandler#BulkLookupEmails", func() error { return err })()
 	return emails.BulkLookupEmails(mctx, arg.EmailContacts)

@@ -40,7 +40,7 @@ func NewCmdListEmails(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 func (c *CmdListEmails) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
-		return errors.New("list takes no positional arguments")
+		return errors.New("invalid number of arguments.")
 	}
 	c.json = ctx.Bool("json")
 	return nil

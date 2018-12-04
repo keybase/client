@@ -38,7 +38,7 @@ func NewCmdEditEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 
 func (c *CmdEditEmail) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 3 {
-		return errors.New("edit requires three arguments (old email, new email, visibility)")
+		return errors.New("invalid number of arguments.")
 	}
 	c.OldEmail = ctx.Args()[0]
 	c.Email = ctx.Args()[1]

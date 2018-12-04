@@ -9,6 +9,12 @@
   "types": [
     {
       "type": "record",
+      "name": "RawPhoneNumber",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "UserPhoneNumber",
       "fields": [
         {
@@ -39,7 +45,7 @@
       "name": "PhoneNumberLookupResult",
       "fields": [
         {
-          "type": "PhoneNumber",
+          "type": "RawPhoneNumber",
           "name": "phoneNumber",
           "jsonkey": "phone_number"
         },
@@ -208,7 +214,7 @@
           "name": "phoneNumberContacts",
           "type": {
             "type": "array",
-            "items": "PhoneNumber"
+            "items": "RawPhoneNumber"
           }
         },
         {

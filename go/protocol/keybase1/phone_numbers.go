@@ -8,6 +8,12 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type RawPhoneNumber string
+
+func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
+	return o
+}
+
 // Phone number support for TOFU chats.
 type UserPhoneNumber struct {
 	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phone_number"`
@@ -26,10 +32,10 @@ func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 }
 
 type PhoneNumberLookupResult struct {
-	PhoneNumber        PhoneNumber `codec:"phoneNumber" json:"phone_number"`
-	CoercedPhoneNumber PhoneNumber `codec:"coercedPhoneNumber" json:"coerced_phone_number"`
-	Err                *string     `codec:"err,omitempty" json:"err,omitempty"`
-	Uid                *UID        `codec:"uid,omitempty" json:"uid,omitempty"`
+	PhoneNumber        RawPhoneNumber `codec:"phoneNumber" json:"phone_number"`
+	CoercedPhoneNumber PhoneNumber    `codec:"coercedPhoneNumber" json:"coerced_phone_number"`
+	Err                *string        `codec:"err,omitempty" json:"err,omitempty"`
+	Uid                *UID           `codec:"uid,omitempty" json:"uid,omitempty"`
 }
 
 func (o PhoneNumberLookupResult) DeepCopy() PhoneNumberLookupResult {
@@ -118,10 +124,10 @@ type SetVisibilityPhoneNumberArg struct {
 }
 
 type BulkLookupPhoneNumbersArg struct {
-	SessionID           int           `codec:"sessionID" json:"sessionID"`
-	PhoneNumberContacts []PhoneNumber `codec:"phoneNumberContacts" json:"phoneNumberContacts"`
-	RegionCodes         []RegionCode  `codec:"regionCodes" json:"regionCodes"`
-	UserRegionCode      *RegionCode   `codec:"userRegionCode,omitempty" json:"userRegionCode,omitempty"`
+	SessionID           int              `codec:"sessionID" json:"sessionID"`
+	PhoneNumberContacts []RawPhoneNumber `codec:"phoneNumberContacts" json:"phoneNumberContacts"`
+	RegionCodes         []RegionCode     `codec:"regionCodes" json:"regionCodes"`
+	UserRegionCode      *RegionCode      `codec:"userRegionCode,omitempty" json:"userRegionCode,omitempty"`
 }
 
 type PhoneNumbersInterface interface {

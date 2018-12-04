@@ -34,7 +34,7 @@ func NewCmdDeleteEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 
 func (c *CmdDeleteEmail) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return errors.New("delete requires one argument (email)")
+		return errors.New("invalid number of arguments.")
 	}
 	c.Email = ctx.Args()[0]
 	return nil

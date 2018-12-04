@@ -160,7 +160,6 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
-  // Phone number in E.164 format.
   @typedef("string")
   record EmailAddress {}
 }

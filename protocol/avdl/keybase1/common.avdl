@@ -47,6 +47,7 @@ protocol Common {
   record PhoneNumber {}
 
   // 2-letter country region code
+  // Used for phone number and email assertions
   @typedef("string")
   record RegionCode {}
 
@@ -345,6 +346,7 @@ protocol Common {
     UnixTime ctime;
   }
 
+  // Used for searching by phone number or email
   enum IdentityVisibility {
       PRIVATE_0,
       PUBLIC_1
