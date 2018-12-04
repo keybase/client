@@ -150,7 +150,7 @@ func (s Service) Stop(wait time.Duration) (bool, error) {
 		exitStatus := exitStatus(err)
 		// Exit status 3 on remove means there was no job to remove
 		if exitStatus == 3 {
-			s.log.Debug("Nothing to stop (%s)", s.label)
+			s.log.Info("Nothing to stop (%s)", s.label)
 			return false, nil
 		}
 		return false, fmt.Errorf("Error removing via launchctl: %s", err)
