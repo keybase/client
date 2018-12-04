@@ -37,12 +37,52 @@
       "typedef": "string"
     },
     {
+      "type": "enum",
+      "name": "TextPaymentResultTyp",
+      "symbols": [
+        "SENT_0",
+        "ERROR_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TextPaymentResult",
+      "switch": {
+        "type": "TextPaymentResultTyp",
+        "name": "resultTyp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "SENT",
+            "def": false
+          },
+          "body": "stellar1.PaymentID"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "MessageText",
       "fields": [
         {
           "type": "string",
           "name": "body"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TextPaymentResult",
+            "keys": "string"
+          },
+          "name": "payments"
         }
       ]
     },

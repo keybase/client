@@ -18,13 +18,128 @@ func (o VersionKind) DeepCopy() VersionKind {
 	return o
 }
 
+type TextPaymentResultTyp int
+
+const (
+	TextPaymentResultTyp_SENT  TextPaymentResultTyp = 0
+	TextPaymentResultTyp_ERROR TextPaymentResultTyp = 1
+)
+
+func (o TextPaymentResultTyp) DeepCopy() TextPaymentResultTyp { return o }
+
+var TextPaymentResultTypMap = map[string]TextPaymentResultTyp{
+	"SENT":  0,
+	"ERROR": 1,
+}
+
+var TextPaymentResultTypRevMap = map[TextPaymentResultTyp]string{
+	0: "SENT",
+	1: "ERROR",
+}
+
+func (e TextPaymentResultTyp) String() string {
+	if v, ok := TextPaymentResultTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type TextPaymentResult struct {
+	ResultTyp__ TextPaymentResultTyp `codec:"resultTyp" json:"resultTyp"`
+	Error__     *string              `codec:"error,omitempty" json:"error,omitempty"`
+	Sent__      *stellar1.PaymentID  `codec:"sent,omitempty" json:"sent,omitempty"`
+}
+
+func (o *TextPaymentResult) ResultTyp() (ret TextPaymentResultTyp, err error) {
+	switch o.ResultTyp__ {
+	case TextPaymentResultTyp_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	case TextPaymentResultTyp_SENT:
+		if o.Sent__ == nil {
+			err = errors.New("unexpected nil value for Sent__")
+			return ret, err
+		}
+	}
+	return o.ResultTyp__, nil
+}
+
+func (o TextPaymentResult) Error() (res string) {
+	if o.ResultTyp__ != TextPaymentResultTyp_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return
+	}
+	return *o.Error__
+}
+
+func (o TextPaymentResult) Sent() (res stellar1.PaymentID) {
+	if o.ResultTyp__ != TextPaymentResultTyp_SENT {
+		panic("wrong case accessed")
+	}
+	if o.Sent__ == nil {
+		return
+	}
+	return *o.Sent__
+}
+
+func NewTextPaymentResultWithError(v string) TextPaymentResult {
+	return TextPaymentResult{
+		ResultTyp__: TextPaymentResultTyp_ERROR,
+		Error__:     &v,
+	}
+}
+
+func NewTextPaymentResultWithSent(v stellar1.PaymentID) TextPaymentResult {
+	return TextPaymentResult{
+		ResultTyp__: TextPaymentResultTyp_SENT,
+		Sent__:      &v,
+	}
+}
+
+func (o TextPaymentResult) DeepCopy() TextPaymentResult {
+	return TextPaymentResult{
+		ResultTyp__: o.ResultTyp__.DeepCopy(),
+		Error__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error__),
+		Sent__: (func(x *stellar1.PaymentID) *stellar1.PaymentID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sent__),
+	}
+}
+
 type MessageText struct {
-	Body string `codec:"body" json:"body"`
+	Body     string                       `codec:"body" json:"body"`
+	Payments map[string]TextPaymentResult `codec:"payments" json:"payments"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
 	return MessageText{
 		Body: o.Body,
+		Payments: (func(x map[string]TextPaymentResult) map[string]TextPaymentResult {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]TextPaymentResult, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Payments),
 	}
 }
 
