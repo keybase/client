@@ -131,6 +131,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery.ConvIDs = lquery.ConvIDs
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
+	rquery.MemberStatus = lquery.MemberStatus
 	rquery.SummarizeMaxMsgs = false
 
 	return rquery, info, nil

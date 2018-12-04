@@ -174,7 +174,7 @@
 
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
-    // If left empty, default is to return active and preview status
+    // If left empty, default is to return active, preview, and reset status
     array<ConversationMemberStatus> memberStatus;
     // If left empty, default is active
     array<ConversationExistence> existences;

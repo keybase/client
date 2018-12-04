@@ -3243,18 +3243,19 @@ func (o NameQuery) DeepCopy() NameQuery {
 }
 
 type GetInboxLocalQuery struct {
-	Name              *NameQuery              `codec:"name,omitempty" json:"name,omitempty"`
-	TopicName         *string                 `codec:"topicName,omitempty" json:"topicName,omitempty"`
-	ConvIDs           []ConversationID        `codec:"convIDs" json:"convIDs"`
-	TopicType         *TopicType              `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfVisibility     *keybase1.TLFVisibility `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before            *gregor1.Time           `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time           `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF *bool                   `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	Status            []ConversationStatus    `codec:"status" json:"status"`
-	UnreadOnly        bool                    `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly          bool                    `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList bool                    `codec:"computeActiveList" json:"computeActiveList"`
+	Name              *NameQuery                 `codec:"name,omitempty" json:"name,omitempty"`
+	TopicName         *string                    `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	ConvIDs           []ConversationID           `codec:"convIDs" json:"convIDs"`
+	TopicType         *TopicType                 `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfVisibility     *keybase1.TLFVisibility    `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time              `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time              `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus       `codec:"status" json:"status"`
+	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
+	UnreadOnly        bool                       `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
@@ -3330,6 +3331,17 @@ func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 			}
 			return ret
 		})(o.Status),
+		MemberStatus: (func(x []ConversationMemberStatus) []ConversationMemberStatus {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationMemberStatus, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.MemberStatus),
 		UnreadOnly:        o.UnreadOnly,
 		ReadOnly:          o.ReadOnly,
 		ComputeActiveList: o.ComputeActiveList,

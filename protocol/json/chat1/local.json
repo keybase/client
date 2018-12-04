@@ -1877,6 +1877,13 @@
           "name": "status"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationMemberStatus"
+          },
+          "name": "memberStatus"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
         },

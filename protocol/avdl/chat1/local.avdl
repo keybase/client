@@ -599,6 +599,7 @@ protocol local {
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   GetInboxAndUnboxUILocalRes getInboxAndUnboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -614,6 +615,8 @@ protocol local {
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
+    // If left empty, default is to return active, preview, and reset status
+    array<ConversationMemberStatus> memberStatus;
 
     boolean unreadOnly;
     boolean readOnly;
