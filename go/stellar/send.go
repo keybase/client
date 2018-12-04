@@ -40,9 +40,8 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		}
 	}
 
-	sendRes, err := SendPaymentGUI(mctx, getGlobal(mctx.G()).remoter, SendPaymentArg{
+	sendRes, err := SendPaymentGUI(mctx, getGlobal(mctx.G()).walletState, SendPaymentArg{
 		From:           arg.From,
-		FromSeqno:      nil,
 		To:             stellarcommon.RecipientInput(to),
 		Amount:         arg.Amount,
 		DisplayBalance: displayBalance,
