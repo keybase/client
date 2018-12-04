@@ -89,13 +89,13 @@ class _CopyText extends React.Component<Props, State> {
           allowHighlightText={true}
           ref={r => (this._textRef = r)}
         >
-          {this._isRevealed() ? this.props.text : '•••••••••••• '}
-          {!this._isRevealed() && (
-            <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
-              Reveal
-            </Text>
-          )}
+          {this._isRevealed() ? this.props.text : '••••••••••••'}
         </Text>
+        {!this._isRevealed() && (
+          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+            Reveal
+          </Text>
+        )}
         <Button
           type={this.props.buttonType || 'Primary'}
           style={styles.button}
@@ -133,6 +133,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'stretch',
       height: undefined,
+      marginLeft: 'auto',
       paddingLeft: 17,
       paddingRight: 17,
     },
@@ -173,7 +174,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.fontTerminalSemibold,
       color: Styles.globalColors.blue,
-      flexGrow: 1,
       flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
       minWidth: 0,
