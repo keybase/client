@@ -362,7 +362,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 }
 
 func (k *SimpleFS) prefetchProgressFromByteStatus(
-	status libkbfs.PrefetchByteStatus) (p keybase1.PrefetchProgress) {
+	status libkbfs.PrefetchProgress) (p keybase1.PrefetchProgress) {
 	p.BytesFetched = int64(status.SubtreeBytesFetched)
 	p.BytesTotal = int64(status.SubtreeBytesTotal)
 	p.Start = keybase1.ToTime(status.Start)
@@ -402,7 +402,7 @@ func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		de.LastWriterUnverified = md.LastWriter
 		de.PrefetchStatus = md.PrefetchStatus
 		de.PrefetchProgress = k.prefetchProgressFromByteStatus(
-			md.PrefetchByteStatus)
+			md.PrefetchProgress)
 	}
 	de.Name = fi.Name()
 	return nil
@@ -2085,7 +2085,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 			}
 			res.Status.PrefetchStatus = metadata.PrefetchStatus
 			res.Status.PrefetchProgress = k.prefetchProgressFromByteStatus(
-				metadata.PrefetchByteStatus)
+				metadata.PrefetchProgress)
 		} else {
 			k.log.CDebugf(ctx,
 				"Could not get prefetch status from filesys: %T", fi.Sys())

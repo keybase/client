@@ -682,7 +682,7 @@ func testPrefetcherForSyncedTLF(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	waitChCh := make(chan (<-chan struct{}), 1)
-	statusCh := make(chan PrefetchByteStatus)
+	statusCh := make(chan PrefetchProgress)
 	go func() {
 		waitCh, err := q.Prefetcher().WaitChannelForBlockPrefetch(ctx, rootPtr)
 		if err != nil {

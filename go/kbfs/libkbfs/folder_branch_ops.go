@@ -3204,7 +3204,7 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 		if err != nil {
 			return res, err
 		}
-		res.PrefetchByteStatus = &byteStatus
+		res.PrefetchProgress = &byteStatus
 	}
 	return res, nil
 }
