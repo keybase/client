@@ -21,14 +21,13 @@ const ff: FeatureFlags = {
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
-  useSimpleMarkdown: false,
+  useSimpleMarkdown: true,
   walletsEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
   moveOrCopy: true,
-  useSimpleMarkdown: true,
   walletsEnabled: true,
 }
 

@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/devices'
 import * as DevicesGen from './devices-gen'
-import * as I from 'immutable'
 import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteActions from './route-tree'
@@ -97,10 +96,8 @@ const showPaperKeyPage = () =>
   Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'paperKey']))
 
 let _wasOnDeviceTab = false
-const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
-  const list = I.List(action.payload.path)
-  const root = list.first()
-  if (root === Tabs.devicesTab) {
+const clearBadgesAfterNav = (state: TypedState, action: RouteTreeGen.SwitchToPayload) => {
+  if (Constants.isLookingAtDevices(state, action)) {
     _wasOnDeviceTab = true
   } else if (_wasOnDeviceTab) {
     _wasOnDeviceTab = false

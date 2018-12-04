@@ -138,8 +138,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
+    if (this.props.isExploding && isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'
+    } else if (this.props.isExploding && !isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
@@ -224,6 +226,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
             isExplodingNew={this.props.isExplodingNew}
+            showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
@@ -249,15 +252,16 @@ const ChannelMentionHud = props => (
 )
 
 const Action = ({
+  explodingModeSeconds,
   hasText,
-  onSubmit,
-  isEditing,
-  openExplodingPicker,
-  openFilePicker,
   insertMentionMarker,
+  isEditing,
   isExploding,
   isExplodingNew,
-  explodingModeSeconds,
+  onSubmit,
+  openExplodingPicker,
+  openFilePicker,
+  showWalletsIcon,
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
@@ -286,7 +290,7 @@ const Action = ({
           {smallGap}
         </>
       )}
-      {flags.walletsEnabled && (
+      {showWalletsIcon && (
         <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
       <Icon

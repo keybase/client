@@ -257,6 +257,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({acceptedDisclaimer: action.payload.accepted})
     // Saga only actions
     case WalletsGen.acceptDisclaimer:
+      return state.merge({
+        acceptingDisclaimerDelay: true,
+      })
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -272,6 +275,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadDisplayCurrency:
     case WalletsGen.changeDisplayCurrency:
     case WalletsGen.changeAccountName:
+    case WalletsGen.checkDisclaimer:
     case WalletsGen.changedAccountName:
     case WalletsGen.deleteAccount:
     case WalletsGen.deletedAccount:

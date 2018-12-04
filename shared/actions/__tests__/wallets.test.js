@@ -86,7 +86,8 @@ it('disclaimer', () => {
       const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
       checkRPC2.mockImplementation(() => Promise.resolve(true))
 
-      dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
+      dispatch(WalletsGen.createAcceptDisclaimer())
+      dispatch(WalletsGen.createCheckDisclaimer({nextScreen: 'openWallet'}))
       return Testing.flushPromises({acceptRPC, checkRPC2})
     })
     .then(({acceptRPC, checkRPC2}) => {

@@ -4,6 +4,7 @@ import {map, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
 import * as TeamsGen from './teams-gen'
+import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ChatConstants from '../constants/chat2'
@@ -326,8 +327,15 @@ const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
       sendChatNotification,
     })
+  } catch (e) {
+    // identify error
+    if (e.code === RPCTypes.constantsStatusCode.scidentifysummaryerror) {
+      if (isMobile) {
+        // show profile card on mobile
+        yield Saga.put(ProfileGen.createShowUserProfile({username}))
+      }
+    }
   } finally {
-    // TODO handle error
     yield Saga.put(WaitingGen.createDecrementWaiting({key: waitingKeys}))
   }
 }

@@ -233,9 +233,24 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 		return
 	}
 	ua := val.(unfurlAsset)
-	if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
-		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
-		return
+	if r.shouldServeContent(ctx, ua.asset, req) {
+		if r.serveUnfurlVideoHostPage(ctx, w, req) {
+			// if we served the host page, just bail out
+			return
+		}
+		r.Debug(ctx, "serveUnfurlAsset: streaming: req: method: %s range: %s", req.Method,
+			req.Header.Get("Range"))
+		rs, err := r.fetcher.StreamAttachment(ctx, ua.convID, ua.asset, r.ri, r)
+		if err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
+			return
+		}
+		http.ServeContent(w, req, ua.asset.Filename, time.Time{}, rs)
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
 	}
 }
 
@@ -252,6 +267,39 @@ func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.
 		return false
 	}
 	return strings.HasPrefix(asset.MimeType, "video")
+}
+
+func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
+	contentForce := "true" == req.URL.Query().Get("contentforce")
+	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
+		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
+		w.Header().Set("Content-Type", "text/html")
+		orient := req.URL.Query().Get("orient")
+		if _, err := w.Write([]byte(fmt.Sprintf(`
+			<html>
+				<head>
+					<title>Keybase Video Viewer</title>
+					<script>
+						window.playVideo = function(data) {
+							var vid = document.getElementById("vid");
+							vid.play()
+						}
+					</script>
+				</head>
+				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
+					<div style="display:flex; flex-direction: row; justify-content: flex-start">
+						<div style="flex: 1">
+						<video id="vid" onloadeddata="playVideo()" style="%s: 100%%; border-radius: 8px" src="%s" playsinline webkit-playsinline loop autoplay muted />
+						</div>
+					</div>
+				</body>
+			</html>
+		`, orient, req.URL.String()+"&contentforce=true"))); err != nil {
+			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
+		}
+		return true
+	}
+	return false
 }
 
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {

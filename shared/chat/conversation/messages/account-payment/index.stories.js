@@ -47,7 +47,7 @@ const sendingProps = {
 
 const claimableProps = {
   ...sendingProps,
-  claimButtonLabel: 'Claim lumens worth $35',
+  claimButtonLabel: 'Claim lumens worth',
 }
 
 const cancelableProps = {
@@ -78,7 +78,7 @@ const theyRequestProps = {
   amount: '$107',
   memo: 'things',
   onSend: action('onSend'),
-  sendButtonLabel: 'Send Lumens worth $107',
+  sendButtonLabel: 'Send Lumens worth',
 }
 
 const sentAssetProps = {

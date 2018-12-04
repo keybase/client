@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
-import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
+import logger from '../../../../../logger'
+import WalletsIconRender from '.'
 
 type OwnProps = {|
   size: number,
@@ -33,35 +33,19 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const renderNothingProps = {shouldRender: false}
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  // Only show this for adhoc conversations.
-  if (stateProps._meta.teamType !== 'adhoc') {
-    return renderNothingProps
-  }
   const otherParticipants = stateProps._meta.participants.filter(u => u !== stateProps._you)
-  // Only show this for one-on-one conversations.
   if (otherParticipants.size !== 1) {
-    return renderNothingProps
+    logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')
   }
   const to = otherParticipants.first()
   return {
     isNew: stateProps.isNew,
-    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
     onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
-    shouldRender: true,
+    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
     size: ownProps.size,
     style: ownProps.style,
   }
-}
-
-type WrapperProps = {|...ViewProps, shouldRender: true|} | {|shouldRender: false|}
-const Wrapper = (props: WrapperProps) => {
-  if (props.shouldRender) {
-    const {shouldRender, ...passThroughProps} = props
-    return <WalletsIconRender {...passThroughProps} />
-  }
-  return null
 }
 
 const WalletsIcon = Container.namedConnect<OwnProps, _, _, _, _>(
@@ -69,6 +53,6 @@ const WalletsIcon = Container.namedConnect<OwnProps, _, _, _, _>(
   mapDispatchToProps,
   mergeProps,
   'WalletsIcon'
-)(Wrapper)
+)(WalletsIconRender)
 
 export default WalletsIcon
