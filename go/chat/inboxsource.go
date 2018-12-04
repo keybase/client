@@ -3,6 +3,8 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -366,9 +368,15 @@ func (s *RemoteInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor
 }
 
 type HybridInboxSource struct {
+	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
+
+	started     bool
+	stopCh      chan struct{}
+	flushDelay  time.Duration
+	testFlushCh chan struct{} // testing only
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -379,9 +387,66 @@ func NewHybridInboxSource(g *globals.Context,
 	s := &HybridInboxSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
+		flushDelay:   time.Minute,
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
 	return s
+}
+
+func (s *HybridInboxSource) createInbox() *storage.Inbox {
+	return storage.NewInbox(s.G(), storage.FlushMode(storage.InboxFlushModeDelegate))
+}
+
+func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
+	s.baseInboxSource.Start(ctx, uid)
+	s.Lock()
+	defer s.Unlock()
+	s.Debug(ctx, "Start")
+	if s.started {
+		return
+	}
+	s.stopCh = make(chan struct{})
+	s.started = true
+	go s.inboxFlushLoop(uid, s.stopCh)
+}
+
+func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
+	<-s.baseInboxSource.Stop(ctx)
+	s.Lock()
+	defer s.Unlock()
+	s.Debug(ctx, "Stop")
+	if s.started {
+		close(s.stopCh)
+		s.started = false
+	}
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) {
+	ctx := context.Background()
+	appState := s.G().AppState.State()
+	doFlush := func() {
+		s.createInbox().Flush(ctx, uid)
+		if s.testFlushCh != nil {
+			s.testFlushCh <- struct{}{}
+		}
+	}
+	for {
+		select {
+		case <-s.G().Clock().After(s.flushDelay):
+			doFlush()
+		case appState = <-s.G().AppState.NextUpdate(&appState):
+			switch appState {
+			case keybase1.AppState_BACKGROUND:
+				doFlush()
+			}
+		case <-stopCh:
+			doFlush()
+			return
+		}
+	}
 }
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
@@ -473,7 +538,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	}
 
 	// Write metadata to the inbox cache
-	if err = storage.NewInbox(s.G()).MergeLocalMetadata(ctx, uid, inbox.Convs); err != nil {
+	if err = s.createInbox().MergeLocalMetadata(ctx, uid, inbox.Convs); err != nil {
 		// Don't abort the operation on this kind of error
 		s.Debug(ctx, "Read: unable to write inbox local metadata: %s", err)
 	}
@@ -486,7 +551,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
 
 	var cerr storage.Error
-	inboxStore := storage.NewInbox(s.G())
+	inboxStore := s.createInbox()
 
 	// Try local storage (if enabled)
 	if useLocalData {
@@ -537,7 +602,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 			// Only do this aggressive clear if the error we get is not some kind of network error
 			if IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
-				storage.NewInbox(s.G()).Clear(ctx, uid)
+				s.createInbox().Clear(ctx, uid)
 			} else {
 				s.Debug(ctx, "handleInboxError: skipping inbox clear because of offline error: %s", ferr)
 			}
@@ -558,7 +623,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	conv chat1.Conversation) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewConversation")()
-	if cerr := storage.NewInbox(s.G()).NewConversation(ctx, uid, vers, conv); cerr != nil {
+	if cerr := s.createInbox().NewConversation(ctx, uid, vers, conv); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return err
 	}
@@ -597,7 +662,7 @@ func (s *HybridInboxSource) getConvsLocal(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
-	if cerr := storage.NewInbox(s.G()).NewMessage(ctx, uid, vers, convID, msg, maxMsgs); cerr != nil {
+	if cerr := s.createInbox().NewMessage(ctx, uid, vers, convID, msg, maxMsgs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
@@ -611,7 +676,7 @@ func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, ver
 func (s *HybridInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msgID chat1.MessageID) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadMessage")()
-	if cerr := storage.NewInbox(s.G()).ReadMessage(ctx, uid, vers, convID, msgID); cerr != nil {
+	if cerr := s.createInbox().ReadMessage(ctx, uid, vers, convID, msgID); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
@@ -626,7 +691,7 @@ func (s *HybridInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, ve
 func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetStatus")()
-	if cerr := storage.NewInbox(s.G()).SetStatus(ctx, uid, vers, convID, status); cerr != nil {
+	if cerr := s.createInbox().SetStatus(ctx, uid, vers, convID, status); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
@@ -640,7 +705,7 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 func (s *HybridInboxSource) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 	vers chat1.InboxVers, convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetAppNotificationSettings")()
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	if cerr := ib.SetAppNotificationSettings(ctx, uid, vers, convID, settings); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
@@ -663,7 +728,7 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 		s.Debug(ctx, "TeamTypeChanged: failed to read team type conv: %s", err.Error())
 		return nil, err
 	}
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	if cerr := ib.TeamTypeChanged(ctx, uid, vers, convID, teamType, remoteConv.Notifications); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
@@ -680,7 +745,7 @@ func (s *HybridInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor
 	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
 
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	if cerr := ib.UpgradeKBFSToImpteam(ctx, uid, vers, convID); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
@@ -697,7 +762,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
 
-	if cerr := storage.NewInbox(s.G()).TlfFinalize(ctx, uid, vers, convIDs, finalizeInfo); cerr != nil {
+	if cerr := s.createInbox().TlfFinalize(ctx, uid, vers, convIDs, finalizeInfo); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return convs, err
 	}
@@ -770,7 +835,7 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 		}
 	}
 
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	if cerr := ib.MembershipUpdate(ctx, uid, vers, userJoinedConvs, res.UserRemovedConvs,
 		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs, res.OthersResetConvs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
@@ -797,7 +862,7 @@ func (s *HybridInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UI
 func (s *HybridInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetTeamRetention")()
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	convIDs, cerr := ib.SetTeamRetention(ctx, uid, vers, teamID, policy)
 	if cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
@@ -821,7 +886,7 @@ func (s *HybridInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID
 func (s *HybridInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SubteamRename")()
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	if cerr := ib.SubteamRename(ctx, uid, vers, convIDs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
@@ -838,7 +903,7 @@ func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel stri
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, debugLabel)()
-	ib := storage.NewInbox(s.G())
+	ib := s.createInbox()
 	if cerr := mod(ctx, ib); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
