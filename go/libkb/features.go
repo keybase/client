@@ -106,6 +106,13 @@ func (f *featureSlot) readFrom(m MetaContext, r rawFeatureSlot) {
 	f.cacheUntil = m.G().Clock().Now().Add(time.Duration(r.CacheSec) * time.Second)
 }
 
+func (s *FeatureFlagSet) InvalidateCache(m MetaContext, f Feature) {
+	featureSlot := s.features[f]
+	featureSlot.Lock()
+	defer featureSlot.Unlock()
+	featureSlot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)
+}
+
 // EnabledWithError returns if the given feature is enabled, it will return true if it's
 // enabled, and an error if one occurred.
 func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, err error) {

@@ -99,6 +99,7 @@ type DetailProps = {|
   isXLM: boolean,
   onShowProfile: string => void,
   selectableText: boolean,
+  issuerDescription: string,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -108,18 +109,39 @@ const Detail = (props: DetailProps) => {
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
-  const amount = props.isXLM ? (
-    <Text selectable={props.selectableText} type={textTypeExtrabold}>
-      {props.amountUser}
-    </Text>
-  ) : (
-    <React.Fragment>
-      Lumens worth{' '}
-      <Text selectable={true} type={textTypeExtrabold}>
-        {props.amountUser}
-      </Text>
-    </React.Fragment>
-  )
+  let amount
+  if (props.issuerDescription) {
+    // non-native asset
+    amount = (
+      <React.Fragment>
+        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>{' '}
+        <Text selectable={props.selectableText} type={textTypeSemibold}>
+          ({props.issuerDescription})
+        </Text>
+      </React.Fragment>
+    )
+  } else if (props.isXLM) {
+    // purely, strictly lumens
+    amount = (
+      <React.Fragment>
+        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>
+      </React.Fragment>
+    )
+  } else {
+    // lumens sent with outside currency exchange rate
+    amount = (
+      <React.Fragment>
+        Lumens worth{' '}
+        <Text selectable={true} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>
+      </React.Fragment>
+    )
+  }
 
   const counterparty = () => (
     <CounterpartyText
@@ -322,6 +344,7 @@ export type Props = {|
   timestamp: Date | null,
   unread: boolean,
   yourRole: Types.Role,
+  issuerDescription: string,
 |}
 
 export const Transaction = (props: Props) => {
@@ -378,6 +401,7 @@ export const Transaction = (props: Props) => {
               isXLM={!props.amountUser}
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
+              issuerDescription={props.issuerDescription}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>

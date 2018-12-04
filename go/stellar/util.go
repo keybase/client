@@ -72,7 +72,7 @@ func (c *ownAccountLookupCacheImpl) fetch(ctx context.Context, g *libkb.GlobalCo
 	go func() {
 		ctx := libkb.CopyTagsToBackground(ctx)
 		defer c.Unlock()
-		bundle, _, err := remote.Fetch(ctx, g)
+		bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
 		c.loadErr = err
 		if err != nil {
 			return

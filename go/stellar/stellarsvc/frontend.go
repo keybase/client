@@ -30,7 +30,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		return nil, err
 	}
 
-	bundle, _, err := remote.Fetch(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 		return acct, err
 	}
 
-	bundle, _, err := remote.Fetch(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		return acct, err
 	}
@@ -85,7 +85,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 	return s.accountLocal(ctx, entry)
 }
 
-func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
+func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntryRestricted) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
 	details, err := s.accountDetails(ctx, entry.AccountID)
 	if err != nil {
@@ -456,6 +456,8 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		NoteErr:              summary.NoteErr,
 		PublicNote:           details.Memo,
 		PublicNoteType:       details.MemoType,
+		IssuerDescription:    summary.IssuerDescription,
+		IssuerAccountID:      summary.IssuerAccountID,
 		ExternalTxURL:        details.ExternalTxURL,
 	}
 
@@ -557,7 +559,7 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", stellar.AccountNameMaxRunes, runes)
 	}
 	// If this becomes a bottleneck, cache non-critical wallet info on G.Stellar.
-	currentBundle, _, err := remote.Fetch(ctx, s.G())
+	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		s.G().Log.CErrorf(ctx, "error fetching bundle: %v", err)
 		// Return nil since the name is probably fine.

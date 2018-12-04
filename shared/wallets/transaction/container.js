@@ -69,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
     unread: stateProps._unread,
+    issuerDescription: tx.issuerDescription,
   }
 }
 

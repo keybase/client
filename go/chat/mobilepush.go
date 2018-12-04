@@ -54,7 +54,7 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 }
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
-	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess")()
+	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess: pushID: %v", pushIDs)()
 	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler,
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return &remoteNotificationSuccessHandler{}
@@ -126,7 +126,7 @@ func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, co
 
 func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
-	defer h.Trace(ctx, func() error { return err }, "FormatPushText")()
+	defer h.Trace(ctx, func() error { return err }, "FormatPushText: convID: %v", convID)()
 	if !msg.IsValid() {
 		h.Debug(ctx, "FormatPushText: message is not valid")
 		return res, errors.New("invalid message")
@@ -144,7 +144,7 @@ func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID
 
 func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (res chat1.MessageUnboxed, err error) {
-	defer h.Trace(ctx, func() error { return err }, "UnboxPushNotification")()
+	defer h.Trace(ctx, func() error { return err }, "UnboxPushNotification: convID: %v", convID)()
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {
@@ -183,7 +183,6 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 			}
 		} else {
 			h.Debug(ctx, "UnboxPushNotification: message from the past, skipping insert: msgID: %d maxMsgID: %d", msgUnboxed.GetMessageID(), maxMsgID)
-
 		}
 	} else {
 		h.Debug(ctx, "UnboxPushNotification: failed to fetch max msg ID: %s", err)

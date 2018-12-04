@@ -83,6 +83,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     title: 'Transaction details',
     transactionID: tx.txID,
     you: stateProps.you,
+    issuerDescription: tx.issuerDescription,
+    issuerAccountID: tx.issuerAccountID,
   }
 }
 

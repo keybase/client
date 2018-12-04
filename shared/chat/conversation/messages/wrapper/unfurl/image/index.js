@@ -28,13 +28,15 @@ const clampImageSize = ({width = 0, height = 0}, maxSize) =>
 class UnfurlImage extends React.Component<Props> {
   _getDimensions() {
     const maxSize = Math.min(imgMaxWidth(), 320)
-    return clampImageSize(
-      {
-        height: this.props.height,
-        width: this.props.width,
-      },
-      maxSize
-    )
+    const {height, width} = clampImageSize({width: this.props.width, height: this.props.height}, maxSize)
+    return {
+      flexGrow: 0,
+      flexShrink: 0,
+      height,
+      minHeight: height,
+      minWidth: width,
+      width,
+    }
   }
   _getOrient() {
     return this.props.height >= this.props.width ? 'height' : 'width'
