@@ -85,6 +85,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
+  buildCounter: 0,
   building: makeBuilding(),
   builtPayment: makeBuiltPayment(),
   builtRequest: makeBuiltRequest(),

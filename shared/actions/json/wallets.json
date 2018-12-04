@@ -10,7 +10,7 @@
       "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "acceptDisclaimer": {
-      "_description": "Accept the Stellar account disclaimer",
+      "_description": "Accept the Stellar account disclaimer"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -33,12 +33,12 @@
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
-      "forBuilding": "Types.Building"
+      "forBuildCounter": "number"
     },
     "builtRequestReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltRequest",
-      "forBuilding": "Types.Building"
+      "forBuildCounter": "number"
     },
     "checkDisclaimer": {
       "_description": "Discover whether the user has accepted the Stellar disclaimer",

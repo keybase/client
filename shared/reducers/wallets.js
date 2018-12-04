@@ -17,14 +17,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({accountMap: accountMap})
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
+    case WalletsGen.buildPayment:
+      return state.set('buildCounter', state.buildCounter + 1)
     case WalletsGen.builtPaymentReceived:
-      return action.payload.forBuilding === state.building
+      return action.payload.forBuildCounter === state.buildCounter
         ? state.merge({
             builtPayment: state.builtPayment.merge(Constants.makeBuiltPayment(action.payload.build)),
           })
         : state
     case WalletsGen.builtRequestReceived:
-      return action.payload.forBuilding === state.building
+      return action.payload.forBuildCounter === state.buildCounter
         ? state.merge({
             builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
           })
@@ -284,7 +286,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
-    case WalletsGen.buildPayment:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:
