@@ -40,7 +40,7 @@ func TestSetPhoneNumber(t *testing.T) {
 	require.Equal(t, phoneNumber, resp[0].PhoneNumber)
 	require.True(t, resp[0].Verified)
 
-	contactList := []keybase1.PhoneNumber{
+	contactList := []keybase1.RawPhoneNumber{
 		"+1-415-555-2671",
 	}
 	regionCodes := []keybase1.RegionCode{
