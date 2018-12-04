@@ -1511,7 +1511,7 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	}
 	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
 	if err != nil {
-		// TODO: open read-only instead
+		// TODO: open read-only instead KBFS-3659
 		return err
 	}
 	return nil
