@@ -17,9 +17,9 @@ const load = () => {
     ))
     .add('Centered with short name', () => (
       <AccountEntry
-        {...account}
         name="a"
         keybaseUser=""
+        contents="5 XLM"
         isDefault={true}
         center={true}
         showWalletIcon={false}
