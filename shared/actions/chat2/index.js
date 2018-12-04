@@ -2662,6 +2662,19 @@ const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePr
   })
 }
 
+const giphyRunSearch = (state: TypedState, action: Chat2Gen.GiphyRunSearchPayload) => {
+  const {conversationIDKey, query} = action.payload
+  return RPCChatTypes.localGiphySearchRpcPromise({query})
+    .then((result: Array<RPCChatTypes.GiphySearchResult>) =>
+      Chat2Gen.createGiphyGotSearchResult({conversationIDKey, result})
+    )
+    .catch(() => {})
+}
+
+const giphySend = (state: TypedState, action: Chat2Gen.GiphySendPayload) => {
+  rteturn
+}
+
 const openChatFromWidget = (
   state: TypedState,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
@@ -2830,6 +2843,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   yield Saga.actionToAction(Chat2Gen.unfurlRemove, unfurlRemove)
+
+  // Giphy
+  yield Saga.actionToPromise(Chat2Gen.giphyRunSearch, giphyRunSearch)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

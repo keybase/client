@@ -32,7 +32,7 @@ class GiphySearch extends React.Component<Props> {
         {(this.props.previews || []).map(p => {
           const margin = this._getMargin(p.previewWidth)
           return (
-            <Kb.Box2 direction="horizontal" style={styles.imageContainer}>
+            <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
               <Kb.ClickableBox onClick={() => this.props.onClick(p.targetUrl)}>
                 <UnfurlImage
                   url={p.previewUrl}

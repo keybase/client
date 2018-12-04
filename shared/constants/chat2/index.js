@@ -45,6 +45,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   typingMap: I.Map(),
   unreadMap: I.Map(),
   unfurlPromptMap: I.Map(),
+  giphyResultMap: I.Map(),
+  giphySearchMap: I.Map(),
   attachmentFullscreenMessage: null,
 
   // Team Building

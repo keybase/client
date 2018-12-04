@@ -30,6 +30,9 @@ export const blockConversation = 'chat2:blockConversation'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const filePickerError = 'chat2:filePickerError'
+export const giphyDismiss = 'chat2:giphyDismiss'
+export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
+export const giphyRunSearch = 'chat2:giphyRunSearch'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -123,6 +126,9 @@ type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
 type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
+type _GiphyDismissPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, result: Array<RPCChatTypes.GiphySearchResult>|}>
+type _GiphyRunSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: ?string|}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
@@ -223,6 +229,10 @@ export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPol
  */
 export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({payload, type: messagesExploded})
 /**
+ * Giphy search results obtained
+ */
+export const createGiphyGotSearchResult = (payload: _GiphyGotSearchResultPayload) => ({payload, type: giphyGotSearchResult})
+/**
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({payload, type: updateConvExplodingModes})
@@ -310,6 +320,14 @@ export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) 
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({payload, type: setPendingConversationExistingConversationIDKey})
+/**
+ * dismiss Giphy search
+ */
+export const createGiphyDismiss = (payload: _GiphyDismissPayload) => ({payload, type: giphyDismiss})
+/**
+ * enable the Giphy search pane
+ */
+export const createGiphyRunSearch = (payload: _GiphyRunSearchPayload) => ({payload, type: giphyRunSearch})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({payload, type: attachmentDownloaded})
 export const createAttachmentFullscreenNext = (payload: _AttachmentFullscreenNextPayload) => ({payload, type: attachmentFullscreenNext})
@@ -393,6 +411,9 @@ export type BlockConversationPayload = $Call<typeof createBlockConversation, _Bl
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type FilePickerErrorPayload = $Call<typeof createFilePickerError, _FilePickerErrorPayload>
+export type GiphyDismissPayload = $Call<typeof createGiphyDismiss, _GiphyDismissPayload>
+export type GiphyGotSearchResultPayload = $Call<typeof createGiphyGotSearchResult, _GiphyGotSearchResultPayload>
+export type GiphyRunSearchPayload = $Call<typeof createGiphyRunSearch, _GiphyRunSearchPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type HandleSeeingWalletsPayload = $Call<typeof createHandleSeeingWallets, _HandleSeeingWalletsPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
@@ -488,6 +509,9 @@ export type Actions =
   | CreateConversationPayload
   | DesktopNotificationPayload
   | FilePickerErrorPayload
+  | GiphyDismissPayload
+  | GiphyGotSearchResultPayload
+  | GiphyRunSearchPayload
   | HandleSeeingExplodingMessagesPayload
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload

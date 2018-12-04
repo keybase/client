@@ -513,6 +513,20 @@
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "giphyRunSearch": {
+      "_description": "enable the Giphy search pane",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "?string"
+    },
+    "giphyDismiss": {
+      "_description": "dismiss Giphy search",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "giphyGotSearchResult": {
+      "_description": "Giphy search results obtained",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "result": "Array<RPCChatTypes.GiphySearchResult>"
     }
   }
 }

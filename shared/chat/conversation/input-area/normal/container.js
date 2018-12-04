@@ -90,6 +90,8 @@ const mapDispatchToProps = dispatch => ({
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
+  onGiphySearch: (conversationIDKey: Types.ConversationIDKey, query: ?string) =>
+    dispatch(Chat2Gen.createGiphyRunSearch({conversationIDKey, query})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -128,6 +130,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
     setUnsentText(stateProps.conversationIDKey, text)
+    dispatchProps.onGiphySearch(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
   typing: stateProps.typing,
