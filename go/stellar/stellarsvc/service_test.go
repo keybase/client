@@ -438,13 +438,13 @@ func TestSendLocalKeybase(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Amount, "9899.9999900")
+	require.Equal(t, "9899.9999900", balances[0].Amount)
 
-	balances, err = srvSender.BalancesLocal(context.Background(), accountIDRecip)
+	balances, err = srvRecip.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Amount, "10100.0000000")
+	require.Equal(t, "10100.0000000", balances[0].Amount)
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)

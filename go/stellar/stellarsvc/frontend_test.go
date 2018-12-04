@@ -1928,6 +1928,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	fakeAccts[0].AdjustAssetBalance(0, keys)
 	fakeAccts[0].AdjustAssetBalance(0, astro)
 
+	tcs[0].Srv.walletState.Refresh(context.Background(), fakeAccts[0].accountID)
+
 	// New asset choices should be visible
 	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
 		From: fakeAccts[0].accountID,
@@ -1962,6 +1964,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 
 	// Open AstroDollars for tcs[1]
 	fakeAccts2[0].AdjustAssetBalance(0, astro)
+
+	tcs[0].Srv.walletState.Refresh(context.Background(), fakeAccts[0].accountID)
 
 	choices2, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
 		From: fakeAccts[0].accountID,

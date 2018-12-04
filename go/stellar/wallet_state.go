@@ -145,6 +145,24 @@ func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar
 	return a.AccountSeqnoAndBump(ctx)
 }
 
+// Balances is an override of remoter's Balances that uses stored data.
+func (w *WalletState) Balances(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
+	a, err := w.accountStateRefresh(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	return a.Balances(ctx)
+}
+
+// SubmitPayment is an override of remoter's SubmitPayment.
+func (w *WalletState) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
+	result, err := w.Remoter.SubmitPayment(ctx, post)
+	if err == nil {
+		go w.RefreshAll(context.Background())
+	}
+	return result, err
+}
+
 // DumpToLog outputs a summary of WalletState to the debug log.
 func (w *WalletState) DumpToLog(ctx context.Context) {
 	w.G().Log.CDebugf(ctx, w.String())
@@ -171,6 +189,7 @@ type AccountState struct {
 
 	sync.RWMutex // protects everything that follows
 	seqno        uint64
+	balances     []stellar1.Balance
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountState {
@@ -188,6 +207,13 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 		if seqno > a.seqno {
 			a.seqno = seqno
 		}
+		a.Unlock()
+	}
+
+	balances, err := a.remoter.Balances(ctx, a.accountID)
+	if err == nil {
+		a.Lock()
+		a.balances = balances
 		a.Unlock()
 	}
 
@@ -210,6 +236,14 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	result := a.seqno
 	a.seqno++
 	return result, nil
+}
+
+// Balances returns the balances that have already been fetched for
+// this account.
+func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error) {
+	a.RLock()
+	defer a.RUnlock()
+	return a.balances, nil
 }
 
 // String returns a small string representation of AccountState suitable for
