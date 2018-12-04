@@ -76,7 +76,14 @@ protocol SimpleFS {
     IN_PROGRESS_1,
     COMPLETE_2
   }
-  
+
+  record PrefetchProgress {
+    Time start;
+    Time endEstimate;
+    int64 bytesTotal;
+    int64 bytesFetched;
+  }
+
   record Dirent {
     Time time;
     int size;   // size of file or count of dir entries (TBD - may be expensive/unnecessary)
@@ -88,6 +95,7 @@ protocol SimpleFS {
     User lastWriterUnverified;
     boolean writable;
     PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
   }
 
   record DirentWithRevision {
@@ -442,8 +450,8 @@ protocol SimpleFS {
     // Bytes available and total on the partition hosting the sync cache.
     int64 localDiskBytesAvailable;
     int64 localDiskBytesTotal;
-    // TODO: fill in percentage synced, etc.
     PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
   }
 
   record FolderSyncConfigAndStatus {

@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -56,6 +57,17 @@ func NewCmdSimpleFSStat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
+func prefetchStatusString(e keybase1.Dirent) string {
+	if e.PrefetchStatus != keybase1.PrefetchStatus_IN_PROGRESS ||
+		e.PrefetchProgress.BytesTotal == 0 {
+		return e.PrefetchStatus.String()
+	}
+
+	return fmt.Sprintf("%.2f%%",
+		100*float64(e.PrefetchProgress.BytesFetched)/
+			float64(e.PrefetchProgress.BytesTotal))
+}
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSStat) Run() (err error) {
 	cli, err := GetSimpleFSClient(c.G())
@@ -101,7 +113,7 @@ func (c *CmdSimpleFSStat) Run() (err error) {
 				r.Revision, keybase1.FormatTime(e.Time),
 				keybase1.DirentTypeRevMap[e.DirentType],
 				e.Size, e.Name, e.LastWriterUnverified.Username,
-				e.PrefetchStatus)
+				prefetchStatusString(e))
 		}
 	} else {
 		e, err := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: c.path})
@@ -113,7 +125,7 @@ func (c *CmdSimpleFSStat) Run() (err error) {
 			keybase1.FormatTime(e.Time),
 			keybase1.DirentTypeRevMap[e.DirentType],
 			e.Size, e.Name, e.LastWriterUnverified.Username,
-			e.PrefetchStatus)
+			prefetchStatusString(e))
 	}
 
 	return nil
