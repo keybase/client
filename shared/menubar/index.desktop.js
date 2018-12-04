@@ -43,7 +43,7 @@ class MenubarRender extends React.Component<Props, State> {
     showingMenu: false,
   }
 
-  attachmentRef = React.createRef()
+  attachmentRef = React.createRef<Kb.Icon>()
 
   _onShow = throttle(() => {
     this.props.refresh()
