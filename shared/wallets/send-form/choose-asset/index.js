@@ -328,6 +328,9 @@ const styles = styleSheetCreate({
     isElectron: {
       maxHeight: 525 - 48,
     },
+    isMobile: {
+      paddingBottom: 100,
+    },
   }),
   sectionHeaderContainer: platformStyles({
     common: {
