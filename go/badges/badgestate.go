@@ -326,10 +326,9 @@ func (b *BadgeState) FindResetMemberBadges(teamName string) (badges []keybase1.T
 	defer b.Unlock()
 
 	for _, badge := range b.state.TeamsWithResetUsers {
-		if badge.Teamname != teamName {
-			continue
+		if badge.Teamname == teamName {
+			badges = append(badges, badge)
 		}
-		badges = append(badges, badge)
 	}
 
 	return badges
