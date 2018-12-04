@@ -87,7 +87,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_75,
   },
   user: {
-    alignItems: 'center',
+    justifyContent: 'center',
   },
 })
 
