@@ -148,12 +148,6 @@ const provider = Sb.createPropProviderWithCommon({
     showTeamOffer: false,
     measure: p.measure,
   }),
-  MessageFactory: ({ordinal, previous, measure}) => ({
-    message: ordinalToMessage(ordinal),
-    previous: ordinalToMessage(previous),
-    isEditing: false,
-    measure,
-  }),
   MessagePopupText: p => ({
     attachTo: null,
     author: 'a',
@@ -174,22 +168,37 @@ const provider = Sb.createPropProviderWithCommon({
     visible: false,
     yourMessage: false,
   }),
+  TextMessage: p => {
+    return {
+      isEditing: false,
+      mentionsAt: null,
+      mentionsChannel: null,
+      mentionsChannelName: null,
+      text: p.message.text.stringValue(),
+      type: p.message.errorReason ? 'error' : p.message.submitState === null ? 'sent' : 'pending',
+    }
+  },
   WrapperMessage: p => {
-    const {children, isEditing, measure, message, previous} = p
-    // Want to mimick the timestamp logic in WrapperMessage
+    const message = ordinalToMessage(p.ordinal)
+    const previous = ordinalToMessage(p.previous)
     const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
     return {
-      children,
       conversationIDKey: message.conversationIDKey,
-      decorate: true,
-      exploded: false,
-      isEditing,
-      measure,
-      message,
+      exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
+      failureDescription: '',
+      hasUnfurlPrompts: false,
+      isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
+      measure: null,
+      message: message,
+      onAuthorClick: Sb.action('onAuthorClick'),
+      onCancel: Sb.action('onCancel'),
+      onEdit: Sb.action('onEdit'),
+      onRetry: Sb.action('onRetry'),
       orangeLineAbove: false,
-      ordinal: message.ordinal,
       previous,
-      timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
+      shouldShowPopup: false,
+      showSendIndicator: false,
+      showUsername: false, // !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
     }
   },
 })
