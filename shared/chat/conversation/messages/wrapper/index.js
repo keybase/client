@@ -253,7 +253,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.isRevoked ? 16 : 0, // revoked
       Styles.isMobile ? 0 : 16, // reactji
       Styles.isMobile ? 0 : 16, // ... menu
-      exploding ? 46 : 0, // exploding
+      exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
     const padding = 8
     const width =
@@ -429,7 +429,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         {LongPressable({
           ...this._containerProps(),
           children: [
-            this._orangeLine(),
             this._authorAndContent([
               this._messageAndButtons(),
               this._isEdited(),
@@ -439,6 +438,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               this._unfurlList(),
               this._reactionsRow(),
             ]),
+            this._orangeLine(),
           ],
         })}
         {this._popup()}
@@ -516,20 +516,22 @@ const styles = Styles.styleSheetCreate({
     // don't push down content due to orange line
     backgroundColor: Styles.globalColors.orange,
     height: 1,
+    left: 0,
     position: 'absolute',
-    top: 4,
-    width: '100%',
+    right: 0,
+    top: 0,
   },
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
   }),
   revoked: {marginLeft: Styles.globalMargins.tiny},
   send: Styles.platformStyles({
+    common: {position: 'absolute'},
     isElectron: {
       pointerEvents: 'none',
-      position: 'absolute',
       right: 12,
     },
+    isMobile: {right: 0},
   }),
 })
 
