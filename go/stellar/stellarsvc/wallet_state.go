@@ -89,6 +89,7 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 
 // Refresh gets all the data from the server for an account.
 func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID) error {
+	w.G().Log.CDebugf(ctx, "WalletState.Refresh: %s", accountID)
 	a, ok := w.accountState(accountID)
 	if !ok {
 		return ErrAccountNotFound
@@ -128,7 +129,9 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 	seqno, err := a.remoter.AccountSeqno(ctx, a.accountID)
 	if err == nil {
 		a.Lock()
-		a.seqno = seqno
+		if seqno > a.seqno {
+			a.seqno = seqno
+		}
 		a.Unlock()
 	}
 

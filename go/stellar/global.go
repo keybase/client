@@ -11,17 +11,18 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/federation"
 	"github.com/stellar/go/clients/horizon"
 )
 
-func ServiceInit(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.Badger) {
+func ServiceInit(g *libkb.GlobalContext, walletState *stellarsvc.WalletState, badger *badges.Badger) {
 	if g.Env.GetRunMode() != libkb.ProductionRunMode {
 		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 	}
-	g.SetStellar(NewStellar(g, remoter, badger))
+	g.SetStellar(NewStellar(g, walletState, badger))
 }
 
 type Stellar struct {
@@ -54,10 +55,10 @@ type Stellar struct {
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
-func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.Badger) *Stellar {
+func NewStellar(g *libkb.GlobalContext, walletState *stellarsvc.WalletState, badger *badges.Badger) *Stellar {
 	return &Stellar{
 		Contextified:     libkb.NewContextified(g),
-		remoter:          remoter,
+		remoter:          walletState,
 		hasWalletCache:   make(map[keybase1.UserVersion]bool),
 		federationClient: getFederationClient(g),
 		buildPaymentSlot: slotctx.NewPriority(),

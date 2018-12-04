@@ -606,13 +606,6 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	}, nil
 }
 
-type miniPrepared struct {
-	Username libkb.NormalizedUsername
-	Post     stellar1.PaymentDirectPost
-	Seqno    uint64
-	Error    error
-}
-
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
@@ -666,6 +659,13 @@ func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments 
 	}
 
 	return resultList, nil
+}
+
+type miniPrepared struct {
+	Username libkb.NormalizedUsername
+	Post     stellar1.PaymentDirectPost
+	Seqno    uint64
+	Error    error
 }
 
 func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {

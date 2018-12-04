@@ -41,6 +41,7 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
+	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
@@ -67,7 +68,7 @@ type Service struct {
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
-	stellarRemote        remote.Remoter
+	walletState          *stellarsvc.WalletState
 }
 
 type Shutdowner interface {
@@ -91,7 +92,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
-		stellarRemote:    remote.NewRemoteNet(g),
+		walletState:      stellarsvc.NewWalletState(g, remote.NewRemoteNet(g)),
 	}
 }
 
@@ -152,7 +153,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 	}
-	walletHandler := newWalletHandler(xp, g, d.stellarRemote)
+	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
@@ -326,7 +327,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G(), d.stellarRemote, d.badger)
+	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	return nil
 }
 
@@ -564,7 +565,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
-		d.gregor.PushHandler(stellargregor.New(d.G(), d.stellarRemote))
+		d.gregor.PushHandler(stellargregor.New(d.G(), d.walletState))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
