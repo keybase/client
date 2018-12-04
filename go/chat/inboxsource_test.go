@@ -200,14 +200,21 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	_, rc, err = inbox.ReadAll(ctx, uid, false)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rc))
+	_, rc, err = inbox.ReadAll(ctx, uid, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
 
 	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
 	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(rc))
+	_, rc, err = inbox.ReadAll(ctx, uid, true)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(rc))
 	tc.Context().AppState.Update(keybase1.AppState_BACKGROUND)
 	select {
 	case <-flushCh:
-	case <-time.After(2 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no flush")
 	}
 	_, rc, err = inbox.ReadAll(ctx, uid, false)
