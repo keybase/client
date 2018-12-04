@@ -301,7 +301,13 @@ func (p *blockPrefetcher) calculatePriority(
 func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, parentBlockID kbfsblock.ID,
-	isParentNew bool, action BlockRequestAction) (numBlocks int) {
+	isParentNew bool, action BlockRequestAction,
+	idsSeen map[kbfsblock.ID]bool) (numBlocks int) {
+	if idsSeen[ptr.ID] {
+		return 0
+	}
+	idsSeen[ptr.ID] = true
+
 	// If the prefetch is already waiting, don't make it wait again.
 	// Add the parent, however.
 	pre, isPrefetchWaiting := p.prefetches[ptr.ID]
@@ -349,10 +355,11 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(
 	action BlockRequestAction, basePriority int) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
 	newPriority := p.calculatePriority(basePriority, action)
+	idsSeen := make(map[kbfsblock.ID]bool, len(b.IPtrs))
 	for _, ptr := range b.IPtrs {
 		numBlocks += p.request(ctx, newPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
-			parentBlockID, isPrefetchNew, action)
+			parentBlockID, isPrefetchNew, action, idsSeen)
 	}
 	return numBlocks, len(b.IPtrs) == 0
 }
@@ -363,10 +370,11 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(
 	action BlockRequestAction, basePriority int) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
 	newPriority := p.calculatePriority(basePriority, action)
+	idsSeen := make(map[kbfsblock.ID]bool, len(b.IPtrs))
 	for _, ptr := range b.IPtrs {
 		numBlocks += p.request(ctx, newPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
-			parentBlockID, isPrefetchNew, action)
+			parentBlockID, isPrefetchNew, action, idsSeen)
 	}
 	return numBlocks, len(b.IPtrs) == 0
 }
@@ -380,6 +388,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 	sort.Sort(dirEntries)
 	newPriority := p.calculatePriority(basePriority, action)
 	totalChildEntries := 0
+	idsSeen := make(map[kbfsblock.ID]bool, len(dirEntries.dirEntries))
 	for _, entry := range dirEntries.dirEntries {
 		var block Block
 		switch entry.Type {
@@ -401,7 +410,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 			"Prefetching %v, action=%s", entry.BlockPointer, action)
 		totalChildEntries++
 		numBlocks += p.request(ctx, newPriority, kmd, entry.BlockPointer,
-			block, lifetime, parentBlockID, isPrefetchNew, action)
+			block, lifetime, parentBlockID, isPrefetchNew, action, idsSeen)
 	}
 	if totalChildEntries == 0 {
 		isTail = true
