@@ -19,31 +19,31 @@ export const HeaderHocHeader = ({
   rightActionLabel,
   theme = 'light',
 }: Props) => (
-  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Box style={Styles.collapseStyles([styles.header, theme === 'light' ? styles.headerLight : styles.headerDark, headerStyle])}>
     {customComponent}
     {!!title && (
-      <Box style={_titleStyle}>
-        <Text type="HeaderSmall">{title}</Text>
+      <Box style={styles.titleContainer}>
+        <Text type="BodySmall" style={styles.title}>{title}</Text>
       </Box>
     )}
     {onCancel && (
-      <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
+      <Text type="BodyBigLink" style={styles.button} onClick={onCancel}>
         {customCancelText || 'Cancel'}
       </Text>
     )}
     {onBack && (
       <BackButton
         hideBackLabel={hideBackLabel}
-        iconColor={_backButtonIconColorThemed[theme]}
-        style={_buttonStyle}
+        iconColor={theme === 'light' ? Styles.globalColors.black_40 : Styles.globalColors.white}
+        style={styles.button}
         onClick={onBack}
       />
     )}
     {!!rightActionLabel && (
-      <Box style={_rightActionStyle}>
+      <Box style={styles.rightAction}>
         <Text
           type="BodyBigLink"
-          style={Styles.collapseStyles([_buttonStyle, {opacity: onRightAction ? 1 : 0.3}])}
+          style={Styles.collapseStyles([styles.button, {opacity: onRightAction ? 1 : 0.3}])}
           onClick={onRightAction}
         >
           {rightActionLabel}
@@ -55,10 +55,10 @@ export const HeaderHocHeader = ({
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
-    <Box style={_containerStyle}>
+    <Box style={styles.container}>
       <HeaderHocHeader {...props} />
-      <Box style={_wrapperStyle}>
-        <Box style={_wrapper2Style}>
+      <Box style={styles.wrapper}>
+        <Box style={styles.innerWrapper}>
           <WrappedComponent {...(props: P)} />
         </Box>
       </Box>
@@ -68,74 +68,66 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   return HeaderHocWrapper
 }
 
-const _backButtonIconColorThemed = {
-  dark: Styles.globalColors.white,
-  light: Styles.globalColors.black_40,
-}
-
-const _containerStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  position: 'relative',
-  height: '100%',
-  width: '100%',
-}
-
-const _wrapper2Style = {
-  ...Styles.globalStyles.fillAbsolute,
-}
-
-const _wrapperStyle = {
-  flexGrow: 1,
-}
-
-const _buttonStyle = {
-  paddingBottom: 8,
-  paddingLeft: Styles.globalMargins.small,
-  paddingRight: Styles.globalMargins.small,
-  paddingTop: 8,
-}
-
-const _headerStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  borderBottomColor: Styles.globalColors.black_10,
-  borderBottomWidth: StyleSheet.hairlineWidth,
-  justifyContent: 'flex-start',
-  minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
-  paddingRight: Styles.globalMargins.small,
-  position: 'relative',
-}
-
-const _headerStyleThemed = {
-  dark: {
+const styles = Styles.styleSheetCreate({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    position: 'relative',
+    height: '100%',
+    width: '100%',
+  },
+  innerWrapper: {
+    ...Styles.globalStyles.fillAbsolute,
+  },
+  wrapper: {
+    flexGrow: 1,
+  },
+  button: {
+    paddingBottom: 8,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: 8,
+  },
+  header: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'flex-start',
+    minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
+    paddingRight: Styles.globalMargins.small,
+    position: 'relative',
+  },
+  headerDark: {
     backgroundColor: Styles.globalColors.darkBlue3,
   },
-  light: {
+  headerLight: {
     backgroundColor: Styles.globalColors.white,
   },
-}
-
-const _rightActionStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'flex-end',
-  bottom: 0,
-  flex: 1,
-  justifyContent: 'flex-end',
-  position: 'absolute', // This is always right-aligned
-  right: 0,
-  top: 0,
-}
-
-const _titleStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  bottom: 0,
-  flex: 1,
-  justifyContent: 'center',
-  left: 0,
-  position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
-  right: 0,
-  top: 0,
-}
+  rightAction: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-end',
+    bottom: 0,
+    flex: 1,
+    justifyContent: 'flex-end',
+    position: 'absolute', // This is always right-aligned
+    right: 0,
+    top: 0,
+  },
+  titleContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    bottom: 0,
+    flex: 1,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
+    right: 0,
+    top: 0,
+  },
+  title: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black_75,
+  },
+})
 
 export default HeaderHoc

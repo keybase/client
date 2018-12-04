@@ -41,16 +41,6 @@
   font-style: italic;
 }
 
-.text_HeaderSmall {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
 .text_HeaderExtrabold {
   font-size: 16px;
   line-height: 20px;

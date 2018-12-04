@@ -10,7 +10,7 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
     <Box style={styles.stylesFolderHeaderRow}>
       <BackButton onClick={onBack} />
       <Box style={styles.stylesFolderHeaderRoot}>
-        <Text type="HeaderSmall" style={styles.stylesTitle}>
+        <Text type="BodySmall" style={styles.stylesTitle}>
           {title}
         </Text>
       </Box>
@@ -57,6 +57,8 @@ const styles = styleSheetCreate({
     paddingLeft: globalMargins.small,
   },
   stylesTitle: {
+    ...globalStyles.fontSemibold,
+    color: globalColors.black_75,
     textAlign: 'center',
   },
   stylesAddNewBox: {
