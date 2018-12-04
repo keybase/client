@@ -251,6 +251,7 @@ export const notifyChatChatActivityType = {
 export const notifyChatStaleUpdateType = {
   clear: 0,
   newactivity: 1,
+  convupdate: 2,
 }
 
 export const remoteChannelMention = {

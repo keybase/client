@@ -594,6 +594,7 @@ export const notifyChatChatActivityType = {
 export const notifyChatStaleUpdateType = {
   clear: 0,
   newactivity: 1,
+  convupdate: 2,
 }
 
 export const remoteChannelMention = {
@@ -1031,6 +1032,7 @@ export type SignatureInfo = $ReadOnly<{v: Int, s: Bytes, k: Bytes}>
 export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
+  | 2 // CONVUPDATE_2
 
 export type StaticConfig = $ReadOnly<{deletableByDeleteHistory?: ?Array<MessageType>}>
 export type SubteamRenameUpdate = $ReadOnly<{convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>

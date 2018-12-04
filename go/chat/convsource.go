@@ -1187,7 +1187,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
 			chat1.ConversationStaleUpdate{
 				ConvID:     convID,
-				UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
 		})
 	}

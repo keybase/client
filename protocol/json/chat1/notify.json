@@ -441,7 +441,8 @@
       "name": "StaleUpdateType",
       "symbols": [
         "CLEAR_0",
-        "NEWACTIVITY_1"
+        "NEWACTIVITY_1",
+        "CONVUPDATE_2"
       ]
     },
     {

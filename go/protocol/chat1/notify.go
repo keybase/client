@@ -792,6 +792,7 @@ type StaleUpdateType int
 const (
 	StaleUpdateType_CLEAR       StaleUpdateType = 0
 	StaleUpdateType_NEWACTIVITY StaleUpdateType = 1
+	StaleUpdateType_CONVUPDATE  StaleUpdateType = 2
 )
 
 func (o StaleUpdateType) DeepCopy() StaleUpdateType { return o }
@@ -799,11 +800,13 @@ func (o StaleUpdateType) DeepCopy() StaleUpdateType { return o }
 var StaleUpdateTypeMap = map[string]StaleUpdateType{
 	"CLEAR":       0,
 	"NEWACTIVITY": 1,
+	"CONVUPDATE":  2,
 }
 
 var StaleUpdateTypeRevMap = map[StaleUpdateType]string{
 	0: "CLEAR",
 	1: "NEWACTIVITY",
+	2: "CONVUPDATE",
 }
 
 func (e StaleUpdateType) String() string {

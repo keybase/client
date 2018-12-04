@@ -134,7 +134,8 @@ protocol NotifyChat {
 
   enum StaleUpdateType {
     CLEAR_0,
-    NEWACTIVITY_1
+    NEWACTIVITY_1,
+    CONVUPDATE_2
   }
 
   record ConversationStaleUpdate {
