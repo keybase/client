@@ -491,15 +491,16 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 	}
 
 	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
+	memberStatus := query.MemberStatus
 	// Default allowed member statuses
-	if len(query.MemberStatus) == 0 {
-		query.MemberStatus = []chat1.ConversationMemberStatus{
+	if len(memberStatus) == 0 {
+		memberStatus = []chat1.ConversationMemberStatus{
 			chat1.ConversationMemberStatus_ACTIVE,
 			chat1.ConversationMemberStatus_PREVIEW,
 			chat1.ConversationMemberStatus_RESET,
 		}
 	}
-	for _, memberStatus := range query.MemberStatus {
+	for _, memberStatus := range memberStatus {
 		queryMemberStatusMap[memberStatus] = true
 	}
 
@@ -515,7 +516,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 			continue
 		}
 		// Member status check
-		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(query.MemberStatus) > 0 {
+		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(memberStatus) > 0 {
 			continue
 		}
 		// Status check
