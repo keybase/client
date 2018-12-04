@@ -196,11 +196,10 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 		}
 
 		if dismiss {
-			err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id)
-			if err == nil {
-				r.G().Log.CDebugf(ctx, "dismissed badge %s for %s!", badge.Id, badge.Uid)
-			} else {
+			if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
 				r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
+			} else {
+				r.G().Log.CDebugf(ctx, "dismissed badge %s for %s!", badge.Id, badge.Uid)
 			}
 		}
 	}
@@ -236,12 +235,10 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 	go func() {
 		r.teamHandlerBackgroundJob.Lock()
 		defer r.teamHandlerBackgroundJob.Unlock()
-
 		for _, row := range rows {
-			if !row.RemovedResetUsers {
-				continue
-			}
-
+			// Even if this row hasn't set `RemovedResetUsers` attempt a
+			// dismissal in case we erred out on a previous dismiss and are
+			// stuck.
 			if err := r.findAndDismissResetBadges(ctx, cli, row.Name); err != nil {
 				r.G().Log.CDebugf(ctx, "Error during dismissing badges for team %q: %s", row.Name, err)
 			}
