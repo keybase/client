@@ -27,6 +27,39 @@ func EnableAdminFeature(ctx context.Context, runMode kbconst.RunMode, config Con
 	return libkb.IsKeybaseAdmin(session.UID)
 }
 
+// setupDiskBlockCache sets the user's home TLFs on the disk block cache.
+func setupDiskBlockCache(ctx context.Context, config Config, username string) {
+	if config.DiskBlockCache() == nil {
+		return
+	}
+
+	log := config.MakeLogger("")
+	publicHandle, err := getHandleFromFolderName(ctx,
+		config.KBPKI(), config.MDOps(), username, true)
+	if err != nil {
+		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
+			"user's public TLF: %+v", err)
+	} else {
+		err = config.DiskBlockCache().AddHomeTLF(ctx, publicHandle.tlfID)
+		if err != nil {
+			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
+				"for disk block cache: %+v", err)
+		}
+	}
+	privateHandle, err := getHandleFromFolderName(ctx, config.KBPKI(),
+		config.MDOps(), username, false)
+	if err != nil {
+		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
+			"user's private TLF: %+v", err)
+	} else {
+		err = config.DiskBlockCache().AddHomeTLF(ctx, privateHandle.tlfID)
+		if err != nil {
+			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
+				"for disk block cache: %+v", err)
+		}
+	}
+}
+
 // serviceLoggedIn should be called when a new user logs in. It
 // shouldn't be called again until after serviceLoggedOut is called.
 func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
@@ -56,6 +89,9 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to enable disk cache: "+
 			"%+v", err)
 	}
+	// Asynchronously set the TLF IDs for the home folders on the disk block
+	// cache.
+	go setupDiskBlockCache(context.Background(), config, session.Name.String())
 
 	// Launch auth refreshes in the background, in case we are
 	// currently disconnected from one of these servers.
