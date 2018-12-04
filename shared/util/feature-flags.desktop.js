@@ -29,13 +29,7 @@ const ff: FeatureFlags = {
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
   moveOrCopy: true,
-<<<<<<< HEAD
-  peopleAnnouncementsEnabled: true,
   useSimpleMarkdown: true,
-||||||| merged common ancestors
-  useSimpleMarkdown: true,
-=======
->>>>>>> origin/master
   walletsEnabled: true,
 }
 
