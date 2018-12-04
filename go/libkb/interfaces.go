@@ -679,6 +679,7 @@ type Stellar interface {
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
 	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
+	RefreshWalletState(ctx context.Context)
 }
 
 type DeviceEKStorage interface {

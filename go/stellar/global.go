@@ -193,6 +193,12 @@ func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.
 	return SendMiniChatPayments(mctx, s.walletState, payments)
 }
 
+func (s *Stellar) RefreshWalletState(ctx context.Context) {
+	if err := s.walletState.RefreshAll(ctx); err != nil {
+		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
+	}
+}
+
 type hasAcceptedDisclaimerDBEntry struct {
 	Version  int // 1
 	Accepted bool
