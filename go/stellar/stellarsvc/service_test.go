@@ -1017,7 +1017,7 @@ func TestAutoClaimLoop(t *testing.T) {
 
 	var found bool
 	for i := 0; i < 10; i++ {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond * libkb.CITimeMultiplier(tcs[1].G))
 		payment := tcs[1].Backend.txLog.Find(sendRes.KbTxID.String())
 		claim := payment.Summary.Relay().Claim
 		if claim != nil {
@@ -1032,7 +1032,6 @@ func TestAutoClaimLoop(t *testing.T) {
 		t.Fatal("Timed out waiting for auto claim")
 	}
 
-	fmt.Printf("%+v\n", tcs[0].Backend.accounts)
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
 	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
 }
