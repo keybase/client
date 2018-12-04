@@ -41,7 +41,6 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
-	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
@@ -68,7 +67,7 @@ type Service struct {
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
-	walletState          *stellarsvc.WalletState
+	walletState          *stellar.WalletState
 }
 
 type Shutdowner interface {
@@ -92,7 +91,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
-		walletState:      stellarsvc.NewWalletState(g, remote.NewRemoteNet(g)),
+		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 	}
 }
 
@@ -328,6 +327,7 @@ func (d *Service) setupTeams() error {
 
 func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
+	go d.walletState.RefreshAll(context.Background())
 	return nil
 }
 

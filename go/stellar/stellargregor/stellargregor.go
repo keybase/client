@@ -11,17 +11,16 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
-	"github.com/keybase/client/go/stellar/stellarsvc"
 )
 
 type Handler struct {
 	libkb.Contextified
-	walletState *stellarsvc.WalletState
+	walletState *stellar.WalletState
 }
 
 var _ libkb.GregorInBandMessageHandler = (*Handler)(nil)
 
-func New(g *libkb.GlobalContext, walletState *stellarsvc.WalletState) *Handler {
+func New(g *libkb.GlobalContext, walletState *stellar.WalletState) *Handler {
 	return &Handler{
 		Contextified: libkb.NewContextified(g),
 		walletState:  walletState,

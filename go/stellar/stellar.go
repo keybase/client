@@ -609,7 +609,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
+func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
 	// look up sender account
 	sender, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
 	if err != nil {
@@ -623,11 +623,11 @@ func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments 
 	prepared := make(chan *miniPrepared)
 
 	// make an autoincrementing seqnoprovider that is goroutine safe
-	sp := NewFastSeqnoProvider(m, remoter)
+	sp := NewFastSeqnoProvider(m, walletState)
 
 	for _, payment := range payments {
 		go func(p libkb.MiniChatPayment) {
-			prepared <- prepareMiniChatPayment(m, remoter, sp, senderSeed, p)
+			prepared <- prepareMiniChatPayment(m, walletState, sp, senderSeed, p)
 		}(payment)
 	}
 
@@ -648,7 +648,7 @@ func SendMiniChatPayments(m libkb.MetaContext, remoter remote.Remoter, payments 
 		} else {
 			// submit the transaction
 			m.CDebugf("submitting payment seqno %d", preparedList[i].Seqno)
-			submitRes, err := remoter.SubmitPayment(m.Ctx(), preparedList[i].Post)
+			submitRes, err := walletState.SubmitPayment(m.Ctx(), preparedList[i].Post)
 			if err != nil {
 				mcpResult.Error = err
 			} else {
@@ -688,8 +688,16 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 		return result
 	}
 
+	result.Post = stellar1.PaymentDirectPost{
+		FromDeviceID: m.G().ActiveDevice.DeviceID(),
+		To:           &recipient.User.UV,
+		QuickReturn:  true,
+	}
+
 	xlmAmount := payment.Amount
 	if payment.Currency != "" && payment.Currency != "XLM" {
+		result.Post.DisplayAmount = payment.Amount
+		result.Post.DisplayCurrency = payment.Currency
 		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
 		if err != nil {
 			result.Error = err
@@ -701,14 +709,6 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 			result.Error = err
 			return result
 		}
-	}
-
-	result.Post = stellar1.PaymentDirectPost{
-		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
-		To:              &recipient.User.UV,
-		DisplayAmount:   payment.Amount,
-		DisplayCurrency: payment.Currency,
-		QuickReturn:     true,
 	}
 
 	var signResult stellarnet.SignResult

@@ -1,4 +1,4 @@
-package stellarsvc
+package stellar
 
 import (
 	"context"
@@ -72,6 +72,7 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 	var lastErr error
 	for _, account := range bundle.Accounts {
 		a := w.accountStateBuild(account.AccountID)
+		w.G().Log.CInfof(ctx, "Refresh %s", account.AccountID)
 		if err := a.Refresh(ctx); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
@@ -82,7 +83,7 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 		return lastErr
 	}
 
-	w.G().Log.CDebugf(ctx, "RefreshAll success")
+	w.G().Log.CInfof(ctx, "RefreshAll success")
 
 	return nil
 }
@@ -105,6 +106,17 @@ func (w *WalletState) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 		return w.Remoter.AccountSeqno(ctx, accountID)
 	}
 	return a.AccountSeqno(ctx)
+}
+
+// AccountSeqnoAndBump gets the current seqno for an account and increments
+// the stored value.
+func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		w.G().Log.CInfof(ctx, "WalletState.AccountSeqnoAndBump: using remote, no accountState for for %s", accountID)
+		return w.Remoter.AccountSeqno(ctx, accountID)
+	}
+	return a.AccountSeqnoAndBump(ctx)
 }
 
 // AccountState holds the current data for a stellar account.
@@ -142,4 +154,12 @@ func (a *AccountState) AccountSeqno(ctx context.Context) (uint64, error) {
 	a.RLock()
 	defer a.RUnlock()
 	return a.seqno, nil
+}
+
+func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) {
+	a.Lock()
+	defer a.Unlock()
+	result := a.seqno
+	a.seqno++
+	return result, nil
 }

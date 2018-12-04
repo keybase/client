@@ -19,8 +19,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar"
-	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -186,10 +184,9 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			}
 			minis[i] = mini
 		}
-		remote := remote.NewRemoteNet(t.G())
 		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 
-		results, err := stellar.SendMiniChatPayments(m, remote, minis)
+		results, err := t.G().GetStellar().SendMiniChatPayments(m, minis)
 		if err != nil {
 			return "", err
 		}
