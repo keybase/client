@@ -348,6 +348,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	ctx := context.Background()
 	d.tryLogin(ctx)
 	d.chatOutboxPurgeCheck()
+	d.minuteChecks()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.startupGregor()
@@ -656,6 +657,34 @@ func (d *Service) chatOutboxPurgeCheck() {
 				d.ChatG().ActivityNotifier.Activity(context.Background(), gregorUID, chat1.TopicType_NONE,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
+		}
+	}()
+}
+
+func (d *Service) minuteChecks() {
+	ticker := libkb.NewBgTicker(1 * time.Minute)
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping minuteChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		d.walletState.RefreshAll(m.Ctx())
+		for {
+			<-ticker.C
+			m.CDebugf("+ minute check loop")
+
+			// In theory, this periodic refresh shouldn't be necessary,
+			// but as the WalletState code is new, this is a nice insurance
+			// policy.  The gregor payment notifications should
+			// keep the WalletState refreshed properly.
+			m.CDebugf("| refreshing wallet state")
+			if err := d.walletState.RefreshAll(m.Ctx()); err != nil {
+				m.CDebugf("service walletState.RefreshAll error: %s", err)
+			}
+
+			m.CDebugf("- minute check loop")
 		}
 	}()
 }

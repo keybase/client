@@ -3,6 +3,8 @@ package stellar
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -94,7 +96,7 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 	var lastErr error
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
-		w.G().Log.CInfof(ctx, "Refresh %s", account.AccountID)
+		w.G().Log.CDebugf(ctx, "Refresh %s", account.AccountID)
 		if err := a.Refresh(ctx); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
@@ -105,13 +107,15 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 		return lastErr
 	}
 
-	w.G().Log.CInfof(ctx, "RefreshAll success")
+	w.G().Log.CDebugf(ctx, "RefreshAll success")
+	w.DumpToLog(ctx)
 
 	return nil
 }
 
 // Refresh gets all the data from the server for an account.
 func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID) error {
+	defer w.DumpToLog(ctx)
 	w.G().Log.CDebugf(ctx, "WalletState.Refresh: %s", accountID)
 	a, ok := w.accountState(accountID)
 	if !ok {
@@ -139,6 +143,24 @@ func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar
 		return 0, err
 	}
 	return a.AccountSeqnoAndBump(ctx)
+}
+
+// DumpToLog outputs a summary of WalletState to the debug log.
+func (w *WalletState) DumpToLog(ctx context.Context) {
+	w.G().Log.CDebugf(ctx, w.String())
+}
+
+// String returns a string representation of WalletState suitable for debug
+// logging.
+func (w *WalletState) String() string {
+	w.Lock()
+	defer w.Unlock()
+	var pieces []string
+	for _, acctState := range w.accounts {
+		pieces = append(pieces, acctState.String())
+	}
+
+	return fmt.Sprintf("WalletState (# accts: %d): %s", len(w.accounts), strings.Join(pieces, ", "))
 }
 
 // AccountState holds the current data for a stellar account.
@@ -172,16 +194,28 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 	return err
 }
 
+// AccountSeqno returns the seqno that has already been fetched for
+// this account.
 func (a *AccountState) AccountSeqno(ctx context.Context) (uint64, error) {
 	a.RLock()
 	defer a.RUnlock()
 	return a.seqno, nil
 }
 
+// AccountSeqnoAndBump returns the seqno that has already been fetched for
+// this account.  It bumps the seqno up by one.
 func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) {
 	a.Lock()
 	defer a.Unlock()
 	result := a.seqno
 	a.seqno++
 	return result, nil
+}
+
+// String returns a small string representation of AccountState suitable for
+// debug logging.
+func (a *AccountState) String() string {
+	a.RLock()
+	defer a.RUnlock()
+	return fmt.Sprintf("%s (seqno: %d)", a.accountID, a.seqno)
 }

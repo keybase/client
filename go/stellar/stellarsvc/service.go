@@ -22,19 +22,17 @@ type UISource interface {
 
 type Server struct {
 	libkb.Contextified
-	uiSource UISource
-	remoter  remote.Remoter
-	// wallet           *stellar.WalletState
+	uiSource    UISource
+	remoter     remote.Remoter
+	walletState *stellar.WalletState
 }
 
-func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
-	// w := stellar.NewWalletState(g, remoter)
-	// go w.RefreshAll(context.Background())
+func New(g *libkb.GlobalContext, uiSource UISource, walletState *stellar.WalletState) *Server {
 	return &Server{
 		Contextified: libkb.NewContextified(g),
 		uiSource:     uiSource,
-		remoter:      remoter,
-		// wallet:           w,
+		remoter:      walletState,
+		walletState:  walletState,
 	}
 }
 
@@ -206,7 +204,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := s.mctx(ctx).WithUIs(uis)
 
-	sendRes, err := stellar.SendPaymentCLI(m, s.remoter, stellar.SendPaymentArg{
+	sendRes, err := stellar.SendPaymentCLI(m, s.walletState, stellar.SendPaymentArg{
 		From:           arg.FromAccountID,
 		To:             stellarcommon.RecipientInput(arg.Recipient),
 		Amount:         arg.Amount,
@@ -246,7 +244,7 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into, nil, nil)
+	return stellar.Claim(ctx, s.G(), s.walletState, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {

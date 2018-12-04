@@ -488,7 +488,7 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 	}
 	relay := details.Summary.Relay()
 	dir := stellar1.RelayDirection_YANK
-	return stellar.Claim(ctx, s.G(), s.remoter, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
+	return stellar.Claim(ctx, s.G(), s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
 }
 
 type balanceList []stellar1.Balance

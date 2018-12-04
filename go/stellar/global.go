@@ -132,7 +132,7 @@ func (s *Stellar) KickAutoClaimRunner(mctx libkb.MetaContext, trigger gregor.Msg
 	s.autoClaimRunnerLock.Lock()
 	defer s.autoClaimRunnerLock.Unlock()
 	if s.autoClaimRunner == nil {
-		s.autoClaimRunner = NewAutoClaimRunner(s.remoter)
+		s.autoClaimRunner = NewAutoClaimRunner(s.walletState)
 	}
 	s.autoClaimRunner.Kick(mctx, trigger)
 }
