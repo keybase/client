@@ -14,7 +14,6 @@ import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/expl
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
-import {formatTimeForMessages} from '../../../../util/timestamp'
 
 // set this to true to play with messages coming in on a timer
 const injectMessages = false && !__STORYSHOT__
@@ -181,7 +180,6 @@ const provider = Sb.createPropProviderWithCommon({
   WrapperMessage: p => {
     const message = ordinalToMessage(p.ordinal)
     const previous = ordinalToMessage(p.previous)
-    const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
     return {
       conversationIDKey: message.conversationIDKey,
       exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
@@ -198,7 +196,7 @@ const provider = Sb.createPropProviderWithCommon({
       previous,
       shouldShowPopup: false,
       showSendIndicator: false,
-      showUsername: false, // !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
+      showUsername: false,
     }
   },
 })
