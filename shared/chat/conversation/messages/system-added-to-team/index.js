@@ -108,8 +108,8 @@ const YouAddedToTeam = (props: Props) => {
               size={14}
             />
           </Kb.Text>
-          <ManageComponent {...props} />
         </Kb.Text>
+        <ManageComponent {...props} />
       </Kb.Box>
     </UserNotice>
   )

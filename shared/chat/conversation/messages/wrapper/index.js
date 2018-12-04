@@ -138,9 +138,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             Cancel
           </Kb.Text>
         )}
-        {!!this.props.onCancel && (!!this.props.onEdit || !!this.props.onRetry) && (
-          <Kb.Text type="BodySmall"> or </Kb.Text>
-        )}
+        {!!this.props.onCancel &&
+          (!!this.props.onEdit || !!this.props.onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
         {!!this.props.onEdit && (
           <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onEdit}>
             Edit
@@ -454,13 +453,12 @@ const styles = Styles.styleSheetCreate({
   authorContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      paddingTop: Styles.globalMargins.tiny,
+      height: Styles.globalMargins.mediumLarge,
     },
   }),
   avatar: Styles.platformStyles({
     isElectron: {
       marginLeft: Styles.globalMargins.small,
-      marginTop: -Styles.globalMargins.tiny,
     },
     isMobile: {
       ...fast,
@@ -480,7 +478,7 @@ const styles = Styles.styleSheetCreate({
   }),
   contentUnderAuthorContainer: Styles.platformStyles({
     isElectron: {
-      marginTop: -Styles.globalMargins.tiny,
+      marginTop: -18,
       paddingLeft:
         // Space for below the avatar
         Styles.globalMargins.tiny + // right margin
@@ -513,7 +511,14 @@ const styles = Styles.styleSheetCreate({
     isMobile: {height: 21},
   }),
   menuButtonsWithAuthor: {marginTop: -16},
-  orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
+  orangeLine: {
+    // don't push down content due to orange line
+    backgroundColor: Styles.globalColors.orange,
+    height: 1,
+    position: 'absolute',
+    top: 4,
+    width: '100%',
+  },
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
   }),
@@ -522,7 +527,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       pointerEvents: 'none',
       position: 'absolute',
-      right: 0,
+      right: 12,
     },
   }),
 })
