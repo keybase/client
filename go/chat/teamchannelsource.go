@@ -26,27 +26,33 @@ func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
 	}
 }
 
-func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
-	teamID chat1.TLFID, topicType chat1.TopicType) (convs []chat1.ConversationLocal, err error) {
-	defer c.Trace(ctx, func() error { return err }, "GetChannelsFull")()
-
-	info, err := CreateNameInfoSource(ctx, c.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, teamID, true /* public */)
-	if err != nil {
-		return nil, err
-	}
-	inbox, _, err := c.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		true /* useLocalData */, nil /* maxLocalize */, &chat1.GetInboxLocalQuery{
-			Name: &chat1.NameQuery{
-				Name:        info.CanonicalName,
-				MembersType: chat1.ConversationMembersType_TEAM,
-			},
-			TopicType:    &topicType,
-			MemberStatus: chat1.AllConversationMemberStatuses(),
+func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1.UID,
+	teamID chat1.TLFID, topicType chat1.TopicType) (types.Inbox, error) {
+	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, true, /* useLocalData */
+		&chat1.GetInboxQuery{
+			TlfID:            &teamID,
+			TopicType:        &topicType,
+			SummarizeMaxMsgs: false,
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
 		}, nil /* pagination */)
+	return inbox, err
+}
+
+func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
+	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
+	defer c.Trace(ctx, func() error { return err }, "GetChannelsFull", res)()
+
+	inbox, err := c.getTLFConversations(ctx, uid, teamID, topicType)
 	if err != nil {
 		return nil, err
 	}
-	convs = inbox.Convs
+	convs, _, err := c.G().InboxSource.Localize(ctx, uid, inbox.ConvsUnverified,
+		types.ConversationLocalizerBlocking)
+	if err != nil {
+		c.Debug(ctx, "GetChannelsFull: failed to localize conversations: %s", err.Error())
+		return nil, err
+	}
+	convs = append(convs, inbox.Convs...)
 	sort.Sort(utils.ConvLocalByTopicName(convs))
 	return convs, nil
 }
@@ -78,13 +84,7 @@ func (c *TeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor
 		})
 	}
 
-	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, true, /* useLocalData */
-		&chat1.GetInboxQuery{
-			TlfID:            &teamID,
-			TopicType:        &topicType,
-			SummarizeMaxMsgs: false,
-			MemberStatus:     chat1.AllConversationMemberStatuses(),
-		}, nil /* pagination */)
+	inbox, err := c.getTLFConversations(ctx, uid, teamID, topicType)
 	if err != nil {
 		return nil, err
 	}
