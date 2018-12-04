@@ -57,11 +57,11 @@ func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 
 type HackerNewsServiceType struct{ libkb.BaseServiceType }
 
-func (t HackerNewsServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *HackerNewsServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 var hackerNewsUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{2,15})$`)
 
-func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
+func (t *HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	if !hackerNewsUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
@@ -69,29 +69,29 @@ func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	return s, nil
 }
 
-func (t HackerNewsServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (string, error) {
+func (t *HackerNewsServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
 }
 
-func (t HackerNewsServiceType) GetPrompt() string {
+func (t *HackerNewsServiceType) GetPrompt() string {
 	return "Your username on HackerNews (**case-sensitive**)"
 }
 
-func (t HackerNewsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *HackerNewsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t HackerNewsServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *HackerNewsServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please edit your HackerNews profile to contain the
 following text. Click here: https://news.ycombinator.com/user?id=` + un)
 }
 
-func (t HackerNewsServiceType) DisplayName(un string) string { return "HackerNews" }
-func (t HackerNewsServiceType) GetTypeName() string          { return "hackernews" }
+func (t *HackerNewsServiceType) DisplayName(un string) string { return "HackerNews" }
+func (t *HackerNewsServiceType) GetTypeName() string          { return "hackernews" }
 
-func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning = libkb.FmtMarkup(`<p>We couldn't find a posted proof...<strong>yet</strong></p>`)
 	if tryNumber < 3 {
 		warning.Append(`<p>HackerNews's API is slow to update, so be patient...try again?</p>`)
@@ -101,13 +101,13 @@ func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase
 	}
 	return
 }
-func (t HackerNewsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+func (t *HackerNewsServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofForURL(text, id)
 }
 
-func (t HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string) (markup *libkb.Markup, err error) {
+func (t *HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string) (markup *libkb.Markup, err error) {
 	if _, e := CheckKarma(mctx, un); e != nil {
 		markup = libkb.FmtMarkup(`
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
@@ -121,6 +121,6 @@ func (t HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string) 
 	return
 }
 
-func (t HackerNewsServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *HackerNewsServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &HackerNewsChecker{l}
 }

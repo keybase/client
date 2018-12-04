@@ -78,8 +78,7 @@ const styles = Styles.styleSheetCreate({
       left: Styles.globalMargins.small,
     },
     isMobile: {
-      top: Styles.globalMargins.tiny,
-      left: Styles.globalMargins.tiny,
+      left: Styles.globalMargins.xtiny,
     },
   }),
   backButtonText: {

@@ -73,6 +73,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
                 onShowProfile: Sb.action('onShowProfile'),
                 selectableText: false,
                 unread: false,
+                issuerDescription: '',
               })
             )
           })
@@ -114,6 +115,16 @@ const load = () => {
   ))
   addConfigs(stories, 'Account', config => (
     <Transaction {...config} counterparty="Second account" counterpartyType="otherAccount" />
+  ))
+  addConfigs(stories, 'Non-native asset', config => (
+    <Transaction
+      {...config}
+      counterparty="G43289XXXXX34OPL"
+      counterpartyType="stellarPublicKey"
+      issuerDescription="example.com"
+      amountXLM="53.1688643 HUGS"
+      amountUser=""
+    />
   ))
 }
 

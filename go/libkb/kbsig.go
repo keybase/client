@@ -861,9 +861,9 @@ func StellarProof(m MetaContext, me *User, walletAddress stellar1.AccountID,
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
 func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.AccountID,
-	stellarSigner stellar1.SecretKey, signer GenericKey) (JSONPayload, error) {
+	stellarSigner stellar1.SecretKey, deviceSigner GenericKey) (JSONPayload, error) {
 	// Make reverse sig
-	jwRev, err := StellarProof(m, me, walletAddress, signer)
+	jwRev, err := StellarProof(m, me, walletAddress, deviceSigner)
 	if err != nil {
 		return nil, err
 	}
@@ -885,7 +885,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	}
 	sig, sigID, linkID, err := MakeSig(
 		m,
-		signer,
+		deviceSigner,
 		LinkTypeWalletStellar,
 		innerJSON,
 		SigHasRevokes(false),
@@ -905,7 +905,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	res := make(JSONPayload)
 	res["sig"] = sig
 	res["sig_inner"] = string(innerJSON)
-	res["signing_kid"] = signer.GetKID().String()
+	res["signing_kid"] = deviceSigner.GetKID().String()
 	res["public_key"] = stellarSignerKey.GetKID().String()
 	res["type"] = LinkTypeWalletStellar
 	return res, nil

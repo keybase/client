@@ -15,6 +15,7 @@ package libkb
 import (
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -585,13 +586,14 @@ type ServiceType interface {
 	IsDevelOnly() bool
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs() bool
+	DisplayPriority() int
 }
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
-	GetDisplayPriority(n string) int
 	ListServicesThatAcceptNewProofs() []string
 }
 
@@ -660,6 +662,7 @@ type Stellar interface {
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
+	GetMigrationLock() *sync.Mutex
 }
 
 type DeviceEKStorage interface {

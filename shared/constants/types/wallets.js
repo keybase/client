@@ -121,7 +121,7 @@ export type _BuiltRequest = {
 export type StatusSimplified =
   | 'none'
   | 'pending'
-  | 'cancelable'
+  | 'claimable'
   | 'canceled'
   | 'completed'
   | 'error'
@@ -147,12 +147,16 @@ export type _PaymentCommon = {|
   statusSimplified: StatusSimplified,
   statusDescription: string,
   statusDetail: string,
+  showCancel: boolean,
   target: string,
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
   worth: string,
   worthCurrency: string,
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?AccountID,
 |}
 
 export type _PaymentResult = {|

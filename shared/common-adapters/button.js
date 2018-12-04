@@ -105,12 +105,14 @@ class Button extends React.Component<Props> {
           ])}
         >
           {!this.props.waiting && this.props.children}
-          <Text
-            type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-            style={collapseStyles([labelStyle, this.props.labelStyle])}
-          >
-            {this.props.label}
-          </Text>
+          {!!this.props.label && (
+            <Text
+              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+              style={collapseStyles([labelStyle, this.props.labelStyle])}
+            >
+              {this.props.label}
+            </Text>
+          )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>

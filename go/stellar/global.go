@@ -47,6 +47,8 @@ type Stellar struct {
 
 	buildPaymentSlot *slotctx.PrioritySlot
 
+	migrationLock sync.Mutex
+
 	badger *badges.Badger
 }
 
@@ -97,6 +99,10 @@ func (s *Stellar) deleteDisclaimer() {
 	s.disclaimerLock.Lock()
 	defer s.disclaimerLock.Unlock()
 	s.disclaimerAccepted = nil
+}
+
+func (s *Stellar) GetMigrationLock() *sync.Mutex {
+	return &s.migrationLock
 }
 
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {

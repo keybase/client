@@ -27,6 +27,7 @@ const PoweredByStellar = () => (
 
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
+    {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header onBack={Styles.isMobile ? props.onClose : null} />
       {props.children}
@@ -49,6 +50,7 @@ const styles = Styles.styleSheetCreate({
       maxHeight: '100%',
     },
   }),
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
   textContainer: Styles.platformStyles({
     isElectron: {
       position: 'absolute',

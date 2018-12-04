@@ -15,7 +15,7 @@ export type PathToInfo = {
 
 type Props = {
   pathToInfo: PathToInfo,
-  onClose: () => void,
+  onCancel: () => void,
   onSubmit: (pathToInfo: PathToInfo) => void,
 }
 type State = {
@@ -135,7 +135,7 @@ class GetTitles extends React.Component<Props, State> {
             selectTextOnFocus={true}
           />
           <Kb.ButtonBar style={{flexShrink: 0}}>
-            <Kb.Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
+            <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
             {this._isLast() ? (
               <Kb.WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
             ) : (

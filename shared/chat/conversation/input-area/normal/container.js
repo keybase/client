@@ -45,6 +45,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isExplodingNew: Constants.getIsExplodingNew(state),
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
+    showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -128,6 +129,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     }
     setUnsentText(stateProps.conversationIDKey, text)
   },
+  showWalletsIcon: stateProps.showWalletsIcon,
   typing: stateProps.typing,
 })
 
