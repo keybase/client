@@ -38,7 +38,7 @@ class UnfurlImage extends React.Component<Props> {
     )
   }
   _getOrient() {
-    return this.props.height > this.props.width ? 'height' : 'width'
+    return this.props.height >= this.props.width ? 'height' : 'width'
   }
 
   render() {

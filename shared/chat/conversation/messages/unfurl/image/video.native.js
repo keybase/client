@@ -5,7 +5,6 @@ import {NativeWebView} from '../../../../../common-adapters/native-wrappers.nati
 import type {Props} from './video.types'
 
 export class Video extends React.Component<Props> {
-  webview: any
   render() {
     const source = {
       uri: `${this.props.url}&orient=${this.props.orient}`,
@@ -20,6 +19,7 @@ export class Video extends React.Component<Props> {
           scrollEnabled={false}
           onLoadEnd={() => {}}
           automaticallyAdjustContentInsets={false}
+          mediaPlaybackRequiresUserAction={false}
         />
       </Kb.Box2>
     )

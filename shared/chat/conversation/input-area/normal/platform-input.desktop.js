@@ -322,7 +322,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
           {this.state.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
           )}
-          {flags.walletsEnabled && <WalletsIcon size={16} style={styles.walletsIcon} />}
+          {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
           <Kb.Icon
             color={this.state.emojiPickerOpen ? Styles.globalColors.black_75 : null}
             onClick={this._emojiPickerToggle}

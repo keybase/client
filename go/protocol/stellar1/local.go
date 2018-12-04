@@ -184,6 +184,8 @@ type PaymentLocal struct {
 	WorthCurrency        string          `codec:"worthCurrency" json:"worthCurrency"`
 	CurrentWorth         string          `codec:"currentWorth" json:"currentWorth"`
 	CurrentWorthCurrency string          `codec:"currentWorthCurrency" json:"currentWorthCurrency"`
+	IssuerDescription    string          `codec:"issuerDescription" json:"issuerDescription"`
+	IssuerAccountID      *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType             ParticipantType `codec:"fromType" json:"fromType"`
 	ToType               ParticipantType `codec:"toType" json:"toType"`
 	FromAccountID        AccountID       `codec:"fromAccountID" json:"fromAccountID"`
@@ -213,11 +215,19 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		WorthCurrency:        o.WorthCurrency,
 		CurrentWorth:         o.CurrentWorth,
 		CurrentWorthCurrency: o.CurrentWorthCurrency,
-		FromType:             o.FromType.DeepCopy(),
-		ToType:               o.ToType.DeepCopy(),
-		FromAccountID:        o.FromAccountID.DeepCopy(),
-		FromAccountName:      o.FromAccountName,
-		FromUsername:         o.FromUsername,
+		IssuerDescription:    o.IssuerDescription,
+		IssuerAccountID: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.IssuerAccountID),
+		FromType:        o.FromType.DeepCopy(),
+		ToType:          o.ToType.DeepCopy(),
+		FromAccountID:   o.FromAccountID.DeepCopy(),
+		FromAccountName: o.FromAccountName,
+		FromUsername:    o.FromUsername,
 		ToAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
@@ -309,6 +319,8 @@ type PaymentDetailsLocal struct {
 	WorthCurrency        string          `codec:"worthCurrency" json:"worthCurrency"`
 	CurrentWorth         string          `codec:"currentWorth" json:"currentWorth"`
 	CurrentWorthCurrency string          `codec:"currentWorthCurrency" json:"currentWorthCurrency"`
+	IssuerDescription    string          `codec:"issuerDescription" json:"issuerDescription"`
+	IssuerAccountID      *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType             ParticipantType `codec:"fromType" json:"fromType"`
 	ToType               ParticipantType `codec:"toType" json:"toType"`
 	FromAccountID        AccountID       `codec:"fromAccountID" json:"fromAccountID"`
@@ -341,11 +353,19 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		WorthCurrency:        o.WorthCurrency,
 		CurrentWorth:         o.CurrentWorth,
 		CurrentWorthCurrency: o.CurrentWorthCurrency,
-		FromType:             o.FromType.DeepCopy(),
-		ToType:               o.ToType.DeepCopy(),
-		FromAccountID:        o.FromAccountID.DeepCopy(),
-		FromAccountName:      o.FromAccountName,
-		FromUsername:         o.FromUsername,
+		IssuerDescription:    o.IssuerDescription,
+		IssuerAccountID: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.IssuerAccountID),
+		FromType:        o.FromType.DeepCopy(),
+		ToType:          o.ToType.DeepCopy(),
+		FromAccountID:   o.FromAccountID.DeepCopy(),
+		FromAccountName: o.FromAccountName,
+		FromUsername:    o.FromUsername,
 		ToAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
@@ -1024,7 +1044,7 @@ type LocalInterface interface {
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
-	WalletDumpLocal(context.Context) (Bundle, error)
+	WalletDumpLocal(context.Context) (BundleRestricted, error)
 	WalletGetAccountsCLILocal(context.Context) ([]OwnAccountCLILocal, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
@@ -1961,7 +1981,7 @@ func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
 	return
 }
 
-func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
+func (c LocalClient) WalletDumpLocal(ctx context.Context) (res BundleRestricted, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res)
 	return
 }

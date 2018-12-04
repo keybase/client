@@ -1986,11 +1986,11 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	}
 	convID := chat1.ConversationID(bConvID)
 	mp := NewMobilePush(h.G())
-	mbu, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
+	msg, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
 	if err != nil {
 		return res, err
 	}
-	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, mbu); err != nil {
+	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, msg); err != nil {
 		return res, err
 	}
 	if arg.ShouldAck {

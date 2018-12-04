@@ -144,3 +144,31 @@ Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains
 ### Updating `electron`
 
 We host the electron binaries used for our build process in keybase.pub. If you update versions copy files from https://github.com/electron/electron/releases/ to https://keybase.pub/kbelectron/electron-download/v{version}. Make sure to get the SHASUM256.txt file also. This only affects the build machines
+
+## Storybook
+
+The app uses [storybook](https://storybook.js.org/) snapshots. If you make a change that changes the html output of a story, tests will catch the difference.
+
+To update the stories, first determine which stories changed. Run the tests `yarn test Storyshots` and look for lines containing:
+
+```
+Received value does not match stored snapshot
+# for example
+Received value does not match stored snapshot "Storyshots Wallets/Transaction Account (receiverOnly) 1".
+```
+
+```
+yarn test Storyshots 2>&1 | grep "Received value does not match stored snapshot"
+```
+
+Run the local storybook server. Verify that the affected stories look correct.
+
+```
+yarn storybook
+```
+
+To update the snapshot file run:
+
+```
+yarn test -u Storyshots
+```
