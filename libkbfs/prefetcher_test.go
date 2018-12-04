@@ -1508,7 +1508,7 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Cancel the prefetch for block 'a'.")
-	q.Prefetcher().CancelPrefetch(aPtr.ID)
+	q.Prefetcher().CancelPrefetch(aPtr)
 	// Notify sync channel for the cancelation.
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1622,7 +1622,7 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Cancel the prefetch for the root block.")
-	q.Prefetcher().CancelPrefetch(rootPtr.ID)
+	q.Prefetcher().CancelPrefetch(rootPtr)
 	// Notify sync channel for the cancelation.
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1856,4 +1856,192 @@ outer:
 		FinishedPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(), abPtr, ab,
 		FinishedPrefetch, TransientEntry)
+}
+
+func TestPrefetcherWithDedupBlocks(t *testing.T) {
+	t.Log("Test how the prefetcher works with block IDs that " +
+		"have multiple refs.")
+
+	cache, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
+	defer shutdownPrefetcherTest(q)
+	ctx := context.Background()
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a, b}, where a and b are refs to the same block ID.")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	childB := root.Children["a"]
+	bNonce, err := kbfsblock.MakeRefNonce()
+	require.NoError(t, err)
+	childB.RefNonce = bNonce
+	root.Children["b"] = childB
+	bPtr := childB.BlockPointer
+
+	aBlock := &FileBlock{}
+
+	encRoot, serverHalfRoot :=
+		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
+	encA, serverHalfA := setupRealBlockForDiskCache(t, aPtr, aBlock, dbcConfig)
+
+	err = cache.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	err = cache.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
+	require.NoError(t, err)
+
+	_, _ = bg.setBlockToReturn(rootPtr, root)
+	_, _ = bg.setBlockToReturn(aPtr, aBlock)
+	_, _ = bg.setBlockToReturn(bPtr, aBlock)
+
+	t.Log("Fetch dir root.")
+	block := &DirBlock{}
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithDeepSync)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Release prefetches of the one unique child pointer.")
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Wait for the prefetch to finish.")
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+
+	t.Log("Ensure that the prefetched blocks are in the cache, " +
+		"and the prefetch statuses are correct.")
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+}
+
+func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
+	t.Log("Test how the prefetcher works with block IDs that " +
+		"have multiple refs.")
+
+	cache, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
+	defer shutdownPrefetcherTest(q)
+	ctx := context.Background()
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: root -> a -> b")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, Dir, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	aBlock := &DirBlock{Children: map[string]DirEntry{
+		"b": makeRandomDirEntry(t, File, 10, "b"),
+	}}
+	bPtr := aBlock.Children["b"].BlockPointer
+	bBlock := &FileBlock{}
+
+	encRoot, serverHalfRoot :=
+		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
+	encA, serverHalfA := setupRealBlockForDiskCache(t, aPtr, aBlock, dbcConfig)
+	encB, serverHalfB := setupRealBlockForDiskCache(t, bPtr, bBlock, dbcConfig)
+
+	err := cache.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	err = cache.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
+	require.NoError(t, err)
+	err = cache.Put(
+		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
+	require.NoError(t, err)
+
+	_, _ = bg.setBlockToReturn(rootPtr, root)
+	_, _ = bg.setBlockToReturn(aPtr, aBlock)
+	_, _ = bg.setBlockToReturn(bPtr, bBlock)
+
+	t.Log("Fetch dir root.")
+	block := &DirBlock{}
+	ch := q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithDeepSync)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Release prefetch of a.")
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Before prefetching the child, update the root block to have a " +
+		"new subdir pointing to the same ID but different nonce.")
+
+	root2Ptr := makeRandomBlockPointer(t)
+	root2 := &DirBlock{Children: map[string]DirEntry{
+		"a2": makeRandomDirEntry(t, Dir, 10, "a2"),
+	}}
+	a2Ptr := root2.Children["a2"].BlockPointer
+	childB2 := aBlock.Children["b"]
+	b2Nonce, err := kbfsblock.MakeRefNonce()
+	require.NoError(t, err)
+	childB2.RefNonce = b2Nonce
+	a2Block := &DirBlock{Children: map[string]DirEntry{
+		"b2": childB2,
+	}}
+	b2Ptr := a2Block.Children["b2"].BlockPointer
+	_, _ = bg.setBlockToReturn(a2Ptr, a2Block)
+	_, _ = bg.setBlockToReturn(b2Ptr, bBlock)
+
+	encRoot2, serverHalfRoot2 :=
+		setupRealBlockForDiskCache(t, root2Ptr, root2, dbcConfig)
+	encA2, serverHalfA2 := setupRealBlockForDiskCache(
+		t, a2Ptr, a2Block, dbcConfig)
+
+	err = cache.Put(
+		ctx, kmd.TlfID(), root2Ptr.ID, encRoot2, serverHalfRoot2,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	err = cache.Put(
+		ctx, kmd.TlfID(), a2Ptr.ID, encA2, serverHalfA2, DiskBlockAnyCache)
+	require.NoError(t, err)
+
+	t.Log("Start prefetch of a2, which adds a parent entry for bPtr.ID.")
+	block2 := &DirBlock{}
+	ch = q.Request(
+		context.Background(), defaultOnDemandRequestPriority, kmd,
+		a2Ptr, block2, TransientEntry, BlockRequestWithDeepSync)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Cancel the original b prefetch")
+	q.Prefetcher().CancelPrefetch(bPtr)
+
+	t.Log("Release all the cancels and prefetches.")
+	close(prefetchSyncCh)
+
+	t.Log("Wait for the prefetch to finish.")
+	waitCh, err := q.Prefetcher().WaitChannelForBlockPrefetch(ctx, a2Ptr)
+	require.NoError(t, err)
+
+	select {
+	case <-waitCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	t.Log("Ensure that the prefetched blocks are in the cache, " +
+		"and the prefetch statuses are correct.")
+	testPrefetcherCheckGet(t, config.BlockCache(), a2Ptr, a2Block,
+		FinishedPrefetch, TransientEntry)
+
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
 }

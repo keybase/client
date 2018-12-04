@@ -3369,7 +3369,7 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 			lifetime, BlockRequestWithPrefetch)
 	}
 	// Cancel any prefetches for the old pointer from the prefetcher.
-	fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr.ID)
+	fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr)
 	return updatedNode
 }
 

@@ -1646,7 +1646,7 @@ type Prefetcher interface {
 		<-chan struct{}, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
-	CancelPrefetch(kbfsblock.ID)
+	CancelPrefetch(BlockPointer)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are

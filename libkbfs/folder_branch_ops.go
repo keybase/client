@@ -1100,7 +1100,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		case <-waitCh:
 		case <-updatedCh:
 			fbo.log.CDebugf(ctx, "The latest merged rev has been updated")
-			fbo.config.BlockOps().Prefetcher().CancelPrefetch(rootPtr.ID)
+			fbo.config.BlockOps().Prefetcher().CancelPrefetch(rootPtr)
 			return
 		case <-fbo.shutdownChan:
 			fbo.log.CDebugf(ctx, "Shutdown, canceling prefetch wait")
@@ -5501,7 +5501,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 
 	// Cancel any block prefetches for unreferenced blocks.
 	for _, ptr := range op.Unrefs() {
-		fbo.config.BlockOps().Prefetcher().CancelPrefetch(ptr.ID)
+		fbo.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
 	}
 
 	var changes []NodeChange

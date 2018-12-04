@@ -5623,7 +5623,7 @@ func (mr *MockPrefetcherMockRecorder) WaitChannelForBlockPrefetch(ctx, ptr inter
 }
 
 // CancelPrefetch mocks base method
-func (m *MockPrefetcher) CancelPrefetch(arg0 kbfsblock.ID) {
+func (m *MockPrefetcher) CancelPrefetch(arg0 BlockPointer) {
 	m.ctrl.Call(m, "CancelPrefetch", arg0)
 }
 
