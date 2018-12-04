@@ -7,6 +7,7 @@ import sharedStories from './shared-stories'
 import desktopStories from './platform-stories.desktop'
 // Load css
 import '../desktop/renderer/style.css'
+import '../chat/conversation/conversation.css'
 import {initDesktopStyles} from '../styles/index.desktop'
 
 const stories = {...sharedStories, ...desktopStories}

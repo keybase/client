@@ -1,108 +1,92 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import UserNotice, {SmallUserNotice} from '../user-notice'
-import {Text, ConnectedUsernames, Box2} from '../../../../common-adapters'
-import {globalColors, globalMargins} from '../../../../styles'
-import {formatTimeForMessages, formatTimeForChat} from '../../../../util/timestamp'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import UserNotice from '../user-notice'
+import {formatTimeForMessages} from '../../../../util/timestamp'
 
-type Props = {
+type Props = {|
+  author: string,
+  authorIsYou: boolean,
   channelname: string,
   isBigTeam: boolean,
-  message: Types.MessageSystemJoined,
   onManageChannels: () => void,
-  onUsernameClicked: (username: string) => void,
   teamname: string,
-  you: string,
-}
+  timestamp: number,
+|}
 
-class Joined extends React.PureComponent<Props> {
-  render() {
-    const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
-    const {author, timestamp} = this.props.message
-    if (author === you) {
-      // Bring more attention to the current user joining
-      return <JoinedUserNotice {...this.props} />
-    }
-    return (
-      <SmallUserNotice
-        avatarUsername={author}
-        onAvatarClicked={() => onUsernameClicked(author)}
-        title={formatTimeForMessages(timestamp)}
-        topLine={
-          <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <ConnectedUsernames
-              inline={true}
-              type="BodySmallSemibold"
-              onUsernameClicked={onUsernameClicked}
-              colorFollowing={true}
-              underline={true}
-              usernames={[author]}
-            />
-            <Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Text>
-          </Box2>
-        }
-        bottomLine={
-          <Text type="BodySmall">
-            joined {isBigTeam ? `#${channelname}` : teamname}
-            {'. '}
-            {author === you && isBigTeam && (
-              <Text title="" onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmall">
-                Manage channel subscriptions.
-              </Text>
-            )}
-          </Text>
-        }
-      />
-    )
-  }
-}
+const Joined = (props: Props) =>
+  // Bring more attention to the current user joining
+  props.authorIsYou ? (
+    <JoinedUserNotice {...props} />
+  ) : (
+    <Kb.Text type="BodySmall">
+      joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
+      {'. '}
+      {props.authorIsYou && props.isBigTeam && (
+        <Kb.Text
+          title=""
+          onClick={props.onManageChannels}
+          style={{color: Styles.globalColors.blue}}
+          type="BodySmall"
+        >
+          Manage channel subscriptions.
+        </Kb.Text>
+      )}
+    </Kb.Text>
+  )
 
-class JoinedUserNotice extends React.PureComponent<Props> {
-  render() {
-    const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
-    const {author, timestamp} = this.props.message
-    return (
-      <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blue4}>
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-          {formatTimeForMessages(timestamp)}
-        </Text>
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-          {you === author ? (
-            'You'
-          ) : (
-            <ConnectedUsernames
-              inline={true}
-              type="BodySmallSemibold"
-              onUsernameClicked={onUsernameClicked}
-              colorFollowing={true}
-              underline={true}
-              usernames={[author]}
-            />
-          )}{' '}
-          joined{' '}
-          {isBigTeam ? (
-            `#${channelname}`
-          ) : (
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-              {teamname}
-            </Text>
-          )}
-          .
-        </Text>
-        {author === you && isBigTeam && (
-          <Text
-            backgroundMode="Announcements"
-            onClick={onManageChannels}
-            style={{color: globalColors.blue}}
-            type="BodySmallSemibold"
-          >
-            Manage channel subscriptions.
-          </Text>
-        )}
-      </UserNotice>
-    )
-  }
-}
+const JoinedUserNotice = (props: Props) => (
+  <UserNotice
+    style={{marginTop: Styles.globalMargins.small}}
+    username={props.author}
+    bgColor={Styles.globalColors.blue4}
+  >
+    <Kb.Text
+      type="BodySmallSemibold"
+      backgroundMode="Announcements"
+      style={{color: Styles.globalColors.black_40}}
+    >
+      {formatTimeForMessages(props.timestamp)}
+    </Kb.Text>
+    <Kb.Text
+      type="BodySmallSemibold"
+      backgroundMode="Announcements"
+      style={{color: Styles.globalColors.black_40}}
+    >
+      {props.authorIsYou ? (
+        'You'
+      ) : (
+        <Kb.ConnectedUsernames
+          inline={true}
+          type="BodySmallSemibold"
+          onUsernameClicked="profile"
+          colorFollowing={true}
+          underline={true}
+          usernames={[props.author]}
+        />
+      )}{' '}
+      joined{' '}
+      {props.isBigTeam ? (
+        `#${props.channelname}`
+      ) : (
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_60}}>
+          {props.teamname}
+        </Kb.Text>
+      )}
+      .
+    </Kb.Text>
+    {props.authorIsYou && props.isBigTeam && (
+      <Kb.Text
+        backgroundMode="Announcements"
+        onClick={props.onManageChannels}
+        style={{color: Styles.globalColors.blue}}
+        type="BodySmallSemibold"
+      >
+        Manage channel subscriptions.
+      </Kb.Text>
+    )}
+  </UserNotice>
+)
 
 export default Joined

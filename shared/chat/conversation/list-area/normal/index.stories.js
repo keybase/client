@@ -14,7 +14,6 @@ import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/expl
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
-import {formatTimeForMessages} from '../../../../util/timestamp'
 
 // set this to true to play with messages coming in on a timer
 const injectMessages = false && !__STORYSHOT__
@@ -148,12 +147,6 @@ const provider = Sb.createPropProviderWithCommon({
     showTeamOffer: false,
     measure: p.measure,
   }),
-  MessageFactory: ({ordinal, previous, measure}) => ({
-    message: ordinalToMessage(ordinal),
-    previous: ordinalToMessage(previous),
-    isEditing: false,
-    measure,
-  }),
   MessagePopupText: p => ({
     attachTo: null,
     author: 'a',
@@ -174,57 +167,38 @@ const provider = Sb.createPropProviderWithCommon({
     visible: false,
     yourMessage: false,
   }),
-  WrapperMessage: p => {
-    const {children, isEditing, measure, message, previous} = p
-    // Want to mimick the timestamp logic in WrapperMessage
-    const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
+  TextMessage: p => {
     return {
-      children,
-      conversationIDKey: message.conversationIDKey,
-      decorate: true,
-      exploded: false,
-      isEditing,
-      measure,
-      message,
-      orangeLineAbove: false,
-      ordinal: message.ordinal,
-      previous,
-      timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
-      type: ['text', 'attachment'].includes(message.type) ? 'wrapper-author' : 'children',
+      isEditing: false,
+      mentionsAt: null,
+      mentionsChannel: null,
+      mentionsChannelName: null,
+      text: p.message.text.stringValue(),
+      type: p.message.errorReason ? 'error' : p.message.submitState === null ? 'sent' : 'pending',
     }
   },
-  WrapperAuthor: p => ({
-    author: p.message.author,
-    conversationIDKey: p.message.conversationIDKey,
-    exploded: false,
-    explodedBy: '',
-    explodesAt: 0,
-    exploding: false,
-    failureDescription: '',
-    includeHeader: false,
-    isBroken: false,
-    isEdited: false,
-    isEditing: false,
-    isExplodingUnreadable: false,
-    isFollowing: false,
-    isRevoked: false,
-    isYou: false,
-    measure: p.measure,
-    message: p.message,
-    messageFailed: false,
-    messageKey: p.message.ordinal,
-    messagePending: false,
-    messageSent: true,
-    onAuthorClick: Sb.action('onAuthorclick'),
-    onCancel: null,
-    onEdit: null,
-    onRetry: null,
-    orangeLineAbove: false,
-    ordinal: p.message.ordinal,
-    timestamp: '',
-    toggleMessageMenu: Sb.action('toggleMessageMenu'),
-    type: p.message.type,
-  }),
+  WrapperMessage: p => {
+    const message = ordinalToMessage(p.ordinal)
+    const previous = ordinalToMessage(p.previous)
+    return {
+      conversationIDKey: message.conversationIDKey,
+      exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
+      failureDescription: '',
+      hasUnfurlPrompts: false,
+      isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
+      measure: null,
+      message: message,
+      onAuthorClick: Sb.action('onAuthorClick'),
+      onCancel: Sb.action('onCancel'),
+      onEdit: Sb.action('onEdit'),
+      onRetry: Sb.action('onRetry'),
+      orangeLineAbove: false,
+      previous,
+      shouldShowPopup: false,
+      showSendIndicator: false,
+      showUsername: false,
+    }
+  },
 })
 
 type Props = {}

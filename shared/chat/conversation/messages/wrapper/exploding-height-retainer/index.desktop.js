@@ -23,7 +23,7 @@ type State = {
   children: ?React.Node,
   height: number,
 }
-class ExplodingHeightRetainer extends React.Component<Props, State> {
+class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
@@ -77,6 +77,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     return (
       <Kb.Box
         style={Styles.collapseStyles([
+          styles.container,
           this.props.style,
           // paddingRight is to compensate for the message menu
           // to make sure we don't rewrap text when showing the animation
@@ -231,6 +232,7 @@ const styles = Styles.styleSheetCreate({
     right: -1 * (maxFlameWidth + flameOffset),
     width: maxFlameWidth + flameOffset,
   },
+  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
 })
 
 export default ExplodingHeightRetainer
