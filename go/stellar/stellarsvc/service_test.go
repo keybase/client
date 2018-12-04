@@ -713,7 +713,7 @@ func testRelayReset(t *testing.T, yank bool) {
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
 
-	tcs[0].Srv.wallet.RefreshAll(context.Background())
+	// tcs[0].Srv.wallet.RefreshAll(context.Background())
 
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -1335,8 +1335,9 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 			Backend: bem,
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
-		tc2.Srv = New(tc.G, newTestUISource(), rcm)
-		stellar.ServiceInit(tc.G, rcm, nil)
+		ws := stellar.NewWalletState(tc.G, rcm)
+		tc2.Srv = New(tc.G, newTestUISource(), ws)
+		stellar.ServiceInit(tc.G, ws, nil)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

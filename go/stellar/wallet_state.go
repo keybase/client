@@ -47,19 +47,41 @@ func (w *WalletState) accountState(accountID stellar1.AccountID) (*AccountState,
 // accountStateBuild returns the AccountState object for an accountID.
 // If it doesn't exist in `accounts`, it will make an empty one and
 // add it to `accounts` before returning it.
-func (w *WalletState) accountStateBuild(accountID stellar1.AccountID) *AccountState {
+func (w *WalletState) accountStateBuild(accountID stellar1.AccountID) (account *AccountState, built bool) {
 	w.Lock()
 	defer w.Unlock()
 
 	a, ok := w.accounts[accountID]
 	if ok {
-		return a
+		return a, false
 	}
 
 	a = newAccountState(accountID, w.Remoter)
 	w.accounts[accountID] = a
 
-	return a
+	return a, true
+}
+
+// accountStateRefresh returns the AccountState object for an accountID.
+// If it doesn't exist in `accounts`, it will make an empty one, add
+// it to `accounts`, and refresh the data in it before returning.
+func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar1.AccountID) (*AccountState, error) {
+	w.Lock()
+	defer w.Unlock()
+
+	a, ok := w.accounts[accountID]
+	if ok {
+		return a, nil
+	}
+
+	a = newAccountState(accountID, w.Remoter)
+	if err := a.Refresh(ctx); err != nil {
+		w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", accountID, err)
+		return nil, err
+	}
+	w.accounts[accountID] = a
+
+	return a, nil
 }
 
 // RefreshAll refreshes all the accounts.
@@ -71,7 +93,7 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 
 	var lastErr error
 	for _, account := range bundle.Accounts {
-		a := w.accountStateBuild(account.AccountID)
+		a, _ := w.accountStateBuild(account.AccountID)
 		w.G().Log.CInfof(ctx, "Refresh %s", account.AccountID)
 		if err := a.Refresh(ctx); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
@@ -101,20 +123,20 @@ func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID)
 // AccountSeqno is an override of remoter's AccountSeqno that uses
 // the stored value.
 func (w *WalletState) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
-	a, ok := w.accountState(accountID)
-	if !ok {
-		return w.Remoter.AccountSeqno(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID)
+	if err != nil {
+		return 0, err
 	}
+
 	return a.AccountSeqno(ctx)
 }
 
 // AccountSeqnoAndBump gets the current seqno for an account and increments
 // the stored value.
 func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
-	a, ok := w.accountState(accountID)
-	if !ok {
-		w.G().Log.CInfof(ctx, "WalletState.AccountSeqnoAndBump: using remote, no accountState for for %s", accountID)
-		return w.Remoter.AccountSeqno(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID)
+	if err != nil {
+		return 0, err
 	}
 	return a.AccountSeqnoAndBump(ctx)
 }
