@@ -107,10 +107,22 @@ func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResul
 	pc := make([]*LinkCheckResult, len(i.ProofChecks))
 	copy(pc, i.ProofChecks)
 	proofServices := i.G().GetProofServices()
+	serviceTypes := map[string]int{}
+	for _, lcr := range pc {
+		key := lcr.link.DisplayPriorityKey()
+		if _, ok := serviceTypes[key]; !ok {
+			st := proofServices.GetServiceType(key)
+			displayPriority := 0
+			if st != nil {
+				displayPriority = st.DisplayPriority()
+			}
+			serviceTypes[key] = displayPriority
+		}
+	}
 	sort.Slice(pc, func(a, b int) bool {
 		keyA := pc[a].link.DisplayPriorityKey()
 		keyB := pc[b].link.DisplayPriorityKey()
-		return proofServices.GetDisplayPriority(keyA) > proofServices.GetDisplayPriority(keyB)
+		return serviceTypes[keyA] > serviceTypes[keyB]
 	})
 	return pc
 }

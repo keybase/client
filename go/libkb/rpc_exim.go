@@ -304,6 +304,12 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
+	case SCSigCreationDisallowed:
+		service := ""
+		if len(s.Fields) > 0 && s.Fields[0].Key == "remote_service" {
+			service = s.Fields[0].Value
+		}
+		return ServiceDoesNotSupportNewProofsError{Service: service}
 	case SCNoUI:
 		return NoUIError{Which: s.Desc}
 	case SCNoUIDelegation:
@@ -1705,6 +1711,14 @@ func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCSibkeyAlreadyExists,
 		Name: "SC_SIBKEY_ALREADY_EXISTS",
+		Desc: e.Error(),
+	}
+}
+
+func (e ServiceDoesNotSupportNewProofsError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCreationDisallowed,
+		Name: "SC_SIG_CREATION_DISALLOWED",
 		Desc: e.Error(),
 	}
 }

@@ -19,6 +19,7 @@ import (
 )
 
 func acceptDisclaimer(tc *TestContext) {
+	// NOTE: this also creates a v1 wallet
 	err := tc.Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(tc.T, err)
 }
@@ -315,7 +316,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
@@ -545,7 +546,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
-	_, err = stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err = stellar.CreateWallet(context.Background(), tcs[0].G, false)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
@@ -886,7 +887,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 	// Does not test whether it has any effect.
 	_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		From:          accountIDSender,
-		FromSeqno:     "1928401923",
 		To:            tcs[1].Fu.Username,
 		ToIsAccountID: false,
 		Amount:        "1011.123",
@@ -1542,31 +1542,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "$1.27 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
-	t.Logf("using FromSeqno")
-	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
-		From:       senderAccountID,
-		FromSeqno:  "12",
-		To:         tcs[1].Fu.Username,
-		Amount:     "3",
-		PublicMemo: "🥔🥔🥔🥔🥔🥔🥔🥔",
-	})
-	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
-	require.Equal(t, false, bres.ReadyToSend)
-	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "", bres.AmountErrMsg)
-	require.Equal(t, "", bres.SecretNoteErrMsg)
-	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg)
-	require.Equal(t, "$0.95 USD", bres.WorthDescription)
-	require.Equal(t, worthInfo, bres.WorthInfo)
-	require.True(t, bres.SendingIntentionXLM)
-	require.Equal(t, "3 XLM", bres.DisplayAmountXLM)
-	require.Equal(t, "$0.95 USD", bres.DisplayAmountFiat)
-	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "error",
-		Message: "Activity on account since initiating send. Take another look at account history.",
-	}})
-
 	tcs[0].Backend.Gift(senderAccountID, "30")
 
 	t.Logf("sending in amount composed in USD")
@@ -1945,7 +1920,9 @@ func TestSetMobileOnly(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	acceptDisclaimer(tcs[0])
+	// this only works with a v2 bundle now
+	setupWithNewBundle(t, tcs[0])
+
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	accountID := getPrimaryAccountID(tcs[0])
 
@@ -1960,9 +1937,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, mobileOnly)
 
-	// XXX note that the real test here will be that the secret bundle does not come
-	// back for desktop devices or mobile devices that are less than 7d old.
-	// This is just a basic test at this point...
+	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
 
 type chatListener struct {

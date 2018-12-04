@@ -1,7 +1,11 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/git'
+import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from './types/rpc-gen'
+import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
 import moment from 'moment'
 import type {TypedState} from './reducer'
 
@@ -92,4 +96,13 @@ const getIdToGit = (state: TypedState) => state.git.idToInfo
 const getError = (state: TypedState) => state.git.error
 const loadingWaitingKey = 'git:loading'
 
-export {getIdToGit, getError, loadingWaitingKey, parseRepos, repoIDTeamnameToId}
+const isLookingAtGit = (state: TypedState, action: RouteTreeGen.SwitchToPayload) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+  const settingsPath = RouteTree.getPath(state.routeTree.routeState, [Tabs.settingsTab])
+  return (
+    root === Tabs.gitTab || (root === Tabs.settingsTab && settingsPath.get(1) === SettingsConstants.gitTab)
+  )
+}
+
+export {getIdToGit, getError, isLookingAtGit, loadingWaitingKey, parseRepos, repoIDTeamnameToId}

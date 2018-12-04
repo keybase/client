@@ -50,6 +50,7 @@ const Row = (props: Props) => (
         hoverRowinTeam: props.inTeam,
       })}
       direction="horizontal"
+      fullWidth={true}
       centerChildren={true}
       style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
     >
@@ -125,22 +126,22 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={18} color={Styles.globalColors.black_75} />
+const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={16} color={Styles.globalColors.black_75} />
 
 const AddButtonHover = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
-    <Kb.Icon type="iconfont-return" fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-return" fontSize={16} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
 const RemoveButton = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.removeButton}>
-    <Kb.Icon type="iconfont-close" fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-close" fontSize={16} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-check" fontSize={19} color={Styles.globalColors.black_75} />
+  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.black_75} />
 )
 
 const ActionButtonUserInTeam = Kb.HoverHoc(AlreadyAddedIconButton, RemoveButton)
@@ -152,7 +153,6 @@ const styles = Styles.styleSheetCreate({
   rowContainer: Styles.platformStyles({
     isElectron: {
       height: 50,
-      width: 420,
     },
     common: {
       paddingLeft: Styles.globalMargins.tiny,

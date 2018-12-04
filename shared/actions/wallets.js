@@ -60,7 +60,6 @@ const buildPayment = (
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
-          fromSeqno: '',
           publicMemo: state.wallets.building.publicMemo.stringValue(),
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
@@ -155,7 +154,6 @@ const sendPayment = (state: TypedState) => {
       // FIXME -- support other assets.
       asset: emptyAsset,
       from: state.wallets.builtPayment.from,
-      fromSeqno: '',
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
       secretNote: state.wallets.building.secretNote.stringValue(),
@@ -649,16 +647,21 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).then(
-    res =>
-      RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
-        WalletsGen.createWalletDisclaimerReceived({accepted})
-      )
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
+
+const checkDisclaimer = (state: TypedState) =>
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
+    WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
-const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
+const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.CheckDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
-  Saga.put(Route.navigateTo([...Constants.rootWalletPath, 'linkExisting']))
+  Saga.put(
+    Route.navigateTo([
+      ...Constants.rootWalletPath,
+      ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting']),
+    ])
+  )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
@@ -778,7 +781,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadWalletDisclaimer
   )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
-  yield Saga.actionToAction(WalletsGen.acceptDisclaimer, maybeNavToLinkExisting)
+  yield Saga.actionToPromise(WalletsGen.checkDisclaimer, checkDisclaimer)
+  yield Saga.actionToAction(WalletsGen.checkDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 }
 

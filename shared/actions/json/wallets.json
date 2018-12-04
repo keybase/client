@@ -11,7 +11,6 @@
     },
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer",
-      "nextScreen": "Types.NextScreenAfterAcceptance"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -41,6 +40,10 @@
       "build": "Types.BuiltRequest",
       "forBuilding": "Types.Building"
     },
+    "checkDisclaimer": {
+      "_description": "Discover whether the user has accepted the Stellar disclaimer",
+      "nextScreen": "Types.NextScreenAfterAcceptance"
+    },
     "clearBuilding": {
       "_description": "Clear a payment or request that was being prepared"
     },
@@ -64,7 +67,7 @@
       "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "cancelPayment": {
-      "_description": "Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.",
+      "_description": "Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.",
       "showAccount?": "boolean",
       "paymentID": "Types.PaymentID"
     },

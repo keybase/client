@@ -380,6 +380,7 @@ export const commonConversationMemberStatus = {
   left: 2,
   preview: 3,
   reset: 4,
+  neverJoined: 5,
 }
 
 export const commonConversationMembersType = {
@@ -628,6 +629,7 @@ export const unfurlUnfurlMode = {
 export const unfurlUnfurlType = {
   generic: 0,
   youtube: 1,
+  giphy: 2,
 }
 export type AppNotificationSettingLocal = $ReadOnly<{deviceType: Keybase1.DeviceType, kind: NotificationKind, enabled: Boolean}>
 export type Asset = $ReadOnly<{filename: String, region: String, endpoint: String, bucket: String, path: String, size: Long, mimeType: String, encHash: Hash, key: Bytes, verifyKey: Bytes, title: String, nonce: Bytes, metadata: AssetMetadata, tag: AssetTag}>
@@ -731,6 +733,7 @@ export type ConversationMemberStatus =
   | 2 // LEFT_2
   | 3 // PREVIEW_3
   | 4 // RESET_4
+  | 5 // NEVER_JOINED_5
 
 export type ConversationMembersType =
   | 0 // KBFS_0
@@ -1082,13 +1085,17 @@ export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: St
 export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfo?: ?UIPaymentInfo, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
-export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String}>
+export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, showCancel: Boolean}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, status: Stellar1.RequestStatus}>
-export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube}
-export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {unfurlType: 1, youtube: ?UnfurlYoutubeDisplay}
+export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube} | {unfurlType: 2, giphy: ?UnfurlGiphy}
+export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {unfurlType: 1, youtube: ?UnfurlYoutubeDisplay} | {unfurlType: 2, giphy: ?UnfurlGiphyDisplay}
 export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?Asset, image?: ?Asset, publishTime?: ?Int, description?: ?String}>
 export type UnfurlGenericDisplay = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?UnfurlImageDisplay, image?: ?UnfurlImageDisplay, publishTime?: ?Int, description?: ?String}>
 export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
+export type UnfurlGiphy = $ReadOnly<{favicon?: ?Asset, image?: ?Asset, video?: ?Asset}>
+export type UnfurlGiphyDisplay = $ReadOnly<{favicon?: ?UnfurlImageDisplay, image?: ?UnfurlImageDisplay, video?: ?UnfurlImageDisplay}>
+export type UnfurlGiphyRaw = $ReadOnly<{imageUrl: String, video?: ?UnfurlGiphyVideo, faviconUrl?: ?String}>
+export type UnfurlGiphyVideo = $ReadOnly<{url: String, height: Int, width: Int}>
 export type UnfurlImageDisplay = $ReadOnly<{url: String, height: Int, width: Int}>
 export type UnfurlMode =
   | 0 // ALWAYS_0
@@ -1103,13 +1110,14 @@ export type UnfurlPromptAction =
   | 4 // ONETIME_4
 
 export type UnfurlPromptResult = {actionType: 0} | {actionType: 1} | {actionType: 3} | {actionType: 2, accept: ?String} | {actionType: 4, onetime: ?String}
-export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
+export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw} | {unfurlType: 2, giphy: ?UnfurlGiphyRaw}
 export type UnfurlResult = $ReadOnly<{unfurl: Unfurl, url: String}>
 export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist: {[key: string]: Boolean}}>
 export type UnfurlSettingsDisplay = $ReadOnly<{mode: UnfurlMode, whitelist?: ?Array<String>}>
 export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1
+  | 2 // GIPHY_2
 
 export type UnfurlYoutube = $ReadOnly<{}>
 export type UnfurlYoutubeDisplay = $ReadOnly<{}>

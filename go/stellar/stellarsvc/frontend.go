@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strconv"
 	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
@@ -31,7 +30,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		return nil, err
 	}
 
-	bundle, _, err := remote.Fetch(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 		return acct, err
 	}
 
-	bundle, _, err := remote.Fetch(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		return acct, err
 	}
@@ -86,7 +85,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 	return s.accountLocal(ctx, entry)
 }
 
-func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
+func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntryRestricted) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
 	details, err := s.accountDetails(ctx, entry.AccountID)
 	if err != nil {
@@ -436,10 +435,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		StatusSimplified:     summary.StatusSimplified,
 		StatusDescription:    summary.StatusDescription,
 		StatusDetail:         summary.StatusDetail,
+		ShowCancel:           summary.ShowCancel,
 		AmountDescription:    summary.AmountDescription,
 		Delta:                summary.Delta,
 		Worth:                summary.Worth,
 		WorthCurrency:        summary.WorthCurrency,
+		CurrentWorth:         summary.CurrentWorth,
+		CurrentWorthCurrency: summary.CurrentWorthCurrency,
 		FromType:             summary.FromType,
 		ToType:               summary.ToType,
 		FromAccountID:        summary.FromAccountID,
@@ -454,8 +456,8 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		NoteErr:              summary.NoteErr,
 		PublicNote:           details.Memo,
 		PublicNoteType:       details.MemoType,
-		CurrentWorth:         summary.CurrentWorth,
-		CurrentWorthCurrency: summary.CurrentWorthCurrency,
+		IssuerDescription:    summary.IssuerDescription,
+		IssuerAccountID:      summary.IssuerAccountID,
 		ExternalTxURL:        details.ExternalTxURL,
 	}
 
@@ -557,7 +559,7 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", stellar.AccountNameMaxRunes, runes)
 	}
 	// If this becomes a bottleneck, cache non-critical wallet info on G.Stellar.
-	currentBundle, _, err := remote.Fetch(ctx, s.G())
+	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		s.G().Log.CErrorf(ctx, "error fetching bundle: %v", err)
 		// Return nil since the name is probably fine.
@@ -850,30 +852,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	}
 	if fromInfo.available {
 		res.From = fromInfo.from
-		if arg.FromSeqno == "" {
-			readyChecklist.from = true
-		} else {
-			// Check that the seqno of the account matches the caller's expectation.
-			seqno, err := bpc.AccountSeqno(s.mctx(ctx), arg.From)
-			switch {
-			case err != nil:
-				log("AccountSeqno -> err:%v", err)
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "error",
-					Message: "Could not get seqno for source account.",
-				})
-			case seqno != arg.FromSeqno:
-				log("AccountSeqno -> got:%v != want:%v", seqno, arg.FromSeqno)
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "error",
-					Message: "Activity on account since initiating send. Take another look at account history.",
-				})
-			default:
-				readyChecklist.from = true
-				fromInfo.from = arg.From
-				fromInfo.available = true
-			}
-		}
+		readyChecklist.from = true
 	}
 
 	// -------------------- to --------------------
@@ -1269,15 +1248,6 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 		return res, fmt.Errorf("missing from account ID parameter")
 	}
 
-	var fromSeqno *uint64
-	if arg.FromSeqno != "" {
-		fsq, err := strconv.ParseUint(arg.FromSeqno, 10, 64)
-		if err != nil {
-			return res, fmt.Errorf("invalid from seqno (%v): %v", arg.FromSeqno, err)
-		}
-		fromSeqno = &fsq
-	}
-
 	to := arg.To
 	if arg.ToIsAccountID {
 		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
@@ -1308,7 +1278,7 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	mctx := libkb.NewMetaContext(ctx, s.G())
 	sendRes, err := stellar.SendPaymentGUI(mctx, s.remoter, stellar.SendPaymentArg{
 		From:           arg.From,
-		FromSeqno:      fromSeqno,
+		FromSeqno:      nil,
 		To:             stellarcommon.RecipientInput(to),
 		Amount:         arg.Amount,
 		DisplayBalance: displayBalance,

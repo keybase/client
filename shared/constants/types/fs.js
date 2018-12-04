@@ -507,7 +507,6 @@ export type PlaceholderRowItem = {
 
 export type EmptyRowItem = {
   rowType: 'empty',
-  name: string,
 }
 
 export type RowItem =
@@ -518,6 +517,15 @@ export type RowItem =
   | UploadingRowItem
   | PlaceholderRowItem
   | EmptyRowItem
+
+export type RowItemWithKey =
+  | ({key: string} & TlfTypeRowItem)
+  | ({key: string} & TlfRowItem)
+  | ({key: string} & StillRowItem)
+  | ({key: string} & EditingRowItem)
+  | ({key: string} & UploadingRowItem)
+  | ({key: string} & PlaceholderRowItem)
+  | ({key: string} & EmptyRowItem)
 
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing

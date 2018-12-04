@@ -1,5 +1,7 @@
 // @flow
 import * as I from 'immutable'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouteTree from '../route-tree'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/devices'
@@ -52,6 +54,16 @@ export const devicesTabLocation = isMobile
   ? [Tabs.settingsTab, SettingsConstants.devicesTab]
   : [Tabs.devicesTab]
 export const waitingKey = 'devices:devicesPage'
+
+export const isLookingAtDevices = (state: TypedState, action: RouteTreeGen.SwitchToPayload) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+  const settingsPath = RouteTree.getPath(state.routeTree.routeState, [Tabs.settingsTab])
+  return (
+    root === Tabs.devicesTab ||
+    (root === Tabs.settingsTab && settingsPath.get(1) === SettingsConstants.devicesTab)
+  )
+}
 
 export const isWaiting = (state: TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
 export const getDevice = (state: TypedState, id: ?Types.DeviceID) =>

@@ -139,6 +139,8 @@ protocol proveCommon {
   }
 
   record ServiceDisplayConfig {
+    @jsonkey("creation_disabled")
+    boolean creationDisabled;
     int priority;
     string key;
     union { null, string } group;

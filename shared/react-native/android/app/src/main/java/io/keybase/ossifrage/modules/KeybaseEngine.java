@@ -93,6 +93,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void destroy() {
         try {
             executor.shutdownNow();
+            Keybase.reset();
             // We often hit this timeout during app resume, e.g. hit the back
             // button to go to home screen and then tap Keybase app icon again.
             if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {

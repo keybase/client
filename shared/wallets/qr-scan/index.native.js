@@ -7,6 +7,7 @@ import type {Props} from '.'
 
 const QRScan = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />
     <Kb.Text type="BodyBigLink" style={styles.cancel} onClick={() => props.onSubmitCode()}>
       Cancel
     </Kb.Text>
@@ -40,6 +41,7 @@ const QRScan = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  safeAreaViewTop: {color: Styles.globalColors.purple, flexGrow: 0},
   text: {
     color: Styles.globalColors.white,
     textAlign: 'center',

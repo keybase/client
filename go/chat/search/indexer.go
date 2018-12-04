@@ -581,7 +581,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			numBoostConvs++
 			hits, err := idx.G().RegexpSearcher.Search(ctx, uid, convID, queryRe, nil /* uiCh */, opts)
 			if err != nil {
-				return nil, err
+				if utils.IsPermanentErr(err) {
+					return nil, err
+				}
 			} else if len(hits) > 0 {
 				convHits = &chat1.ChatSearchInboxHit{
 					ConvID:   convID,

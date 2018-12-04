@@ -1093,8 +1093,8 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 	}
 
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
-	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
-	return mbox, topicNameState, err
+	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil)
+	return &prepareRes.Boxed, prepareRes.TopicNameState, err
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {

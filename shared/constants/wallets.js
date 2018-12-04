@@ -79,6 +79,7 @@ const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
   acceptedDisclaimer: false,
+  acceptingDisclaimerDelay: false,
   accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
@@ -213,11 +214,14 @@ const _defaultPaymentCommon = {
   statusDescription: '',
   statusDetail: '',
   statusSimplified: 'none',
+  showCancel: false,
   target: '',
   targetAccountID: '',
   targetType: '',
   time: null,
   worth: '',
+  issuerDescription: '',
+  issuerAccountID: null,
 }
 
 const _defaultPaymentResult = {
@@ -320,12 +324,15 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
-    statusSimplified: serviceStatusSimplfied === 'claimable' ? 'cancelable' : serviceStatusSimplfied,
+    statusSimplified: serviceStatusSimplfied,
+    showCancel: p.showCancel,
     target,
     targetAccountID: p.toAccountID,
     targetType,
     time: p.time,
     worth: p.worth,
+    issuerDescription: p.issuerDescription,
+    issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
   }
 }
 

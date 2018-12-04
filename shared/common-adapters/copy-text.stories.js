@@ -12,10 +12,34 @@ const load = () => {
       </Box>
     ))
     .add('Basic', () => <CopyText text="hi" />)
-    .add('With reveal', () => <CopyText text="surprise!" withReveal={true} />)
+    .add('Basic (multiline)', () => <CopyText multiline={true} text="hi" />)
     .add('With long text', () => (
+      <CopyText text="test1 test2 test3 test4 test5 test6 test7 test8 test9 test10" />
+    ))
+    .add('With long text (multiline)', () => (
+      <CopyText text="test1 test2 test3 test4 test5 test6 test7 test8 test9 test10" multiline={true} />
+    ))
+    .add('With long word', () => (
+      <CopyText text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321" />
+    ))
+    .add('With long word (multiline)', () => (
       <CopyText
         text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321"
+        multiline={true}
+      />
+    ))
+    .add('With reveal', () => <CopyText text="surprise!" withReveal={true} />)
+    .add('With reveal (multiline)', () => <CopyText multiline={true} text="surprise!" withReveal={true} />)
+    .add('With long word + reveal', () => (
+      <CopyText
+        text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321"
+        withReveal={true}
+      />
+    ))
+    .add('With long word + reveal (multiline)', () => (
+      <CopyText
+        text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321"
+        multiline={true}
         withReveal={true}
       />
     ))
