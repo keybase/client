@@ -665,7 +665,11 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
 
 	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
@@ -680,7 +684,11 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
