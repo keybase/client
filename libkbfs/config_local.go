@@ -1644,7 +1644,8 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 		diskBlockCache := c.diskBlockCache
 		go func() {
 			defer cancel()
-			ch <- diskBlockCache.ClearAllTlfBlocks(ctx, tlfID)
+			ch <- diskBlockCache.ClearAllTlfBlocks(
+				ctx, tlfID, DiskBlockSyncCache)
 		}()
 	} else {
 		ch <- nil

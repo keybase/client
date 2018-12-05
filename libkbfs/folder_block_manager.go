@@ -1324,7 +1324,7 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 	lState := makeFBOLockState()
 	recentRev := fbm.helper.getLatestMergedRevision(lState)
 
-	lastRev, err := dbc.GetLastUnrefRev(ctx, fbm.id)
+	lastRev, err := dbc.GetLastUnrefRev(ctx, fbm.id, DiskBlockSyncCache)
 	if err != nil {
 		return err
 	}
@@ -1345,7 +1345,8 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 			lastRev = recentRev - 1
 		} else {
 			// No revisions to clean yet.
-			return dbc.PutLastUnrefRev(ctx, fbm.id, recentRev)
+			return dbc.PutLastUnrefRev(
+				ctx, fbm.id, recentRev, DiskBlockSyncCache)
 		}
 	}
 
@@ -1377,7 +1378,7 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 			return err
 		}
 
-		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev)
+		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev, DiskBlockSyncCache)
 		if err != nil {
 			return err
 		}

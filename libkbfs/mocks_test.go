@@ -4519,40 +4519,40 @@ func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, blockID, prefetchS
 }
 
 // ClearAllTlfBlocks mocks base method
-func (m *MockDiskBlockCache) ClearAllTlfBlocks(ctx context.Context, tlfID tlf.ID) error {
-	ret := m.ctrl.Call(m, "ClearAllTlfBlocks", ctx, tlfID)
+func (m *MockDiskBlockCache) ClearAllTlfBlocks(ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "ClearAllTlfBlocks", ctx, tlfID, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ClearAllTlfBlocks indicates an expected call of ClearAllTlfBlocks
-func (mr *MockDiskBlockCacheMockRecorder) ClearAllTlfBlocks(ctx, tlfID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearAllTlfBlocks", reflect.TypeOf((*MockDiskBlockCache)(nil).ClearAllTlfBlocks), ctx, tlfID)
+func (mr *MockDiskBlockCacheMockRecorder) ClearAllTlfBlocks(ctx, tlfID, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearAllTlfBlocks", reflect.TypeOf((*MockDiskBlockCache)(nil).ClearAllTlfBlocks), ctx, tlfID, cacheType)
 }
 
 // GetLastUnrefRev mocks base method
-func (m *MockDiskBlockCache) GetLastUnrefRev(ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
-	ret := m.ctrl.Call(m, "GetLastUnrefRev", ctx, tlfID)
+func (m *MockDiskBlockCache) GetLastUnrefRev(ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (kbfsmd.Revision, error) {
+	ret := m.ctrl.Call(m, "GetLastUnrefRev", ctx, tlfID, cacheType)
 	ret0, _ := ret[0].(kbfsmd.Revision)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetLastUnrefRev indicates an expected call of GetLastUnrefRev
-func (mr *MockDiskBlockCacheMockRecorder) GetLastUnrefRev(ctx, tlfID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastUnrefRev", reflect.TypeOf((*MockDiskBlockCache)(nil).GetLastUnrefRev), ctx, tlfID)
+func (mr *MockDiskBlockCacheMockRecorder) GetLastUnrefRev(ctx, tlfID, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastUnrefRev", reflect.TypeOf((*MockDiskBlockCache)(nil).GetLastUnrefRev), ctx, tlfID, cacheType)
 }
 
 // PutLastUnrefRev mocks base method
-func (m *MockDiskBlockCache) PutLastUnrefRev(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
-	ret := m.ctrl.Call(m, "PutLastUnrefRev", ctx, tlfID, rev)
+func (m *MockDiskBlockCache) PutLastUnrefRev(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "PutLastUnrefRev", ctx, tlfID, rev, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutLastUnrefRev indicates an expected call of PutLastUnrefRev
-func (mr *MockDiskBlockCacheMockRecorder) PutLastUnrefRev(ctx, tlfID, rev interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutLastUnrefRev", reflect.TypeOf((*MockDiskBlockCache)(nil).PutLastUnrefRev), ctx, tlfID, rev)
+func (mr *MockDiskBlockCacheMockRecorder) PutLastUnrefRev(ctx, tlfID, rev, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutLastUnrefRev", reflect.TypeOf((*MockDiskBlockCache)(nil).PutLastUnrefRev), ctx, tlfID, rev, cacheType)
 }
 
 // Status mocks base method
@@ -4567,16 +4567,17 @@ func (mr *MockDiskBlockCacheMockRecorder) Status(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockDiskBlockCache)(nil).Status), ctx)
 }
 
-// DoesSyncCacheHaveSpace mocks base method
-func (m *MockDiskBlockCache) DoesSyncCacheHaveSpace(ctx context.Context) bool {
-	ret := m.ctrl.Call(m, "DoesSyncCacheHaveSpace", ctx)
+// DoesCacheHaveSpace mocks base method
+func (m *MockDiskBlockCache) DoesCacheHaveSpace(ctx context.Context, cacheType DiskBlockCacheType) (bool, error) {
+	ret := m.ctrl.Call(m, "DoesCacheHaveSpace", ctx, cacheType)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// DoesSyncCacheHaveSpace indicates an expected call of DoesSyncCacheHaveSpace
-func (mr *MockDiskBlockCacheMockRecorder) DoesSyncCacheHaveSpace(ctx interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoesSyncCacheHaveSpace", reflect.TypeOf((*MockDiskBlockCache)(nil).DoesSyncCacheHaveSpace), ctx)
+// DoesCacheHaveSpace indicates an expected call of DoesCacheHaveSpace
+func (mr *MockDiskBlockCacheMockRecorder) DoesCacheHaveSpace(ctx, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoesCacheHaveSpace", reflect.TypeOf((*MockDiskBlockCache)(nil).DoesCacheHaveSpace), ctx, cacheType)
 }
 
 // Shutdown mocks base method

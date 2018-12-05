@@ -498,7 +498,12 @@ func (p *blockPrefetcher) rescheduleIfNeeded(
 	ctx context.Context, req *prefetchRequest) (rescheduled bool) {
 	dbc := p.config.DiskBlockCache()
 	if req.action.Sync() && dbc != nil {
-		if !dbc.DoesSyncCacheHaveSpace(ctx) {
+		hasRoom, err := dbc.DoesCacheHaveSpace(ctx, DiskBlockSyncCache)
+		if err != nil {
+			p.log.CDebugf(ctx, "Error checking space: +%v", err)
+			return false
+		}
+		if !hasRoom {
 			// If the sync cache is close to full, reschedule the prefetch.
 			p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
 				"full sync cache.", req.ptr.ID)
