@@ -81,7 +81,7 @@
         "react/prop-types": "off",
         "react/react-in-jsx-scope": "error",
         "react/require-render-return": "error",
-        "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}],
+        "sort-keys": ["error", "asc", {"caseSensitive": true, "natural": false}],
         "space-before-function-paren": "off",
         "standard/array-bracket-even-spacing": "off",
         "standard/computed-property-even-spacing": ["error", "never"],
