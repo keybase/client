@@ -17,7 +17,7 @@
         "__STORYSHOT__": false
     },
     "plugins": [
-        "filenames", "babel", "import", "flowtype", "sort-keys-fix"
+        "filenames", "babel", "import", "flowtype"
     ],
     "settings": {
         "import/core-modules": [ "electron", "react-native" ],
@@ -81,7 +81,7 @@
         "react/prop-types": "off",
         "react/react-in-jsx-scope": "error",
         "react/require-render-return": "error",
-        "sort-keys-fix/sort-keys-fix": ["warn", "asc", {"caseSensitive": true, "natural": false}],
+        "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}],
         "space-before-function-paren": "off",
         "standard/array-bracket-even-spacing": "off",
         "standard/computed-property-even-spacing": ["error", "never"],
