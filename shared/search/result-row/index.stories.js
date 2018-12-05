@@ -37,14 +37,14 @@ const defaultConnectPropsMap: ConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'jzila',
+
     rightFollowingState: 'NotFollowing',
     rightIcon: null,
     rightIconOpaque: true,
-
     rightService: null,
     rightUsername: null,
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,

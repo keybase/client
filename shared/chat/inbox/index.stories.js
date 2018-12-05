@@ -88,7 +88,6 @@ const commonBigFilter = {
 }
 
 const mapPropProviderProps = {
-  // Small Teams
   bigTeamAChannel1: {
     ...commonBigChannel,
     channelname: 'general',
@@ -162,8 +161,6 @@ const mapPropProviderProps = {
     channelname: 'this-is-a-very-long-channel-name',
     teamname: 'stripe.usa',
   },
-
-  // Big Team A
   bigTeamFilterCChannel1: {
     ...commonBigFilter,
     channelname: 'general',
@@ -190,8 +187,6 @@ const mapPropProviderProps = {
     teamname: 'fortgreenmoms',
     timestamp: 'Tue',
   },
-
-  // Big Team B
   smallTeamB: {
     ...commonSmallTeam,
     conversationIDKey: '1',
@@ -249,8 +244,6 @@ const mapPropProviderProps = {
     subColor: globalColors.black_40,
     usernameColor: globalColors.black_40,
   },
-
-  // Small Teams Filter
   smallTeamG: {
     ...commonSmallTeam,
     conversationIDKey: '7',
@@ -274,8 +267,6 @@ const mapPropProviderProps = {
     snippetDecoration: '',
     timestamp: '12:08 am',
   },
-
-  // Big Teams Filter
   smallTeamJ: {
     ...commonSmallTeam,
     conversationIDKey: '10',
@@ -304,7 +295,6 @@ const mapPropProviderProps = {
     participantNeedToRekey: true,
     participants: ['adamjspooner'],
   },
-
   smallTeamN: {
     ...commonSmallTeam,
     conversationIDKey: '14',

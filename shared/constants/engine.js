@@ -232,8 +232,8 @@ class EngineRpcCall {
         // We want to cancel that task if another message comes in
         // We also want to check to see if the last task tells us to bail early
         const incoming = yield Saga.call([this._engineChannel, this._engineChannel.race], {
-          // If we have a task currently running, we don't want to race with the timeout
           racers: {subSagaFinished: Saga.take(this._subSagaChannel)},
+          // If we have a task currently running, we don't want to race with the timeout
           timeout: subSagaTasks.filter(t => t.isRunning()).length ? undefined : timeout,
         })
 

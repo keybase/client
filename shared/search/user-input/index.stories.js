@@ -121,7 +121,6 @@ const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps):
     onClickAddButton: Sb.unexpected('search should be used instead'),
     search: Sb.action('search'),
     userItems,
-
     usernameText: '',
   }
 

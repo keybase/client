@@ -94,7 +94,6 @@ const styles = {
     marginRight: 8,
     width: 22,
   },
-
   strongContainer: {
     backgroundColor: globalColors.blue,
     paddingBottom: 12,

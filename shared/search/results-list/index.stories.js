@@ -17,14 +17,14 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'chris',
+
     rightFollowingState: 'NoState',
     rightIcon: 'iconfont-identity-github',
     rightIconOpaque: true,
-
     rightService: 'GitHub',
     rightUsername: 'chrisname',
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
@@ -35,14 +35,14 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'cjb',
+
     rightFollowingState: 'NoState',
     rightIcon: 'iconfont-identity-facebook',
     rightIconOpaque: true,
-
     rightService: 'Facebook',
     rightUsername: 'cjbname',
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
@@ -53,14 +53,14 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'jzila',
+
     rightFollowingState: 'NoState',
     rightIcon: 'iconfont-identity-twitter',
     rightIconOpaque: true,
-
     rightService: 'Twitter',
     rightUsername: 'jzilatwit',
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
