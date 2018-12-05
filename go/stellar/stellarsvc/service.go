@@ -18,6 +18,7 @@ import (
 type UISource interface {
 	SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI
 	IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI
+	StellarUI() stellar1.UiInterface
 }
 
 type Server struct {

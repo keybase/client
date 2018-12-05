@@ -2,9 +2,11 @@ package stellar
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 )
@@ -21,15 +23,24 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "BuildPaymentLocal", true)
 	defer tracer.Finish()
 
-	mctx = mctx.WithCtx(
-		getGlobal(mctx.G()).buildPaymentSlot.Use(
-			mctx.Ctx(), arg.SessionID))
-	if err := mctx.Ctx().Err(); err != nil {
-		return res, err
-	}
+	var data *buildPaymentData
+	var release func()
+	if arg.Bid.IsNil() {
+		// Compatibility for pre-bid gui and tests.
+		mctx = mctx.WithCtx(
+			getGlobal(mctx.G()).buildPaymentSlot.Use(mctx.Ctx(), arg.SessionID))
+	} else {
+		mctx, data, release, err = getGlobal(mctx.G()).acquireBuildPayment(mctx, arg.Bid, arg.SessionID)
+		defer release()
+		if err != nil {
+			return res, err
+		}
 
-	// Mark the payment as not ready to send while the new values are validated.
-	getGlobal(mctx.G()).updateBuildPayment(mctx, arg.Bid, nil)
+		// Mark the payment as not ready to send while the new values are validated.
+		data.ReadyToReview = false
+		data.ReadyToSend = false
+		data.Frozen = nil
+	}
 
 	readyChecklist := struct {
 		from       bool
@@ -128,9 +139,8 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				readyChecklist.to = true
 				addMinBanner := func(them, amount string) {
 					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-						HideOnConfirm: true,
-						Level:         "info",
-						Message:       fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
+						Level:   "info",
+						Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
 					})
 				}
 				if recipient.AccountID == nil {
@@ -152,9 +162,8 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						} else {
 							// Sending to our own account.
 							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-								HideOnConfirm: true,
-								Level:         "info",
-								Message:       fmt.Sprintf("Because it's the first transaction on your receiving account, you must send at least %v.", minAmountXLM),
+								Level:   "info",
+								Message: fmt.Sprintf("Because it's the first transaction on your receiving account, you must send at least %v.", minAmountXLM),
 							})
 						}
 					}
@@ -270,24 +279,110 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	// -------------------- end --------------------
 
 	if readyChecklist.from && readyChecklist.to && readyChecklist.amount && readyChecklist.secretNote && readyChecklist.publicMemo {
-		res.ReadyToSend = true
+		res.ReadyToReview = true
 
-		// Mark the payment as ready to send.
-		getGlobal(mctx.G()).updateBuildPayment(mctx, arg.Bid, &frozenPayment{
-			From:          fromInfo.from,
-			To:            arg.To,
-			ToIsAccountID: arg.ToIsAccountID,
-			Amount:        amountX.amountOfAsset,
-			Asset:         amountX.asset,
-			SecretNote:    arg.SecretNote,
-			PublicMemo:    arg.PublicMemo,
-		})
+		if data != nil {
+			// Mark the payment as ready to review.
+			data.ReadyToReview = true
+			data.ReadyToSend = false
+			data.Frozen = &frozenPayment{
+				From:          fromInfo.from,
+				To:            arg.To,
+				ToIsAccountID: arg.ToIsAccountID,
+				Amount:        amountX.amountOfAsset,
+				Asset:         amountX.asset,
+				SecretNote:    arg.SecretNote,
+				PublicMemo:    arg.PublicMemo,
+			}
+		}
 	}
+
 	// Return the context's error.
 	// If just `nil` were returned then in the event of a cancellation
 	// resilient parts of this function could hide it, causing
 	// a bogus return value.
 	return res, mctx.Ctx().Err()
+}
+
+type reviewButtonState string
+
+const reviewButtonSpinning = "spinning"
+const reviewButtonEnabled = "enabled"
+const reviewButtonDisabled = "disabled"
+
+func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, arg stellar1.ReviewPaymentLocalArg) (err error) {
+	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "ReviewPaymentLocal", true)
+	defer tracer.Finish()
+
+	if arg.Bid.IsNil() {
+		return fmt.Errorf("missing payment ID")
+	}
+
+	mctx, data, release, err := getGlobal(mctx.G()).acquireBuildPayment(mctx, arg.Bid, arg.SessionID)
+	defer release()
+	if err != nil {
+		return err
+	}
+
+	notify := func(seqno int, banners []stellar1.SendBannerLocal, nextButton reviewButtonState) chan struct{} {
+		receivedCh := make(chan struct{}) // channel closed when the notification has been acked.
+		mctx.CDebugf("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
+			arg.Bid, arg.SessionID, seqno, nextButton, len(banners))
+		go func() {
+			err := stellarUI.UiPaymentReview(mctx.Ctx(), stellar1.UiPaymentReviewArg{
+				SessionID: arg.SessionID,
+				Msg: stellar1.UIPaymentReview{
+					Bid:        arg.Bid,
+					Seqno:      seqno,
+					Banners:    banners,
+					NextButton: string(nextButton),
+				},
+			})
+			if err != nil {
+				mctx.CDebugf("error in response to UIPaymentReview: %v", err)
+			}
+			close(receivedCh)
+		}()
+		return receivedCh
+	}
+
+	if !data.ReadyToReview {
+		// Caller goofed.
+		notify(1, []stellar1.SendBannerLocal{{
+			Level:   "error",
+			Message: "This payment is not ready to review",
+		}}, reviewButtonDisabled)
+		return fmt.Errorf("this payment is not ready to review")
+	}
+	if data.Frozen == nil {
+		// Should be impossible.
+		return fmt.Errorf("this payment is missing values")
+	}
+
+	notify(1, nil, reviewButtonSpinning)
+
+	if data.Frozen.ToIsAccountID {
+		mctx.CDebugf("skipping identify for account ID recipient: %v", data.Frozen.To)
+	} else {
+		// In the future this method will identify the recipient and check tracking.
+		// But for now, imagine the identify succeeded.
+		mctx.CDebugf("skipping identify of recipient: %v", data.Frozen.To)
+	}
+
+	data.ReadyToSend = true
+
+	if err := mctx.Ctx().Err(); err != nil {
+		return err
+	}
+	receivedEnableCh := notify(2, nil, "enabled")
+
+	// Stay open until this call gets canceled or until frontend
+	// acks a notification that enables the button.
+	select {
+	case <-receivedEnableCh:
+	case <-mctx.Ctx().Done():
+	}
+	return mctx.Ctx().Err()
 }
 
 func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
@@ -587,12 +682,19 @@ func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
 }
 
 // Record of an in-progress payment build.
-// Don't you dare mutate. Shared across threads under the assumption of immutability.
 type buildPaymentEntry struct {
-	Bid         stellar1.BuildPaymentID
-	ReadyToSend bool
-	Stopped     bool
-	frozen      *frozenPayment
+	Bid     stellar1.BuildPaymentID
+	Stopped bool
+	// The processs in Slot likely holds DataLock and pointer to Data.
+	Slot     *slotctx.PrioritySlot // Only one build or review call at a time.
+	DataLock sync.Mutex
+	Data     buildPaymentData
+}
+
+type buildPaymentData struct {
+	ReadyToReview bool
+	ReadyToSend   bool
+	Frozen        *frozenPayment // Latest form values.
 }
 
 type frozenPayment struct {
@@ -605,47 +707,54 @@ type frozenPayment struct {
 	PublicMemo    string
 }
 
+func newBuildPaymentEntry(bid stellar1.BuildPaymentID) *buildPaymentEntry {
+	return &buildPaymentEntry{
+		Bid:  bid,
+		Slot: slotctx.NewPriority(),
+		Data: buildPaymentData{
+			ReadyToReview: false,
+			ReadyToSend:   false,
+		},
+	}
+}
+
 // Ready decides whether the frozen payment has been prechecked and
 // the Send request matches it.
-func (f *buildPaymentEntry) CheckReady(arg stellar1.SendPaymentLocalArg) error {
-	if arg.Bid.IsNil() {
-		return fmt.Errorf("missing build ID")
+func (b *buildPaymentData) CheckReadyToSend(arg stellar1.SendPaymentLocalArg) error {
+	if !b.ReadyToSend {
+		if !b.ReadyToReview {
+			// Payment is not even ready for review.
+			return fmt.Errorf("this payment is not ready to send")
+		}
+		// Payment is ready to review but has not been reviewed.
+		return fmt.Errorf("this payment has not been reviewed")
 	}
-	if !arg.Bid.Eq(f.Bid) {
-		return fmt.Errorf("build ID mismatch")
-	}
-	if f.Stopped {
-		return fmt.Errorf("this payment has been stopped")
-	}
-	if !f.ReadyToSend {
-		return fmt.Errorf("this payment is not ready to send")
-	}
-	if f.frozen == nil {
+	if b.Frozen == nil {
 		return fmt.Errorf("payment is ready to send but missing frozen values")
 	}
-	if !arg.From.Eq(f.frozen.From) {
-		return fmt.Errorf("mismatched from account: %v != %v", arg.From, f.frozen.From)
+	if !arg.From.Eq(b.Frozen.From) {
+		return fmt.Errorf("mismatched from account: %v != %v", arg.From, b.Frozen.From)
 	}
-	if arg.To != f.frozen.To {
-		return fmt.Errorf("mismatched recipient: %v != %v", arg.To, f.frozen.To)
+	if arg.To != b.Frozen.To {
+		return fmt.Errorf("mismatched recipient: %v != %v", arg.To, b.Frozen.To)
 	}
-	if arg.ToIsAccountID != f.frozen.ToIsAccountID {
-		return fmt.Errorf("mismatches account ID type (expected %v)", f.frozen.ToIsAccountID)
+	if arg.ToIsAccountID != b.Frozen.ToIsAccountID {
+		return fmt.Errorf("mismatches account ID type (expected %v)", b.Frozen.ToIsAccountID)
 	}
 	// Check the true amount and asset that will be sent.
 	// Don't bother checking the display worth. It's finicky and the server does a coarse check.
-	if arg.Amount != f.frozen.Amount {
-		return fmt.Errorf("mismatched amount: %v != %v", arg.Amount, f.frozen.Amount)
+	if arg.Amount != b.Frozen.Amount {
+		return fmt.Errorf("mismatched amount: %v != %v", arg.Amount, b.Frozen.Amount)
 	}
-	if !arg.Asset.Eq(f.frozen.Asset) {
-		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, f.frozen.Asset)
+	if !arg.Asset.Eq(b.Frozen.Asset) {
+		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, b.Frozen.Asset)
 	}
-	if arg.SecretNote != f.frozen.SecretNote {
+	if arg.SecretNote != b.Frozen.SecretNote {
 		// Don't log the secret memo.
 		return fmt.Errorf("mismatched secret note")
 	}
-	if arg.PublicMemo != f.frozen.PublicMemo {
-		return fmt.Errorf("mismatched public memo: '%v' != '%v'", arg.PublicMemo, f.frozen.PublicMemo)
+	if arg.PublicMemo != b.Frozen.PublicMemo {
+		return fmt.Errorf("mismatched public memo: '%v' != '%v'", arg.PublicMemo, b.Frozen.PublicMemo)
 	}
 	return nil
 }
