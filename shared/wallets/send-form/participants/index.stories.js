@@ -99,54 +99,6 @@ const accounts = [
     isDefault: false,
     name: 'third Account',
   },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID4'),
-    isDefault: false,
-    name: 'a',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID5'),
-    isDefault: false,
-    name: 'bb',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID6'),
-    isDefault: false,
-    name: 'ccc',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID7'),
-    isDefault: false,
-    name: 'dddd',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID8'),
-    isDefault: false,
-    name: 'eeeee',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID9'),
-    isDefault: false,
-    name: 'ffffff',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID10'),
-    isDefault: false,
-    name: 'ggggggg',
-  },
-  {
-    contents: '10 XLM',
-    id: stringToAccountID('fakeaccountID11'),
-    isDefault: false,
-    name: 'hhhhhhhh',
-  },
 ]
 
 const keybaseUserProps = {
