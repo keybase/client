@@ -181,6 +181,15 @@ func (w *WalletState) String() string {
 	return fmt.Sprintf("WalletState (# accts: %d): %s", len(w.accounts), strings.Join(pieces, ", "))
 }
 
+// Reset clears all the data in the WalletState.
+func (w *WalletState) Reset(ctx context.Context) {
+	w.Lock()
+	defer w.Unlock()
+
+	w.G().Log.CDebugf(ctx, "WalletState: Reset clearing all account state")
+	w.accounts = make(map[stellar1.AccountID]*AccountState)
+}
+
 // AccountState holds the current data for a stellar account.
 type AccountState struct {
 	// these are only set when AccountState created, they never change
