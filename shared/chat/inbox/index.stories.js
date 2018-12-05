@@ -14,17 +14,17 @@ import Inbox from '.'
  * Rows
  */
 const makeRowItemSmall = (conversationIDKey: string = '') => ({
-  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
   type: 'small',
+  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
 })
-const makeRowItemBigHeader = (teamname: string = '') => ({teamname, type: 'bigHeader'})
+const makeRowItemBigHeader = (teamname: string = '') => ({type: 'bigHeader', teamname})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname) => ({
+  type: 'big',
+  teamname,
   channelname,
   conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
-  teamname,
-  type: 'big',
 })
-const makeRowItemDivider = (showButton: boolean = false) => ({showButton, type: 'divider'})
+const makeRowItemDivider = (showButton: boolean = false) => ({type: 'divider', showButton})
 
 /*
  * Component Prop Map
@@ -38,13 +38,13 @@ const commonSmallTeam = {
   hasResetUsers: false,
   hasUnread: false,
   iconHoverColor: globalColors.black_60,
-  isFinalized: false,
   isLocked: false,
   isMuted: false,
   isSelected: false,
+  isFinalized: false,
   onSelectConversation: Sb.action('onSelectConversation'),
-  participantNeedToRekey: false,
   participants: ['chris'],
+  participantNeedToRekey: false,
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
@@ -82,106 +82,18 @@ const commonBigChannel = {
 
 const commonBigFilter = {
   isSelected: false,
-  isTeam: true,
   onSelectConversation: Sb.action('onSelectConversation'),
   teamname: 'stripe',
+  isTeam: true,
 }
 
 const mapPropProviderProps = {
-  bigTeamAChannel1: {
-    ...commonBigChannel,
-    channelname: 'general',
-    teamname: 'Keybase',
-  },
-  bigTeamAChannel2: {
-    ...commonBigChannel,
-    channelname: 'random',
-    showBold: true,
-    teamname: 'Keybase',
-  },
-  bigTeamAChannel3: {
-    ...commonBigChannel,
-    channelname: 'zzz',
-    hasUnread: true,
-    showBold: true,
-    teamname: 'Keybase',
-  },
-  bigTeamAChannel4: {
-    ...commonBigChannel,
-    channelname: 'video-games',
-    isMuted: true,
-    teamname: 'Keybase',
-  },
-  bigTeamAHeader: {
-    badgeSubscribe: false,
-    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
-    teamname: 'Keybase',
-  },
-  bigTeamBChannel1: {
-    ...commonBigChannel,
-    channelname: 'general',
-    isSelected: !isMobile,
-    teamname: 'techtonica',
-  },
-  bigTeamBChannel2: {
-    ...commonBigChannel,
-    channelname: 'ignore-selected-below',
-    teamname: 'techtonica',
-  },
-  bigTeamBChannel3: {
-    ...commonBigChannel,
-    channelname: 'random',
-    isMuted: true,
-    teamname: 'techtonica',
-  },
-  bigTeamBChannel4: {
-    ...commonBigChannel,
-    channelname: 'happy-hour',
-    isMuted: true,
-    teamname: 'techtonica',
-  },
-  bigTeamBHeader: {
-    badgeSubscribe: false,
-    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
-    teamname: 'techtonica',
-  },
-  bigTeamDivider1: {
-    badgeCount: 4,
-  },
-  bigTeamFilterAChannel1: {
-    ...commonBigFilter,
-    channelname: 'general',
-  },
-  bigTeamFilterAChannel2: {
-    ...commonBigFilter,
-    channelname: 'random',
-  },
-  bigTeamFilterBChannel1: {
-    ...commonBigFilter,
-    channelname: 'this-is-a-very-long-channel-name',
-    teamname: 'stripe.usa',
-  },
-  bigTeamFilterCChannel1: {
-    ...commonBigFilter,
-    channelname: 'general',
-    teamname: 'this.is.a.very.long.team.name.situation',
-  },
-  smallFilterTeamA: {
-    ...commonSmallFilter,
-  },
-  smallFilterTeamB: {
-    ...commonSmallFilter,
-    paricipants: ['chris'],
-  },
-  smallFilterTeamC: {
-    ...commonSmallFilter,
-    teamname: 'pokerpals',
-  },
+  // Small Teams
   smallTeamA: {
     ...commonSmallTeam,
     conversationIDKey: '3',
-    hasBadge: false,
     hasUnread: false,
+    hasBadge: false,
     showBold: false,
     snippet: 'elisa: Hopefully not',
     teamname: 'fortgreenmoms',
@@ -190,8 +102,8 @@ const mapPropProviderProps = {
   smallTeamB: {
     ...commonSmallTeam,
     conversationIDKey: '1',
-    hasBadge: true,
     hasUnread: true,
+    hasBadge: true,
     showBold: true,
     snippet: 'in the top-drawer i believe',
     subColor: globalColors.black_75,
@@ -200,8 +112,8 @@ const mapPropProviderProps = {
   smallTeamC: {
     ...commonSmallTeam,
     conversationIDKey: '2',
-    hasBadge: false,
     hasUnread: false,
+    hasBadge: false,
     participants: ['jzila'],
     showBold: false,
     snippet: "I don't know that I would want.",
@@ -222,8 +134,8 @@ const mapPropProviderProps = {
     ...commonSmallTeam,
     backgroundColor: isMobile ? commonSmallFilter.backgroundColor : globalColors.blue,
     conversationIDKey: '4',
-    hasBadge: false,
     hasUnread: false,
+    hasBadge: false,
     iconHoverColor: globalColors.white_75,
     isSelected: !isMobile,
     showBold: false,
@@ -236,9 +148,9 @@ const mapPropProviderProps = {
   smallTeamF: {
     ...commonSmallTeam,
     conversationIDKey: '6',
-    hasBadge: false,
-    hasUnread: false,
     participants: ['jacobyoung'],
+    hasUnread: false,
+    hasBadge: false,
     showBold: false,
     snippet: 'what does the scouter say about his power level?',
     subColor: globalColors.black_40,
@@ -249,39 +161,39 @@ const mapPropProviderProps = {
     conversationIDKey: '7',
     participants: ['nathunsmitty'],
     snippet: 'whoops',
-    snippetDecoration: '💣',
     timestamp: '11:06 am',
+    snippetDecoration: '💣',
   },
   smallTeamH: {
     conversationIDKey: '8',
     participants: ['ayoubd'],
     snippet: 'lol',
-    snippetDecoration: '💥',
     timestamp: '1:37 pm',
+    snippetDecoration: '💥',
   },
   smallTeamI: {
     ...commonSmallTeam,
     conversationIDKey: '9',
     participants: ['cnojima'],
     snippet: 'rip',
-    snippetDecoration: '',
     timestamp: '12:08 am',
+    snippetDecoration: '',
   },
   smallTeamJ: {
     ...commonSmallTeam,
     conversationIDKey: '10',
     participants: ['max'],
     snippet: 'foo bar',
-    snippetDecoration: '',
     timestamp: '2:56 pm',
+    snippetDecoration: '',
   },
   smallTeamK: {
     ...commonSmallTeam,
     conversationIDKey: '11',
     participants: ['nathunsmitty'],
     snippet: 'scoop die whoop',
-    snippetDecoration: '',
     timestamp: '1:05 pm',
+    snippetDecoration: '',
   },
   smallTeamL: {
     ...commonSmallTeam,
@@ -292,14 +204,112 @@ const mapPropProviderProps = {
   smallTeamM: {
     ...commonSmallTeam,
     conversationIDKey: '13',
-    participantNeedToRekey: true,
     participants: ['adamjspooner'],
+    participantNeedToRekey: true,
   },
   smallTeamN: {
     ...commonSmallTeam,
     conversationIDKey: '14',
     participants: ['xgess'],
     youNeedToRekey: true,
+  },
+
+  // Big Team A
+  bigTeamAHeader: {
+    teamname: 'Keybase',
+    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
+    badgeSubscribe: false,
+  },
+  bigTeamAChannel1: {
+    ...commonBigChannel,
+    teamname: 'Keybase',
+    channelname: 'general',
+  },
+  bigTeamAChannel2: {
+    ...commonBigChannel,
+    teamname: 'Keybase',
+    channelname: 'random',
+    showBold: true,
+  },
+  bigTeamAChannel3: {
+    ...commonBigChannel,
+    teamname: 'Keybase',
+    channelname: 'zzz',
+    showBold: true,
+    hasUnread: true,
+  },
+  bigTeamAChannel4: {
+    ...commonBigChannel,
+    teamname: 'Keybase',
+    channelname: 'video-games',
+    isMuted: true,
+  },
+
+  // Big Team B
+  bigTeamBHeader: {
+    teamname: 'techtonica',
+    memberCount: 0, // Handled by PropProviders.TeamDropdownMenu
+    badgeSubscribe: false,
+  },
+  bigTeamBChannel1: {
+    ...commonBigChannel,
+    teamname: 'techtonica',
+    channelname: 'general',
+    isSelected: !isMobile,
+  },
+  bigTeamBChannel2: {
+    ...commonBigChannel,
+    teamname: 'techtonica',
+    channelname: 'ignore-selected-below',
+  },
+  bigTeamBChannel3: {
+    ...commonBigChannel,
+    teamname: 'techtonica',
+    channelname: 'random',
+    isMuted: true,
+  },
+  bigTeamBChannel4: {
+    ...commonBigChannel,
+    teamname: 'techtonica',
+    channelname: 'happy-hour',
+    isMuted: true,
+  },
+
+  // Small Teams Filter
+  smallFilterTeamA: {
+    ...commonSmallFilter,
+  },
+  smallFilterTeamB: {
+    ...commonSmallFilter,
+    paricipants: ['chris'],
+  },
+  smallFilterTeamC: {
+    ...commonSmallFilter,
+    teamname: 'pokerpals',
+  },
+
+  // Big Teams Filter
+  bigTeamFilterAChannel1: {
+    ...commonBigFilter,
+    channelname: 'general',
+  },
+  bigTeamFilterAChannel2: {
+    ...commonBigFilter,
+    channelname: 'random',
+  },
+  bigTeamFilterBChannel1: {
+    ...commonBigFilter,
+    teamname: 'stripe.usa',
+    channelname: 'this-is-a-very-long-channel-name',
+  },
+  bigTeamFilterCChannel1: {
+    ...commonBigFilter,
+    teamname: 'this.is.a.very.long.team.name.situation',
+    channelname: 'general',
+  },
+
+  bigTeamDivider1: {
+    badgeCount: 4,
   },
 }
 
@@ -329,15 +339,15 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
-  focusFilter: () => {},
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onNewChat: Sb.action('onNewChat'),
-  onSelectDown: Sb.action('onSelectDown'),
-  onSelectUp: Sb.action('onSelectUp'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
+  onSelectUp: Sb.action('onSelectUp'),
+  onSelectDown: Sb.action('onSelectDown'),
   rows: [],
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
@@ -383,6 +393,7 @@ const propsInboxTeam = {
 
 const propsInboxDivider = {
   ...propsInboxCommon,
+  smallTeamsExpanded: false,
   rows: [
     // Small
     makeRowItemSmall('smallTeamA'),
@@ -409,11 +420,11 @@ const propsInboxDivider = {
     makeRowItemBigChannel('bigTeamBChannel3', 'techtonica', 'random'),
     makeRowItemBigChannel('bigTeamBChannel4', 'techtonica', 'happy-hour'),
   ],
-  smallTeamsExpanded: false,
 }
 
 const propsInboxExpanded = {
   ...propsInboxCommon,
+  smallTeamsExpanded: false,
   rows: [
     // Small
     makeRowItemSmall('smallTeamA'),
@@ -428,7 +439,6 @@ const propsInboxExpanded = {
     makeRowItemSmall('smallTeamJ'),
     makeRowItemSmall('smallTeamK'),
   ],
-  smallTeamsExpanded: false,
 }
 
 const propsInboxFilter = {
@@ -455,25 +465,26 @@ const propsInboxFilter = {
  */
 const teamMemberCounts = {
   Keybase: 30,
-  stripe: 1337,
   techtonica: 30,
+  stripe: 1337,
 }
 
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
-  BigTeamChannel: getPropProviderProps,
-  BigTeamHeader: getPropProviderProps,
-  BigTeamsDivider: ownProps => ({badgeCount: 5}),
-  BuildTeam: p => ({
-    loaded: true,
-    onBuildTeam: Sb.action('onBuildTeam'),
-  }),
+  ChatInboxHeaderContainer: p => {
+    return {
+      focusFilter: () => {},
+      filterFocusCount: p.filterFocusCount,
+      onNewChat: Sb.action('onNewChat'),
+      rows: p.rows,
+    }
+  },
   ChatFilterRow: p => ({
-    filterFocusCount: p.filterFocusCount,
-    fitler: p.filter,
     focusFilter: () => {},
-    hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
+    fitler: p.filter,
+    filterFocusCount: p.filterFocusCount,
     isLoading: false,
+    hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
     onHotkey: Sb.action('onHotkey'),
     onNewChat: Sb.action('onNewChat'),
     onSelectDown: Sb.action('onSelectDown'),
@@ -481,16 +492,10 @@ const provider = Sb.createPropProviderWithCommon({
     onSetFilter: Sb.action('onSetFilter'),
     rows: p.rows,
   }),
-  ChatInboxHeaderContainer: p => {
-    return {
-      filterFocusCount: p.filterFocusCount,
-      focusFilter: () => {},
-      onNewChat: Sb.action('onNewChat'),
-      rows: p.rows,
-    }
-  },
-  FilterBigTeamChannel: getPropProviderProps,
-  FilterSmallTeam: getPropProviderProps,
+  BuildTeam: p => ({
+    onBuildTeam: Sb.action('onBuildTeam'),
+    loaded: true,
+  }),
   NewChooser: p => ({
     isSelected: false,
     onCancel: Sb.action('onCancel'),
@@ -498,16 +503,21 @@ const provider = Sb.createPropProviderWithCommon({
     shouldShow: false,
     users: I.OrderedSet(['']),
   }),
-  // BigTeamHeader is wrapped by OverlayParent
-  OverlayParent: getPropProviderProps,
-  SmallTeam: getPropProviderProps,
   TeamsDivider: p => ({
     badgeCount: 2,
-    hiddenCount: 4,
     showButton: p.showButton,
+    hiddenCount: 4,
     style: {marginBottom: globalMargins.tiny},
     toggle: Sb.action('onToggle'),
   }),
+  // BigTeamHeader is wrapped by OverlayParent
+  OverlayParent: getPropProviderProps,
+  SmallTeam: getPropProviderProps,
+  BigTeamHeader: getPropProviderProps,
+  BigTeamsDivider: ownProps => ({badgeCount: 5}),
+  BigTeamChannel: getPropProviderProps,
+  FilterSmallTeam: getPropProviderProps,
+  FilterBigTeamChannel: getPropProviderProps,
 })
 
 class Wrapper extends React.Component<any, any> {

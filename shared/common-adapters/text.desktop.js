@@ -42,9 +42,9 @@ class Text extends React.Component<Props> {
   _className(props: Props) {
     const meta = metaData[props.type]
     return Styles.classNames(`text_${props.type}`, props.className, {
+      underline: props.underline,
       // eslint-disable-next-line sort-keys
       'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
-      underline: props.underline,
     })
   }
 
@@ -138,8 +138,8 @@ function externalGetStyle(
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable
     ? {
-        cursor: 'text',
         userSelect: 'text',
+        cursor: 'text',
       }
     : null
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
