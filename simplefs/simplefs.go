@@ -1996,6 +1996,13 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}
 
+	// Ensure the TLF is initialized by getting the root node first.
+	_, _, err = k.config.KBFSOps().GetRootNode(
+		ctx, tlfHandle, libkbfs.MasterBranch)
+	if err != nil {
+		return tlf.NullID, keybase1.FolderSyncConfig{}, err
+	}
+
 	config = keybase1.FolderSyncConfig{Mode: keybase1.FolderSyncMode_DISABLED}
 	if k.config.IsSyncedTlf(tlfHandle.TlfID()) {
 		config.Mode = keybase1.FolderSyncMode_ENABLED
