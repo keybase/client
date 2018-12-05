@@ -518,11 +518,10 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	var verb string
 	statusStr := strings.ToLower(details.Status)
 	switch statusStr {
-	case "completed", "canceled", "claimable":
+	case "completed", "claimable":
 		verb = "sent"
-		if details.Yanked {
-			verb = "canceled sending"
-		}
+	case "canceled":
+		verb = "canceled sending"
 	case "pending":
 		verb = "sending"
 	default:

@@ -923,13 +923,17 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 		if p.Claim != nil {
 			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 				// If the claim succeeded, the relay payment is done.
-				res.Status = "Completed"
+				switch p.Claim.Dir {
+				case stellar1.RelayDirection_CLAIM:
+					res.Status = "Completed"
+				case stellar1.RelayDirection_YANK:
+					res.Status = "Canceled"
+				}
 				res.ToStellar = &p.Claim.ToStellar
 				res.ToUsername, err = username(p.Claim.To.Uid)
 				if err != nil {
 					return res, err
 				}
-				res.Yanked = p.Claim.Dir == stellar1.RelayDirection_YANK
 			} else {
 				claimantUsername, err := username(p.Claim.To.Uid)
 				if err != nil {
