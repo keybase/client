@@ -157,56 +157,6 @@ func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInter
 	return nil
 }
 
-func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1.IncomingInterface, teamName string) error {
-	badges := r.badger.State().FindResetMemberBadges(teamName)
-	if len(badges) == 0 {
-		return nil
-	}
-	r.G().Log.CDebugf(ctx, "Checking reset badges: got total %d badges for team %q",
-		len(badges), teamName)
-
-	team, err := teams.GetMaybeAdminByStringName(ctx, r.G(), teamName, false /* public */)
-	if err != nil {
-		return err
-	}
-
-	for _, badge := range badges {
-		var dismiss bool
-		teamUV, notFoundErr := team.UserVersionByUID(ctx, badge.Uid)
-		if notFoundErr == nil {
-			arg := libkb.NewLoadUserArg(r.G()).WithUID(badge.Uid).WithNetContext(ctx).WithForcePoll(true).WithPublicKeyOptional()
-			upak, _, err := r.G().GetUPAKLoader().LoadV2(arg)
-			if err != nil {
-				r.G().Log.CDebugf(ctx, "Failed to load UPAK for: %s during badge dismissal: %s",
-					badge.Uid, err)
-				continue
-			}
-			if upak.Current.EldestSeqno == teamUV.EldestSeqno {
-				// We have the latest version of the user in the team.
-				r.G().Log.CDebugf(ctx, "Dismissing badge for %s - team has latest user version", badge.Uid)
-				dismiss = true
-			} else {
-				r.G().Log.CDebugf(ctx, "User %s is still reset: current seq: %d team seq: ",
-					badge.Uid, upak.Current.EldestSeqno, teamUV.EldestSeqno)
-			}
-		} else {
-			// User has been removed from the team.
-			r.G().Log.CDebugf(ctx, "Dismissing badge for %s - member was removed", badge.Uid)
-			dismiss = true
-		}
-
-		if dismiss {
-			if err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id); err != nil {
-				r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
-			} else {
-				r.G().Log.CDebugf(ctx, "dismissed badge %s for %s!", badge.Id, badge.Uid)
-			}
-		}
-	}
-
-	return nil
-}
-
 func (r *teamHandler) gotForceRepoll(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	r.G().Log.CDebugf(ctx, "teamHandler: gotForceRepoll received")
 	return teams.HandleForceRepollNotification(ctx, r.G(), item.DTime())
@@ -230,21 +180,6 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx, "failed to local dismiss team change: %s", err)
 	}
-
-	// Check the badge state to see if any team reset badges need dismissal.
-	go func() {
-		r.teamHandlerBackgroundJob.Lock()
-		defer r.teamHandlerBackgroundJob.Unlock()
-		for _, row := range rows {
-			// Even if this row hasn't set `RemovedResetUsers` attempt a
-			// dismissal in case we erred out on a previous dismiss and are
-			// stuck.
-			if err := r.findAndDismissResetBadges(ctx, cli, row.Name); err != nil {
-				r.G().Log.CDebugf(ctx, "Error during dismissing badges for team %q: %s", row.Name, err)
-			}
-		}
-	}()
-
 	return nil
 }
 

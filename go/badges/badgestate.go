@@ -321,19 +321,6 @@ func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpda
 	}
 }
 
-func (b *BadgeState) FindResetMemberBadges(teamName string) (badges []keybase1.TeamMemberOutReset) {
-	b.Lock()
-	defer b.Unlock()
-
-	for _, badge := range b.state.TeamsWithResetUsers {
-		if badge.Teamname == teamName {
-			badges = append(badges, badge)
-		}
-	}
-
-	return badges
-}
-
 // SetWalletAccountUnreadCount sets the unread count for a wallet account.
 func (b *BadgeState) SetWalletAccountUnreadCount(accountID stellar1.AccountID, unreadCount int) {
 	b.Lock()
