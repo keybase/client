@@ -435,25 +435,24 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 onClickFollowers={this.props.onClickFollowers}
                 onClickFollowing={this.props.onClickFollowing}
               />
-              {!this.props.isYou &&
-                !loading && (
-                  <UserActions
-                    style={styleActions}
-                    trackerState={this.props.trackerState}
-                    currentlyFollowing={this.props.currentlyFollowing}
-                    onAddToTeam={this.props.onAddToTeam}
-                    onBrowsePublicFolder={this.props.onBrowsePublicFolder}
-                    onChat={this.props.onChat}
-                    onFollow={this.props.onFollow}
-                    onOpenPrivateFolder={this.props.onOpenPrivateFolder}
-                    onRefresh={this.props.refresh}
-                    onSendLumens={this.props.onSendLumens}
-                    onRequestLumens={this.props.onRequestLumens}
-                    onUnfollow={this.props.onUnfollow}
-                    onAcceptProofs={this.props.onAcceptProofs}
-                    waiting={this.props.waiting}
-                  />
-                )}
+              {!this.props.isYou && !loading && (
+                <UserActions
+                  style={styleActions}
+                  trackerState={this.props.trackerState}
+                  currentlyFollowing={this.props.currentlyFollowing}
+                  onAddToTeam={this.props.onAddToTeam}
+                  onBrowsePublicFolder={this.props.onBrowsePublicFolder}
+                  onChat={this.props.onChat}
+                  onFollow={this.props.onFollow}
+                  onOpenPrivateFolder={this.props.onOpenPrivateFolder}
+                  onRefresh={this.props.refresh}
+                  onSendLumens={this.props.onSendLumens}
+                  onRequestLumens={this.props.onRequestLumens}
+                  onUnfollow={this.props.onUnfollow}
+                  onAcceptProofs={this.props.onAcceptProofs}
+                  waiting={this.props.waiting}
+                />
+              )}
             </Kb.Box>
             <Kb.Box style={styleProofColumn}>
               <Kb.Box style={styleProofNoticeBox}>
@@ -496,15 +495,21 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
-                {!loading &&
-                  !this.props.serverActive &&
-                  missingProofs.length > 0 && (
-                    <Kb.UserProofs
-                      type={'missingProofs'}
-                      username={this.props.username}
-                      missingProofs={missingProofs}
-                    />
-                  )}
+                {this.props.stellarAddress && !loading && (
+                  <StellarFederatedAddress
+                    currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
+                    stellarAddress={this.props.stellarAddress}
+                    onSendOrRequest={this.props.onSendOrRequestStellarAddress}
+                    onCopyAddress={this.props.onCopyStellarAddress}
+                  />
+                )}
+                {!loading && !this.props.serverActive && missingProofs.length > 0 && (
+                  <Kb.UserProofs
+                    type={'missingProofs'}
+                    username={this.props.username}
+                    missingProofs={missingProofs}
+                  />
+                )}
                 {proofMenuContent && (
                   <Kb.FloatingMenu
                     closeOnSelect={true}
@@ -516,36 +521,23 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     {...proofMenuContent}
                   />
                 )}
-                {this.props.stellarAddress &&
-                  !loading && (
-                    <StellarFederatedAddress
-                      currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
-                      stellarAddress={this.props.stellarAddress}
-                      onSendOrRequest={this.props.onSendOrRequestStellarAddress}
-                      onCopyAddress={this.props.onCopyStellarAddress}
-                    />
-                  )}
                 {!loading && <Folders profileUsername={this.props.username} />}
               </Kb.Box>
             </Kb.Box>
           </Kb.Box>
-          {!loading &&
-            !!this.props.followers &&
-            !!this.props.following && (
-              <Friendships
-                username={this.props.username}
-                isYou={this.props.isYou}
-                style={styleFriendships}
-                currentTab={this.props.currentFriendshipsTab}
-                onSwitchTab={currentFriendshipsTab =>
-                  this.props.onChangeFriendshipsTab(currentFriendshipsTab)
-                }
-                onUserClick={this.props.onUserClick}
-                followersLoaded={this.props.followersLoaded}
-                followers={this.props.followers}
-                following={this.props.following}
-              />
-            )}
+          {!loading && !!this.props.followers && !!this.props.following && (
+            <Friendships
+              username={this.props.username}
+              isYou={this.props.isYou}
+              style={styleFriendships}
+              currentTab={this.props.currentFriendshipsTab}
+              onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
+              onUserClick={this.props.onUserClick}
+              followersLoaded={this.props.followersLoaded}
+              followers={this.props.followers}
+              following={this.props.following}
+            />
+          )}
         </Kb.Box>
       </Kb.Box>
     )

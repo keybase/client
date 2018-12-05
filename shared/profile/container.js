@@ -70,7 +70,7 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
     username,
     youAreInTeams,
     // TODO: use real federated stellar address
-    stellarAddress: __DEV__ ? username + '*keybase.io' : '',
+    stellarAddress: flags.walletsEnabled ? username + '*keybase.io' : '',
   }
 }
 
