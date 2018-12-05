@@ -152,8 +152,8 @@ class Profile extends Component<Props, State> {
             return
           }
           if (response.error) {
-            console.error(response.error)
-            throw new Error(response.error)
+            this.props.onEditAvatarError(response.error)
+            return
           }
           this.props.onEditAvatar(response)
         })

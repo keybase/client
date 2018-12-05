@@ -130,6 +130,7 @@ const props = {
   onClickShowcased: Sb.action('onClickShowcased'),
   onCopyStellarAddress: Sb.action('onCopyStellarAddress'),
   onEditAvatar: Sb.action('onEditAvatar'),
+  onEditAvatarError: Sb.action('onEditAvatarError'),
   onFolderClick: Sb.action('onFolderClick'),
   onFollow: Sb.action('onFollow'),
   onMissingProofClick: Sb.action(`Prove`),

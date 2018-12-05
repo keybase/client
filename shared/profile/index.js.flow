@@ -49,6 +49,7 @@ export type Props = {
   stellarAddress?: string,
   error: ?string,
   onEditAvatar: (image?: any) => void,
+  onEditAvatarError: (error: string) => void,
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,

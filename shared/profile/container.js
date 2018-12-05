@@ -111,6 +111,11 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
     flags.avatarUploadsEnabled
       ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
       : dispatch(navigateAppend(['editAvatarPlaceholder'])),
+  onEditAvatarError: (error: string) => {
+    // TODO: Do something.
+    console.error(error)
+    throw new Error(error)
+  },
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(folder.path)})),
