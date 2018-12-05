@@ -41,6 +41,10 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(
       navigateAppend([{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}])
     ),
+  onEditIconError: (error: string) => {
+    console.error(error)
+    throw new Error(error)
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -54,6 +58,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onChat: dispatchProps.onChat,
   onEditDescription: dispatchProps.onEditDescription,
   onEditIcon: dispatchProps.onEditIcon,
+  onEditIconError: dispatchProps.onEditIconError,
   openTeam: stateProps.openTeam,
   role: stateProps.role,
   teamname: ownProps.teamname,
