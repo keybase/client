@@ -28,6 +28,16 @@ func (s *Slot) Use(ctx context.Context) context.Context {
 	return ctx
 }
 
+// Stop cancels the running task if there is one.
+func (s *Slot) Stop() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		s.cancel = nil
+	}
+}
+
 // PrioritySlot is a slot in which only one context can thrive.
 type PrioritySlot struct {
 	mu       sync.Mutex
@@ -62,4 +72,15 @@ func (s *PrioritySlot) Use(ctx context.Context, priority int) context.Context {
 	// Incumbent wins
 	cancel()
 	return ctx
+}
+
+// Stop cancels the running task if there is one.
+func (s *PrioritySlot) Stop() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		s.cancel = nil
+		s.priority = 0
+	}
 }
