@@ -78,6 +78,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 	}
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
+	go kops.initSyncedTlfs()
 	return kops
 }
 
@@ -1409,8 +1410,7 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 	}
 
 	// Construct folderBranchOps instances for each TLF in the inbox
-	// that doesn't have one yet.  Also make sure there's one for the
-	// logged-in user's public folder.
+	// that doesn't have one yet.
 	for _, h := range handles {
 		if h.tlfID != tlf.NullID {
 			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
@@ -1428,6 +1428,43 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 				h.GetCanonicalName())
 		}
 	}
+}
+
+func (fs *KBFSOpsStandard) initSyncedTlfs() {
+	tlfs := fs.config.GetAllSyncedTlfs()
+	if len(tlfs) == 0 {
+		return
+	}
+
+	ctx := CtxWithRandomIDReplayable(
+		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+	fs.log.CDebugf(ctx, "Initializing %d synced TLFs", len(tlfs))
+
+	// Should we parallelize these in some limited way to speed it up
+	// without overwhelming the CPU?
+	for _, tlfID := range tlfs {
+		fs.log.CDebugf(ctx, "Initializing synced TLF: %s", tlfID)
+		fb := FolderBranch{Tlf: tlfID, Branch: MasterBranch}
+		md, err := fs.config.MDOps().GetForTLF(ctx, tlfID, nil)
+		if err != nil {
+			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
+			continue
+		}
+		if md == (ImmutableRootMetadata{}) {
+			fs.log.CDebugf(ctx, "TLF %s has no revisions yet", err)
+			continue
+		}
+
+		// Getting the root node populates the head of the TLF, which
+		// kicks off any needed sync operations.
+		h := md.GetTlfHandle()
+		_, _, err = fs.getMaybeCreateRootNode(ctx, h, fb.Branch, false)
+		if err != nil {
+			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
+			continue
+		}
+	}
+
 }
 
 // kbfsOpsFavoriteObserver deals with a handle change for a particular
