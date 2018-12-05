@@ -53,8 +53,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
-      path: p,
       outboxID: null,
+      path: p,
     }))
     dispatch(
       RouteTree.navigateAppend([
@@ -86,10 +86,10 @@ const mapDispatchToProps = dispatch => ({
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
+  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
-  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -105,8 +105,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isExplodingNew: stateProps.isExplodingNew,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-  onFilePickerError: dispatchProps.onFilePickerError,
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  onFilePickerError: dispatchProps.onFilePickerError,
   onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {

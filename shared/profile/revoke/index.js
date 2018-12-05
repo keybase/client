@@ -67,32 +67,32 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
   alignItems: 'center',
-  position: 'relative',
-  paddingTop: globalMargins.large,
+  flexGrow: 1,
   paddingBottom: globalMargins.large,
+  paddingTop: globalMargins.large,
+  position: 'relative',
   ...desktopStyles.scrollable,
 }
 
 const styleClose = collapseStyles([
   {
     position: 'absolute',
-    top: globalMargins.small,
     right: globalMargins.small,
+    top: globalMargins.small,
   },
   desktopStyles.clickable,
 ])
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
   alignItems: 'center',
-  width: '100%',
-  zIndex: 1,
+  backgroundColor: globalColors.red,
+  justifyContent: 'center',
   minHeight: globalMargins.large,
   padding: globalMargins.tiny,
-  backgroundColor: globalColors.red,
+  width: '100%',
+  zIndex: 1,
 }
 
 const styleErrorBannerText = {
@@ -103,9 +103,9 @@ const styleErrorBannerText = {
 
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'center',
-  alignItems: 'center',
   margin: globalMargins.large,
   maxWidth: 512,
   ...(isMobile ? {} : {textAlign: 'center'}),
@@ -113,13 +113,13 @@ const styleContentContainer = {
 
 const stylePlatformUsername = platformStyles({
   common: {
-    textDecorationLine: 'line-through',
     color: globalColors.red,
+    textDecorationLine: 'line-through',
   },
   isElectron: {
-    textAlign: 'center',
-    overflowWrap: 'break-word',
     maxWidth: 400,
+    overflowWrap: 'break-word',
+    textAlign: 'center',
   },
 })
 const stylePlatformSubtitle = {

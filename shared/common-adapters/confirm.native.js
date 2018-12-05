@@ -17,8 +17,8 @@ class Confirm extends Component<Props> {
             style={{
               alignSelf: 'stretch',
               ...globalStyles.flexBoxColumn,
-              justifyContent: 'flex-end',
               flexGrow: 1,
+              justifyContent: 'flex-end',
               marginBottom: globalMargins.medium,
               marginTop: globalMargins.medium,
             }}
@@ -53,20 +53,20 @@ const mapTheme = {
 
 const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
-  height: 112,
-  marginBottom: globalMargins.small,
   alignItems: 'center',
+  height: 112,
   justifyContent: 'center',
+  marginBottom: globalMargins.small,
 }
 
 const styleBodyContainer = {
   ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
   alignItems: 'center',
+  flexGrow: 1,
   justifyContent: 'center',
+  marginBottom: globalMargins.small,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
-  marginBottom: globalMargins.small,
 }
 
 const styleButton = {
@@ -74,17 +74,17 @@ const styleButton = {
 }
 
 const cancelButtonThemed = {
-  public: {},
   private: {
     backgroundColor: globalColors.blue_30,
   },
+  public: {},
 }
 
 const cancelButtonLabelThemed = {
-  public: {},
   private: {
     color: globalColors.white,
   },
+  public: {},
 }
 
 export default Confirm

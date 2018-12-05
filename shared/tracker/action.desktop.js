@@ -138,20 +138,20 @@ export function calcFooterHeight(loggedIn: boolean): number {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   ...desktopStyles.noSelect,
-  backgroundColor: globalColors.white_90,
-  width: '100%',
-  height: calcFooterHeight(true),
-  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
+  backgroundColor: globalColors.white_90,
+  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+  height: calcFooterHeight(true),
   justifyContent: 'center',
   padding: globalMargins.small,
   position: 'relative',
+  width: '100%',
   zIndex: 1,
 }
 
 const styleActionButton = {
-  width: 102,
   minWidth: 102,
+  width: 102,
 }
 
 const styleChatButton = {
@@ -160,13 +160,13 @@ const styleChatButton = {
 
 const styleLoggedOutContainer = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  width: '100%',
-  height: calcFooterHeight(false),
-  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
+  backgroundColor: globalColors.white,
+  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+  height: calcFooterHeight(false),
   justifyContent: 'space-between',
   padding: globalMargins.small,
   position: 'relative',
+  width: '100%',
   zIndex: 1,
 }

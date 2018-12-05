@@ -69,20 +69,20 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({loaded: action.payload.loaded})
     case TeamsGen.setTeamInfo:
       return state.merge({
-        teamnames: action.payload.teamnames,
-        teammembercounts: action.payload.teammembercounts,
-        teamNameToIsOpen: action.payload.teamNameToIsOpen,
-        teamNameToRole: action.payload.teamNameToRole,
         teamNameToAllowPromote: action.payload.teamNameToAllowPromote,
-        teamNameToIsShowcasing: action.payload.teamNameToIsShowcasing,
         teamNameToID: action.payload.teamNameToID,
+        teamNameToIsOpen: action.payload.teamNameToIsOpen,
+        teamNameToIsShowcasing: action.payload.teamNameToIsShowcasing,
+        teamNameToRole: action.payload.teamNameToRole,
+        teammembercounts: action.payload.teammembercounts,
+        teamnames: action.payload.teamnames,
       })
     case TeamsGen.setTeamAccessRequestsPending:
       return state.merge({teamAccessRequestsPending: action.payload.accessRequestsPending})
     case TeamsGen.setNewTeamInfo:
       return state.merge({
-        newTeams: action.payload.newTeams,
         newTeamRequests: action.payload.newTeamRequests,
+        newTeams: action.payload.newTeams,
         teamNameToResetUsers: action.payload.teamNameToResetUsers,
       })
     case TeamsGen.setTeamProfileAddList:

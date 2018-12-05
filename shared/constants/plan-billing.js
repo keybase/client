@@ -9,9 +9,9 @@ export function parseAvailablePlan({
   price_pennies,
 }: Types.AvailablePlanAPI): Types.AvailablePlan {
   return {
-    planLevel: capitalize(plan_name.toLowerCase()),
-    planId: plan_id,
     gigabytes,
+    planId: plan_id,
+    planLevel: capitalize(plan_name.toLowerCase()),
     price_pennies,
   }
 }
@@ -47,8 +47,8 @@ export function billingAndQuotaAPIToOurBillingAndQuota({
   return {
     plan: {
       gigabytes: plan.gigabytes,
-      planLevel: capitalize(plan.plan_name.toLowerCase()),
       planId: plan.plan_id,
+      planLevel: capitalize(plan.plan_name.toLowerCase()),
     },
     usage: {
       gigabytes: usage.gigabytes,
@@ -69,8 +69,8 @@ export function planToStars(plan: string): number {
   return (
     {
       Basic: 1,
-      Gold: 3,
       Friend: 5,
+      Gold: 3,
     }[plan] || 0
   )
 }

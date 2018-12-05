@@ -27,8 +27,8 @@ const styleContainer = {
 }
 
 const styleHeaderIcon = {
-  marginTop: globalMargins.xtiny,
   alignSelf: 'center',
+  marginTop: globalMargins.xtiny,
 }
 
 const styleHeader = {
@@ -42,8 +42,8 @@ const styleBody = {
 }
 
 const styleLoadingIcon = {
-  marginTop: globalMargins.medium,
   alignSelf: 'center',
+  marginTop: globalMargins.medium,
 }
 
 export default GeneratingPgp

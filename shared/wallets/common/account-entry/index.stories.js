@@ -4,9 +4,9 @@ import * as Sb from '../../../stories/storybook'
 import AccountEntry from '.'
 
 const account = {
-  name: 'Primary Account',
-  keybaseUser: 'nathunsmitty',
   contents: '5 XLM',
+  keybaseUser: 'nathunsmitty',
+  name: 'Primary Account',
 }
 
 const load = () => {

@@ -50,14 +50,14 @@ class Invites extends Component<Props, State> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Banner error={this.props.error} />
         <Box
-          style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}
+          style={{...globalStyles.flexBoxColumn, flex: 1, overflow: 'auto', padding: globalMargins.medium}}
         >
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
-              minHeight: 269,
               alignItems: 'center',
               marginTop: globalMargins.small,
+              minHeight: 269,
             }}
           >
             <Input
@@ -83,7 +83,7 @@ class Invites extends Component<Props, State> {
             />
           </Box>
           {props.pendingInvites.length > 0 && (
-            <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, marginBottom: 16}}>
               <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
               {intersperseDividers(
                 props.pendingInvites.map(invite => (
@@ -209,11 +209,11 @@ function AcceptedInviteItem({
 
 const styleInviteItem = {
   ...globalStyles.flexBoxRow,
-  height: 40,
   alignItems: 'center',
+  flexShrink: 0,
+  height: 40,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
-  flexShrink: 0,
 }
 
 export default Invites

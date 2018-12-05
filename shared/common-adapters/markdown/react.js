@@ -25,8 +25,8 @@ const bigTextBlockStyle = Styles.platformStyles({
     ...wrapStyle,
   },
   isElectron: {
-    display: 'block',
     color: 'inherit',
+    display: 'block',
     fontWeight: 'inherit',
   },
   isMobile: {
@@ -37,7 +37,7 @@ const bigTextBlockStyle = Styles.platformStyles({
 
 const textBlockStyle = Styles.platformStyles({
   common: {...wrapStyle},
-  isElectron: {display: 'block', color: 'inherit', fontWeight: 'inherit'},
+  isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit'},
 })
 
 const linkStyle = Styles.platformStyles({
@@ -56,8 +56,8 @@ const neutralPreviewStyle = Styles.platformStyles({
 
 const boldStyle = Styles.platformStyles({
   common: {...wrapStyle},
-  isMobile: {color: undefined},
   isElectron: {color: 'inherit'},
+  isMobile: {color: undefined},
 })
 
 const italicStyle = Styles.platformStyles({
@@ -65,34 +65,34 @@ const italicStyle = Styles.platformStyles({
     ...wrapStyle,
     fontStyle: 'italic',
   },
-  isMobile: {color: undefined, fontWeight: undefined},
   isElectron: {color: 'inherit', fontWeight: 'inherit'},
+  isMobile: {color: undefined, fontWeight: undefined},
 })
 
 const strikeStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
   },
-  isMobile: {
-    fontWeight: undefined,
-    textDecorationLine: 'line-through',
-  },
   isElectron: {
     color: 'inherit',
     fontWeight: 'inherit',
     textDecoration: 'line-through',
   },
+  isMobile: {
+    fontWeight: undefined,
+    textDecorationLine: 'line-through',
+  },
 })
 
 const quoteStyle = Styles.platformStyles({
   common: {
+    borderLeftColor: Styles.globalColors.lightGrey2,
     borderLeftWidth: 3,
     borderStyle: 'solid',
-    borderLeftColor: Styles.globalColors.lightGrey2,
   },
   isElectron: {
-    paddingLeft: Styles.globalMargins.small,
     display: 'block',
+    paddingLeft: Styles.globalMargins.small,
   },
   isMobile: {
     paddingLeft: Styles.globalMargins.tiny,
@@ -109,11 +109,11 @@ const codeSnippetStyle = Styles.platformStyles({
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
   },
-  isMobile: {
-    fontSize: 15,
-  },
   isElectron: {
     fontSize: 12,
+  },
+  isMobile: {
+    fontSize: 15,
   },
 })
 
@@ -130,16 +130,16 @@ const codeSnippetBlockStyle = Styles.platformStyles({
     paddingTop: Styles.globalMargins.xtiny,
   },
   isElectron: {
-    display: 'block',
     color: Styles.globalColors.black_75,
+    display: 'block',
   },
 })
 
 const codeSnippetBlockTextStyle = Styles.platformStyles({
   isMobile: {
     ...Styles.globalStyles.fontTerminal,
-    fontSize: 15,
     color: Styles.globalColors.black_75,
+    fontSize: 15,
   },
 })
 
@@ -186,19 +186,43 @@ class EmojiIfExists extends PureComponent<
 
 const reactComponentsForMarkdownType = {
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
-  newline: (node, outputFunc, state) =>
-    !isMobile || state.inParagraph ? (
-      '\n'
-    ) : (
+  blockQuote: (node, output, state) => (
+    <Box key={state.key} style={quoteStyle}>
+      {output(node.content, {...state, inBlockQuote: true})}
+    </Box>
+  ),
+  channel: (node, output, state) => {
+    return (
+      <Channel
+        name={node.content}
+        convID={Types.stringToConversationIDKey(node.convID)}
+        key={state.key}
+        style={linkStyle}
+      />
+    )
+  },
+  del: (node, output, state) => {
+    return (
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
+        style={Styles.collapseStyles([strikeStyle, state.styleOverride.del])}
         allowFontScaling={state.allowFontScaling}
       >
-        {'\n'}
+        {output(node.content, state)}
       </Text>
-    ),
+    )
+  },
+  em: (node, output, state) => {
+    return (
+      <Text type="Body" key={state.key} style={Styles.collapseStyles([italicStyle, state.styleOverride.em])}>
+        {output(node.content, state)}
+      </Text>
+    )
+  },
+  emoji: (node, output, state) => {
+    return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
+  },
   fence: (node, output, state) =>
     isMobile ? (
       <Box key={state.key} style={codeSnippetBlockStyle}>
@@ -231,80 +255,8 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  paragraph: (node, output, state) => {
-    return (
-      <Text
-        type="Body"
-        key={state.key}
-        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
-        allowFontScaling={state.allowFontScaling}
-      >
-        {output(node.content, {...state, inParagraph: true})}
-      </Text>
-    )
-  },
-  strong: (node, output, state) => {
-    return (
-      <Text
-        type="BodySemibold"
-        key={state.key}
-        style={Styles.collapseStyles([boldStyle, state.styleOverride.strong])}
-        allowFontScaling={state.allowFontScaling}
-      >
-        {output(node.content, state)}
-      </Text>
-    )
-  },
-  em: (node, output, state) => {
-    return (
-      <Text type="Body" key={state.key} style={Styles.collapseStyles([italicStyle, state.styleOverride.em])}>
-        {output(node.content, state)}
-      </Text>
-    )
-  },
-  del: (node, output, state) => {
-    return (
-      <Text
-        type="Body"
-        key={state.key}
-        style={Styles.collapseStyles([strikeStyle, state.styleOverride.del])}
-        allowFontScaling={state.allowFontScaling}
-      >
-        {output(node.content, state)}
-      </Text>
-    )
-  },
-  blockQuote: (node, output, state) => (
-    <Box key={state.key} style={quoteStyle}>
-      {output(node.content, {...state, inBlockQuote: true})}
-    </Box>
-  ),
   kbfsPath: (node, output, state) => {
     return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
-  },
-  mention: (node, output, state) => {
-    return (
-      <Mention
-        username={node.content}
-        key={state.key}
-        style={wrapStyle}
-        allowFontScaling={state.allowFontScaling}
-      />
-    )
-  },
-  channel: (node, output, state) => {
-    return (
-      <Channel
-        name={node.content}
-        convID={Types.stringToConversationIDKey(node.convID)}
-        key={state.key}
-        style={linkStyle}
-      />
-    )
-  },
-  text: SimpleMarkdown.defaultRules.text.react,
-  emoji: (node, output, state) => {
-    return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   link: (node, output, state) => {
     let url = node.content
@@ -345,6 +297,54 @@ const reactComponentsForMarkdownType = {
       </React.Fragment>
     )
   },
+  mention: (node, output, state) => {
+    return (
+      <Mention
+        username={node.content}
+        key={state.key}
+        style={wrapStyle}
+        allowFontScaling={state.allowFontScaling}
+      />
+    )
+  },
+  newline: (node, outputFunc, state) =>
+    !isMobile || state.inParagraph ? (
+      '\n'
+    ) : (
+      <Text
+        type="Body"
+        key={state.key}
+        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
+        allowFontScaling={state.allowFontScaling}
+      >
+        {'\n'}
+      </Text>
+    ),
+  paragraph: (node, output, state) => {
+    return (
+      <Text
+        type="Body"
+        key={state.key}
+        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
+        allowFontScaling={state.allowFontScaling}
+      >
+        {output(node.content, {...state, inParagraph: true})}
+      </Text>
+    )
+  },
+  strong: (node, output, state) => {
+    return (
+      <Text
+        type="BodySemibold"
+        key={state.key}
+        style={Styles.collapseStyles([boldStyle, state.styleOverride.strong])}
+        allowFontScaling={state.allowFontScaling}
+      >
+        {output(node.content, state)}
+      </Text>
+    )
+  },
+  text: SimpleMarkdown.defaultRules.text.react,
 }
 
 const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: any) => any}) => (
@@ -356,11 +356,6 @@ const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: a
 const bigEmojiOutput = SimpleMarkdown.reactFor(
   ruleOutput({
     ...reactComponentsForMarkdownType,
-    paragraph: (node, output, state) => (
-      <Text type="Body" key={state.key} style={bigTextBlockStyle} allowFontScaling={state.allowFontScaling}>
-        {output(node.content, {...state, inParagraph: true})}
-      </Text>
-    ),
     emoji: (node, output, state) => {
       return (
         <Emoji
@@ -371,6 +366,11 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
         />
       )
     },
+    paragraph: (node, output, state) => (
+      <Text type="Body" key={state.key} style={bigTextBlockStyle} allowFontScaling={state.allowFontScaling}>
+        {output(node.content, {...state, inParagraph: true})}
+      </Text>
+    ),
   })
 )
 

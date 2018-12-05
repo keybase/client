@@ -55,8 +55,8 @@ const sent = Styles.platformStyles({
     cursor: 'text',
     userSelect: 'text',
     whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
     width: '100%',
+    wordBreak: 'break-word',
   },
   isMobile: {
     ...Styles.globalStyles.flexBoxColumn,

@@ -22,20 +22,18 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   return {
     conversationIDKey,
     infoPanelOpen,
+    isPending,
     isSearching,
     showLoader,
     threadLoadedOffline: meta.offline,
-    isPending,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
-    dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
-      path: p,
       outboxID: null,
+      path: p,
     }))
     dispatch(
       RouteTree.navigateAppend([
@@ -43,6 +41,8 @@ const mapDispatchToProps = dispatch => ({
       ])
     )
   },
+  _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
+    dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   _onToggleInfoPanel: (isOpen: boolean, conversationIDKey: Types.ConversationIDKey) => {
     if (isOpen) {
       dispatch(RouteTree.navigateTo(['conversation'], [chatTab]))
@@ -51,7 +51,7 @@ const mapDispatchToProps = dispatch => ({
     }
   },
   onCancelSearch: () =>
-    dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
+    dispatch(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})),
   onShowTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
 })
@@ -60,11 +60,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     infoPanelOpen: stateProps.infoPanelOpen,
-    isSearching: stateProps.isSearching,
     isPending: stateProps.isPending,
-    onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
+    isSearching: stateProps.isSearching,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,
+    onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: () =>
       dispatchProps._onToggleInfoPanel(stateProps.infoPanelOpen, stateProps.conversationIDKey),

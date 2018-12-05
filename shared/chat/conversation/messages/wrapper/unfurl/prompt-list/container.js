@@ -17,8 +17,8 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   const messageID = message && message.type === 'text' ? message.id : noMessageID
   const promptDomains = state.chat2.unfurlPromptMap.getIn([conversationIDKey, messageID]) || noPrompts
   return {
-    promptDomains,
     messageID,
+    promptDomains,
   }
 }
 
@@ -27,8 +27,8 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
     dispatch(
       Chat2Gen.createUnfurlResolvePrompt({
         conversationIDKey,
-        messageID,
         domain,
+        messageID,
         result,
       })
     )
@@ -36,13 +36,20 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
 })
 
 const makeRes = (actionType: RPCChatTypes.UnfurlPromptAction, domain?: string) => {
-  return {actionType, accept: domain, onetime: domain}
+  return {accept: domain, actionType, onetime: domain}
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   prompts: stateProps.promptDomains
     .map(domain => ({
       domain,
+      onAccept: () =>
+        dispatchProps._setPolicy(
+          stateProps.messageID,
+          domain,
+          // $FlowIssue generated type hard to match
+          makeRes(RPCChatTypes.localUnfurlPromptAction.accept, domain)
+        ),
       onAlways: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
@@ -63,13 +70,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
           domain,
           // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.localUnfurlPromptAction.notnow)
-        ),
-      onAccept: () =>
-        dispatchProps._setPolicy(
-          stateProps.messageID,
-          domain,
-          // $FlowIssue generated type hard to match
-          makeRes(RPCChatTypes.localUnfurlPromptAction.accept, domain)
         ),
       onOnetime: () =>
         dispatchProps._setPolicy(

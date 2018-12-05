@@ -100,9 +100,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           meta: Constants.makeDownloadMeta({
             entryType,
             intent,
-            path,
             localPath,
             opID,
+            path,
           }),
           state: Constants.makeDownloadState({
             completePortion: 0,
@@ -220,8 +220,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           [
             Constants.makeEditID(),
             Constants.makeNewFolder({
-              name: newFolderName,
               hint: newFolderName,
+              name: newFolderName,
               parentPath,
             }),
           ],

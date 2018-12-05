@@ -237,13 +237,13 @@ const propsToParties = (props: NotLoadingProps) => {
 
   switch (props.yourRole) {
     case 'senderOnly':
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     case 'receiverOnly':
-      return {sender: counterparty, receiver: you}
+      return {receiver: you, sender: counterparty}
     case 'senderAndReceiver':
       // Even if we sent money from an account to itself, show the
       // account details as the recipient.
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
@@ -446,9 +446,9 @@ const styles = Styles.styleSheetCreate({
   buttonBox: Styles.platformStyles({
     common: {
       justifyContent: 'center',
+      minHeight: 0,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
-      minHeight: 0,
     },
     isElectron: {
       marginTop: 'auto',
@@ -494,9 +494,9 @@ const styles = Styles.styleSheetCreate({
   },
   stellarPublicKey: Styles.platformStyles({
     common: {
+      flex: 1,
       justifyContent: 'center',
       marginLeft: Styles.globalMargins.tiny,
-      flex: 1,
     },
     isElectron: {wordBreak: 'break-all'},
   }),

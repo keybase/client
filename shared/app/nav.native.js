@@ -69,6 +69,10 @@ class CardStackShim extends Component<CardStackShimProps> {
     const stack = this.props.stack
 
     const navigation = {
+      dispatch: this._dispatchShim,
+      goBack: nop,
+      navigate: nop,
+      setParams: nop,
       state: {
         index: stack.size - 1,
         routes: stack
@@ -77,14 +81,10 @@ class CardStackShim extends Component<CardStackShimProps> {
             // The bottom/back item of the stack is our top (active) screen
             const shouldRender =
               !this.props.hidden && (index === stack.size - 1 || (isIOS && index === stack.size - 2))
-            return {key: routeName, routeName, params: {route, shouldRender}}
+            return {key: routeName, params: {route, shouldRender}, routeName}
           })
           .toArray(),
       },
-      dispatch: this._dispatchShim,
-      navigate: nop,
-      goBack: nop,
-      setParams: nop,
     }
 
     return (
@@ -323,7 +323,6 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const fullscreenPred = r => r.tags && r.tags.fullscreen
     const mainScreens = baseScreens.takeUntil(fullscreenPred)
     const fullScreens: any = baseScreens.skipUntil(fullscreenPred).unshift({
-      path: ['main'],
       component: () => (
         <MainNavStack
           {...this.props}
@@ -332,6 +331,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
           routeStack={mainScreens}
         />
       ),
+      path: ['main'],
       tags: makeLeafTags({root: true}), // special case to avoid padding else we'll double pad
     })
 
@@ -397,11 +397,11 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.fastBlank,
   },
+  noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
   routeOuter: {height: '100%', position: 'relative'},
   tabBar: {overflow: 'hidden'},
   tabBarHeightBar: {height: tabBarHeight},
   tabBarHeightZero: {height: 0},
-  noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
   tabSafeArea: {backgroundColor: Styles.globalColors.darkBlue2, flexGrow: 0},
 })
 

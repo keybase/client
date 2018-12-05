@@ -80,12 +80,12 @@ class StorybookErrorBoundary extends React.Component<
 
   constructor(props: any) {
     super(props)
-    this.state = {hasError: false, error: null, info: null}
+    this.state = {error: null, hasError: false, info: null}
 
     // Disallow catching errors when snapshot testing
     if (!__STORYSHOT__) {
       this.componentDidCatch = (error: Error, info: {componentStack: string}) => {
-        this.setState({hasError: true, error, info})
+        this.setState({error, hasError: true, info})
       }
     } else {
       this.componentDidCatch = undefined
@@ -98,10 +98,10 @@ class StorybookErrorBoundary extends React.Component<
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
-            padding: 10,
-            borderWidth: 2,
             borderColor: Styles.globalColors.red_75,
             borderStyle: 'solid',
+            borderWidth: 2,
+            padding: 10,
           }}
         >
           <Kb.Text type="Terminal" style={{color: Styles.globalColors.black, marginBottom: 8}}>

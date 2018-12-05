@@ -110,7 +110,7 @@ class _WalletList extends React.Component<Props> {
         </Kb.Box2>
       )
     }
-    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID, key: accountID}))
+    const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
     const addWallet = 'add wallet'
     rows.push({key: addWallet, type: addWallet})
 
@@ -128,7 +128,7 @@ class _WalletList extends React.Component<Props> {
 const WalletList = Kb.HeaderOnMobile(_WalletList)
 
 const styles = Styles.styleSheetCreate({
-  addContainerBox: {height: rowHeight, alignItems: 'center'},
+  addContainerBox: {alignItems: 'center', height: rowHeight},
   icon: {
     height: Styles.globalMargins.mediumLarge,
     marginLeft: Styles.globalMargins.tiny,

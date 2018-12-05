@@ -331,10 +331,10 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flexGrow: 1,
-      paddingTop: 0, // increasing this makes it not visible all on one page in small iphones, so lets leave it
       paddingBottom: Styles.globalMargins.small,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+      paddingTop: 0, // increasing this makes it not visible all on one page in small iPhones, so let's leave it
     },
   }),
   enterTextButton: {
