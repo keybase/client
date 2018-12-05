@@ -295,14 +295,9 @@ const iconButton = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
-  badge: Styles.platformStyles({
-    isMobile: {
-      alignSelf: 'flex-end',
-    },
-    isElectron: {
-      alignSelf: 'center',
-    },
-  }),
+  badge: {
+    alignSelf: 'center',
+  },
   floatingMenu: {
     marginTop: 4,
     width: 250,
@@ -315,12 +310,12 @@ const styles = Styles.styleSheetCreate({
     minWidth: 28,
   },
   menuItemBox: Styles.platformStyles({
+    isElectron: {
+      justifyContent: 'space-between',
+    },
     isMobile: {
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    isElectron: {
-      justifyContent: 'space-between',
     },
   }),
   menuItemText: Styles.platformStyles({

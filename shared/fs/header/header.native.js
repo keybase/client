@@ -10,7 +10,7 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
     <Box style={styles.stylesFolderHeaderRow}>
       <BackButton onClick={onBack} />
       <Box style={styles.stylesFolderHeaderRoot}>
-        <Text type="BodyBig" style={styles.stylesTitle}>
+        <Text type="BodySmall" style={styles.stylesTitle}>
           {title}
         </Text>
       </Box>
@@ -33,11 +33,8 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
 )
 
 const styles = styleSheetCreate({
-  stylesFolderHeaderRow: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    paddingTop: 12,
-    minHeight: 64,
+  stylesAddNewBox: {
+    minWidth: 50,
   },
   stylesFolderHeaderContainer: {
     ...globalStyles.flexBoxColumn,
@@ -45,23 +42,27 @@ const styles = styleSheetCreate({
     minHeight: 64,
   },
   stylesFolderHeaderRoot: {
-    paddingTop: 9,
-    paddingBottom: 21,
-    flexShrink: 1,
     flexGrow: 1,
+    flexShrink: 1,
+    paddingTop: 14,
+  },
+  stylesFolderHeaderRow: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    minHeight: 64,
+    paddingTop: 12,
   },
   stylesIcons: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     padding: globalMargins.tiny,
-    paddingRight: globalMargins.small - 4,
     paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small - 4,
   },
   stylesTitle: {
+    ...globalStyles.fontSemibold,
+    color: globalColors.black_75,
     textAlign: 'center',
-  },
-  stylesAddNewBox: {
-    minWidth: 50,
   },
 })
 export default Header

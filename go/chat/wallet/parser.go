@@ -27,7 +27,7 @@ type ChatTxCandidate struct {
 	Username     *string
 }
 
-func findChatTxCandidates(xs string) []ChatTxCandidate {
+func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// A string that does not appear in the candidate regex so we don't get false positives from concatenations.
 	replacer := "$"
 	replaced := replaceQuotedSubstrings(xs, replacer)

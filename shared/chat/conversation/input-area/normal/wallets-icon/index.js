@@ -66,6 +66,9 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
 
 const radius = 4
 const styles = Styles.styleSheetCreate({
+  badge: {
+    alignSelf: 'center',
+  },
   container: {
     position: 'relative',
   },
@@ -83,9 +86,6 @@ const styles = Styles.styleSheetCreate({
     right: -1,
     top: -2,
     width: radius * 2,
-  },
-  badge: {
-    alignSelf: 'center',
   },
 })
 

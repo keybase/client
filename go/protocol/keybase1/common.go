@@ -100,6 +100,12 @@ func (o PhoneNumber) DeepCopy() PhoneNumber {
 	return o
 }
 
+type RegionCode string
+
+func (o RegionCode) DeepCopy() RegionCode {
+	return o
+}
+
 type LinkID string
 
 func (o LinkID) DeepCopy() LinkID {
@@ -950,6 +956,32 @@ func (o PhoneLookupResult) DeepCopy() PhoneLookupResult {
 		Username: o.Username,
 		Ctime:    o.Ctime.DeepCopy(),
 	}
+}
+
+type IdentityVisibility int
+
+const (
+	IdentityVisibility_PRIVATE IdentityVisibility = 0
+	IdentityVisibility_PUBLIC  IdentityVisibility = 1
+)
+
+func (o IdentityVisibility) DeepCopy() IdentityVisibility { return o }
+
+var IdentityVisibilityMap = map[string]IdentityVisibility{
+	"PRIVATE": 0,
+	"PUBLIC":  1,
+}
+
+var IdentityVisibilityRevMap = map[IdentityVisibility]string{
+	0: "PRIVATE",
+	1: "PUBLIC",
+}
+
+func (e IdentityVisibility) String() string {
+	if v, ok := IdentityVisibilityRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type CommonInterface interface {

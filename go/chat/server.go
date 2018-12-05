@@ -309,7 +309,6 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	if err != nil {
 		return chat1.MarkAsReadLocalRes{}, err
 	}
-
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
@@ -318,24 +317,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 			Offline: h.G().Syncer.IsConnected(ctx),
 		}, nil
 	}
-
-	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
-
-	readRes, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, arg.ConversationID)
-	if err == nil && readRes.GetConvID().Eq(arg.ConversationID) &&
-		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
-		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
-			arg.ConversationID)
-		return chat1.MarkAsReadLocalRes{
-			Offline: h.G().Syncer.IsConnected(ctx),
-		}, nil
-	}
-
-	_, err = h.remoteClient().MarkAsRead(ctx, chat1.MarkAsReadArg{
-		ConversationID: arg.ConversationID,
-		MsgID:          arg.MsgID,
-	})
-	if err != nil {
+	if err = h.G().ConvSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
@@ -1985,11 +1967,11 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	}
 	convID := chat1.ConversationID(bConvID)
 	mp := NewMobilePush(h.G())
-	mbu, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
+	msg, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
 	if err != nil {
 		return res, err
 	}
-	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, mbu); err != nil {
+	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, msg); err != nil {
 		return res, err
 	}
 	if arg.ShouldAck {

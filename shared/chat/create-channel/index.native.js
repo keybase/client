@@ -13,8 +13,8 @@ const errorHeader = (errorText: string) => {
   return (
     <Kb.Box
       style={{
-        backgroundColor: globalColors.red,
         alignItems: 'center',
+        backgroundColor: globalColors.red,
         justifyContent: 'center',
       }}
     >

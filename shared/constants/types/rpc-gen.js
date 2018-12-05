@@ -44,6 +44,11 @@ export const commonFullNamePackageVersion = {
   v2: 2,
 }
 
+export const commonIdentityVisibility = {
+  private: 0,
+  public: 1,
+}
+
 export const commonLogLevel = {
   none: 0,
   debug: 1,
@@ -156,6 +161,7 @@ export const constantsStatusCode = {
   scsigcannotverify: 1002,
   scsigwrongkey: 1008,
   scsigoldseqno: 1010,
+  scsigcreationdisallowed: 1016,
   scbadtracksession: 1301,
   scdevicebadname: 1404,
   scdevicenameinuse: 1408,
@@ -273,6 +279,7 @@ export const constantsStatusCode = {
   scstellarneeddisclaimer: 3109,
   scstellardevicenotmobile: 3110,
   scstellarmobileonlypurgatory: 3111,
+  scstellarincompatibleversion: 3112,
   scnistwrongsize: 3201,
   scnistbadmode: 3202,
   scnisthashwrongsize: 3203,

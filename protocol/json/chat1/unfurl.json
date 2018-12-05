@@ -12,7 +12,8 @@
       "name": "UnfurlType",
       "symbols": [
         "GENERIC_0",
-        "YOUTUBE_1"
+        "YOUTUBE_1",
+        "GIPHY_2"
       ]
     },
     {
@@ -67,6 +68,48 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphyVideo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGiphyRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGiphyVideo"
+          ],
+          "name": "video"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "faviconUrl"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlRaw",
       "switch": {
@@ -87,6 +130,13 @@
             "def": false
           },
           "body": "UnfurlYoutubeRaw"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyRaw"
         }
       ]
     },
@@ -142,6 +192,33 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphy",
+      "fields": [
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "video"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "Unfurl",
       "switch": {
@@ -162,6 +239,13 @@
             "def": false
           },
           "body": "UnfurlYoutube"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphy"
         }
       ]
     },
@@ -249,6 +333,33 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphyDisplay",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "video"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlDisplay",
       "switch": {
@@ -269,6 +380,13 @@
             "def": false
           },
           "body": "UnfurlYoutubeDisplay"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyDisplay"
         }
       ]
     },

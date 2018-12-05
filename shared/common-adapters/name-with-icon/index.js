@@ -182,8 +182,8 @@ const TextOrComponent = (props: {
 }
 
 const styles = Styles.styleSheetCreate({
-  fullWidthText: Styles.platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
-  fullWidthTextContainer: Styles.platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
+  fullWidthText: Styles.platformStyles({isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%'}}),
+  fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
     isElectron: {marginRight: Styles.globalMargins.tiny},
     isMobile: {marginRight: Styles.globalMargins.small},
@@ -202,6 +202,11 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxCenter,
     marginTop: Styles.globalMargins.tiny,
   },
+  metasBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    maxWidth: '100%',
+    width: '100%',
+  },
   vContainerStyle: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -211,11 +216,6 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-  metasBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    maxWidth: '100%',
-    width: '100%',
-  },
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)

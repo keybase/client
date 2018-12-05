@@ -42,8 +42,10 @@ protocol user {
   }
 
   record Email {
-    string email;
+    EmailAddress email;
     boolean isVerified;
+    boolean isPrimary;
+    IdentityVisibility visibility;
   }
 
   record UserSettings {
@@ -158,4 +160,6 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
+  @typedef("string")
+  record EmailAddress {}
 }

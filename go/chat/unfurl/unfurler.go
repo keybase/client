@@ -338,7 +338,7 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusUnfurling); err != nil {
 			u.Debug(ctx, "unfurl: failed to set status: %s", err)
 		}
-		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL)
+		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL, nil)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to scrape: %s(%T)", err, err)
 			return unfurl, err

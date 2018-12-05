@@ -417,17 +417,23 @@ func (e UnknownTLFNameError) Error() string {
 //=============================================================================
 
 type AttachmentUploadError struct {
-	Msg string
+	Msg  string
+	Perm bool
 }
 
-func NewAttachmentUploadError(msg string) AttachmentUploadError {
+func NewAttachmentUploadError(msg string, perm bool) AttachmentUploadError {
 	return AttachmentUploadError{
-		Msg: msg,
+		Msg:  msg,
+		Perm: perm,
 	}
 }
 
 func (e AttachmentUploadError) Error() string {
 	return fmt.Sprintf("attachment failed to upload; %s", e.Msg)
+}
+
+func (e AttachmentUploadError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, e.Perm
 }
 
 //=============================================================================

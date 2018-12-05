@@ -19,6 +19,7 @@ import (
 )
 
 func acceptDisclaimer(tc *TestContext) {
+	// NOTE: this also creates a v1 wallet
 	err := tc.Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(tc.T, err)
 }
@@ -315,7 +316,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
@@ -545,7 +546,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
-	_, err = stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err = stellar.CreateWallet(context.Background(), tcs[0].G, false)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
@@ -666,6 +667,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	// Try some payments that should fail locally
 	{
 		_, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+			BypassBid:     true,
 			From:          accountIDRecip, // From the wrong account
 			To:            tcs[1].Fu.Username,
 			ToIsAccountID: false,
@@ -680,6 +682,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "Sender account not found", err.Error())
 
 		_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+			BypassBid:     true,
 			From:          accountIDSender,
 			To:            tcs[1].Fu.Username,
 			ToIsAccountID: true, // fail to parse account ID
@@ -701,6 +704,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
 
 	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		BypassBid:     true,
 		From:          accountIDSender,
 		To:            tcs[1].Fu.Username,
 		ToIsAccountID: false,
@@ -885,8 +889,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 	// Send again with FromSeqno set.
 	// Does not test whether it has any effect.
 	_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		BypassBid:     true,
 		From:          accountIDSender,
-		FromSeqno:     "1928401923",
 		To:            tcs[1].Fu.Username,
 		ToIsAccountID: false,
 		Amount:        "1011.123",
@@ -900,7 +904,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	// send to stellar account ID to check target in PaymentLocal
 	sendRes, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
-		From: accountIDSender,
+		BypassBid: true,
+		From:      accountIDSender,
 		// Use a secondary account so that LookupRecipient can't resolve it to the user
 		To:            accountIDRecip2.String(),
 		ToIsAccountID: true,
@@ -989,6 +994,7 @@ func TestSendToSelf(t *testing.T) {
 
 	t.Logf("Send to the same account")
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		BypassBid:     true,
 		From:          accountID1,
 		To:            accountID1.String(),
 		ToIsAccountID: true,
@@ -999,6 +1005,7 @@ func TestSendToSelf(t *testing.T) {
 
 	t.Logf("Send to another of the same user's account")
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		BypassBid:     true,
 		From:          accountID1,
 		To:            accountID2.String(),
 		ToIsAccountID: true,
@@ -1009,6 +1016,7 @@ func TestSendToSelf(t *testing.T) {
 
 	t.Logf("Send from another of the same user's account")
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		BypassBid:     true,
 		From:          accountID2,
 		To:            accountID1.String(),
 		ToIsAccountID: true,
@@ -1123,6 +1131,7 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	const secretNote string = "pleasure doing business 🤔"
 
 	_, err := tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		BypassBid:     true,
 		From:          accID,
 		To:            tcs[1].Fu.Username,
 		ToIsAccountID: false,
@@ -1235,7 +1244,6 @@ func TestBuildRequestLocal(t *testing.T) {
 	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
-
 }
 
 func TestBuildPaymentLocal(t *testing.T) {
@@ -1495,10 +1503,11 @@ func TestBuildPaymentLocal(t *testing.T) {
 	}})
 
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
-		From:   senderAccountID,
-		To:     tcs[1].Fu.Username,
-		Amount: "15",
-		Asset:  stellar1.AssetNative(),
+		BypassBid: true,
+		From:      senderAccountID,
+		To:        tcs[1].Fu.Username,
+		Amount:    "15",
+		Asset:     stellar1.AssetNative(),
 	})
 	require.NoError(t, err)
 
@@ -1541,31 +1550,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "3.9999990 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$1.27 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
-
-	t.Logf("using FromSeqno")
-	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
-		From:       senderAccountID,
-		FromSeqno:  "12",
-		To:         tcs[1].Fu.Username,
-		Amount:     "3",
-		PublicMemo: "🥔🥔🥔🥔🥔🥔🥔🥔",
-	})
-	require.NoError(t, err)
-	t.Logf(spew.Sdump(bres))
-	require.Equal(t, false, bres.ReadyToSend)
-	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "", bres.AmountErrMsg)
-	require.Equal(t, "", bres.SecretNoteErrMsg)
-	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg)
-	require.Equal(t, "$0.95 USD", bres.WorthDescription)
-	require.Equal(t, worthInfo, bres.WorthInfo)
-	require.True(t, bres.SendingIntentionXLM)
-	require.Equal(t, "3 XLM", bres.DisplayAmountXLM)
-	require.Equal(t, "$0.95 USD", bres.DisplayAmountFiat)
-	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "error",
-		Message: "Activity on account since initiating send. Take another look at account history.",
-	}})
 
 	tcs[0].Backend.Gift(senderAccountID, "30")
 
@@ -1714,6 +1698,181 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+}
+
+// Simple happy path case.
+func TestBuildPaymentLocalBidHappy(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "100")
+
+	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
+	require.NoError(t, err)
+
+	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: "11",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+
+	t.Logf("Change the amount")
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: "15",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToSend)
+
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: "15",
+		Asset:  stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+}
+
+// Cases where Send is blocked because the build gamut wasn't run.
+func TestBuildPaymentLocalBidBlocked(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "100")
+
+	send := func(bid stellar1.BuildPaymentID, amount string) (errorString string) {
+		_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+			Bid:    bid,
+			From:   senderAccountID,
+			To:     tcs[1].Fu.Username,
+			Amount: amount,
+			Asset:  stellar1.AssetNative(),
+		})
+		if err != nil {
+			errorString = err.Error()
+			require.NotEqual(t, "", errorString, "empty error string")
+			return errorString
+		}
+		return ""
+	}
+
+	build := func(bid stellar1.BuildPaymentID, amount string) (res stellar1.BuildPaymentResLocal, err error) {
+		return tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+			Bid:    bid,
+			From:   senderAccountID,
+			To:     tcs[1].Fu.Username,
+			Amount: amount,
+		})
+	}
+
+	units := []struct {
+		Key         string
+		Description string
+	}{
+		{
+			Key:         "forgotBuild",
+			Description: "Can't send before precheck",
+		}, {
+			Key:         "wrongAmount",
+			Description: "Can't send with wrong amount",
+		}, {
+			Key:         "afterStoppedByFailedSend",
+			Description: "Can't send after stopped (by failed send)",
+		}, {
+			Key:         "afterStoppedBySend",
+			Description: "Can't send after stopped (by successful send)",
+		}, {
+			Key:         "afterStoppedByStop",
+			Description: "Can't send after stopped (by stop call)",
+		}, {
+			Key:         "afterStopppedByStopThenBuild",
+			Description: "Can't send after stopped (by stop call) even after build",
+		},
+	}
+
+	for _, unit := range units {
+		t.Logf("unit %v: %v", unit.Key, unit.Description)
+		bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
+		require.NoError(t, err)
+
+		switch unit.Key {
+		case "forgotBuild":
+			errString := send(bid1, "11")
+			require.Equal(t, "this payment is not ready to send", errString)
+
+		case "wrongAmount":
+			bres, err := build(bid1, "12")
+			require.NoError(t, err)
+			require.Equal(t, true, bres.ReadyToSend)
+
+			errString := send(bid1, "15")
+			require.Equal(t, "mismatched amount: 15 != 12", errString)
+
+		case "afterStoppedByFailedSend":
+			bres, err := build(bid1, "12")
+			require.NoError(t, err)
+			require.Equal(t, true, bres.ReadyToSend)
+
+			errString := send(bid1, "15")
+			require.Equal(t, "mismatched amount: 15 != 12", errString)
+
+			errString = send(bid1, "15")
+			require.Equal(t, "this payment has been stopped", errString)
+
+		case "afterStoppedBySend":
+			bres, err := build(bid1, "11")
+			require.NoError(t, err)
+			require.Equal(t, true, bres.ReadyToSend)
+
+			errString := send(bid1, "11")
+			require.Equal(t, "", errString)
+
+			errString = send(bid1, "11")
+			require.Equal(t, "this payment has been stopped", errString)
+
+		case "afterStoppedByStop":
+			errString := send(bid1, "11")
+			require.Equal(t, "this payment is not ready to send", errString)
+
+			err = tcs[0].Srv.StopBuildPaymentLocal(context.Background(), stellar1.StopBuildPaymentLocalArg{Bid: bid1})
+			require.NoError(t, err)
+
+			errString = send(bid1, "11")
+			require.Equal(t, "this payment has been stopped", errString)
+
+		case "afterStopppedByStopThenBuild":
+			errString := send(bid1, "11")
+			require.Equal(t, "this payment is not ready to send", errString)
+
+			err = tcs[0].Srv.StopBuildPaymentLocal(context.Background(), stellar1.StopBuildPaymentLocalArg{Bid: bid1})
+			require.NoError(t, err)
+
+			_, err := build(bid1, "11")
+			_ = err // Calling build on a stopped payment is do-no-harm undefined behavior.
+
+			errString = send(bid1, "11")
+			require.Equal(t, "this payment has been stopped", errString)
+
+		default:
+			t.Fatalf("unknown case %v", unit.Key)
+		}
+	}
 }
 
 // modifies `expected`
@@ -1945,7 +2104,9 @@ func TestSetMobileOnly(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	acceptDisclaimer(tcs[0])
+	// this only works with a v2 bundle now
+	setupWithNewBundle(t, tcs[0])
+
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	accountID := getPrimaryAccountID(tcs[0])
 
@@ -1960,9 +2121,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, mobileOnly)
 
-	// XXX note that the real test here will be that the secret bundle does not come
-	// back for desktop devices or mobile devices that are less than 7d old.
-	// This is just a basic test at this point...
+	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
 
 type chatListener struct {

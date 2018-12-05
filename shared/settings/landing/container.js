@@ -61,11 +61,11 @@ const mapDispatchToProps = (dispatch: (a: any) => void) => ({
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassphrase())
   },
+  onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
   onChangePassphrase: () => dispatch(navigateAppend(['changePassphrase'])),
   onChangeRememberPassphrase: (checked: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassphrase({remember: checked})),
-  onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
-  onInfo: selectedLevel => dispatch(navigateAppend([{selected: 'changePlan', props: {selectedLevel}}])),
+  onInfo: selectedLevel => dispatch(navigateAppend([{props: {selectedLevel}, selected: 'changePlan'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

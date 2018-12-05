@@ -1,25 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  ClickableBox,
-  Text,
-  Icon,
-  HOCTimers,
-  ProgressIndicator,
-  type PropsWithTimer,
-} from '../../../../../common-adapters'
-import {castPlatformStyles} from '../../../../../common-adapters/icon'
-import {isAndroid} from '../../../../../constants/platform'
-import {
-  collapseStyles,
-  globalColors,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-  type StylesCrossPlatform,
-} from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 import {type TickerID, addTicker, removeTicker} from '../../../../../util/second-timer'
 import {formatDurationShort} from '../../../../../util/timestamp'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
@@ -35,9 +17,9 @@ export type _Props = {|
   messageKey: string,
   onClick: ?() => void,
   pending: boolean,
-  style?: StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
 |}
-type Props = PropsWithTimer<_Props>
+type Props = Kb.PropsWithTimer<_Props>
 
 // 'none' is functionally 'unset', used to detect a fresh mount
 // and hide self if the message already exploded
@@ -46,9 +28,7 @@ type State = {
 }
 
 class ExplodingMeta extends React.Component<Props, State> {
-  state = {
-    mode: 'none',
-  }
+  state = {mode: 'none'}
   tickerID: TickerID
   sharedTimerID: SharedTimerID
 
@@ -111,56 +91,57 @@ class ExplodingMeta extends React.Component<Props, State> {
 
   render() {
     const backgroundColor =
-      this.props.explodesAt - Date.now() < oneMinuteInMs ? globalColors.red : globalColors.black_75
+      this.props.explodesAt - Date.now() < oneMinuteInMs
+        ? Styles.globalColors.red
+        : Styles.globalColors.black_75
     let children
     switch (this.state.mode) {
       case 'countdown':
-        let bombIconSize = isMobile ? 22 : 16
-        if (isAndroid) {
-          // icon is 24 high and clips edge of container on android. workaround
-          bombIconSize = 21
-        }
+        const bombIconSize = Styles.isMobile ? 21 : 14
         children = (
-          <Box2 direction="horizontal" gap="xtiny">
+          <Kb.Box2 direction="horizontal" gap="xtiny">
             {this.props.pending ? (
-              <Box2 direction="horizontal" style={styles.progressContainer}>
-                <ProgressIndicator style={{height: 12, width: 12}} />
-              </Box2>
+              <Kb.Box2 direction="horizontal" style={styles.progressContainer}>
+                <Kb.ProgressIndicator style={{height: 12, width: 12}} />
+              </Kb.Box2>
             ) : (
-              <Box2
+              <Kb.Box2
                 direction="horizontal"
-                style={collapseStyles([
+                style={Styles.collapseStyles([
                   styles.countdownContainer,
                   {
                     backgroundColor,
                   },
                 ])}
               >
-                <Text type="Body" style={styles.countdown}>
+                <Kb.Text type="Body" style={styles.countdown}>
                   {formatDurationShort(this.props.explodesAt - Date.now())}
-                </Text>
-              </Box2>
+                </Kb.Text>
+              </Kb.Box2>
             )}
-            <Icon type="iconfont-bomb" fontSize={bombIconSize} color={globalColors.black_75} />
-          </Box2>
+            <Kb.Icon type="iconfont-bomb" fontSize={bombIconSize} color={Styles.globalColors.black_75} />
+          </Kb.Box2>
         )
         break
       case 'boom':
         children = (
-          <Box2 direction="horizontal" style={styles.boomIconContainer}>
-            <Icon
+          <Kb.Box2 direction="horizontal" style={styles.boomIconContainer}>
+            <Kb.Icon
               type="iconfont-boom"
-              style={castPlatformStyles(styles.boomIcon)}
-              fontSize={isMobile ? 44 : 35}
-              color={globalColors.black_75}
+              style={Kb.iconCastPlatformStyles(styles.boomIcon)}
+              fontSize={Styles.isMobile ? 44 : 35}
+              color={Styles.globalColors.black_75}
             />
-          </Box2>
+          </Kb.Box2>
         )
     }
     return (
-      <ClickableBox onClick={this.props.onClick} style={collapseStyles([styles.container, this.props.style])}>
+      <Kb.ClickableBox
+        onClick={this.props.onClick}
+        style={Styles.collapseStyles([styles.container, this.props.style])}
+      >
         {children}
-      </ClickableBox>
+      </Kb.ClickableBox>
     )
   }
 }
@@ -208,47 +189,38 @@ export const getLoopInterval = (diff: number) => {
   return deltaMS + halfNearestUnit
 }
 
-const styles = styleSheetCreate({
-  boomIcon: platformStyles({
-    common: {
-      position: 'absolute',
-    },
+const styles = Styles.styleSheetCreate({
+  boomIcon: Styles.platformStyles({
+    common: {position: 'absolute'},
     isElectron: {
+      left: 0,
       top: -6,
-      left: 0,
     },
     isMobile: {
+      left: 0,
       top: -22,
-      left: 0,
     },
   }),
-  boomIconContainer: platformStyles({
-    isElectron: {
-      width: 35,
-    },
-    isMobile: {
-      width: 44,
-    },
+  boomIconContainer: Styles.platformStyles({
+    isElectron: {width: 35},
+    isMobile: {width: 44},
   }),
-  container: platformStyles({
+  container: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
-      alignSelf: 'flex-end',
-      height: 19,
+      ...Styles.globalStyles.flexBoxRow,
+      marginLeft: Styles.globalMargins.tiny,
       position: 'relative',
     },
-    isMobile: {
-      height: 22,
-    },
+    isMobile: {height: 21},
   }),
-  countdown: platformStyles({
-    common: {color: globalColors.white, fontWeight: 'bold'},
+  countdown: Styles.platformStyles({
+    common: {color: Styles.globalColors.white, fontWeight: 'bold'},
     isAndroid: {fontSize: 11},
-    isElectron: {fontSize: 10, lineHeight: '14px'},
+    isElectron: {fontSize: 10, lineHeight: 14},
     isIOS: {fontSize: 12},
     isMobile: {lineHeight: 17},
   }),
-  countdownContainer: platformStyles({
+  countdownContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
       borderRadius: 2,
@@ -265,14 +237,12 @@ const styles = styleSheetCreate({
       width: 32,
     },
   }),
-  progressContainer: platformStyles({
+  progressContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    isElectron: {
-      width: 28,
-    },
+    isElectron: {width: 28},
     isMobile: {
       height: 15,
       width: 32,
@@ -280,4 +250,4 @@ const styles = styleSheetCreate({
   }),
 })
 
-export default HOCTimers(ExplodingMeta)
+export default Kb.HOCTimers(ExplodingMeta)

@@ -28,9 +28,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     _permissionsNeedLoad,
     _policy: meta.retentionPolicy,
-    _teamname,
     _teamPolicy: meta.teamRetentionPolicy,
     _teamType: meta.teamType,
+    _teamname,
     canChange,
   }
 }
@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _loadPermissions: (teamname: string) => dispatch(createGetTeamOperations({teamname})),
   onChange: () =>
     dispatch(
-      navigateAppend([{selected: 'infoPanel', props: {conversationIDKey: ownProps.conversationIDKey}}])
+      navigateAppend([{props: {conversationIDKey: ownProps.conversationIDKey}, selected: 'infoPanel'}])
     ),
 })
 

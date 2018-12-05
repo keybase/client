@@ -357,7 +357,7 @@ func (r *recentConversationParticipants) getActiveScore(ctx context.Context, con
 }
 
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
-	_, convs, err := storage.NewInbox(r.G()).ReadAll(ctx, myUID)
+	_, convs, err := storage.NewInbox(r.G()).ReadAll(ctx, myUID, true)
 	if err != nil {
 		if _, ok := err.(storage.MissError); ok {
 			r.Debug(ctx, "get: no inbox, returning blank results")
@@ -1093,8 +1093,8 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 	}
 
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
-	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
-	return mbox, topicNameState, err
+	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil)
+	return &prepareRes.Boxed, prepareRes.TopicNameState, err
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {

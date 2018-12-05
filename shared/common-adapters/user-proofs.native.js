@@ -110,7 +110,7 @@ function LoadingProofRow({width}: {width: number}): React.Element<any> {
     <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Box style={{...globalStyles.loadingTextStyle, width, height: 16, borderRadius: 2}} />
+          <Box style={{...globalStyles.loadingTextStyle, borderRadius: 2, height: 16, width}} />
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>

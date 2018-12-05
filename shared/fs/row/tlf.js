@@ -21,7 +21,7 @@ const RowMeta = ({isNew, needsRekey}) => {
   }
 
   return (
-    <Box style={{width: 0, display: 'flex'}}>
+    <Box style={{display: 'flex', width: 0}}>
       {needsRekey && (
         <Box style={rowStyles.badgeContainerRekey}>
           <Meta title="rekey" backgroundColor={Styles.globalColors.red} />

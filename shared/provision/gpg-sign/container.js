@@ -11,10 +11,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => dispatch(ownProps.navigateUp()),
-  onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
   onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),
+  onBack: () => dispatch(ownProps.navigateUp()),
   onRejectGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: false})),
+  onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
 })
 
 // If we are asked to switch to gpg sign, we either accept or reject.

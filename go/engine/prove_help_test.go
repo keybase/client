@@ -272,7 +272,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 				IsKey: true,
 				Key:   "keybase_proofs",
 			},
-		}, tc.T.Logf)
+		}, tc.T.Logf, libkb.NewInvalidPVLSelectorError)
 		require.NoError(tc.T, err)
 		require.Len(tc.T, objects, 1)
 

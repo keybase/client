@@ -37,8 +37,10 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
     case 'pending':
       return 'sending'
     case 'canceled': // fallthrough
-    case 'cancelable':
+    case 'claimable':
       return youAreSender ? 'sending' : 'attempting to send'
+    case 'error':
+      return youAreSender ? 'attempted to send' : 'attempted to send'
     default:
       return 'sent'
   }
@@ -77,13 +79,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           paymentInfo.amountDescription
         )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
-        cancelButtonInfo: youAreSender && cancelable ? makeCancelButtonInfo(theirUsername) : '',
-        cancelButtonLabel: youAreSender && cancelable ? 'Cancel' : '',
+        cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
+        cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
         canceled,
         claimButtonLabel:
           !youAreSender && cancelable && !acceptedDisclaimer
-            ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
-                paymentInfo.amountDescription}`
+            ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
             : '',
         icon: pending ? 'iconfont-clock' : 'iconfont-stellar-send',
         loading: false,
@@ -115,9 +116,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         pending: false,
         sendButtonLabel: youAreSender
           ? ''
-          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
-              requestInfo.amountDescription
-            }`,
+          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
       }
     }
     default:

@@ -79,8 +79,8 @@ class NewRepo extends React.Component<Props, State> {
           type="Header"
           style={platformStyles({
             common: {
-              width: '100%',
               overflow: 'hidden',
+              width: '100%',
             },
             isElectron: {
               display: 'block',

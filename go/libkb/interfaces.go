@@ -15,6 +15,7 @@ package libkb
 import (
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -585,13 +586,14 @@ type ServiceType interface {
 	IsDevelOnly() bool
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs() bool
+	DisplayPriority() int
 }
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
-	GetDisplayPriority(n string) int
 	ListServicesThatAcceptNewProofs() []string
 }
 
@@ -653,6 +655,21 @@ type TeamAuditor interface {
 	OnLogout(m MetaContext)
 }
 
+// MiniChatPayment is the argument for sending an in-chat payment.
+type MiniChatPayment struct {
+	Username NormalizedUsername
+	Amount   string
+	Currency string
+}
+
+// MiniChatPaymentResult is the result of sending an in-chat payment to
+// one username.
+type MiniChatPaymentResult struct {
+	Username  NormalizedUsername
+	PaymentID stellar1.PaymentID
+	Error     error
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletSoft(context.Context)
@@ -660,6 +677,9 @@ type Stellar interface {
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
+	GetMigrationLock() *sync.Mutex
+	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
+	RefreshWalletState(ctx context.Context)
 }
 
 type DeviceEKStorage interface {

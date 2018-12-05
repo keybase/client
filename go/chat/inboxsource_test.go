@@ -3,11 +3,15 @@ package chat
 import (
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 
 	"sync"
 
 	context "golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -108,7 +112,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	boxed, _, _, _, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
+	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -121,10 +125,11 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	boxed := prepareRes.Boxed
 
 	postRes, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
 		ConversationID: conv.GetConvID(),
-		MessageBoxed:   *boxed,
+		MessageBoxed:   boxed,
 	})
 	require.NoError(t, err)
 	boxed.ServerHeader = &postRes.MsgHeader
@@ -152,10 +157,66 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("receive oobm with version light years ahead of its current one")
 	_, err = tc.ChatG.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
-		conv.GetConvID(), *boxed, nil)
+		conv.GetConvID(), boxed, nil)
 	require.NoError(t, err)
 	assertInboxVersion(100)
 
 	t.Logf("sync was triggered")
 	require.Equal(t, 1, syncCalled)
+}
+
+func TestInboxSourceFlushLoop(t *testing.T) {
+	ctx, world, ri, _, sender, _ := setupTest(t, 2)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	u2 := world.GetUsers()[1]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	<-tc.Context().ConvLoader.Stop(context.TODO())
+	ibs := tc.Context().InboxSource
+	hbs, ok := ibs.(*HybridInboxSource)
+	if !ok {
+		t.Skip()
+	}
+	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	_, err := hbs.ReadUnverified(ctx, uid, true, nil, nil)
+	require.NoError(t, err)
+	inbox := hbs.createInbox()
+	flushCh := make(chan struct{}, 10)
+	hbs.testFlushCh = flushCh
+	_, _, err = inbox.ReadAll(ctx, uid, false)
+	require.Error(t, err)
+	require.IsType(t, storage.MissError{}, err)
+	_, rc, err := inbox.ReadAll(ctx, uid, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
+	world.Fc.Advance(time.Hour)
+	select {
+	case <-flushCh:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no flush")
+	}
+	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
+	_, rc, err = inbox.ReadAll(ctx, uid, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
+
+	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username)
+	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(rc))
+	_, rc, err = inbox.ReadAll(ctx, uid, true)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(rc))
+	tc.Context().AppState.Update(keybase1.AppState_BACKGROUND)
+	select {
+	case <-flushCh:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no flush")
+	}
+	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.Equal(t, 2, len(rc))
 }

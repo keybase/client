@@ -21,29 +21,29 @@ const props = {
     followers: {},
     following: {},
   },
+  conversations: [
+    // TODO: fill in a few.
+  ],
+  fileName: null,
+  files: 0,
   folderProps: null,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
-  updateNow: Storybook.action('updateNow'),
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
+  onSelectConversation: () => {},
   openApp: Storybook.action('openApp'),
-  showInFinder: Storybook.action('showInFinder'),
   quit: Storybook.action('quit'),
   refresh: Storybook.action('refresh'),
   showBug: Storybook.action('showBug'),
   showHelp: Storybook.action('showHelp'),
+  showInFinder: Storybook.action('showInFinder'),
   showUser: Storybook.action('showUser'),
+  totalSyncingBytes: 0,
+  updateNow: Storybook.action('updateNow'),
   username: 'nathunsmitty',
   windowComponent: 'menubar',
   windowParam: '',
-  onSelectConversation: () => {},
-  conversations: [
-    // TODO: fill in a few.
-  ],
-  files: 0,
-  fileName: null,
-  totalSyncingBytes: 0,
 }
 
 const providers = Storybook.createPropProviderWithCommon({

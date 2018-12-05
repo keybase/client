@@ -13,7 +13,10 @@ const Header = (props: Props) => (
       fullWidth={true}
     >
       {props.onBack && <Kb.BackButton style={styles.backButton} onClick={props.onBack} />}
-      <Kb.Icon type="icon-stellar-coins-flying-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon
+        type={Styles.isMobile ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
+        style={Kb.iconCastPlatformStyles(styles.icon)}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -35,9 +38,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'flex-end',
       backgroundColor: Styles.globalColors.purple,
+      flexShrink: 0,
       justifyContent: 'center',
       position: 'relative',
-      flexShrink: 0,
     },
     isElectron: {
       borderTopLeftRadius: 4,

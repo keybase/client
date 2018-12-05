@@ -121,9 +121,9 @@ class _StellarFederatedAddress extends React.PureComponent<
     this.props.onCopyAddress()
   }
   _menuItems = makeStellarAddressMenuItems({
-    stellarAddress: this.props.stellarAddress,
-    onSendOrRequest: this.props.onSendOrRequest,
     onCopyAddress: this._onCopyAddress,
+    onSendOrRequest: this.props.onSendOrRequest,
+    stellarAddress: this.props.stellarAddress,
   })
 
   _getAttachmentRef = () => this._attachmentRef
@@ -209,12 +209,12 @@ class ProfileRender extends React.PureComponent<Props, State> {
           ),
         },
         items: [
-          ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
-          {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
+          ...(proof.humanUrl ? [{onClick: () => this.props.onViewProof(proof), title: 'View proof'}] : []),
+          {onClick: () => this.props.onRecheckProof(proof), title: 'I fixed it - recheck'},
           {
-            title: shared.revokeProofLanguage(proof.type),
             danger: true,
             onClick: () => this.props.onRevokeProof(proof),
+            title: shared.revokeProofLanguage(proof.type),
           },
         ],
       }
@@ -237,9 +237,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
         },
         items: [
           {
-            title: shared.revokeProofLanguage(proof.type),
             danger: true,
             onClick: () => this.props.onRevokeProof(proof),
+            title: shared.revokeProofLanguage(proof.type),
           },
         ],
       }
@@ -252,9 +252,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
               onClick={() => this.props.onViewProof(proof)}
               style={{
                 ...Styles.globalStyles.flexBoxColumn,
-                padding: Styles.globalMargins.small,
                 alignItems: 'center',
                 borderBottom: `1px solid ${Styles.globalColors.black_10}`,
+                padding: Styles.globalMargins.small,
               }}
             >
               <Kb.PlatformIcon
@@ -263,7 +263,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Kb.Text type="BodySmall" style={{textAlign: 'center', color: Styles.globalColors.black_40}}>
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_40, textAlign: 'center'}}>
                   Posted on
                   <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
@@ -274,13 +274,13 @@ class ProfileRender extends React.PureComponent<Props, State> {
         },
         items: [
           {
-            title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
             onClick: () => this.props.onViewProof(proof),
+            title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
           },
           {
-            title: shared.revokeProofLanguage(proof.type),
             danger: true,
             onClick: () => this.props.onRevokeProof(proof),
+            title: shared.revokeProofLanguage(proof.type),
           },
         ],
       }
@@ -371,7 +371,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 {this.props.addUserToTeamsResults}
               </Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" style={{justifyContent: 'center', flexShrink: 1}}>
+            <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
               <Kb.Icon
                 color={Styles.globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}
@@ -517,7 +517,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     onHidden={() => this.handleHideMenu()}
                     attachTo={() => this._selectedProofMenuRowRef}
                     position="bottom right"
-                    containerStyle={styles.floatingProofMenu}
+                    containerStyle={styles.floatingMenu}
                     {...proofMenuContent}
                   />
                 )}
@@ -545,30 +545,30 @@ class ProfileRender extends React.PureComponent<Props, State> {
 }
 
 const styleOuterContainer = {
-  position: 'relative',
   height: '100%',
+  position: 'relative',
 }
 
 const styleContainer = {
-  position: 'relative',
   height: '100%',
   overflowY: 'auto',
+  position: 'relative',
 }
 
 const styleHeader = {
+  height: HEADER_SIZE,
   position: 'absolute',
   width: '100%',
-  height: HEADER_SIZE,
 }
 
 // Two sticky header elements to accommodate overlay and space-consuming scrollbars:
 
 // styleScrollHeaderBg sits beneath the content and colors the background under the overlay scrollbar.
 const styleScrollHeaderBg = {
-  position: 'absolute',
-  left: 0,
-  right: 0,
   height: 48,
+  left: 0,
+  position: 'absolute',
+  right: 0,
   zIndex: -1,
 }
 
@@ -592,15 +592,15 @@ const styleActions = {
 
 const styleProofColumn = {
   ...Styles.globalStyles.flexBoxColumn,
-  width: 320,
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
+  width: 320,
 }
 
 const styleProofNoticeBox = {
   ...Styles.globalStyles.flexBoxRow,
-  height: HEADER_SIZE,
   alignItems: 'center',
+  height: HEADER_SIZE,
   justifyContent: 'center',
   textAlign: 'center',
   zIndex: 9,
@@ -653,8 +653,8 @@ const styleShowcasedTeamContainer = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
-  minHeight: 32,
   marginTop: Styles.globalMargins.xtiny,
+  minHeight: 32,
 }
 
 const styleShowcasedTeamAvatar = {
@@ -670,15 +670,15 @@ const styleShowcasedTeamAvatar = {
 const styleShowcasedTeamName = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'center',
   alignSelf: 'center',
+  justifyContent: 'center',
   paddingLeft: Styles.globalMargins.tiny,
 }
 
 const styles = Styles.styleSheetCreate({
-  floatingProofMenu: {
-    minWidth: 196,
+  floatingMenu: {
     maxWidth: 240,
+    minWidth: 196,
   },
   floatingStellarAddressMenu: {
     marginTop: 4,
@@ -696,31 +696,31 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.clickable,
       display: 'inline-block',
-      wordBreak: 'break-all',
       flex: 1,
       transition: '0.15s color',
+      wordBreak: 'break-all',
     },
   }),
-  proofNameSection: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-    marginTop: 2,
-    flex: 1,
-  },
   proofNameLabelContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
   },
+  proofNameSection: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
+    flex: 1,
+    marginTop: 2,
+  },
   service: Styles.collapseStyles([
     Styles.desktopStyles.clickable,
     {
-      marginRight: Styles.globalMargins.tiny,
       height: 16,
+      marginRight: Styles.globalMargins.tiny,
       minHeight: 16,
       minWidth: 16,
-      width: 16,
       transition: '0.15s color',
+      width: 16,
     },
   ]),
   stellarAddressName: Styles.platformStyles({

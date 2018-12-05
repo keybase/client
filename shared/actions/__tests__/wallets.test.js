@@ -86,7 +86,8 @@ it('disclaimer', () => {
       const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
       checkRPC2.mockImplementation(() => Promise.resolve(true))
 
-      dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
+      dispatch(WalletsGen.createAcceptDisclaimer())
+      dispatch(WalletsGen.createCheckDisclaimer({nextScreen: 'openWallet'}))
       return Testing.flushPromises({acceptRPC, checkRPC2})
     })
     .then(({acceptRPC, checkRPC2}) => {
@@ -96,10 +97,10 @@ it('disclaimer', () => {
 
       const getCurrencyRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrencyLocalRpcPromise')
       const currencyLocal: RPCStellarTypes.CurrencyLocal = {
-        description: 'fake description',
         code: 'fake code',
-        symbol: 'fake symbol',
+        description: 'fake description',
         name: 'fake name',
+        symbol: 'fake symbol',
       }
       getCurrencyRPC.mockImplementation(() => Promise.resolve(currencyLocal))
       const getCurrenciesRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrenciesLocalRpcPromise')
@@ -113,7 +114,7 @@ it('disclaimer', () => {
       expect(getRoute(getState)).toEqual(
         I.List([Tabs.walletsTab, 'wallet', Constants.sendReceiveFormRouteKey])
       )
-      return Testing.flushPromises({getCurrencyRPC, getCurrenciesRPC, buildRPC})
+      return Testing.flushPromises({buildRPC, getCurrenciesRPC, getCurrencyRPC})
     })
     .then(({getCurrencyRPC, getCurrenciesRPC, buildRPC}) => {
       expect(getCurrencyRPC).toHaveBeenCalled()

@@ -179,6 +179,7 @@ const boxStyles = sizes.reduce((map, size) => {
 
 const imageStyles = sizes.reduce((map, size) => {
   map[`image:${size}`] = {
+    backgroundColor: globalColors.fastBlank,
     bottom: 0,
     height: size,
     left: 0,

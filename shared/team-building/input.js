@@ -61,13 +61,12 @@ const Input = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
       flex: 1,
+      marginLeft: Styles.globalMargins.xsmall,
     },
   }),
   input: Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
       flex: 1,
     },
   }),

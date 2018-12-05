@@ -55,8 +55,8 @@ const styles = Style.styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
-      textTransform: 'uppercase',
       height: 32,
+      textTransform: 'uppercase',
       width: '100%',
     },
     isMobile: {

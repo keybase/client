@@ -103,31 +103,31 @@ const PostProof = (props: Props) => {
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  position: 'relative',
-  paddingTop: globalMargins.large,
   paddingBottom: globalMargins.large,
+  paddingTop: globalMargins.large,
+  position: 'relative',
   ...desktopStyles.scrollable,
 }
 
 const styleClose = collapseStyles([
   {
     position: 'absolute',
-    top: globalMargins.small,
     right: globalMargins.small,
+    top: globalMargins.small,
   },
   desktopStyles.clickable,
 ])
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
   alignItems: 'center',
-  width: '100%',
-  zIndex: 1,
+  backgroundColor: globalColors.red,
+  justifyContent: 'center',
+  marginTop: -globalMargins.large,
   minHeight: globalMargins.large,
   padding: globalMargins.tiny,
-  marginTop: -globalMargins.large,
-  backgroundColor: globalColors.red,
+  width: '100%',
+  zIndex: 1,
 }
 
 const styleErrorBannerText = {
@@ -137,12 +137,12 @@ const styleErrorBannerText = {
 
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'center',
   margin: globalMargins.large,
-  width: '100%',
   textAlign: 'center',
+  width: '100%',
 }
 
 const stylePlatformUsername = {
@@ -155,10 +155,10 @@ const stylePlatformSubtitle = {
 }
 
 const styleProofText = {
-  width: '100%',
-  minHeight: 116,
   flexGrow: 1,
   marginTop: globalMargins.small,
+  minHeight: 116,
+  width: '100%',
 }
 
 const styleNoteText = {
@@ -168,8 +168,8 @@ const styleNoteText = {
 const styleButtonsContainer = {
   ...globalStyles.flexBoxRow,
   flexShrink: 0,
-  marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
+  marginTop: globalMargins.medium,
 }
 
 export default PostProof

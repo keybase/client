@@ -29,12 +29,12 @@ const initialState: State = {
     error: null,
     waiting: null,
   },
+  searchResults: null,
+  searchShowingSuggestions: false,
   sigID: null,
   username: '',
   usernameValid: true,
   waiting: false,
-  searchResults: null,
-  searchShowingSuggestions: false,
 }
 
 export const maxProfileBioChars = 256
@@ -143,15 +143,15 @@ const getProfilePath = (
   )
   const onlyProfilesPath: Array<{selected: ?string, props: any}> = onlyProfilesProps
     .map(segment => ({
-      selected: segment.node || null,
       props: segment.props.toObject(),
+      selected: segment.node || null,
     }))
     .toArray()
   // Assume user exists
   if (!username.includes('@')) {
     if (onlyProfilesProps.size <= 1) {
       // There's nothing on the peopleTab stack
-      return [peopleTab, {selected: 'profile', props: {username}}]
+      return [peopleTab, {props: {username}, selected: 'profile'}]
     }
     // check last entry in path
     const topProfile = onlyProfilesProps.get(onlyProfilesProps.size - 1)
@@ -164,7 +164,7 @@ const getProfilePath = (
       return onlyProfilesPath
     }
     // Push the user onto the stack
-    return [...onlyProfilesPath, {selected: 'profile', props: {username}}]
+    return [...onlyProfilesPath, {props: {username}, selected: 'profile'}]
   }
 
   // search for user first
@@ -172,8 +172,8 @@ const getProfilePath = (
   const searchResult = searchResultSelector(state, username)
   if (searchResult) {
     props = {
-      fullname: searchResult.leftFullname,
       fullUsername: username,
+      fullname: searchResult.leftFullname,
       serviceName: searchResult.leftService,
       username: searchResult.leftUsername,
     }
@@ -193,7 +193,7 @@ const getProfilePath = (
       (topProfile.props && topProfile.props.serviceName !== props.serviceName)
     ) {
       // This user is not the top profile, push on top
-      onlyProfilesPath.push({selected: 'nonUserProfile', props})
+      onlyProfilesPath.push({props, selected: 'nonUserProfile'})
     }
   }
   return onlyProfilesPath

@@ -59,14 +59,14 @@ type WebServiceType struct {
 	scheme string
 }
 
-func (t WebServiceType) AllStringKeys() []string {
+func (t *WebServiceType) AllStringKeys() []string {
 	if t.scheme == "" {
 		return []string{"web"}
 	}
 	return []string{t.scheme}
 }
 
-func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
+func (t *WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	// The username is just the (lowercased) hostname.
 	if !libkb.IsValidHostname(s) {
 		return "", libkb.NewInvalidHostnameError(s)
@@ -88,7 +88,7 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
+func (t *WebServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
 	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
@@ -129,11 +129,11 @@ func (t WebServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (r
 	return
 }
 
-func (t WebServiceType) GetPrompt() string {
+func (t *WebServiceType) GetPrompt() string {
 	return "Web site to check"
 }
 
-func (t WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	h, p, _ := ParseWeb(un)
 	ret := jsonw.NewDictionary()
 	ret.SetKey("protocol", jsonw.NewString(p+":"))
@@ -141,7 +141,7 @@ func (t WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return ret
 }
 
-func (t WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
+func (t *WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
 	mkp.Append(`<ul>`)
 	first := true
 	for _, f := range webKeybaseFiles {
@@ -157,22 +157,22 @@ func (t WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
 	mkp.Append(`</ul>`)
 }
 
-func (t WebServiceType) PreProofWarning(un string) *libkb.Markup {
+func (t *WebServiceType) PreProofWarning(un string) *libkb.Markup {
 	mkp := libkb.FmtMarkup(`<p>You will be asked to post a file to:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
 
-func (t WebServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *WebServiceType) PostInstructions(un string) *libkb.Markup {
 	mkp := libkb.FmtMarkup(`<p>Make the following file available at:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
 
-func (t WebServiceType) DisplayName(un string) string { return "Web" }
-func (t WebServiceType) GetTypeName() string          { return "web" }
+func (t *WebServiceType) DisplayName(un string) string { return "Web" }
+func (t *WebServiceType) GetTypeName() string          { return "web" }
 
-func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = libkb.FmtMarkup("Permission denied! Make sure your proof page is <strong>public</strong>.")
 	} else {
@@ -180,16 +180,16 @@ func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.Proof
 	}
 	return
 }
-func (t WebServiceType) GetProofType() string { return "web_service_binding.generic" }
+func (t *WebServiceType) GetProofType() string { return "web_service_binding.generic" }
 
-func (t WebServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *WebServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t WebServiceType) GetAPIArgKey() string { return "remote_host" }
-func (t WebServiceType) LastWriterWins() bool { return false }
+func (t *WebServiceType) GetAPIArgKey() string { return "remote_host" }
+func (t *WebServiceType) LastWriterWins() bool { return false }
 
-func (t WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &WebChecker{l}
 }
 

@@ -96,7 +96,11 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 		if next == nil {
 			next, err = getNextPage()
 			if err != nil {
-				return nil, nil, err
+				if utils.IsPermanentErr(err) {
+					return nil, nil, err
+				}
+				s.Debug(ctx, "transient search failure: %v", err)
+				return nil, nil, nil
 			}
 		}
 		// Get the remaining context from the new current page of the thread.
@@ -136,6 +140,8 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 			curPage, err = getNextPage()
 			if err != nil {
 				return nil, err
+			} else if curPage == nil {
+				break
 			}
 		} else { // we pre-fetched the next page when retrieving context
 			curPage = nextPage

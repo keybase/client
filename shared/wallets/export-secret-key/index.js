@@ -61,7 +61,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
           </Text>
         </Box2>
         <Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
-          <CopyText withReveal={true} text={this.props.secretKey} />
+          <CopyText multiline={true} withReveal={true} text={this.props.secretKey} />
           {!this.props.secretKey && (
             <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.progressContainer}>
               <ProgressIndicator style={styles.progressIndicator} type="Small" />

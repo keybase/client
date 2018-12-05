@@ -620,3 +620,34 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, oldGeneration+1, teamAfter.Generation())
 }
+
+func TestDowngradeImplicitAdminAfterReset(t *testing.T) {
+	tc, owner, otherA, otherB, root, sub := memberSetupSubteam(t)
+	defer tc.Cleanup()
+
+	_, err := AddMember(context.TODO(), tc.G, sub, otherA.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	// Reset and reprovision implicit admin
+	tc.G.Logout(context.TODO())
+	require.NoError(t, otherA.Login(tc.G))
+	kbtest.ResetAccount(tc, otherA)
+	require.NoError(t, otherA.Login(tc.G))
+
+	tc.G.Logout(context.TODO())
+	require.NoError(t, owner.Login(tc.G))
+
+	_, err = GetForTestByStringName(context.Background(), tc.G, root)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	err = EditMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	// This fails if a box incorrectly remains live for otherA after the downgrade due
+	// to bad team key coverage.
+	_, err = AddMember(context.TODO(), tc.G, sub, otherB.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+}

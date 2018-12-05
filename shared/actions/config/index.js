@@ -29,20 +29,6 @@ const setupEngineListeners = () => {
   getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
 
   getEngine().setIncomingCallMap({
-    'keybase.1.logUi.log': param => {
-      log(param)
-    },
-    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
-      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
-    'keybase.1.NotifySession.loggedOut': () =>
-      Saga.call(function*() {
-        logger.info('keybase.1.NotifySession.loggedOut')
-        const state: TypedState = yield Saga.select()
-        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-        if (state.config.loggedIn) {
-          yield Saga.put(ConfigGen.createLoggedOut())
-        }
-      }),
     'keybase.1.NotifySession.loggedIn': ({username}) =>
       Saga.call(function*() {
         logger.info('keybase.1.NotifySession.loggedIn')
@@ -52,6 +38,20 @@ const setupEngineListeners = () => {
           yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
         }
       }),
+    'keybase.1.NotifySession.loggedOut': () =>
+      Saga.call(function*() {
+        logger.info('keybase.1.NotifySession.loggedOut')
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+        if (state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedOut())
+        }
+      }),
+    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
+      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
+    'keybase.1.logUi.log': param => {
+      log(param)
+    },
   })
 }
 
@@ -396,7 +396,7 @@ const writeLastSentXLM = (state: TypedState, action: SetLastSentXLMPayload) => {
     logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
     return RPCTypes.configSetValueRpcPromise({
       path: 'stellar.lastSentXLM',
-      value: {isNull: false, b: state.wallets.lastSentXLM},
+      value: {b: state.wallets.lastSentXLM, isNull: false},
     }).catch(err => logger.error(`Error writing config stellar.lastSentXLM: ${err.message}`))
   }
 }

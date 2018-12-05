@@ -17,7 +17,7 @@ export default (props: Props) => (
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (

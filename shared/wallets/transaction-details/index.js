@@ -41,6 +41,9 @@ export type NotLoadingProps = {|
   yourRole: Types.Role,
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string,
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?Types.AccountID,
 |}
 export type Props =
   | NotLoadingProps
@@ -168,7 +171,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return Styles.globalColors.green
     case 'pending':
-    case 'cancelable':
+    case 'claimable':
       return Styles.globalColors.purple2
     case 'error':
     case 'canceled':
@@ -179,23 +182,26 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 }
 
 const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) => {
-  if (status !== 'completed') {
-    return capitalize(status)
-  }
-
-  switch (yourRole) {
-    case 'senderOnly':
-      return 'Sent'
-    case 'receiverOnly':
-      return 'Received'
-    case 'senderAndReceiver':
-      return 'Sent'
+  switch (status) {
+    case 'claimable':
+      return 'Cancelable'
+    case 'completed':
+      switch (yourRole) {
+        case 'senderOnly':
+          return 'Sent'
+        case 'receiverOnly':
+          return 'Received'
+        case 'senderAndReceiver':
+          return 'Sent'
+        default:
+          /*::
+          declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+          ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
+          */
+          throw new Error(`Unexpected role ${yourRole}`)
+      }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
-      */
-      throw new Error(`Unexpected role ${yourRole}`)
+      return capitalize(status)
   }
 }
 
@@ -231,13 +237,13 @@ const propsToParties = (props: NotLoadingProps) => {
 
   switch (props.yourRole) {
     case 'senderOnly':
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     case 'receiverOnly':
-      return {sender: counterparty, receiver: you}
+      return {receiver: you, sender: counterparty}
     case 'senderAndReceiver':
       // Even if we sent money from an account to itself, show the
       // account details as the recipient.
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
@@ -293,6 +299,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           timestamp={props.timestamp}
           unread={false}
           yourRole={props.yourRole}
+          issuerDescription={props.issuerDescription}
         />
       </Kb.Box2>
       <Kb.Divider />
@@ -312,12 +319,24 @@ const TransactionDetails = (props: NotLoadingProps) => {
           {receiver}
         </Kb.Box2>
 
+        {props.issuerAccountID && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
+              {props.issuerDescription}
+            </Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="Body">
+              {props.issuerAccountID}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>
           <Kb.WithTooltip
             containerStyle={styles.statusBox}
             text={
-              props.status === 'cancelable'
+              props.status === 'claimable'
                 ? `${
                     props.counterparty
                   } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
@@ -365,7 +384,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             props.yourRole === 'receiverOnly' &&
             props.counterpartyType === 'stellarPublicKey' && (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
-                <Kb.Text type="BodySemibold" backgroundMode="Information">
+                <Kb.Text type="BodySemibold" backgroundMode="Information" style={styles.warningBannerText}>
                   Watch out for phishing attacks and dangerous websites.
                 </Kb.Text>
               </Kb.Box2>
@@ -427,9 +446,9 @@ const styles = Styles.styleSheetCreate({
   buttonBox: Styles.platformStyles({
     common: {
       justifyContent: 'center',
+      minHeight: 0,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
-      minHeight: 0,
     },
     isElectron: {
       marginTop: 'auto',
@@ -475,9 +494,9 @@ const styles = Styles.styleSheetCreate({
   },
   stellarPublicKey: Styles.platformStyles({
     common: {
+      flex: 1,
       justifyContent: 'center',
       marginLeft: Styles.globalMargins.tiny,
-      flex: 1,
     },
     isElectron: {wordBreak: 'break-all'},
   }),
@@ -490,6 +509,10 @@ const styles = Styles.styleSheetCreate({
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
     borderRadius: 4,
+    marginTop: Styles.globalMargins.xsmall,
     padding: Styles.globalMargins.xsmall,
+  },
+  warningBannerText: {
+    color: Styles.globalColors.black,
   },
 })

@@ -1128,16 +1128,14 @@ func (o BundleEntryRestricted) DeepCopy() BundleEntryRestricted {
 }
 
 type AccountBundle struct {
-	Revision  BundleRevision `codec:"revision" json:"revision"`
-	Prev      Hash           `codec:"prev" json:"prev"`
-	OwnHash   Hash           `codec:"ownHash" json:"ownHash"`
-	AccountID AccountID      `codec:"accountID" json:"accountID"`
-	Signers   []SecretKey    `codec:"signers" json:"signers"`
+	Prev      Hash        `codec:"prev" json:"prev"`
+	OwnHash   Hash        `codec:"ownHash" json:"ownHash"`
+	AccountID AccountID   `codec:"accountID" json:"accountID"`
+	Signers   []SecretKey `codec:"signers" json:"signers"`
 }
 
 func (o AccountBundle) DeepCopy() AccountBundle {
 	return AccountBundle{
-		Revision:  o.Revision.DeepCopy(),
 		Prev:      o.Prev.DeepCopy(),
 		OwnHash:   o.OwnHash.DeepCopy(),
 		AccountID: o.AccountID.DeepCopy(),

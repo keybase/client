@@ -31,6 +31,7 @@ const ServiceIcon = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
       <Kb.Icon
+        fontSize={Styles.isMobile ? 22 : 18}
         type={serviceIdToIconFont(props.service)}
         style={Styles.collapseStyles([
           styles.serviceIcon,
@@ -74,44 +75,33 @@ const ServiceTabBar = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 40,
-      marginLeft: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.large, // small
-      width: 370,
-    },
-    common: {
-      ...Styles.globalStyles.rounded,
-      borderColor: Styles.globalColors.black_20,
-      borderWidth: 1,
-      borderStyle: 'solid',
-    },
-  }),
+  activeTabBar: {
+    backgroundColor: Styles.globalColors.blue,
+    height: 1,
+  },
+  clickableServiceIcon: {
+    flex: 1,
+  },
+  inactiveTabBar: {
+    backgroundColor: Styles.globalColors.black_20,
+    height: 1,
+  },
+  pendingIcon: {height: 10, width: 10},
+  resultCount: {},
+  serviceIcon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   serviceIconContainer: {
     flex: 1,
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
     minWidth: 40,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
-  serviceIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  resultCount: {},
-  pendingIcon: {height: 10, width: 10},
   tabBarContainer: {
-    height: 30,
-  },
-  activeTabBar: {
-    height: 1,
-    backgroundColor: Styles.globalColors.blue,
-  },
-  inactiveTabBar: {
-    height: 1,
-    backgroundColor: Styles.globalColors.black_20,
-  },
-  clickableServiceIcon: {
-    flex: 1,
+    marginTop: Styles.globalMargins.xtiny,
+    minHeight: 30,
   },
 })
 

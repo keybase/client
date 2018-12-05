@@ -65,11 +65,11 @@ const HighlightLine = () => (
   <Box
     style={{
       ...Styles.globalStyles.fillAbsolute,
-      borderTopRightRadius: 4,
-      borderBottomRightRadius: 4,
       backgroundColor: Styles.globalColors.white,
-      marginTop: Styles.globalMargins.xtiny,
+      borderBottomRightRadius: 4,
+      borderTopRightRadius: 4,
       marginBottom: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.xtiny,
       right: undefined,
       width: 2,
     }}
@@ -121,7 +121,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           loadingColor={Styles.globalColors.blue3_40}
         />
         {badgeNumber > 0 && (
-          <Box style={{width: 0, display: 'flex'}}>
+          <Box style={{display: 'flex', width: 0}}>
             <Box style={styleBadgeAvatar}>
               <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
             </Box>
@@ -134,10 +134,10 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
             style={{
               ...stylesNavText,
               color: undefined,
-              textAlign: 'center',
+              marginTop: 3,
               ...Styles.desktopStyles.clickable,
               ...this.props.styleLabel,
-              marginTop: 3,
+              textAlign: 'center',
             }}
           >
             {this.props.label}
@@ -272,8 +272,8 @@ class TabBar extends React.Component<Props> {
       <Box
         style={{
           ...Styles.globalStyles.flexBoxRow,
-          flexShrink: 0,
           borderBottom: `solid 1px ${Styles.globalColors.black_10}`,
+          flexShrink: 0,
           ...this.props.styleTabBar,
         }}
       >
@@ -297,8 +297,8 @@ const stylesContainer = {
 const stylesTabBarButtonIcon = {
   ...Styles.globalStyles.flexBoxRow,
   ...Styles.desktopStyles.clickable,
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   paddingLeft: 20,
   position: 'relative',
 }
@@ -306,9 +306,9 @@ const stylesTabBarButtonIcon = {
 const stylesIcon = Styles.platformStyles({
   common: {
     height: 14,
-    paddingRight: 6,
     lineHeight: 16,
     marginBottom: 2,
+    paddingRight: 6,
     textAlign: 'center',
   },
 })
@@ -316,12 +316,12 @@ const stylesIcon = Styles.platformStyles({
 const stylesTabBarNavIcon = {
   ...Styles.globalStyles.flexBoxColumn,
   ...Styles.desktopStyles.clickable,
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
+  height: 56,
   justifyContent: 'center',
   position: 'relative',
   width: 80,
-  height: 56,
 }
 
 const navRealCSS = `
@@ -344,8 +344,8 @@ const stylesNavText = {
 }
 
 const styleBadgeAvatar = {
-  position: 'absolute',
   left: 46,
+  position: 'absolute',
   top: 4,
 }
 

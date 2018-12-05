@@ -7,7 +7,7 @@ import {Avatars, TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
 type Props = {
-  backgroundColor: string,
+  backgroundColor: ?string,
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,

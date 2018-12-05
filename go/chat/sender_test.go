@@ -361,12 +361,13 @@ func TestNonblockTimer(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
+	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -496,8 +497,8 @@ func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
-	return nil, nil, nil, chat1.ChannelMention_NONE, nil, nil
+	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (types.SenderPrepareResult, error) {
+	return types.SenderPrepareResult{}, nil
 }
 
 func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxRecord) {
@@ -813,9 +814,10 @@ func TestDeletionHeaders(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, _, _, _, _, err := blockingSender.Prepare(ctx, deletion,
+	prepareRes, err := blockingSender.Prepare(ctx, deletion,
 		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	preparedDeletion := prepareRes.Boxed
 
 	// Assert that the deletion gets the edit too.
 	deletedIDs := map[chat1.MessageID]bool{}
@@ -851,7 +853,7 @@ func TestAtMentionsText(t *testing.T) {
 
 	text := fmt.Sprintf("@%s hello! From @%s. @ksjdskj", u1.Username, u2.Username)
 	t.Logf("text: %s", text)
-	_, _, atMentions, chanMention, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	prepareRes, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -863,11 +865,13 @@ func TestAtMentionsText(t *testing.T) {
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	atMentions := prepareRes.AtMentions
+	chanMention := prepareRes.ChannelMention
 	require.Equal(t, []gregor1.UID{uid1, uid2}, atMentions)
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
 
 	text = "Hello @channel!"
-	_, _, atMentions, chanMention, _, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	prepareRes, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -879,6 +883,8 @@ func TestAtMentionsText(t *testing.T) {
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	atMentions = prepareRes.AtMentions
+	chanMention = prepareRes.ChannelMention
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
@@ -914,7 +920,7 @@ func TestAtMentionsEdit(t *testing.T) {
 	// edit that message and add atMentions
 	text = fmt.Sprintf("@%s hello! From @%s. @ksjdskj", u1.Username, u2.Username)
 	firstMessageID := firstMessageBoxed.GetMessageID()
-	_, _, atMentions, chanMention, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	prepareRes, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -928,12 +934,14 @@ func TestAtMentionsEdit(t *testing.T) {
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	atMentions := prepareRes.AtMentions
+	chanMention := prepareRes.ChannelMention
 	require.Equal(t, []gregor1.UID{uid1, uid2}, atMentions)
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
 
 	// edit the message and add channel mention
 	text = "Hello @channel!"
-	_, _, atMentions, chanMention, _, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	prepareRes, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -947,6 +955,8 @@ func TestAtMentionsEdit(t *testing.T) {
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	atMentions = prepareRes.AtMentions
+	chanMention = prepareRes.ChannelMention
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
@@ -1076,7 +1086,7 @@ func TestPrevPointerAddition(t *testing.T) {
 			// Mock out pulling messages to return no messages
 			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = true
 			// Prepare a regular message and make sure it gets prev pointers
-			boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+			prepareRes, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
 					Conv:              conv.Metadata.IdTriple,
 					Sender:            uid,
@@ -1087,6 +1097,8 @@ func TestPrevPointerAddition(t *testing.T) {
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 			}, mt, &conv)
 			require.NoError(t, err)
+			boxed := prepareRes.Boxed
+			pendingAssetDeletes := prepareRes.PendingAssetDeletes
 			require.Empty(t, pendingAssetDeletes)
 			// With all of the messages filtered because they exploded and the
 			// server not returning results, we give up and don't attach any
@@ -1106,7 +1118,7 @@ func TestPrevPointerAddition(t *testing.T) {
 		require.NoError(t, err)
 
 		// Prepare a regular message and make sure it gets prev pointers
-		boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+		prepareRes, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Metadata.IdTriple,
 				Sender:      uid,
@@ -1116,6 +1128,8 @@ func TestPrevPointerAddition(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 		}, mt, &conv)
 		require.NoError(t, err)
+		boxed := prepareRes.Boxed
+		pendingAssetDeletes := prepareRes.PendingAssetDeletes
 		require.Empty(t, pendingAssetDeletes)
 		if ephemeralLifetime == nil {
 			require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
@@ -1219,9 +1233,11 @@ func TestDeletionAssets(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, deletion,
+	prepareRes, err := blockingSender.Prepare(ctx, deletion,
 		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
+	preparedDeletion := prepareRes.Boxed
+	pendingAssetDeletes := prepareRes.PendingAssetDeletes
 
 	assertAssetSetsEqual(t, pendingAssetDeletes, doomedAssets)
 	require.Equal(t, len(doomedAssets), len(pendingAssetDeletes), "wrong number of assets pending deletion")
@@ -1363,7 +1379,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = ri1.PostRemote(ctx1, chat1.PostRemoteArg{
-			ConversationID: conv.Id, MessageBoxed: *boxed,
+			ConversationID: conv.Id, MessageBoxed: boxed,
 		})
 		require.Error(t, err)
 		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
@@ -1377,7 +1393,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 
 		_, err = ri1.PostRemote(ctx1, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
-			MessageBoxed:   *boxed,
+			MessageBoxed:   boxed,
 		})
 		require.Error(t, err)
 		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
@@ -1468,12 +1484,13 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
+	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 

@@ -487,6 +487,10 @@
         {
           "type": "string",
           "name": "statusDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         }
       ]
     },

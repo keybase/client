@@ -210,9 +210,9 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         chat: {
           ...state.chat,
           unfurl: {
+            unfurlError: undefined,
             unfurlMode: mode,
             unfurlWhitelist: whitelist,
-            unfurlError: undefined,
           },
         },
       }

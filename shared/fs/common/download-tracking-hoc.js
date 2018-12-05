@@ -32,9 +32,9 @@ const mergeProps = ({_downloads}, {_cancel}, ownProps: OwnProps) => {
     Constants.isPendingDownload(download, trackingPath, trackingIntent)
   ) || ['', undefined]
   return {
-    status: download ? (download.state.completePortion === 1 ? 'finished' : 'downloading') : 'absent',
     onFinish,
     onUnmount: cancelOnUnmount && !!key.length && (() => _cancel(key)),
+    status: download ? (download.state.completePortion === 1 ? 'finished' : 'downloading') : 'absent',
   }
 }
 

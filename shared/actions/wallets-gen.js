@@ -26,6 +26,7 @@ export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
 export const changedAccountName = 'wallets:changedAccountName'
+export const checkDisclaimer = 'wallets:checkDisclaimer'
 export const clearBuilding = 'wallets:clearBuilding'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearBuiltRequest = 'wallets:clearBuiltRequest'
@@ -86,20 +87,21 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 
 // Payload Types
 type _AbandonPaymentPayload = void
-type _AcceptDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
+type _AcceptDisclaimerPayload = void
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AddNewPaymentPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _AssetsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, assets: Array<Types.Assets>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
 type _BuildPaymentPayload = void
-type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment, forBuilding: Types.Building|}>
-type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBuilding: Types.Building|}>
+type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment, forBuildCounter: number|}>
+type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBuildCounter: number|}>
 type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
 type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _ChangedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
+type _CheckDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
 type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
@@ -193,7 +195,7 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({payload, type: validateSecretKey})
 /**
- * Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.
+ * Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.
  */
 export const createCancelPayment = (payload: _CancelPaymentPayload) => ({payload, type: cancelPayment})
 /**
@@ -240,6 +242,10 @@ export const createClearNewPayments = (payload: _ClearNewPaymentsPayload) => ({p
  * Delete an account
  */
 export const createDeleteAccount = (payload: _DeleteAccountPayload) => ({payload, type: deleteAccount})
+/**
+ * Discover whether the user has accepted the Stellar disclaimer
+ */
+export const createCheckDisclaimer = (payload: _CheckDisclaimerPayload) => ({payload, type: checkDisclaimer})
 /**
  * Export a Stellar account's secret key
  */
@@ -469,6 +475,7 @@ export type ChangeAccountNamePayload = $Call<typeof createChangeAccountName, _Ch
 export type ChangeDisplayCurrencyPayload = $Call<typeof createChangeDisplayCurrency, _ChangeDisplayCurrencyPayload>
 export type ChangedAccountNamePayload = $Call<typeof createChangedAccountName, _ChangedAccountNamePayload>
 export type ChangedAccountNamePayloadError = $Call<typeof createChangedAccountNameError, _ChangedAccountNamePayloadError>
+export type CheckDisclaimerPayload = $Call<typeof createCheckDisclaimer, _CheckDisclaimerPayload>
 export type ClearBuildingPayload = $Call<typeof createClearBuilding, _ClearBuildingPayload>
 export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
 export type ClearBuiltRequestPayload = $Call<typeof createClearBuiltRequest, _ClearBuiltRequestPayload>
@@ -549,6 +556,7 @@ export type Actions =
   | ChangeDisplayCurrencyPayload
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
+  | CheckDisclaimerPayload
   | ClearBuildingPayload
   | ClearBuiltPaymentPayload
   | ClearBuiltRequestPayload

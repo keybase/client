@@ -51,9 +51,9 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
 )
 
 const stylePopup = {
-  width: isMobile ? '100%' : 196,
-  marginTop: isMobile ? undefined : 12,
   marginLeft: isMobile ? undefined : -12,
+  marginTop: isMobile ? undefined : 12,
+  width: isMobile ? '100%' : 196,
 }
 
 const stylesRow = {

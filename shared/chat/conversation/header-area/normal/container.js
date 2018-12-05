@@ -28,10 +28,10 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) =
   return {
     _badgeMap: state.chat2.badgeMap,
     _conversationIDKey: conversationIDKey,
-    isPending,
     _participants,
     channelName: meta.channelname,
     infoPanelOpen,
+    isPending,
     muted: meta.isMuted,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
@@ -41,10 +41,10 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) =
 const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+  _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   onBack: () => dispatch(RouteTree.navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
-  _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

@@ -65,7 +65,7 @@ class Engine {
   static _getState: () => TypedState
 
   dispatchWaitingAction = (key: string, waiting: boolean) => {
-    Engine._dispatch(createChangeWaiting({key, increment: waiting}))
+    Engine._dispatch(createChangeWaiting({increment: waiting, key}))
   }
 
   // TODO deprecate
@@ -219,7 +219,7 @@ class Engine {
   _rpcIncoming(payload: {method: MethodKey, param: Array<Object>, response: ?Object}) {
     const {method, param: incomingParam, response} = payload
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
-    const {seqid, cancelled} = response || {seqid: 0, cancelled: false}
+    const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     const {sessionID} = param
 
     if (cancelled) {
@@ -230,7 +230,7 @@ class Engine {
         // Part of a session?
       } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
         // General incoming
-        rpcLog({reason: '[incoming]', type: 'engineInternal', method})
+        rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
 
         let creator = this._incomingActionCreators[method]
         let rawEffects
@@ -284,7 +284,7 @@ class Engine {
       Constants.closeChannelMap(channelMap)
     }
 
-    const sid = this._rpcOutgoing({method, params, incomingCallMap, callback})
+    const sid = this._rpcOutgoing({callback, incomingCallMap, method, params})
     return new Constants.EngineChannel(channelMap, sid, configKeys)
   }
 
@@ -299,9 +299,9 @@ class Engine {
   }) {
     // Make a new session and start the request
     const session = this.createSession({
+      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
       incomingCallMap: p.incomingCallMap,
       waitingKey: p.waitingKey,
-      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
     })
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {

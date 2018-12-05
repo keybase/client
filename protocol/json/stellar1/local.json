@@ -172,6 +172,17 @@
           "name": "currentWorthCurrency"
         },
         {
+          "type": "string",
+          "name": "issuerDescription"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "issuerAccountID"
+        },
+        {
           "type": "ParticipantType",
           "name": "fromType"
         },
@@ -332,6 +343,17 @@
           "name": "currentWorthCurrency"
         },
         {
+          "type": "string",
+          "name": "issuerDescription"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "issuerAccountID"
+        },
+        {
           "type": "ParticipantType",
           "name": "fromType"
         },
@@ -444,6 +466,12 @@
           "name": "subtext"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BuildPaymentID",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -1163,11 +1191,37 @@
         "items": "SendAssetChoiceLocal"
       }
     },
+    "startBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "BuildPaymentID"
+    },
+    "stopBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "buildPaymentLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
         },
         {
           "name": "from",
@@ -1176,10 +1230,6 @@
         {
           "name": "fromPrimaryAccount",
           "type": "boolean"
-        },
-        {
-          "name": "fromSeqno",
-          "type": "string"
         },
         {
           "name": "to",
@@ -1225,12 +1275,16 @@
           "type": "int"
         },
         {
-          "name": "from",
-          "type": "AccountID"
+          "name": "bid",
+          "type": "BuildPaymentID"
         },
         {
-          "name": "fromSeqno",
-          "type": "string"
+          "name": "bypassBid",
+          "type": "boolean"
+        },
+        {
+          "name": "from",
+          "type": "AccountID"
         },
         {
           "name": "to",
@@ -1508,7 +1562,7 @@
     },
     "walletDumpLocal": {
       "request": [],
-      "response": "Bundle"
+      "response": "BundleRestricted"
     },
     "walletGetAccountsCLILocal": {
       "request": [],
