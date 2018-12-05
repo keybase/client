@@ -865,6 +865,8 @@ func (fbo *folderBranchOps) syncOneNode(
 	}
 }
 
+// doPartialSync iterates through the paths, deep-syncing them and
+// also syncing their parent directories up to the root node.
 func (fbo *folderBranchOps) doPartialSync(
 	ctx context.Context, syncConfig keybase1.FolderSyncConfig,
 	latestMerged ImmutableRootMetadata) (err error) {
@@ -969,11 +971,11 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 	ctx context.Context, lState *lockState,
 	syncConfig keybase1.FolderSyncConfig, rmd ImmutableRootMetadata) {
 	// Kick off a background partial sync.
-	partialSyncCtx := fbo.ctxWithFBOID(context.Background())
+	partialSyncCtx, cancel := context.WithCancel(
+		fbo.ctxWithFBOID(context.Background()))
 	fbo.log.CDebugf(
 		ctx, "Partial sync with a new context: FBOID=%s",
 		partialSyncCtx.Value(CtxFBOIDKey))
-	partialSyncCtx, cancel := context.WithCancel(partialSyncCtx)
 	fbo.partialSyncs.Add(1)
 	go func() {
 		defer cancel()
