@@ -132,11 +132,18 @@ function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
   })
 }
 
+function* callPromise<Args, T>(fn: (...args: Args) => Promise<T>, ...args: Args): Generator<any, T, any> {
+  // $FlowIssue doesn't understand args will be an array
+  return yield Effects.call(fn, ...args)
+}
+
 export type {Effect, PutEffect, Channel} from 'redux-saga'
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
   all,
+  // TODO deprecate
   call,
+  call as callUntyped,
   cancel,
   cancelled,
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
@@ -150,4 +157,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {put, safeTakeEvery, safeTakeEveryPure, actionToPromise, actionToAction, sequentially}
+export {put, safeTakeEvery, safeTakeEveryPure, actionToPromise, actionToAction, sequentially, callPromise}

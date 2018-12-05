@@ -119,7 +119,7 @@ const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState)
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions =
-    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.call(Saga.delay, 100)] : []
+    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.callUntyped(Saga.delay, 100)] : []
 
   const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
 
@@ -221,7 +221,7 @@ const unboxRows = (
         break
       default:
         logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
-        return Saga.call(function*() {
+        return Saga.callUntyped(function*() {
           const state: TypedState = yield Saga.select()
           yield Saga.put(
             Chat2Gen.createMetaReceivedError({
@@ -234,7 +234,7 @@ const unboxRows = (
     }
   }
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
     yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
       incomingCallMap: {
@@ -612,7 +612,7 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 
 // This is to simplify the changes that setIncomingCallMap created. Could clean this up and remove this
 const arrayOfActionsToSequentially = actions =>
-  Saga.call(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
+  Saga.callUntyped(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
@@ -1002,7 +1002,7 @@ const loadMoreMessages = (
     return actions
   }
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     try {
       const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
         incomingCallMap: {
@@ -1077,8 +1077,8 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
     title += `#${meta.channelname}`
   }
 
-  return Saga.call(function*() {
-    const actions = yield Saga.call(
+  return Saga.callUntyped(function*() {
+    const actions = yield Saga.callUntyped(
       () =>
         new Promise(resolve => {
           const onClick = () => {
@@ -1132,7 +1132,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
   if (!message.id) {
     if (message.outboxID) {
       return Saga.sequentially([
-        Saga.call(
+        Saga.callUntyped(
           RPCChatTypes.localCancelPostRpcPromise,
           {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
           Constants.waitingKeyCancelPost
@@ -1143,7 +1143,7 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
       logger.warn('Delete of no message id and no outboxid')
     }
   } else {
-    return Saga.call(
+    return Saga.callUntyped(
       RPCChatTypes.localPostDeleteNonblockRpcPromise,
       {
         clientPrev: 0,
@@ -1179,7 +1179,7 @@ const messageReplyPrivately = (state: TypedState, action: Chat2Gen.MessageReplyP
     return
   }
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     const result: RPCChatTypes.NewConversationLocalRes = yield createConversation(
       Chat2Gen.createCreateConversation({participants: [message.author]}),
       state
@@ -1221,7 +1221,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
       outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
     }
     let actions = [
-      Saga.call(
+      Saga.callUntyped(
         RPCChatTypes.localPostEditNonblockRpcPromise,
         {
           body: text.stringValue(),
@@ -1249,7 +1249,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
 
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
-  return Saga.call(
+  return Saga.callUntyped(
     RPCChatTypes.localRetryPostRpcPromise,
     {
       outboxID: Types.outboxIDToRpcOutboxID(outboxID),
@@ -1286,7 +1286,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
     })
   )
 
-  const postText = Saga.call(
+  const postText = Saga.callUntyped(
     RPCChatTypes.localPostTextNonblockRpcPromise,
     {
       ...ephemeralData,
@@ -1379,7 +1379,7 @@ const previewConversationAfterFindExisting = (
       throw new Error('Tried to preview a non-existant channel?')
     }
     return Saga.sequentially([
-      Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
+      Saga.callUntyped(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
         convID: Types.keyToConversationID(existingConversationIDKey),
       }),
       Saga.put(
@@ -1464,7 +1464,7 @@ const previewConversationFindExisting = (
 
   const makeCall = conversationIDKey
     ? null
-    : Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+    : Saga.callUntyped(RPCChatTypes.localFindConversationsLocalRpcPromise, {
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
         oneChatPerTLF: true,
@@ -1474,7 +1474,7 @@ const previewConversationFindExisting = (
         ...params,
       })
 
-  const passUsersDown = Saga.call(() => users)
+  const passUsersDown = Saga.callUntyped(() => users)
 
   return Saga.sequentially([markPendingWaiting, setUsers, makeCall, passUsersDown])
 }
@@ -1742,12 +1742,12 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   }
 
   // Download it
-  const destPath = yield Saga.call(downloadFilePath, message.fileName)
-  yield Saga.call(downloadAttachment, destPath, message)
+  const destPath = yield* Saga.callPromise(downloadFilePath, message.fileName)
+  yield Saga.callUntyped(downloadAttachment, destPath, message)
 }
 
 const attachmentFullscreenNext = (state: TypedState, action: Chat2Gen.AttachmentFullscreenNextPayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const {conversationIDKey, messageID, backInTime} = action.payload
     const blankMessage = Constants.makeMessageAttachment({})
     if (conversationIDKey === blankMessage.conversationIDKey) {
@@ -1755,13 +1755,16 @@ const attachmentFullscreenNext = (state: TypedState, action: Chat2Gen.Attachment
     }
     const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
     yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
-    const nextAttachmentRes = yield Saga.call(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise, {
-      assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
-      backInTime,
-      convID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      messageID,
-    })
+    const nextAttachmentRes = yield* Saga.callPromise(
+      RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise,
+      {
+        assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
+        backInTime,
+        convID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        messageID,
+      }
+    )
 
     let nextMsg = currentFullscreen
     if (nextAttachmentRes.message) {
@@ -1810,7 +1813,7 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
 function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
   const {conversationIDKey, data} = action.payload
   const outboxID = Constants.generateOutboxID()
-  const path = yield Saga.call(RPCChatTypes.localMakeUploadTempFileRpcPromise, {
+  const path = yield* Saga.callPromise(RPCChatTypes.localMakeUploadTempFileRpcPromise, {
     data,
     filename: 'paste.png',
     outboxID,
@@ -1849,7 +1852,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // These messages will not send until the upload has both been started and completed.
   const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
     paths.map((p, i) =>
-      Saga.call(RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise, {
+      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise, {
         ...ephemeralData,
         clientPrev,
         convID: Types.keyToConversationID(conversationIDKey),
@@ -1877,7 +1880,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
     paths.map((p, i) =>
-      Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
+      Saga.callUntyped(RPCChatTypes.localMakePreviewRpcPromise, {
         filename: p.path,
         outboxID: outboxIDs[i],
       })
@@ -1922,7 +1925,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   )
   yield Saga.sequentially(
     paths.map((path, i) =>
-      Saga.call(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
+      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
         callerPreview: previews[i],
         convID: Types.keyToConversationID(conversationIDKey),
         filename: path.path,
@@ -1938,7 +1941,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 // Tell service we're typing
 const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, typing} = action.payload
-  return Saga.call(RPCChatTypes.localUpdateTypingRpcPromise, {
+  return Saga.callUntyped(RPCChatTypes.localUpdateTypingRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
     typing,
   })
@@ -1960,7 +1963,7 @@ const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, stat
 
 // let them back in after they reset
 const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
-  Saga.call(RPCChatTypes.localAddTeamMemberAfterResetRpcPromise, {
+  Saga.callUntyped(RPCChatTypes.localAddTeamMemberAfterResetRpcPromise, {
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     username: action.payload.username,
   })
@@ -2017,7 +2020,7 @@ const markThreadAsRead = (
 
   const readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
-  return Saga.call(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
+  return Saga.callUntyped(RPCChatTypes.localMarkAsReadLocalRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: readMsgID,
   })
@@ -2040,7 +2043,7 @@ const deleteMessageHistory = (action: Chat2Gen.MessageDeletePayload, state: Type
     tlfName: meta.tlfname,
     tlfPublic: false,
   }
-  return Saga.call(RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise, param)
+  return Saga.callUntyped(RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise, param)
 }
 
 // Get the rights a user has on certain actions in a team
@@ -2139,9 +2142,9 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', message)
+  const fileName = yield* downloadAttachment('', message)
   try {
-    yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
+    yield* Saga.callPromise(showShareActionSheetFromFile, fileName, message.fileType)
   } catch (e) {
     logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }
@@ -2155,7 +2158,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', message)
+  const fileName = yield* downloadAttachment('', message)
   yield Saga.put(
     Chat2Gen.createAttachmentMobileSave({
       conversationIDKey: message.conversationIDKey,
@@ -2164,7 +2167,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   )
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentToCameraRoll, fileName, message.fileType)
+    yield* Saga.callPromise(saveAttachmentToCameraRoll, fileName, message.fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
@@ -2178,7 +2181,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
-  Saga.call(
+  Saga.callUntyped(
     RPCChatTypes.localJoinConversationByIDLocalRpcPromise,
     {
       convID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -2187,12 +2190,12 @@ const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
   )
 
 const leaveConversation = (action: Chat2Gen.LeaveConversationPayload) =>
-  Saga.call(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
+  Saga.callUntyped(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
   })
 
 const muteConversation = (action: Chat2Gen.MuteConversationPayload) =>
-  Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+  Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
     conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     status: action.payload.muted
@@ -2201,7 +2204,7 @@ const muteConversation = (action: Chat2Gen.MuteConversationPayload) =>
   })
 
 const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsPayload) =>
-  Saga.call(RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {
+  Saga.callUntyped(RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {
     channelWide: action.payload.notificationsGlobalIgnoreMentions,
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     settings: [
@@ -2231,7 +2234,7 @@ const updateNotificationSettings = (action: Chat2Gen.UpdateNotificationSettingsP
 const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
   Saga.sequentially([
     Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
-    Saga.call(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
       conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       status: action.payload.reportUser
@@ -2253,7 +2256,7 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
     throw err
   } finally {
     if (servicePolicy) {
-      ret = Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
+      ret = Saga.callUntyped(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
         convID,
         policy: servicePolicy,
       })
@@ -2336,7 +2339,7 @@ const createConversation2 = (state: TypedState, action: Chat2Gen.CreateConversat
     } = action
     yield createPendingConversation(participants)
     try {
-      const result: RPCChatTypes.NewConversationLocalRes = yield Saga.call(
+      const result: RPCChatTypes.NewConversationLocalRes = yield* Saga.callPromise(
         RPCChatTypes.localNewConversationLocalRpcPromise,
         {
           identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -2371,7 +2374,7 @@ const createConversation = (action: Chat2Gen.CreateConversationPayload, state: T
   if (!username) {
     throw new Error('Making a convo while logged out?')
   }
-  return Saga.call(
+  return Saga.callUntyped(
     RPCChatTypes.localNewConversationLocalRpcPromise,
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -2413,11 +2416,11 @@ const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const category = Constants.explodingModeGregorKey(conversationIDKey)
   if (seconds === 0) {
     // dismiss the category so we don't leave cruft in the push state
-    actions.push(Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {category}))
+    actions.push(Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category}))
   } else {
     // update the category with the exploding time
     actions.push(
-      Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+      Saga.callUntyped(RPCTypes.gregorUpdateCategoryRpcPromise, {
         body: seconds.toString(),
         category,
         dtime: {offset: 0, time: 0},
@@ -2468,13 +2471,12 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
 }
 
 function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
-  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
-  const seenExplodingMessages = gregorState.items.find(
-    i => i.item.category === Constants.seenExplodingGregorKey
-  )
+  const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
+  const seenExplodingMessages =
+    gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
   let body = Date.now().toString()
   if (seenExplodingMessages) {
-    const contents = seenExplodingMessages.item.body.toString()
+    const contents = seenExplodingMessages.item && seenExplodingMessages.item.body.toString()
     if (isNaN(parseInt(contents, 10))) {
       logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
     } else {
@@ -2482,7 +2484,7 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
       return
     }
   }
-  yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+  yield* Saga.callPromise(RPCTypes.gregorUpdateCategoryRpcPromise, {
     body,
     category: Constants.seenExplodingGregorKey,
     dtime: {offset: 0, time: 0},
@@ -2490,15 +2492,16 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
 }
 
 function* handleSeeingWallets(action: Chat2Gen.HandleSeeingWalletsPayload) {
-  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
-  const seenWallets = gregorState.items.some(i => i.item.category === Constants.seenWalletsGregorKey)
+  const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
+  const seenWallets =
+    gregorState.items && gregorState.items.some(i => i.item?.category === Constants.seenWalletsGregorKey)
   if (seenWallets) {
     logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
     return
   }
   try {
     logger.info('handleSeeingWallets: setting seenWalletsGregorKey')
-    yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+    yield* Saga.callPromise(RPCTypes.gregorUpdateCategoryRpcPromise, {
       body: 'true',
       category: Constants.seenWalletsGregorKey,
       dtime: {offset: 0, time: 0},
@@ -2523,7 +2526,7 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePa
         version: action.payload.version,
       })
     ),
-    Saga.call(function*() {
+    Saga.callUntyped(function*() {
       const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
         (res: RPCChatTypes.StaticConfig) => {
           if (!res.deletableByDeleteHistory) {
@@ -2580,7 +2583,7 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
   return Saga.sequentially([
-    Saga.call(RPCChatTypes.localPostReactionNonblockRpcPromise, {
+    Saga.callUntyped(RPCChatTypes.localPostReactionNonblockRpcPromise, {
       body: emoji,
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
@@ -2612,7 +2615,7 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
 const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
-  return Saga.call(RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise, {
+  return Saga.callUntyped(RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise, {
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.teamsTeamRole[role],
   })
@@ -2625,7 +2628,7 @@ const unfurlRemove = (state: TypedState, action: Chat2Gen.UnfurlRemovePayload) =
     logger.debug('unfurl remove no meta found, aborting!')
     return
   }
-  return Saga.call(
+  return Saga.callUntyped(
     RPCChatTypes.localPostDeleteNonblockRpcPromise,
     {
       clientPrev: 0,
@@ -2654,7 +2657,7 @@ const unfurlDismissPrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePr
 
 const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, result} = action.payload
-  return Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
+  return Saga.callUntyped(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
     convID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     msgID: Types.messageIDToNumber(messageID),
