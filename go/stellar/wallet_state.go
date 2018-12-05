@@ -147,10 +147,13 @@ func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar
 
 // Balances is an override of remoter's Balances that uses stored data.
 func (w *WalletState) Balances(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	a, err := w.accountStateRefresh(ctx, accountID)
-	if err != nil {
-		return nil, err
+	a, ok := w.accountState(accountID)
+	if !ok {
+		w.G().Log.CDebugf(ctx, "WalletState:Balances using remoter for %s", accountID)
+		return w.Remoter.Balances(ctx, accountID)
 	}
+
+	w.G().Log.CDebugf(ctx, "WalletState:Balances using account state for %s", accountID)
 	return a.Balances(ctx)
 }
 
