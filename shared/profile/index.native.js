@@ -152,7 +152,7 @@ class Profile extends Component<Props, State> {
             return
           }
           if (response.error) {
-            this.props.onEditAvatarError(response.error)
+            this.props.onFilePickerError(new Error(response.error))
             return
           }
           this.props.onEditAvatar(response)

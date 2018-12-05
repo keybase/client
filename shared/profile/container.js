@@ -4,6 +4,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
@@ -111,12 +112,8 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
     flags.avatarUploadsEnabled
       ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
       : dispatch(navigateAppend(['editAvatarPlaceholder'])),
-  onEditAvatarError: (error: string) => {
-    // TODO: Do something.
-    console.error(error)
-    throw new Error(error)
-  },
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
+  onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onFolderClick: folder =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(folder.path)})),
   onMissingProofClick: (missingProof: MissingProof) =>
