@@ -205,7 +205,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _containerProps = () => {
     if (Styles.isMobile) {
-      const props = this.props.showUsername ? {} : {style: styles.containerNoUsername}
+      const props = {style: this.props.showUsername ? null : styles.containerNoUsername}
       return this.props.decorate
         ? {
             ...props,
@@ -463,6 +463,7 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
       height: Styles.globalMargins.mediumLarge,
     },
+    isMobile: {marginTop: 8},
   }),
   avatar: Styles.platformStyles({
     isElectron: {
@@ -475,13 +476,14 @@ const styles = Styles.styleSheetCreate({
   }),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
-      paddingBottom: 2,
+      paddingBottom: 3,
       paddingLeft:
         // Space for below the avatar
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
       paddingRight: Styles.globalMargins.tiny,
+      paddingTop: 3,
     },
   }),
   contentUnderAuthorContainer: Styles.platformStyles({
@@ -519,15 +521,19 @@ const styles = Styles.styleSheetCreate({
     isMobile: {height: 21},
   }),
   menuButtonsWithAuthor: {marginTop: -16},
-  orangeLine: {
-    // don't push down content due to orange line
-    backgroundColor: Styles.globalColors.orange,
-    height: 1,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
+  orangeLine: Styles.platformStyles({
+    common: {
+      // don't push down content due to orange line
+      backgroundColor: Styles.globalColors.orange,
+      flexShrink: 0,
+      height: 1,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+    },
+    isElectron: {top: 0},
+    isMobile: {top: -2},
+  }),
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
   }),
