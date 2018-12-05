@@ -70,6 +70,20 @@
     },
     {
       "type": "record",
+      "name": "TextPayment",
+      "fields": [
+        {
+          "type": "string",
+          "name": "paymentText"
+        },
+        {
+          "type": "TextPaymentResult",
+          "name": "result"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -78,9 +92,8 @@
         },
         {
           "type": {
-            "type": "map",
-            "values": "TextPaymentResult",
-            "keys": "string"
+            "type": "array",
+            "items": "TextPayment"
           },
           "name": "payments"
         }

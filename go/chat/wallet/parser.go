@@ -25,6 +25,7 @@ type ChatTxCandidate struct {
 	Amount       string
 	CurrencyCode string
 	Username     *string
+	Full         string
 }
 
 func FindChatTxCandidates(xs string) []ChatTxCandidate {
@@ -35,6 +36,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	rawMatches := txPattern.FindAllStringSubmatch(replaced, maxTxsPerMessage)
 	matches := make([]ChatTxCandidate, 0, len(rawMatches))
 	for _, rawMatch := range rawMatches {
+		full := strings.Join(rawMatch, "")
 		amount := rawMatch[1]
 		currencyCode := rawMatch[2]
 		username := rawMatch[3]
@@ -45,7 +47,12 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 			} else {
 				txUsername = &username
 			}
-			matches = append(matches, ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: txUsername})
+			matches = append(matches, ChatTxCandidate{
+				Full:         full,
+				Amount:       amount,
+				CurrencyCode: currencyCode,
+				Username:     txUsername,
+			})
 		}
 	}
 	return matches
