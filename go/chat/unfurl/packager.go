@@ -23,6 +23,7 @@ import (
 type Packager struct {
 	utils.DebugLabeler
 
+	cache        *unfurlCache
 	ri           func() chat1.RemoteInterface
 	store        attachments.Store
 	s3signer     s3.Signer
@@ -33,6 +34,7 @@ func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
 	ri func() chat1.RemoteInterface) *Packager {
 	return &Packager{
 		DebugLabeler: utils.NewDebugLabeler(l, "Packager", false),
+		cache:        newUnfurlCache(),
 		store:        store,
 		ri:           ri,
 		s3signer:     s3signer,
@@ -232,9 +234,24 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	return chat1.NewUnfurlWithGiphy(g), nil
 }
 
+func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw chat1.UnfurlRaw) string {
+	return fmt.Sprintf("%s-%s-%s", uid, convID, raw.GetUrl())
+}
+
 func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
 	defer p.Trace(ctx, func() error { return err }, "Package")()
+
+	cacheKey := p.cacheKey(uid, convID, raw)
+	if item, valid := p.cache.get(cacheKey); cacheKey != "" && valid {
+		return item.data.(chat1.Unfurl), item.err
+	}
+	defer func() {
+		if cacheKey != "" {
+			p.cache.put(cacheKey, res, err)
+		}
+	}()
+
 	typ, err := raw.UnfurlType()
 	if err != nil {
 		return res, err

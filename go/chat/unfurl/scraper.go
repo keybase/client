@@ -12,11 +12,13 @@ import (
 
 type Scraper struct {
 	utils.DebugLabeler
+	cache *unfurlCache
 }
 
 func NewScraper(logger logger.Logger) *Scraper {
 	return &Scraper{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
+		cache:        newUnfurlCache(),
 	}
 }
 
@@ -33,16 +35,26 @@ func (s *Scraper) makeCollector() *colly.Collector {
 
 func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.UnfurlType) (res chat1.UnfurlRaw, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Scrape")()
+	// Check if we have a cached valued
+	if item, valid := s.cache.get(uri); valid {
+		return item.data.(chat1.UnfurlRaw), item.err
+	}
+	defer func() {
+		s.cache.put(uri, res, err)
+	}()
+
+	domain, err := GetDomain(uri)
+	if err != nil {
+		return res, err
+	}
+
 	var unfurlTyp chat1.UnfurlType
-	var domain string
 	if forceTyp != nil {
 		unfurlTyp = *forceTyp
 	} else {
-		var err error
-		if unfurlTyp, domain, err = ClassifyDomainFromURI(uri); err != nil {
-			return res, err
-		}
+		unfurlTyp = ClassifyDomain(domain)
 	}
+
 	switch unfurlTyp {
 	case chat1.UnfurlType_GENERIC:
 		return s.scrapeGeneric(ctx, uri, domain)
