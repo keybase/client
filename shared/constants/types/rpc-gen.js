@@ -44,6 +44,11 @@ export const commonFullNamePackageVersion = {
   v2: 2,
 }
 
+export const commonIdentityVisibility = {
+  private: 0,
+  public: 1,
+}
+
 export const commonLogLevel = {
   none: 0,
   debug: 1,

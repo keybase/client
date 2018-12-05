@@ -9,9 +9,10 @@ import (
 )
 
 // AddPhoneNumber calls API to add phone number to currently logged in account.
-func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
+func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, visibility keybase1.IdentityVisibility) error {
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
+	payload["visibility"] = visibility
 
 	arg := libkb.APIArg{
 		Endpoint:    "user/phone_numbers",
@@ -58,4 +59,72 @@ func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.UserPhoneNumber, error)
 		return nil, err
 	}
 	return resp.PhoneNumbers, nil
+}
+
+func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
+	payload := make(libkb.JSONPayload)
+	payload["phone_number"] = phoneNumber
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_numbers",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.Delete(arg)
+	return err
+}
+
+func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, visibility keybase1.IdentityVisibility) error {
+	payload := make(libkb.JSONPayload)
+	payload["phone_number"] = phoneNumber
+	payload["visibility"] = visibility
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_number_visibility",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.PostJSON(arg)
+	return err
+}
+
+func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.IdentityVisibility) error {
+	payload := make(libkb.JSONPayload)
+	payload["visibility"] = visibility
+	payload["all"] = true
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_number_visibility",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.PostJSON(arg)
+	return err
+}
+
+type phoneLookupAPIResult struct {
+	libkb.AppStatusEmbed
+	Resolutions []keybase1.PhoneNumberLookupResult `json:"resolutions"`
+}
+
+func BulkLookupPhoneNumbers(mctx libkb.MetaContext, phoneNumberContacts []keybase1.RawPhoneNumber, regionCodes []keybase1.RegionCode, userRegionCode *keybase1.RegionCode) ([]keybase1.PhoneNumberLookupResult, error) {
+	payload := make(libkb.JSONPayload)
+	payload["phone_numbers"] = phoneNumberContacts
+	payload["region_codes"] = regionCodes
+	payload["user_region_code"] = userRegionCode
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_numbers_bulk_lookup",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var resp phoneLookupAPIResult
+	err := mctx.G().API.PostDecode(arg, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Resolutions, nil
 }

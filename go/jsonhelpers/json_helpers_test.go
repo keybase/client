@@ -167,7 +167,7 @@ func getJSONStringList(xs []*jsonw.Wrapper) ([]string, error) {
 
 func TestJSONGetChildren(t *testing.T) {
 	for _, test := range jsonGetChildrenTests {
-		arr, err := jsonGetChildren(test.json)
+		arr, err := JSONGetChildren(test.json)
 		if test.shouldWork {
 			require.NoError(t, err)
 		} else {

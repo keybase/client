@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -44,8 +45,6 @@ func TestTeamWithPhoneNumber(t *testing.T) {
 }
 
 func TestResolvePhoneToUser(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -84,6 +83,14 @@ func TestResolvePhoneToUser(t *testing.T) {
 	err = cli2.Run()
 	require.NoError(t, err)
 
+	cli3 := &client.CmdSetVisibilityPhoneNumber{
+		Contextified: libkb.NewContextified(bob.tc.G),
+		PhoneNumber:  "+" + phone,
+		Visibility:   keybase1.IdentityVisibility_PUBLIC,
+	}
+	err = cli3.Run()
+	require.NoError(t, err)
+
 	for _, u := range tt.users {
 		usr, res, err := u.tc.G.Resolver.ResolveUser(u.MetaContext(), assertion)
 		require.NoError(t, err)
@@ -102,8 +109,6 @@ func TestResolvePhoneToUser(t *testing.T) {
 }
 
 func TestServerTrustResolveInvalidInput(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -114,7 +119,6 @@ func TestServerTrustResolveInvalidInput(t *testing.T) {
 		require.IsType(t, libkb.ResolutionError{}, err)
 		resErr := err.(libkb.ResolutionError)
 		require.Equal(t, libkb.ResolutionErrorInvalidInput, resErr.Kind)
-		// fails here, so it's a different issue than settings being private.
 	}
 
 	_, _, err := ann.tc.G.Resolver.ResolveUser(ann.MetaContext(), "111@phone")
@@ -219,8 +223,6 @@ func TestPhoneNumberNotifications(t *testing.T) {
 }
 
 func TestImplicitTeamWithEmail(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -257,7 +259,9 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 
 	// Verifying an email should RSVP the invitation which will notify
 	// (using SBS gregor msg) ann to resolve it.
-	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
+	err = kbtest.VerifyEmailAuto(bob.MetaContext(), keybase1.EmailAddress(email))
+	require.NoError(t, err)
+	err = emails.SetVisibilityEmail(bob.MetaContext(), keybase1.EmailAddress(email), keybase1.IdentityVisibility_PUBLIC)
 	require.NoError(t, err)
 
 	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: teamID}, seqnoAfterResolve)
