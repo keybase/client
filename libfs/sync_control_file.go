@@ -42,6 +42,12 @@ func (a SyncAction) Execute(
 		panic("zero fb in SyncAction.Execute")
 	}
 
+	// Ensure the TLF is initialized by getting the root node first.
+	_, _, err = c.KBFSOps().GetRootNode(ctx, h, libkbfs.MasterBranch)
+	if err != nil {
+		return err
+	}
+
 	switch a {
 	case SyncEnable:
 		_, err = c.KBFSOps().SetSyncConfig(
