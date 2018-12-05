@@ -13,7 +13,6 @@ type OwnProps = {|
 |}
 
 const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
-  onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
   _onChat: () =>
     dispatch(
       Chat2Gen.createPreviewConversation({
@@ -23,16 +22,17 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
+  onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
 })
 
 const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
   const elems = Types.getPathElements(path)
   return {
-    path,
-    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
     onBack,
     onChat: elems.length > 2 ? _onChat : undefined,
+    path,
     routePath,
+    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
   }
 }
 

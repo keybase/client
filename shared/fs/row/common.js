@@ -10,8 +10,8 @@ const rowBox = {
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
-  paddingRight: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
 }
 
 const itemBox = {
@@ -65,9 +65,9 @@ const leftBoxDisabled = {
 
 const rightBox = {
   ...Styles.globalStyles.flexBoxRow,
+  alignItems: 'center',
   flexShrink: 1,
   justifyContent: 'flex-end',
-  alignItems: 'center',
 }
 
 const pathItemActionIcon = {
@@ -75,8 +75,8 @@ const pathItemActionIcon = {
 }
 
 const badgeContainer = {
-  position: 'absolute',
   left: Styles.isMobile ? -28 : 24,
+  position: 'absolute',
   top: Styles.isMobile ? -4 : -1,
   zIndex: 200,
 }
@@ -88,8 +88,8 @@ const badgeContainerNew = {
 
 const badgeContainerRekey = {
   ...badgeContainer,
-  top: Styles.isMobile ? 5 : 24,
   left: Styles.isMobile ? -40 : 16,
+  top: Styles.isMobile ? 5 : 24,
 }
 
 const badgeCount = {
@@ -99,18 +99,18 @@ const badgeCount = {
 
 export const rowStyles = {
   ...Styles.styleSheetCreate({
-    rowBox,
-    itemBox,
-    pathItemIcon,
-    pathItemIcon_30,
-    leftBox,
-    leftBoxDisabled,
-    rightBox,
-    pathItemActionIcon,
     badgeContainer,
     badgeContainerNew,
     badgeContainerRekey,
     badgeCount,
+    itemBox,
+    leftBox,
+    leftBoxDisabled,
+    pathItemActionIcon,
+    pathItemIcon,
+    pathItemIcon_30,
+    rightBox,
+    rowBox,
   }),
   // We need to annotate color but I can't figure out how to annotate on stuff
   // from Styles.styleSheetCreate.
@@ -124,11 +124,11 @@ const HoverBox = Styles.isMobile
       '& .fs-path-item-hover-icon': {
         color: Styles.globalColors.white,
       },
-      ':hover .fs-path-item-hover-icon': {
-        color: Styles.globalColors.black_40,
-      },
       '& .fs-path-item-hover-icon:hover': {
         color: Styles.globalColors.black_60,
+      },
+      ':hover .fs-path-item-hover-icon': {
+        color: Styles.globalColors.black_40,
       },
     })
 

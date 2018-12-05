@@ -79,25 +79,25 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.white},
-  buttonIcon: {
-    marginRight: Styles.globalMargins.xtiny,
+  button: {
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
   },
   buttonContainer: Styles.platformStyles({
     common: {
-      flexShrink: 0,
       alignSelf: 'flex-end',
+      flexShrink: 0,
     },
     isElectron: {
+      borderTopColor: Styles.globalColors.black_10,
       borderTopStyle: 'solid',
       borderTopWidth: 1,
-      borderTopColor: Styles.globalColors.black_10,
     },
   }),
-  button: {
-    marginTop: Styles.globalMargins.small,
-    marginBottom: Styles.globalMargins.small,
+  buttonIcon: {
+    marginRight: Styles.globalMargins.xtiny,
   },
+  buttonText: {color: Styles.globalColors.white},
   container: Styles.platformStyles({
     isElectron: {
       height: 525,
@@ -106,15 +106,15 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       flexGrow: 1,
       flexShrink: 1,
-      width: '100%',
       maxHeight: '100%',
+      width: '100%',
     },
   }),
   safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
   scrollView: {
+    flexBasis: 'auto',
     flexGrow: 0,
     flexShrink: 1,
-    flexBasis: 'auto',
   },
 })
 

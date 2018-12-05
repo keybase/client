@@ -228,7 +228,7 @@ class ProofsRender extends React.Component<Props> {
       <Box style={{...styleContainer(loading), ...style}}>
         <TransitionGroup>
           {loading ? (
-            <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
+            <CSSTransition classNames="fade-anim" timeout={{enter: 250, exit: 250}}>
               <IgnorePropsBox key="loading" onlyProps={{style: {...styleLoading, ...loadingStyle}}}>
                 {[147, 77, 117].map((w, idx) => (
                   <LoadingProofRow key={idx} textBlockWidth={w} />
@@ -267,17 +267,17 @@ class ProofsRender extends React.Component<Props> {
 const styleContainer = loading => ({
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
-  position: 'relative',
   minHeight: loading ? 120 : 0,
+  position: 'relative',
 })
 
 const styleLoading = {
-  position: 'absolute',
-  top: 0,
+  height: 0,
   left: 0,
+  position: 'absolute',
   right: 0,
   // We don't want the hidden loading state to affect sizings.
-  height: 0,
+  top: 0,
 }
 
 const styleRow = {
@@ -304,33 +304,33 @@ const iconContainer = {
 const styleService = collapseStyles([
   desktopStyles.clickable,
   {
-    marginRight: globalMargins.tiny,
     height: 16,
+    marginRight: globalMargins.tiny,
     minHeight: 16,
     minWidth: 16,
-    width: 16,
     transition: '0.15s color',
+    width: 16,
   },
 ])
 
 const styleStatusIcon = collapseStyles([
   desktopStyles.clickable,
   {
-    width: 20,
     height: 20,
-    minWidth: 20,
-    minHeight: 20,
     marginLeft: 10,
     marginRight: 2,
+    minHeight: 20,
+    minWidth: 20,
+    width: 20,
   },
 ])
 
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
-  alignSelf: 'flex-start',
   alignItems: 'flex-start',
-  marginTop: 2,
+  alignSelf: 'flex-start',
   flex: 1,
+  marginTop: 2,
 }
 
 const styleProofNameLabelContainer = {
@@ -342,9 +342,9 @@ const styleProofName = platformStyles({
   isElectron: {
     ...desktopStyles.clickable,
     display: 'inline-block',
-    wordBreak: 'break-all',
     flex: 1,
     transition: '0.15s color',
+    wordBreak: 'break-all',
   },
 })
 
@@ -360,10 +360,10 @@ const styleProofMenuButton = collapseStyles([
   globalStyles.flexBoxRow,
   desktopStyles.clickable,
   {
-    marginLeft: 10,
-    minWidth: 34, // reserve space for menu dropdown caret
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-end', // reserve space for menu dropdown caret
+    marginLeft: 10,
+    minWidth: 34,
   },
 ])
 

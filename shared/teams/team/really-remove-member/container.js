@@ -18,9 +18,9 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
     dispatch(
       TeamsGen.createRemoveMemberOrPendingInvite({
         email: routeProps.get('email'),
+        inviteID: '',
         teamname: routeProps.get('teamname'),
         username: routeProps.get('username'),
-        inviteID: '',
       })
     )
     dispatch(navigateTo([teamsTab, {props: {teamname: routeProps.get('teamname')}, selected: 'team'}]))

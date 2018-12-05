@@ -139,7 +139,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           ])}
         >
           {hideTimer ? (
-            <ProgressIndicator white={true} style={{width: 17, height: 17}} />
+            <ProgressIndicator white={true} style={{height: 17, width: 17}} />
           ) : (
             <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
               {msToDHMS(this.props.explodesAt - Date.now())}

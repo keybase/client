@@ -27,10 +27,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
     const destSubPath = sourceSubPath.butLast()
     dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
   },
+  onCancel: () => dispatch(navigateUp()),
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
-  onCancel: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

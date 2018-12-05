@@ -55,15 +55,15 @@ const load = () => {
 }
 
 const styles = styleSheetCreate({
-  container: {
-    margin: globalMargins.xlarge,
-  },
   box: {
     backgroundColor: globalColors.purple2_40,
     color: globalColors.white,
     padding: globalMargins.xtiny,
     textAlign: 'center',
     width: 'auto',
+  },
+  container: {
+    margin: globalMargins.xlarge,
   },
 })
 

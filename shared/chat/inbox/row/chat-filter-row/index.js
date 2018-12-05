@@ -151,12 +151,6 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  loadingContainer: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-  },
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -184,6 +178,12 @@ const styles = styleSheetCreate({
       marginRight: globalMargins.small,
     },
   }),
+  loadingContainer: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
 })
 
 const propsIconCompose = {

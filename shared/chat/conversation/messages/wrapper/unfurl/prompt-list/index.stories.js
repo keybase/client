@@ -5,10 +5,10 @@ import * as Sb from '../../../../../../stories/storybook'
 import UnfurlPromptList from '.'
 
 const common = {
-  onAlways: Sb.action('onAlways'),
   onAccept: Sb.action('onAccept'),
-  onNotnow: Sb.action('onNotnow'),
+  onAlways: Sb.action('onAlways'),
   onNever: Sb.action('onNever'),
+  onNotnow: Sb.action('onNotnow'),
   onOnetime: Sb.action('onOnetime'),
 }
 

@@ -33,7 +33,7 @@ type State = {
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
-  state = {loaded: false, playingVideo: false, loadingVideo: 'notloaded'}
+  state = {loaded: false, loadingVideo: 'notloaded', playingVideo: false}
   _setLoaded = () => this.setState({loaded: true})
   _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 
@@ -41,8 +41,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
     if (this.props.inlineVideoPlayable && this.imageRef) {
       this.imageRef.onVideoClick()
       this.setState(p => ({
-        playingVideo: !p.playingVideo,
         loadingVideo: p.loadingVideo === 'notloaded' ? 'loading' : p.loadingVideo,
+        playingVideo: !p.playingVideo,
       }))
     } else {
       this.props.onClick()
@@ -86,8 +86,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   // Add 6 extra width+height to the background container to create the background
                   // for the image. We use this in conjunction with the margin to reliably
                   // center the image in the background container.
-                  width: this.props.width + 6,
                   minHeight: this.props.height + 6,
+                  width: this.props.width + 6,
                 },
               ])
             )}
@@ -107,10 +107,10 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   style={Styles.collapseStyles([
                     styles.image,
                     {
+                      backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
+                      height: this.props.height,
                       opacity: this.state.loaded ? 1 : 0,
                       width: this.props.width,
-                      height: this.props.height,
-                      backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
                     },
                   ])}
                 />
@@ -134,8 +134,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 style={Styles.collapseStyles([
                   styles.absoluteContainer,
                   {
-                    width: this.props.width,
                     height: this.props.height,
+                    width: this.props.width,
                   },
                 ])}
               >
@@ -194,6 +194,17 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  absoluteContainer: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  backgroundContainer: {
+    backgroundColor: Styles.globalColors.black_05,
+    borderRadius: Styles.borderRadius,
+    maxWidth: 330,
+    position: 'relative',
+  },
   downloadIcon: {
     maxHeight: 14,
     position: 'relative',
@@ -225,30 +236,19 @@ const styles = Styles.styleSheetCreate({
   image: {
     ...Styles.globalStyles.rounded,
     backgroundColor: Styles.globalColors.fastBlank,
+    margin: 3,
     maxWidth: 320,
     position: 'relative',
-    margin: 3,
-  },
-  absoluteContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
   },
   imageContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    paddingTop: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
     width: '100%',
   },
   link: {
     color: Styles.globalColors.black_60,
-  },
-  backgroundContainer: {
-    backgroundColor: Styles.globalColors.black_05,
-    borderRadius: Styles.borderRadius,
-    maxWidth: 330,
-    position: 'relative',
   },
   playButton: {
     bottom: '50%',
@@ -286,8 +286,8 @@ const styles = Styles.styleSheetCreate({
       padding: 5,
     },
     isElectron: {
-      wordBreak: 'break-word',
       display: 'block',
+      wordBreak: 'break-word',
     },
   }),
 })

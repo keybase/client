@@ -8,7 +8,7 @@ import {globalStyles} from '../styles'
 const People = (props: Props) => (
   <ScrollView style={{...globalStyles.fullHeight}}>
     {props.waiting && (
-      <ProgressIndicator style={{position: 'absolute', top: 8, left: 96, zIndex: 2, width: 32, height: 32}} />
+      <ProgressIndicator style={{height: 32, left: 96, position: 'absolute', top: 8, width: 32, zIndex: 2}} />
     )}
     <PeoplePageSearchBar
       {...props}

@@ -78,33 +78,33 @@ const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: b
 }
 
 const styles = Styles.styleSheetCreate({
-  menuBox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
-  },
-  menuGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
-    alignItems: 'stretch',
-  },
   closeGroup: {
     ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
     alignItems: 'stretch',
     borderColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
+    justifyContent: 'flex-end',
+  },
+  menuBox: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.white,
+    justifyContent: 'flex-end',
+  },
+  menuGroup: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    justifyContent: 'flex-end',
   },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_10,
     height: 56,
     justifyContent: 'center',
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
   },
   safeArea: {
     backgroundColor: Styles.globalColors.white,

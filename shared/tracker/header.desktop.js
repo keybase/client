@@ -102,10 +102,10 @@ const styleClose = collapseStyles([
   desktopStyles.clickable,
   desktopStyles.windowDraggingClickable,
   {
-    zIndex: 2,
     position: 'absolute',
-    top: 7,
     right: 9,
+    top: 7,
+    zIndex: 2,
   },
 ])
 

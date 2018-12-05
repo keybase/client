@@ -119,9 +119,9 @@ const styleHighlight = {
 
 const stylesHeader = {
   ...globalStyles.flexBoxRow,
+  height: 48,
   justifyContent: 'start',
   width: '100%',
-  height: 48,
 }
 
 const stylesClose = {
@@ -129,8 +129,8 @@ const stylesClose = {
 }
 
 const stylesTitle = {
-  marginTop: globalMargins.tiny,
   marginBottom: globalMargins.small,
+  marginTop: globalMargins.tiny,
 }
 
 const stylesTitleSuccess = {

@@ -18,15 +18,15 @@ class Checkbox extends Component<Props> {
 
     const boxStyle = {
       ...transition('background'),
-      width: CHECKBOX_SIZE,
+      backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
+      border: `solid 1px ${borderColor}`,
+      borderRadius: 2,
       height: CHECKBOX_SIZE,
       marginRight: CHECKBOX_MARGIN,
       marginTop: 2,
-      position: 'relative',
-      border: `solid 1px ${borderColor}`,
-      borderRadius: 2,
-      backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
       opacity: this.props.disabled && this.props.checked ? 0.4 : 1,
+      position: 'relative',
+      width: CHECKBOX_SIZE,
     }
 
     const clickableStyle = this.props.disabled ? {} : desktopStyles.clickable
@@ -68,8 +68,8 @@ const styleContainer = {
 
 const styleIcon = {
   ...transition('opacity'),
-  position: 'absolute',
   left: 1,
+  position: 'absolute',
   top: 1,
 }
 

@@ -28,14 +28,14 @@ export default connect<OwnProps, _, _, _, _>(
     }
 
     return {
-      plan: selectedLevel,
       gigabytes: availablePlan.gigabytes,
-      price: priceToString(availablePlan.price_pennies),
       numStars: planToStars(selectedLevel),
       paymentOption: {
-        type: 'credit-card-no-past',
-        onAddCreditCard: () => logger.debug('onadd credit'), // TODO
+        onAddCreditCard: () => logger.debug('onadd credit'),
+        type: 'credit-card-no-past', // TODO
       },
+      plan: selectedLevel,
+      price: priceToString(availablePlan.price_pennies),
     }
   },
   (dispatch: any, ownProps: {}) => ({

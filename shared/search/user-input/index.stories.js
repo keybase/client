@@ -9,27 +9,27 @@ import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
 
 const defaultOwnProps: OwnProps = {
-  searchKey: 'search key',
   autoFocus: false,
   hideClearSearch: false,
-  placeholder: 'Type someone',
   onExitSearch: Sb.action('onExitSearch'),
-  onSelectUser: Sb.action('onSelectUser'),
   onFocus: Sb.action('onFocus'),
+  onSelectUser: Sb.action('onSelectUser'),
+  placeholder: 'Type someone',
+  searchKey: 'search key',
   showServiceFilter: true,
 }
 
 const inputCommon = {
   autoFocus: false,
-  hideClearSearch: false,
   hideAddButton: false,
-  onFocus: Sb.action('onFocus'),
+  hideClearSearch: false,
   onAddSelectedUser: Sb.action('Add selected user'),
   onCancel: Sb.action('Cancel'),
   onChangeText: Sb.action('Change text'),
   onClearSearch: Sb.action('Clear search'),
   onClickAddButton: Sb.action('Add button click'),
   onEnterEmptyText: Sb.action('onEnterEmptyText'),
+  onFocus: Sb.action('onFocus'),
   onMoveSelectDown: Sb.action('Move select down'),
   onMoveSelectUp: Sb.action('Move select up'),
   onRemoveUser: Sb.action('Remove user'),
@@ -119,10 +119,10 @@ const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps):
     ...inputCommon,
     onChangeText: Sb.unexpected('search should be used instead'),
     onClickAddButton: Sb.unexpected('search should be used instead'),
-    usernameText: '',
     search: Sb.action('search'),
-
     userItems,
+
+    usernameText: '',
   }
 
   if (ownProps.onExitSearch) {

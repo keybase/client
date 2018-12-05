@@ -21,10 +21,10 @@ class BioLoading extends Component<{style: any, avatarSize: AvatarSize, loading:
           style={{
             ...globalStyles.flexBoxRow,
             alignItems: 'flex-end',
-            zIndex: 2,
-            position: 'relative',
-            opacity: loading ? 1 : 0,
             alignSelf: 'center',
+            opacity: loading ? 1 : 0,
+            position: 'relative',
+            zIndex: 2,
           }}
         >
           <Box
@@ -40,28 +40,28 @@ class BioLoading extends Component<{style: any, avatarSize: AvatarSize, loading:
           <Box
             style={{
               ...globalStyles.loadingTextStyle,
-              width: 160,
-              marginTop: globalMargins.small,
-              height: 16,
               borderRadius: 2,
+              height: 16,
+              marginTop: globalMargins.small,
+              width: 160,
             }}
           />
           <Box
             style={{
               ...globalStyles.loadingTextStyle,
-              width: 160,
-              marginTop: globalMargins.small,
-              height: 16,
               borderRadius: 2,
+              height: 16,
+              marginTop: globalMargins.small,
+              width: 160,
             }}
           />
           <Box
             style={{
               ...globalStyles.loadingTextStyle,
-              width: 160,
-              marginTop: globalMargins.small,
-              height: 16,
               borderRadius: 2,
+              height: 16,
+              marginTop: globalMargins.small,
+              width: 160,
             }}
           />
         </Box>
@@ -178,8 +178,8 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
 }
 const stylesHeaderBar = (avatarSize: number, color: string) => ({
-  height: avatarSize / 2,
   backgroundColor: color,
+  height: avatarSize / 2,
 })
 const stylesAvatarWrapper = (avatarSize: number) => ({
   ...globalStyles.flexBoxColumn,
@@ -199,14 +199,14 @@ const stylesUsername = {
   marginTop: globalMargins.tiny,
 }
 const stylesFullname = {
-  textAlign: 'center',
   color: globalColors.black_75,
+  textAlign: 'center',
 }
 const stylesFollowLabel = {
-  fontSize: 14,
-  marginTop: globalMargins.xtiny,
-  marginBottom: globalMargins.xtiny,
   color: globalColors.black_40,
+  fontSize: 14,
+  marginBottom: globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
 }
 const stylesFollowing = {
   color: globalColors.black_40,
@@ -221,12 +221,12 @@ const stylesFollowingCount = {
   ...globalStyles.fontBold,
 }
 const stylesBio = {
-  textAlign: 'center',
   color: globalColors.black_75,
+  textAlign: 'center',
 }
 const stylesLocation = {
-  textAlign: 'center',
   marginTop: globalMargins.xtiny,
+  textAlign: 'center',
 }
 
 export default BioRender

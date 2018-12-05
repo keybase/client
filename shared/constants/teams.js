@@ -49,10 +49,10 @@ export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
 
 export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({
   email: '',
+  id: '',
   name: '',
   role: 'writer',
   username: '',
-  id: '',
 })
 
 export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
@@ -85,13 +85,13 @@ export const typeToLabel: Types.TypeMap = {
 }
 
 export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
-  open: false,
   joinAs: RPCTypes.teamsTeamRole.reader,
+  open: false,
 })
 
 export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
-  type: 'retain',
   days: 0,
+  type: 'retain',
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -126,47 +126,47 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToRole: I.Map(),
   teamNameToSettings: I.Map(),
   teamNameToSubteams: I.Map(),
+  teamProfileAddList: I.List(),
   teammembercounts: I.Map(),
   teamnames: I.Set(),
-  teamProfileAddList: I.List(),
   teamsWithChosenChannels: I.Set(),
 })
 
 export const initialCanUserPerform: RPCTypes.TeamOperation = {
-  manageMembers: false,
-  manageSubteams: false,
+  changeOpenTeam: false,
+  changeTarsDisabled: false,
   chat: false,
   createChannel: false,
   deleteChannel: false,
-  renameChannel: false,
-  editChannelDescription: false,
-  setTeamShowcase: false,
-  setMemberShowcase: false,
-  setRetentionPolicy: false,
-  setMinWriterRole: false,
-  changeOpenTeam: false,
-  leaveTeam: false,
-  joinTeam: false,
-  setPublicityAny: false,
-  listFirst: false,
-  changeTarsDisabled: false,
   deleteChatHistory: false,
   deleteOtherMessages: false,
+  editChannelDescription: false,
+  joinTeam: false,
+  leaveTeam: false,
+  listFirst: false,
+  manageMembers: false,
+  manageSubteams: false,
+  renameChannel: false,
+  setMemberShowcase: false,
+  setMinWriterRole: false,
+  setPublicityAny: false,
+  setRetentionPolicy: false,
+  setTeamShowcase: false,
 }
 
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policyRetain = makeRetentionPolicy({type: 'retain'})
-const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
-const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
-const policySixMonths = makeRetentionPolicy({type: 'expire', days: 180})
-const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
+const policyMonth = makeRetentionPolicy({days: 30, type: 'expire'})
+const policyThreeMonths = makeRetentionPolicy({days: 90, type: 'expire'})
+const policySixMonths = makeRetentionPolicy({days: 180, type: 'expire'})
+const policyYear = makeRetentionPolicy({days: 365, type: 'expire'})
 const baseRetentionPolicies = [policyMonth, policyThreeMonths, policySixMonths, policyYear, policyRetain]
 const retentionPolicies = {
   policyInherit,
-  policyRetain,
   policyMonth,
-  policyThreeMonths,
+  policyRetain,
   policySixMonths,
+  policyThreeMonths,
   policyYear,
 }
 
@@ -358,8 +358,8 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
           throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
         }
         retentionPolicy = makeRetentionPolicy({
-          type: 'expire',
           days: secondsToDays(policy.expire.age),
+          type: 'expire',
         })
         break
       case RPCChatTypes.commonRetentionPolicyType.inherit:
@@ -374,13 +374,13 @@ const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCCh
   let res: ?RPCChatTypes.RetentionPolicy
   switch (policy.type) {
     case 'retain':
-      res = {typ: RPCChatTypes.commonRetentionPolicyType.retain, retain: {}}
+      res = {retain: {}, typ: RPCChatTypes.commonRetentionPolicyType.retain}
       break
     case 'expire':
-      res = {typ: RPCChatTypes.commonRetentionPolicyType.expire, expire: {age: daysToSeconds(policy.days)}}
+      res = {expire: {age: daysToSeconds(policy.days)}, typ: RPCChatTypes.commonRetentionPolicyType.expire}
       break
     case 'inherit':
-      res = {typ: RPCChatTypes.commonRetentionPolicyType.inherit, inherit: {}}
+      res = {inherit: {}, typ: RPCChatTypes.commonRetentionPolicyType.inherit}
       break
   }
   if (!res) {
@@ -398,8 +398,8 @@ export const keyToResetUserBadgeID = (key: Types.ResetUserBadgeIDKey): Types.Res
   Buffer.from(key, 'hex')
 
 export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
-  username: '',
   badgeIDKey: '',
+  username: '',
 })
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'

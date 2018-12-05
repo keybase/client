@@ -109,18 +109,18 @@ const containerStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
-    paddingBottom: globalMargins.large,
     maxWidth: 560,
-  },
-  isMobile: {
-    paddingTop: globalMargins.small,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingBottom: globalMargins.large,
   },
   isElectron: {
-    paddingTop: globalMargins.xlarge,
     paddingLeft: globalMargins.xlarge,
     paddingRight: globalMargins.xlarge,
+    paddingTop: globalMargins.xlarge,
+  },
+  isMobile: {
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.small,
   },
 })
 
@@ -153,11 +153,11 @@ const confirmLabelStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
   },
-  isMobile: {
-    marginBottom: globalMargins.small,
-  },
   isElectron: {
     marginBottom: globalMargins.xlarge,
+  },
+  isMobile: {
+    marginBottom: globalMargins.small,
   },
 })
 

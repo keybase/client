@@ -24,12 +24,12 @@ class UserItem extends Component<UserItemProps, UserItemState> {
   }
 
   _onSelect = () => {
-    Animated.timing(this.state.selectAnim, {toValue: 1, duration: 100}).start()
+    Animated.timing(this.state.selectAnim, {duration: 100, toValue: 1}).start()
     this.setState({isSelected: true})
   }
 
   _onDeselect = () => {
-    Animated.timing(this.state.selectAnim, {toValue: 0, duration: 100}).start()
+    Animated.timing(this.state.selectAnim, {duration: 100, toValue: 0}).start()
     this.setState({isSelected: false})
   }
 
@@ -97,7 +97,7 @@ class UserItem extends Component<UserItemProps, UserItemState> {
             onChangeText={this._onChangeText}
             value=" "
             underlineColorAndroid="transparent"
-            style={{position: 'absolute', left: -9999}}
+            style={{left: -9999, position: 'absolute'}}
           />
         )}
       </Box>
@@ -114,8 +114,8 @@ class UserInput extends Component<Props, State> {
 
   state = {
     isFocused: false,
-    selectionStart: null,
     selectionEnd: null,
+    selectionStart: null,
   }
 
   focus = () => {
@@ -147,7 +147,7 @@ class UserInput extends Component<Props, State> {
       selection: {start, end},
     },
   }) => {
-    this.setState({selectionStart: start, selectionEnd: end})
+    this.setState({selectionEnd: end, selectionStart: start})
   }
 
   _onRemoveUser = (username: string) => {
@@ -176,7 +176,7 @@ class UserInput extends Component<Props, State> {
     const clampedSelection =
       selectionStart === null
         ? null
-        : {start: Math.max(1, selectionStart || 1), end: Math.max(1, selectionEnd || 1)}
+        : {end: Math.max(1, selectionEnd || 1), start: Math.max(1, selectionStart || 1)}
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     return (
@@ -186,8 +186,8 @@ class UserInput extends Component<Props, State> {
             ...globalStyles.flexBoxRow,
             alignItems: 'center',
             flexWrap: 'wrap',
-            minHeight: 40,
             marginLeft: globalMargins.xtiny,
+            minHeight: 40,
           }}
         >
           {userItems.map(item => (
@@ -196,9 +196,9 @@ class UserInput extends Component<Props, State> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              height: 24,
               alignItems: 'center',
               flexGrow: 1,
+              height: 24,
               minWidth: 50,
             }}
           >

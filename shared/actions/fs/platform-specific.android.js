@@ -13,8 +13,8 @@ function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-    title: 'Keybase Storage Permission',
     message: 'Keybase needs access to your storage so we can download a file to it',
+    title: 'Keybase Storage Permission',
   })
     .then(permissionStatus => {
       if (permissionStatus !== 'granted') {
@@ -25,11 +25,11 @@ function copyToDownloadDir(path: string, mimeType: string) {
     .then(() => unlink(path))
     .then(() =>
       RNFetchBlob.android.addCompleteDownload({
-        title: fileName,
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,
         path: downloadPath,
         showNotification: true,
+        title: fileName,
       })
     )
     .catch(err => {
@@ -55,7 +55,7 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheetFromURL, {url: localPath, mimeType}),
+        Saga.call(showShareActionSheetFromURL, {mimeType, url: localPath}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':

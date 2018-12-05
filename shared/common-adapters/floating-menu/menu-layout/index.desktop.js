@@ -105,6 +105,16 @@ const styles = styleSheetCreate({
     marginBottom: 8,
     marginTop: 8,
   },
+  itemBodyText: {
+    color: undefined,
+  },
+  itemContainer: {
+    ...globalStyles.flexBoxColumn,
+    paddingBottom: globalMargins.xtiny,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.xtiny,
+  },
   menuContainer: platformStyles({
     isElectron: {
       ...globalStyles.flexBoxColumn,
@@ -123,16 +133,6 @@ const styles = styleSheetCreate({
     flexShrink: 0,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
-  },
-  itemContainer: {
-    ...globalStyles.flexBoxColumn,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.xtiny,
-  },
-  itemBodyText: {
-    color: undefined,
   },
 })
 

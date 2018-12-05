@@ -4,8 +4,8 @@ import App from '../app/index.stories.native'
 import WalletMobile from '../wallets/mobile.stories.native'
 
 const stories = {
-  FormInput,
   App,
+  FormInput,
   WalletMobile,
 }
 

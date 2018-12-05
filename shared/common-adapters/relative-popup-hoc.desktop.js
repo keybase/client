@@ -85,7 +85,7 @@ function _computePopupStyle(
   const style: ComputedStyle = {position: 'absolute', zIndex: 30}
 
   const {pageYOffset, pageXOffset} = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientWidth: 800, clientHeight: 800}
+  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
 
   if (includes(position, 'right')) {
     style.right = Math.round(clientWidth - (coords.right + pageXOffset))
@@ -133,13 +133,13 @@ function _computePopupStyle(
 
 function isStyleInViewport(style, popupCoords: ClientRect): boolean {
   const {pageYOffset, pageXOffset} = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientWidth: 800, clientHeight: 800}
+  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
 
   const element = {
-    top: style.top,
-    left: style.left,
-    width: popupCoords.width,
     height: popupCoords.height,
+    left: style.left,
+    top: style.top,
+    width: popupCoords.width,
   }
   if (typeof style.right === 'number') {
     element.left = clientWidth - style.right - element.width
@@ -221,8 +221,8 @@ function ModalPositionRelative<PP>(
     getSnapshotBeforeUpdate(prevProps) {
       const {width, height} = this.popupNode
         ? this.popupNode.getBoundingClientRect()
-        : {width: -1, height: -1}
-      return {width, height}
+        : {height: -1, width: -1}
+      return {height, width}
     }
 
     componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, prevState, snapshot) {
@@ -236,7 +236,7 @@ function ModalPositionRelative<PP>(
         // re-calculate offsets.
         const {width, height} = this.popupNode
           ? this.popupNode.getBoundingClientRect()
-          : {width: -1, height: -1}
+          : {height: -1, width: -1}
         if (snapshot.width !== width || snapshot.height !== height) {
           this._computeStyle(this.props.targetRect)
         }
@@ -310,8 +310,8 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
         const onPopupWillClose = routeProps.get('onPopupWillClose')
         onPopupWillClose && onPopupWillClose()
       },
-      targetRect: routeProps.get('targetRect'),
       position: routeProps.get('position'),
+      targetRect: routeProps.get('targetRect'),
     }),
     (s, d, o) => ({...o, ...s, ...d})
   )((props: Props<any> & {onClosePopup: () => void}) => {

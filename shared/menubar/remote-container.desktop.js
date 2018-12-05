@@ -36,7 +36,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
-  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
   quit: () => {
     closeWindow()
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
@@ -59,6 +58,7 @@ const mapDispatchToProps = dispatch => ({
     link && openUrl(link)
     closeWindow()
   },
+  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
 

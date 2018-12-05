@@ -22,8 +22,8 @@ class LoadingWrapper extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      opacity: new Animated.Value(1),
       loadingActive: this.props.loading,
+      opacity: new Animated.Value(1),
     }
   }
 
@@ -44,11 +44,11 @@ class LoadingWrapper extends React.Component<Props, State> {
         {this.state.loadingActive && (
           <Animated.View
             style={{
+              left: 0,
               opacity: this.state.opacity,
               position: 'absolute',
-              left: 0,
-              top: 0,
               right: 0,
+              top: 0,
             }}
           >
             {this.props.loadingComponent}

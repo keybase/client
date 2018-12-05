@@ -27,9 +27,9 @@ const mergeProps = ({errors}, {_dismiss, _retry}) => {
     errs: top3.map(({key, time}) => {
       const {error, erroredAction, retriableAction} = errors.get(key, Constants.makeError())
       return {
-        key,
-        time,
+        dismiss: () => _dismiss(key),
         error,
+        key,
         msg: Constants.erroredActionToMessage(erroredAction),
         retry: retriableAction
           ? () => {
@@ -37,7 +37,7 @@ const mergeProps = ({errors}, {_dismiss, _retry}) => {
               _dismiss(key)
             }
           : undefined,
-        dismiss: () => _dismiss(key),
+        time,
       }
     }),
     more: errors.size - top3.length,

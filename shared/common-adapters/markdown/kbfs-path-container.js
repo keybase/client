@@ -12,15 +12,15 @@ export type OwnProps = {|
 const mapDispatchToProps = (dispatch, {escapedPath}) => {
   const path = Constants.unescapePath(escapedPath)
   return {
-    path,
     onClick: () => dispatch(FsGen.createOpenPathInFilesTab({path})),
+    path,
   }
 }
 
 const mergeProps = (stateProps, {path, onClick}, {allowFontScaling}) => ({
-  path,
-  onClick,
   allowFontScaling,
+  onClick,
+  path,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(() => ({}), mapDispatchToProps, mergeProps, 'KbfsPath')(

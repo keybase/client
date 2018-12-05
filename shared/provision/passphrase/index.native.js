@@ -24,15 +24,15 @@ class Passphrase extends Component<Props> {
           <FormWithCheckbox
             inputProps={{
               autoFocus: true,
-              type: showTyping ? 'passwordVisible' : 'password',
-              floatingHintTextOverride: 'Passphrase',
-              onEnterKeyDown: this.props.onSubmit,
-              onChangeText: t => this.props.onChange(t),
-              value: this.props.passphrase,
-              uncontrolled: true,
               errorText: this.props.error,
+              floatingHintTextOverride: 'Passphrase',
+              onChangeText: t => this.props.onChange(t),
+              onEnterKeyDown: this.props.onSubmit,
+              type: showTyping ? 'passwordVisible' : 'password',
+              uncontrolled: true,
+              value: this.props.passphrase,
             }}
-            checkboxesProps={[{label: 'Show typing', checked: !!showTyping, onCheck: toggleShowTyping}]}
+            checkboxesProps={[{checked: !!showTyping, label: 'Show typing', onCheck: toggleShowTyping}]}
           />
 
           <Button
@@ -56,8 +56,8 @@ const stylesContainer = {
   flex: 1,
 }
 const stylesForgot = {
-  marginTop: globalMargins.medium,
   flex: 1,
+  marginTop: globalMargins.medium,
   textAlign: 'center',
 }
 const stylesCard = {

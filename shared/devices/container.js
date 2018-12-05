@@ -10,8 +10,8 @@ import {partition} from 'lodash-es'
 
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
-  waiting: Constants.isWaiting(state),
   _newlyChangedItemIds: state.devices.isNew,
+  waiting: Constants.isWaiting(state),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -49,11 +49,11 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     addNewComputer: dispatchProps.addNewComputer,
     addNewPaperKey: dispatchProps.addNewPaperKey,
     addNewPhone: dispatchProps.addNewPhone,
+    hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
     onBack: dispatchProps.onBack,
     revokedItems: revokedItems,
-    hasNewlyRevoked: newlyRevokedIds.size > 0,
     title: 'Devices',
     waiting: stateProps.waiting,
   }

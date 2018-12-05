@@ -26,8 +26,8 @@ const minWriterRoleProps = {
 }
 
 const retentionPickerPropSelector = props => ({
-  _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
   _loadTeamOperations: Sb.unexpected('_loadTeamOperations'),
+  _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
   _onShowDropdown: Sb.action('onShowDropdownRetentionPicker'),
   _onShowWarning: Sb.action('onShowWarningRetentionPicker'),
   _parentPath: 'mockedParentPath',
@@ -36,27 +36,30 @@ const retentionPickerPropSelector = props => ({
   containerStyle: props.containerStyle,
   dropdownStyle: props.dropdownStyle,
   entityType: props.entityType,
-  policy: retentionPolicies.policyThreeMonths,
-  teamPolicy: retentionPolicies.policyMonth,
-  loading: false,
-  isTeamWide: props.isTeamWide,
-  type: props.type,
   isSmallTeam: props.isSmallTeam,
-  setRetentinPolicy: Sb.action('setRetentionPolicy'),
+  isTeamWide: props.isTeamWide,
+  loading: false,
   onSelect: Sb.action('onSelectRetentionPolicy'),
+  policy: retentionPolicies.policyThreeMonths,
+  setRetentinPolicy: Sb.action('setRetentionPolicy'),
+  teamPolicy: retentionPolicies.policyMonth,
+  type: props.type,
 })
 
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(),
   InfoPanel: (props: InfoPanelProps) => props,
+  LifecycleNotifications: () => notificationProps,
   MinWriterRole: () => minWriterRoleProps,
   OnlyValidConversations: () => onlyValidConversationsProps,
-  LifecycleNotifications: () => notificationProps,
   RetentionPicker: retentionPickerPropSelector,
 })
 
 const commonProps = {
-  selectedConversationIDKey: Constants.noConversationIDKey,
+  canDeleteHistory: true,
+  canSetMinWriterRole: false,
+  onBack: Sb.unexpected('onBack'),
+  onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
   participants: [
     {
       fullname: 'Fred Akalin',
@@ -71,84 +74,81 @@ const commonProps = {
       username: 'max',
     },
   ],
-  onBack: Sb.unexpected('onBack'),
-  onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
-  canDeleteHistory: true,
-  canSetMinWriterRole: false,
+  selectedConversationIDKey: Constants.noConversationIDKey,
 }
 
 const conversationProps = {
   ...commonProps,
-  isPreview: false,
-  teamname: null,
-  channelname: null,
-  smallTeam: false,
   admin: false,
   canEditChannel: true,
   canSetRetention: false,
+  channelname: null,
   description: "You shouldn't be seeing this",
-
-  onShowClearConversationDialog: Sb.action('onShowClearConversationDialog'),
-  onShowBlockConversationDialog: Sb.action('onShowBlockConversationDialog'),
-  onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
+  isPreview: false,
+  onEditChannel: Sb.unexpected('onEditChannel'),
+  onJoinChannel: Sb.unexpected('onJoinChannel'),
 
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
-  onJoinChannel: Sb.unexpected('onJoinChannel'),
-  onEditChannel: Sb.unexpected('onEditChannel'),
+  onShowBlockConversationDialog: Sb.action('onShowBlockConversationDialog'),
+  onShowClearConversationDialog: Sb.action('onShowClearConversationDialog'),
+
+  onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
+  smallTeam: false,
+  teamname: null,
 }
 
 const teamCommonProps = {
   ...commonProps,
-  teamname: 'someteam',
-  channelname: 'somechannel',
   canEditChannel: true,
   canSetRetention: true,
+  channelname: 'somechannel',
+  onShowBlockConversationDialog: Sb.unexpected('onShowBlockConversationDialog'),
 
   onShowClearConversationDialog: Sb.unexpected('onShowClearConversationDialog'),
-  onShowBlockConversationDialog: Sb.unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
+  teamname: 'someteam',
 }
 
 const smallTeamProps = {
   ...teamCommonProps,
-  isPreview: false,
-  smallTeam: true,
   admin: false,
   description: "You shouldn't be seeing this",
-
-  onLeaveConversation: Sb.unexpected('onLeaveConversation'),
-  onJoinChannel: Sb.unexpected('onJoinChannel'),
+  isPreview: false,
   onEditChannel: Sb.unexpected('onEditChannel'),
+
+  onJoinChannel: Sb.unexpected('onJoinChannel'),
+  onLeaveConversation: Sb.unexpected('onLeaveConversation'),
+  smallTeam: true,
 }
 
 const bigTeamCommonProps = {
   ...teamCommonProps,
-  smallTeam: false,
   admin: false,
   description: 'The best channel. /keybase/team/kbkbfstest.sub/best-folder',
   onEditChannel: Sb.action('onEditChannel'),
+  smallTeam: false,
 }
 
 const bigTeamPreviewProps = {
   ...bigTeamCommonProps,
-  isPreview: true,
-  channelname: 'somechannel',
-  smallTeam: false,
   admin: false,
+  channelname: 'somechannel',
+  isPreview: true,
+  onJoinChannel: Sb.action('onJoinChannel'),
 
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
-  onJoinChannel: Sb.action('onJoinChannel'),
+  smallTeam: false,
 }
 
 const bigTeamNoPreviewProps = {
   ...bigTeamCommonProps,
-  isPreview: false,
-  channelname: 'somechannel',
-  smallTeam: false,
   admin: false,
+  channelname: 'somechannel',
+  isPreview: false,
+  onJoinChannel: Sb.unexpected('onJoinChannel'),
 
   onLeaveConversation: Sb.action('onLeaveConversation'),
-  onJoinChannel: Sb.unexpected('onJoinChannel'),
+  smallTeam: false,
 }
 
 const load = () => {

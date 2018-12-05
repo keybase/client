@@ -14,16 +14,16 @@ class ProveWebsiteChoice extends Component<Props> {
         <ChoiceList
           options={[
             {
-              title: 'Host a TXT file',
               description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
               icon: 'icon-file-txt-48',
               onClick: () => this.props.onOptionClick('file'),
+              title: 'Host a TXT file',
             },
             {
-              title: 'Set a DNS',
               description: 'Place a Keybase proof in your DNS records.',
               icon: 'icon-dns-48',
               onClick: () => this.props.onOptionClick('dns'),
+              title: 'Set a DNS',
             },
           ]}
         />

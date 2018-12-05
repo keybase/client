@@ -14,7 +14,7 @@ const _ReallyLeaveTeam = (props: Props) => (
   <MaybePopup
     onClose={props.onBack}
     styleContainer={{height: 'auto'}}
-    styleCover={{justifyContent: 'center', alignItems: 'center'}}
+    styleCover={{alignItems: 'center', justifyContent: 'center'}}
   >
     <Box
       style={{
@@ -22,8 +22,8 @@ const _ReallyLeaveTeam = (props: Props) => (
         alignItems: 'center',
         flex: 1,
         padding: globalMargins.medium,
-        paddingTop: globalMargins.xlarge,
         paddingBottom: globalMargins.xlarge,
+        paddingTop: globalMargins.xlarge,
       }}
     >
       <Avatar teamname={props.name} size={64} />
@@ -43,8 +43,8 @@ const _ReallyLeaveTeam = (props: Props) => (
         type="Body"
         style={{
           margin: globalMargins.medium,
-          marginTop: 0,
           marginBottom: globalMargins.small,
+          marginTop: 0,
           maxWidth: 430,
           textAlign: 'center',
         }}

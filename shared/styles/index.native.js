@@ -7,8 +7,8 @@ import * as Shared from './shared'
 
 const font = isIOS
   ? {
-      fontExtrabold: {fontFamily: 'OpenSans', fontWeight: '800'},
       fontBold: {fontFamily: 'OpenSans', fontWeight: '700'},
+      fontExtrabold: {fontFamily: 'OpenSans', fontWeight: '800'},
       fontRegular: {fontFamily: 'OpenSans', fontWeight: '400'},
       fontSemibold: {fontFamily: 'OpenSans', fontWeight: '600'},
       fontTerminal: {fontFamily: 'Source Code Pro'},
@@ -16,8 +16,8 @@ const font = isIOS
       italic: {fontStyle: 'italic'},
     }
   : {
-      fontExtrabold: {fontFamily: 'OpenSans-ExtraBold', fontWeight: '800'},
       fontBold: {fontFamily: 'OpenSans', fontWeight: 'bold'},
+      fontExtrabold: {fontFamily: 'OpenSans-ExtraBold', fontWeight: '800'},
       fontRegular: {fontFamily: 'OpenSans', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'OpenSans-Semi', fontWeight: 'bold'},
       fontTerminal: {fontFamily: 'SourceCodePro'},

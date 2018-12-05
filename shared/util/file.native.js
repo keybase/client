@@ -29,7 +29,7 @@ export function exists(filepath: string): Promise<boolean> {
 }
 
 export function stat(filepath: string): Promise<StatResult> {
-  return RNFetchBlob.fs.stat(filepath).then(stats => ({size: stats.size, lastModified: stats.lastModified}))
+  return RNFetchBlob.fs.stat(filepath).then(stats => ({lastModified: stats.lastModified, size: stats.size}))
 }
 
 export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<WriteStream> {

@@ -150,75 +150,75 @@ const ActionButtonUserNotInTeam = Kb.HoverHoc(AddButton, AddButtonHover)
 // TODO fix size for mobile
 const ACTIONBUTTON_SIZE = isMobile ? 32 : 32
 const styles = Styles.styleSheetCreate({
-  rowContainer: Styles.platformStyles({
-    isElectron: {
-      height: 50,
-    },
-    common: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-      paddingBottom: Styles.globalMargins.tiny,
-    },
-  }),
-
-  highlighted: {
-    backgroundColor: Styles.globalColors.blue4,
-  },
-
-  username: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.tiny,
-  },
-
-  services: {
-    justifyContent: 'flex-end',
-  },
-  serviceIcon: Styles.platformStyles({
-    isElectron: {
-      height: 18,
-      width: 18,
-    },
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
-
   actionButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
       backgroundColor: Styles.globalColors.lightGrey2,
+      height: ACTIONBUTTON_SIZE,
       marginLeft: Styles.globalMargins.tiny,
       width: ACTIONBUTTON_SIZE,
-      height: ACTIONBUTTON_SIZE,
     },
   }),
+
   actionButtonHighlight: {
     backgroundColor: Styles.globalColors.blue,
-  },
-  removeButtonHighlight: {
-    backgroundColor: Styles.globalColors.red,
   },
 
   actionButtonHoverContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
+      height: ACTIONBUTTON_SIZE,
       justifyContent: 'center',
       width: ACTIONBUTTON_SIZE,
-      height: ACTIONBUTTON_SIZE,
     },
   }),
 
-  removeButton: {
-    ...Styles.globalStyles.rounded,
-    width: ACTIONBUTTON_SIZE,
-    height: ACTIONBUTTON_SIZE,
-  },
-
   addToTeamIcon: {
     ...Styles.globalStyles.rounded,
-    width: ACTIONBUTTON_SIZE,
     height: ACTIONBUTTON_SIZE,
+    width: ACTIONBUTTON_SIZE,
+  },
+  highlighted: {
+    backgroundColor: Styles.globalColors.blue4,
+  },
+
+  removeButton: {
+    ...Styles.globalStyles.rounded,
+    height: ACTIONBUTTON_SIZE,
+    width: ACTIONBUTTON_SIZE,
+  },
+  removeButtonHighlight: {
+    backgroundColor: Styles.globalColors.red,
+  },
+  rowContainer: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      height: 50,
+    },
+  }),
+
+  serviceIcon: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      height: 18,
+      width: 18,
+    },
+  }),
+
+  services: {
+    justifyContent: 'flex-end',
+  },
+
+  username: {
+    flex: 1,
+    marginLeft: Styles.globalMargins.tiny,
   },
 })
 

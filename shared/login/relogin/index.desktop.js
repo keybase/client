@@ -27,9 +27,9 @@ const ButtonBox = Styles.glamorous(Kb.Box)({
     color: Styles.globalColors.blue2,
   },
   alignItems: 'center',
-  color: Styles.globalColors.lightGrey2,
   border: `solid 1px ${Styles.globalColors.lightGrey2}`,
   borderRadius: Styles.borderRadius,
+  color: Styles.globalColors.lightGrey2,
   paddingRight: Styles.globalMargins.small,
   width: 270,
 })
@@ -63,16 +63,16 @@ class Login extends React.Component<Props, State> {
       floatingHintTextOverride: '',
       hintText: 'Passphrase',
       key: this.props.inputKey,
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       onEnterKeyDown: () => this.props.onSubmit(),
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
       uncontrolled: true,
     }
 
     const checkboxProps = [
       {
-        label: 'Show typing',
         checked: this.props.showTyping,
+        label: 'Show typing',
         onCheck: check => {
           this.props.showTypingChange(check)
         },
@@ -167,9 +167,9 @@ class Login extends React.Component<Props, State> {
 const stylesContainer = {
   ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
-  flex: 1,
   backgroundColor: Styles.globalColors.white,
+  flex: 1,
+  justifyContent: 'center',
 }
 
 export default Login

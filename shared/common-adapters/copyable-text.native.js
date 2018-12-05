@@ -64,14 +64,14 @@ class CopyableText<P: Props> extends Component<P, State> {
 
 const styleBase = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
   alignItems: 'flex-start',
   backgroundColor: globalColors.lightGrey,
-  padding: 10,
-  borderWidth: 1,
   borderColor: globalColors.black_10,
   borderRadius: 3,
-  minHeight: globalMargins.medium + globalMargins.tiny + 2 * globalMargins.small + 24, // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
+  borderWidth: 1,
+  minHeight: globalMargins.medium + globalMargins.tiny + 2 * globalMargins.small + 24,
+  padding: 10,
+  position: 'relative', // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
 }
 
 const styleText = {
@@ -82,9 +82,9 @@ const styleText = {
 const styleCopyToastContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  position: 'absolute',
   bottom: globalMargins.small,
   left: 0,
+  position: 'absolute',
   right: 0,
 }
 

@@ -22,8 +22,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
-        showOnCreation: routeProps.get('showOnCreation'),
         setBuildingTo: routeProps.get('fromSendForm'),
+        showOnCreation: routeProps.get('showOnCreation'),
       })
     ),
   onDone: (name: string) => {
@@ -34,11 +34,11 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   error: capitalize(stateProps.error),
+  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
+  onCancel: dispatchProps.onCancel,
   onClearErrors: dispatchProps.onClearErrors,
   onCreateAccount: dispatchProps.onCreateAccount,
   onDone: dispatchProps.onDone,
-  onCancel: dispatchProps.onCancel,
-  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
 })
 
 export default connect<OwnProps, _, _, _, _>(

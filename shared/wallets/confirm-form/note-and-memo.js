@@ -40,18 +40,18 @@ const NoteAndMemo = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  memoContainer: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+  bodyText: {
+    color: Styles.globalColors.black_75,
   },
   headingText: {
     color: Styles.globalColors.blue,
     marginBottom: Styles.globalMargins.xtiny,
   },
-  bodyText: {
-    color: Styles.globalColors.black_75,
+  memoContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
   },
 })
 

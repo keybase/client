@@ -23,11 +23,10 @@ const mapStateToProps = (state, {routeProps}) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
   const myUsername = state.config.username
   const title = routeProps.get('username')
-  return {avatar, fullname, fullUsername, myUsername, profileUrl, serviceName, title, username}
+  return {avatar, fullUsername, fullname, myUsername, profileUrl, serviceName, title, username}
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
   _onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
       dispatch(
@@ -42,6 +41,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
       dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'}))
     }
   },
+  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

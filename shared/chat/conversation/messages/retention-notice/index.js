@@ -31,15 +31,15 @@ const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.blue5,
+  paddingBottom: globalMargins.small,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  paddingBottom: globalMargins.small,
   paddingTop: globalMargins.small,
   width: '100%',
 }
 
 const iconStyle = {
-  marginBottom: globalMargins.tiny,
   height: isMobile ? 48 : 32,
+  marginBottom: globalMargins.tiny,
   width: isMobile ? 48 : 32,
 }

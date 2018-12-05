@@ -11,8 +11,8 @@ function DeleteConfirm(props: Props) {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        justifyContent: 'center',
         flex: 1,
+        justifyContent: 'center',
         padding: globalMargins.medium,
       }}
     >
@@ -25,7 +25,7 @@ function DeleteConfirm(props: Props) {
       >
         {props.username}
       </Text>
-      <Text type="Header" style={{marginTop: globalMargins.medium, width: 320, textAlign: 'center'}}>
+      <Text type="Header" style={{marginTop: globalMargins.medium, textAlign: 'center', width: 320}}>
         Are you sure you want to permanently delete your account?
       </Text>
       <ButtonBar>
@@ -42,15 +42,15 @@ function DeleteConfirm(props: Props) {
 }
 
 const iconStyle = {
-  position: 'absolute',
-  bottom: 0,
-  right: -4,
   backgroundColor: globalColors.white,
-  borderRadius: 16,
   borderColor: globalColors.white,
+  borderRadius: 16,
   borderStyle: 'solid',
   borderWidth: 2,
+  bottom: 0,
   padding: '1px 0px 0px 1px',
+  position: 'absolute',
+  right: -4,
 }
 
 export default DeleteConfirm

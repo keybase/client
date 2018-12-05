@@ -9,24 +9,24 @@ export default function makeMenu(window: any) {
   const editMenu = {
     label: 'Edit',
     submenu: [
-      {label: 'Undo', accelerator: 'CmdOrCtrl+Z', role: 'undo'},
-      {label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo'},
+      {accelerator: 'CmdOrCtrl+Z', label: 'Undo', role: 'undo'},
+      {accelerator: 'Shift+CmdOrCtrl+Z', label: 'Redo', role: 'redo'},
       {type: 'separator'},
-      {label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut'},
-      {label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy'},
-      {label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste'},
-      {label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectall'},
+      {accelerator: 'CmdOrCtrl+X', label: 'Cut', role: 'cut'},
+      {accelerator: 'CmdOrCtrl+C', label: 'Copy', role: 'copy'},
+      {accelerator: 'CmdOrCtrl+V', label: 'Paste', role: 'paste'},
+      {accelerator: 'CmdOrCtrl+A', label: 'Select All', role: 'selectall'},
     ],
   }
   const windowMenu = {
     label: 'Window',
     submenu: [
-      {label: 'Zoom In', accelerator: 'CmdOrCtrl+=', role: 'zoomIn'},
+      {accelerator: 'CmdOrCtrl+=', label: 'Zoom In', role: 'zoomIn'},
       {label: 'Zoom Out', role: 'zoomOut'},
       {label: 'Reset zoom ', role: 'resetZoom'},
       {label: 'Minimize', role: 'minimize'},
       {label: 'Minimize', role: 'minimize'},
-      {label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
+      {accelerator: 'CmdOrCtrl+W', label: 'Close', role: 'close'},
       {type: 'separator'},
       {label: 'Bring All to Front', role: 'front'},
     ].concat(
@@ -34,12 +34,11 @@ export default function makeMenu(window: any) {
         ? [
             // eslint-disable-line no-undef
             {
-              label: 'Reload',
               accelerator: 'CmdOrCtrl+R',
               click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
+              label: 'Reload',
             },
             {
-              label: 'Toggle Developer Tools',
               accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
               click: (item, focusedWindow) => {
                 devToolsState = !devToolsState
@@ -49,6 +48,7 @@ export default function makeMenu(window: any) {
                     : bw.webContents.closeDevTools()
                 )
               },
+              label: 'Toggle Developer Tools',
             },
           ]
         : []
@@ -58,10 +58,10 @@ export default function makeMenu(window: any) {
     label: 'Help',
     submenu: [
       {
-        label: 'Learn More',
         click() {
           SafeElectron.getShell().openExternal('https://keybase.io')
         },
+        label: 'Learn More',
       },
     ],
   }
@@ -73,16 +73,16 @@ export default function makeMenu(window: any) {
         submenu: [
           {label: 'About Keybase', role: 'about'},
           {type: 'separator'},
-          {label: 'Hide Keybase', accelerator: 'CmdOrCtrl+H', role: 'hide'},
-          {label: 'Hide Others', accelerator: 'CmdOrCtrl+Shift+H', role: 'hideothers'},
+          {accelerator: 'CmdOrCtrl+H', label: 'Hide Keybase', role: 'hide'},
+          {accelerator: 'CmdOrCtrl+Shift+H', label: 'Hide Others', role: 'hideothers'},
           {label: 'Show All', role: 'unhide'},
           {type: 'separator'},
           {
-            label: 'Quit',
             accelerator: 'CmdOrCtrl+Q',
             click() {
               executeActionsForContext('uiWindow')
             },
+            label: 'Quit',
           },
         ],
       },
@@ -104,13 +104,13 @@ export default function makeMenu(window: any) {
       {
         label: '&File',
         submenu: [
-          {label: '&Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
+          {accelerator: 'CmdOrCtrl+W', label: '&Close', role: 'close'},
           {
-            label: '&Quit',
             accelerator: 'CmdOrCtrl+Q',
             click() {
               executeActionsForContext('uiWindow')
             },
+            label: '&Quit',
           },
         ],
       },

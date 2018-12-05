@@ -86,10 +86,10 @@ const _containerStyle = {
   height: undefined,
   lineHeight: 0,
   minWidth: undefined,
+  position: 'relative',
   textAlign: 'left',
   transform: 'none',
   transition: 'none',
-  position: 'relative',
 }
 
 export default ClickableBox

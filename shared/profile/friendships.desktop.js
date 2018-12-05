@@ -64,11 +64,11 @@ const userEntryContainerStyle = {
   ...desktopStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'flex-start',
-  width: 112,
-  height: 123,
-  padding: globalMargins.xtiny,
   display: 'inline-flex',
+  height: 123,
+  justifyContent: 'flex-start',
+  padding: globalMargins.xtiny,
+  width: 112,
 }
 
 const userEntryAvatarStyle = {

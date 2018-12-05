@@ -64,8 +64,8 @@ const _destinationPicker = {
     : undefined,
   component: DestinationPicker,
   tags: makeLeafTags({
-    title: 'Move or Copy',
     layerOnTop: !isMobile,
+    title: 'Move or Copy',
   }),
 }
 
@@ -81,22 +81,22 @@ const _folderRoute = {
     ..._commonChildren,
     barePreview: () =>
       makeRouteDefNode({
-        component: BarePreview,
         children: _commonChildren,
+        component: BarePreview,
         tags: makeLeafTags({
           fullscreen: true,
           title: 'Preview',
         }),
       }),
+    folder: () => makeRouteDefNode(_folderRoute),
     preview: () =>
       makeRouteDefNode({
-        component: NormalPreview,
         children: _commonChildren,
+        component: NormalPreview,
         tags: makeLeafTags({
           title: 'Preview',
         }),
       }),
-    folder: () => makeRouteDefNode(_folderRoute),
   },
   component: Files,
 }

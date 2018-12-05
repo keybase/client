@@ -53,30 +53,30 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
 const stylesRowContainer = {
   ...globalStyles.flexBoxRow,
   ...desktopStyles.clickable,
-  transition: 'background 0.1s ease-out',
-  minHeight: 100,
-  maxHeight: 100,
   alignItems: 'center',
+  maxHeight: 100,
+  minHeight: 100,
   padding: 20,
+  transition: 'background 0.1s ease-out',
 }
 const stylesHeader = {
   color: globalColors.blue,
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxRow,
-  maxWidth: 80,
-  maxHeight: 80,
-  minWidth: 80,
-  minHeight: 80,
-  justifyContent: 'center',
   alignItems: 'center',
+  justifyContent: 'center',
   marginRight: 25,
+  maxHeight: 80,
+  maxWidth: 80,
+  minHeight: 80,
+  minWidth: 80,
   position: 'relative',
 }
 const stylesIcon = {
   ...transition('transform'),
-  textAlign: 'center',
   height: 'inherit',
+  textAlign: 'center',
   width: 'inherit',
   zIndex: 1,
 }
@@ -84,13 +84,13 @@ const stylesIconBackground = {
   ...transition('opacity'),
   backgroundColor: globalColors.lightGrey,
   borderRadius: 40,
-  maxWidth: 80,
+  left: 0,
   maxHeight: 80,
-  minWidth: 80,
+  maxWidth: 80,
   minHeight: 80,
+  minWidth: 80,
   position: 'absolute',
   top: 0,
-  left: 0,
 }
 
 export default Row

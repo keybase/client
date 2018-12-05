@@ -13,13 +13,13 @@ const warningProps = {
 }
 
 const reallyProps = {
-  name: 'awesome account',
   loading: false,
-  waiting: false,
+  name: 'awesome account',
   onCancel: Sb.action('onCancel'),
-  onFinish: Sb.action('onFinish'),
   onCopyKey: Sb.action('onCopyKey'),
+  onFinish: Sb.action('onFinish'),
   onLoadSecretKey: Sb.action('onLoadSecretKey'),
+  waiting: false,
 }
 
 const load = () => {

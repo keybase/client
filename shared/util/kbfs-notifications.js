@@ -38,45 +38,45 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
     case kbfsCommonFSErrorType.accessDenied:
       let prefix = user ? `${user} does` : 'You do'
       return {
-        title: 'Keybase: Access denied',
         body: `${prefix} not have ${notification.params.mode} access to ${notification.filename}`,
+        title: 'Keybase: Access denied',
       }
 
     case kbfsCommonFSErrorType.userNotFound:
       return {
-        title: 'Keybase: User not found',
         body: `${notification.params.username} is not a Keybase user`,
+        title: 'Keybase: User not found',
       }
 
     case kbfsCommonFSErrorType.revokedDataDetected:
       return {
-        title: 'Keybase: Possibly revoked data detected',
         body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
+        title: 'Keybase: Possibly revoked data detected',
       }
 
     case kbfsCommonFSErrorType.notLoggedIn:
       return {
-        title: `Keybase: Permission denied in ${tlf}`,
         body: "You are not logged into Keybase. Try 'keybase login'.",
+        title: `Keybase: Permission denied in ${tlf}`,
       }
 
     case kbfsCommonFSErrorType.timeout:
       return {
-        title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
         body: `The ${
           notification.params.mode
         } operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+        title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
       }
 
     case kbfsCommonFSErrorType.rekeyNeeded:
       return notification.params.rekeyself === 'true'
         ? {
-            title: 'Keybase: Files need to be rekeyed',
             body: `Please open one of your other computers to unlock ${tlf}`,
+            title: 'Keybase: Files need to be rekeyed',
           }
         : {
-            title: 'Keybase: Friends needed',
             body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
+            title: 'Keybase: Friends needed',
           }
     // Aggregate these cases together since they both use the usage/limit calc
     case kbfsCommonFSErrorType.overQuota:
@@ -87,39 +87,39 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
       const usedPercent = Math.round((100 * usageBytes) / limitBytes)
       if (notification.errorType === kbfsCommonFSErrorType.overQuota) {
         return {
-          title: 'Keybase: Out of space',
           body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
+          title: 'Keybase: Out of space',
         }
       } else {
         // diskLimitReached
         if (usageBytes >= 0.99 * limitBytes) {
           return {
-            title: 'Keybase: Out of temporary space',
             body: `Keybase is using ${usedPercent}% of its temporary write space (${usedGB}GB), and writes will fail until the data syncs to the remote server.`,
+            title: 'Keybase: Out of temporary space',
           }
         } else {
           return {
-            title: 'Keybase: Out of temporary space',
             body:
               'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
+            title: 'Keybase: Out of temporary space',
           }
         }
       }
     case kbfsCommonFSErrorType.offlineArchived:
       return {
-        title: 'Keybase: Archived data not available offline',
         body: `You cannot browse archived KBFS data while disconnected from the Keybase servers.`,
+        title: 'Keybase: Archived data not available offline',
       }
     case kbfsCommonFSErrorType.offlineUnsynced:
       return {
-        title: 'Keybase: Unsynced data not available offline',
         body: `You cannot browse an unsynced folder while disconnected from the Keybase servers.`,
+        title: 'Keybase: Unsynced data not available offline',
       }
 
     default:
       return {
-        title: 'Keybase: KBFS error',
         body: `${notification.status}`,
+        title: 'Keybase: KBFS error',
       }
   }
 

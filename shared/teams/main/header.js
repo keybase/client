@@ -39,17 +39,17 @@ const Header = (props: Props) => (
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
-      justifyContent: 'center',
       borderBottomColor: globalColors.black_10,
       borderBottomWidth: 1,
       height: 48,
+      justifyContent: 'center',
       position: 'relative',
       width: '100%',
     }}
   >
     {/* Put progress indicator in the footer (./index.js) on mobile because it won't fit in the header on small screens */}
     {!isMobile && !props.loaded && (
-      <ProgressIndicator style={{position: 'absolute', width: 20, top: 12, left: 12}} />
+      <ProgressIndicator style={{left: 12, position: 'absolute', top: 12, width: 20}} />
     )}
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
     <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />

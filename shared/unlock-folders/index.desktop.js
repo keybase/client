@@ -60,8 +60,8 @@ export default class UnlockFoldersRender extends Component<Props> {
 
 const styles = {
   container: {
-    position: 'relative',
     height: 300,
+    position: 'relative',
     width: 500,
   },
 

@@ -14,7 +14,7 @@ const RowMeta = ({badgeCount}) => {
   }
 
   return (
-    <Box style={{width: 0, display: 'flex'}}>
+    <Box style={{display: 'flex', width: 0}}>
       <Box style={rowStyles.badgeContainer}>
         {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={rowStyles.badgeCount} />}
       </Box>

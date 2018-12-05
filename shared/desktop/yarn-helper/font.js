@@ -6,25 +6,25 @@ import {execSync} from 'child_process'
 import prettier from 'prettier'
 
 const commands = {
-  'update-icon-font': {
-    code: updateIconFont,
-    help: 'Update our font sizes automatically',
+  'unused-assets': {
+    code: unusedAssetes,
+    help: 'Find unused assets',
   },
   'update-icon-constants': {
     code: updateIconConstants,
     help: 'Update icon.constants.js with new/removed files',
   },
-  'unused-assets': {
-    code: unusedAssetes,
-    help: 'Find unused assets',
+  'update-icon-font': {
+    code: updateIconFont,
+    help: 'Update our font sizes automatically',
   },
 }
 
 const paths = {
-  iconfont: path.resolve(__dirname, '../../images/iconfont'),
-  iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
+  iconfont: path.resolve(__dirname, '../../images/iconfont'),
+  iconpng: path.resolve(__dirname, '../../images/icons'),
 }
 
 const fontHeight = 1024
@@ -49,7 +49,7 @@ const mapPaths = skipUnmatchedFile => path => {
   }
 
   const score = Number(counter)
-  return !isNaN(score) ? {filePath: path, counter: score, name, size} : null
+  return !isNaN(score) ? {counter: score, filePath: path, name, size} : null
 }
 const getSvgNames = skipUnmatchedFile =>
   fs
@@ -84,24 +84,24 @@ function updateIconFont() {
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
-      types: ['ttf'],
-      files: svgFilePaths,
-      dest: paths.fonts,
-      startCodepoint: baseCharCode,
-      fontName: 'kb',
       css: false,
-      html: false,
+      dest: paths.fonts,
+      files: svgFilePaths,
+      fontName: 'kb',
       formatOptions: {
-        ttf: {
-          ts: Date.now(),
+        svg: {
+          descent: 0,
+          fontHeight,
         },
         // Setting descent to zero on font generation will prevent the final
         // glyphs from being shifted down
-        svg: {
-          fontHeight,
-          descent: 0,
+        ttf: {
+          ts: Date.now(),
         },
       },
+      html: false,
+      startCodepoint: baseCharCode,
+      types: ['ttf'],
     },
     error => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess())
   )
@@ -145,9 +145,9 @@ function updateIconConstants() {
   const svgFilenames = getSvgNames(false /* print skipped */)
   svgFilenames.reduce((acc, {counter, name, size}) => {
     return (icons[`iconfont-${name}`] = {
-      isFont: true,
-      gridSize: size,
       charCode: baseCharCode + counter - 1,
+      gridSize: size,
+      isFont: true,
     })
   }, {})
 

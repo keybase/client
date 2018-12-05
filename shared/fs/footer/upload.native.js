@@ -18,41 +18,41 @@ const easing = NativeEasing.bezier(0.13, 0.72, 0.31, 0.95)
 class Upload extends React.PureComponent<UploadProps, UploadState> {
   state = {
     backgroundTop: new NativeAnimated.Value(0),
-    uploadTop: new NativeAnimated.Value(48),
     showing: false,
+    uploadTop: new NativeAnimated.Value(48),
   }
 
   _mounted = false
 
   _animations = {
-    loop: null,
     in: null,
+    loop: null,
     out: null,
   }
 
   _startAnimationLoop() {
     this._animations.loop = NativeAnimated.loop(
       NativeAnimated.timing(this.state.backgroundTop, {
-        toValue: -80, // pattern loops on multiples of 80
-        duration: 2000,
+        duration: 2000, // pattern loops on multiples of 80
         easing: NativeEasing.linear,
+        toValue: -80,
       })
     )
     this._animations.loop.start()
   }
   _startAnimationIn() {
     this._animations.in = NativeAnimated.timing(this.state.uploadTop, {
-      toValue: 0,
       duration: 300,
       easing,
+      toValue: 0,
     })
     this._animations.in.start()
   }
   _startAnimationOut(cbIfFinish: () => void) {
     this._animations.out = NativeAnimated.timing(this.state.uploadTop, {
-      toValue: 48,
       duration: 300,
       easing,
+      toValue: 48,
     })
     this._animations.out.start(({finished}) => finished && cbIfFinish())
   }
@@ -141,17 +141,17 @@ const stylesBackgroundBox = platformStyles({
     height: 48,
     width: '100%',
   },
-  isIOS: {
-    overflow: 'hidden',
-  },
   isAndroid: {
     zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
+  },
+  isIOS: {
+    overflow: 'hidden',
   },
 })
 
 const stylesBackgroundImage = {
-  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
-  height: 160,
+  height: 160, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
+  width: 600,
 }
 
 const stylesText = {
@@ -161,8 +161,8 @@ const stylesText = {
 const stylesBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
   height: 48,
+  justifyContent: 'center',
   marginTop: -48,
 }
 

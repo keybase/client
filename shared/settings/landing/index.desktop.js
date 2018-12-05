@@ -48,16 +48,16 @@ function variantPropsHelper(
 ): PlanActionVariantsProps {
   if (selectedLevel === otherLevel) {
     return {
-      type: 'spaceInfo',
       freeSpace,
       freeSpacePercentage,
       lowSpaceWarning,
+      type: 'spaceInfo',
     }
   }
 
   return {
-    type: 'change',
     changeType: changeType,
+    type: 'change',
   }
 }
 
@@ -73,7 +73,7 @@ function SpaceInfo({
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{marginRight: globalMargins.xtiny, fontSize: 12, color: globalColors.black_40}}
+        style={{color: globalColors.black_40, fontSize: 12, marginRight: globalMargins.xtiny}}
         type={'BodySmallSemibold'}
       >
         {freeSpace} FREE
@@ -96,7 +96,7 @@ const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 
   <Button
     style={{marginRight: 0}}
     type="PrimaryGreen"
-    label={{upgrade: 'Upgrade', change: 'Change'}[type]}
+    label={{change: 'Change', upgrade: 'Upgrade'}[type]}
     onClick={e => {
       onClick()
       e.stopPropagation()
@@ -150,7 +150,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
           <Text
             type={'BodySemibold'}
             link={true}
-            style={{marginRight: globalMargins.xtiny, color: globalColors.blue}}
+            style={{color: globalColors.blue, marginRight: globalMargins.xtiny}}
           >
             {level}
           </Text>
@@ -183,10 +183,10 @@ function PaymentInfo({
       <Box
         style={{
           ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'space-between',
           minHeight: ROW_HEIGHT,
           paddingLeft: globalMargins.xtiny,
-          justifyContent: 'space-between',
-          alignItems: 'center',
         }}
       >
         <Box style={globalStyles.flexBoxColumn}>
@@ -263,9 +263,9 @@ function AccountEmail({
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        minHeight: ROW_HEIGHT,
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: ROW_HEIGHT,
       }}
     >
       <Box style={globalStyles.flexBoxColumn}>
@@ -280,7 +280,7 @@ function AccountEmail({
 
 function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
   return (
-    <Box style={{...globalStyles.flexBoxRow, minHeight: ROW_HEIGHT, alignItems: 'center'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
         Passphrase:
       </Text>
@@ -328,20 +328,20 @@ function Landing(props: Props) {
 }
 
 const planLevelRowStyle = {
+  alignItems: 'center',
   justifyContent: 'space-between',
   minHeight: ROW_HEIGHT,
-  alignItems: 'center',
-  paddingRight: globalMargins.tiny,
   paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
 }
 
 const freeSpaceBarStyle = {
   ...globalStyles.rounded,
-  position: 'absolute',
+  backgroundColor: globalColors.white,
   height: 4,
+  position: 'absolute',
   top: -2,
   width: 64,
-  backgroundColor: globalColors.white,
 }
 
 export default Landing

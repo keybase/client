@@ -16,7 +16,7 @@ const commonProps = {
   onFocus: action('onFocus'),
   onKeyDown: action('onKeyDown'),
   onKeyUp: action('onKeyUp'),
-  style: {borderWidth: 1, borderStyle: 'solid', borderColor: globalColors.black_10},
+  style: {borderColor: globalColors.black_10, borderStyle: 'solid', borderWidth: 1},
 }
 
 class TestInput extends React.Component<{maxBytes?: number, multiline: boolean}, {value: string}> {
@@ -37,7 +37,7 @@ class TestInput extends React.Component<{maxBytes?: number, multiline: boolean},
             const input = this._input.current
             if (input) {
               const newCursorPos = selection.start + t.length
-              input.setSelection({start: newCursorPos, end: newCursorPos})
+              input.setSelection({end: newCursorPos, start: newCursorPos})
               input.focus()
             }
           }
@@ -80,7 +80,7 @@ class ControlledInputPlayground extends React.Component<
     if (this.mutationTarget.current) {
       const input = this.mutationTarget.current
       input.focus()
-      input.setSelection({start: 2, end: 5})
+      input.setSelection({end: 5, start: 2})
     }
   }
   _testCrossSelection = () => {
@@ -91,12 +91,12 @@ class ControlledInputPlayground extends React.Component<
         this.forceUpdate(() => {
           if (this.mutationTarget.current) {
             const input = this.mutationTarget.current
-            input.setSelection({start: 0, end: 0})
+            input.setSelection({end: 0, start: 0})
             this.setState({changingValue: 'a lot more than 5 characters'})
             this.forceUpdate(() => {
               if (this.mutationTarget.current) {
                 const input = this.mutationTarget.current
-                input.setSelection({start: 3, end: 5})
+                input.setSelection({end: 5, start: 3})
               }
             })
           }
@@ -165,10 +165,10 @@ const load = () => {
           direction="horizontal"
           fullWidth={true}
           gap="small"
-          style={{padding: 10, backgroundColor: globalColors.orange}}
+          style={{backgroundColor: globalColors.orange, padding: 10}}
         >
           <PlainInput {...commonProps} flexable={true} />
-          <Box style={{width: 200, backgroundColor: globalColors.green}} />
+          <Box style={{backgroundColor: globalColors.green, width: 200}} />
         </Box2>
         <Text type="Body">Resize your window to see the text input flex</Text>
       </Box2>

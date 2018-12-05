@@ -32,9 +32,9 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
       case 'right':
         dispatch(
           Chat2Gen.createAttachmentFullscreenNext({
+            backInTime: cmd === 'left',
             conversationIDKey,
             messageID,
-            backInTime: cmd === 'left',
           })
         )
         break
@@ -52,19 +52,19 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = stateProps.message
   return {
+    hotkeys: ['left', 'right'],
+    isVideo: Constants.isVideoAttachment(message),
     message,
     onClose: dispatchProps.onClose,
     onDownloadAttachment: message.downloadPath
       ? undefined
       : () => dispatchProps._onDownloadAttachment(message),
-    hotkeys: ['left', 'right'],
     onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     path: message.fileURL || message.previewURL,
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,
-    isVideo: Constants.isVideoAttachment(message),
   }
 }
 

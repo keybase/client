@@ -67,22 +67,18 @@ const WalletPopup = (props: WalletPopupProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  outerContainer: Styles.platformStyles({
+  buttonBar: Styles.platformStyles({
     isElectron: {
-      height: 525,
-      width: 360,
-      borderRadius: 4,
+      minHeight: 0,
     },
+  }),
+  buttonBarContainer: Styles.platformStyles({
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
     isMobile: {
-      width: '100%',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
-  header: Styles.platformStyles({
-    isElectron: {
-      borderRadius: 4,
-    },
-  }),
-  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
   container: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -97,18 +93,22 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {},
   }),
-  buttonBarContainer: Styles.platformStyles({
-    isElectron: {flex: 1, justifyContent: 'flex-end'},
-    isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  buttonBar: Styles.platformStyles({
+  header: Styles.platformStyles({
     isElectron: {
-      minHeight: 0,
+      borderRadius: 4,
     },
   }),
+  outerContainer: Styles.platformStyles({
+    isElectron: {
+      borderRadius: 4,
+      height: 525,
+      width: 360,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
+  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
   scrollView: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,

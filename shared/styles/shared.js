@@ -5,15 +5,15 @@ import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
-  xxtiny: 2,
-  xtiny: 4,
-  tiny: 8,
-  xsmall: 12,
-  small: 16,
+  large: 40,
   medium: 24,
   mediumLarge: 32,
-  large: 40,
+  small: 16,
+  tiny: 8,
   xlarge: 64,
+  xsmall: 12,
+  xtiny: 4,
+  xxtiny: 2,
 }
 /* eslint-enable sort-keys */
 
@@ -32,8 +32,8 @@ export const util = ({flexCommon}: {flexCommon?: ?Object}) => ({
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
   flexBoxColumnReverse: {...flexCommon, flexDirection: 'column-reverse'},
-  flexBoxRowReverse: {...flexCommon, flexDirection: 'row-reverse'},
   flexBoxRow: {...flexCommon, flexDirection: 'row'},
+  flexBoxRowReverse: {...flexCommon, flexDirection: 'row-reverse'},
   flexGrow: {flexGrow: 1},
   fullHeight: {height: '100%'},
   rounded: {borderRadius: 3},

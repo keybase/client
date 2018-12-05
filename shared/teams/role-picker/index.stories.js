@@ -4,17 +4,17 @@ import * as Sb from '../../stories/storybook'
 import {RoleConfirm, RoleOptions} from '.'
 
 const commonProps = {
+  allowOwner: true,
   onCancel: Sb.action('onCancel'),
   onComplete: Sb.action('onComplete'),
-  teamname: 'keybase',
-  username: 'ayoubd',
-  allowOwner: true,
+  selectedRole: 'writer',
+  sendNotification: false,
   setConfirm: Sb.action('setConfirm'),
   setSelectedRole: Sb.action('setSelectedRole'),
   setSendNotification: Sb.action('setSendNotification'),
-  sendNotification: false,
-  selectedRole: 'writer',
   showSendNotification: true,
+  teamname: 'keybase',
+  username: 'ayoubd',
 }
 
 const roleOptionsProps = {

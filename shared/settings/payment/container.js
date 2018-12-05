@@ -30,8 +30,8 @@ class PaymentStateHolder extends Component<Props, State> {
     super()
     this.state = {
       cardNumber: null,
-      name: null,
       expiration: null,
+      name: null,
       securityCode: null,
     }
   }
@@ -88,14 +88,14 @@ export default connect<OwnProps, _, _, _, _>(
     }
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
+    clearBillingError: () => {
+      dispatch(actions.clearBillingError())
+    },
     onBootstrap: () => {
       dispatch(actions.bootstrapData())
     },
     onSubmit: args => {
       dispatch(actions.updateBilling(args))
-    },
-    clearBillingError: () => {
-      dispatch(actions.clearBillingError())
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -110,17 +110,17 @@ export default connect<OwnProps, _, _, _, _>(
       bootstrapDone: true,
       originalProps: {
         ...stateProps.originalProps,
+        clearBillingError: dispatchProps.clearBillingError,
         onSubmit: (cardNumber: ?string, name: ?string, securityCode: ?string, expiration: ?string) => {
           const parsedExpiration = parseExpiration(expiration || '')
           dispatchProps.onSubmit({
+            cardExpMonth: new HiddenString(parsedExpiration.month),
+            cardExpYear: new HiddenString(parsedExpiration.year),
             cardNumber: new HiddenString(cardNumber || ''),
             nameOnCard: new HiddenString(name || ''),
             securityCode: new HiddenString(securityCode || ''),
-            cardExpMonth: new HiddenString(parsedExpiration.month),
-            cardExpYear: new HiddenString(parsedExpiration.year),
           })
         },
-        clearBillingError: dispatchProps.clearBillingError,
       },
     }
   }

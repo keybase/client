@@ -26,8 +26,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   return {
-    _canDeleteHistory,
     _canAdminDelete,
+    _canDeleteHistory,
     _you: state.config.username,
     pending: !!message.transferState,
   }
@@ -93,11 +93,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    isDeleteable,
     onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    onHidden: () => ownProps.onHidden(),
     // We only show the share/save options for video if we have the file stored locally from a download
+    onHidden: () => ownProps.onHidden(),
     onSaveAttachment:
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
@@ -107,7 +108,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,
-    isDeleteable,
   }
 }
 

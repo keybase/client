@@ -216,15 +216,15 @@ const iconButton = platformStyles({
 })
 
 const styles = styleSheetCreate({
+  badge: {
+    alignSelf: 'center',
+  },
   floatingMenu: {
     marginTop: 4,
     width: 250,
   },
   menuItemBox: {
     justifyContent: 'space-between',
-  },
-  badge: {
-    alignSelf: 'center',
   },
 })
 

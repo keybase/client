@@ -62,22 +62,22 @@ const paperKeyIconStyle = {
 }
 
 const paperKeyInputStyle = {
+  height: '4em',
   marginTop: 4,
   width: 440,
-  height: '4em',
 }
 
 const backStyle = {
+  left: 30,
   position: 'absolute',
   top: 30,
-  left: 30,
 }
 
 const continueStyle = {
-  marginTop: 38,
-  height: 32,
-  width: 116,
   alignSelf: 'center',
+  height: 32,
+  marginTop: 38,
+  width: 116,
 }
 
 export default PaperKeyInput

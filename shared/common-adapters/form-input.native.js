@@ -133,18 +133,18 @@ const containerStyle = NativeStyleSheet.create({
   common: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
-    position: 'relative',
-    width: '100%',
-    borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: globalColors.black_10,
+    borderTopWidth: 1,
     minHeight: 64,
-  },
-  hideTopBorder: {
-    borderTopWidth: 0,
+    position: 'relative',
+    width: '100%',
   },
   hideBottomBorder: {
     borderBottomWidth: 0,
+  },
+  hideTopBorder: {
+    borderTopWidth: 0,
   },
   multiline: {
     minHeight: 128,
@@ -152,32 +152,32 @@ const containerStyle = NativeStyleSheet.create({
 })
 
 const smallLabelStyle = {
-  position: 'absolute',
-  top: globalMargins.tiny,
-  left: globalMargins.small,
+  backgroundColor: globalColors.transparent,
   color: globalColors.blue,
   fontSize: 11,
+  left: globalMargins.small,
+  position: 'absolute',
+  top: globalMargins.tiny,
   zIndex: 2,
-  backgroundColor: globalColors.transparent,
 }
 
 const headerBlockStyle = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
   height: 22,
+  left: 0,
+  position: 'absolute',
+  right: 0,
+  top: 0,
   zIndex: 1,
 }
 
 const inputStyle = NativeStyleSheet.create({
   common: {
     flexBasis: 'auto',
-    width: '100%',
+    marginBottom: 18,
     paddingLeft: globalMargins.small,
     paddingRight: globalMargins.small,
     paddingTop: 21,
-    marginBottom: 18,
+    width: '100%',
   },
   largePaddingTop: {
     paddingTop: 24,

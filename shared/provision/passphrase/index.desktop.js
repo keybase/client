@@ -46,14 +46,14 @@ class Passphrase extends Component<Props> {
 }
 
 const stylesContainer = {
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
   marginTop: 40,
 }
 const stylesInput = {
-  marginTop: 40,
   marginBottom: 48,
+  marginTop: 40,
 }
 const stylesForgot = {
   marginTop: 20,

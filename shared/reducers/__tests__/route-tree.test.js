@@ -13,27 +13,27 @@ jest.unmock('../../route-tree')
 jest.unmock('../../actions/route-tree')
 
 const demoRouteDef = makeRouteDefNode({
-  component: () => {},
   children: {
-    foo: {
+    etc: {
+      children: {},
       component: () => {},
+    },
+    foo: {
       children: {
         bar: {
-          component: () => {},
           children: {
             baz: {
-              component: () => {},
               children: {},
+              component: () => {},
             },
           },
+          component: () => {},
         },
       },
-    },
-    etc: {
       component: () => {},
-      children: {},
     },
   },
+  component: () => {},
 })
 
 describe('routeTree reducer', () => {

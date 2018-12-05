@@ -33,9 +33,9 @@ const loadFavorites = (state: TypedState, action) =>
     .catch(makeRetriableErrorHandler(action))
 
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
-  name: d.name.split('/').pop(),
   lastModifiedTimestamp: d.time,
   lastWriter: d.lastWriterUnverified,
+  name: d.name.split('/').pop(),
   size: d.size,
   writable: d.writable,
 })
@@ -87,8 +87,8 @@ function* folderList(
 ): Saga.SagaGenerator<any, any> {
   const {rootPath, refreshTag} =
     action.type === FsGen.editSuccess
-      ? {rootPath: action.payload.parentPath, refreshTag: undefined}
-      : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+      ? {refreshTag: undefined, rootPath: action.payload.parentPath}
+      : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
   const loadingPathID = Constants.makeUUID()
 
   if (refreshTag) {
@@ -101,30 +101,30 @@ function* folderList(
   }
 
   try {
-    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: false}))
+    yield Saga.put(FsGen.createLoadingPath({done: false, id: loadingPathID, path: rootPath}))
 
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
       yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         opID,
         path: {
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
       })
     } else {
       yield Saga.call(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
+        depth: 1,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         opID,
         path: {
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
-        depth: 1,
       })
     }
 
@@ -179,20 +179,20 @@ function* folderList(
             [
               rootPath,
               Constants.makeFolder({
+                children: I.Set(childMap.get(rootPath)),
                 lastModifiedTimestamp,
                 lastWriter,
-                size,
                 name: Types.getPathName(rootPath),
-                writable,
-                children: I.Set(childMap.get(rootPath)),
                 progress: 'loaded',
+                size,
+                writable,
               }),
             ],
           ]
         : []),
       ...entries.map(direntToPathAndPathItem),
     ]
-    yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
+    yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
     if (action.type === FsGen.editSuccess) {
       // Note that we discard the Edit metadata here rather than immediately
       // after an FsGen.editSuccess event, so that if we hear about journal
@@ -204,7 +204,7 @@ function* folderList(
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
   } finally {
-    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: true}))
+    yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
 }
 
@@ -219,9 +219,9 @@ function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
     }
     yield Saga.put(
       FsGen.createDownloadProgress({
-        key,
-        endEstimate: progress.endEstimate,
         completePortion: progress.bytesWritten / progress.bytesTotal,
+        endEstimate: progress.endEstimate,
+        key,
       })
     )
   }
@@ -264,24 +264,24 @@ function* download(
 
   yield Saga.put(
     FsGen.createDownloadStarted({
-      key,
-      path,
-      localPath,
       intent,
+      key,
+      localPath,
       opID,
+      path,
       // Omit entryType to let reducer figure out.
     })
   )
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.local,
+      local: localPath,
+    },
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(path),
-    },
-    dest: {
-      PathType: RPCTypes.simpleFSPathType.local,
-      local: localPath,
     },
   })
 
@@ -293,7 +293,7 @@ function* download(
 
     // No error, so the download has finished successfully. Set the
     // completePortion to 1.
-    yield Saga.put(FsGen.createDownloadProgress({key, completePortion: 1}))
+    yield Saga.put(FsGen.createDownloadProgress({completePortion: 1, key}))
 
     const mimeType = yield Saga.call(_loadMimeType, path)
     yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType.mimeType}))
@@ -318,14 +318,14 @@ function* upload(action: FsGen.UploadPayload) {
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(path),
+    },
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.local,
       local: Types.getNormalizedLocalPath(localPath),
-    },
-    dest: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(path),
     },
   })
 
@@ -375,9 +375,9 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
+            endEstimate,
             syncingPaths: (syncingPaths || []).map(Types.stringToPath),
             totalSyncingBytes,
-            endEstimate,
           })
         ),
       ])
@@ -432,11 +432,11 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
 
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
-    'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
     'keybase.1.NotifyFS.FSPathUpdated': ({path}) =>
       // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
       // now.
       Saga.put(FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})),
+    'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
   })
 }
 
@@ -446,11 +446,11 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
     // TODO: make the ignore button have a pending state and get rid of this?
     yield Saga.put(
       FsGen.createFavoriteIgnoreError({
-        path: action.payload.path,
         error: Constants.makeError({
           error: 'No folder specified',
           erroredAction: action,
         }),
+        path: action.payload.path,
       })
     )
   } else {
@@ -479,7 +479,7 @@ const headerTillSemiLower = (header: string): string => {
 const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
   const mimeType = headerTillSemiLower(contentType)
   const displayPreview = headerTillSemiLower(disposition) !== 'attachment'
-  return Constants.makeMime({mimeType, displayPreview})
+  return Constants.makeMime({displayPreview, mimeType})
 }
 
 const getMimeTypePromise = (localHTTPServerInfo: Types._LocalHTTPServer, path: Types.Path) =>
@@ -542,7 +542,7 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     }
     try {
       const mimeType = yield Saga.call(getMimeTypePromise, localHTTPServerInfo, path)
-      yield Saga.put(FsGen.createMimeTypeLoaded({path, mimeType}))
+      yield Saga.put(FsGen.createMimeTypeLoaded({mimeType, path}))
       return mimeType
     } catch (err) {
       if (err === Constants.invalidTokenError) {
@@ -586,12 +586,12 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   switch (type) {
     case 'new-folder':
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
-        opID: Constants.makeUUID(),
         dest: {
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(Types.pathConcat(parentPath, name)),
         },
         flags: RPCTypes.simpleFSOpenFlags.directory,
+        opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
         .catch(makeRetriableErrorHandler(action))
@@ -713,11 +713,6 @@ const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
 
 const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   const params = {
-    opID: Constants.makeUUID(),
-    src: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
-    },
     dest: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(
@@ -726,6 +721,11 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
           Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
         )
       ),
+    },
+    opID: Constants.makeUUID(),
+    src: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
     },
   }
   return (

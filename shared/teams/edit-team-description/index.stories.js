@@ -8,11 +8,11 @@ import EditTeamDescription from '.'
 
 const sharedProps = {
   description: 'First description',
-  origDescription: 'First description',
-  teamname: 'testteam',
   onChangeDescription: Sb.action('onChangeDescription'),
   onClose: Sb.action('onClose'),
   onSetDescription: Sb.action('onSetDescription'),
+  origDescription: 'First description',
+  teamname: 'testteam',
   waitingKey: 'test',
 }
 
@@ -31,12 +31,12 @@ const load = () => {
 }
 
 const storyWrapStyle = {
-  width: Styles.isMobile ? undefined : 500,
-  height: 400,
   borderColor: 'black',
-  borderWidth: 1,
   borderStyle: 'solid',
+  borderWidth: 1,
   display: 'flex',
+  height: 400,
+  width: Styles.isMobile ? undefined : 500,
 }
 
 export default load

@@ -98,20 +98,20 @@ const getPeopleData = (
           const iFollow = following.has(suggestion.username)
           return list.push(
             Constants.makeFollowSuggestion({
-              username: suggestion.username,
               followsMe,
-              iFollow,
               fullName: suggestion.fullName,
+              iFollow,
+              username: suggestion.username,
             })
           )
         }, I.List())) ||
       I.List()
 
     return PeopleGen.createPeopleDataProcessed({
-      oldItems,
-      newItems,
-      lastViewed: new Date(data.lastViewed),
       followSuggestions,
+      lastViewed: new Date(data.lastViewed),
+      newItems,
+      oldItems,
       version: data.version,
     })
   })

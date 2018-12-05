@@ -69,23 +69,17 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    position: 'relative',
-    height: '100%',
-    width: '100%',
-  },
-  innerWrapper: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
-  wrapper: {
-    flexGrow: 1,
-  },
   button: {
     paddingBottom: 8,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: 8,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    height: '100%',
+    position: 'relative',
+    width: '100%',
   },
   header: {
     ...Styles.globalStyles.flexBoxRow,
@@ -103,6 +97,9 @@ const styles = Styles.styleSheetCreate({
   headerLight: {
     backgroundColor: Styles.globalColors.white,
   },
+  innerWrapper: {
+    ...Styles.globalStyles.fillAbsolute,
+  },
   rightAction: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
@@ -112,6 +109,10 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute', // This is always right-aligned
     right: 0,
     top: 0,
+  },
+  title: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black_75,
   },
   titleContainer: {
     ...Styles.globalStyles.flexBoxRow,
@@ -124,9 +125,8 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: 0,
   },
-  title: {
-    ...Styles.globalStyles.fontSemibold,
-    color: Styles.globalColors.black_75,
+  wrapper: {
+    flexGrow: 1,
   },
 })
 

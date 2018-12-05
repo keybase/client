@@ -94,11 +94,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
-        text: n.value,
         selection: {
-          start: n.selectionStart,
           end: n.selectionEnd,
+          start: n.selectionStart,
         },
+        text: n.value,
       }
       const newTextInfo = fn(textInfo)
       checkTextInfo(newTextInfo)
@@ -117,7 +117,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   getSelection = () => {
     const n = this._input
     if (n) {
-      return {start: n.selectionStart, end: n.selectionEnd}
+      return {end: n.selectionEnd, start: n.selectionStart}
     }
     return null
   }

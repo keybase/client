@@ -46,21 +46,21 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       flexGrow: 1,
       flexShrink: 1,
-      width: '100%',
       maxHeight: '100%',
+      width: '100%',
     },
   }),
   safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
-  textContainer: Styles.platformStyles({
-    isElectron: {
-      position: 'absolute',
-      textAlign: 'center',
-      bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
-    },
-  }),
   textColor: {
     color: Styles.globalColors.white_40,
   },
+  textContainer: Styles.platformStyles({
+    isElectron: {
+      bottom: -26,
+      position: 'absolute',
+      textAlign: 'center', // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+    },
+  }),
 })
 
 export default Root

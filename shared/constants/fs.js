@@ -24,21 +24,21 @@ export const ExitCodeFuseKextPermissionError = 5
 export const ExitCodeAuthCanceledError = 6
 
 export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
-  type: 'new-folder',
-  status: 'editing',
-  name: 'New Folder',
   hint: 'New Folder',
+  name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
+  status: 'editing',
+  type: 'new-folder',
 })
 
 const pathItemMetadataDefault = {
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  size: 0,
-  lastWriter: {uid: '', username: ''},
   badgeCount: 0,
-  writable: false,
+  lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
+  name: 'unknown',
+  size: 0,
   tlfMeta: undefined,
+  writable: false,
 }
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
@@ -49,20 +49,20 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
 })
 
 export const makeMime: I.RecordFactory<Types._Mime> = I.Record({
-  mimeType: '',
   displayPreview: false,
+  mimeType: '',
 })
 
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   ...pathItemMetadataDefault,
-  type: 'file',
   mimeType: null,
+  type: 'file',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
   ...pathItemMetadataDefault,
-  type: 'symlink',
   linkTarget: '',
+  type: 'symlink',
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
@@ -73,14 +73,14 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 export const unknownPathItem = makeUnknownPathItem()
 
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
-  tlfType: 'private',
-  name: '',
   isFavorite: false,
   isIgnored: false,
   isNew: false,
+  name: '',
   needsRekey: false,
   resetParticipants: I.List(),
   teamId: '',
+  tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
 })
@@ -97,12 +97,12 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
 })
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
-  type: 'download',
   entryType: 'unknown',
   intent: 'none',
-  path: Types.stringToPath(''),
   localPath: '',
   opID: null,
+  path: Types.stringToPath(''),
+  type: 'download',
 })
 
 export const makeDownloadState: I.RecordFactory<Types._DownloadState> = I.Record({
@@ -119,9 +119,9 @@ export const makeDownload: I.RecordFactory<Types._Download> = I.Record({
 })
 
 export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
-  kbfsOpening: false,
-  kbfsInstalling: false,
   fuseInstalling: false,
+  kbfsInstalling: false,
+  kbfsOpening: false,
   kextPermissionError: false,
   securityPrefsPrompted: false,
   showBanner: true,
@@ -134,12 +134,12 @@ export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Re
 })
 
 export const makeUploads: I.RecordFactory<Types._Uploads> = I.Record({
-  writingToJournal: I.Set(),
+  endEstimate: undefined,
   errors: I.Map(),
 
-  totalSyncingBytes: 0,
-  endEstimate: undefined,
   syncingPaths: I.Set(),
+  totalSyncingBytes: 0,
+  writingToJournal: I.Set(),
 })
 
 export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
@@ -151,10 +151,10 @@ export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
 const placeholderAction = FsGen.createPlaceholderAction()
 
 const _makeError: I.RecordFactory<Types._FsError> = I.Record({
-  time: 0,
   error: 'unknown error',
   erroredAction: placeholderAction,
   retriableAction: undefined,
+  time: 0,
 })
 
 // Populate `time` with Date.now() if not provided.
@@ -166,10 +166,10 @@ export const makeError = (record?: {
 }): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
-    time: time || Date.now(),
     error: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction,
     retriableAction,
+    time: time || Date.now(),
   })
 }
 
@@ -179,30 +179,30 @@ export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  downloads: I.Map(),
+  edits: I.Map(),
+  errors: I.Map(),
   flags: makeFlags(),
   fuseStatus: null,
-  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  tlfs: makeTlfs(),
-  edits: I.Map(),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Map(),
-  downloads: I.Map(),
-  uploads: makeUploads(),
   localHTTPServerInfo: null,
-  errors: I.Map(),
-  tlfUpdates: I.List(),
   moveOrCopy: makeMoveOrCopy(),
+  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
+  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  tlfUpdates: I.List(),
+  tlfs: makeTlfs(),
+  uploads: makeUploads(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
-  type: 'basic',
-  iconType,
   iconColor,
+  iconType,
+  type: 'basic',
 })
 
 const makeTeamAvatarPathItemIconSpec = (teamName: string): Types.PathItemIconSpec => ({
-  type: 'teamAvatar',
   teamName,
+  type: 'teamAvatar',
 })
 
 const makeAvatarPathItemIconSpec = (username: string): Types.PathItemIconSpec => ({
@@ -379,8 +379,8 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
 
 const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
 export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
-  path,
   key: makeDownloadKey(path),
+  path,
 })
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
@@ -435,10 +435,10 @@ const _fillMetadataInFavoritesResult = (
           const last = numDevices > 1 ? devices.pop() : null
 
           return {
-            name: favoritesResult.users[userID],
             devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
               last ? ` or ${last}` : ''
             }.`,
+            name: favoritesResult.users[userID],
           }
         })
       : []
@@ -499,10 +499,10 @@ export const createFavoritesLoadedFromJSONResults = (
         reset_members,
       } = folder
       const tlf = makeTlf({
-        name: tlfToPreferredOrder(name, username),
         isFavorite: true,
         isIgnored,
         isNew,
+        name: tlfToPreferredOrder(name, username),
         needsRekey,
         resetParticipants: I.List(reset_members || []),
         teamId: team_id || '',
@@ -529,16 +529,16 @@ export const createFavoritesLoadedFromJSONResults = (
 }
 
 export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
-  path: Types.stringToPath(''),
-  writer: '',
-  serverTime: 0,
   history: I.List(),
+  path: Types.stringToPath(''),
+  serverTime: 0,
+  writer: '',
 })
 
 export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
+  editType: 'unknown',
   filename: '',
   serverTime: 0,
-  editType: 'unknown',
 })
 
 const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
@@ -566,20 +566,20 @@ export const userTlfHistoryRPCToState = (
     const tlfUpdates = folder.history
       ? folder.history.map(({writerName, edits}) =>
           makeTlfUpdate({
-            path,
-            serverTime: updateServerTime,
-            writer: writerName,
             history: I.List(
               edits
                 ? edits.map(({filename, notificationType, serverTime}) =>
                     makeTlfEdit({
+                      editType: fsNotificationTypeToEditType(notificationType),
                       filename,
                       serverTime,
-                      editType: fsNotificationTypeToEditType(notificationType),
                     })
                   )
                 : []
             ),
+            path,
+            serverTime: updateServerTime,
+            writer: writerName,
           })
         )
       : []
@@ -644,11 +644,11 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   if (name === '') return null
 
   return {
+    created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
-    private: isPrivate,
     notificationsOn: false,
-    created: false,
+    private: isPrivate,
   }
 }
 

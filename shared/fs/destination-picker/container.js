@@ -28,7 +28,7 @@ const getDestinationParentPath = memoize2((stateProps, ownProps: OwnProps) =>
 )
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onCancel: () => dispatch(FsGen.createCancelMoveOrCopy()),
+  _onBackUp: () => dispatch(putActionIfOnPath(ownProps.routePath, navigateUp())),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
     dispatch(FsGen.createCancelMoveOrCopy())
@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
-  _onBackUp: () => dispatch(putActionIfOnPath(ownProps.routePath, navigateUp())),
+  onCancel: () => dispatch(FsGen.createCancelMoveOrCopy()),
 })
 
 const canWrite = memoize2(
@@ -75,6 +75,7 @@ const canBackUp = isMobile
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   index: getIndex(ownProps),
+  onBackUp: canBackUp(stateProps, ownProps) ? dispatchProps._onBackUp : null,
   onCancel: dispatchProps.onCancel,
   onCopyHere: canCopy(stateProps, ownProps)
     ? () => dispatchProps._onCopyHere(getDestinationParentPath(stateProps, ownProps))
@@ -85,14 +86,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onNewFolder: canWrite(stateProps, ownProps)
     ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
     : null,
-  onBackUp: canBackUp(stateProps, ownProps) ? dispatchProps._onBackUp : null,
   path: getDestinationParentPath(stateProps, ownProps),
   routePath: ownProps.routePath,
-  targetName: Types.getPathName(stateProps._moveOrCopy.sourceItemPath),
   targetIconSpec: Constants.getItemStyles(
     Types.getPathElements(stateProps._moveOrCopy.sourceItemPath),
     stateProps._pathItems.get(stateProps._moveOrCopy.sourceItemPath, Constants.unknownPathItem).type
   ).iconSpec,
+  targetName: Types.getPathName(stateProps._moveOrCopy.sourceItemPath),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

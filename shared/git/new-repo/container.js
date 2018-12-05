@@ -11,9 +11,9 @@ import {getSortedTeamnames} from '../../constants/teams'
 type OwnProps = RouteProps<{isTeam: boolean}, {}>
 
 const mapStateToProps = (state, {routeProps}) => ({
-  teams: getSortedTeamnames(state),
   error: Constants.getError(state),
   isTeam: routeProps.get('isTeam'),
+  teams: getSortedTeamnames(state),
   waitingKey: Constants.loadingWaitingKey,
 })
 
@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
     const createAction =
       routeProps.get('isTeam') && teamname
-        ? GitGen.createCreateTeamRepo({teamname, name, notifyTeam})
+        ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})
         : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
   },

@@ -78,27 +78,27 @@ const stylesContainer = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexGrow,
-    width: '100%',
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: globalColors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  isElectron: {
+    marginBottom: globalMargins.medium,
+    marginTop: globalMargins.medium,
   },
   isMobile: {
     marginTop: 32,
     paddingLeft: 40,
     paddingRight: 40,
   },
-  isElectron: {
-    marginTop: globalMargins.medium,
-    marginBottom: globalMargins.medium,
-  },
 })
 
 const stylesFilename = memoize(color => ({
-  marginTop: globalMargins.small,
-  marginBottom: globalMargins.tiny,
   color: color,
+  marginBottom: globalMargins.tiny,
+  marginTop: globalMargins.small,
 }))
 
 const stylesSymlink = {

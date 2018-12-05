@@ -176,11 +176,11 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.blue,
       flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
-      minWidth: 0,
+      marginBottom: Styles.globalMargins.xsmall / 2,
       marginLeft: Styles.globalMargins.xsmall,
       marginRight: Styles.globalMargins.xsmall,
       marginTop: Styles.globalMargins.xsmall / 2,
-      marginBottom: Styles.globalMargins.xsmall / 2,
+      minWidth: 0,
       textAlign: 'left',
     },
     isAndroid: {

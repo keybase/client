@@ -272,14 +272,14 @@ const styles = styleSheetCreate({
   },
   header: {
     alignSelf: 'center',
-    marginTop: 46,
     marginBottom: 20,
+    marginTop: 46,
   },
   list: {
     marginBottom: 10,
-    maxWidth: 460,
-    ...globalStyles.flexBoxColumn,
     marginLeft: globalMargins.tiny,
+    ...globalStyles.flexBoxColumn,
+    maxWidth: 460,
   },
 })
 

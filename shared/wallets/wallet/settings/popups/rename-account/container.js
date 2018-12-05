@@ -15,6 +15,7 @@ const mapStateToProps = (state, {routeProps}) => {
   return {
     accountID,
     error: state.wallets.accountNameError,
+    initialName: selectedAccount.name,
     nameValidationState: state.wallets.accountNameValidationState,
     renameAccountError: state.wallets.createNewAccountError,
     waiting: anyWaiting(
@@ -22,7 +23,6 @@ const mapStateToProps = (state, {routeProps}) => {
       Constants.changeAccountNameWaitingKey,
       Constants.validateAccountNameWaitingKey
     ),
-    initialName: selectedAccount.name,
   }
 }
 
@@ -30,10 +30,10 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
     dispatch(WalletsGen.createChangeAccountName({accountID, name})),
   onCancel: () => dispatch(navigateUp()),
+  onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
-  onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

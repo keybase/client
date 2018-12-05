@@ -4,10 +4,10 @@ import * as Sb from '../../../stories/storybook'
 import {SecretNote, PublicMemo} from '.'
 
 const commonProps = {
-  publicMemo: '',
-  secretNote: '',
   onChangePublicMemo: Sb.action('onChangePublicMemo'),
   onChangeSecretNote: Sb.action('onChangeSecretNote'),
+  publicMemo: '',
+  secretNote: '',
 }
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Note and Memo', module)

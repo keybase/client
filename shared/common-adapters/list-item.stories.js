@@ -14,7 +14,7 @@ const load = () => {
     .add('Small with icon (desktop only)', () => (
       <ListItem
         type={'Small'}
-        icon={<Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />}
+        icon={<Box style={{backgroundColor: globalColors.black_20, height: 32, width: 32}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={actionButton}
       />
@@ -23,7 +23,7 @@ const load = () => {
       <ListItem
         type={'Small'}
         swipeToAction={true}
-        icon={<Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />}
+        icon={<Box style={{backgroundColor: globalColors.black_20, height: 32, width: 32}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={actionButton}
       />
@@ -31,7 +31,7 @@ const load = () => {
     .add('Small with text action', () => (
       <ListItem
         type={'Small'}
-        icon={<Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />}
+        icon={<Box style={{backgroundColor: globalColors.black_20, height: 32, width: 32}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={
           <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
@@ -45,7 +45,7 @@ const load = () => {
     .add('Large with Button', () => (
       <ListItem
         type={'Large'}
-        icon={<Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />}
+        icon={<Box style={{backgroundColor: globalColors.black_20, height: 48, width: 48}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         swipeToAction={true}
         action={actionButton}
@@ -54,7 +54,7 @@ const load = () => {
     .add('Large with text action', () => (
       <ListItem
         type={'Large'}
-        icon={<Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />}
+        icon={<Box style={{backgroundColor: globalColors.black_20, height: 48, width: 48}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={
           <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>

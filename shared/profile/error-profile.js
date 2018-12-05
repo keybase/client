@@ -9,7 +9,7 @@ export type Props = {|
 |}
 
 const ErrorLoadingProfile = (props: Props) => (
-  <Kb.Box style={{width: 320, flex: 1}}>
+  <Kb.Box style={{flex: 1, width: 320}}>
     <Kb.Box style={{marginTop: Styles.globalMargins.xlarge}}>
       <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
         Error loading profile: {props.error}

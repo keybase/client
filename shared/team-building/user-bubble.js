@@ -52,18 +52,25 @@ const UserBubble = (props: Props) => {
 const bubbleSize = 32
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
-
   bubble: Styles.platformStyles({
     common: {
       height: bubbleSize,
       width: bubbleSize,
     },
   }),
+
+  container: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.tiny,
+    },
+  }),
+
+  generalService: {
+    backgroundColor: 'grey',
+    borderRadius: 100,
+    height: bubbleSize,
+    width: bubbleSize,
+  },
 
   remove: Styles.platformStyles({
     common: {
@@ -76,13 +83,6 @@ const styles = Styles.styleSheetCreate({
       cursor: 'pointer',
     },
   }),
-
-  generalService: {
-    backgroundColor: 'grey',
-    borderRadius: 100,
-    height: bubbleSize,
-    width: bubbleSize,
-  },
 
   removeBubbleTextAlignCenter: {
     textAlign: 'center',

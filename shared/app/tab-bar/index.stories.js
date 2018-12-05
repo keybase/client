@@ -6,10 +6,6 @@ import {globalStyles, platformStyles} from '../../styles'
 import TabBarRender from '.'
 
 const defaultProps = {
-  isNew: {},
-  onTabClick: Sb.action('onTabClick'),
-  selectedTab: 'tabs:chatTab',
-  username: 'nathunsmitty',
   badgeNumbers: {
     'tabs:chatTab': 0,
     'tabs:devicesTab': 0,
@@ -24,6 +20,10 @@ const defaultProps = {
     'tabs:teamsTab': 0,
     'tabs:walletsTab': 0,
   },
+  isNew: {},
+  onTabClick: Sb.action('onTabClick'),
+  selectedTab: 'tabs:chatTab',
+  username: 'nathunsmitty',
 }
 
 const containerStyle = platformStyles({

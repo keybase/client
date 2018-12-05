@@ -16,6 +16,41 @@ import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
 
 export const rowsProvider = {
+  ConnectedFilesLoadingHoc: (o: any) => ({
+    ...o,
+    loadFavorites: Sb.action('loadFavorites'),
+    loadFolderList: Sb.action('loadFolderList'),
+    path: '',
+    syncingPaths: Sb.action('syncingPaths'),
+  }),
+  ConnectedOpenHOC: (ownProps: any) => ({
+    ...ownProps,
+    onOpen: Sb.action('onOpen'),
+  }),
+  ConnectedOpenInSystemFileManager: () => ({
+    installFuse: Sb.action('installFuse'),
+    kbfsEnabled: false,
+    openInSystemFileManager: Sb.action('openInSystemFileManager'),
+  }),
+  ConnectedRows: (o: any) => ({
+    destinationPickerIndex: o.destinationPickerIndex,
+    ifEmpty: o.ifEmpty,
+    items: [
+      {name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
+      {name: 'me,abc', path: Types.stringToPath('/keybase/private/me,empty'), rowType: 'still'},
+      {name: 'me,abc,def', path: Types.stringToPath('/keybase/private/me,abc,def'), rowType: 'still'},
+      {
+        name: 'me,abc,def,ghi',
+        path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+        rowType: 'still',
+      },
+      {name: 'me,def', path: Types.stringToPath('/keybase/private/me,def'), rowType: 'still'},
+      {name: 'me,def,ghi', path: Types.stringToPath('/keybase/private/me,def,ghi'), rowType: 'still'},
+      {name: 'me,ghi', path: Types.stringToPath('/keybase/private/me,ghi'), rowType: 'still'},
+      {name: 'me,abc,ghi', path: Types.stringToPath('/keybase/private/me,abc,ghi'), rowType: 'still'},
+    ],
+    routePath: I.List(),
+  }),
   ConnectedStillRow: ({
     path,
     destinationPickerIndex,
@@ -25,48 +60,13 @@ export const rowsProvider = {
   }) => {
     const pathStr = Types.pathToString(path)
     return {
+      destinationPickerIndex,
+      isEmpty: pathStr.includes('empty'),
+      itemStyles: folderItemStyles,
       name: Types.getPathName(path),
       type: 'folder',
-      itemStyles: folderItemStyles,
-      isEmpty: pathStr.includes('empty'),
-      destinationPickerIndex,
     }
   },
-  ConnectedOpenHOC: (ownProps: any) => ({
-    ...ownProps,
-    onOpen: Sb.action('onOpen'),
-  }),
-  ConnectedOpenInSystemFileManager: () => ({
-    kbfsEnabled: false,
-    openInSystemFileManager: Sb.action('openInSystemFileManager'),
-    installFuse: Sb.action('installFuse'),
-  }),
-  ConnectedRows: (o: any) => ({
-    items: [
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,empty'), name: 'me,abc'},
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
-      {
-        rowType: 'still',
-        path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
-        name: 'me,abc,def,ghi',
-      },
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
-      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
-    ],
-    routePath: I.List(),
-    ifEmpty: o.ifEmpty,
-    destinationPickerIndex: o.destinationPickerIndex,
-  }),
-  ConnectedFilesLoadingHoc: (o: any) => ({
-    ...o,
-    syncingPaths: Sb.action('syncingPaths'),
-    loadFolderList: Sb.action('loadFolderList'),
-    loadFavorites: Sb.action('loadFavorites'),
-    path: '',
-  }),
 }
 
 const provider = Sb.createPropProviderWithCommon({
@@ -332,9 +332,9 @@ const load = () =>
 
 const folderItemStyles = {
   iconSpec: {
-    type: 'basic',
-    iconType: 'icon-folder-private-32',
     iconColor: Styles.globalColors.darkBlue2,
+    iconType: 'icon-folder-private-32',
+    type: 'basic',
   },
   textColor: Styles.globalColors.black_75,
   textType: 'BodySemibold',
@@ -342,18 +342,18 @@ const folderItemStyles = {
 
 const fileItemStyles = {
   iconSpec: {
-    type: 'basic',
-    iconType: 'icon-file-private-32',
     iconColor: Styles.globalColors.darkBlue2,
+    iconType: 'icon-file-private-32',
+    type: 'basic',
   },
   textColor: Styles.globalColors.black_75,
   textType: 'Body',
 }
 
 const commonRowProps = {
+  onCancel: Sb.action('onCancel'),
   onSubmit: Sb.action('onSubmit'),
   onUpdate: Sb.action('onUpdate'),
-  onCancel: Sb.action('onCancel'),
 }
 
 export default load

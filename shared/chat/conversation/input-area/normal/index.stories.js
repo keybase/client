@@ -20,14 +20,14 @@ const provider = Sb.createPropProviderWithCommon({
     attachTo: ownProps.attachTo,
     isNew: ownProps.isNew,
     items: [
-      {text: '7 days', seconds: 0},
-      {text: '3 days', seconds: 0},
-      {text: '24 hours', seconds: 0},
-      {text: '6 hours', seconds: 0},
-      {text: '60 minutes', seconds: 0},
-      {text: '5 minutes', seconds: 0},
-      {text: '30 seconds days', seconds: 0},
-      {text: 'Never (turn off)', seconds: 0},
+      {seconds: 0, text: '7 days'},
+      {seconds: 0, text: '3 days'},
+      {seconds: 0, text: '24 hours'},
+      {seconds: 0, text: '6 hours'},
+      {seconds: 0, text: '60 minutes'},
+      {seconds: 0, text: '5 minutes'},
+      {seconds: 0, text: '30 seconds days'},
+      {seconds: 0, text: 'Never (turn off)'},
     ],
     onAfterSelect: Sb.action('onAfterSelect'),
     onHidden: ownProps.onHidden,
@@ -37,9 +37,9 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   UserMentionHud: ownProps => {
     const users = [
-      {username: 'marcopolo', fullName: 'Marco Munizaga'},
-      {username: 'trex', fullName: 'Thomas Rex'},
-      {username: 'chris', fullName: 'Chris Coyne'},
+      {fullName: 'Marco Munizaga', username: 'marcopolo'},
+      {fullName: 'Thomas Rex', username: 'trex'},
+      {fullName: 'Chris Coyne', username: 'chris'},
     ]
     return {
       ...ownProps,
@@ -80,40 +80,40 @@ const boxProps = {
 
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
+    clearInboxFilter: Sb.action('clearInboxFilter'),
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
+    editText: '',
+    explodingModeSeconds: props.explodingModeSeconds,
+    focusInputCounter: 0,
+    getUnsentText: () => {
+      Sb.action('getUnsentText')()
+      return props.isEditing ? 'some text' : ''
+    },
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
     isExplodingNew: props.isExplodingNew,
-    explodingModeSeconds: props.explodingModeSeconds,
-    focusInputCounter: 0,
-    clearInboxFilter: Sb.action('clearInboxFilter'),
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.
       Sb.action('onAttach').apply(null, paths)
     },
-    onEditLastMessage: Sb.action('onEditLastMessage'),
     onCancelEditing: Sb.action('onCancelEditing'),
+    onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onSeenExplodingMessages: Sb.action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
-    showWalletsIcon: !props.isEditing && props.typing.size <= 1,
-    typing: props.typing,
 
-    editText: '',
     quoteCounter: 0,
     quoteText: '',
-
-    getUnsentText: () => {
-      Sb.action('getUnsentText')()
-      return props.isEditing ? 'some text' : ''
-    },
-
     sendTyping: Sb.action('sendTyping'),
+
     setUnsentText: Sb.action('setUnsentText'),
+
+    showWalletsIcon: !props.isEditing && props.typing.size <= 1,
+    typing: props.typing,
   }
 
   return (

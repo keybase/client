@@ -8,25 +8,25 @@ import Errs from './errs'
 import Upload from './upload'
 
 export const footerProvider = {
-  ConnectedErrs: () => ({
-    errs: [],
+  ConnectedDownload: ({downloadKey}: {downloadKey: string}) => ({
+    cancel: Sb.action('cancel'),
+    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    dismiss: Sb.action('dismiss'),
+    filename: downloadKey,
+    isDone: false,
+    open: Sb.action('open'),
+    progressText: '42 s',
   }),
   ConnectedDownloads: () => ({
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],
-    thereAreMore: true,
     openDownloadFolder: Sb.action('openDownloadFolder'),
+    thereAreMore: true,
+  }),
+  ConnectedErrs: () => ({
+    errs: [],
   }),
   ConnectedUpload: () => ({
     files: 0,
-  }),
-  ConnectedDownload: ({downloadKey}: {downloadKey: string}) => ({
-    filename: downloadKey,
-    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
-    progressText: '42 s',
-    isDone: false,
-    open: Sb.action('open'),
-    dismiss: Sb.action('dismiss'),
-    cancel: Sb.action('cancel'),
   }),
 }
 
@@ -113,27 +113,27 @@ const load = () =>
       <Errs
         errs={[
           {
-            key: '1',
-            time: 1534362428795,
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            msg: 'Error when downloading file blah 1.jpg',
             dismiss: Sb.action('dismiss'),
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            key: '1',
+            msg: 'Error when downloading file blah 1.jpg',
+            time: 1534362428795,
           },
           {
-            key: '2',
-            time: 1534362428795,
+            dismiss: Sb.action('dismiss'),
             error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            key: '2',
             msg: 'Error when downloading file blah 2.jpg',
             retry: Sb.action('retry'),
-            dismiss: Sb.action('dismiss'),
+            time: 1534362428795,
           },
           {
-            key: '3',
-            time: 1534362428795,
+            dismiss: Sb.action('dismiss'),
             error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            key: '3',
             msg: 'Error when downloading file blah 99.jpg',
             retry: Sb.action('retry'),
-            dismiss: Sb.action('dismiss'),
+            time: 1534362428795,
           },
         ]}
         more={2}
@@ -144,9 +144,9 @@ const load = () =>
     ))
 
 const downloadCommonActions = {
-  open: Sb.action('open'),
-  dismiss: Sb.action('dismiss'),
   cancel: Sb.action('cancel'),
+  dismiss: Sb.action('dismiss'),
+  open: Sb.action('open'),
 }
 
 export default load

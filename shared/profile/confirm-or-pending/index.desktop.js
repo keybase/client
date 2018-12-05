@@ -15,10 +15,10 @@ const Render = (props: Props) => {
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: titleColor,
           height: globalMargins.large,
+          justifyContent: 'center',
         }}
       >
         <Text backgroundMode="Success" type="BodySemibold">
@@ -39,7 +39,7 @@ const Render = (props: Props) => {
             {usernameSubtitle}
           </Text>
         )}
-        <Text type="Body" style={{marginTop: globalMargins.large, textAlign: 'center', maxWidth: 560}}>
+        <Text type="Body" style={{marginTop: globalMargins.large, maxWidth: 560, textAlign: 'center'}}>
           {message}
         </Text>
         {!!messageSubtitle && (

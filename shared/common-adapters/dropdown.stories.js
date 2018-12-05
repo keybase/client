@@ -110,14 +110,11 @@ const styles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.flexBoxCenter,
     ...Styles.globalStyles.flexBoxColumn,
-    width: '100%',
-    height: '100%',
+    borderColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-  },
-  space: {
-    height: 200,
+    height: '100%',
+    width: '100%',
   },
   dropdown: {
     marginTop: Styles.globalMargins.small,
@@ -125,6 +122,9 @@ const styles = Styles.styleSheetCreate({
   dropdownPositions: {
     marginTop: Styles.globalMargins.small,
     width: 200,
+  },
+  space: {
+    height: 200,
   },
 })
 

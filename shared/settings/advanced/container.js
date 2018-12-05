@@ -15,8 +15,8 @@ import {connect, lifecycle} from '../../util/container'
 
 type OwnProps = {||}
 const mapStateToProps = state => ({
-  openAtLogin: state.config.openAtLogin,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
+  openAtLogin: state.config.openAtLogin,
   processorProfileInProgress: Constants.processorProfileInProgress(state),
   traceInProgress: Constants.traceInProgress(state),
 })

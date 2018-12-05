@@ -48,7 +48,7 @@ class SectionList extends React.Component<Props, State> {
 
   _makeItems = () => {
     return this.props.sections.reduce((arr, section, sectionIndex) => {
-      arr.push({sectionIndex, key: section.key || sectionIndex, type: 'header'})
+      arr.push({key: section.key || sectionIndex, sectionIndex, type: 'header'})
       section.data.length && arr.push(...section.data.map(item => ({item, sectionIndex, type: 'body'})))
       return arr
     }, [])

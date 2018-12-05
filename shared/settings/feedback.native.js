@@ -39,7 +39,7 @@ class Feedback extends Component<Props> {
 
   _onSubmit = () => {
     NativeKeyboard.dismiss()
-    this._scroll && this._scroll.scrollTo({x: 0, y: 0, animated: true})
+    this._scroll && this._scroll.scrollTo({animated: true, x: 0, y: 0})
     this.props.onSendFeedbackContained()
   }
 
@@ -50,7 +50,7 @@ class Feedback extends Component<Props> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.sendError && this.props.sendError !== prevProps.sendError && this._scroll) {
       // Scroll down so that the user sees the error.
-      this._scroll && this._scroll.scrollTo({x: 0, y: 300, animated: true})
+      this._scroll && this._scroll.scrollTo({animated: true, x: 0, y: 300})
     }
   }
 
@@ -69,14 +69,14 @@ class Feedback extends Component<Props> {
       <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
         <Box
           style={{
-            flex: 0,
+            alignItems: 'center',
             ...globalStyles.flexBoxRow,
             backgroundColor: globalColors.green,
-            alignItems: 'center',
+            flex: 0,
             minHeight: 40,
+            opacity: showSuccessBanner ? 1 : 0,
             paddingBottom: globalMargins.tiny,
             paddingTop: globalMargins.tiny,
-            opacity: showSuccessBanner ? 1 : 0,
           }}
         >
           <Text type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1, textAlign: 'center'}}>
@@ -86,8 +86,8 @@ class Feedback extends Component<Props> {
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
-            flex: 1,
             alignItems: 'stretch',
+            flex: 1,
             justifyContent: 'flex-start',
             marginLeft: globalMargins.small,
             marginRight: globalMargins.small,
@@ -101,8 +101,8 @@ class Feedback extends Component<Props> {
             style={{
               flex: 1,
               ...globalStyles.flexBoxRow,
-              paddingTop: globalMargins.medium,
               paddingBottom: globalMargins.small,
+              paddingTop: globalMargins.medium,
             }}
           >
             <Input
@@ -141,15 +141,15 @@ class Feedback extends Component<Props> {
           {sendError && (
             <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.small}}>
               <Text type="BodySmallError">Could not send log</Text>
-              <Text type="BodySmall" selectable={true} style={{marginTop: 10, marginBottom: 10}}>{`${
+              <Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>{`${
                 sendError.name
               }: ${sendError.message}`}</Text>
               <Text type="BodySmallSemibold">Stack</Text>
-              <Text type="BodySmall" selectable={true} style={{marginTop: 10, marginBottom: 10}}>
+              <Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
                 {sendError.stack}
               </Text>
               <Text type="BodySmallSemibold">Error dump</Text>
-              <Text type="BodySmall" selectable={true} style={{marginTop: 10, marginBottom: 10}}>
+              <Text type="BodySmall" selectable={true} style={{marginBottom: 10, marginTop: 10}}>
                 {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
               </Text>
             </Box>

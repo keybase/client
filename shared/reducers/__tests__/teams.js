@@ -22,9 +22,9 @@ describe('teams reducer', () => {
     })
 
     const setAction = TeamsGen.createSetTeamChannelInfo({
-      teamname,
-      conversationIDKey,
       channelInfo,
+      conversationIDKey,
+      teamname,
     })
 
     const state1 = reducer(initialState, setAction)

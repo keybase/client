@@ -79,9 +79,9 @@ const stylesIconFolderType = {
 }
 
 const stylesIconArrow = {
+  alignSelf: 'flex-end',
   paddingLeft: 2,
   paddingRight: 2,
-  alignSelf: 'flex-end',
 }
 
 export default StaticBreadcrumb

@@ -23,8 +23,8 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
     .map(([key, download]) => key)
   return ({
     downloadKeys: downloadKeys.slice(0, maxNumCards),
-    thereAreMore: downloadKeys.length > maxNumCards,
     openDownloadFolder,
+    thereAreMore: downloadKeys.length > maxNumCards,
   }: DownloadsProps)
 }
 

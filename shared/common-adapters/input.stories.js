@@ -37,11 +37,11 @@ class TestInput extends React.Component<TestInputProps> {
         const newText = text.slice(0, selection.start) + textToInsert + text.slice(selection.end)
         const pos = selection.start + textToInsert.length
         return {
-          text: newText,
           selection: {
-            start: pos,
             end: pos,
+            start: pos,
           },
+          text: newText,
         }
       })
     }

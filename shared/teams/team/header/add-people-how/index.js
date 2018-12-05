@@ -13,8 +13,8 @@ type Props = {
 
 const AddPeopleHow = (props: Props) => {
   const items = [
-    {title: 'By username', subTitle: 'Keybase, Twitter, etc.', onClick: props.onAddPeople},
-    {title: isMobile ? 'From address book' : 'By email', onClick: props.onInvite, style: {borderTopWidth: 0}},
+    {onClick: props.onAddPeople, subTitle: 'Keybase, Twitter, etc.', title: 'By username'},
+    {onClick: props.onInvite, style: {borderTopWidth: 0}, title: isMobile ? 'From address book' : 'By email'},
   ]
 
   return (

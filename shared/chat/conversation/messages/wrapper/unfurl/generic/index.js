@@ -75,6 +75,15 @@ class UnfurlGeneric extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  bottomImage: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
+  closeBox: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'flex-start',
+      marginLeft: 'auto',
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -86,11 +95,11 @@ const styles = Styles.styleSheetCreate({
       paddingRight: 66,
     },
   }),
-  quoteContainer: Styles.platformStyles({
+  favicon: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.lightGrey,
-      paddingLeft: Styles.globalMargins.xtiny,
-      alignSelf: 'stretch',
+      borderRadius: Styles.borderRadius,
+      height: 16,
+      width: 16,
     },
   }),
   innerContainer: Styles.platformStyles({
@@ -99,10 +108,23 @@ const styles = Styles.styleSheetCreate({
       minWidth: 150,
     },
     isMobile: {
-      borderWidth: 1,
-      borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
+      borderRadius: Styles.borderRadius,
+      borderWidth: 1,
       padding: Styles.globalMargins.tiny,
+    },
+  }),
+  quoteContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'stretch',
+      backgroundColor: Styles.globalColors.lightGrey,
+      paddingLeft: Styles.globalMargins.xtiny,
+    },
+  }),
+  sideImage: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 80,
+      maxWidth: 80,
     },
   }),
   siteNameContainer: Styles.platformStyles({
@@ -111,31 +133,9 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'space-between',
     },
   }),
-  closeBox: Styles.platformStyles({
-    isElectron: {
-      marginLeft: 'auto',
-      alignSelf: 'flex-start',
-    },
-  }),
-  bottomImage: {
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  sideImage: Styles.platformStyles({
-    isElectron: {
-      maxWidth: 80,
-      maxHeight: 80,
-    },
-  }),
   url: {
     ...Styles.globalStyles.fontSemibold,
   },
-  favicon: Styles.platformStyles({
-    common: {
-      width: 16,
-      height: 16,
-      borderRadius: Styles.borderRadius,
-    },
-  }),
 })
 
 export default UnfurlGeneric

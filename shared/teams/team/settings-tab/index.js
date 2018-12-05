@@ -325,6 +325,6 @@ export class Settings extends React.Component<Props, State> {
 const stylesPublicitySettingsBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
-  paddingTop: globalMargins.small,
   paddingRight: globalMargins.small,
+  paddingTop: globalMargins.small,
 }

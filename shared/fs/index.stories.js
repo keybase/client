@@ -19,6 +19,53 @@ const provider = Sb.createPropProviderWithCommon({
   ...rowsProvider,
   ...commonProvider,
   ...footerProvider,
+  Banner: ({path}: {path: Types.Path}) => ({
+    path,
+    shouldShowReset: Types.pathToString(path).includes('reset'),
+  }),
+  ConnectedAddNew: () => ({
+    menuItems: [],
+    pathElements: [],
+    style: {},
+  }),
+  ConnectedBreadcrumb: ({path}) =>
+    makeBreadcrumbProps('meatball', path => Sb.action(`navigate to ${Types.pathToString(path)}`), path),
+  FilePreviewDefaultView: () => ({
+    fileUIEnabled: false,
+    itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
+    onDownload: () => {},
+    onSave: () => {},
+    onShare: () => {},
+    onShowInSystemFileManager: () => {},
+    pathItem: Constants.makeFile({
+      lastWriter: {uid: '', username: 'foo'},
+      name: 'bar.jpg',
+      size: 10240,
+    }),
+  }),
+  FilePreviewHeader: () => ({
+    loadFilePreview: () => {},
+    onAction: () => {},
+    onBack: () => {},
+    onShowInSystemFileManager: () => {},
+    path: '/keybase/private/foo/bar.jpg',
+    pathItem: Constants.makeFile({
+      lastWriter: {uid: '', username: 'foo'},
+      name: 'bar.jpg',
+      size: 10240,
+    }),
+  }),
+  FilesBanner: () => ({
+    getFuseStatus: Sb.action('getFuseStatus'),
+    inProgress: false,
+    kbfsEnabled: true,
+    onDismiss: Sb.action('onDismiss'),
+    onInstall: Sb.action('onInstall'),
+    onUninstall: Sb.action('onUninstall'),
+    path: Types.stringToPath('/keybase'),
+    showBanner: false,
+    showSecurityPrefs: false,
+  }),
   FolderHeader: () => ({
     breadcrumbItems: [
       {
@@ -28,90 +75,43 @@ const provider = Sb.createPropProviderWithCommon({
     ],
     dropdownItems: [],
     isTeamPath: false,
-    path: Types.stringToPath('/keybase'),
     onBack: Sb.action('onBack'),
     onOpenBreadcrumb: Sb.action('onOpenBreadcrumb'),
     onOpenBreadcrumbDropdown: Sb.action('onOpenBreadcrumbDropdown'),
+    path: Types.stringToPath('/keybase'),
   }),
-  ConnectedBreadcrumb: ({path}) =>
-    makeBreadcrumbProps('meatball', path => Sb.action(`navigate to ${Types.pathToString(path)}`), path),
+  ResetBanner: ({path}: {path: Types.Path}) => ({
+    isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
+    onReAddToTeam: () => () => undefined,
+    onViewProfile: () => () => undefined,
+    resetParticipants: ['reset1', 'reset2', 'reset3'],
+  }),
   SortBar: ({path}: {path: Types.Path}) => ({
+    folderIsPending: true,
     sortSetting: {
       sortBy: 'name',
       sortOrder: 'asc',
     },
-    folderIsPending: true,
     sortSettingToAction: sortSetting => Sb.action(`sortSettingToAction${sortSetting}`),
   }),
-  FilesBanner: () => ({
-    path: Types.stringToPath('/keybase'),
-    kbfsEnabled: true,
-    showBanner: false,
-    inProgress: false,
-    showSecurityPrefs: false,
-    getFuseStatus: Sb.action('getFuseStatus'),
-    onDismiss: Sb.action('onDismiss'),
-    onInstall: Sb.action('onInstall'),
-    onUninstall: Sb.action('onUninstall'),
-  }),
-  FilePreviewDefaultView: () => ({
-    fileUIEnabled: false,
-    pathItem: Constants.makeFile({
-      name: 'bar.jpg',
-      size: 10240,
-      lastWriter: {uid: '', username: 'foo'},
-    }),
-    itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
-    onDownload: () => {},
-    onShowInSystemFileManager: () => {},
-    onShare: () => {},
-    onSave: () => {},
-  }),
-  FilePreviewHeader: () => ({
-    pathItem: Constants.makeFile({
-      name: 'bar.jpg',
-      size: 10240,
-      lastWriter: {uid: '', username: 'foo'},
-    }),
-    onAction: () => {},
-    onBack: () => {},
-    onShowInSystemFileManager: () => {},
-    loadFilePreview: () => {},
-    path: '/keybase/private/foo/bar.jpg',
-  }),
   ViewContainer: () => ({
-    url: '/keybase/private/foo/bar.jpg',
-    mimeType: Constants.makeMime({mimeType: 'image/jpeg'}),
     isSymlink: false,
-    path: '/keybase/private/foo/bar.jpg',
-    onInvalidToken: Sb.action('onInvalidToken'),
     loadMimeType: Sb.action('loadMimeType'),
-  }),
-  ResetBanner: ({path}: {path: Types.Path}) => ({
-    isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
-    resetParticipants: ['reset1', 'reset2', 'reset3'],
-    onReAddToTeam: () => () => undefined,
-    onViewProfile: () => () => undefined,
-  }),
-  Banner: ({path}: {path: Types.Path}) => ({
-    path,
-    shouldShowReset: Types.pathToString(path).includes('reset'),
-  }),
-  ConnectedAddNew: () => ({
-    pathElements: [],
-    style: {},
-    menuItems: [],
+    mimeType: Constants.makeMime({mimeType: 'image/jpeg'}),
+    onInvalidToken: Sb.action('onInvalidToken'),
+    path: '/keybase/private/foo/bar.jpg',
+    url: '/keybase/private/foo/bar.jpg',
   }),
 })
 
 const breadcrumbProps = (names: Array<string>) => {
   const items = names.map((name, idx) => ({
-    isTeamTlf: idx === 2 && names[idx - 1] === 'team',
-    isLastItem: idx === names.length - 1,
-    name: name,
-    path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
     iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
+    isLastItem: idx === names.length - 1,
+    isTeamTlf: idx === 2 && names[idx - 1] === 'team',
+    name: name,
     onClick: Sb.action('onClick'),
+    path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
   }))
   return items.length > 3
     ? {

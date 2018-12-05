@@ -64,7 +64,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   return {
     arrowColor,
+    fullPath: message.fileURL,
+    hasProgress,
     height: message.previewHeight,
+    inlineVideoPlayable: message.inlineVideoPlayable,
     message,
     onClick: () => dispatchProps._onClick(message),
     onDoubleClick: () => dispatchProps._onDoubleClick(message),
@@ -77,16 +80,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
           }
         : null,
     path: message.previewURL,
-    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
-    videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: message.inlineVideoPlayable,
     title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
+    videoDuration: message.videoDuration || '',
     width: Math.min(message.previewWidth, imgMaxWidth()),
-    hasProgress,
   }
 }
 

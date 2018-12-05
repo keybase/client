@@ -69,11 +69,11 @@ class AggregateLoggerImpl implements AggregateLogger {
     this._debug = debug
 
     this._allLoggers = {
-      Error: error,
-      Warn: warn,
-      Info: info,
       Action: action,
       Debug: debug,
+      Error: error,
+      Info: info,
+      Warn: warn,
     }
 
     this.error = error.log

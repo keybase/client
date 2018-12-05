@@ -50,7 +50,7 @@ const words = ['At', 'Et', 'Itaque', 'Nam', 'Nemo', 'Quis', 'Sed', 'Temporibus',
 // messagesThreshold number of consecutive messages with the same timestamp
 const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
   const r = new Sb.Rnd(1337)
-  const origin = {year: 2018, month: 0, day: 0}
+  const origin = {day: 0, month: 0, year: 2018}
 
   let messagesThreshold: number = 0
   let generatedCount: number = 0
@@ -124,6 +124,11 @@ const provider = Sb.createPropProviderWithCommon({
   ...ReactButtonProvider,
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,
+  BottomMessage: p => ({
+    measure: null,
+    showResetParticipants: null,
+    showSuperseded: null,
+  }),
   Channel: p => ({name: p.name}),
   ExplodingMeta: (p: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
     // no exploding messages here
@@ -134,19 +139,6 @@ const provider = Sb.createPropProviderWithCommon({
     pending: false,
   }),
   Mention: p => ({username: p.username}),
-  BottomMessage: p => ({
-    showResetParticipants: null,
-    showSuperseded: null,
-    measure: null,
-  }),
-  TopMessage: p => ({
-    conversationIDKey,
-    hasOlderResetConversation: false,
-    showRetentionNotice: false,
-    loadMoreType: 'moreToLoad',
-    showTeamOffer: false,
-    measure: p.measure,
-  }),
   MessagePopupText: p => ({
     attachTo: null,
     author: 'a',
@@ -177,6 +169,14 @@ const provider = Sb.createPropProviderWithCommon({
       type: p.message.errorReason ? 'error' : p.message.submitState === null ? 'sent' : 'pending',
     }
   },
+  TopMessage: p => ({
+    conversationIDKey,
+    hasOlderResetConversation: false,
+    loadMoreType: 'moreToLoad',
+    measure: p.measure,
+    showRetentionNotice: false,
+    showTeamOffer: false,
+  }),
   WrapperMessage: p => {
     const message = ordinalToMessage(p.ordinal)
     const previous = ordinalToMessage(p.previous)

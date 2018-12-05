@@ -22,11 +22,11 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
-      height: 40,
       alignItems: 'center',
+      backgroundColor: selected && !isMobile ? globalColors.blue4 : undefined,
+      height: 40,
       paddingLeft: globalMargins.tiny,
       paddingRight: globalMargins.tiny,
-      backgroundColor: selected && !isMobile ? globalColors.blue4 : undefined,
     }}
     onClick={onClick}
     onMouseOver={onHover}

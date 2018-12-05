@@ -13,17 +13,17 @@ function Banner({error, style}: Props) {
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          minHeight: 40,
           backgroundColor: globalColors.red,
-          position: 'absolute',
-          top: 0,
           left: 0,
+          minHeight: 40,
+          position: 'absolute',
           right: 0,
+          top: 0,
         }}
       >
         <Text
           type="BodySmallSemibold"
-          style={{alignSelf: 'center', textAlign: 'center', flex: 1}}
+          style={{alignSelf: 'center', flex: 1, textAlign: 'center'}}
           backgroundMode="HighRisk"
         >
           {error.message}

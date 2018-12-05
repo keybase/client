@@ -19,8 +19,8 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   const publicityTeam = publicitySettings.team
   const settings = Constants.getTeamSettings(state, teamname)
   return {
-    isBigTeam: Constants.isBigTeam(state, teamname),
     ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
+    isBigTeam: Constants.isBigTeam(state, teamname),
     openTeam: settings.open,
     // TODO this is really a maybe team rolettype
     openTeamRole: ((Constants.teamRoleByEnum[settings.joinAs]: any): Types.TeamRoleType),
@@ -35,21 +35,21 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
 
 const mapDispatchToProps = dispatch => ({
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
-    dispatch(TeamsGen.createSetPublicity({teamname, settings})),
+    dispatch(TeamsGen.createSetPublicity({settings, teamname})),
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: RetentionPolicy) =>
-    dispatch(TeamsGen.createSaveTeamRetentionPolicy({teamname, policy})),
+    dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname})),
   _showRetentionWarning: (days: number, onConfirm: () => void, entityType: 'big team' | 'small team') =>
-    dispatch(navigateAppend([{selected: 'retentionWarning', props: {days, onConfirm, entityType}}])),
+    dispatch(navigateAppend([{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}])),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([
         {
           props: {
-            onComplete: setNewOpenTeamRole,
-            selectedRole: newOpenTeamRole,
-            allowOwner: false,
             allowAdmin: false,
+            allowOwner: false,
+            onComplete: setNewOpenTeamRole,
             pluralizeRoleName: true,
+            selectedRole: newOpenTeamRole,
           },
           selected: 'controlledRolePicker',
         },

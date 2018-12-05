@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
         if (isMobile) {
           dispatch(createShowUserProfile({username}))
         } else {
-          dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
+          dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
         }
       },
 })

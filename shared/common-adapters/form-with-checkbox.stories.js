@@ -12,8 +12,8 @@ const commonCheckboxProps: CheckboxProps = {
 
 const commonInputProps: InputProps = {
   onBlur: action('onBlur'),
-  onClick: action('onClick'),
   onChangeText: action('onChangeText'),
+  onClick: action('onClick'),
   onEnterKeyDown: action('onEnterKeyDown'),
   onFocus: action('onFocus'),
   onKeyDown: action('onKeyDown'),

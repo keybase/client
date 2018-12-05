@@ -259,26 +259,42 @@ const styles = Styles.styleSheetCreate({
   avatar: {
     marginRight: 8,
   },
-  keybaseUserRemoveButton: {
-    flex: 1,
-    textAlign: 'right',
-    marginRight: Styles.globalMargins.tiny, // consistent with UserInput
+  colorBlack20: {
+    color: Styles.globalColors.black_20,
   },
-  toKeybaseUser: {
-    height: 48,
-  },
-  toKeybaseUserNameWithIcon: {
-    flexGrow: 1,
-  },
+  createNewAccountButton: Styles.platformStyles({
+    isElectron: {
+      width: 194,
+    },
+  }),
+  dropdown: Styles.platformStyles({
+    isMobile: {height: 32},
+  }),
 
   // ToStellarPublicKey
-  toStellarPublicKey: {
-    alignItems: 'flex-start',
-    minHeight: 52,
-  },
+  dropdownSelectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 32},
+  }),
+  errorText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.red,
+      width: '100%',
+    },
+    isElectron: {
+      wordWrap: 'break-word',
+    },
+  }),
   heading: {
     alignSelf: 'flex-start',
   },
+  input: Styles.platformStyles({
+    common: {
+      padding: 0,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xtiny,
+    },
+  }),
   inputBox: Styles.platformStyles({isElectron: {flexGrow: 1}, isMobile: {flex: 1}}),
   inputInner: Styles.platformStyles({
     common: {
@@ -290,14 +306,11 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 0,
     },
   }),
-  input: Styles.platformStyles({
-    common: {
-      padding: 0,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.xtiny,
-    },
-  }),
+  keybaseUserRemoveButton: {
+    flex: 1,
+    marginRight: Styles.globalMargins.tiny,
+    textAlign: 'right', // consistent with UserInput
+  },
   placeholderContainer: Styles.platformStyles({
     common: {
       display: 'flex',
@@ -308,29 +321,13 @@ const styles = Styles.styleSheetCreate({
       cursor: 'text',
     },
   }),
-  publicKeyInputContainer: {flexShrink: 1, flexGrow: 1},
-  errorText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.red,
-      width: '100%',
-    },
-    isElectron: {
-      wordWrap: 'break-word',
-    },
-  }),
 
   // ToOtherAccount
-  createNewAccountButton: Styles.platformStyles({
-    isElectron: {
-      width: 194,
-    },
-  }),
-  dropdownSelectedBox: Styles.platformStyles({
-    isMobile: {minHeight: 32},
-  }),
-  dropdown: Styles.platformStyles({
-    isMobile: {height: 32},
-  }),
+  publicKeyInputContainer: {flexGrow: 1, flexShrink: 1},
+  qrCode: {
+    marginRight: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
   toAccountRow: Styles.platformStyles({
     isMobile: {
       height: 40,
@@ -338,13 +335,16 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 4,
     },
   }),
-
-  colorBlack20: {
-    color: Styles.globalColors.black_20,
+  toKeybaseUser: {
+    height: 48,
   },
-  qrCode: {
-    marginRight: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+
+  toKeybaseUserNameWithIcon: {
+    flexGrow: 1,
+  },
+  toStellarPublicKey: {
+    alignItems: 'flex-start',
+    minHeight: 52,
   },
 })
 

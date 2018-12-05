@@ -10,6 +10,10 @@ import type {TypedState} from '../constants/reducer'
 const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
   engine().setIncomingCallMap({
+    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}) => {
+      const filteredOOBM = (oobm || []).filter(Boolean)
+      return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
+    },
     'keybase.1.gregorUI.pushState': ({reason, state}) => {
       const items = state.items || []
 
@@ -22,10 +26,6 @@ const setupEngineListeners = () => {
         logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
       return Saga.put(GregorGen.createPushState({reason, state: goodState}))
-    },
-    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}) => {
-      const filteredOOBM = (oobm || []).filter(Boolean)
-      return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
     },
     'keybase.1.reachability.reachabilityChanged': ({reachability}) =>
       Saga.call(function*() {

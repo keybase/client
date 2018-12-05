@@ -38,9 +38,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'flex-end',
       backgroundColor: Styles.globalColors.purple,
+      flexShrink: 0,
       justifyContent: 'center',
       position: 'relative',
-      flexShrink: 0,
     },
     isElectron: {
       borderTopLeftRadius: 4,

@@ -27,14 +27,14 @@ type FallbackProps = {
 }
 
 const detailHeaderStyle = {
-  marginTop: 20,
   marginBottom: 10,
+  marginTop: 20,
 }
 
 const detailContainerStyle = {
   maxHeight: 100,
-  padding: 10,
   minWidth: '75%',
+  padding: 10,
 }
 
 const detailStyle = platformStyles({
@@ -45,7 +45,7 @@ const detailStyle = platformStyles({
 
 const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: FallbackProps) => {
   return (
-    <ScrollView style={{width: '100%', height: '100%', padding: globalMargins.medium, position: 'relative'}}>
+    <ScrollView style={{height: '100%', padding: globalMargins.medium, position: 'relative', width: '100%'}}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
         <Text type="Header">Something went wrong...</Text>
         <Text type="Body" style={{marginBottom: 10, marginTop: 10}}>
@@ -92,7 +92,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
       {closeOnClick && (
         <Icon
           type="iconfont-close"
-          style={{position: 'absolute', top: globalMargins.tiny, right: globalMargins.tiny}}
+          style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.tiny}}
           onClick={closeOnClick}
         />
       )}
@@ -120,10 +120,10 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     const allInfo: AllErrorInfo = {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
       componentStack: info.componentStack,
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
     }
     logger.error('Got boundary error:', allInfo)
     this.setState({info: allInfo})

@@ -85,19 +85,19 @@ export class EngineChannel {
 type RpcRunResult = any
 
 // If a sub saga returns bail early, then the rpc will bail early
-const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
+const BailedEarly = {payload: undefined, type: '@@engineRPCCall:bailedEarly'}
 
-const rpcResult = (args: any) => ({type: '@@engineRPCCall:respondResult', payload: args})
-const rpcError = (args: any) => ({type: '@@engineRPCCall:respondError', payload: args})
-const rpcCancel = (args: any) => ({type: '@@engineRPCCall:respondCancel', payload: args})
+const rpcResult = (args: any) => ({payload: args, type: '@@engineRPCCall:respondResult'})
+const rpcError = (args: any) => ({payload: args, type: '@@engineRPCCall:respondError'})
+const rpcCancel = (args: any) => ({payload: args, type: '@@engineRPCCall:respondCancel'})
 
-const _subSagaFinished = (args: any) => ({type: '@@engineRPCCall:subSagaFinished', payload: args})
+const _subSagaFinished = (args: any) => ({payload: args, type: '@@engineRPCCall:subSagaFinished'})
 
 const _isResult = ({type} = {}) => type === '@@engineRPCCall:respondResult'
 const _isError = ({type} = {}) => type === '@@engineRPCCall:respondError'
 const _isCancel = ({type} = {}) => type === '@@engineRPCCall:respondCancel'
 
-const finished = ({error, params}) => ({type: '@@engineRPCCall:finished', payload: {error, params}})
+const finished = ({error, params}) => ({payload: {error, params}, type: '@@engineRPCCall:finished'})
 const isFinished = (a: any) => a.type === '@@engineRPCCall:finished'
 
 function _sagaWaitingDecorator(rpcNameKey, saga, waitingAction) {
@@ -233,8 +233,8 @@ class EngineRpcCall {
         // We also want to check to see if the last task tells us to bail early
         const incoming = yield Saga.call([this._engineChannel, this._engineChannel.race], {
           // If we have a task currently running, we don't want to race with the timeout
-          timeout: subSagaTasks.filter(t => t.isRunning()).length ? undefined : timeout,
           racers: {subSagaFinished: Saga.take(this._subSagaChannel)},
+          timeout: subSagaTasks.filter(t => t.isRunning()).length ? undefined : timeout,
         })
 
         if (incoming.timeout) {

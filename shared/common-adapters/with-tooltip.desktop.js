@@ -71,9 +71,9 @@ const styles = Styles.styleSheetCreate({
     borderRadius: Styles.borderRadius,
   },
   containerMultiline: {
-    width: 320,
-    minWidth: 320,
     maxWidth: 320,
+    minWidth: 320,
+    width: 320,
   },
   text: Styles.platformStyles({
     isElectron: {

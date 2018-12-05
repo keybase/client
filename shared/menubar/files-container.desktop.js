@@ -17,8 +17,8 @@ type State = {|
 |}
 
 const mapStateToProps = (state: State) => ({
-  _username: state.username,
   _userTlfUpdates: state.fileRows,
+  _username: state.username,
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -35,21 +35,21 @@ const mergeProps = (stateProps, dispatchProps) => ({
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     const tlfType = FsTypes.getPathVisibility(c.tlf) || 'private'
     return {
+      iconSpec,
       onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
-      tlf,
       // Default to private visibility--this should never happen though.
-      tlfType,
-      writer: c.writer,
       participants: participants || [],
       teamname: teamname || '',
-      iconSpec,
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
+      tlf,
+      tlfType,
       updates: c.updates.map(({path, uploading}) => ({
-        tlfType,
         name: FsTypes.getPathName(path),
-        uploading,
         onClick: () => dispatchProps._onSelectPath(path, 'file'),
+        tlfType,
+        uploading,
       })),
+      writer: c.writer,
     }
   }),
 })

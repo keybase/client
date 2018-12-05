@@ -89,8 +89,6 @@ const onChangeSelectedSearchResultHoc: any = compose(
           }
         }
       },
-      onMoveSelectUp: ({onMove}) => () => onMove('up'),
-      onMoveSelectDown: ({onMove}) => () => onMove('down'),
       onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
         lastSearchTerm = nextText
         props.onChangeSearchText && props.onChangeSearchText(nextText)
@@ -102,6 +100,8 @@ const onChangeSelectedSearchResultHoc: any = compose(
           props._searchDebounced(nextText, props.selectedService)
         }
       },
+      onMoveSelectDown: ({onMove}) => () => onMove('down'),
+      onMoveSelectUp: ({onMove}) => () => onMove('up'),
     }
   })
 )

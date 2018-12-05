@@ -67,8 +67,8 @@ class PlainInput extends Component<InternalProps, State> {
       throw new Error(errMsg)
     }
     const currentTextInfo = {
+      selection: this._lastNativeSelection || {end: 0, start: 0},
       text: this._lastNativeText || '',
-      selection: this._lastNativeSelection || {start: 0, end: 0},
     }
     const newTextInfo = fn(currentTextInfo)
     checkTextInfo(newTextInfo)
@@ -77,7 +77,7 @@ class PlainInput extends Component<InternalProps, State> {
     this._setSelection(newTextInfo.selection)
   }
 
-  getSelection = () => this._lastNativeSelection || {start: 0, end: 0}
+  getSelection = () => this._lastNativeSelection || {end: 0, start: 0}
 
   setSelection = (s: Selection) => {
     if (!this._controlled()) {
@@ -96,7 +96,7 @@ class PlainInput extends Component<InternalProps, State> {
       const text = this._lastNativeText || '' // TODO write a good internal getValue fcn for this
       end = Math.max(0, Math.min(end, text.length))
       start = Math.min(start, end)
-      const newSelection = {start, end}
+      const newSelection = {end, start}
       this.setNativeProps({selection: newSelection})
       this._lastNativeSelection = selection
     }, 0)
@@ -119,7 +119,7 @@ class PlainInput extends Component<InternalProps, State> {
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
-    this._lastNativeSelection = {start, end}
+    this._lastNativeSelection = {end, start}
   }
 
   _onContentSizeChange = (event: ContentSizeChangeEvent) => {
@@ -187,7 +187,7 @@ class PlainInput extends Component<InternalProps, State> {
 
   _getSinglelineStyle = () => {
     const lineHeight = this._lineHeight()
-    return collapseStyles([styles.singleline, {minHeight: lineHeight, maxHeight: lineHeight}])
+    return collapseStyles([styles.singleline, {maxHeight: lineHeight, minHeight: lineHeight}])
   }
 
   _getStyle = () => {
@@ -242,7 +242,7 @@ class PlainInput extends Component<InternalProps, State> {
 }
 
 const styles = styleSheetCreate({
-  common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},
+  common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
   multiline: {
     height: undefined,
     // TODO: Maybe remove these paddings?

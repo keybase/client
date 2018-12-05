@@ -4,11 +4,11 @@ import {globalColors} from '../../styles'
 import {type TeamRoleType} from '../../constants/types/teams'
 
 export const roleDescMap = {
-  reader: 'Can write in chats but read only in folders.',
-  writer: 'Can create channels, and write and read in chats and folders.',
   admin:
     'Can manage team member roles, create subteams and channels, and write and read in chats and folders.',
   owner: 'Gets all the admin rights + can delete team. (A team can have multiple owners.)',
+  reader: 'Can write in chats but read only in folders.',
+  writer: 'Can create channels, and write and read in chats and folders.',
 }
 
 export const roleIconMap = {
@@ -34,27 +34,27 @@ const permissions = [
 ]
 
 const rwPermissions = {
-  owner: ['Write and read in chats and folders'],
   admin: ['Write and read in chats and folders'],
-  writer: ['Write and read in chats and folders'],
+  owner: ['Write and read in chats and folders'],
   reader: ['Write and read in chats', 'Read in folders'],
+  writer: ['Write and read in chats and folders'],
 }
 
 export const permissionMap: {[TeamRoleType]: {can: string[], cannot: string[]}} = {
-  owner: {
-    can: [...rwPermissions['owner'], ...permissions],
-    cannot: [],
-  },
   admin: {
     can: [...rwPermissions['admin'], ...permissions.slice(0, 4)],
     cannot: [permissions[4]],
   },
-  writer: {
-    can: [...rwPermissions['writer'], permissions[0]],
-    cannot: permissions.slice(1, 5),
+  owner: {
+    can: [...rwPermissions['owner'], ...permissions],
+    cannot: [],
   },
   reader: {
     can: rwPermissions['reader'],
     cannot: permissions,
+  },
+  writer: {
+    can: [...rwPermissions['writer'], permissions[0]],
+    cannot: permissions.slice(1, 5),
   },
 }

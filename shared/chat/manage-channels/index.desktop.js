@@ -18,10 +18,10 @@ import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} fr
 import type {Props, RowProps} from './index.types'
 
 const HoverBox = glamorous(Box)({
-  opacity: 0,
   '.channel-row:hover &': {
     opacity: 1,
   },
+  opacity: 0,
 })
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
@@ -127,7 +127,7 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Text>
         {channelDisplay}
-        <ScrollView style={{width: '100%', flex: 1}}>
+        <ScrollView style={{flex: 1, width: '100%'}}>
           {props.channels.map(c => (
             <Row
               key={c.convID}
@@ -161,11 +161,11 @@ const ManageChannels = (props: Props) => {
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  flex: 1,
+  paddingBottom: globalMargins.medium,
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
-  paddingBottom: globalMargins.medium,
-  flex: 1,
 }
 
 const _createIcon = platformStyles({
@@ -194,8 +194,8 @@ const _styleCover = {
 }
 
 const _styleContainer = {
-  width: 620,
   height: 520,
+  width: 620,
 }
 
 export default ManageChannels

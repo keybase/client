@@ -27,13 +27,13 @@ const mapStateToProps = state => {
   )
   return {
     banners,
+    displayAmountFiat: built.displayAmountFiat,
+    displayAmountXLM: built.displayAmountXLM,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
     sendFailed: !!state.wallets.sentPaymentError,
-    waitingKey: Constants.sendPaymentWaitingKey,
     sendingIntentionXLM: built.sendingIntentionXLM,
-    displayAmountXLM: built.displayAmountXLM,
-    displayAmountFiat: built.displayAmountFiat,
+    waitingKey: Constants.sendPaymentWaitingKey,
   }
 }
 

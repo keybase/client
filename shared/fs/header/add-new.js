@@ -38,51 +38,51 @@ const propsToMenuItems = (props: AddNewProps) => {
   const items = []
   props.openAndUploadBoth &&
     items.push({
-      title: 'Upload a file or folder',
-      onClick: props.openAndUploadBoth,
       icon: 'iconfont-upload',
+      onClick: props.openAndUploadBoth,
+      title: 'Upload a file or folder',
     })
   props.openAndUploadFile &&
     items.push({
-      title: 'Upload a file',
-      onClick: props.openAndUploadFile,
       icon: 'iconfont-upload',
+      onClick: props.openAndUploadFile,
+      title: 'Upload a file',
     })
   props.openAndUploadDir &&
     items.push({
-      title: 'Upload a folder',
-      onClick: props.openAndUploadDir,
       icon: 'iconfont-upload',
+      onClick: props.openAndUploadDir,
+      title: 'Upload a folder',
     })
   props.openAndUploadFile && props.openAndUploadDir && items.push('Divider')
   props.pickAndUploadMixed &&
     items.push({
-      title: 'Upload an image or video',
-      onClick: props.pickAndUploadMixed,
       icon: 'iconfont-upload',
+      onClick: props.pickAndUploadMixed,
+      title: 'Upload an image or video',
     })
   props.pickAndUploadPhoto &&
     items.push({
-      title: 'Upload an image',
-      onClick: props.pickAndUploadPhoto,
       icon: 'iconfont-upload',
+      onClick: props.pickAndUploadPhoto,
+      title: 'Upload an image',
     })
   props.pickAndUploadVideo &&
     items.push({
-      title: 'Upload a video',
-      onClick: props.pickAndUploadVideo,
       icon: 'iconfont-upload',
+      onClick: props.pickAndUploadVideo,
+      title: 'Upload a video',
     })
   props.pickAndUploadPhoto && props.pickAndUploadVideo && items.push('Divider')
-  items.push({title: 'Create new folder', onClick: props.newFolderRow, icon: 'iconfont-folder-new'})
+  items.push({icon: 'iconfont-folder-new', onClick: props.newFolderRow, title: 'Create new folder'})
 
   return isMobile
     ? items.map(item =>
         item === 'Divider'
           ? 'Divider'
           : {
-              title: item.title,
               onClick: item.onClick,
+              title: item.title,
             }
       )
     : items.map(item =>
@@ -153,6 +153,9 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
   },
+  stylesIconNew: platformStyles({
+    isMobile: {fontSize: 22},
+  }),
   stylesPadBreadcrumbHeader: {paddingBottom: globalMargins.medium, paddingTop: globalMargins.medium},
   stylesText: platformStyles({
     common: {
@@ -162,9 +165,6 @@ const styles = styleSheetCreate({
       // Disable text-decoration: underline on hover for BodyBigLink
       pointerEvents: 'none',
     },
-  }),
-  stylesIconNew: platformStyles({
-    isMobile: {fontSize: 22},
   }),
 })
 

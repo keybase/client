@@ -37,6 +37,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
   onCancelPayment: () =>
     dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID'), showAccount: true})),
+  onChat: (username: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({
@@ -44,8 +46,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         paymentID: routeProps.get('paymentID'),
       })
     ),
-  onChat: (username: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -64,6 +64,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
+    issuerAccountID: tx.issuerAccountID,
+    issuerDescription: tx.issuerDescription,
     loading: false,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
@@ -83,8 +85,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     title: 'Transaction details',
     transactionID: tx.txID,
     you: stateProps.you,
-    issuerDescription: tx.issuerDescription,
-    issuerAccountID: tx.issuerAccountID,
   }
 }
 

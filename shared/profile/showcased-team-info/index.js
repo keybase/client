@@ -42,8 +42,8 @@ const TeamInfo = (props: Props) => (
     <Box
       style={{
         height: isMobile ? 64 : 48,
-        marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
         marginBottom: globalMargins.xtiny,
+        marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
       }}
     >
       <Avatar teamname={props.teamname} size={isMobile ? 64 : 48} />
@@ -159,14 +159,14 @@ const styleMeta = {
 const styleWrap = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-start',
   alignSelf: 'center',
-  textAlign: 'center',
   flexWrap: 'wrap',
+  justifyContent: 'flex-start',
   marginBottom: isMobile ? 0 : globalMargins.small,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   marginTop: globalMargins.tiny,
+  textAlign: 'center',
 }
 
 const TeamInfoWrapper = (props: Props) => {

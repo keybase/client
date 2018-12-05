@@ -4,8 +4,8 @@ import {action, storiesOf} from '../../stories/storybook'
 import QRScan from './index.native'
 
 const props = {
-  onSubmitCode: action('onSubmitCode'),
   onOpenSettings: action('onOpenSettings'),
+  onSubmitCode: action('onSubmitCode'),
 }
 
 const load = () => {
