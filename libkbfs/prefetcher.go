@@ -565,24 +565,31 @@ func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
 	}
 }
 
-func (p *blockPrefetcher) rescheduleIfNeeded(
-	ctx context.Context, req *prefetchRequest) (rescheduled bool) {
+func (p *blockPrefetcher) stopIfNeeded(
+	ctx context.Context, req *prefetchRequest) (doStop bool) {
 	dbc := p.config.DiskBlockCache()
-	if req.action.Sync() && dbc != nil {
-		hasRoom, err := dbc.DoesCacheHaveSpace(ctx, DiskBlockSyncCache)
-		if err != nil {
-			p.log.CDebugf(ctx, "Error checking space: +%v", err)
-			return false
-		}
-		if !hasRoom {
-			// If the sync cache is close to full, reschedule the prefetch.
-			p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
-				"full sync cache.", req.ptr.ID)
-			p.reschedulePrefetch(req)
-			return true
-		}
+	if dbc == nil {
+		return false
 	}
-	return false
+	hasRoom, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
+	if err != nil {
+		p.log.CDebugf(ctx, "Error checking space: +%v", err)
+		return false
+	}
+	if hasRoom {
+		return false
+	}
+
+	if req.action.Sync() {
+		// If the sync cache is close to full, reschedule the prefetch.
+		p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
+			"full sync cache.", req.ptr.ID)
+		p.reschedulePrefetch(req)
+		return true
+	}
+
+	// Otherwise, only stop if we're supposed to stop when full.
+	return req.action.StopIfFull()
 }
 
 // run prefetches blocks.
@@ -783,7 +790,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// Bail out early if we know the sync cache is already
 			// full, to avoid enqueuing the child blocks when they
 			// aren't able to be cached.
-			if p.rescheduleIfNeeded(ctx, req) {
+			if p.stopIfNeeded(ctx, req) {
 				// This is inefficient since it'd be better to know if
 				// the `subtreeBlockCount` below is 0, or if `isTail`
 				// below is true before needlessly rescheduling this.
@@ -975,7 +982,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		if err != nil {
 			return
 		}
-		if p.rescheduleIfNeeded(ctx, req) {
+		if p.stopIfNeeded(ctx, req) {
 			return
 		}
 	}
