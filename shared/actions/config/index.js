@@ -414,11 +414,6 @@ const readLastSentXLM = () => {
     )
 }
 
-const handleFilePickerError = (action: ConfigGen.FilePickerErrorPayload) => {
-  // Just show a black bar for now.
-  throw action.payload.error
-}
-
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -462,7 +457,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(setLastSentXLM, writeLastSentXLM)
   yield Saga.actionToPromise(ConfigGen.daemonHandshakeDone, readLastSentXLM)
-  yield Saga.safeTakeEveryPure(ConfigGen.filePickerError, handleFilePickerError)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
