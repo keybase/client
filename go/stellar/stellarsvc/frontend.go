@@ -816,6 +816,19 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	return stellar.BuildPaymentLocal(s.mctx(ctx), arg)
 }
 
+func (s *Server) ReviewPaymentLocal(ctx context.Context, arg stellar1.ReviewPaymentLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "ReviewPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.ReviewPaymentLocal(s.mctx(ctx), s.uiSource.StellarUI(), arg)
+}
+
 func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:       "SendPaymentLocal",

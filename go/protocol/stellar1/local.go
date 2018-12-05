@@ -426,7 +426,7 @@ func (o BuildPaymentID) DeepCopy() BuildPaymentID {
 }
 
 type BuildPaymentResLocal struct {
-	ReadyToSend         bool              `codec:"readyToSend" json:"readyToSend"`
+	ReadyToReview       bool              `codec:"readyToReview" json:"readyToReview"`
 	From                AccountID         `codec:"from" json:"from"`
 	ToErrMsg            string            `codec:"toErrMsg" json:"toErrMsg"`
 	AmountErrMsg        string            `codec:"amountErrMsg" json:"amountErrMsg"`
@@ -444,7 +444,7 @@ type BuildPaymentResLocal struct {
 
 func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 	return BuildPaymentResLocal{
-		ReadyToSend:         o.ReadyToSend,
+		ReadyToReview:       o.ReadyToReview,
 		From:                o.From.DeepCopy(),
 		ToErrMsg:            o.ToErrMsg,
 		AmountErrMsg:        o.AmountErrMsg,
@@ -475,7 +475,6 @@ type SendBannerLocal struct {
 	Level         string `codec:"level" json:"level"`
 	Message       string `codec:"message" json:"message"`
 	ProofsChanged bool   `codec:"proofsChanged" json:"proofsChanged"`
-	HideOnConfirm bool   `codec:"hideOnConfirm" json:"hideOnConfirm"`
 }
 
 func (o SendBannerLocal) DeepCopy() SendBannerLocal {
@@ -483,7 +482,6 @@ func (o SendBannerLocal) DeepCopy() SendBannerLocal {
 		Level:         o.Level,
 		Message:       o.Message,
 		ProofsChanged: o.ProofsChanged,
-		HideOnConfirm: o.HideOnConfirm,
 	}
 }
 
@@ -883,10 +881,16 @@ type BuildPaymentLocalArg struct {
 	PublicMemo         string               `codec:"publicMemo" json:"publicMemo"`
 }
 
+type ReviewPaymentLocalArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Bid       BuildPaymentID `codec:"bid" json:"bid"`
+}
+
 type SendPaymentLocalArg struct {
 	SessionID     int                  `codec:"sessionID" json:"sessionID"`
 	Bid           BuildPaymentID       `codec:"bid" json:"bid"`
 	BypassBid     bool                 `codec:"bypassBid" json:"bypassBid"`
+	BypassReview  bool                 `codec:"bypassReview" json:"bypassReview"`
 	From          AccountID            `codec:"from" json:"from"`
 	To            string               `codec:"to" json:"to"`
 	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
@@ -1050,6 +1054,7 @@ type LocalInterface interface {
 	StartBuildPaymentLocal(context.Context, int) (BuildPaymentID, error)
 	StopBuildPaymentLocal(context.Context, StopBuildPaymentLocalArg) error
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
+	ReviewPaymentLocal(context.Context, ReviewPaymentLocalArg) error
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
 	BuildRequestLocal(context.Context, BuildRequestLocalArg) (BuildRequestResLocal, error)
 	GetRequestDetailsLocal(context.Context, GetRequestDetailsLocalArg) (RequestDetailsLocal, error)
@@ -1468,6 +1473,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.BuildPaymentLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"reviewPaymentLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ReviewPaymentLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ReviewPaymentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ReviewPaymentLocalArg)(nil), args)
+						return
+					}
+					err = i.ReviewPaymentLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1966,6 +1986,11 @@ func (c LocalClient) StopBuildPaymentLocal(ctx context.Context, __arg StopBuildP
 
 func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLocalArg) (res BuildPaymentResLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.buildPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ReviewPaymentLocal(ctx context.Context, __arg ReviewPaymentLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.reviewPaymentLocal", []interface{}{__arg}, nil)
 	return
 }
 
