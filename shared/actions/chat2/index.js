@@ -492,7 +492,20 @@ const onChatThreadStale = updates => {
       }
       return arr
     }, [])
-    if (conversationIDKeys.length > 0) {
+    // load the inbox instead
+    if (key === 'convupdate') {
+      logger.info(
+        `onChatThreadStale: dispatching inbox unbox actions for ${
+          conversationIDKeys.length
+        } convs of type ${key}`
+      )
+      actions = actions.concat([
+        Chat2Gen.createMetaRequestTrusted({
+          conversationIDKeys,
+          force: true,
+        }),
+      ])
+    } else if (conversationIDKeys.length > 0) {
       logger.info(
         `onChatThreadStale: dispatching thread reload actions for ${
           conversationIDKeys.length
