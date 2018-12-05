@@ -2468,13 +2468,12 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
 }
 
 function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
-  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
-  const seenExplodingMessages = gregorState.items.find(
-    i => i.item.category === Constants.seenExplodingGregorKey
-  )
+  const gregorState: RPCGregorTypes.State = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenExplodingMessages =
+    gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
   let body = Date.now().toString()
   if (seenExplodingMessages) {
-    const contents = seenExplodingMessages.item.body.toString()
+    const contents = seenExplodingMessages.item && seenExplodingMessages.item.body.toString()
     if (isNaN(parseInt(contents, 10))) {
       logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
     } else {
@@ -2490,8 +2489,9 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
 }
 
 function* handleSeeingWallets(action: Chat2Gen.HandleSeeingWalletsPayload) {
-  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
-  const seenWallets = gregorState.items.some(i => i.item.category === Constants.seenWalletsGregorKey)
+  const gregorState: RPCGregorTypes.State = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenWallets =
+    gregorState.items && gregorState.items.some(i => i.item?.category === Constants.seenWalletsGregorKey)
   if (seenWallets) {
     logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
     return
