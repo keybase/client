@@ -3,7 +3,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {PathItemIcon, PathItemAction, OpenInSystemFileManager} from '../common'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction} from '../common'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
@@ -152,6 +152,7 @@ export const StillCommon = (
     {!props.inDestinationPicker && (
       <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
+        <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
         <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
       </Kb.Box>
     )}

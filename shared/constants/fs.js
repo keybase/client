@@ -287,7 +287,8 @@ export const getIconSpecFromUsernamesAndTeamname = (
     ? makeTeamAvatarPathItemIconSpec(teamname)
     : getIconSpecFromUsernames(usernames || [], me)
 }
-const splitTlfIntoUsernames = (tlf: string): Array<string> =>
+
+export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
     .split(' ')[0]
     .replace(/#/g, ',')
