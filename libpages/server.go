@@ -258,7 +258,7 @@ func (s *Server) shouldShowCloningLandingPage(st *site, realFS *libfs.FS) (bool,
 	// Read under timeout to trigger a clone in case this is an initial
 	// request. This should only happen to the first ever access to a site
 	// backed by this git repo.
-	_, err = realFS.WithContext(ctxInitialRead).ReadDir("/")
+	_, err = realFS.WithContext(libfs.EnableFastMode(ctxInitialRead)).ReadDir("/")
 	switch err {
 	case nil, context.DeadlineExceeded, context.Canceled:
 		// Assume we have triggered a clone or pull and carry on.
@@ -419,11 +419,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sri.TlfType, sri.RootType = root.TlfType, root.Type
-	ctx := libkbfs.CtxWithRandomIDReplayable(r.Context(),
-		CtxKBPKey, CtxKBPOpID, adaptedLogger{
-			msg:    "CtxWithRandomIDReplayable",
-			logger: s.config.Logger,
-		})
+	ctx := libfs.EnableFastMode(
+		libkbfs.CtxWithRandomIDReplayable(r.Context(),
+			CtxKBPKey, CtxKBPOpID, adaptedLogger{
+				msg:    "CtxWithRandomIDReplayable",
+				logger: s.config.Logger,
+			}),
+	)
 	st, err := s.getSite(ctx, root)
 	if err != nil {
 		s.handleError(w, err)

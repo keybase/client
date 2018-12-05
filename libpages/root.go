@@ -121,6 +121,7 @@ func (r *Root) MakeFS(
 	if err != nil {
 		return CacheableFS{}, tlf.ID{}, nil, err
 	}
+	fsCtx = libfs.EnableFastMode(fsCtx)
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
@@ -128,7 +129,7 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		tlfFS, err := libfs.NewFS(
+		tlfFS, err := libfs.NewReadonlyFS(
 			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch, "", "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
@@ -154,7 +155,7 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		autogitTLFFS, err := libfs.NewFS(
+		autogitTLFFS, err := libfs.NewReadonlyFS(
 			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch,
 			libgit.AutogitRoot, "", keybase1.MDPriorityNormal)
 		if err != nil {

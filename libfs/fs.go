@@ -241,8 +241,8 @@ func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch, subdir, uniqID, priority, true,
-		readwrite)
+		ctx, config, tlfHandle, branch,
+		subdir, uniqID, priority, true, readwrite)
 }
 
 // NewReadonlyFS returns a new FS instance, chroot'd to the given TLF
@@ -260,8 +260,8 @@ func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
-		readonly)
+		ctx, config, tlfHandle, branch,
+		subdir, uniqID, priority, false, readonly)
 }
 
 // NewFSIfExists returns a new FS instance, chroot'd to the given TLF
@@ -279,8 +279,8 @@ func NewFSIfExists(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
-		readwriteNoCreate)
+		ctx, config, tlfHandle, branch,
+		subdir, uniqID, priority, false, readwriteNoCreate)
 }
 
 // NewFS returns a new FS instance, chroot'd to the given TLF and
@@ -293,8 +293,8 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
-		readwrite)
+		ctx, config, tlfHandle, branch,
+		subdir, uniqID, priority, false, readwrite)
 }
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a
@@ -588,6 +588,22 @@ func (fs *FS) Open(filename string) (billy.File, error) {
 	return fs.OpenFile(filename, os.O_RDONLY, 0600)
 }
 
+func (fs *FS) makeFileInfo(
+	ei libkbfs.EntryInfo, node libkbfs.Node, name string) os.FileInfo {
+	if IsFastModeEnabled(fs.ctx) {
+		return &FileInfoFast{
+			name: name,
+			ei:   ei,
+		}
+	}
+	return &FileInfo{
+		fs:   fs,
+		ei:   ei,
+		node: node,
+		name: node.GetBasename(),
+	}
+}
+
 // Stat implements the billy.Filesystem interface for FS.
 func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	fs.log.CDebugf(fs.ctx, "Stat %s", filename)
@@ -613,12 +629,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 		return nil, err
 	}
 
-	return &FileInfo{
-		fs:   fs,
-		ei:   ei,
-		node: n,
-		name: n.GetBasename(),
-	}, nil
+	return fs.makeFileInfo(ei, n, n.GetBasename()), nil
 }
 
 // Rename implements the billy.Filesystem interface for FS.
@@ -713,17 +724,15 @@ func (fs *FS) readDir(n libkbfs.Node) (fis []os.FileInfo, err error) {
 
 	fis = make([]os.FileInfo, 0, len(children))
 	for name, ei := range children {
-		child, _, err := fs.config.KBFSOps().Lookup(fs.ctx, n, name)
-		if err != nil {
-			return nil, err
+		var child libkbfs.Node
+		if !IsFastModeEnabled(fs.ctx) { // node is not used in FileInfoFast
+			child, _, err = fs.config.KBFSOps().Lookup(fs.ctx, n, name)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		fis = append(fis, &FileInfo{
-			fs:   fs,
-			ei:   ei,
-			node: child,
-			name: name,
-		})
+		fis = append(fis, fs.makeFileInfo(ei, child, name))
 	}
 	return fis, nil
 }
@@ -793,12 +802,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 		if err != nil {
 			return nil, err
 		}
-		return &FileInfo{
-			fs:   fs,
-			ei:   ei,
-			node: n,
-			name: "",
-		}, nil
+		return fs.makeFileInfo(ei, n, ""), nil
 	}
 
 	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
@@ -806,12 +810,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 		return nil, err
 	}
 
-	return &FileInfo{
-		fs:   fs,
-		ei:   ei,
-		node: n,
-		name: base,
-	}, nil
+	return fs.makeFileInfo(ei, n, base), nil
 }
 
 // Symlink implements the billy.Filesystem interface for FS.
