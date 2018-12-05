@@ -139,8 +139,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             Cancel
           </Kb.Text>
         )}
-        {!!this.props.onCancel &&
-          (!!this.props.onEdit || !!this.props.onRetry) && <Kb.Text type="BodySmall"> or </Kb.Text>}
+        {!!this.props.onCancel && (!!this.props.onEdit || !!this.props.onRetry) && (
+          <Kb.Text type="BodySmall"> or </Kb.Text>
+        )}
         {!!this.props.onEdit && (
           <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={this.props.onEdit}>
             Edit
@@ -215,11 +216,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         : props
     } else {
       return {
-        className: Styles.classNames('WrapperMessage-hoverBox', {
-          'WrapperMessage-author': this.props.showUsername,
-          'WrapperMessage-decorated': this.props.decorate,
-          active: this.props.showingMenu || this.state.showingPicker,
-        }),
+        className: Styles.classNames(
+          {
+            'WrapperMessage-author': this.props.showUsername,
+            'WrapperMessage-decorated': this.props.decorate,
+            active: this.props.showingMenu || this.state.showingPicker,
+          },
+          'WrapperMessage-hoverBox'
+        ),
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
@@ -482,7 +486,7 @@ const styles = Styles.styleSheetCreate({
   }),
   contentUnderAuthorContainer: Styles.platformStyles({
     isElectron: {
-      marginTop: -18,
+      marginTop: -16,
       paddingLeft:
         // Space for below the avatar
         Styles.globalMargins.tiny + // right margin
