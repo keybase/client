@@ -965,6 +965,7 @@ const (
 	blockRequestTrackedInPrefetch BlockRequestAction = 1 << iota
 	blockRequestPrefetch
 	blockRequestSync
+	blockRequestStopIfFull
 	blockRequestDeepSync
 
 	// BlockRequestSolo indicates that no action should take place
@@ -992,6 +993,10 @@ const (
 	// triggering a prefetch of one level of child blocks (and the
 	// syncing doesn't propagate to the child blocks).
 	BlockRequestWithSyncAndPrefetch BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch | blockRequestSync
+	// BlockRequestPrefetchUntilFull prefetches starting from the
+	// given block (but does not sync the blocks) until the working
+	// set cache is full, and then it stops prefetching.
+	BlockRequestPrefetchUntilFull BlockRequestAction = blockRequestTrackedInPrefetch | blockRequestPrefetch | blockRequestStopIfFull
 	// BlockRequestWithDeepSync is the same as above, except both the
 	// prefetching and the sync flags propagate to the child, so the
 	// whole tree root at the block is prefetched and synced.
@@ -1006,7 +1011,7 @@ func (bra BlockRequestAction) String() string {
 		return "solo"
 	}
 
-	attrs := make([]string, 0, 2)
+	attrs := make([]string, 0, 3)
 	if bra.prefetch() {
 		attrs = append(attrs, "prefetch")
 	} else if bra.PrefetchTracked() {
@@ -1016,6 +1021,11 @@ func (bra BlockRequestAction) String() string {
 	if bra.Sync() {
 		attrs = append(attrs, "sync")
 	}
+
+	if bra.StopIfFull() {
+		attrs = append(attrs, "stop-if-full")
+	}
+
 	return strings.Join(attrs, "|")
 }
 
@@ -1098,4 +1108,10 @@ func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
 		return DiskBlockSyncCache
 	}
 	return DiskBlockAnyCache
+}
+
+// StopIfFull returns true if prefetching should stop for good (i.e.,
+// not get rescheduled) when the corresponding disk cache is full.
+func (bra BlockRequestAction) StopIfFull() bool {
+	return bra&blockRequestStopIfFull > 0
 }
