@@ -20,9 +20,14 @@ protocol local {
   case SENT: stellar1.PaymentID;
   }
 
+  record TextPayment {
+    string paymentText;
+    TextPaymentResult result;
+  }
+
   record MessageText {
     string body;
-    map<string, TextPaymentResult> payments;
+    array<TextPayment> payments;
   }
 
   record MessageConversationMetadata {

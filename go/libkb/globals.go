@@ -259,6 +259,10 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 	g.DNSNSFetcher = d
 }
 
+func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
+	g.upakLoader = u
+}
+
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {

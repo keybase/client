@@ -1016,7 +1016,7 @@ func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) (err error) {
 
 func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
-	defer e.G().ExitTraceOK(prfx, func() bool { return hit })()
+	defer m.CExitTraceOK(prfx, func() bool { return hit })()
 	if e.getCache() == nil {
 		return false
 	}
@@ -1031,6 +1031,7 @@ func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 		m.CDebugf("| fast cache error for %s: %s", e.arg.Uid, err)
 	}
 	if u == nil {
+		m.CDebugf("| fast cache returning false on nil output")
 		return false
 	}
 	e.cachedRes = u
@@ -1045,7 +1046,7 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 }
 
 func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybase1.Identify2ResUPK2) {
-	defer e.G().ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+	defer m.CExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 
 	if e.getCache() != nil && !e.getCache().UseDiskCache() {
 		m.CDebugf("| Disk cached disabled")
@@ -1113,7 +1114,7 @@ func (e *Identify2WithUID) removeSlowCacheFromDB(m libkb.MetaContext) (err error
 
 func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
-	defer e.G().ExitTraceOK(prfx, func() bool { return ret })()
+	defer m.CExitTraceOK(prfx, func() bool { return ret })()
 
 	if e.getCache() == nil {
 		return false
@@ -1159,6 +1160,7 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 
 	// Update so that it hits the fast cache the next time
 	u.Upk.Uvv.CachedAt = keybase1.ToTime(e.getNow(m))
+	e.getCache().Insert(u)
 	return true
 }
 
