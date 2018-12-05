@@ -20,14 +20,14 @@ const connectPropsMap: RowConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'Chris Coyne',
+
     rightFollowingState: 'NoState',
     rightIcon: null,
     rightIconOpaque: true,
-
     rightService: null,
     rightUsername: null,
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
@@ -38,14 +38,14 @@ const connectPropsMap: RowConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'Chris Ball',
+
     rightFollowingState: 'NoState',
     rightIcon: null,
     rightIconOpaque: true,
-
     rightService: null,
     rightUsername: null,
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,
@@ -56,14 +56,14 @@ const connectPropsMap: RowConnectPropsMap = {
     leftIcon: null,
     leftIconOpaque: true,
     leftService: 'Keybase',
-
     leftUsername: 'John Zila',
+
     rightFollowingState: 'NoState',
     rightIcon: null,
     rightIconOpaque: true,
-
     rightService: null,
     rightUsername: null,
+
     userAlreadySelected: false,
     userIsInTeam: false,
     userIsSelectable: true,

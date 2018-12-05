@@ -181,7 +181,6 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: 0,
     paddingTop: 0,
   },
-
   rowHeading: {
     marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
   },

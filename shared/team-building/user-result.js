@@ -159,11 +159,9 @@ const styles = Styles.styleSheetCreate({
       width: ACTIONBUTTON_SIZE,
     },
   }),
-
   actionButtonHighlight: {
     backgroundColor: Styles.globalColors.blue,
   },
-
   actionButtonHoverContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
@@ -172,7 +170,6 @@ const styles = Styles.styleSheetCreate({
       width: ACTIONBUTTON_SIZE,
     },
   }),
-
   addToTeamIcon: {
     ...Styles.globalStyles.rounded,
     height: ACTIONBUTTON_SIZE,
@@ -181,7 +178,6 @@ const styles = Styles.styleSheetCreate({
   highlighted: {
     backgroundColor: Styles.globalColors.blue4,
   },
-
   removeButton: {
     ...Styles.globalStyles.rounded,
     height: ACTIONBUTTON_SIZE,
@@ -201,7 +197,6 @@ const styles = Styles.styleSheetCreate({
       height: 50,
     },
   }),
-
   serviceIcon: Styles.platformStyles({
     common: {
       marginLeft: Styles.globalMargins.tiny,
@@ -211,11 +206,9 @@ const styles = Styles.styleSheetCreate({
       width: 18,
     },
   }),
-
   services: {
     justifyContent: 'flex-end',
   },
-
   username: {
     flex: 1,
     marginLeft: Styles.globalMargins.tiny,

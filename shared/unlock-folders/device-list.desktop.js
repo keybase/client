@@ -59,14 +59,12 @@ const styles = {
   accessFolders: {
     marginRight: 0,
   },
-
   buttonsContainer: {
     ...globalStyles.flexBoxRow,
     alignSelf: 'center',
     marginRight: 30,
     marginTop: globalMargins.small,
   },
-
   devicesContainer: {
     alignSelf: 'center',
     backgroundColor: globalColors.lightGrey,
@@ -76,13 +74,11 @@ const styles = {
     paddingTop: globalMargins.small,
     width: 440,
   },
-
   enterPaperKey: {
     height: 32,
     marginRight: 7,
     width: 236,
   },
-
   infoText: {
     marginBottom: 8,
     marginTop: 5,
