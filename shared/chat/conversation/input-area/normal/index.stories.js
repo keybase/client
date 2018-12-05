@@ -105,13 +105,10 @@ const InputContainer = (props: Props) => {
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
-
     quoteCounter: 0,
     quoteText: '',
     sendTyping: Sb.action('sendTyping'),
-
     setUnsentText: Sb.action('setUnsentText'),
-
     showWalletsIcon: !props.isEditing && props.typing.size <= 1,
     typing: props.typing,
   }
