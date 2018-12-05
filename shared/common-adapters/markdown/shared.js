@@ -278,8 +278,8 @@ const rules = {
     ...SimpleMarkdown.defaultRules.escape,
   },
   fallbackParagraph: {
-    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
     // $FlowIssue - tricky to get this to type properly
+    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
     order: 10000,
     parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
   },
