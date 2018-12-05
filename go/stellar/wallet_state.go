@@ -160,13 +160,55 @@ func (w *WalletState) Balances(ctx context.Context, accountID stellar1.AccountID
 	return a.Balances(ctx)
 }
 
+// PendingPayments is an override of remoter's PendingPayments that uses stored data.
+func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	a, err := w.accountStateRefresh(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	payments, err := a.PendingPayments(ctx, limit)
+	if err == nil {
+		w.G().Log.CDebugf(ctx, "WalletState pending payments for %s: %d", accountID, len(payments))
+	} else {
+		w.G().Log.CDebugf(ctx, "WalletState pending payments error for %s: %s", accountID, err)
+
+	}
+	return payments, err
+}
+
 // SubmitPayment is an override of remoter's SubmitPayment.
 func (w *WalletState) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
 	result, err := w.Remoter.SubmitPayment(ctx, post)
 	if err == nil {
-		go w.RefreshAll(context.Background())
+		w.RefreshAll(ctx)
 	}
 	return result, err
+}
+
+// SubmitRelayPayment is an override of remoter's SubmitRelayPayment.
+func (w *WalletState) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
+	result, err := w.Remoter.SubmitRelayPayment(ctx, post)
+	if err == nil {
+		w.RefreshAll(ctx)
+	}
+	return result, err
+}
+
+// SubmitRelayClaim is an override of remoter's SubmitRelayClaim.
+func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
+	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
+	if err == nil {
+		w.RefreshAll(ctx)
+	}
+	return result, err
+
+}
+
+// MarkAsRead is an override of remoter's MarkAsRead.
+func (w *WalletState) MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
+	err := w.Remoter.MarkAsRead(ctx, accountID, mostRecentID)
+	w.Refresh(ctx, accountID)
+	return err
 }
 
 // DumpToLog outputs a summary of WalletState to the debug log.
@@ -205,6 +247,7 @@ type AccountState struct {
 	sync.RWMutex // protects everything that follows
 	seqno        uint64
 	balances     []stellar1.Balance
+	pending      []stellar1.PaymentSummary
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountState {
@@ -229,6 +272,13 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 	if err == nil {
 		a.Lock()
 		a.balances = balances
+		a.Unlock()
+	}
+
+	pending, err := a.remoter.PendingPayments(ctx, a.accountID, 100)
+	if err == nil {
+		a.Lock()
+		a.pending = pending
 		a.Unlock()
 	}
 
@@ -261,10 +311,21 @@ func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error)
 	return a.balances, nil
 }
 
+// PendingPayments returns the pending payments that have already been fetched for
+// this account.
+func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stellar1.PaymentSummary, error) {
+	a.RLock()
+	defer a.RUnlock()
+	if limit > 0 && limit < len(a.pending) {
+		return a.pending[:limit], nil
+	}
+	return a.pending, nil
+}
+
 // String returns a small string representation of AccountState suitable for
 // debug logging.
 func (a *AccountState) String() string {
 	a.RLock()
 	defer a.RUnlock()
-	return fmt.Sprintf("%s (seqno: %d)", a.accountID, a.seqno)
+	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d)", a.accountID, a.seqno, len(a.balances), len(a.pending))
 }
