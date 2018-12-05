@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -36,10 +37,14 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	rawMatches := txPattern.FindAllStringSubmatch(replaced, maxTxsPerMessage)
 	matches := make([]ChatTxCandidate, 0, len(rawMatches))
 	for _, rawMatch := range rawMatches {
-		full := "+" + strings.Join(rawMatch[1:3], "")
 		amount := rawMatch[1]
 		currencyCode := rawMatch[2]
 		username := rawMatch[3]
+		atSign := "@"
+		if len(username) == 0 {
+			atSign = ""
+		}
+		full := fmt.Sprintf("+%s%s%s%s", rawMatch[1], rawMatch[2], atSign, rawMatch[3])
 		if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
 			var txUsername *string
 			if username == "" {
