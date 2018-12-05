@@ -489,6 +489,10 @@ protocol local {
     string note;
     string noteErr;
     boolean unread;
+
+    // Relevant for relay payment, true if the payment was yanked (or "canceled")
+    // by sender. For non-relay, always false.
+    boolean yanked;
   }
   array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 

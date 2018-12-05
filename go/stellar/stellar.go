@@ -929,6 +929,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				if err != nil {
 					return res, err
 				}
+				res.Yanked = p.Claim.Dir == stellar1.RelayDirection_YANK
 			} else {
 				claimantUsername, err := username(p.Claim.To.Uid)
 				if err != nil {

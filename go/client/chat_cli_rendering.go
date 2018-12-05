@@ -515,14 +515,18 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		return "[error getting payment details]"
 	}
 
-	ls := strings.ToLower(details.Status)
-	if ls != "completed" && ls != "pending" {
-		return fmt.Sprintf("error sending payment: %s", details.StatusDetail)
-	}
-
-	verb := "sent"
-	if ls == "pending" {
+	var verb string
+	statusStr := strings.ToLower(details.Status)
+	switch statusStr {
+	case "completed", "canceled", "claimable":
+		verb = "sent"
+		if details.Yanked {
+			verb = "canceled sending"
+		}
+	case "pending":
 		verb = "sending"
+	default:
+		return fmt.Sprintf("error sending payment: %s %s", details.Status, details.StatusDetail)
 	}
 
 	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
@@ -535,6 +539,10 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	}
 
 	view := verb + " " + amountDescription
+	if statusStr == "claimable" {
+		// e.g. "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		view += fmt.Sprintf("\n%s", details.StatusDetail)
+	}
 	if details.Note != "" {
 		view += "\n> " + details.Note
 	}

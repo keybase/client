@@ -624,6 +624,7 @@ type PaymentCLILocal struct {
 	Note            string        `codec:"note" json:"note"`
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 	Unread          bool          `codec:"unread" json:"unread"`
+	Yanked          bool          `codec:"yanked" json:"yanked"`
 }
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
@@ -680,6 +681,7 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 		Note:    o.Note,
 		NoteErr: o.NoteErr,
 		Unread:  o.Unread,
+		Yanked:  o.Yanked,
 	}
 }
 

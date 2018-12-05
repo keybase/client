@@ -792,6 +792,10 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "boolean",
+          "name": "yanked"
         }
       ]
     },
