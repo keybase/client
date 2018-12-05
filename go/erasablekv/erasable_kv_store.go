@@ -161,7 +161,7 @@ func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseByt
 }
 
 func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface{}) (err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#Put", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Put: %v", key), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
@@ -170,8 +170,7 @@ func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface
 	if err != nil {
 		return err
 	}
-	err = s.write(ctx, key, data)
-	if err != nil {
+	if err = s.write(ctx, key, data); err != nil {
 		return err
 	}
 	noiseKey := s.noiseKey(key)
@@ -179,7 +178,7 @@ func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface
 }
 
 func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte) (err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#write", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#write: %v", key), func() error { return err })()
 	filepath := s.filepath(key)
 	if err := libkb.MakeParentDirs(s.G().Log, filepath); err != nil {
 		return err
@@ -237,7 +236,7 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 }
 
 func (s *FileErasableKVStore) Get(ctx context.Context, key string, val interface{}) (err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#Get", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Get: %v", key), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	return s.get(ctx, key, val)
@@ -261,7 +260,7 @@ func (s *FileErasableKVStore) get(ctx context.Context, key string, val interface
 }
 
 func (s *FileErasableKVStore) read(ctx context.Context, key string) (data []byte, err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#read", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#read: %v", key), func() error { return err })()
 	filepath := s.filepath(key)
 	return ioutil.ReadFile(filepath)
 }
