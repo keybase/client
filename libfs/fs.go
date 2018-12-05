@@ -600,7 +600,7 @@ func (fs *FS) makeFileInfo(
 		fs:   fs,
 		ei:   ei,
 		node: node,
-		name: node.GetBasename(),
+		name: name,
 	}
 }
 
