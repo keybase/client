@@ -440,11 +440,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               this._messageAndButtons(),
               this._isEdited(),
               this._isFailed(),
-              this._sendIndicator(),
               this._unfurlPrompts(),
               this._unfurlList(),
               this._reactionsRow(),
             ]),
+            this._sendIndicator(),
             this._orangeLine(),
           ],
         })}
