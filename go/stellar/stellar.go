@@ -602,6 +602,60 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}, nil
 }
 
+// SpecMiniChatPayments returns a summary of the payment amounts for each recipient
+// and a total.
+func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
+	// look up sender account
+	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	if err != nil {
+		return nil, err
+	}
+	senderAccountID := senderAccountBundle.AccountID
+	senderCurrency, err := GetCurrencySetting(mctx, walletState, senderAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	// use this once we have a total
+	senderRate, err := walletState.ExchangeRate(mctx.Ctx(), string(senderCurrency.Code))
+	if err != nil {
+		return nil, err
+	}
+	_ = senderRate
+
+	var xlmTotal int64
+	for _, payment := range payments {
+		xlmAmount := payment.Amount
+		if payment.Currency != "" && payment.Currency != "XLM" {
+			displayAmount := payment.Amount
+			displayCurrency := payment.Currency
+			exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+			if err != nil {
+				return nil, err
+			}
+
+			xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		xlmAmountNumeric, err := stellarnet.ParseStellarAmount(xlmAmount)
+		if err != nil {
+			return nil, err
+		}
+		xlmTotal += xlmAmountNumeric
+	}
+
+	xlmTotalStr := stellarnet.StringFromStellarAmount(xlmTotal)
+	displayTotal, err := stellarnet.ConvertXLMToOutside(xlmTotalStr, senderRate)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, errors.New("not implemented")
+}
+
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
