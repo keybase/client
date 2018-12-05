@@ -1664,6 +1664,19 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	return ch, err
 }
 
+// GetAllSyncedTlfs implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetAllSyncedTlfs() []tlf.ID {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	tlfs := make([]tlf.ID, 0, len(c.syncedTlfs))
+	for tlf, config := range c.syncedTlfs {
+		if config.Mode != keybase1.FolderSyncMode_DISABLED {
+			tlfs = append(tlfs, tlf)
+		}
+	}
+	return tlfs
+}
+
 // PrefetchStatus implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 	ptr BlockPointer) PrefetchStatus {

@@ -117,6 +117,7 @@ type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
 	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
+	GetAllSyncedTlfs() []tlf.ID
 }
 
 type blockRetrieverGetter interface {

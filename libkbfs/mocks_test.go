@@ -861,6 +861,18 @@ func (mr *MocksyncedTlfGetterSetterMockRecorder) SetTlfSyncState(tlfID, config i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).SetTlfSyncState), tlfID, config)
 }
 
+// GetAllSyncedTlfs mocks base method
+func (m *MocksyncedTlfGetterSetter) GetAllSyncedTlfs() []tlf.ID {
+	ret := m.ctrl.Call(m, "GetAllSyncedTlfs")
+	ret0, _ := ret[0].([]tlf.ID)
+	return ret0
+}
+
+// GetAllSyncedTlfs indicates an expected call of GetAllSyncedTlfs
+func (mr *MocksyncedTlfGetterSetterMockRecorder) GetAllSyncedTlfs() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSyncedTlfs", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).GetAllSyncedTlfs))
+}
+
 // MockblockRetrieverGetter is a mock of blockRetrieverGetter interface
 type MockblockRetrieverGetter struct {
 	ctrl     *gomock.Controller
@@ -7994,6 +8006,18 @@ func (m *MockConfig) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-c
 // SetTlfSyncState indicates an expected call of SetTlfSyncState
 func (mr *MockConfigMockRecorder) SetTlfSyncState(tlfID, config interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).SetTlfSyncState), tlfID, config)
+}
+
+// GetAllSyncedTlfs mocks base method
+func (m *MockConfig) GetAllSyncedTlfs() []tlf.ID {
+	ret := m.ctrl.Call(m, "GetAllSyncedTlfs")
+	ret0, _ := ret[0].([]tlf.ID)
+	return ret0
+}
+
+// GetAllSyncedTlfs indicates an expected call of GetAllSyncedTlfs
+func (mr *MockConfigMockRecorder) GetAllSyncedTlfs() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSyncedTlfs", reflect.TypeOf((*MockConfig)(nil).GetAllSyncedTlfs))
 }
 
 // Mode mocks base method
