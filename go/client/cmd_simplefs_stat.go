@@ -58,9 +58,12 @@ func NewCmdSimpleFSStat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 }
 
 func prefetchStatusString(e keybase1.Dirent) string {
-	if e.PrefetchStatus != keybase1.PrefetchStatus_IN_PROGRESS ||
-		e.PrefetchProgress.BytesTotal == 0 {
+	if e.PrefetchStatus != keybase1.PrefetchStatus_IN_PROGRESS {
 		return e.PrefetchStatus.String()
+	}
+
+	if e.PrefetchProgress.BytesTotal == 0 {
+		return keybase1.PrefetchStatus_NOT_STARTED.String()
 	}
 
 	return fmt.Sprintf("%.2f%%",
