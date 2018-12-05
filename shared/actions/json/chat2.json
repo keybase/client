@@ -456,10 +456,6 @@
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
     },
-    "filePickerError": {
-      "_description": "Sent whenever the mobile file picker encounters an error.",
-      "error": "Error"
-    },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",
