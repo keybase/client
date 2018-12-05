@@ -149,6 +149,9 @@ func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar
 func (w *WalletState) Balances(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
 	a, ok := w.accountState(accountID)
 	if !ok {
+		// Balances is used frequently to get balances for other users,
+		// so if accountID isn't in WalletState, just use the remote
+		// to get the balances.
 		w.G().Log.CDebugf(ctx, "WalletState:Balances using remoter for %s", accountID)
 		return w.Remoter.Balances(ctx, accountID)
 	}
