@@ -277,6 +277,11 @@ const rules = {
     // handle escaped chars, keep this to handle escapes globally
     ...SimpleMarkdown.defaultRules.escape,
   },
+  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
+  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
+  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
+  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
+  // it won't match.
   fallbackParagraph: {
     // $FlowIssue - tricky to get this to type properly
     match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
@@ -384,11 +389,6 @@ const rules = {
     // ours: handle \n inside text also
     match: SimpleMarkdown.anyScopeRegex(/^\n/),
   },
-  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
-  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
-  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
-  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
-  // it won't match.
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
     // original:

@@ -44,11 +44,11 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     index: htmlFile,
     preloadWindow: true,
     resizable: false,
-    showDockIcon: true,
-    transparent: true,
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
+    showDockIcon: true,
+    transparent: true,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,

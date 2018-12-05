@@ -69,9 +69,10 @@ const styleBase = {
   borderColor: globalColors.black_10,
   borderRadius: 3,
   borderWidth: 1,
+  // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
   minHeight: globalMargins.medium + globalMargins.tiny + 2 * globalMargins.small + 24,
   padding: 10,
-  position: 'relative', // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
+  position: 'relative',
 }
 
 const styleText = {

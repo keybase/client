@@ -272,11 +272,11 @@ const styleContainer = loading => ({
 })
 
 const styleLoading = {
+  // We don't want the hidden loading state to affect sizings.
   height: 0,
   left: 0,
   position: 'absolute',
   right: 0,
-  // We don't want the hidden loading state to affect sizings.
   top: 0,
 }
 
@@ -361,9 +361,9 @@ const styleProofMenuButton = collapseStyles([
   desktopStyles.clickable,
   {
     alignItems: 'center',
-    justifyContent: 'flex-end', // reserve space for menu dropdown caret
+    justifyContent: 'flex-end',
     marginLeft: 10,
-    minWidth: 34,
+    minWidth: 34, // reserve space for menu dropdown caret
   },
 ])
 

@@ -255,7 +255,6 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
 }
 
 const styles = Styles.styleSheetCreate({
-  // ToKeybaseUser
   avatar: {
     marginRight: 8,
   },
@@ -270,8 +269,6 @@ const styles = Styles.styleSheetCreate({
   dropdown: Styles.platformStyles({
     isMobile: {height: 32},
   }),
-
-  // ToStellarPublicKey
   dropdownSelectedBox: Styles.platformStyles({
     isMobile: {minHeight: 32},
   }),
@@ -321,8 +318,6 @@ const styles = Styles.styleSheetCreate({
       cursor: 'text',
     },
   }),
-
-  // ToOtherAccount
   publicKeyInputContainer: {flexGrow: 1, flexShrink: 1},
   qrCode: {
     marginRight: Styles.globalMargins.tiny,
@@ -338,7 +333,6 @@ const styles = Styles.styleSheetCreate({
   toKeybaseUser: {
     height: 48,
   },
-
   toKeybaseUserNameWithIcon: {
     flexGrow: 1,
   },

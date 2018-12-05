@@ -56,9 +56,9 @@ const styles = Styles.styleSheetCreate({
   },
   textContainer: Styles.platformStyles({
     isElectron: {
-      bottom: -26,
+      bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
       position: 'absolute',
-      textAlign: 'center', // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+      textAlign: 'center',
     },
   }),
 })

@@ -175,8 +175,8 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
       // type will get filled in later
       type: '',
       uid: i.uid,
-      url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
       // First ten chars of invite code is sufficient
+      url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
       username: i.username,
     }
     // Here's an algorithm for interpreting invitation entries.

@@ -491,7 +491,6 @@ const provider = Sb.createPropProviderWithCommon({
     onSetFilter: Sb.action('onSetFilter'),
     rows: p.rows,
   }),
-  // BigTeamHeader is wrapped by OverlayParent
   ChatInboxHeaderContainer: p => {
     return {
       filterFocusCount: p.filterFocusCount,
@@ -509,6 +508,7 @@ const provider = Sb.createPropProviderWithCommon({
     shouldShow: false,
     users: I.OrderedSet(['']),
   }),
+  // BigTeamHeader is wrapped by OverlayParent
   OverlayParent: getPropProviderProps,
   SmallTeam: getPropProviderProps,
   TeamsDivider: p => ({

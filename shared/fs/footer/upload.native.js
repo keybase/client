@@ -33,9 +33,9 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   _startAnimationLoop() {
     this._animations.loop = NativeAnimated.loop(
       NativeAnimated.timing(this.state.backgroundTop, {
-        duration: 2000, // pattern loops on multiples of 80
+        duration: 2000,
         easing: NativeEasing.linear,
-        toValue: -80,
+        toValue: -80, // pattern loops on multiples of 80
       })
     )
     this._animations.loop.start()
@@ -150,8 +150,8 @@ const stylesBackgroundBox = platformStyles({
 })
 
 const stylesBackgroundImage = {
-  height: 160, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
-  width: 600,
+  height: 160,
+  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
 }
 
 const stylesText = {

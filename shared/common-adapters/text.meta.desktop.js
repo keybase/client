@@ -49,7 +49,6 @@ const _blueLink = {
 }
 
 const metaData: {[key: TextType]: MetaType} = {
-  // Header
   Body: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 13,
@@ -84,7 +83,6 @@ const metaData: {[key: TextType]: MetaType} = {
       fontStyle: 'italic',
     },
   },
-  // Body big
   BodyPrimaryLink: {
     colorForBackgroundMode: {
       Normal: globalColors.blue,
@@ -105,7 +103,6 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: globalStyles.fontSemibold,
   },
-  // Body
   BodySemiboldItalic: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 13,
@@ -170,7 +167,6 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
-  // Body Small
   BodySmallSecondaryLink: {
     colorForBackgroundMode: {Normal: globalColors.black_60},
     fontSize: 12,
@@ -260,7 +256,6 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 24,
     styleOverride: globalStyles.fontExtrabold,
   },
-  // Body Tiny
   HeaderExtrabold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 16,
@@ -280,7 +275,6 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontSemibold,
   },
-  // Terminal
   Terminal: {
     colorForBackgroundMode: {
       Normal: globalColors.blue3,

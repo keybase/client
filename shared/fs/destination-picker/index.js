@@ -132,9 +132,9 @@ export default (isMobile
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-      ), // unset this to avoid onCancel button from HeaderHoc
+      ),
       headerStyle: {paddingRight: 0},
-      onCancel: null,
+      onCancel: null, // unset this to avoid onCancel button from HeaderHoc
     }))(Kb.HeaderHoc(DestinationPicker))
   : Kb.HeaderOrPopup(DestinationPicker))
 
@@ -185,8 +185,8 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 8,
   },
   mobileHeaderContent: {
-    flex: 1, // width of the "Cancel" button
-    marginRight: 90,
+    flex: 1,
+    marginRight: 90, // width of the "Cancel" button
   },
   newFolderBox: {
     ...Styles.globalStyles.flexBoxRow,

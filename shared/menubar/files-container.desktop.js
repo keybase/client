@@ -37,11 +37,11 @@ const mergeProps = (stateProps, dispatchProps) => ({
     return {
       iconSpec,
       onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
-      // Default to private visibility--this should never happen though.
       participants: participants || [],
       teamname: teamname || '',
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
       tlf,
+      // Default to private visibility--this should never happen though.
       tlfType,
       updates: c.updates.map(({path, uploading}) => ({
         name: FsTypes.getPathName(path),

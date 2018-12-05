@@ -211,9 +211,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     actionIconWhite,
     childrenFiles,
     childrenFolders,
-    // The file content could change, resulting in a mime type change. So just
-    // request it regardless whether we have it or not. The FS saga takes care
-    // of preventing the RPC if it's already subscribed.
     copyPath,
     deleteFileOrFolder,
     download,
@@ -226,7 +223,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     moveOrCopy,
     name: pathElements[pathElements.length - 1],
     needFolderList: type === 'folder' && pathElements.length >= 3,
-    // menu actions
+    // The file content could change, resulting in a mime type change. So just
+    // request it regardless whether we have it or not. The FS saga takes care
+    // of preventing the RPC if it's already subscribed.
     needLoadMimeType: type === 'file',
     path,
     pathElements,

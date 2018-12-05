@@ -42,8 +42,8 @@ class Text extends React.Component<Props> {
   _className(props: Props) {
     const meta = metaData[props.type]
     return Styles.classNames(`text_${props.type}`, props.className, {
-      'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
       // eslint-disable-next-line sort-keys
+      'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
       underline: props.underline,
     })
   }

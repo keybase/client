@@ -31,8 +31,8 @@ export default connect<OwnProps, _, _, _, _>(
       gigabytes: availablePlan.gigabytes,
       numStars: planToStars(selectedLevel),
       paymentOption: {
-        onAddCreditCard: () => logger.debug('onadd credit'),
-        type: 'credit-card-no-past', // TODO
+        onAddCreditCard: () => logger.debug('onadd credit'), // TODO
+        type: 'credit-card-no-past',
       },
       plan: selectedLevel,
       price: priceToString(availablePlan.price_pennies),

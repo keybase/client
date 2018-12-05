@@ -89,12 +89,12 @@ function updateIconFont() {
       files: svgFilePaths,
       fontName: 'kb',
       formatOptions: {
+        // Setting descent to zero on font generation will prevent the final
+        // glyphs from being shifted down
         svg: {
           descent: 0,
           fontHeight,
         },
-        // Setting descent to zero on font generation will prevent the final
-        // glyphs from being shifted down
         ttf: {
           ts: Date.now(),
         },

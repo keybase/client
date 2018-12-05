@@ -201,7 +201,6 @@ const _pillStyle = {
   ...globalStyles.flexBoxCenter,
   borderColor: globalColors.black_10,
   borderRadius: 24,
-  // 2 pixel fudge to accomodate built-in padding to iconfont-close
   borderStyle: 'solid',
   borderWidth: 1,
   height: 24,
@@ -209,6 +208,7 @@ const _pillStyle = {
   marginRight: globalMargins.xtiny,
   paddingBottom: globalMargins.xtiny,
   paddingLeft: globalMargins.xtiny,
+  // 2 pixel fudge to accomodate built-in padding to iconfont-close
   paddingRight: globalMargins.tiny - 2,
   paddingTop: globalMargins.xtiny,
 }
