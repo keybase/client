@@ -7639,7 +7639,16 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		newConfig.Paths = paths
 	}
 
-	return fbo.config.SetTlfSyncState(tlfID, newConfig)
+	ch, err := fbo.config.SetTlfSyncState(tlfID, newConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Mode == keybase1.FolderSyncMode_ENABLED {
+		fbo.log.CDebugf(ctx, "Starting full deep sync")
+		_ = fbo.kickOffRootBlockFetch(ctx, md)
+	}
+	return ch, nil
 }
 
 // InvalidateNodeAndChildren implements the KBFSOps interface for
