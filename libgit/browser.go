@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/kbfs/libfs"
@@ -39,6 +40,12 @@ type Browser struct {
 	tree  *object.Tree
 	root  string
 	mtime time.Time
+
+	lock sync.RWMutex
+	// Caches ReadDir results. Since the *Browser object gets blown away when
+	// HEAD changes, we don't need to worry about invalidation -- unless memory
+	// footprint becomes a problem.
+	dirChildrenCache map[string][]os.FileInfo
 }
 
 var _ billy.Filesystem = (*Browser)(nil)
@@ -94,9 +101,10 @@ func NewBrowser(
 	}
 
 	return &Browser{
-		tree:  tree,
-		root:  string(gitBranchName),
-		mtime: c.Author.When,
+		tree:             tree,
+		root:             string(gitBranchName),
+		mtime:            c.Author.When,
+		dirChildrenCache: make(map[string][]os.FileInfo),
 	}, nil
 }
 
@@ -228,9 +236,23 @@ func (b *Browser) Join(elem ...string) string {
 
 // ReadDir implements the billy.Filesystem interface for Browser.
 func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
+	if p == "" {
+		p = "."
+	}
+
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	if fis, ok := b.dirChildrenCache[p]; ok {
+		return fis, nil
+	}
+	b.lock.RUnlock()
+	defer b.lock.RLock()
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
 	defer translateGitError(&err)
 	var dirTree *object.Tree
-	if p == "" || p == "." {
+	if p == "." {
 		dirTree = b.tree
 	} else {
 		dirTree, err = b.tree.Tree(p)
@@ -246,6 +268,8 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 		}
 		fis = append(fis, fi)
 	}
+	b.dirChildrenCache[p] = fis
+
 	return fis, nil
 }
 
@@ -272,9 +296,10 @@ func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
 		return nil, err
 	}
 	return &Browser{
-		tree:  newTree,
-		root:  b.Join(b.root, p),
-		mtime: b.mtime,
+		tree:             newTree,
+		root:             b.Join(b.root, p),
+		mtime:            b.mtime,
+		dirChildrenCache: make(map[string][]os.FileInfo),
 	}, nil
 }
 
