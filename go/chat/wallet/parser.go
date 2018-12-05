@@ -36,7 +36,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	rawMatches := txPattern.FindAllStringSubmatch(replaced, maxTxsPerMessage)
 	matches := make([]ChatTxCandidate, 0, len(rawMatches))
 	for _, rawMatch := range rawMatches {
-		full := strings.Join(rawMatch, "")
+		full := "+" + strings.Join(rawMatch[1:3], "")
 		amount := rawMatch[1]
 		currencyCode := rawMatch[2]
 		username := rawMatch[3]

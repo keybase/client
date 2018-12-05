@@ -65,9 +65,9 @@ func (s *Sender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, conv
 	if len(parsed) == 0 {
 		return nil, nil
 	}
-	minis := make([]libkb.MiniChatPayment, len(parsed))
+	var minis []libkb.MiniChatPayment
 	usernameToFull := make(map[string]string)
-	for i, p := range parsed {
+	for _, p := range parsed {
 		var username string
 		if p.Username == nil {
 			if username, err = s.getUsername(ctx, uid, convID); err != nil {
@@ -78,12 +78,11 @@ func (s *Sender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, conv
 			username = *p.Username
 		}
 		usernameToFull[username] = p.Full
-		mini := libkb.MiniChatPayment{
+		minis = append(minis, libkb.MiniChatPayment{
 			Username: libkb.NewNormalizedUsername(username),
 			Amount:   p.Amount,
 			Currency: p.CurrencyCode,
-		}
-		minis[i] = mini
+		})
 	}
 	paymentRes, err := s.G().GetStellar().SendMiniChatPayments(s.G().MetaContext(ctx), minis)
 	if err != nil {
