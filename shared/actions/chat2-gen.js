@@ -33,6 +33,7 @@ export const filePickerError = 'chat2:filePickerError'
 export const giphyDismiss = 'chat2:giphyDismiss'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphyRunSearch = 'chat2:giphyRunSearch'
+export const giphySend = 'chat2:giphySend'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -129,6 +130,7 @@ type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _GiphyDismissPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, result: Array<RPCChatTypes.GiphySearchResult>|}>
 type _GiphyRunSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: ?string|}>
+type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
@@ -328,6 +330,10 @@ export const createGiphyDismiss = (payload: _GiphyDismissPayload) => ({payload, 
  * enable the Giphy search pane
  */
 export const createGiphyRunSearch = (payload: _GiphyRunSearchPayload) => ({payload, type: giphyRunSearch})
+/**
+ * send a message from Giphy search
+ */
+export const createGiphySend = (payload: _GiphySendPayload) => ({payload, type: giphySend})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({payload, type: attachmentDownloaded})
 export const createAttachmentFullscreenNext = (payload: _AttachmentFullscreenNextPayload) => ({payload, type: attachmentFullscreenNext})
@@ -414,6 +420,7 @@ export type FilePickerErrorPayload = $Call<typeof createFilePickerError, _FilePi
 export type GiphyDismissPayload = $Call<typeof createGiphyDismiss, _GiphyDismissPayload>
 export type GiphyGotSearchResultPayload = $Call<typeof createGiphyGotSearchResult, _GiphyGotSearchResultPayload>
 export type GiphyRunSearchPayload = $Call<typeof createGiphyRunSearch, _GiphyRunSearchPayload>
+export type GiphySendPayload = $Call<typeof createGiphySend, _GiphySendPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type HandleSeeingWalletsPayload = $Call<typeof createHandleSeeingWallets, _HandleSeeingWalletsPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
@@ -512,6 +519,7 @@ export type Actions =
   | GiphyDismissPayload
   | GiphyGotSearchResultPayload
   | GiphyRunSearchPayload
+  | GiphySendPayload
   | HandleSeeingExplodingMessagesPayload
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload

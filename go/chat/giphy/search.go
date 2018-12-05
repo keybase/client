@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -66,7 +67,8 @@ func Search(ctx context.Context, query *string) (res []chat1.GiphySearchResult, 
 		// grab trending with no query
 		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s", giphyHost, apiKey)
 	} else {
-		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s", giphyHost, apiKey, *query)
+		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s", giphyHost, apiKey,
+			url.QueryEscape(*query))
 	}
 	return runCall(ctx, endpoint)
 }

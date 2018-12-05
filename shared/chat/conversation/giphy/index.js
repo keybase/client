@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import UnfurlImage from '../messages/unfurl/image'
+import UnfurlImage from '../messages/wrapper/unfurl/image'
 
 export type GifPreview = {
   targetUrl: string,
@@ -54,6 +54,7 @@ const styles = Styles.styleSheetCreate({
   container: {
     minHeight: 200,
     flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   imageContainer: {
     alignSelf: 'flex-start',

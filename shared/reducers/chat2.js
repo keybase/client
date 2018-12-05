@@ -990,6 +990,7 @@ const rootReducer = (
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
+    case Chat2Gen.giphySend:
       return state
     default:
       /*::

@@ -25,7 +25,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   onClick: (url: string) => {
-    dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(url)}))
+    dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
   },
 })
 

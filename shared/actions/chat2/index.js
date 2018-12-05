@@ -2672,7 +2672,11 @@ const giphyRunSearch = (state: TypedState, action: Chat2Gen.GiphyRunSearchPayloa
 }
 
 const giphySend = (state: TypedState, action: Chat2Gen.GiphySendPayload) => {
-  rteturn
+  const {conversationIDKey, url} = action.payload
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createGiphyDismiss({conversationIDKey})),
+    Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text: url})),
+  ])
 }
 
 const openChatFromWidget = (
@@ -2846,6 +2850,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Giphy
   yield Saga.actionToPromise(Chat2Gen.giphyRunSearch, giphyRunSearch)
+  yield Saga.actionToAction(Chat2Gen.giphySend, giphySend)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

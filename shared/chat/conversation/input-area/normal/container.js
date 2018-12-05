@@ -5,6 +5,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
+import {debounce} from 'lodash-es'
 import Input, {type Props} from '.'
 
 type OwnProps = {
@@ -22,6 +23,27 @@ const getUnsentText = (conversationIDKey: Types.ConversationIDKey): string => {
 
 const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string) => {
   unsentText[conversationIDKey] = text
+}
+
+const textHasGiphySearch = (text: string) => {
+  return text.indexOf('!giphy ') === 0
+}
+
+const handleGiphySearch = (
+  doSearch: (Types.ConversationIDKey, ?string) => void,
+  doDismiss: Types.ConversationIDKey => void,
+  conversationIDKey: Types.ConversationIDKey,
+  text: string,
+  showingGiphySearch: boolean
+) => {
+  if (showingGiphySearch && !textHasGiphySearch(text)) {
+    doDismiss(conversationIDKey)
+  } else if (textHasGiphySearch(text)) {
+    const terms = text.split(' ')
+    terms.shift()
+    const query = terms.join(' ')
+    doSearch(conversationIDKey, query.length > 0 ? query : null)
+  }
 }
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
@@ -47,6 +69,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteText: quoteInfo ? quoteInfo.text : '',
     showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
     typing: Constants.getTyping(state, conversationIDKey),
+    showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey),
   }
 }
 
@@ -90,8 +113,13 @@ const mapDispatchToProps = dispatch => ({
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
-  onGiphySearch: (conversationIDKey: Types.ConversationIDKey, query: ?string) =>
-    dispatch(Chat2Gen.createGiphyRunSearch({conversationIDKey, query})),
+  onGiphySearch: debounce(
+    (conversationIDKey: Types.ConversationIDKey, query: ?string) =>
+      dispatch(Chat2Gen.createGiphyRunSearch({conversationIDKey, query})),
+    500
+  ),
+  onGiphyDismiss: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createGiphyDismiss({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -129,8 +157,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
+    handleGiphySearch(
+      dispatchProps.onGiphySearch,
+      dispatchProps.onGiphyDismiss,
+      stateProps.conversationIDKey,
+      text,
+      stateProps.showingGiphySearch
+    )
     setUnsentText(stateProps.conversationIDKey, text)
-    dispatchProps.onGiphySearch(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
   typing: stateProps.typing,
