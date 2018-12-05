@@ -481,6 +481,9 @@ func (fs *KBFSOpsStandard) transformReadError(
 	if errors.Cause(err) != context.DeadlineExceeded {
 		return err
 	}
+	if _, ok := errors.Cause(err).(OfflineUnsyncedError); ok {
+		return err
+	}
 
 	if fs.config.IsSyncedTlf(h.tlfID) {
 		fs.log.CWarningf(ctx, "Got a read timeout on a synced TLF: %+v", err)
