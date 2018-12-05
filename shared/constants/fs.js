@@ -821,6 +821,12 @@ export const destinationPickerGoToPathAction = (
   return putActionIfOnPath(routePath, isMobile ? navigateAppend([to]) : navigateTo([to]))
 }
 
+export const escapePath = (path: Types.Path): string =>
+  Types.pathToString(path).replace(/(\\)|( )/g, (match, p1, p2) => `\\${p1 || p2}`)
+export const unescapePath = (escaped: string): Types.Path =>
+  // turns "\\" into "\", and "\ " into " "
+  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (match, p1, p2) => p1 || p2))
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:

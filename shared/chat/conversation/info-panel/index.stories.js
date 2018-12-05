@@ -125,7 +125,7 @@ const bigTeamCommonProps = {
   ...teamCommonProps,
   smallTeam: false,
   admin: false,
-  description: 'The best channel',
+  description: 'The best channel. /keybase/team/kbkbfstest.sub/best-folder',
   onEditChannel: Sb.action('onEditChannel'),
 }
 

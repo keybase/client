@@ -3,6 +3,8 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
+import {escapePath} from '../../constants/fs'
+import {stringToPath} from '../../constants/types/fs'
 import Markdown, {type MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
@@ -150,6 +152,33 @@ this is a code block with two newline above\`\`\`
 
       `,
   bigemoji: ':thumbsup::100:',
+  kbfsPaths: `
+      /keybase ha
+      /keybase/哟
+      before/keybase
+      之前/keybase
+      /keybase/private /keybase
+      /keybase/public
+      /keybase/team
+      /keybase/private/
+      /keybase/team/keybase
+      /keybase/team/keybase/blahblah
+      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
+      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
+      /keybase/team/keybase/blahblah/
+      /keybase/private/songgao/🍻
+      /keybase/private/songgao/🍻/🍹.png/
+      /keybase/private/songgao/囧/yo
+      /keybase/private/songgao,strib#jzila,jakob223/file
+      /keybase/private/songgao,strib#jzila/file
+      /keybase/private/song-gao,strib#jzila/file
+      /keybase/team/keybase,blah
+      /keybase/team/keybase.blah
+      /keybaseprivate
+      /keybaseprivate/team
+      /keybase/teamaa/keybase
+      /foo
+      /keybase`, // <--- end of string
 }
 
 const mockMeta = {
@@ -259,7 +288,7 @@ const randomGenerated = {
   'Case 6': generateCase('case 6'),
 }
 
-const provider = Sb.createPropProviderWithCommon({})
+export const provider = Sb.createPropProviderWithCommon({})
 
 class ShowAST extends React.Component<
   {text: string, simple: boolean, meta: ?MarkdownMeta},

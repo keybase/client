@@ -69,6 +69,8 @@ type BigProps = {|
   onEditChannel: () => void,
 |}
 
+type BigTeamHeaderProps = BigProps
+
 const EditBox = isMobile
   ? ClickableBox
   : glamorous(ClickableBox)({
@@ -78,7 +80,7 @@ const EditBox = isMobile
       },
     })
 
-const BigTeamHeader = (props: BigProps) => {
+const BigTeamHeader = (props: BigTeamHeaderProps) => {
   return (
     <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
       <Box style={styles.channelnameContainer}>
