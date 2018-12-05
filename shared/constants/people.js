@@ -5,6 +5,7 @@ import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
 import type {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
+import flags from '../util/feature-flags'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -158,18 +159,44 @@ export const reduceRPCItemToPeopleItem = (
         })
       )
     }
+  } else if (item.data.t === 3) {
+    if (__DEV__ && flags.peopleAnnouncementsEnabled) {
+      const a: any = item.data.announcement
+      return list.push(
+        makeAnnouncement({
+          appLink: a.appLink,
+          badged: a.badged,
+          confirmLabel: a.confirmLabel,
+          dismissable: a.dismissable,
+          text: a.text,
+          url: a.url,
+          iconUrl: a.iconUrl,
+        })
+      )
+    }
   }
+
   return list
 }
 
-export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
-  type: 'todo',
+export const makeAnnouncement: I.RecordFactory<Types._Announcement> = I.Record({
+  appLink: null,
   badged: false,
-  todoType: 'none',
-  instructions: '',
+  confirmLabel: null,
+  dismissable: false,
+  text: '',
+  type: 'announcement',
+  url: null,
+})
+
+export const makeTodo: I.RecordFactory<Types._Todo> = I.Record({
+  badged: false,
   confirmLabel: '',
   dismissable: false,
   icon: 'iconfont-close',
+  instructions: '',
+  todoType: 'none',
+  type: 'todo',
 })
 
 export const makeFollowedNotification: I.RecordFactory<Types._FollowedNotification> = I.Record({
@@ -177,24 +204,24 @@ export const makeFollowedNotification: I.RecordFactory<Types._FollowedNotificati
 })
 
 export const makeFollowedNotificationItem: I.RecordFactory<Types._FollowedNotificationItem> = I.Record({
-  type: 'notification',
+  badged: false,
   newFollows: [],
   notificationTime: new Date(),
-  badged: false,
   numAdditional: 0,
+  type: 'notification',
 })
 
 export const makeFollowSuggestion: I.RecordFactory<Types._FollowSuggestion> = I.Record({
-  username: '',
-  fullName: null,
   followsMe: false,
+  fullName: null,
   iFollow: false,
+  username: '',
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  lastViewed: new Date(),
-  version: -1,
-  oldItems: I.List(),
-  newItems: I.List(),
   followSuggestions: I.List(),
+  lastViewed: new Date(),
+  newItems: I.List(),
+  oldItems: I.List(),
+  version: -1,
 })

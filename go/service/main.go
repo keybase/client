@@ -67,6 +67,7 @@ type Service struct {
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
+	walletState          *stellar.WalletState
 }
 
 type Shutdowner interface {
@@ -90,6 +91,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
+		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 	}
 }
 
@@ -150,7 +152,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 	}
-	walletHandler := newWalletHandler(xp, g)
+	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
@@ -324,7 +326,8 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()), d.badger)
+	stellar.ServiceInit(d.G(), d.walletState, d.badger)
+	go d.walletState.RefreshAll(context.Background())
 	return nil
 }
 
@@ -345,6 +348,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	ctx := context.Background()
 	d.tryLogin(ctx)
 	d.chatOutboxPurgeCheck()
+	d.minuteChecks()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.startupGregor()
@@ -562,7 +566,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
-		d.gregor.PushHandler(stellargregor.New(d.G(), remote.NewRemoteNet(d.G())))
+		d.gregor.PushHandler(stellargregor.New(d.G(), d.walletState))
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
@@ -653,6 +657,34 @@ func (d *Service) chatOutboxPurgeCheck() {
 				d.ChatG().ActivityNotifier.Activity(context.Background(), gregorUID, chat1.TopicType_NONE,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
+		}
+	}()
+}
+
+func (d *Service) minuteChecks() {
+	ticker := libkb.NewBgTicker(1 * time.Minute)
+	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping minuteChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		d.walletState.RefreshAll(m.Ctx())
+		for {
+			<-ticker.C
+			m.CDebugf("+ minute check loop")
+
+			// In theory, this periodic refresh shouldn't be necessary,
+			// but as the WalletState code is new, this is a nice insurance
+			// policy.  The gregor payment notifications should
+			// keep the WalletState refreshed properly.
+			m.CDebugf("| refreshing wallet state")
+			if err := d.walletState.RefreshAll(m.Ctx()); err != nil {
+				m.CDebugf("service walletState.RefreshAll error: %s", err)
+			}
+
+			m.CDebugf("- minute check loop")
 		}
 	}()
 }

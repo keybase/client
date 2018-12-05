@@ -10,7 +10,7 @@ import {
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 import type {Props} from './index.types'
 
 // width of containers for back button and info button.
@@ -63,10 +63,14 @@ const ChannelHeader = (props: Props) => (
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
       <Avatar teamname={props.teamName} size={16} />
       <Text
-        type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
+        type={isMobile
+          ? 'BodySmall'
+          : props.smallTeam
+            ? 'BodyBig'
+            : 'BodySmallSemibold'}
         lineClamp={1}
         ellipsizeMode="middle"
-        style={{color: props.smallTeam ? globalColors.black_75 : globalColors.black_40}}
+        style={collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
       >
         &nbsp;
         {props.teamName}
@@ -75,7 +79,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName}>
+        <Text type={isMobile ? 'BodySmall' : 'BodyBig'} style={styles.channelName}>
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
@@ -91,7 +95,7 @@ const UsernameHeader = (props: Props) => (
         colorFollowing={true}
         inline={false}
         commaColor={globalColors.black_40}
-        type="BodyBig"
+        type={isMobile ? 'BodySmall' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
@@ -115,7 +119,17 @@ const styles = styleSheetCreate({
     textAlign: 'center',
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
-  channelName: {color: globalColors.black_75},
+  channelName: platformStyles({
+    common: {
+      color: globalColors.black_75,
+    },
+    isMobile: {
+      ...globalStyles.fontSemibold,
+    },
+  }),
+  channelNameLight: {
+    color: globalColors.black_40,
+  },
   container: {
     alignItems: 'stretch',
     backgroundColor: globalColors.fastBlank,

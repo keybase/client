@@ -290,6 +290,26 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 	return nil
 }
 
+func (t *txlogger) FindFirstUnclaimedFor(uv keybase1.UserVersion) (*stellar1.PaymentDetails, error) {
+	for _, tx := range t.transactions {
+		typ, err := tx.Summary.Typ()
+		if err != nil {
+			return nil, err
+		}
+		if typ != stellar1.PaymentSummaryType_RELAY {
+			continue
+		}
+		relay := tx.Summary.Relay()
+		if relay.Claim != nil {
+			continue
+		}
+		if relay.To.Eq(uv) {
+			return &tx, nil
+		}
+	}
+	return nil, nil
+}
+
 type FakeAccount struct {
 	T             testing.TB
 	accountID     stellar1.AccountID
@@ -420,15 +440,15 @@ func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.R
 }
 
 func (r *RemoteClientMock) AcquireAutoClaimLock(ctx context.Context) (string, error) {
-	return "", fmt.Errorf("RemoteClientMock does not implement AcquireAutoClaimLock")
+	return r.Backend.AcquireAutoClaimLock(ctx, r.Tc)
 }
 
 func (r *RemoteClientMock) ReleaseAutoClaimLock(ctx context.Context, token string) error {
-	return fmt.Errorf("RemoteClientMock does not implement ReleaseAutoClaimLock")
+	return r.Backend.ReleaseAutoClaimLock(ctx, r.Tc, token)
 }
 
 func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
-	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
+	return r.Backend.NextAutoClaim(ctx, r.Tc)
 }
 
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
@@ -498,6 +518,9 @@ type BackendMock struct {
 	txLog    *txlogger
 	exchRate string
 	currency string
+
+	autoclaimEnabled map[keybase1.UID]bool
+	autoclaimLocks   map[keybase1.UID]bool
 }
 
 func NewBackendMock(t testing.TB) *BackendMock {
@@ -509,6 +532,9 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		txLog:    newTxLogger(t),
 		exchRate: defaultExchangeRate,
 		currency: "USD",
+
+		autoclaimEnabled: make(map[keybase1.UID]bool),
+		autoclaimLocks:   make(map[keybase1.UID]bool),
 	}
 }
 
@@ -766,6 +792,48 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	return stellar1.RelayClaimResult{
 		ClaimStellarID: stellar1.TransactionID(txIDPrecalc),
 	}, nil
+}
+
+func (r *BackendMock) EnableAutoclaimMock(tc *TestContext) {
+	r.autoclaimEnabled[tc.Fu.GetUID()] = true
+	r.autoclaimLocks[tc.Fu.GetUID()] = false
+}
+
+func (r *BackendMock) AcquireAutoClaimLock(ctx context.Context, tc *TestContext) (string, error) {
+	uid := tc.Fu.GetUID()
+	if !r.autoclaimEnabled[uid] {
+		return "", fmt.Errorf("Autoclaims are not enabled for %q", tc.Fu.Username)
+	}
+	require.False(tc.T, r.autoclaimLocks[uid], "Lock already acquired")
+	r.autoclaimLocks[uid] = true
+	return "autoclaim_test_token", nil
+}
+
+func (r *BackendMock) ReleaseAutoClaimLock(ctx context.Context, tc *TestContext, token string) error {
+	uid := tc.Fu.GetUID()
+	require.True(tc.T, r.autoclaimEnabled[uid], "autoclaims have to be enabled for uid")
+	require.True(tc.T, r.autoclaimLocks[uid], "Lock has to be called first before Release")
+	r.autoclaimLocks[uid] = false
+	return nil
+}
+
+func (r *BackendMock) NextAutoClaim(ctx context.Context, tc *TestContext) (*stellar1.AutoClaim, error) {
+	caller, err := tc.G.GetMeUV(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not get self UV: %v", err)
+	}
+	uid := caller.Uid
+	require.True(tc.T, r.autoclaimEnabled[uid], "autoclaims have to be enabled for uid")
+	require.True(tc.T, r.autoclaimLocks[uid], "Lock has to be called first before NextAutoClaim")
+
+	payment, err := r.txLog.FindFirstUnclaimedFor(caller)
+	require.NoError(tc.T, err)
+	if payment != nil {
+		return &stellar1.AutoClaim{
+			KbTxID: payment.Summary.Relay().KbTxID,
+		}, nil
+	}
+	return nil, nil
 }
 
 func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (res stellar1.PaymentsPage, err error) {

@@ -7,7 +7,6 @@ import infoPanelNotifications from './conversation/info-panel/notifications/inde
 import inputArea from './conversation/input-area/normal/index.stories'
 import manageChannels from './manage-channels/index.stories'
 import messagePopup from './conversation/messages/message-popup/index.stories'
-import sendAnimation from './conversation/messages/wrapper/chat-send.stories'
 import setExplodingMessage from './conversation/messages/set-explode-popup/index.stories'
 import userMentionHud from './conversation/input-area/user-mention-hud/index.stories'
 import messages from './conversation/messages/index.stories'
@@ -27,7 +26,6 @@ const load = () => {
     manageChannels,
     messagePopup,
     messages,
-    sendAnimation,
     setExplodingMessage,
     userMentionHud,
     startConversation,

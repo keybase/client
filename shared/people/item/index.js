@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
@@ -14,27 +14,29 @@ export type Props = {
 }
 
 export default (props: Props) => (
-  <Box
+  <Kb.Box
     style={{
       ...containerStyle,
       backgroundColor: props.badged ? globalColors.blue4 : globalColors.white,
       borderBottomColor: props.badged ? globalColors.white : globalColors.black_10,
     }}
   >
-    <Box style={iconContainerStyle}>{props.icon}</Box>
-    <Box
+    <Kb.Box style={iconContainerStyle}>{props.icon}</Kb.Box>
+    <Kb.Box2
+      direction="vertical"
+      gap="tiny"
       style={{
         ...childrenContainerStyle,
         ...props.contentStyle,
       }}
     >
       {props.children}
-    </Box>
-    <Box style={timestampContainerStyle}>
-      {!!props.when && <Text type="BodySmall">{formatTimeForPeopleItem(props.when.getTime())}</Text>}
-      {props.badged && <Box style={badgeStyle} />}
-    </Box>
-  </Box>
+    </Kb.Box2>
+    <Kb.Box style={timestampContainerStyle}>
+      {!!props.when && <Kb.Text type="BodySmall">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
+      {props.badged && <Kb.Box style={badgeStyle} />}
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const containerStyle = {
@@ -50,7 +52,6 @@ const containerStyle = {
 const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
 
 const childrenContainerStyle = {
-  ...globalStyles.flexBoxColumn,
   paddingRight: isMobile ? 100 : 80,
   width: 'auto',
   overflow: 'hidden',

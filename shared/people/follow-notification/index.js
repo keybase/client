@@ -53,7 +53,7 @@ export const FollowNotification = (props: Props) => {
         when={props.notificationTime}
         contentStyle={{justifyContent: 'center'}}
       >
-        <Text type="Body" style={{marginTop: 2}}>
+        <Text type="Body">
           <ConnectedUsernames
             {...connectedUsernamesProps}
             usernames={[username]}
@@ -91,7 +91,7 @@ export const MultiFollowNotification = (props: Props) => {
       <Text
         type="Body"
         style={platformStyles({
-          common: {marginTop: 2, marginBottom: globalMargins.xtiny},
+          common: {marginTop: 2},
           isElectron: {display: 'inline'},
         })}
       >

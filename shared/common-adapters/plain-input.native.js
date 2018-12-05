@@ -103,6 +103,12 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   _onChangeText = (t: string) => {
+    if (this.props.maxBytes) {
+      const {maxBytes} = this.props
+      if (Buffer.byteLength(t) > maxBytes) {
+        return
+      }
+    }
     this._lastNativeText = t
     this.props.onChangeText && this.props.onChangeText(t)
   }

@@ -251,14 +251,18 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 
 	if p := r.getFromMemCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		trace += "m"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	if p := r.getFromDiskCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		p.mutable = isMutable(au)
 		r.putToMemCache(m, ck, *p)
 		trace += "d"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	// We can check the UPAK loader for the username if we're just mapping a UID to a username.
@@ -287,6 +291,14 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 	return res
 }
 
+func (res *ResolveResult) decorate(au AssertionURL) {
+	if au.IsKeybase() {
+		res.queriedKbUsername = au.GetValue()
+	} else if au.IsUID() {
+		res.queriedByUID = true
+	}
+}
+
 func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
@@ -302,11 +314,7 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 	var ares *APIRes
 	var l int
 
-	if au.IsKeybase() {
-		res.queriedKbUsername = au.GetValue()
-	} else if au.IsUID() {
-		res.queriedByUID = true
-	}
+	res.decorate(au)
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
 		return

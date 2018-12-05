@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -22,7 +23,7 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go/build"
 )
 
 const AccountNameMaxRunes = 24
@@ -434,7 +435,6 @@ type DisplayBalance struct {
 
 type SendPaymentArg struct {
 	From           stellar1.AccountID // Optional. Defaults to primary account.
-	FromSeqno      *uint64            // Optional. Use this value for the from stellar sequence number.
 	To             stellarcommon.RecipientInput
 	Amount         string // Amount of XLM to send.
 	DisplayBalance DisplayBalance
@@ -456,13 +456,13 @@ type SendPaymentResult struct {
 }
 
 // SendPaymentCLI sends XLM from CLI.
-func SendPaymentCLI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
-	return sendPayment(m, remoter, sendArg, true)
+func SendPaymentCLI(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	return sendPayment(m, walletState, sendArg, true)
 }
 
 // SendPaymentGUI sends XLM from GUI.
-func SendPaymentGUI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
-	return sendPayment(m, remoter, sendArg, false)
+func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	return sendPayment(m, walletState, sendArg, false)
 }
 
 // sendPayment sends XLM.
@@ -471,7 +471,7 @@ func SendPaymentGUI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPay
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
+func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
@@ -490,8 +490,8 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
 	if recipient.AccountID == nil || sendArg.ForceRelay {
-		return sendRelayPayment(m, remoter,
-			senderSeed, sendArg.FromSeqno, recipient, sendArg.Amount, sendArg.DisplayBalance,
+		return sendRelayPayment(m, walletState,
+			senderSeed, recipient, sendArg.Amount, sendArg.DisplayBalance,
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
@@ -529,14 +529,11 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		post.To = &recipient.User.UV
 	}
 
-	sp := NewSeqnoProvider(m, remoter)
-	if sendArg.FromSeqno != nil {
-		sp.Override(senderEntry.AccountID.String(), xdr.SequenceNumber(*sendArg.FromSeqno))
-	}
+	sp := NewSeqnoProvider(m, walletState)
 
 	// check if recipient account exists
 	var txID string
-	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
+	funded, err := isAccountFunded(m.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		return res, fmt.Errorf("error checking destination account balance: %v", err)
 	}
@@ -576,7 +573,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	}
 
 	// submit the transaction
-	rres, err := remoter.SubmitPayment(m.Ctx(), post)
+	rres, err := walletState.SubmitPayment(m.Ctx(), post)
 	if err != nil {
 		return res, err
 	}
@@ -604,24 +601,137 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	}, nil
 }
 
+// SendMiniChatPayments sends multiple payments from one sender to multiple
+// different recipients as fast as it can.  These come from chat messages
+// like "+1XLM@alice +2XLM@charlie".
+func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
+	// look up sender account
+	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	if err != nil {
+		return nil, err
+	}
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	if err != nil {
+		return nil, err
+	}
+
+	prepared := make(chan *miniPrepared)
+
+	sp := NewSeqnoProvider(m, walletState)
+
+	for _, payment := range payments {
+		go func(p libkb.MiniChatPayment) {
+			prepared <- prepareMiniChatPayment(m, walletState, sp, senderSeed, p)
+		}(payment)
+	}
+
+	// prepared chan could be out of order, so sort by seqno
+	preparedList := make([]*miniPrepared, len(payments))
+	for i := 0; i < len(payments); i++ {
+		preparedList[i] = <-prepared
+	}
+	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
+
+	resultList := make([]libkb.MiniChatPaymentResult, len(payments))
+
+	// need to submit tx one at a time, in order
+	for i := 0; i < len(preparedList); i++ {
+		mcpResult := libkb.MiniChatPaymentResult{Username: preparedList[i].Username}
+		if preparedList[i].Error != nil {
+			mcpResult.Error = preparedList[i].Error
+		} else {
+			// submit the transaction
+			m.CDebugf("submitting payment seqno %d", preparedList[i].Seqno)
+			submitRes, err := walletState.SubmitPayment(m.Ctx(), preparedList[i].Post)
+			if err != nil {
+				mcpResult.Error = err
+			} else {
+				mcpResult.PaymentID = stellar1.NewPaymentID(submitRes.StellarID)
+			}
+		}
+		resultList[i] = mcpResult
+	}
+
+	return resultList, nil
+}
+
+type miniPrepared struct {
+	Username libkb.NormalizedUsername
+	Post     stellar1.PaymentDirectPost
+	Seqno    uint64
+	Error    error
+}
+
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
+	result := &miniPrepared{Username: payment.Username}
+
+	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	if recipient.AccountID == nil {
+		result.Error = errors.New("user has no stellar account")
+		return result
+	}
+
+	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	result.Post = stellar1.PaymentDirectPost{
+		FromDeviceID: m.G().ActiveDevice.DeviceID(),
+		To:           &recipient.User.UV,
+		QuickReturn:  true,
+	}
+
+	xlmAmount := payment.Amount
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		result.Post.DisplayAmount = payment.Amount
+		result.Post.DisplayCurrency = payment.Currency
+		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+	}
+
+	var signResult stellarnet.SignResult
+	if funded {
+		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp)
+	} else {
+		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp)
+	}
+	if err != nil {
+		result.Error = err
+		return result
+	}
+	result.Post.SignedTransaction = signResult.Signed
+	result.Seqno = signResult.Seqno
+	return result
+
+}
+
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
-	from stellar1.SecretKey, fromSeqno *uint64, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
+func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
+	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
 	secretNote string, publicMemo string, quickReturn bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
 		return res, err
 	}
-	sp := NewSeqnoProvider(m, remoter)
-	if fromSeqno != nil {
-		fromAccountID, err := accountIDFromSecretKey(from)
-		if err != nil {
-			return res, err
-		}
-		sp.Override(fromAccountID.String(), xdr.SequenceNumber(*fromSeqno))
-	}
+	sp := NewSeqnoProvider(m, walletState)
 	relay, err := relays.Create(relays.Input{
 		From:          from,
 		AmountXLM:     amount,
@@ -647,7 +757,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	if recipient.User != nil {
 		post.To = &recipient.User.UV
 	}
-	rres, err := remoter.SubmitRelayPayment(m.Ctx(), post)
+	rres, err := walletState.SubmitRelayPayment(m.Ctx(), post)
 	if err != nil {
 		return res, err
 	}
@@ -667,12 +777,12 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 
 // Claim claims a waiting relay.
 // If `dir` is nil the direction is inferred.
-func Claim(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
+func Claim(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState,
 	txID string, into stellar1.AccountID, dir *stellar1.RelayDirection,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Claim", func() error { return err })()
 	g.Log.CDebugf(ctx, "Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
-	details, err := remoter.PaymentDetails(ctx, txID)
+	details, err := walletState.PaymentDetails(ctx, txID)
 	if err != nil {
 		return res, err
 	}
@@ -695,14 +805,14 @@ func Claim(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
 			return res, fmt.Errorf("Payment cannot be claimed. The payment failed anyway.")
 		}
 	case stellar1.PaymentSummaryType_RELAY:
-		return claimPaymentWithDetail(ctx, g, remoter, p.Relay(), into, dir)
+		return claimPaymentWithDetail(ctx, g, walletState, p.Relay(), into, dir)
 	default:
 		return res, fmt.Errorf("unrecognized payment type: %v", typ)
 	}
 }
 
 // If `dir` is nil the direction is inferred.
-func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
+func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState,
 	p stellar1.PaymentSummaryRelay, into stellar1.AccountID, dir *stellar1.RelayDirection) (res stellar1.RelayClaimResult, err error) {
 	if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 		recipient, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, p.Claim.To.Uid))
@@ -719,7 +829,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 	if err != nil {
 		return res, fmt.Errorf("error using shared secret key: %v", err)
 	}
-	destinationFunded, err := isAccountFunded(ctx, remoter, into)
+	destinationFunded, err := isAccountFunded(ctx, walletState, into)
 	if err != nil {
 		return res, err
 	}
@@ -733,7 +843,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		// Direction from caller
 		useDir = *dir
 	}
-	sp := NewSeqnoProvider(libkb.NewMetaContext(ctx, g), remoter)
+	sp := NewSeqnoProvider(libkb.NewMetaContext(ctx, g), walletState)
 	// Throw a random ID into the transaction memo so that we get a new txID each time.
 	// This makes it easy to resubmit without hitting a txID collision on the server.
 	memoID, err := randMemoID()
@@ -746,7 +856,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 	if err != nil {
 		return res, fmt.Errorf("error building claim transaction: %v", err)
 	}
-	return remoter.SubmitRelayClaim(ctx, stellar1.RelayClaimPost{
+	return walletState.SubmitRelayClaim(ctx, stellar1.RelayClaimPost{
 		KeybaseID:         p.KbTxID,
 		Dir:               useDir,
 		SignedTransaction: sig.Signed,

@@ -136,7 +136,7 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 	}
 	inbox := storage.NewInbox(h.G())
 
-	_, allConvs, err := inbox.ReadAll(ctx, me.ToBytes())
+	_, allConvs, err := inbox.ReadAll(ctx, me.ToBytes(), true)
 	if err != nil {
 		return "", nil, err
 	}

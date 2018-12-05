@@ -66,6 +66,9 @@ function UsernameText(props: Props) {
           ...(props.colorYou && u.you
             ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
             : null),
+          ...(props.type === 'BodySmall' && Styles.isMobile
+            ? {...Styles.globalStyles.fontSemibold}
+            : null),
         }
         userStyle = Styles.collapseStyles([props.style, userStyle])
 
