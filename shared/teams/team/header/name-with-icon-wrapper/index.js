@@ -5,7 +5,7 @@ import type {Response} from 'react-native-image-picker'
 export type Props = {
   canEditDescription: boolean,
   onEditIcon: (image?: Response) => void,
-  onEditIconError: (error: string) => void,
+  onFilePickerError: (error: Error) => void,
   teamname: string,
   metaOne: React.Node,
   metaTwo: string,

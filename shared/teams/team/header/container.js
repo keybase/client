@@ -2,6 +2,7 @@
 import {connect} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
 import type {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
@@ -41,10 +42,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(
       navigateAppend([{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}])
     ),
-  onEditIconError: (error: string) => {
-    console.error(error)
-    throw new Error(error)
-  },
+  onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -58,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onChat: dispatchProps.onChat,
   onEditDescription: dispatchProps.onEditDescription,
   onEditIcon: dispatchProps.onEditIcon,
-  onEditIconError: dispatchProps.onEditIconError,
+  onFilePickerError: dispatchProps.onFilePickerError,
   openTeam: stateProps.openTeam,
   role: stateProps.role,
   teamname: ownProps.teamname,
