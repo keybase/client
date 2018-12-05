@@ -188,4 +188,4 @@ export type Actions =
   | UpdateUsernamePayload
   | UploadAvatarPayload
   | WaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

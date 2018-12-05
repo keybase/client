@@ -28,4 +28,4 @@ export type UpdateFullnamesPayload = $Call<typeof createUpdateFullnames, _Update
 export type Actions =
   | UpdateBrokenStatePayload
   | UpdateFullnamesPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

@@ -49,7 +49,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: void}
+${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: null}
   `
 }
 

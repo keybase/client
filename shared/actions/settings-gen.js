@@ -236,4 +236,4 @@ export type Actions =
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
   | WaitingForResponsePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

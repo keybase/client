@@ -29,4 +29,4 @@ export type UpdateDebugConfigPayload = $Call<typeof createUpdateDebugConfig, _Up
 export type Actions =
   | DebugCountPayload
   | UpdateDebugConfigPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

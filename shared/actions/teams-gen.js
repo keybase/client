@@ -351,4 +351,4 @@ export type Actions =
   | UpdateChannelNamePayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

@@ -54,4 +54,4 @@ export type Actions =
   | OnSubmitPayload
   | ReplaceEntityPayload
   | SubtractEntityPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

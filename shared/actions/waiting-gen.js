@@ -38,4 +38,4 @@ export type Actions =
   | ClearWaitingPayload
   | DecrementWaitingPayload
   | IncrementWaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

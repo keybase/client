@@ -562,4 +562,4 @@ export type Actions =
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateTypersPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

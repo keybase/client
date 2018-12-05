@@ -71,4 +71,4 @@ export type Actions =
   | ShowDevicePagePayload
   | ShowPaperKeyPagePayload
   | ShowRevokePagePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

@@ -49,4 +49,4 @@ export type Actions =
   | ShowPermissionsPromptPayload
   | UpdateHasPermissionsPayload
   | UpdatePushTokenPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

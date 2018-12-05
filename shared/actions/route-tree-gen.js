@@ -74,4 +74,4 @@ export type Actions =
   | SetRouteStatePayload
   | SwitchRouteDefPayload
   | SwitchToPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

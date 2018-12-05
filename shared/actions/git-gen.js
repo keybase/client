@@ -90,4 +90,4 @@ export type Actions =
   | RepoDeletedPayload
   | SetErrorPayload
   | SetTeamRepoSettingsPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

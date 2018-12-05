@@ -73,4 +73,4 @@ export type Actions =
   | OpenPopupPayload
   | ToPaperKeyInputPayload
   | WaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

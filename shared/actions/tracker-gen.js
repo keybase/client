@@ -229,4 +229,4 @@ export type Actions =
   | UpdateUsernamePayload
   | UpdateZcashPayload
   | WaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

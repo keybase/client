@@ -329,4 +329,4 @@ export type Actions =
   | UploadWritingSuccessPayload
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

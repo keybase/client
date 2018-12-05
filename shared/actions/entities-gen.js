@@ -39,4 +39,4 @@ export type Actions =
   | MergeEntityPayload
   | ReplaceEntityPayload
   | SubtractEntityPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

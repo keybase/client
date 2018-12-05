@@ -631,6 +631,7 @@ const setupEngineListeners = () => {
   })
   engine().setIncomingCallMap({
     'keybase.1.NotifyUsers.userChanged': ({uid}) =>
+      // $FlowIssue remove this soon
       Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
   })
 }

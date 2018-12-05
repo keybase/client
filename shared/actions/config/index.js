@@ -260,7 +260,7 @@ const switchRouteDef = (
   }
 }
 
-const resetGlobalStore = () => Saga.put({payload: undefined, type: ConfigGen.resetStore})
+const resetGlobalStore = () => Saga.put({type: 'common:resetStore', payload: null})
 
 const startLogoutHandshake = (state: TypedState) =>
   Saga.put(ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1}))

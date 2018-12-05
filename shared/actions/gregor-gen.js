@@ -50,4 +50,4 @@ export type Actions =
   | StartReachabilityPayload
   | UpdateCategoryPayload
   | UpdateReachablePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

@@ -245,4 +245,4 @@ export type Actions =
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | _avatarQueuePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

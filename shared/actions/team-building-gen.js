@@ -60,4 +60,4 @@ export type Actions =
   | RemoveUsersFromTeamSoFarPayload
   | SearchPayload
   | SearchResultsLoadedPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}
