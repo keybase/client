@@ -36,7 +36,7 @@ type InputProps = {|
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
-  sendTyping: (typing: boolean) => void,
+  sendTyping: (text: string) => void,
 |}
 
 type MentionInputProps = {|
