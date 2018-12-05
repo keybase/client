@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/acctbundle"
+	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -56,12 +59,12 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, false)
 	require.NoError(t, err)
 	require.False(t, created)
 
 	t.Logf("Fetch the bundle")
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
 	require.Nil(t, bundle.Prev)
@@ -70,8 +73,12 @@ func TestCreateWallet(t *testing.T) {
 	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
 	require.True(t, bundle.Accounts[0].IsPrimary)
-	require.Len(t, bundle.Accounts[0].Signers, 1)
 	require.Equal(t, firstAccountName(t, tcs[0]), bundle.Accounts[0].Name)
+	accountID := bundle.Accounts[0].AccountID
+	require.Len(t, bundle.AccountBundles[accountID].Signers, 0)
+	bundle, _, _, err = remote.FetchAccountBundle(context.Background(), tcs[0].G, accountID)
+	require.NoError(t, err)
+	require.Len(t, bundle.AccountBundles[accountID].Signers, 1)
 
 	t.Logf("Lookup the user by public address as another user")
 	a1 := bundle.Accounts[0].AccountID
@@ -114,21 +121,23 @@ func TestCreateWallet(t *testing.T) {
 	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
-func TestUpkeep(t *testing.T) {
+func TestV1Upkeep(t *testing.T) {
+	// TODO: delete this test after the migration from v1 to v2 account bundles
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
 
-	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, pukGen, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	originalID := bundle.OwnHash
+	require.NotNil(t, originalID)
 	originalPukGen := pukGen
 
 	err = stellar.Upkeep(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	bundle, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, pukGen, err = remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Equal(t, bundle.OwnHash, originalID, "bundle should be unchanged by no-op upkeep")
 	require.Equal(t, originalPukGen, pukGen)
@@ -144,7 +153,57 @@ func TestUpkeep(t *testing.T) {
 	err = stellar.Upkeep(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	bundle, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, pukGen, err = remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.NotEqual(t, bundle.OwnHash, originalID, "bundle should be new")
+	require.NotEqual(t, originalPukGen, pukGen, "bundle should be for new puk")
+	require.Equal(t, 2, int(bundle.Revision))
+}
+
+func setupWithNewBundle(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	g := tc.G
+	err := remote.SetAcceptedDisclaimer(ctx, g)
+	require.NoError(t, err)
+	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	require.NoError(t, err)
+	_, err = stellar.CreateWallet(ctx, g, true)
+	require.NoError(t, err)
+}
+
+func TestUpkeep(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.Background()
+	g := tcs[0].G
+	setupWithNewBundle(t, tcs[0])
+
+	bundle, _, pukGen, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	originalID := bundle.OwnHash
+	require.NotNil(t, originalID)
+	originalPukGen := pukGen
+
+	err = stellar.Upkeep(ctx, g)
+	require.NoError(t, err)
+
+	bundle, _, pukGen, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, bundle.OwnHash, originalID, "bundle should be unchanged by no-op upkeep")
+	require.Equal(t, originalPukGen, pukGen)
+
+	t.Logf("rotate puk")
+	engArg := &engine.PerUserKeyRollArgs{}
+	eng := engine.NewPerUserKeyRoll(g, engArg)
+	m := libkb.NewMetaContextTODO(g)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+	require.True(t, eng.DidNewKey)
+
+	err = stellar.Upkeep(ctx, g)
+	require.NoError(t, err)
+
+	bundle, _, pukGen, err = remote.FetchSecretlessBundle(ctx, g)
 	require.NoError(t, err)
 	require.NotEqual(t, bundle.OwnHash, originalID, "bundle should be new")
 	require.NotEqual(t, originalPukGen, pukGen, "bundle should be for new puk")
@@ -172,13 +231,14 @@ func TestImportExport(t *testing.T) {
 		require.Error(t, err, "export empty specifier")
 	})
 
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err := remote.FetchWholeBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	mustAskForPassphrase(func() {
-		exported, err := srv.ExportSecretKeyLocal(context.Background(), bundle.Accounts[0].AccountID)
+		accountID := bundle.Accounts[0].AccountID
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), accountID)
 		require.NoError(t, err)
-		require.Equal(t, bundle.Accounts[0].Signers[0], exported)
+		require.Equal(t, bundle.AccountBundles[accountID].Signers[0], exported)
 	})
 
 	a1, s1 := randomStellarKeypair()
@@ -191,9 +251,10 @@ func TestImportExport(t *testing.T) {
 	require.NoError(t, err)
 
 	mustAskForPassphrase(func() {
-		exported, err := srv.ExportSecretKeyLocal(context.Background(), bundle.Accounts[0].AccountID)
+		accountID := bundle.Accounts[0].AccountID
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), accountID)
 		require.NoError(t, err)
-		require.Equal(t, bundle.Accounts[0].Signers[0], exported)
+		require.Equal(t, bundle.AccountBundles[accountID].Signers[0], exported)
 	})
 
 	mustAskForPassphrase(func() {
@@ -255,7 +316,7 @@ func TestImportExport(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, own)
 
-	bundle, _, err = remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err = remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Len(t, bundle.Accounts, 3)
 }
@@ -456,8 +517,9 @@ func TestRelayTransferInnards(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	stellarSender, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
+	stellarSender, senderAccountBundle, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
 	require.NoError(t, err)
+	require.Equal(t, stellarSender.AccountID, senderAccountBundle.AccountID)
 
 	u1, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcs[0].G, tcs[1].Fu.Username))
 	require.NoError(t, err)
@@ -469,11 +531,11 @@ func TestRelayTransferInnards(t *testing.T) {
 	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
 	out, err := relays.Create(relays.Input{
-		From:          stellarSender.Signers[0],
+		From:          senderAccountBundle.Signers[0],
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
-		SeqnoProvider: stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.remoter),
+		SeqnoProvider: stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.walletState),
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
@@ -652,6 +714,8 @@ func testRelayReset(t *testing.T, yank bool) {
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
+
+	// tcs[0].Srv.wallet.RefreshAll(context.Background())
 
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -843,27 +907,182 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
-// TestImportMakesAccountBundle checks that importing a secret key makes a stellar account
-// bundle (i.e. the new version where there is a bundle per account) and that we
-// can retrieve it from the server.
-func TestImportMakesAccountBundle(t *testing.T) {
+func TestAccountBundleFlows(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
+	ctx := context.Background()
+	g := tcs[0].G
+	setupWithNewBundle(t, tcs[0])
 
-	acceptDisclaimer(tcs[0])
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	bundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
 	require.NoError(t, err)
-
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	accounts := bundle.Accounts
+	secretsMap := bundle.AccountBundles
+	var accountIDs []stellar1.AccountID
+	for _, acct := range accounts {
+		signers := secretsMap[acct.AccountID].Signers
+		require.Equal(t, len(signers), 0)
+		accountIDs = append(accountIDs, acct.AccountID)
+	}
+	require.Equal(t, len(accountIDs), 1)
+	// add a new account non-primary account
 	a1, s1 := randomStellarKeypair()
-	checker := newAcctBundleChecker(a1, s1)
-	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tcs[0].G, s1, false, "qq")
+	err = tcs[0].Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+		Name:        "aa",
+	})
 	require.NoError(t, err)
 
-	// for now, let's just get it directly from `remote`:
-	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
+	// add a new primary account
+	a2, s2 := randomStellarKeypair()
+	err = tcs[0].Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s2,
+		MakePrimary: true,
+		Name:        "bb",
+	})
 	require.NoError(t, err)
-	require.Equal(t, stellar1.BundleVersion_V2, version)
-	checker.assertBundle(t, acctBundle, 2, 1, stellar1.AccountMode_USER)
+
+	assertFetchAccountBundles(t, tcs[0], a2)
+
+	// switch which account is primary
+	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(ctx, stellar1.SetWalletAccountAsDefaultLocalArg{
+		AccountID: a1,
+	})
+	require.NoError(t, err)
+	assertFetchAccountBundles(t, tcs[0], a1)
+
+	// FetchWholeBundle
+	fullBundle, version, _, err := remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	err = fullBundle.CheckInvariants()
+	require.NoError(t, err)
+	require.Equal(t, 3, len(fullBundle.Accounts))
+	for _, acc := range fullBundle.Accounts {
+		ab := fullBundle.AccountBundles[acc.AccountID]
+		require.Equal(t, 1, len(ab.Signers))
+		_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(ab.Signers[0]))
+		require.NoError(t, err)
+		require.Equal(t, parsedAccountID, acc.AccountID)
+	}
+
+	// ExportSecretKey
+	privKey, err := tcs[0].Srv.GetWalletAccountSecretKeyLocal(ctx, stellar1.GetWalletAccountSecretKeyLocalArg{
+		AccountID: a2,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, s2, privKey)
+
+	// ChangeAccountName
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(ctx, stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: a2,
+		NewName:   "rename",
+	})
+	require.NoError(t, err)
+	bundle, _, _, err = remote.FetchAccountBundle(ctx, g, a2)
+	require.NoError(t, err)
+	for _, acc := range bundle.Accounts {
+		if acc.AccountID == a2 {
+			require.Equal(t, acc.Name, "rename")
+			accSigners := bundle.AccountBundles[a2].Signers
+			require.Equal(t, accSigners[0], s2)
+		}
+	}
+
+	// DeleteAccount
+	err = tcs[0].Srv.DeleteWalletAccountLocal(ctx, stellar1.DeleteWalletAccountLocalArg{
+		AccountID:        a2,
+		UserAcknowledged: "yes",
+	})
+	require.NoError(t, err)
+	// fetching this account explicitly should error
+	_, _, _, err = remote.FetchAccountBundle(ctx, g, a2)
+	require.Error(t, err)
+	aerr, ok := err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("invalid error type %T", err)
+	}
+	require.Equal(t, libkb.SCStellarMissingAccount, aerr.Code)
+	// fetching everything should yield a bundle that
+	// does not include this account
+	bundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	for _, acc := range bundle.Accounts {
+		require.False(t, acc.AccountID == a2)
+	}
+	for accID := range bundle.AccountBundles {
+		require.False(t, accID == a2)
+	}
+
+	// CreateNewAccount
+	accID, err := tcs[0].Srv.CreateWalletAccountLocal(ctx, stellar1.CreateWalletAccountLocalArg{
+		Name: "skittles",
+	})
+	require.NoError(t, err)
+	bundle, _, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	found := false
+	for _, acc := range bundle.Accounts {
+		if acc.Name == "skittles" {
+			require.False(t, found)
+			require.Equal(t, accID, acc.AccountID)
+			found = true
+		}
+	}
+	require.True(t, found)
+}
+
+func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID stellar1.AccountID) {
+	// fetch a secretless bundle to get all of the accountIDs
+	ctx := context.Background()
+	g := tc.G
+	secretlessBundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	err = secretlessBundle.CheckInvariants()
+	require.NoError(t, err)
+	var accountIDs []stellar1.AccountID
+	var foundPrimary bool
+	for _, acct := range secretlessBundle.Accounts {
+		accountIDs = append(accountIDs, acct.AccountID)
+		if acct.AccountID == primaryAccountID {
+			foundPrimary = true
+		}
+	}
+	require.True(t, foundPrimary)
+
+	// fetch the account bundle for each account and validate that it looks correct
+	// for each account in the bundle including the ones not explicitly fetched
+	for _, accountID := range accountIDs {
+		fetchedBundle, version, _, err := remote.FetchAccountBundle(ctx, g, accountID)
+		require.NoError(t, err)
+		require.Equal(t, version, stellar1.BundleVersion_V2)
+		err = fetchedBundle.CheckInvariants()
+		require.NoError(t, err)
+		ab := fetchedBundle.AccountBundles
+		for _, acct := range fetchedBundle.Accounts {
+			if acct.AccountID == primaryAccountID {
+				require.True(t, acct.IsPrimary)
+			} else {
+				require.False(t, acct.IsPrimary)
+			}
+			if acct.AccountID == accountID {
+				// this is the account we were explicitly fetching, so it should have signers
+				signers := ab[accountID].Signers
+				require.Equal(t, len(signers), 1)
+				_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(signers[0]))
+				require.NoError(t, err)
+				require.Equal(t, parsedAccountID, accountID)
+			} else {
+				// this is not an account we were explicitly fetching
+				// so it should not be in the account bundle map
+				_, accountInAccountBundle := ab[acct.AccountID]
+				require.False(t, accountInAccountBundle)
+			}
+		}
+	}
 }
 
 // TestMakeAccountMobileOnlyOnDesktop imports a new secret stellar key, then makes it
@@ -872,26 +1091,31 @@ func TestImportMakesAccountBundle(t *testing.T) {
 func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	tc, cleanup := setupDesktopTest(t)
 	defer cleanup()
-
-	acceptDisclaimer(tc)
-	_, err := stellar.CreateWallet(context.Background(), tc.G)
-	require.NoError(t, err)
+	ctx := context.Background()
+	g := tc.G
+	setupWithNewBundle(t, tc)
 
 	a1, s1 := randomStellarKeypair()
-	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tc.G, s1, false, "vault")
+	err := tc.Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+		Name:        "vault",
+	})
 	require.NoError(t, err)
 
-	rev2AcctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	rev2AcctBundle, version, _, err := remote.FetchAccountBundle(ctx, g, a1)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	require.Equal(t, stellar1.BundleRevision(2), rev2AcctBundle.Revision)
 	// NOTE: we're using this rev2AcctBundle later...
 
-	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	// this is a desktop device, so this should now fail
-	_, _, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	_, _, _, err = remote.FetchAccountBundle(ctx, g, a1)
 	require.Error(t, err)
 	aerr, ok := err.(libkb.AppStatusError)
 	if !ok {
@@ -900,33 +1124,36 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
 	// try to make it accessible on all devices, which shouldn't work
-	err = remote.MakeAccountAllDevices(context.Background(), tc.G, a1)
+	err = remote.MakeAccountAllDevices(ctx, g, a1)
 	aerr, ok = err.(libkb.AppStatusError)
 	if !ok {
 		t.Fatalf("invalid error type %T", err)
 	}
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
-	// TODO: reintroduce this test after the server has been updated
-	// primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
-	// for the desired behavior from the two fetch endpoints
-	// rev3AcctBundle, _, err := remote.Fetch(context.Background(), tc.G)
-	// require.NoError(t, err)
-	// require.Equal(t, stellar1.BundleVersion_V2, version)
-	// require.Equal(t, stellar1.BundleRevision(3), rev3AcctBundle.Revision)
-	// require.Equal(t, primaryAcctName, rev3AcctBundle.Accounts[0].Name)
-	// require.Equal(t, stellar1.AccountMode_MOBILE, rev3AcctBundle.Accounts[1].Mode)
-	// require.False(t, rev3AcctBundle.Accounts[1].IsPrimary)
-	// require.Len(t, rev3AcctBundle.Accounts[1].Signers, 0)
-	// require.Equal(t, "vault", rev3AcctBundle.Accounts[1].Name)
+	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
+	// can pull a secretless bundle though (not specifying an accountID)
+	rev3AcctBundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(3), rev3AcctBundle.Revision)
+	accountID0 := rev3AcctBundle.Accounts[0].AccountID
+	require.Equal(t, primaryAcctName, rev3AcctBundle.Accounts[0].Name)
+	require.True(t, rev3AcctBundle.Accounts[0].IsPrimary)
+	require.Len(t, rev3AcctBundle.AccountBundles[accountID0].Signers, 0)
+	accountID1 := rev3AcctBundle.Accounts[1].AccountID
+	require.Equal(t, stellar1.AccountMode_MOBILE, rev3AcctBundle.Accounts[1].Mode)
+	require.False(t, rev3AcctBundle.Accounts[1].IsPrimary)
+	require.Len(t, rev3AcctBundle.AccountBundles[accountID1].Signers, 0)
+	require.Equal(t, "vault", rev3AcctBundle.Accounts[1].Name)
 
 	// try posting an old bundle we got previously
-	err = remote.PostBundleRestricted(context.Background(), tc.G, rev2AcctBundle)
+	err = remote.Post(ctx, g, *rev2AcctBundle, version)
 	require.Error(t, err)
 
 	// tinker with it
 	rev2AcctBundle.Revision = 4
-	err = remote.PostBundleRestricted(context.Background(), tc.G, rev2AcctBundle)
+	err = remote.Post(ctx, g, *rev2AcctBundle, version)
 	require.Error(t, err)
 }
 
@@ -936,28 +1163,33 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
-
-	acceptDisclaimer(tc)
-	_, err := stellar.CreateWallet(context.Background(), tc.G)
-	require.NoError(t, err)
+	ctx := context.Background()
+	g := tc.G
+	setupWithNewBundle(t, tc)
 
 	a1, s1 := randomStellarKeypair()
-	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tc.G, s1, false, "vault")
+	err := tc.Srv.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+		Name:        "vault",
+	})
 	require.NoError(t, err)
 
 	checker := newAcctBundleChecker(a1, s1)
 
-	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	acctBundle, version, _, err := remote.FetchAccountBundle(ctx, g, a1)
 	require.NoError(t, err)
 	t.Logf("acctBundle: %+v", acctBundle)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	checker.assertBundle(t, acctBundle, 2, 1, stellar1.AccountMode_USER)
 
-	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	// this is a recent mobile device, so this should now fail
-	_, _, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	_, _, _, err = remote.FetchAccountBundle(ctx, g, a1)
 	require.Error(t, err)
 	aerr, ok := err.(libkb.AppStatusError)
 	if !ok {
@@ -966,29 +1198,74 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.Equal(t, libkb.SCStellarMobileOnlyPurgatory, aerr.Code)
 
 	// this will make the device older on the server
-	makeActiveDeviceOlder(t, tc.G)
+	makeActiveDeviceOlder(t, g)
 	// so now the fetch will work
-	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// this should not post a new bundle
-	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
-	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// make it accessible on all devices
-	err = remote.MakeAccountAllDevices(context.Background(), tc.G, a1)
+	err = remote.MakeAccountAllDevices(ctx, g, a1)
 	require.NoError(t, err)
 
-	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	checker.assertBundle(t, acctBundle, 4, 3, stellar1.AccountMode_USER)
+}
+
+func TestAutoClaimLoop(t *testing.T) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingFull})
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "100")
+	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
+		Recipient:  tcs[1].Fu.Username,
+		Amount:     "3",
+		Asset:      stellar1.AssetNative(),
+		ForceRelay: true,
+	})
+	require.NoError(t, err)
+
+	acceptDisclaimer(tcs[1])
+	tcs[1].Backend.ImportAccountsForUser(tcs[1])
+	tcs[1].Backend.EnableAutoclaimMock(tcs[1])
+
+	tcs[1].G.GetStellar().KickAutoClaimRunner(tcs[1].MetaContext(), gregor1.MsgID{})
+
+	var found bool
+	for i := 0; i < 10; i++ {
+		time.Sleep(100 * time.Millisecond * libkb.CITimeMultiplier(tcs[1].G))
+		payment := tcs[1].Backend.txLog.Find(sendRes.KbTxID.String())
+		claim := payment.Summary.Relay().Claim
+		if claim != nil {
+			require.Equal(t, stellar1.TransactionStatus_SUCCESS, claim.TxStatus)
+			require.Equal(t, stellar1.RelayDirection_CLAIM, claim.Dir)
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Fatal("Timed out waiting for auto claim")
+	}
+
+	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
+	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
@@ -1103,8 +1380,9 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 			Backend: bem,
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
-		tc2.Srv = New(tc.G, newTestUISource(), rcm)
-		stellar.ServiceInit(tc.G, rcm, nil)
+		ws := stellar.NewWalletState(tc.G, rcm)
+		tc2.Srv = New(tc.G, newTestUISource(), ws)
+		stellar.ServiceInit(tc.G, ws, nil)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {
@@ -1162,4 +1440,195 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 
 func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
 	return t.identifyUI
+}
+
+func TestV2EndpointsAsV1(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.TODO()
+	g := tcs[0].G
+
+	acceptDisclaimer(tcs[0])
+	// create a v1 bundle with two accounts
+	_, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
+	require.NoError(t, err)
+	_, err = bundle.CreateNewAccount(&v1Bundle0, "whatevs", false)
+	require.NoError(t, err)
+	v1Bundle1 := bundle.Advance(v1Bundle0)
+	err = remote.PostV1Bundle(ctx, g, v1Bundle1)
+	require.NoError(t, err)
+	primaryAccount, err := v1Bundle1.PrimaryAccount()
+	require.NoError(t, err)
+	primaryAccountID := primaryAccount.AccountID
+
+	// fetch secretless bundle
+	bundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	for _, ab := range bundle.AccountBundles {
+		require.Equal(t, len(ab.Signers), 0)
+	}
+
+	// fetch account bundle
+	bundle, version, _, err = remote.FetchAccountBundle(ctx, g, primaryAccountID)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	ab := bundle.AccountBundles[primaryAccountID]
+	require.Equal(t, len(ab.Signers), 1)
+
+	// fetch whole bundle
+	fullBundle, version, _, err := remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	err = fullBundle.CheckInvariants()
+	require.NoError(t, err)
+	require.Equal(t, 2, len(fullBundle.Accounts))
+	for _, acc := range fullBundle.Accounts {
+		ab := fullBundle.AccountBundles[acc.AccountID]
+		require.Equal(t, 1, len(ab.Signers))
+		_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(ab.Signers[0]))
+		require.NoError(t, err)
+		require.Equal(t, parsedAccountID, acc.AccountID)
+	}
+}
+
+func TestImplicitMigrationToAccountBundles(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.TODO()
+	g := tcs[0].G
+	m := libkb.NewMetaContextTODO(g)
+	acceptDisclaimer(tcs[0])
+
+	// verify that we have a v1 bundle
+	bundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V1)
+	require.Equal(t, len(bundle.Accounts), 1)
+
+	// enable the feature flag
+	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	require.NoError(t, err)
+	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
+
+	// the next bundle we pull should be v2
+	go func() {
+		// test concurrency
+		bundle, version, _, err = remote.FetchSecretlessBundle(ctx, g)
+		require.NoError(t, err)
+		require.Equal(t, version, stellar1.BundleVersion_V2)
+		require.Equal(t, len(bundle.Accounts), 1)
+	}()
+	bundle, version, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	require.Equal(t, len(bundle.Accounts), 1)
+
+	// attempting to migrate explicitly should throw already migrated
+	err = remote.MigrateBundleToAccountBundles(m)
+	require.Error(t, err)
+	_, correctErrorType := err.(remote.AlreadyMigratedError)
+	require.True(t, correctErrorType)
+}
+
+func TestMigrateBundleToAccountBundles(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.TODO()
+	g := tcs[0].G
+	m := libkb.NewMetaContextTODO(g)
+
+	acceptDisclaimer(tcs[0])
+	// create a v1 bundle with two accounts
+	_, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
+	require.NoError(t, err)
+	primaryAccount, err := v1Bundle0.PrimaryAccount()
+	require.NoError(t, err)
+	primaryAccountID := primaryAccount.AccountID
+	_, err = bundle.CreateNewAccount(&v1Bundle0, "pettycash", false)
+	require.NoError(t, err)
+	v1Bundle := bundle.Advance(v1Bundle0)
+	err = remote.PostV1Bundle(ctx, g, v1Bundle)
+	require.NoError(t, err)
+
+	// assert cannot use v2 endpoints before migrating
+	// fetch
+	_, _, _, err = remote.FetchV2BundleForAccount(ctx, g, nil)
+	aerr := err.(libkb.AppStatusError)
+	actualStatus := keybase1.StatusCode(aerr.Code)
+	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	require.Error(t, err, "cannot fetch v2 before migrating")
+	v1Bundle, _, _, err = remote.FetchV1Bundle(ctx, g)
+	require.NoError(t, err)
+	v2Bundle, err := acctbundle.NewFromBundle(v1Bundle)
+	require.NoError(t, err)
+	// post
+	throwawayV2Bundle0 := v2Bundle.DeepCopy()
+	throwawayV2Bundle1 := acctbundle.AdvanceAccounts(throwawayV2Bundle0, []stellar1.AccountID{primaryAccountID})
+	err = remote.Post(ctx, g, throwawayV2Bundle1, stellar1.BundleVersion_V2)
+	require.Error(t, err, "cannot post v2 before migrating")
+	aerr = err.(libkb.AppStatusError)
+	actualStatus = keybase1.StatusCode(aerr.Code)
+	require.Equal(t, keybase1.StatusCode_SCStellarIncompatibleVersion, actualStatus)
+
+	// cannot migrate without the feature flag
+	err = remote.MigrateBundleToAccountBundles(m)
+	require.Error(t, err)
+	_, correctErrorType := err.(remote.MissingFeatureFlagMigrationError)
+	require.True(t, correctErrorType)
+
+	// flip feature flag and migrate
+	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	require.NoError(t, err)
+	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
+	enabled, err := m.G().FeatureFlags.EnabledWithError(m, libkb.FeatureStellarAcctBundles)
+	require.True(t, enabled)
+	require.NoError(t, err)
+	err = remote.MigrateBundleToAccountBundles(m)
+	require.NoError(t, err)
+
+	// cannot use v1 endpoints after migration
+	_, _, _, err = remote.FetchV1Bundle(ctx, g)
+	require.Error(t, err, "cannot fetch v1 after migrating")
+	aerr = err.(libkb.AppStatusError)
+	actualStatus = keybase1.StatusCode(aerr.Code)
+	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	v2Bundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+	require.NoError(t, err)
+	v1BundlePrev, err := acctbundle.BundleFromBundleRestricted(*v2Bundle)
+	require.NoError(t, err)
+	v1Bundle = bundle.Advance(*v1BundlePrev)
+	err = remote.PostV1Bundle(ctx, g, v1Bundle)
+	aerr = err.(libkb.AppStatusError)
+	actualStatus = keybase1.StatusCode(aerr.Code)
+	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	require.Error(t, err, "cannot post v1 after migrating")
+
+	// can use v2 endpoints after migration
+	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
+	// add a non-primary account
+	v2Bundle, _, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	_, secretKey := randomStellarKeypair()
+	err = acctbundle.AddAccount(v2Bundle, secretKey, "shenanigans", false /* make primary */)
+	require.NoError(t, err)
+	v2BundleNext := acctbundle.AdvanceBundle(*v2Bundle)
+	require.NoError(t, err)
+	err = remote.Post(ctx, g, v2BundleNext, stellar1.BundleVersion_V2)
+	require.NoError(t, err)
+	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
+	// add a primary account
+	fetchedBundle, _, _, err := remote.FetchV2BundleForAccount(ctx, g, &primaryAccountID)
+	require.NoError(t, err)
+	newPrimaryAccountID, newPrimarySecretKey := randomStellarKeypair()
+	err = acctbundle.AddAccount(fetchedBundle, newPrimarySecretKey, "newprimary", true /* make primary */)
+	require.NoError(t, err)
+	newBundle := acctbundle.AdvanceAccounts(*fetchedBundle, []stellar1.AccountID{primaryAccountID}) // advance the old primary account
+	err = remote.PostWithChainlink(ctx, g, newBundle, true /* v2link */)
+	require.NoError(t, err)
+	assertFetchAccountBundles(t, tcs[0], newPrimaryAccountID)
 }

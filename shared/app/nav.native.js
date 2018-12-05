@@ -75,7 +75,8 @@ class CardStackShim extends Component<CardStackShimProps> {
           .map((route, index) => {
             const routeName = route.path.join('/')
             // The bottom/back item of the stack is our top (active) screen
-            const shouldRender = !this.props.hidden && (index === stack.size - 1 || index === stack.size - 2)
+            const shouldRender =
+              !this.props.hidden && (index === stack.size - 1 || (isIOS && index === stack.size - 2))
             return {key: routeName, routeName, params: {route, shouldRender}}
           })
           .toArray(),

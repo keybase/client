@@ -11,20 +11,19 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
-	"github.com/keybase/client/go/stellar/remote"
 )
 
 type Handler struct {
 	libkb.Contextified
-	remoter remote.Remoter
+	walletState *stellar.WalletState
 }
 
 var _ libkb.GregorInBandMessageHandler = (*Handler)(nil)
 
-func New(g *libkb.GlobalContext, remoter remote.Remoter) *Handler {
+func New(g *libkb.GlobalContext, walletState *stellar.WalletState) *Handler {
 	return &Handler{
 		Contextified: libkb.NewContextified(g),
-		remoter:      remoter,
+		walletState:  walletState,
 	}
 }
 
@@ -75,6 +74,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	}
 
 	stellar.RefreshUnreadCount(h.G(), msg.AccountID)
+	h.walletState.Refresh(mctx.Ctx(), msg.AccountID)
 	paymentID := stellar1.NewPaymentID(msg.TxID)
 	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, paymentID)
 	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), paymentID)
@@ -96,6 +96,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	}
 
 	stellar.RefreshUnreadCount(h.G(), msg.AccountID)
+	h.walletState.Refresh(mctx.Ctx(), msg.AccountID)
 	h.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
 	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), msg.PaymentID)
 

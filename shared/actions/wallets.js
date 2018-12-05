@@ -24,22 +24,8 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (
-  state: TypedState,
-  action:
-    | WalletsGen.BuildPaymentPayload
-    | WalletsGen.SetBuildingAmountPayload
-    | WalletsGen.SetBuildingCurrencyPayload
-    | WalletsGen.SetBuildingFromPayload
-    | WalletsGen.SetBuildingIsRequestPayload
-    | WalletsGen.SetBuildingToPayload
-    | WalletsGen.DisplayCurrencyReceivedPayload
-) => {
-  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
-    // didn't change state.building; no need to call build
-    return
-  }
-  return (state.wallets.building.isRequest
+const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload) =>
+  (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
@@ -51,7 +37,7 @@ const buildPayment = (
       ).then(build =>
         WalletsGen.createBuiltRequestReceived({
           build: Constants.buildRequestResultToBuiltRequest(build),
-          forBuilding: state.wallets.building,
+          forBuildCounter: state.wallets.buildCounter,
         })
       )
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
@@ -60,7 +46,6 @@ const buildPayment = (
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
-          fromSeqno: '',
           publicMemo: state.wallets.building.publicMemo.stringValue(),
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
@@ -72,7 +57,7 @@ const buildPayment = (
       ).then(build =>
         WalletsGen.createBuiltPaymentReceived({
           build: Constants.buildPaymentResultToBuiltPayment(build),
-          forBuilding: state.wallets.building,
+          forBuildCounter: state.wallets.buildCounter,
         })
       )
   ).catch(error => {
@@ -82,6 +67,22 @@ const buildPayment = (
       throw error
     }
   })
+
+const spawnBuildPayment = (
+  state: TypedState,
+  action:
+    | WalletsGen.SetBuildingAmountPayload
+    | WalletsGen.SetBuildingCurrencyPayload
+    | WalletsGen.SetBuildingFromPayload
+    | WalletsGen.SetBuildingIsRequestPayload
+    | WalletsGen.SetBuildingToPayload
+    | WalletsGen.DisplayCurrencyReceivedPayload
+) => {
+  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
+    // didn't change state.building; no need to call build
+    return
+  }
+  return Saga.put(WalletsGen.createBuildPayment())
 }
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
@@ -155,7 +156,6 @@ const sendPayment = (state: TypedState) => {
       // FIXME -- support other assets.
       asset: emptyAsset,
       from: state.wallets.builtPayment.from,
-      fromSeqno: '',
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
       secretNote: state.wallets.building.secretNote.stringValue(),
@@ -649,16 +649,21 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).then(
-    res =>
-      RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
-        WalletsGen.createWalletDisclaimerReceived({accepted})
-      )
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
+
+const checkDisclaimer = (state: TypedState) =>
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
+    WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
-const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
+const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.CheckDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
-  Saga.put(Route.navigateTo([...Constants.rootWalletPath, 'linkExisting']))
+  Saga.put(
+    Route.navigateTo([
+      ...Constants.rootWalletPath,
+      ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting']),
+    ])
+  )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
@@ -726,9 +731,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   // We don't call this for publicMemo/secretNote so the button doesn't
   // spinner as you type
-  yield Saga.actionToPromise(
+  yield Saga.actionToPromise(WalletsGen.buildPayment, buildPayment)
+  yield Saga.actionToAction(
     [
-      WalletsGen.buildPayment,
       WalletsGen.setBuildingAmount,
       WalletsGen.setBuildingCurrency,
       WalletsGen.setBuildingFrom,
@@ -736,7 +741,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingTo,
       WalletsGen.displayCurrencyReceived,
     ],
-    buildPayment
+    spawnBuildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
 
@@ -778,7 +783,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadWalletDisclaimer
   )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
-  yield Saga.actionToAction(WalletsGen.acceptDisclaimer, maybeNavToLinkExisting)
+  yield Saga.actionToPromise(WalletsGen.checkDisclaimer, checkDisclaimer)
+  yield Saga.actionToAction(WalletsGen.checkDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 }
 

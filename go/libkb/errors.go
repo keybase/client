@@ -173,6 +173,22 @@ func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 
 //=============================================================================
 
+type AssertionCheckError struct {
+	err string
+}
+
+func (e AssertionCheckError) Error() string {
+	return e.err
+}
+
+func NewAssertionCheckError(s string, a ...interface{}) AssertionCheckError {
+	return AssertionCheckError{
+		err: fmt.Sprintf(s, a...),
+	}
+}
+
+//=============================================================================
+
 type NeedInputError struct {
 	err string
 }
@@ -920,7 +936,11 @@ type ServiceDoesNotSupportNewProofsError struct {
 }
 
 func (e ServiceDoesNotSupportNewProofsError) Error() string {
-	return fmt.Sprintf("New %q proofs are no longer supported", e.Service)
+	service := e.Service
+	if len(service) > 0 {
+		service = fmt.Sprintf("%q", service)
+	}
+	return fmt.Sprintf("New %s proofs are no longer supported", service)
 }
 
 //=============================================================================

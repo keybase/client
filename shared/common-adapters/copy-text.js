@@ -41,17 +41,12 @@ const ToastContainer = HOCTimers(_ToastContainer)
 type OwnProps = {|
   buttonType?: $PropertyType<ButtonProps, 'type'>,
   containerStyle?: Styles.StylesCrossPlatform,
+  multiline?: boolean,
   withReveal?: boolean,
   text: string,
 |}
 
-export type Props = PropsWithTimer<{
-  buttonType?: $PropertyType<ButtonProps, 'type'>,
-  containerStyle?: Styles.StylesCrossPlatform,
-  withReveal?: boolean,
-  text: string,
-  copyToClipboard: string => void,
-}>
+export type Props = PropsWithTimer<{|...OwnProps, copyToClipboard: string => void|}>
 
 type State = {
   revealed: boolean,
@@ -77,6 +72,7 @@ class _CopyText extends React.Component<Props, State> {
   _getAttachmentRef = () => this._attachmentRef
 
   render() {
+    const lineClamp = !this.props.multiline && this._isRevealed() ? 1 : null
     return (
       <Box2
         ref={r => (this._attachmentRef = r)}
@@ -86,21 +82,26 @@ class _CopyText extends React.Component<Props, State> {
         {/* $FlowIssue innerRef not typed yet */}
         <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Text
-          lineClamp={this._isRevealed() ? 1 : null}
+          lineClamp={lineClamp}
           type="Body"
           selectable={true}
           style={styles.text}
           allowHighlightText={true}
           ref={r => (this._textRef = r)}
         >
-          {this._isRevealed() ? this.props.text : '•••••••••••• '}
-          {!this._isRevealed() && (
-            <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
-              Reveal
-            </Text>
-          )}
+          {this._isRevealed() ? this.props.text : '••••••••••••'}
         </Text>
-        <Button type={this.props.buttonType || 'Primary'} style={styles.button} onClick={this.copy}>
+        {!this._isRevealed() && (
+          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+            Reveal
+          </Text>
+        )}
+        <Button
+          type={this.props.buttonType || 'Primary'}
+          style={styles.button}
+          onClick={this.copy}
+          labelContainerStyle={styles.buttonLabelContainer}
+        >
           <Icon
             type="iconfont-clipboard"
             color={Styles.globalColors.white}
@@ -130,10 +131,14 @@ const CopyText = compose(
 const styles = Styles.styleSheetCreate({
   button: Styles.platformStyles({
     common: {
+      alignSelf: 'stretch',
+      height: undefined,
+      marginLeft: 'auto',
       paddingLeft: 17,
       paddingRight: 17,
     },
     isElectron: {
+      display: 'flex',
       paddingBottom: 6,
       paddingTop: 6,
     },
@@ -142,13 +147,15 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 10,
     },
   }),
+  buttonLabelContainer: {
+    height: undefined,
+  },
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.blue4,
       borderRadius: Styles.borderRadius,
       flexGrow: 1,
-      paddingLeft: Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {
@@ -157,7 +164,7 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isMobile: {
-      height: 40,
+      minHeight: 40,
     },
   }),
   reveal: {
@@ -167,10 +174,13 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.fontTerminalSemibold,
       color: Styles.globalColors.blue,
-      flexGrow: 1,
       flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
       minWidth: 0,
+      marginLeft: Styles.globalMargins.xsmall,
+      marginRight: Styles.globalMargins.xsmall,
+      marginTop: Styles.globalMargins.xsmall / 2,
+      marginBottom: Styles.globalMargins.xsmall / 2,
       textAlign: 'left',
     },
     isAndroid: {
@@ -182,7 +192,7 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
     isMobile: {
-      height: 15,
+      minHeight: 15,
     },
   }),
   toastText: Styles.platformStyles({

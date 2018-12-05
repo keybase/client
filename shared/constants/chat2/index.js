@@ -238,6 +238,7 @@ export {
   inboxUIItemToConversationMeta,
   isDecryptingSnippet,
   makeConversationMeta,
+  shouldShowWalletsIcon,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,
@@ -246,8 +247,6 @@ export {
 
 export {
   allMessageTypes,
-  authorIsCollapsible,
-  decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
@@ -270,7 +269,6 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
-  showAuthorMessageTypes,
   shouldShowPopup,
   specialMentions,
   uiMessageEditToMessage,

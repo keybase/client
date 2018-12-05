@@ -1,6 +1,6 @@
 // @flow strict
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {isAndroid} from '../constants/platform'
+import {isIOS} from '../constants/platform'
 
 const colors = {
   beige: '#FAF2ED',
@@ -43,7 +43,7 @@ const colors = {
   darkBlue3_75_on_white: 'rgb(82,98,147)',
   darkBlue4: '#1036AC',
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
-  fastBlank: isAndroid ? undefined : '#ffffff',
+  fastBlank: isIOS ? '#ffffff' : undefined,
   green: '#37BD99',
   green3: '#E8FAF6',
   grey: '#cccccc',

@@ -1,22 +1,26 @@
 .WrapperMessage-hoverBox {
   padding-bottom: 2px;
   padding-top: 2px;
+  padding-left: 56px;
+  padding-right: 16px;
   display: flex;
   flex-direction: column;
   position: relative;
   width: 100%;
 }
-.WrapperMessage-hoverBox .menu-button {
-  visibility: hidden;
+.WrapperMessage-hoverBox .WrapperMessage-buttons {
+  display: none;
+  flex-direction: row;
+  max-width: 100%;
+  width: 100%;
+  margin-left: 8px;
 }
-.WrapperMessage-hoverBox:hover .menu-button {
-  visibility: visible;
-}
-.WrapperMessage-hoverBox .unfurl-closebox {
-  visibility: hidden;
-}
-.WrapperMessage-hoverBox:hover .unfurl-closebox {
-  visibility: visible;
+.WrapperMessage-hoverBox:hover .WrapperMessage-buttons {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  width: 100%;
+  margin-left: 8px;
 }
 .WrapperMessage-decorated {
 }
@@ -25,4 +29,8 @@
 }
 .WrapperMessage-decorated:hover {
   background-color: #f7f9fc;
+}
+.WrapperMessage-author {
+  padding-left: 0;
+  padding-top: 8px;
 }

@@ -11,6 +11,12 @@ import OriginalParser from '../../markdown/parser'
 
 const cases = {
   debugging: `\` \` hi \` \``,
+  accidentalBoldLists: `
+  List of this:
+   * a
+   * b
+   * c
+  `,
   inlineCodeWeirdness: `\` \` hi \` \``,
   inlineCodeWeirdness2: `\` \` hi \n\` \``,
   breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
@@ -76,6 +82,7 @@ Include:
   http://keybase.io/blah/../up-one/index.html
   keybase.io/)(,)?=56,78,910@123
   abc subdomain.domain.com
+  https://www.google.com/maps/place/85+Broad+St,+New+York,+NY+10004/@40.7040702,-74.0133343,17z/data=!3m1!4b1!4m5!3m4!1s0x89c25a141703be89:0x74c637bf3f5d8f7d!8m2!3d40.7040662!4d-74.0111456
 Internationalized Domain Names:
   the 'a' in http://ebаy.com isn't an ascii 'a'
   https://www.google.com/search?q=ebаy the params should be allowed
@@ -83,9 +90,16 @@ These should have the trailing punctuation outside the link:
   amazon.co.uk.
   keybase.io,
   keybase.io.
+  http://keybase.io/mikem,
+  http://keybase.io/mikem;
+  http://keybase.io/mikem:
+  http://keybase.io/mikem!
   keybase.io?
   *http://keybase.io/*.
   *http://keybase.io/~_*
+Paranthesis stuff:
+  https://en.wikipedia.org/wiki/J/Z_(New_York_City_Subway_service)
+  (https://keybase.io/)
 `,
   Quotes: `> this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.

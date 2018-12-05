@@ -4,9 +4,9 @@ import * as Types from '../../../../constants/types/chat2'
 import {Box2, ProgressIndicator} from '../../../../common-adapters'
 import {globalColors, styleSheetCreate, collapseStyles, isMobile} from '../../../../styles'
 
-type Props = {
+type Props = {|
   ordinal: Types.Ordinal,
-}
+|}
 
 const baseWidth = isMobile ? 100 : 150
 const mult = isMobile ? 5 : 10
@@ -37,7 +37,7 @@ const styles = styleSheetCreate({
   },
   spinner: {
     height: 13,
-    marginLeft: 40,
+    marginLeft: 0,
   },
 })
 

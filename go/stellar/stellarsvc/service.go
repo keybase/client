@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -23,17 +22,17 @@ type UISource interface {
 
 type Server struct {
 	libkb.Contextified
-	uiSource         UISource
-	remoter          remote.Remoter
-	buildPaymentSlot *slotctx.PrioritySlot
+	uiSource    UISource
+	remoter     remote.Remoter
+	walletState *stellar.WalletState
 }
 
-func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
+func New(g *libkb.GlobalContext, uiSource UISource, walletState *stellar.WalletState) *Server {
 	return &Server{
-		Contextified:     libkb.NewContextified(g),
-		uiSource:         uiSource,
-		remoter:          remoter,
-		buildPaymentSlot: slotctx.NewPriority(),
+		Contextified: libkb.NewContextified(g),
+		uiSource:     uiSource,
+		remoter:      walletState,
+		walletState:  walletState,
 	}
 }
 
@@ -123,7 +122,13 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	err = stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	/*
+		if err == nil {
+			s.wallet.RefreshAll(ctx)
+		}
+	*/
+	return err
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -137,7 +142,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 		return res, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
+	mctx := s.mctx(ctx)
 
 	// Prompt for passphrase
 	username := s.G().GetEnv().GetUsername().String()
@@ -197,9 +202,9 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+	m := s.mctx(ctx).WithUIs(uis)
 
-	sendRes, err := stellar.SendPaymentCLI(m, s.remoter, stellar.SendPaymentArg{
+	sendRes, err := stellar.SendPaymentCLI(m, s.walletState, stellar.SendPaymentArg{
 		From:           arg.FromAccountID,
 		To:             stellarcommon.RecipientInput(arg.Recipient),
 		Amount:         arg.Amount,
@@ -239,7 +244,7 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.remoter, arg.TxID, into, nil, nil)
+	return stellar.Claim(ctx, s.G(), s.walletState, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
@@ -291,7 +296,7 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 		return err
 	}
 
-	_, err = stellar.CreateWallet(ctx, s.G())
+	_, err = stellar.CreateWallet(ctx, s.G(), false)
 	return err
 }
 
@@ -344,9 +349,9 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		return ret, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
+	mctx := s.mctx(ctx)
 
-	currentBundle, _, err := remote.Fetch(ctx, s.G())
+	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +493,7 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
+	m := s.mctx(ctx).WithUIs(uis)
 
 	return stellar.MakeRequestCLI(m, s.remoter, stellar.MakeRequestArg{
 		To:       stellarcommon.RecipientInput(arg.Recipient),

@@ -1,12 +1,10 @@
-New features:
-• See recent file activity in the widget
-• Enabled zooming to change app font size
-• Get notified when devices get added or revoked
-• Better pasting images from clipboard
-• Better looking image attachments
-Fixes:
-• Fix launching on startup on OSX
-• Fix pasting attachments on new conversations
-• Fix missing timestamps
-• Better performance in chat
-• Inbox wouldn't load after sign in/out sometimes
+Chat:
+• Unfurl URLs! Paste a url and you can opt into showing a preview
+• Better handling of urls and formatting
+• Faster thread scrolling
+• Smoother inbox scrolling
+Other:
+• Better badging for git and devices tabs
+• Better feedback during team creation flow
+• Fix inconsistent coloring of usernames
+• Fix for rare case where app could become unresponsive

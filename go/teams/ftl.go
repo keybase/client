@@ -1084,8 +1084,12 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 	return nil
 }
 
-func (f *FastTeamChainLoader) putMetadata(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) error {
+func setCachedAtToNow(m libkb.MetaContext, state *keybase1.FastTeamData) {
 	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
+}
+
+func (f *FastTeamChainLoader) putMetadata(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) error {
+	setCachedAtToNow(m, state)
 	if arg.NeedLatestKey {
 		state.LoadedLatest = true
 	}
@@ -1219,11 +1223,15 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	}
 
 	// If newState == nil, that means that no updates were required, and the old state
-	// is fine.
-	if newState != nil {
+	// is fine, we just need to update the cachedAt time. If newState is non-nil,
+	// then we use if for our state going forward.
+	if newState == nil {
+		setCachedAtToNow(m, state)
+	} else {
 		state = newState
-		f.updateCache(m, state)
 	}
+	// Always update the cache, even if we're just bumping the cachedAt time.
+	f.updateCache(m, state)
 
 	return f.toResult(m, arg, state)
 }

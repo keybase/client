@@ -108,7 +108,7 @@ const chatChildren = {
       [WalletConstants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
       },
       [WalletConstants.chooseAssetFormRouteKey]: {
         children: {},
@@ -117,11 +117,11 @@ const chatChildren = {
       },
       qrScan: {
         component: QRScan,
-        tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: true, underNotch: true}),
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
   },
 }
 

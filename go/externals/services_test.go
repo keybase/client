@@ -68,14 +68,25 @@ func TestLoadParamServices(t *testing.T) {
 		},
 	}, gubbleConf.CheckPath)
 
-	found := false
+	foundGubble := false
+	foundFacebook := false
 	for _, config := range displayConfigs {
 		if config.Key == "gubble.social" {
 			group := "gubble"
 			require.EqualValues(t, &group, config.Group)
-			found = true
-			break
+			require.False(t, config.CreationDisabled)
+			foundGubble = true
+			if foundFacebook {
+				break
+			}
+		}
+		if config.Key == "facebook" {
+			require.True(t, config.CreationDisabled)
+			foundFacebook = true
+			if foundGubble {
+				break
+			}
 		}
 	}
-	require.True(t, found)
+	require.True(t, foundGubble && foundFacebook)
 }

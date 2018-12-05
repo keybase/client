@@ -9,8 +9,9 @@ import type {_ConversationMeta} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isIOS, isAndroid} from '../platform'
+import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
+import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
@@ -45,9 +46,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
-      (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
-        i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-      i.localMetadata.resetParticipants
+    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+    i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
@@ -202,7 +203,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   const resetParticipants = I.Set(
     (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
       i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-      i.resetParticipants
+    i.resetParticipants
       ? i.resetParticipants
       : []
   )
@@ -306,7 +307,13 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
-const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blueGrey
+const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
+// show wallets icon for one-on-one conversations
+export const shouldShowWalletsIcon = (meta: Types.ConversationMeta, yourUsername: string) =>
+  flags.walletsEnabled &&
+  meta.teamType === 'adhoc' &&
+  meta.participants.filter(u => u !== yourUsername).size === 1
+
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform
@@ -314,10 +321,10 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
   const subColor = isError
     ? globalColors.red
     : isSelected
-    ? globalColors.white
-    : hasUnread
-    ? globalColors.black_75
-    : globalColors.black_40
+      ? globalColors.white
+      : hasUnread
+        ? globalColors.black_75
+        : globalColors.black_40
   const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 

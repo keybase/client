@@ -73,6 +73,7 @@ const connectPropsMap: RowConnectPropsMap = {
 const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
+  SendFormParticipantsSearch: o => ({...o, onVisibleScreen: true}),
 }
 
 const provider = Sb.createPropProviderWithCommon(participantProviderProperties)

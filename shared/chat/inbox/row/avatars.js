@@ -7,7 +7,7 @@ import {memoize} from 'lodash-es'
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
+function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: ?string) {
   // Only color the foreground items
   if (isLastParticipant) {
     return undefined
@@ -23,7 +23,7 @@ type AvatarProps = {
   isLocked: boolean,
   isMuted: boolean,
   isSelected: boolean,
-  backgroundColor: string,
+  backgroundColor: ?string,
 }
 
 const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {

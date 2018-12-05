@@ -19,7 +19,7 @@ const commonProps = {
   style: {borderWidth: 1, borderStyle: 'solid', borderColor: globalColors.black_10},
 }
 
-class TestInput extends React.Component<{multiline: boolean}, {value: string}> {
+class TestInput extends React.Component<{maxBytes?: number, multiline: boolean}, {value: string}> {
   state = {value: ''}
   _input: {current: React$ElementRef<typeof PlainInput> | null} = React.createRef()
 
@@ -53,6 +53,7 @@ class TestInput extends React.Component<{multiline: boolean}, {value: string}> {
           {...commonProps}
           ref={this._input}
           value={this.state.value}
+          maxBytes={this.props.maxBytes}
           multiline={this.props.multiline}
           onEnterKeyDown={() => this._insertText('foo')}
           onChangeText={v => this.setState(s => (s.value === v ? null : {value: v}))}
@@ -66,7 +67,10 @@ class TestInput extends React.Component<{multiline: boolean}, {value: string}> {
 }
 
 type ControlledInputState = {[key: string]: string}
-class ControlledInputPlayground extends React.Component<{multiline: boolean}, ControlledInputState> {
+class ControlledInputPlayground extends React.Component<
+  {maxBytes?: number, multiline: boolean},
+  ControlledInputState
+> {
   state = {}
   mutationTarget = React.createRef()
   _onChangeText = (valueKey: string) => (t: string) => this.setState({[valueKey]: t})
@@ -101,7 +105,7 @@ class ControlledInputPlayground extends React.Component<{multiline: boolean}, Co
     }
   }
   render() {
-    const common = {...commonProps, multiline: this.props.multiline}
+    const common = {...commonProps, maxBytes: this.props.maxBytes, multiline: this.props.multiline}
     return (
       <Box2 direction="vertical" fullWidth={true} gap="small" style={{padding: globalMargins.small}}>
         <Text type="Body">Basic controlled inputs</Text>
@@ -136,7 +140,7 @@ class ControlledInputPlayground extends React.Component<{multiline: boolean}, Co
             <Button type="Secondary" label="Run test" onClick={this._testCrossSelection} />
           </ButtonBar>
         </Box2>
-        <TestInput multiline={this.props.multiline} />
+        <TestInput maxBytes={this.props.maxBytes} multiline={this.props.multiline} />
       </Box2>
     )
   }
@@ -147,6 +151,7 @@ const load = () => {
     .addDecorator(story => <Box style={{padding: 20}}>{story()}</Box>)
     .addDecorator(scrollViewDecorator)
     .add('Basic', () => <PlainInput {...commonProps} />)
+    .add('Max Length=10', () => <PlainInput {...commonProps} maxLength={10} />)
     .add('Different text type', () => <PlainInput {...commonProps} textType="BodyExtrabold" />)
     .add('Larger text type', () => <PlainInput {...commonProps} textType="HeaderBig" />)
     .add('Password', () => <PlainInput {...commonProps} type="password" />)
@@ -173,6 +178,9 @@ const load = () => {
     ))
     // Sandbox for testing controlled input bugginess
     .add('Controlled input playground', () => <ControlledInputPlayground multiline={false} />)
+    .add('Controlled input playground (maxBytes=10)', () => (
+      <ControlledInputPlayground multiline={false} maxBytes={10} />
+    ))
     .add('Controlled input playground (multiline)', () => <ControlledInputPlayground multiline={true} />)
 }
 

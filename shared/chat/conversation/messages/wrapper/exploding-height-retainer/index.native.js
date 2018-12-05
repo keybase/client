@@ -1,16 +1,8 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as Styles from '../../../../../styles'
 import {throttle} from 'lodash-es'
-import {
-  Box,
-  ConnectedUsernames,
-  NativeAnimated,
-  NativeImage,
-  Text,
-  NativeEasing,
-} from '../../../../../common-adapters/mobile.native'
-import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../../../../styles'
-import {isAndroid} from '../../../../../constants/platform'
 import type {Props} from './index.types'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 
@@ -74,9 +66,10 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box
+      <Kb.Box
         onLayout={this._onLayout}
-        style={collapseStyles([
+        style={Styles.collapseStyles([
+          styles.container,
           this.props.style,
           this.props.retainHeight && styles.retaining,
           !!this.state.height && this.props.retainHeight && {height: this.state.height},
@@ -89,26 +82,26 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
           messageKey={this.props.messageKey}
           numImages={this.state.numImages}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }
 
 type AshTowerProps = {exploded: boolean, explodedBy: ?string, messageKey: string, numImages: number}
-type AshTowerState = {showExploded: boolean, width: NativeAnimated.Value}
+type AshTowerState = {showExploded: boolean, width: Kb.NativeAnimated.Value}
 class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   state = {
     showExploded: this.props.exploded,
-    width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0),
+    width: this.props.exploded ? new Kb.NativeAnimated.Value(100) : new Kb.NativeAnimated.Value(0),
   }
   timerID: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
       // just exploded! animate
-      NativeAnimated.timing(this.state.width, {
+      Kb.NativeAnimated.timing(this.state.width, {
         duration: animationDuration,
-        easing: NativeEasing.inOut(NativeEasing.ease),
+        easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
         toValue: 100,
       }).start()
       // insert 'EXPLODED' in sync with 'boom!' disappearing
@@ -125,21 +118,24 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   }
 
   render() {
+    if (!this.props.exploded) {
+      return null
+    }
     const width = this.state.width.interpolate({
       inputRange: [0, 100],
       outputRange: ['0%', '100%'],
     })
     return (
-      <NativeAnimated.View style={[{width}, styles.slider]}>
+      <Kb.NativeAnimated.View style={[{width}, styles.slider]}>
         <AshTower {...this.props} showExploded={this.state.showExploded} />
         <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
-      </NativeAnimated.View>
+      </Kb.NativeAnimated.View>
     )
   }
 }
 
 class EmojiTower extends React.Component<
-  {numImages: number, animatedValue: NativeAnimated.Value},
+  {numImages: number, animatedValue: Kb.NativeAnimated.Value},
   {running: boolean}
 > {
   state = {running: false}
@@ -179,32 +175,32 @@ class EmojiTower extends React.Component<
       } else if (r < 0.66) {
         emoji = '💣'
       } else {
-        emoji = isAndroid ? '🎇' : '🤯'
+        emoji = Styles.isAndroid ? '🎇' : '🤯'
       }
       children.push(
-        <Text key={i} type="Body">
+        <Kb.Text key={i} type="Body">
           {emoji}
-        </Text>
+        </Kb.Text>
       )
     }
-    return <Box style={styles.emojiTower}>{children}</Box>
+    return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
   }
 }
 const AshTower = (props: {explodedBy: ?string, numImages: number, showExploded: boolean}) => {
   const children = []
   for (let i = 0; i < props.numImages; i++) {
-    children.push(<NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)
+    children.push(<Kb.NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)
   }
   let exploded = null
   if (props.showExploded) {
     exploded = !props.explodedBy ? (
-      <Text type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded}>
         EXPLODED
-      </Text>
+      </Kb.Text>
     ) : (
-      <Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded}>
         EXPLODED BY{' '}
-        <ConnectedUsernames
+        <Kb.ConnectedUsernames
           type="BodySmallSemibold"
           onUsernameClicked="profile"
           usernames={[props.explodedBy]}
@@ -213,53 +209,54 @@ const AshTower = (props: {explodedBy: ?string, numImages: number, showExploded: 
           colorYou={true}
           underline={true}
         />
-      </Text>
+      </Kb.Text>
     )
   }
   return (
     <React.Fragment>
       {children}
-      <Box style={styles.tagBox}>{exploded}</Box>
+      <Kb.Box style={styles.tagBox}>{exploded}</Kb.Box>
     </React.Fragment>
   )
 }
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   ashes: {
-    width: 400,
     height: 80,
+    width: 400,
   },
+  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
   emojiTower: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
+    bottom: 0,
+    overflow: 'hidden',
     position: 'absolute',
     right: 0,
     top: 0,
-    bottom: 0,
     width: 20,
-    overflow: 'hidden',
   },
   exploded: {
-    backgroundColor: globalColors.white,
-    color: globalColors.black_20_on_white,
+    backgroundColor: Styles.globalColors.white,
+    color: Styles.globalColors.black_20_on_white,
   },
   retaining: {
     overflow: 'hidden',
   },
   slider: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
+    bottom: 0,
     height: '100%',
+    left: 0,
     overflow: 'hidden',
     position: 'absolute',
     top: 0,
-    bottom: 0,
-    left: 0,
   },
   tagBox: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-end',
-    position: 'absolute',
-    right: 0,
     bottom: 2,
     minWidth: 200,
+    position: 'absolute',
+    right: 0,
   },
 })
 export default ExplodingHeightRetainer

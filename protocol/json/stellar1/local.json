@@ -172,6 +172,17 @@
           "name": "currentWorthCurrency"
         },
         {
+          "type": "string",
+          "name": "issuerDescription"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "issuerAccountID"
+        },
+        {
           "type": "ParticipantType",
           "name": "fromType"
         },
@@ -330,6 +341,17 @@
         {
           "type": "string",
           "name": "currentWorthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "issuerDescription"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "issuerAccountID"
         },
         {
           "type": "ParticipantType",
@@ -1178,10 +1200,6 @@
           "type": "boolean"
         },
         {
-          "name": "fromSeqno",
-          "type": "string"
-        },
-        {
           "name": "to",
           "type": "string"
         },
@@ -1227,10 +1245,6 @@
         {
           "name": "from",
           "type": "AccountID"
-        },
-        {
-          "name": "fromSeqno",
-          "type": "string"
         },
         {
           "name": "to",
@@ -1508,7 +1522,7 @@
     },
     "walletDumpLocal": {
       "request": [],
-      "response": "Bundle"
+      "response": "BundleRestricted"
     },
     "walletGetAccountsCLILocal": {
       "request": [],
