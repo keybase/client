@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 
 export type Props = {
   items: Array<string>,
-  renderItem: (i: string) => React.Node,
+  renderItem: (index: number, item: string) => React.Node,
   style?: Styles.StylesCrossPlatform,
 }
 

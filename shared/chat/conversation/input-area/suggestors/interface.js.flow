@@ -5,7 +5,7 @@ import type {TypedState} from '../../../../util/container'
 export type Suggestor = {
   getFilter: (state: TypedState) => (filter: string) => Array<any>,
   marker: string,
-  render: (item: any) => React.Node,
+  render: (item: any, selected: boolean) => React.Node,
   transform: ({text: string, selection: {start: number, end: number}}) => {
     text: string,
     selection: {start: number, end: number},

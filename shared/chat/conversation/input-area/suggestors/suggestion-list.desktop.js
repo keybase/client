@@ -7,7 +7,10 @@ import type {Props} from './suggestion-list'
 
 const SuggestionList = (props: Props) => (
   <Kb.ScrollView style={Styles.collapseStyles([styles.fullHeight, props.style])}>
-    <ReactList itemRenderer={index => props.renderItem(props.items[index])} length={props.items.length} />
+    <ReactList
+      itemRenderer={index => props.renderItem(index, props.items[index])}
+      length={props.items.length}
+    />
   </Kb.ScrollView>
 )
 

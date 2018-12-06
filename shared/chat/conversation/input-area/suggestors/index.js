@@ -26,7 +26,7 @@ type SuggestorProps = {
     [key: string]: (filter: string) => Array<any>, // typing TODO
   },
   renderers: {
-    [key: string]: (item: any) => React.Node,
+    [key: string]: (item: any, selected: boolean) => React.Node,
   },
   suggestorToMarker: {
     [key: string]: string,
@@ -40,8 +40,9 @@ type SuggestorProps = {
 }
 
 type AddSuggestorsState = {
-  active: ?string,
+  active: ?SuggestorName,
   filter: string,
+  selected: number,
 }
 
 export type SuggestorHooks = {
@@ -54,7 +55,7 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
   WrappedComponent: React.ComponentType<$Diff<OuterProps, SuggestorProps> & SuggestorHooks>
 ): React.ComponentType<OuterProps> => {
   class SuggestorsComponent extends React.Component<OuterProps, AddSuggestorsState> {
-    state = {active: null, filter: ''}
+    state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor = invert(this.props.suggestorToMarker)
@@ -73,7 +74,7 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
         const activeMarker = this.props.suggestorToMarker[this.state.active]
         if (!word.startsWith(activeMarker)) {
           // not active anymore
-          this.setState({active: null, filter: ''})
+          this.setState({active: null, filter: '', selected: 0})
         } else {
           this.setState({filter: word.substring(activeMarker.length)})
           return
@@ -87,16 +88,22 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
       }
     }
 
-    onChangeText = text => {
+    _onChangeText = text => {
       lg('changetext')
       this.props.onChangeText && this.props.onChangeText(text)
       this._checkTrigger(text)
     }
 
-    onKeyDown = (evt, ici) => {
+    _onKeyDown = (evt, ici) => {
       lg('keydown')
       this.props.onKeyDown && this.props.onKeyDown(evt, ici)
     }
+
+    _itemRenderer = (index, value) => (
+      <Kb.Box onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}>
+        {this.props.renderers[this.state.active](value, index === this.state.selected)}
+      </Kb.Box>
+    )
 
     render() {
       let overlay = null
@@ -109,14 +116,14 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
               attachTo={this._getInputRef}
               position="top center"
               visible={true}
-              propagateOutsideClicks={true}
+              propagateOutsideClicks={false}
               onHidden={() => {}}
             >
               <Kb.Box2
                 direction="vertical"
                 style={{backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320}}
               >
-                <SuggestionList items={results} renderItem={this.props.renderers[this.state.active]} />
+                <SuggestionList items={results} renderItem={this._itemRenderer} />
               </Kb.Box2>
             </Kb.Overlay>
           )
@@ -128,8 +135,8 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
           <WrappedComponent
             {...this.props}
             inputRef={this._inputRef}
-            onChangeText={this.onChangeText}
-            onKeyDown={this.onKeyDown}
+            onChangeText={this._onChangeText}
+            onKeyDown={this._onKeyDown}
           />
         </>
       )

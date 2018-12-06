@@ -15,10 +15,10 @@ const ChatUsers: Suggestor = {
       meta.participants.filter(uname => uname !== you && uname.includes(filter)).toArray()
   },
   marker: '@',
-  render: username => (
+  render: (username, selected) => (
     <Kb.NameWithIcon
       containerStyle={{
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
         paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: Styles.globalMargins.tiny + Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.tiny,
