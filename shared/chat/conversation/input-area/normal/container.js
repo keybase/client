@@ -84,7 +84,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     // only valid conversations
-    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, text})),
+    conversationIDKey &&
+    dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),

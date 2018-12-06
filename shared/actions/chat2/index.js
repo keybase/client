@@ -1953,7 +1953,7 @@ const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, text} = action.payload
   return Saga.call(RPCChatTypes.localUpdateTypingRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
-    text,
+    text: text.stringValue(),
   })
 }
 
