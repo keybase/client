@@ -51,19 +51,6 @@ class UnfurlPrompt extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      backgroundColor: Styles.globalColors.blue5,
-      borderRadius: Styles.borderRadius,
-      paddingTop: 8,
-      paddingBottom: 8,
-      alignSelf: 'flex-start',
-    },
-    isElectron: {
-      maxWidth: 600,
-    },
-  }),
   choiceContainer: Styles.platformStyles({
     isElectron: {
       width: 370,
@@ -74,15 +61,28 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
     },
     isElectron: {
-      width: 30,
       marginLeft: 'auto',
+      width: 30,
+    },
+  }),
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignSelf: 'flex-start',
+      backgroundColor: Styles.globalColors.blue5,
+      borderRadius: Styles.borderRadius,
+      paddingBottom: 8,
+      paddingTop: 8,
+    },
+    isElectron: {
+      maxWidth: 600,
     },
   }),
   icon: Styles.platformStyles({
     isElectron: {
       alignSelf: 'center',
-      marginRight: 16,
       marginLeft: 16,
+      marginRight: 16,
     },
   }),
 })

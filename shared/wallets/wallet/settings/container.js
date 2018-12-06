@@ -40,10 +40,6 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
     dispatch(navigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
-  _refresh: () => {
-    dispatch(WalletsGen.createLoadDisplayCurrencies())
-    dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
-  },
   _onDelete: (accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
@@ -53,6 +49,8 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
         },
       ])
     ),
+  _onEditName: (accountID: Types.AccountID) =>
+    dispatch(navigateAppend([{props: {accountID}, selected: 'renameAccount'}])),
   _onSetDefault: (accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
@@ -64,8 +62,10 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
     ),
   _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
     dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
-  _onEditName: (accountID: Types.AccountID) =>
-    dispatch(navigateAppend([{props: {accountID}, selected: 'renameAccount'}])),
+  _refresh: () => {
+    dispatch(WalletsGen.createLoadDisplayCurrencies())
+    dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({

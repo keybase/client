@@ -83,10 +83,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         break
     }
     const permissionDenied = {
-      title: 'Permissions needed',
-      text: permDeniedText,
-      reTryTitle: 'allow in settings',
       okTitle: 'deny',
+      reTryTitle: 'allow in settings',
+      text: permDeniedText,
+      title: 'Permissions needed',
     }
     const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -104,10 +104,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
     switch (location) {
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
     }
   }

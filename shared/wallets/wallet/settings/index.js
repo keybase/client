@@ -160,10 +160,6 @@ const AccountSettings = (props: SettingsProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  identityBox: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
   accountBox: {
     marginBottom: Styles.globalMargins.medium,
   },
@@ -174,23 +170,32 @@ const styles = Styles.styleSheetCreate({
   alignSelfFlexStart: {
     alignSelf: 'flex-start',
   },
-  deleteOpacity: {
-    opacity: 0.3,
-  },
   centerText: {
     textAlign: 'center',
   },
+  deleteOpacity: {
+    opacity: 0.3,
+  },
   header: {
-    borderBottomWidth: 1,
     borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
     borderStyle: 'solid',
     marginBottom: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
   },
   icon: {
     marginLeft: Styles.globalMargins.xtiny,
   },
+  identityBox: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
   red: {
     color: Styles.globalColors.red,
+  },
+  remove: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   removeContainer: Styles.platformStyles({
     isElectron: {
@@ -203,30 +208,25 @@ const styles = Styles.styleSheetCreate({
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
   },
+  scrollView: {
+    display: 'flex',
+    flexGrow: 1,
+    width: '100%',
+  },
   sectionLabel: {
-    marginBottom: Styles.globalMargins.tiny,
     alignSelf: 'flex-start',
+    marginBottom: Styles.globalMargins.tiny,
   },
   settingsPage: {
     alignSelf: 'flex-start',
     backgroundColor: Styles.globalColors.white,
-    paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
     paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
   },
   sidePaddings: {
     alignSelf: 'flex-start',
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-  },
-  remove: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scrollView: {
-    display: 'flex',
-    flexGrow: 1,
-    width: '100%',
   },
 })
 

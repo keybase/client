@@ -38,7 +38,7 @@ export const Task = (props: Props) => (
 
 const actionContainerStyle = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'flex-start',
   alignItems: 'center',
   flexWrap: 'wrap',
+  justifyContent: 'flex-start',
 }

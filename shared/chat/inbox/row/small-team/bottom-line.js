@@ -142,8 +142,43 @@ class BottomLine extends PureComponent<Props> {
 }
 
 const styles = styleSheetCreate({
-  outerBox: {
-    ...globalStyles.flexBoxRow,
+  alertMeta: platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: 6,
+    },
+    isMobile: {
+      marginTop: 2,
+    },
+  }),
+  bottomLine: platformStyles({
+    isAndroid: {
+      lineHeight: undefined,
+    },
+    isElectron: {
+      color: globalColors.black_40,
+      display: 'block',
+      fontSize: 12,
+      lineHeight: 15,
+      minHeight: 16,
+      overflow: 'hidden',
+      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '100%',
+    },
+    isMobile: {
+      backgroundColor: globalColors.fastBlank,
+      color: globalColors.black_40,
+      flex: 1,
+      fontSize: 14,
+      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
+    },
+  }),
+  contentBox: {
+    ...globalStyles.fillAbsolute,
+    alignItems: 'center',
+    width: '100%',
   },
   innerBox: {
     ...globalStyles.flexBoxRow,
@@ -151,6 +186,9 @@ const styles = styleSheetCreate({
     flexGrow: 1,
     height: isMobile ? 21 : 17,
     position: 'relative',
+  },
+  outerBox: {
+    ...globalStyles.flexBoxRow,
   },
   rekeyNeededContainer: {
     alignSelf: 'center',
@@ -180,44 +218,6 @@ const styles = styleSheetCreate({
     isMobile: {
       fontSize: 14,
       lineHeight: 19,
-    },
-  }),
-  bottomLine: platformStyles({
-    isAndroid: {
-      lineHeight: undefined,
-    },
-    isElectron: {
-      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
-      color: globalColors.black_40,
-      display: 'block',
-      fontSize: 12,
-      lineHeight: 15,
-      minHeight: 16,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '100%',
-    },
-    isMobile: {
-      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
-      backgroundColor: globalColors.fastBlank,
-      color: globalColors.black_40,
-      flex: 1,
-      fontSize: 14,
-    },
-  }),
-  contentBox: {
-    ...globalStyles.fillAbsolute,
-    alignItems: 'center',
-    width: '100%',
-  },
-  alertMeta: platformStyles({
-    common: {
-      alignSelf: 'center',
-      marginRight: 6,
-    },
-    isMobile: {
-      marginTop: 2,
     },
   }),
 })

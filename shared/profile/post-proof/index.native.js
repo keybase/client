@@ -32,8 +32,8 @@ const PostProof = (props: Props) => {
     ? {}
     : {
         notification: {
-          type: 'error',
           message: errorMessage,
+          type: 'error',
         },
       }
 
@@ -116,8 +116,8 @@ const stylePlatformSubtitle = {
 }
 
 const styleDescriptionText = {
-  textAlign: 'center',
   marginTop: globalMargins.tiny,
+  textAlign: 'center',
 }
 
 const styleProofContainer = {
@@ -135,8 +135,8 @@ const styleNoteText = {
 
 const styleContinueButton = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.small,
   marginBottom: globalMargins.small,
+  marginTop: globalMargins.small,
 }
 
 export default PostProof

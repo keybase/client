@@ -100,36 +100,31 @@ const TeamList = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  teamList: {
-    ...Styles.globalStyles.flexBoxColumn,
-    width: '100%',
-    marginLeft: Styles.globalMargins.tiny,
+  avatarContainer: {
+    display: 'flex',
+    position: 'relative',
   },
-  isOpen: {
-    alignSelf: 'center',
-    marginLeft: 4,
+  badge: {
+    position: 'absolute',
+    right: -5,
+    top: -5,
+  },
+  bottomLine: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+  divider: {
+    marginLeft: 48,
   },
   isNew: {
     alignSelf: 'center',
     marginRight: 4,
   },
-  badge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-  },
-  divider: {
-    marginLeft: 48,
+  isOpen: {
+    alignSelf: 'center',
+    marginLeft: 4,
   },
   rowContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     flexShrink: 0,
     minHeight: Styles.isMobile ? 64 : 48,
-  },
-  rowLeftSide: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flex: 1,
   },
   rowInnerContainer: {
     ...Styles.globalStyles.flexBoxRow,
@@ -138,13 +133,18 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
-  avatarContainer: {
-    display: 'flex',
-    position: 'relative',
+  rowLeftSide: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flex: 1,
+  },
+  teamList: {
+    ...Styles.globalStyles.flexBoxColumn,
+    marginLeft: Styles.globalMargins.tiny,
+    width: '100%',
   },
   textContainer: {...Styles.globalStyles.flexBoxColumn, flex: 1, marginLeft: Styles.globalMargins.small},
   topLine: {...Styles.globalStyles.flexBoxRow},
-  bottomLine: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
 })
 
 export default TeamList

@@ -43,9 +43,10 @@ const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload)
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
+          bid: '', // DESKTOP-8530
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
+          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           publicMemo: state.wallets.building.publicMemo.stringValue(),
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
@@ -136,8 +137,8 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     .then(accountID =>
       WalletsGen.createCreatedNewAccount({
         accountID,
-        showOnCreation: action.payload.showOnCreation,
         setBuildingTo: action.payload.setBuildingTo,
+        showOnCreation: action.payload.showOnCreation,
       })
     )
     .catch(err => {
@@ -146,15 +147,17 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     })
 }
 
-const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
+const emptyAsset = {code: '', issuer: '', issuerName: '', type: 'native', verifiedDomain: ''}
 
 const sendPayment = (state: TypedState) => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   return RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
-      // FIXME -- support other assets.
       asset: emptyAsset,
+      // FIXME -- support other assets.
+      bid: '', // DESKTOP-8530
+      bypassBid: true, // DESKTOP-8530
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -198,8 +201,8 @@ const requestPayment = (state: TypedState) =>
         state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
           ? state.wallets.building.currency
           : undefined,
-      recipient: state.wallets.building.to,
       note: state.wallets.building.secretNote.stringValue(),
+      recipient: state.wallets.building.to,
     },
     Constants.requestPaymentWaitingKey
   ).then(kbRqID =>
@@ -432,8 +435,8 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     .then(accountID =>
       WalletsGen.createLinkedExistingAccount({
         accountID,
-        showOnCreation: action.payload.showOnCreation,
         setBuildingTo: action.payload.setBuildingTo,
+        showOnCreation: action.payload.showOnCreation,
       })
     )
     .catch(err => {

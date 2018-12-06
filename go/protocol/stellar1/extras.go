@@ -362,3 +362,15 @@ func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (r
 func (c OutsideCurrencyCode) String() string {
 	return string(c)
 }
+
+func (b BuildPaymentID) String() string {
+	return string(b)
+}
+
+func (b BuildPaymentID) IsNil() bool {
+	return len(b) == 0
+}
+
+func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
+	return b == other
+}

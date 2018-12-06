@@ -82,10 +82,10 @@ export default class TrackerRender extends React.PureComponent<Props> {
               <Box
                 style={{
                   ...globalStyles.flexBoxColumn,
-                  paddingLeft: globalMargins.medium,
-                  paddingBottom: globalMargins.tiny,
-                  paddingTop: globalMargins.tiny,
                   backgroundColor: globalColors.white,
+                  paddingBottom: globalMargins.tiny,
+                  paddingLeft: globalMargins.medium,
+                  paddingTop: globalMargins.tiny,
                 }}
               >
                 {this.props.userInfo.showcasedTeams.map(team => (
@@ -147,8 +147,8 @@ export default class TrackerRender extends React.PureComponent<Props> {
                       style={{
                         ...globalStyles.flexBoxRow,
                         alignItems: 'center',
-                        justifyContent: 'center',
                         alignSelf: 'center',
+                        justifyContent: 'center',
                         paddingLeft: globalMargins.tiny,
                       }}
                     >
@@ -207,23 +207,23 @@ export default class TrackerRender extends React.PureComponent<Props> {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  width: 320,
   height: 470,
   position: 'relative',
+  width: 320,
 }
 
 const styleContent = {
-  overflowY: 'auto',
   overflowX: 'hidden',
+  overflowY: 'auto',
   // This value is added to the footer height to set the actual paddingBottom
   paddingBottom: 12,
   zIndex: 1,
 }
 
 const styleFooter = {
-  position: 'absolute',
   bottom: 0,
   left: 0,
+  position: 'absolute',
   right: 0,
 }
 

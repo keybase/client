@@ -22,7 +22,7 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheetFromURL, {url: localPath, mimeType}),
+        Saga.call(showShareActionSheetFromURL, {mimeType, url: localPath}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':

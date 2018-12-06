@@ -20,12 +20,13 @@ import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
+  attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
-  inboxHasLoaded: false,
   inboxFilter: '',
+  inboxHasLoaded: false,
   isExplodingNew: true,
   isWalletsNew: true,
   messageMap: I.Map(),
@@ -36,18 +37,18 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   pendingMode: 'none',
-  pendingStatus: 'none',
   pendingOutboxToOrdinal: I.Map(),
+  pendingStatus: 'none',
   quote: null,
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
   typingMap: I.Map(),
-  unreadMap: I.Map(),
   unfurlPromptMap: I.Map(),
   giphyResultMap: I.Map(),
   giphySearchMap: I.Map(),
   attachmentFullscreenMessage: null,
+  unreadMap: I.Map(),
 
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
@@ -197,8 +198,8 @@ export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
 ): RPCChatTypes.GetInboxLocalQuery => {
   return {
-    convIDs: convIDKeys.map(Types.keyToConversationID),
     computeActiveList: true,
+    convIDs: convIDKeys.map(Types.keyToConversationID),
     readOnly: false,
     status: Object.keys(RPCChatTypes.commonConversationStatus)
       .filter(k => !['ignored', 'blocked', 'reported'].includes(k))

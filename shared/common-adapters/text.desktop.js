@@ -138,8 +138,8 @@ function externalGetStyle(
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable
     ? {
-        userSelect: 'text',
         cursor: 'text',
+        userSelect: 'text',
       }
     : null
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null

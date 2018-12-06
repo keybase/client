@@ -28,9 +28,9 @@ const styleHeaderIcon = {
 }
 
 const styleBody = {
-  textAlign: 'center',
   margin: globalMargins.medium,
   marginTop: globalMargins.large,
+  textAlign: 'center',
 }
 
 export default ProvePgpImport

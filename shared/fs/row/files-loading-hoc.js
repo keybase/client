@@ -14,14 +14,14 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
-  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
   loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
+  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
 })
 
 const mergeProps = ({syncingPaths}, {loadFolderList, loadFavorites}, o) => ({
-  syncingPaths,
-  loadFolderList,
   loadFavorites,
+  loadFolderList,
+  syncingPaths,
   // $FlowFixMe it's a HOC so we need to pass through inexact properties.
   ...o,
 })

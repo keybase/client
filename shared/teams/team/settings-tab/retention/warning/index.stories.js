@@ -9,9 +9,9 @@ const commonProps = {
   days: 5,
   enabled: true,
   entityType: 'channel',
-  setEnabled: action('setEnabled'),
-  onConfirm: action('onConfirm'),
   onBack: action('onBack'),
+  onConfirm: action('onConfirm'),
+  setEnabled: action('setEnabled'),
 }
 
 const load = () => {

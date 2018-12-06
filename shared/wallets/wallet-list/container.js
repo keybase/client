@@ -20,7 +20,7 @@ const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
     dispatch(
       RouteTree.navigateAppend([
-        {props: {showOnCreation: true, backButton: isMobile}, selected: 'createNewAccount'},
+        {props: {backButton: isMobile, showOnCreation: true}, selected: 'createNewAccount'},
       ])
     )
   },
@@ -36,9 +36,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   acceptedDisclaimer: stateProps.acceptedDisclaimer,
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
+  onBack: dispatchProps.onBack,
   onLinkExisting: dispatchProps.onLinkExisting,
   onWhatIsStellar: dispatchProps.onWhatIsStellar,
-  onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
   style: ownProps.style,
   title: 'Wallets',

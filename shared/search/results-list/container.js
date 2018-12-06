@@ -35,7 +35,7 @@ const mapDispatchToProps = (dispatch, {searchKey, onClick, disableListBuilding}:
     !disableListBuilding && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]}))
     onClick && onClick(id)
   },
-  onMouseOver: id => dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id})),
+  onMouseOver: id => dispatch(SearchGen.createUpdateSelectedSearchResult({id, searchKey})),
 })
 
 const Progress = ({style}) => (
@@ -46,8 +46,8 @@ const Progress = ({style}) => (
 
 const styleSpinner = {
   alignSelf: 'center',
-  marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
+  marginTop: globalMargins.medium,
   width: 24,
 }
 

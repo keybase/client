@@ -74,17 +74,7 @@ const styles = {
     justifyContent: 'center',
   },
   fullHeight: {height: '100%', maxHeight: '100%'},
-  fullWidth: {width: '100%', maxWidth: '100%'},
-  vbox: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  vrbox: {
-    ...globalStyles.flexBoxColumnReverse,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
+  fullWidth: {maxWidth: '100%', width: '100%'},
   hbox: {
     ...globalStyles.flexBoxRow,
     alignItems: 'stretch',
@@ -92,6 +82,16 @@ const styles = {
   },
   hrbox: {
     ...globalStyles.flexBoxRowReverse,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
+  vbox: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
+  vrbox: {
+    ...globalStyles.flexBoxColumnReverse,
     alignItems: 'stretch',
     justifyContent: 'flex-start',
   },

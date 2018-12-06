@@ -26,6 +26,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
   onChangeDisplayUnit: () => {
     dispatch(
       Route.navigateAppend([
@@ -36,7 +37,6 @@ const mapDispatchToProps = dispatch => ({
       ])
     )
   },
-  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

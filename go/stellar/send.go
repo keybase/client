@@ -9,6 +9,9 @@ import (
 )
 
 func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
+	if arg.Bid.IsNil() && !arg.BypassBid {
+		return res, fmt.Errorf("missing payment ID")
+	}
 	if len(arg.From) == 0 {
 		return res, fmt.Errorf("missing from account ID parameter")
 	}
@@ -37,6 +40,17 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		displayBalance = DisplayBalance{
 			Amount:   arg.WorthAmount,
 			Currency: arg.WorthCurrency.String(),
+		}
+	}
+
+	if !arg.Bid.IsNil() {
+		state := getGlobal(mctx.G()).stopBuildPayment(mctx, arg.Bid)
+		if state == nil {
+			return res, fmt.Errorf("the payment to send was not found")
+		}
+		err = state.CheckReady(arg)
+		if err != nil {
+			return res, err
 		}
 	}
 

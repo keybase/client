@@ -43,9 +43,9 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       borderWidth: 2,
+      height: 18,
       marginLeft: -5,
       marginTop: -1,
-      height: 18,
     },
   }),
 })

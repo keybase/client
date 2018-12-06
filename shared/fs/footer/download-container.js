@@ -15,21 +15,21 @@ const mapStateToProps = (state, {downloadKey}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: p})),
-  _dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
   _canceler: (key: string) => dispatch(FsGen.createCancelDownload({key})),
+  _dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
+  _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: p})),
 })
 
 const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}) =>
   ({
+    cancel: () => _canceler(downloadKey),
+    completePortion: _download.state.completePortion,
+    dismiss: () => _dismisser(downloadKey),
     error: _download.state.error,
     filename: Types.getLocalPathName(_download.meta.localPath),
-    completePortion: _download.state.completePortion,
-    progressText: formatDurationFromNowTo(_download.state.endEstimate),
     isDone: _download.state.isDone,
     open: _download.state.isDone ? () => _opener(_download.meta.localPath) : undefined,
-    dismiss: () => _dismisser(downloadKey),
-    cancel: () => _canceler(downloadKey),
+    progressText: formatDurationFromNowTo(_download.state.endEstimate),
   }: DownloadProps)
 
 export default namedConnect<OwnProps, _, _, _, _>(

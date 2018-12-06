@@ -6,18 +6,18 @@ import * as Sb from '../../../../../../stories/storybook'
 import UnfurlGeneric from '.'
 
 const full = {
-  title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
-  url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
-  siteName: 'WSJ',
-  publishTime: 1542241021655,
   description:
     'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
-  onClose: Sb.action('onClose'),
   faviconURL: require('../../../../../../images/mock/wsj.jpg'),
+  imageHeight: 471,
   imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
   imageWidth: 900,
-  imageHeight: 471,
+  onClose: Sb.action('onClose'),
+  publishTime: 1542241021655,
   showImageOnSide: false,
+  siteName: 'WSJ',
+  title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
+  url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
 }
 
 const noClose = {
@@ -51,14 +51,14 @@ const missingImage = {
 }
 
 const fullGithub = {
-  title: 'keybase/client',
-  url: 'https://github.com/keybase/client"',
-  siteName: 'GitHub',
   description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
   faviconURL: require('../../../../../../images/mock/github_fav.jpg'),
   imageURL: require('../../../../../../images/mock/github.jpg'),
-  showImageOnSide: true,
   onClose: Sb.action('onClose'),
+  showImageOnSide: true,
+  siteName: 'GitHub',
+  title: 'keybase/client',
+  url: 'https://github.com/keybase/client"',
 }
 
 const githubMissingDesc = {

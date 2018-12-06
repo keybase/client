@@ -22,7 +22,7 @@ const mapStateToProps = (state, {routeProps}) => {
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   _onDelete: (teamname: ?string, name: string, notifyTeam: boolean) => {
     const deleteAction = teamname
-      ? GitGen.createDeleteTeamRepo({teamname, name, notifyTeam})
+      ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
       : GitGen.createDeletePersonalRepo({name})
     dispatch(deleteAction)
   },

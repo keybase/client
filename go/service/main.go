@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/unfurl"
+	"github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/externals"
@@ -151,6 +152,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
+		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 	}
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
@@ -450,6 +452,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
+	g.StellarSender = wallet.NewSender(g)
 
 	convStorage := chat.NewDevConversationBackedStorage(g, ri)
 

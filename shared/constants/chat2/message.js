@@ -228,9 +228,9 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   delta: 'none',
   note: new HiddenString(''),
   paymentID: WalletTypes.noPaymentID,
+  showCancel: false,
   status: 'none',
   statusDescription: '',
-  showCancel: false,
   type: 'paymentInfo',
   worth: '',
 })
@@ -367,9 +367,9 @@ export const uiPaymentInfoToChatPaymentInfo = (
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
+    showCancel: p.showCancel,
     status: serviceStatus,
     statusDescription: p.statusDescription,
-    showCancel: p.showCancel,
     worth: p.worth,
   })
 }
@@ -547,10 +547,10 @@ export const isVideoAttachment = (message: Types.MessageAttachment) => message.f
 
 export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
   const res = {
-    height: 0,
-    width: 0,
     attachmentType: 'file',
+    height: 0,
     showPlayButton: false,
+    width: 0,
   }
   if (!preview) {
     return res
@@ -617,8 +617,8 @@ const validUIMessagetoMessage = (
         mentionsChannelName: I.Map(
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
-        unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
         text: new HiddenString(rawText),
+        unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
       })
     case RPCChatTypes.commonMessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.commonMessageType.attachment: {
@@ -946,16 +946,16 @@ export const makePendingAttachmentMessage = (
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
-    fileName: fileName,
-    previewURL: previewURL,
-    previewWidth: previewSpec.width,
-    previewHeight: previewSpec.height,
-    showPlayButton: previewSpec.showPlayButton,
     deviceType: isMobile ? 'mobile' : 'desktop',
+    errorReason: errorReason,
+    fileName: fileName,
     id: Types.numberToMessageID(0),
     ordinal: ordinal,
     outboxID: outboxID,
-    errorReason: errorReason,
+    previewHeight: previewSpec.height,
+    previewURL: previewURL,
+    previewWidth: previewSpec.width,
+    showPlayButton: previewSpec.showPlayButton,
     submitState: 'pending',
     timestamp: Date.now(),
     title: title,
@@ -1092,12 +1092,12 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
 }
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: '30 seconds', seconds: 30},
-  {text: '5 minutes', seconds: 300},
-  {text: '60 minutes', seconds: 3600},
-  {text: '6 hours', seconds: 3600 * 6},
-  {text: '24 hours', seconds: 86400},
-  {text: '3 days', seconds: 86400 * 3},
-  {text: '7 days', seconds: 86400 * 7},
-  {text: 'Never explode (turn off)', seconds: 0},
+  {seconds: 30, text: '30 seconds'},
+  {seconds: 300, text: '5 minutes'},
+  {seconds: 3600, text: '60 minutes'},
+  {seconds: 3600 * 6, text: '6 hours'},
+  {seconds: 86400, text: '24 hours'},
+  {seconds: 86400 * 3, text: '3 days'},
+  {seconds: 86400 * 7, text: '7 days'},
+  {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()

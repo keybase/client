@@ -1011,9 +1011,12 @@ func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *json
 	logger := func(format string, args ...interface{}) {
 		debugWithState(m, state, format, args)
 	}
-	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger)
+	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger, libkb.NewInvalidPVLSelectorError)
+	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
+		return nil, perrInner
+	}
 	if perr != nil {
-		return nil, perr
+		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, "json select error in pvl interp")
 	}
 	results := []string{}
 	for _, object := range jsonResults {

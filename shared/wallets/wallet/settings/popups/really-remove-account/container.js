@@ -40,11 +40,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loading: stateProps.loading,
   name: stateProps.name,
-  waiting: stateProps.waiting,
   onCancel: () => dispatchProps._onClose(stateProps.accountID),
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
+  waiting: stateProps.waiting,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

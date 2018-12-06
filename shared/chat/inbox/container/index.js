@@ -32,14 +32,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
-  onNewChat: () =>
-    dispatch(
-      ff.newTeamBuildingForChat
-        ? RouteTreeGen.createNavigateAppend({
-            path: [{selected: 'newChat', props: {}}],
-          })
-        : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
-    ),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
     const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
       if (row.type === 'small' || row.type === 'big') {
@@ -54,6 +46,14 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
     }
   },
   _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
+  onNewChat: () =>
+    dispatch(
+      ff.newTeamBuildingForChat
+        ? RouteTreeGen.createNavigateAppend({
+            path: [{props: {}, selected: 'newChat'}],
+          })
+        : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+    ),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({

@@ -38,8 +38,8 @@ class Input extends React.Component<InputProps> {
   _setText = (text: string, skipUnsentSaving?: boolean) => {
     if (this._input) {
       this._input.transformText(() => ({
+        selection: {end: text.length, start: text.length},
         text,
-        selection: {start: text.length, end: text.length},
       }))
     }
 

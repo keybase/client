@@ -88,25 +88,6 @@ const Footer = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  button: {
-    flex: 1,
-  },
-  container: Styles.platformStyles({
-    common: {
-      flexShrink: 0,
-      justifyContent: 'flex-end',
-    },
-  }),
-  buttonBox: Styles.platformStyles({
-    common: {
-      justifyContent: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      minHeight: 0,
-    },
-    isElectron: {},
-  }),
-  icon: {marginRight: Styles.globalMargins.tiny},
   background: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue5,
@@ -116,6 +97,25 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: 4,
     },
   }),
+  button: {
+    flex: 1,
+  },
+  buttonBox: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      minHeight: 0,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isElectron: {},
+  }),
+  container: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+      justifyContent: 'flex-end',
+    },
+  }),
+  icon: {marginRight: Styles.globalMargins.tiny},
   questionIcon: {
     marginLeft: 1,
   },

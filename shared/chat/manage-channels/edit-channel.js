@@ -60,10 +60,10 @@ const EditChannelBare = (props: Props & TextState) => (
         <Text
           type="BodySmall"
           style={{
-            position: 'absolute',
-            textAlign: 'center',
             left: 0,
+            position: 'absolute',
             right: 0,
+            textAlign: 'center',
             top: 60,
           }}
         >
@@ -142,18 +142,18 @@ const EditChannel: React.ComponentType<Props> = compose(
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  paddingBottom: globalMargins.medium,
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
-  paddingBottom: globalMargins.medium,
   ...(isMobile ? {flex: 1} : {}),
 }
 
 const _bottomRowStyle = {
   ...globalStyles.flexBoxRow,
-  flex: 1,
-  alignSelf: 'stretch',
   alignItems: 'flex-end',
+  alignSelf: 'stretch',
+  flex: 1,
   justifyContent: 'center',
   position: 'relative',
   ...(isMobile ? {} : {minWidth: '500px'}),

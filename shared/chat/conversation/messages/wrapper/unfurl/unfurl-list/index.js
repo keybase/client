@@ -55,8 +55,8 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'flex-start',
       flex: 1,
-      marginTop: Styles.globalMargins.xtiny,
       marginBottom: Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.xtiny,
     },
   }),
 })

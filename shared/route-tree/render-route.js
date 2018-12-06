@@ -18,10 +18,10 @@ const defaultTags = makeLeafTags()
 
 export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
 const makeRenderRouteResult: I.RecordFactory<_RenderRouteResult> = I.Record({
-  path: I.List(),
-  tags: defaultTags,
   component: () => null,
   leafComponent: () => null,
+  path: I.List(),
+  tags: defaultTags,
 })
 
 export type RouteRenderStack = I.Stack<RenderRouteResult>
@@ -139,9 +139,9 @@ function renderRouteStack({
     const childState = routeState.children.get(selected)
     const childPath = path.push(selected)
     const childStack = renderRouteStack({
+      path: childPath,
       routeDef: childDef,
       routeState: childState,
-      path: childPath,
       setRouteState,
     })
 
@@ -190,9 +190,9 @@ function renderRouteStack({
         <Box />
       )
     const result = makeRenderRouteResult({
-      path,
       component: routeComponent,
       leafComponent: routeComponent,
+      path,
       tags: routeDef.tags,
     })
     stack = stack.unshift(result)

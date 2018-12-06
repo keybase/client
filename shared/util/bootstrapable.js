@@ -27,7 +27,7 @@ export default function Bootstrapable<P: Object>(ComposedComponent: React.Compon
       // TODO(mm) parameterize this
 
       return (
-        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', flex: 1}}>
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
           <Text type="Body">Loading…</Text>
         </Box>
       )

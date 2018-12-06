@@ -10,19 +10,19 @@ type OwnProps = {||}
 const mapStateToProps = (state, ownProps: {}) => ({
   ...state.settings.notifications,
   mobileHasPermissions: state.push.hasPermissions,
-  waitingForResponse: state.settings.waitingForResponse,
   sound: state.config.notifySound,
+  waitingForResponse: state.settings.waitingForResponse,
 })
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onBack: () => dispatch(navigateUp()),
+  onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
   onToggle: (group: Types.NotificationGroups, name?: string) =>
     dispatch(SettingsGen.createNotificationsToggle({group, name})),
+  onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
   onToggleUnsubscribeAll: (group: Types.NotificationGroups) =>
     dispatch(SettingsGen.createNotificationsToggle({group})),
-  onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
   title: 'Notifications',
-  onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
 })
 export default compose(
   connect<OwnProps, _, _, _, _>(

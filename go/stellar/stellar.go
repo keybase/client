@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -604,7 +605,8 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
+func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
 	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
 	if err != nil {
@@ -1742,4 +1744,12 @@ func HasAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (bool, e
 
 func InformAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) {
 	getGlobal(g).informAcceptedDisclaimer(ctx)
+}
+
+func RandomBuildPaymentID() (stellar1.BuildPaymentID, error) {
+	randBytes, err := libkb.RandBytes(15)
+	if err != nil {
+		return "", err
+	}
+	return stellar1.BuildPaymentID("bb" + hex.EncodeToString(randBytes)), nil
 }

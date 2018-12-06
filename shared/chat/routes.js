@@ -28,25 +28,60 @@ import QRScan from '../wallets/qr-scan/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
+  attachmentFullscreen: {
+    children: key => makeRouteDefNode(chatChildren[key]),
+    component: AttachmentFullscreen,
+    tags: makeLeafTags(
+      isMobile ? {fullscreen: true, hideStatusBar: true, underNotch: true} : {layerOnTop: true}
+    ),
+  },
+  attachmentGetTitles: {
+    children: key => makeRouteDefNode(chatChildren[key]),
+    component: AttachmentGetTitles,
+    tags: makeLeafTags(isMobile ? {} : {layerOnTop: true}),
+  },
+  attachmentVideoFullscreen: {
+    children: key => makeRouteDefNode(chatChildren[key]),
+    component: AttachmentVideoFullscreen,
+    tags: makeLeafTags(isMobile ? {fullscreen: true} : {layerOnTop: true}),
+  },
   chooseEmoji: {
     children: key => makeRouteDefNode(chatChildren[key]),
     component: ChooseEmoji,
     tags: makeLeafTags({layerOnTop: false}),
   },
   createChannel: {
+    children: key => makeRouteDefNode(chatChildren[key]),
     component: CreateChannel,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+  },
+  deleteHistoryWarning: {
     children: key => makeRouteDefNode(chatChildren[key]),
+    component: DeleteHistoryWarning,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   editChannel: {
+    children: key => makeRouteDefNode(chatChildren[key]),
     component: MaybePopupHoc(isMobile)(EditChannel),
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+  },
+  enterPaperkey: {
+    component: EnterPaperkey,
+  },
+  infoPanel: {
     children: key => makeRouteDefNode(chatChildren[key]),
+    component: InfoPanel,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   manageChannels: {
+    children: key => makeRouteDefNode(chatChildren[key]),
     component: ManageChannels,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+  },
+  newChat: {
     children: key => makeRouteDefNode(chatChildren[key]),
+    component: TeamBuilding,
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
   },
   reallyLeaveTeam: {
     children: key => makeRouteDefNode(chatChildren[key]),
@@ -54,54 +89,19 @@ const chatChildren = {
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   retentionWarning: {
-    component: RetentionWarning,
     children: key => makeRouteDefNode(chatChildren[key]),
+    component: RetentionWarning,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   showBlockConversationDialog: {
+    children: key => makeRouteDefNode(chatChildren[key]),
     component: BlockConversationWarning,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-    children: key => makeRouteDefNode(chatChildren[key]),
   },
   showNewTeamDialog: {
+    children: key => makeRouteDefNode(chatChildren[key]),
     component: NewTeamDialogFromChat,
     tags: makeLeafTags({layerOnTop: !isMobile}),
-    children: key => makeRouteDefNode(chatChildren[key]),
-  },
-  attachmentFullscreen: {
-    component: AttachmentFullscreen,
-    tags: makeLeafTags(
-      isMobile ? {hideStatusBar: true, fullscreen: true, underNotch: true} : {layerOnTop: true}
-    ),
-    children: key => makeRouteDefNode(chatChildren[key]),
-  },
-  attachmentVideoFullscreen: {
-    component: AttachmentVideoFullscreen,
-    tags: makeLeafTags(isMobile ? {fullscreen: true} : {layerOnTop: true}),
-    children: key => makeRouteDefNode(chatChildren[key]),
-  },
-  attachmentGetTitles: {
-    component: AttachmentGetTitles,
-    tags: makeLeafTags(isMobile ? {} : {layerOnTop: true}),
-    children: key => makeRouteDefNode(chatChildren[key]),
-  },
-  infoPanel: {
-    component: InfoPanel,
-    children: key => makeRouteDefNode(chatChildren[key]),
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
-  deleteHistoryWarning: {
-    component: DeleteHistoryWarning,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-    children: key => makeRouteDefNode(chatChildren[key]),
-  },
-  enterPaperkey: {
-    component: EnterPaperkey,
-  },
-  newChat: {
-    component: TeamBuilding,
-    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-    children: key => makeRouteDefNode(chatChildren[key]),
   },
   [WalletConstants.sendReceiveFormRouteKey]: {
     children: {
@@ -113,7 +113,7 @@ const chatChildren = {
       [WalletConstants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+        tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       qrScan: {
         component: QRScan,
@@ -126,27 +126,27 @@ const chatChildren = {
 }
 
 const conversationRoute = makeRouteDefNode({
-  component: Conversation,
   children: chatChildren,
+  component: Conversation,
 })
 
 const routeTree = isMobile
   ? makeRouteDefNode({
-      component: Inbox,
       children: key => {
         if (key !== 'conversation') {
           return makeRouteDefNode(chatChildren[key])
         }
         return conversationRoute
       },
+      component: Inbox,
       tags: makeLeafTags({persistChildren: true}),
     })
   : makeRouteDefNode({
+      children: () => conversationRoute,
       containerComponent: InboxAndConversation,
       defaultSelected: '0',
-      children: () => conversationRoute,
-      tags: makeLeafTags({persistChildren: true}),
       initialState: {smallTeamsExpanded: false},
+      tags: makeLeafTags({persistChildren: true}),
     })
 
 export default routeTree

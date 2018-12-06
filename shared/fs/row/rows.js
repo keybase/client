@@ -105,7 +105,7 @@ class Rows extends React.PureComponent<Props> {
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
           !isMobile && this.props.destinationPickerIndex
-            ? [...this.props.items, {rowType: 'empty', key: 'empty:0'}, {rowType: 'empty', key: 'empty:1'}]
+            ? [...this.props.items, {key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
             : this.props.items
         }
         renderItem={this._rowRenderer}
@@ -119,14 +119,14 @@ class Rows extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  divider: {
+    backgroundColor: Styles.globalColors.black_05,
+    marginLeft: 48,
+  },
   rowContainer: {
     ...Styles.globalStyles.flexBoxColumn,
-    height: rowHeight,
     flexShrink: 0,
-  },
-  divider: {
-    marginLeft: 48,
-    backgroundColor: Styles.globalColors.black_05,
+    height: rowHeight,
   },
 })
 

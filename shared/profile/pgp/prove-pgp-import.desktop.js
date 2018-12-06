@@ -35,10 +35,10 @@ class ProvePgpImport extends Component<Props> {
 }
 
 const styleContainer = {
-  maxWidth: 576,
-  padding: globalMargins.medium,
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
+  maxWidth: 576,
+  padding: globalMargins.medium,
 }
 
 const styleHeader = {
@@ -46,8 +46,8 @@ const styleHeader = {
 }
 
 const styleBody = {
-  marginTop: globalMargins.small,
   marginBottom: globalMargins.small,
+  marginTop: globalMargins.small,
 }
 
 const styleCancelButton = {

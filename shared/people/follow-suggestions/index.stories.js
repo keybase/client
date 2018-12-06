@@ -12,10 +12,10 @@ const provider = Sb.createPropProviderWithCommon(
 const props1 = {
   suggestions: [
     {
-      username: 'ayoubd',
-      fullName: 'Danny Ayoub',
       followsMe: true,
+      fullName: 'Danny Ayoub',
       iFollow: false,
+      username: 'ayoubd',
     },
   ].map(Constants.makeFollowSuggestion),
 }
@@ -23,46 +23,46 @@ const props1 = {
 const props2 = {
   suggestions: [
     {
-      username: 'ayoubd',
+      followsMe: true,
       fullName: 'Danny Ayoub',
-      followsMe: true,
       iFollow: false,
+      username: 'ayoubd',
     },
     {
-      username: 'max',
+      followsMe: true,
       fullName: 'Max Krohn',
-      followsMe: true,
       iFollow: false,
+      username: 'max',
     },
     {
-      username: 'chrisnojima',
-      fullName: 'Chris Nojima',
       followsMe: false,
+      fullName: 'Chris Nojima',
       iFollow: false,
+      username: 'chrisnojima',
     },
     {
-      username: 'oconnor663',
+      followsMe: true,
       fullName: "Jack O'Connor",
-      followsMe: true,
       iFollow: false,
+      username: 'oconnor663',
     },
     {
-      username: 'mlsteele',
+      followsMe: true,
       fullName: 'Miles Steele',
-      followsMe: true,
       iFollow: false,
+      username: 'mlsteele',
     },
     {
-      username: 'zanderz',
+      followsMe: true,
       fullName: 'Steve Sanders',
-      followsMe: true,
       iFollow: false,
+      username: 'zanderz',
     },
     {
-      username: 'chris',
-      fullName: 'Chris Coyne',
       followsMe: true,
+      fullName: 'Chris Coyne',
       iFollow: false,
+      username: 'chris',
     },
   ].map(Constants.makeFollowSuggestion),
 }

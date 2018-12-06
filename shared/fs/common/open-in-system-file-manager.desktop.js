@@ -75,35 +75,35 @@ const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentPro
 ))
 
 const styles = Styles.styleSheetCreate({
-  pathItemActionIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
-  text: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  fancyFinderIcon: {
-    paddingTop: Styles.globalMargins.medium,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
   buttonBox: {
-    paddingTop: Styles.globalMargins.small,
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
+  },
+  fancyFinderIcon: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.medium,
   },
   header: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     width: '100%',
   },
+  pathItemActionIcon: {
+    padding: Styles.globalMargins.tiny,
+  },
   popup: {
-    marginTop: Styles.globalMargins.tiny,
-    width: 220,
-    overflow: 'visible',
     backgroundColor: Styles.globalColors.white,
+    marginTop: Styles.globalMargins.tiny,
+    overflow: 'visible',
+    width: 220,
+  },
+  text: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
   },
 })
 

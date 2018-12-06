@@ -60,26 +60,26 @@ class ChoiceList extends Component<Props, State> {
 
 const styleEntry = {
   ...globalStyles.flexBoxRow,
-  paddingTop: globalMargins.tiny,
   paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
+  paddingTop: globalMargins.tiny,
 }
 
 const styleIconContainer = active => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
   alignSelf: 'center',
-  width: globalMargins.large + globalMargins.medium,
-  height: globalMargins.large + globalMargins.medium,
-  ...(active ? {} : {backgroundColor: globalColors.lightGrey}),
   borderRadius: (globalMargins.large + globalMargins.medium) / 2,
+  height: globalMargins.large + globalMargins.medium,
+  justifyContent: 'center',
+  ...(active ? {} : {backgroundColor: globalColors.lightGrey}),
+  width: globalMargins.large + globalMargins.medium,
 })
 
 const styleIcon = {
-  width: globalMargins.large,
   height: globalMargins.large,
+  width: globalMargins.large,
 }
 
 const styleInfoContainer = {

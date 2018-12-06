@@ -59,18 +59,27 @@ const EnterName = (props: EnterNameProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  icon: {
-    width: 48,
-    height: 48,
-  },
   error: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
-      width: '100%',
       textAlign: 'left',
+      width: '100%',
     },
     isElectron: {
       wordWrap: 'break-word',
+    },
+  }),
+  icon: {
+    height: 48,
+    width: 48,
+  },
+  infoText: Styles.platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     },
   }),
   input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
@@ -87,15 +96,6 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  infoText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
     },
   }),
 })

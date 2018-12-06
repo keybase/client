@@ -219,6 +219,11 @@ export const localPreviewLocationTyp = {
   bytes: 2,
 }
 
+export const localTextPaymentResultTyp = {
+  sent: 0,
+  error: 1,
+}
+
 export const localUnfurlPromptAction = {
   always: 0,
   never: 1,

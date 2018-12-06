@@ -33,7 +33,17 @@ var _ keybase1.PhoneNumbersInterface = (*PhoneNumbersHandler)(nil)
 func (h *PhoneNumbersHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
-	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
+}
+
+func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.EditPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber)
+	if err != nil {
+		return err
+	}
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
@@ -46,6 +56,31 @@ func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("PhoneNumbersHandler#GetPhoneNumbers", func() error { return err })()
 	return phonenumbers.GetPhoneNumbers(mctx)
+}
+
+func (h *PhoneNumbersHandler) DeletePhoneNumber(ctx context.Context, arg keybase1.DeletePhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#DeletePhoneNumber", func() error { return err })()
+	return phonenumbers.DeletePhoneNumber(mctx, arg.PhoneNumber)
+}
+
+func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityPhoneNumber", func() error { return err })()
+	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
+}
+
+func (h *PhoneNumbersHandler) SetVisibilityAllPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityAllPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityAllPhoneNumber", func() error { return err })()
+	return phonenumbers.SetVisibilityAllPhoneNumber(mctx, arg.Visibility)
+}
+
+func (h *PhoneNumbersHandler) BulkLookupPhoneNumbers(ctx context.Context, arg keybase1.BulkLookupPhoneNumbersArg) ([]keybase1.PhoneNumberLookupResult, error) {
+	var err error
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#BulkLookupPhoneNumbers", func() error { return err })()
+	return phonenumbers.BulkLookupPhoneNumbers(mctx, arg.PhoneNumberContacts, arg.RegionCodes, arg.UserRegionCode)
 }
 
 const phoneNumbersGregorHandlerName = "phoneHandler"

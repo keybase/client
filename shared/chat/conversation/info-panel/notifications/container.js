@@ -70,6 +70,12 @@ export default compose(
       saving: false,
     }),
     {
+      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
+        channelWide,
+        desktop,
+        mobile,
+        muted,
+      }),
       toggleChannelWide: (state, props) => () => {
         props._updateNotifications(state.desktop, state.mobile, !state.channelWide)
         return {channelWide: !state.channelWide}
@@ -93,12 +99,6 @@ export default compose(
         return {mobile}
       },
       updateSaving: ({saving: oldSaving}) => (saving: boolean) => (oldSaving === saving ? null : {saving}),
-      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
-        channelWide,
-        desktop,
-        mobile,
-        muted,
-      }),
     }
   ),
   lifecycle({
