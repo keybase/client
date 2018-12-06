@@ -156,8 +156,6 @@ export type {Effect, PutEffect, Channel} from 'redux-saga'
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
   all,
-  // TODO deprecate
-  call,
   call as callUntyped,
   cancel,
   cancelled,
