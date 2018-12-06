@@ -167,7 +167,6 @@ export {
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,
-  select as selectUntyped,
   spawn,
   take,
   takeEvery,
