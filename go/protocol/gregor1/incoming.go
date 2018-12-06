@@ -324,7 +324,7 @@ func (c IncomingClient) ConsumeMessageMulti(ctx context.Context, __arg ConsumeMe
 }
 
 func (c IncomingClient) Ping(ctx context.Context) (res string, err error) {
-	err = c.Cli.CallCompressed(ctx, "gregor.1.incoming.ping", []interface{}{PingArg{}}, &res, rpc.CompressionGzip)
+	err = c.Cli.Call(ctx, "gregor.1.incoming.ping", []interface{}{PingArg{}}, &res)
 	return
 }
 
