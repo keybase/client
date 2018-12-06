@@ -160,6 +160,25 @@ func (w *WalletState) Balances(ctx context.Context, accountID stellar1.AccountID
 	return a.Balances(ctx)
 }
 
+// Details is an override of remoter's Details that uses stored data.
+func (w *WalletState) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	a, err := w.accountStateRefresh(ctx, accountID)
+	if err != nil {
+		return stellar1.AccountDetails{}, err
+	}
+	d, err := a.Details(ctx)
+
+	w.G().Log.CDebugf(ctx, "WalletState:Details: %+v", d)
+
+	dremote, err := w.Remoter.Details(ctx, accountID)
+	if err == nil {
+		w.G().Log.CDebugf(ctx, "WalletState:Details Remote: %+v", dremote)
+	}
+
+	return d, err
+
+}
+
 // PendingPayments is an override of remoter's PendingPayments that uses stored data.
 func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
 	a, err := w.accountStateRefresh(ctx, accountID)
@@ -271,6 +290,7 @@ type AccountState struct {
 	sync.RWMutex // protects everything that follows
 	seqno        uint64
 	balances     []stellar1.Balance
+	details      *stellar1.AccountDetails
 	pending      []stellar1.PaymentSummary
 	recent       *stellar1.PaymentsPage
 }
@@ -297,6 +317,13 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 	if err == nil {
 		a.Lock()
 		a.balances = balances
+		a.Unlock()
+	}
+
+	details, err := a.remoter.Details(ctx, a.accountID)
+	if err == nil {
+		a.Lock()
+		a.details = &details
 		a.Unlock()
 	}
 
@@ -343,6 +370,16 @@ func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error)
 	return a.balances, nil
 }
 
+// Details returns the account details that have already been fetched for this account.
+func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, error) {
+	a.RLock()
+	defer a.RUnlock()
+	if a.details == nil {
+		return stellar1.AccountDetails{}, nil
+	}
+	return *a.details, nil
+}
+
 // PendingPayments returns the pending payments that have already been fetched for
 // this account.
 func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stellar1.PaymentSummary, error) {
@@ -370,5 +407,8 @@ func (a *AccountState) RecentPayments(ctx context.Context) (stellar1.PaymentsPag
 func (a *AccountState) String() string {
 	a.RLock()
 	defer a.RUnlock()
-	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d)", a.accountID, a.seqno, len(a.balances), len(a.pending))
+	if a.recent != nil {
+		return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: %d)", a.accountID, a.seqno, len(a.balances), len(a.pending), len(a.recent.Payments))
+	}
+	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: nil)", a.accountID, a.seqno, len(a.balances), len(a.pending))
 }
