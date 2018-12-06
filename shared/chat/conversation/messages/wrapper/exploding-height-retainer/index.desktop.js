@@ -101,7 +101,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 }
 
-const AshBox = Styles.glamorous.div({
+const AshBox = Styles.styled.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,

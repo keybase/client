@@ -22,8 +22,8 @@ export type Props = {|
   emoji: string,
   onClick: () => void,
   onLongPress?: () => void,
-  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
-  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  onMouseLeave?: (evt: SyntheticEvent<>) => void,
+  onMouseOver?: (evt: SyntheticEvent<>) => void,
   getAttachmentRef?: () => ?React.Component<any>,
   ordinal: Types.Ordinal,
   style?: Styles.StylesCrossPlatform,
@@ -41,27 +41,19 @@ if (!Styles.isMobile) {
   })
 }
 
-const ButtonBox = Styles.glamorous(ClickableBox)(props => ({
-  ...(Styles.isMobile
-    ? {}
+const ButtonBox = Styles.styled(ClickableBox)(props =>
+  Styles.isMobile
+    ? {borderColor: Styles.globalColors.black_10}
     : {
         ...(props.border
-          ? {
-              ':hover': {
-                backgroundColor: Styles.globalColors.blue4,
-                borderColor: Styles.globalColors.blue,
-              },
-            }
+          ? {':hover': {backgroundColor: Styles.globalColors.blue4, borderColor: Styles.globalColors.blue}}
           : {}),
-        '& .centered': {
-          animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
-        },
-        '& .offscreen': {
-          animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
-        },
-      }),
-  borderColor: Styles.globalColors.black_10,
-}))
+        '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+        '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+        borderColor: Styles.globalColors.black_10,
+      }
+)
+
 const ReactButton = (props: Props) => (
   <ButtonBox
     onLongPress={props.onLongPress}

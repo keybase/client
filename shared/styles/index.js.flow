@@ -64,7 +64,7 @@ declare export var windowStyle: {
 
 declare export function styled<T>(
   Component: T
-): (...styles: Array<CSS.StylesCrossPlatform | (any => CSS.StylesCrossPlatform)>) => T
+): (...styles: Array<CSS.StylesCrossPlatform | (any => any) | {[key: string]: any}>) => T
 
 declare export var styledCss: any // TODO better type
 declare export var styledKeyframes: any // TODO better type
