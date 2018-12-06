@@ -235,7 +235,15 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw chat1.UnfurlRaw) string {
-	return fmt.Sprintf("%s-%s-%s", uid, convID, raw.GetUrl())
+	url := raw.GetUrl()
+	if url == "" {
+		return ""
+	}
+	typ, err := raw.UnfurlType()
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s-%s-%s-%s", uid, convID, url, typ)
 }
 
 func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,

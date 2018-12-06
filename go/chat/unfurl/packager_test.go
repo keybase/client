@@ -70,6 +70,7 @@ func TestPackager(t *testing.T) {
 	imageURL := fmt.Sprintf("http://%s/?typ=image", addr)
 	faviconURL := fmt.Sprintf("http://%s/?typ=favicon", addr)
 	raw := chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Url:        "https://example.com",
 		ImageUrl:   &imageURL,
 		FaviconUrl: &faviconURL,
 	})
