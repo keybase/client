@@ -198,6 +198,9 @@ func (p *blockPrefetcher) applyToPtrParentsRecursive(
 		}
 		p.applyToPtrParentsRecursive(f, pptr, parent)
 	}
+	if len(pre.parents[ptr.RefNonce]) == 0 {
+		delete(pre.parents, ptr.RefNonce)
+	}
 	f(ptr, pre)
 }
 
