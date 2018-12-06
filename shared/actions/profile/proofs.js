@@ -4,7 +4,7 @@ import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import {getEngine, Engine} from '../../engine'
+import {getEngine} from '../../engine'
 import {peopleTab} from '../../constants/tabs'
 
 import type {ProvablePlatformsType} from '../../constants/types/more'

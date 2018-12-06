@@ -89,7 +89,7 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
       SafeElectron.getIpcRenderer().send('getAppState')
     })
 
-  const state = yield * Saga.callPromise(getAppState)
+  const state = yield* Saga.callPromise(getAppState)
   if (state) {
     yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
     yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
@@ -247,7 +247,7 @@ const startOutOfDateCheckLoop = () =>
   Saga.callUntyped(function*() {
     while (1) {
       try {
-        const toPut = yield  * Saga.callPromise(checkForUpdate)
+        const toPut = yield* Saga.callPromise(checkForUpdate)
         yield Saga.put(toPut)
         yield Saga.delay(3600 * 1000) // 1 hr
       } catch (err) {

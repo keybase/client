@@ -25,7 +25,6 @@ import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 
-import type {RetentionPolicy} from '../constants/types/retention-policy'
 import type {TypedState} from '../constants/reducer'
 
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
@@ -525,13 +524,17 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }
 
     // Get requests to join
-    let requests: RPCTypes.TeamJoinRequest[] = []
+    let requests
     const state = yield Saga.select()
     if (Constants.getCanPerform(state, teamname).manageMembers) {
       // TODO (DESKTOP-6478) move this somewhere else
       requests = yield* Saga.callPromise(RPCTypes.teamsTeamListRequestsRpcPromise, {
         teamName: teamname,
       })
+    }
+
+    if (!requests) {
+      requests = []
     }
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
@@ -598,8 +601,8 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     const teamTree = yield* Saga.callPromise(RPCTypes.teamsTeamTreeRpcPromise, {
       name: {parts: teamname.split('.')},
     })
-    const subteams = teamTree.entries
-      .map(team => team.name.parts.join('.'))
+    const subteams = (teamTree.entries || [])
+      .map(team => (team.name.parts ? team.name.parts.join('.') : ''))
       .filter(team => team !== teamname && team.startsWith(teamname))
 
     yield Saga.put(
@@ -1236,18 +1239,18 @@ function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsP
     logger.error(`${logPrefix} error fetching gregor state: ${err}`)
     return
   }
-  const item = pushState.items.find(i => i.item.category === Constants.chosenChannelsGregorKey)
+  const item =
+    pushState.items && pushState.items.find(i => i.item?.category === Constants.chosenChannelsGregorKey)
   let teams = []
   let msgID
   if (item && item.item && item.item.body) {
     const body = item.item.body
-    msgID = item.md.msgID
+    msgID = item.md?.msgID
     teams = JSON.parse(body.toString())
   } else {
     logger.info(
-      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
-        pushState.items.length
-      }`
+      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${pushState.items
+        ?.length || 0}`
     )
   }
   if (existingTeams.size > teams.length) {

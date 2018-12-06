@@ -7,7 +7,6 @@ import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
-import select from './typed-select'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -133,6 +132,21 @@ function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
   })
 }
 
+/***
+ * Note: Due to how flow handles generators (https://github.com/facebook/flow/issues/2613), when you
+ * const values = yield Saga.call(myFunction, param1, param2)
+ * values will be of type any. In order to work around this, you can instead do
+ * const values = yield * Saga.callPromise(myFunction, param1, param2) and values will be typed
+ *
+ * Here is a rule of thumb when to use callUntyped vs callPromise
+ * If you are yielding inside your own generator, you should yield * callPromise
+ * Otherwise you can use callUntyped, for example if you have a side effect that returns a call to redux-saga (aka you
+ * don't consume it) then you can use callUntyped (we don't care what we return to redux saga basically)
+ *
+ * I don't love this but I think most of the calls we make likely don't need to exist outside of rpcs call. Those can
+ * all be of the form yield * Saga.callPromise
+ *
+ */
 function* callPromise<Args, T>(fn: (...args: Args) => Promise<T>, ...args: Args): Generator<any, T, any> {
   // $FlowIssue doesn't understand args will be an array
   return yield Effects.call(fn, ...args)
@@ -150,6 +164,9 @@ export {
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,
+  // TODO deprecate
+  select,
+  select as selectUntyped,
   spawn,
   take,
   takeEvery,
@@ -157,13 +174,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {
-  select,
-  put,
-  safeTakeEvery,
-  safeTakeEveryPure,
-  actionToPromise,
-  actionToAction,
-  sequentially,
-  callPromise,
-}
+export {put, safeTakeEvery, safeTakeEveryPure, actionToPromise, actionToAction, sequentially, callPromise}
