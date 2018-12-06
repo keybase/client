@@ -59,14 +59,13 @@ func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, convID chat1.
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (res []libkb.MiniChatPayment) {
+	body string) (res []types.ParsedStellarPayment) {
 	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
 	parsed := FindChatTxCandidates(body)
 	if len(parsed) == 0 {
 		return nil
 	}
 	var err error
-	usernameToFull := make(map[string]string)
 	for _, p := range parsed {
 		var username string
 		if p.Username == nil {
@@ -77,20 +76,36 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 		} else {
 			username = *p.Username
 		}
-		usernameToFull[username] = p.Full
-		res = append(res, libkb.MiniChatPayment{
+		res = append(res, types.ParsedStellarPayment{
 			Username: libkb.NewNormalizedUsername(username),
 			Amount:   p.Amount,
 			Currency: p.CurrencyCode,
+			Full:     p.Full,
 		})
 	}
 	return res
 }
 
-func (s *Sender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (res []chat1.TextPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "ParseAndSendPayments")()
+func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis []libkb.MiniChatPayment) {
+	for _, p := range payments {
+		minis = append(minis, p.ToMini())
+	}
+	return minis
+}
 
+func (s *Sender) DescribePayments(ctx context.Context, payments []types.ParsedStellarPayment) (res *libkb.MiniChatPaymentSummary, err error) {
+	defer s.Trace(ctx, func() error { return err }, "DescribePayments")()
+	return s.G().GetStellar().SpecMiniChatPayments(s.G().MetaContext(ctx), s.paymentsToMinis(payments))
+}
+
+func (s *Sender) SendPayments(ctx context.Context, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SendPayments")()
+	usernameToFull := make(map[string]string)
+	var minis []libkb.MiniChatPayment
+	for _, p := range payments {
+		minis = append(minis, p.ToMini())
+		usernameToFull[p.Username.String()] = p.Full
+	}
 	paymentRes, err := s.G().GetStellar().SendMiniChatPayments(s.G().MetaContext(ctx), minis)
 	if err != nil {
 		return res, err

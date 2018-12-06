@@ -206,6 +206,21 @@ type SenderPrepareResult struct {
 	TopicNameState      *chat1.TopicNameState
 }
 
+type ParsedStellarPayment struct {
+	Username libkb.NormalizedUsername
+	Full     string
+	Amount   string
+	Currency string
+}
+
+func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
+	return libkb.MiniChatPayment{
+		Username: p.Username,
+		Amount:   p.Amount,
+		Currency: p.Currency,
+	}
+}
+
 type DummyAttachmentFetcher struct{}
 
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,

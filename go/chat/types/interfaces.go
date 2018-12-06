@@ -359,7 +359,10 @@ type StellarLoader interface {
 }
 
 type StellarSender interface {
-	ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error)
+	ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		body string) []ParsedStellarPayment
+	DescribePayments(ctx context.Context, payments []ParsedStellarPayment) (*libkb.MiniChatPaymentSummary, error)
+	SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 
 type ConversationBackedStorage interface {
