@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -174,6 +175,33 @@ func TestList(t *testing.T) {
 	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 	require.Equal(t, listResult.Entries[0].Name, "jdoe")
 
+	t.Log("List directory before it's created")
+	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: path1,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 0,
+		"Expected 0 directory entries in listing")
+
+	t.Log("Shouldn't have created the TLF")
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "jdoe", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	require.Nil(t, rootNode)
+
 	clock.Add(1 * time.Minute)
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
@@ -181,7 +209,6 @@ func TestList(t *testing.T) {
 	clock.Add(1 * time.Minute)
 
 	// make a temp remote directory + files we will clean up later
-	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe") // Make a revision.
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
@@ -727,9 +754,13 @@ type fsBlockerMaker struct {
 
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string) (
-	billy.Filesystem, error) {
-	fs, err := libfs.NewFS(
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	create bool) (billy.Filesystem, error) {
+	fsMaker := libfs.NewFS
+	if !create {
+		fsMaker = libfs.NewFSIfExists
+	}
+	fs, err := fsMaker(
 		ctx, config, tlfHandle, branch, subdir, "", keybase1.MDPriorityNormal)
 	if err != nil {
 		return nil, err

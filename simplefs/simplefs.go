@@ -68,12 +68,17 @@ var errNoResult = simpleFSError{"Async result not found"}
 
 type newFSFunc func(
 	context.Context, libkbfs.Config, *libkbfs.TlfHandle, libkbfs.BranchName,
-	string) (billy.Filesystem, error)
+	string, bool) (billy.Filesystem, error)
 
 func defaultNewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string) (
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	create bool) (
 	billy.Filesystem, error) {
-	return libfs.NewFS(
+	maker := libfs.NewFS
+	if !create {
+		maker = libfs.NewFSIfExists
+	}
+	return maker(
 		ctx, config, tlfHandle, branch, subdir, "", keybase1.MDPriorityNormal)
 }
 
@@ -249,7 +254,8 @@ func (k *SimpleFS) branchNameFromPath(
 	}
 }
 
-func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
+func (k *SimpleFS) getFSWithMaybeCreate(
+	ctx context.Context, path keybase1.Path, create bool) (
 	fs billy.Filesystem, finalElem string, err error) {
 	pt, err := path.PathType()
 	if err != nil {
@@ -270,7 +276,8 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 		if err != nil {
 			return nil, "", err
 		}
-		fs, err := k.newFS(ctx, k.config, tlfHandle, branch, restOfPath)
+		fs, err := k.newFS(
+			ctx, k.config, tlfHandle, branch, restOfPath, create)
 		if err != nil {
 			if exitEarly, _ := libfs.FilterTLFEarlyExitError(
 				ctx, err, k.log, tlfHandle.GetCanonicalName()); exitEarly {
@@ -285,6 +292,18 @@ func (k *SimpleFS) getFS(ctx context.Context, path keybase1.Path) (
 	default:
 		return nil, "", simpleFSError{"Invalid path type"}
 	}
+}
+
+func (k *SimpleFS) getFS(
+	ctx context.Context, path keybase1.Path) (
+	fs billy.Filesystem, finalElem string, err error) {
+	return k.getFSWithMaybeCreate(ctx, path, true)
+}
+
+func (k *SimpleFS) getFSIfExists(
+	ctx context.Context, path keybase1.Path) (
+	fs billy.Filesystem, finalElem string, err error) {
+	return k.getFSWithMaybeCreate(ctx, path, false)
 }
 
 func deTy2Ty(et libkbfs.EntryType) keybase1.DirentType {
@@ -615,7 +634,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 			case rawPath == `/team`:
 				res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
 			default:
-				fs, finalElem, err := k.getFS(ctx, arg.Path)
+				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
 				switch err.(type) {
 				case nil:
 				case libfs.TlfDoesNotExist:
@@ -687,7 +706,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		}
 		var paths []pathStackElem
 
-		fs, finalElem, err := k.getFS(ctx, path)
+		fs, finalElem, err := k.getFSIfExists(ctx, path)
 		switch err.(type) {
 		case nil:
 		case libfs.TlfDoesNotExist:
@@ -1022,7 +1041,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 			keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
 		func(ctx context.Context) (err error) {
 			// Get the full byte/file count.
-			srcFS, finalSrcElem, err := k.getFS(ctx, arg.Src)
+			srcFS, finalSrcElem, err := k.getFSIfExists(ctx, arg.Src)
 			if err != nil {
 				return err
 			}
@@ -1059,7 +1078,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 					path := paths[len(paths)-1]
 					paths = paths[:len(paths)-1]
 
-					srcFS, finalSrcElem, err := k.getFS(ctx, path.src)
+					srcFS, finalSrcElem, err := k.getFSIfExists(ctx, path.src)
 					if err != nil {
 						return err
 					}
@@ -1432,7 +1451,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	fs, finalElem, err := k.getFS(ctx, arg.Path)
+	fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
@@ -1449,7 +1468,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 func (k *SimpleFS) getRevisionsFromPath(
 	ctx context.Context, path keybase1.Path) (
 	os.FileInfo, libkbfs.PrevRevisions, error) {
-	fs, finalElem, err := k.getFS(ctx, path)
+	fs, finalElem, err := k.getFSIfExists(ctx, path)
 	if err != nil {
 		k.log.CDebugf(ctx, "Trouble getting fs for path %s: %+v", path, err)
 		return nil, nil, err
@@ -1606,7 +1625,7 @@ func (k *SimpleFS) doGetRevisions(
 	eg, groupCtx := errgroup.WithContext(ctx)
 	doStat := func(slot int) error {
 		p := revPaths[slot]
-		fs, finalElem, err := k.getFS(groupCtx, p)
+		fs, finalElem, err := k.getFSIfExists(groupCtx, p)
 		if _, isGC := err.(libkbfs.RevGarbageCollectedError); isGC {
 			k.log.CDebugf(ctx, "Hit a GC'd revision: %d",
 				p.KbfsArchived().ArchivedParam.Revision())
@@ -2029,7 +2048,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	res := keybase1.FolderSyncConfigAndStatus{Config: config}
 
 	if config.Mode != keybase1.FolderSyncMode_DISABLED {
-		fs, finalElem, err := k.getFS(ctx, path)
+		fs, finalElem, err := k.getFSIfExists(ctx, path)
 		if err != nil {
 			return res, err
 		}
