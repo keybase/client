@@ -353,7 +353,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
               style={Kb.iconCastPlatformStyles(styles.statusIcon)}
               type={
                 ['error', 'canceled'].includes(props.status)
-                  ? 'iconfont-close'
+                  ? 'iconfont-remove'
                   : props.status === 'completed'
                   ? 'iconfont-success'
                   : 'iconfont-clock'
