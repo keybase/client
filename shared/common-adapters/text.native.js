@@ -4,11 +4,10 @@ import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import * as Styled from '../styles'
 import shallowEqual from 'shallowequal'
-import {Alert, StyleSheet} from 'react-native'
-import {NativeClipboard} from './native-wrappers.native'
+import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
 import type {Props, TextType, Background} from './text'
 
-const StyledText = Styled.styled.text({}, props => props.style)
+const StyledText = Styled.styled(NativeText)({}, props => props.style)
 
 const backgroundModes = [
   'Normal',
@@ -32,7 +31,7 @@ const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
   return map
 }, {})
 
-const styles = StyleSheet.create(styleMap)
+const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
 
@@ -64,7 +63,7 @@ class Text extends Component<Props> {
   _urlChooseOption = () => {
     const url = this.props.onLongPressURL
     if (!url) return
-    Alert.alert('', url, [
+    NativeAlert.alert('', url, [
       {style: 'cancel', text: 'Cancel'},
       {onPress: () => openURL(url), text: 'Open Link'},
       {onPress: () => this._urlCopy(url), text: 'Copy Link'},

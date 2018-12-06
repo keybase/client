@@ -6,7 +6,7 @@ import ClickableBox from './clickable-box'
 import logger from '../logger'
 import type {IconType, Props} from './icon'
 import {NativeImage} from './native-image.native'
-import {NativeStyleSheet} from './native-wrappers.native'
+import {NativeStyleSheet, NativeText} from './native-wrappers.native'
 import {iconMeta} from './icon.constants'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
@@ -24,7 +24,7 @@ const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
 
 const styles = NativeStyleSheet.create(fontSizes)
 
-const Text = Styles.styled.text(
+const Text = Styles.styled(NativeText)(
   // static styles
   {
     color: Styles.globalColors.black_40,
