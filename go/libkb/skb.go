@@ -93,7 +93,7 @@ func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen Pass
 	}
 	if tsec != nil {
 		ret.Priv.Data, err = tsec.Encrypt(sk.Bytes())
-		ret.Priv.Encryption = int(triplesec.Version) // Version 3 is the current TripleSec version
+		ret.Priv.Encryption = int(ClientTriplesecVersion) // Version 3 is the current TripleSec version
 		if err != nil {
 			return
 		}
@@ -237,11 +237,11 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 	}
 	var unlocked []byte
 
-	switch s.Priv.Encryption {
-	case 0:
+	switch {
+	case s.Priv.Encryption == 0:
 		m.CDebugf("case: Unlocked")
 		unlocked = s.Priv.Data
-	case int(triplesec.Version):
+	case s.Priv.Encryption > 0 && s.Priv.Encryption < LKSecVersion:
 		m.CDebugf("case: Triplesec")
 		tsecIn := tsec
 		if tsec == nil {
@@ -258,7 +258,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			m.CDebugf("Caching passphrase stream: tsec=%v, pps=%v", (tsec != nil), (pps != nil))
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
 		}
-	case LKSecVersion:
+	case s.Priv.Encryption == LKSecVersion:
 		m.CDebugf("case: LKSec")
 		ppsIn := pps
 		if pps == nil {

@@ -498,9 +498,10 @@
 			"revisionTime": "2016-08-09T20:56:21Z"
 		},
 		{
+			"checksumSHA1": "iV9zI5ZScygQda6V2rECRKShc3E=",
 			"path": "github.com/keybase/go-triplesec",
-			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
-			"revisionTime": "2015-06-12T09:33:55-07:00"
+			"revision": "8de83e135dfcf664ab48c9b1cdc635297e604f34",
+			"revisionTime": "2018-12-03T23:04:24Z"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec-insecure",
