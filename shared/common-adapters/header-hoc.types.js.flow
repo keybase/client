@@ -1,13 +1,15 @@
 // @flow
 import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
+import {type IconType} from './icon.constants'
 type Action = {
-  custom?: ?React.Node,
-  label?: ?string,
-  icon?: ?string,
+  custom?: React.Node,
+  label?: string,
+  icon?: IconType,
   onPress?: ?Function,
 }
 export type Props = {
+  badgeNumber?: number,
   title?: string,
   onBack?: ?() => void,
   onCancel?: ?() => void,

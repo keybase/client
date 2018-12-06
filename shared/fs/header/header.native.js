@@ -9,7 +9,7 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
     onBack={onBack}
     rightActions={[
       onChat ? {
-        icon: 'chat',
+        icon: 'iconfont-chat',
         onPress: onChat,
       } : {},
       {

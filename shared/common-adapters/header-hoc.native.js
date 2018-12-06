@@ -3,67 +3,59 @@ import * as React from 'react'
 import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
+import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import * as Styles from '../styles'
 import type {Props} from './header-hoc.types'
 
-export const HeaderHocHeader = ({
-  headerStyle,
-  customComponent,
-  hideBackLabel,
-  title,
-  onCancel,
-  customCancelText,
-  onBack,
-  rightActions,
-  theme = 'light',
-}: Props) => (
-  <Box style={Styles.collapseStyles([styles.header, theme === 'light' ? styles.headerLight : styles.headerDark, headerStyle])}>
-    {customComponent}
-    {onCancel && (
+export const HeaderHocHeader = (props: Props) => (
+  <Box style={Styles.collapseStyles([styles.header, props.theme === 'light' ? styles.headerLight : styles.headerDark, props.headerStyle])}>
+    {props.customComponent}
+    {props.onCancel && (
       <Box style={styles.leftAction}>
-        <Text type="BodyBigLink" style={styles.action} onClick={onCancel}>
-          {customCancelText || 'Cancel'}
+        <Text type="BodyBigLink" style={styles.action} onClick={props.onCancel}>
+          {props.customCancelText || 'Cancel'}
         </Text>
       </Box>
     )}
-    {onBack && (
+    {props.onBack && (
       <Box style={styles.leftAction}>
         <BackButton
-          hideBackLabel={hideBackLabel}
-          iconColor={theme === 'light' ? Styles.globalColors.black_40 : Styles.globalColors.white}
+          hideBackLabel={props.hideBackLabel}
+          iconColor={props.theme === 'light' ? Styles.globalColors.black_40 : Styles.globalColors.white}
           style={styles.action}
-          onClick={onBack}
+          onClick={props.onBack}
         />
+        {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
       </Box>
     )}
-    {!!title && (
+    {!!props.title && (
       <Box style={styles.titleContainer}>
-        <Text type="BodySmall" style={styles.title} lineClamp={1}>!{title}</Text>
+        <Text type="BodySmall" style={styles.title} lineClamp={1}>!{props.title}</Text>
       </Box>
     )}
     <Box style={styles.rightAction}>
-      {rightActions && rightActions.filter(Boolean).slice(0, 2).map((action, item) => {
-        return action.custom
+      {props.rightActions && props.rightActions.filter(Boolean).slice(0, 2).map((action, item) => (
+        action.custom
           ? <Box style={styles.action}>
             {action.custom}
             </Box>
-          : action.label
-            ? <Text
+          : action.icon
+            ? <Icon
+                fontSize={22}
+                onClick={action.onPress}
+                style={styles.action}
+                type={action.icon}
+              />
+            : <Text
                 type="BodyBigLink"
-                style={Styles.collapseStyles([styles.action, {opacity: action.onPress ? 1 : 0.3}])}
+                style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
                 onClick={action.onPress}
               >
                 {action.label}
               </Text>
-            : <Icon
-                fontSize={22}
-                onClick={action.onPress}
-                style={styles.action}
-                type={`iconfont-${action.icon}`}
-              />
-      })}
+      ))}
     </Box>
   </Box>
 )
@@ -85,10 +77,14 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
 
 const styles = Styles.styleSheetCreate({
   action: {
+    opacity: 1,
     paddingBottom: 8,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: 8,
+  },
+  actionPressed: {
+    opacity: 0.3,
   },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
