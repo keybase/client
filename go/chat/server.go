@@ -309,7 +309,6 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	if err != nil {
 		return chat1.MarkAsReadLocalRes{}, err
 	}
-
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
@@ -318,24 +317,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 			Offline: h.G().Syncer.IsConnected(ctx),
 		}, nil
 	}
-
-	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
-
-	readRes, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, arg.ConversationID)
-	if err == nil && readRes.GetConvID().Eq(arg.ConversationID) &&
-		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
-		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
-			arg.ConversationID)
-		return chat1.MarkAsReadLocalRes{
-			Offline: h.G().Syncer.IsConnected(ctx),
-		}, nil
-	}
-
-	_, err = h.remoteClient().MarkAsRead(ctx, chat1.MarkAsReadArg{
-		ConversationID: arg.ConversationID,
-		MsgID:          arg.MsgID,
-	})
-	if err != nil {
+	if err = h.G().ConvSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
@@ -1209,7 +1191,20 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {
+func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+
+	// Trigger any Stellar payments in the message
+	payments, err := h.G().StellarSender.ParseAndSendPayments(ctx, uid, arg.ConversationID, arg.Body)
+	if err != nil {
+		h.Debug(ctx, "PostTextNonblock: failed to send payments: %", err)
+	}
+
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -1219,7 +1214,8 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: arg.Body,
+		Body:     arg.Body,
+		Payments: payments,
 	})
 	if arg.EphemeralLifetime != nil {
 		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{

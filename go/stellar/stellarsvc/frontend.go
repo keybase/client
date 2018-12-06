@@ -776,6 +776,33 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 	return res, nil
 }
 
+func (s *Server) StartBuildPaymentLocal(ctx context.Context, sessionID int) (res stellar1.BuildPaymentID, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "StartBuildPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+	return stellar.StartBuildPaymentLocal(s.mctx(ctx))
+}
+
+func (s *Server) StopBuildPaymentLocal(ctx context.Context, arg stellar1.StopBuildPaymentLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "StopBuildPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	stellar.StopBuildPaymentLocal(s.mctx(ctx), arg.Bid)
+	return nil
+}
+
 func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:       "BuildPaymentLocal",

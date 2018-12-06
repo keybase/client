@@ -3,7 +3,6 @@ package ephemeral
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,8 +14,11 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const deviceEKSubDir = "device-eks"
-const deviceEKPrefix = "deviceEphemeralKey"
+const (
+	deviceEKSubDir = "device-eks"
+	deviceEKPrefix = "deviceEphemeralKey"
+	deviceEKSuffix = ".ek"
+)
 
 type deviceEKCacheItem struct {
 	DeviceEK keybase1.DeviceEk
@@ -59,47 +61,59 @@ func (s *DeviceEKStorage) key(ctx context.Context, generation keybase1.EkGenerat
 	if err != nil {
 		return key, err
 	}
-	return fmt.Sprintf("%s%d.ek", prefix, generation), nil
+	return fmt.Sprintf("%s%d%s", prefix, generation, deviceEKSuffix), nil
 }
 
-func (s *DeviceEKStorage) keyToEldestSeqno(key string) (eldestSeqno keybase1.Seqno, err error) {
+// keyToEldestSeqno parses out the `eldestSeqno` from a key of the form
+// deviceEKPrefix-username-eldestSeqno-generation.ek. If we have a key for a
+// eldestSeqno that is not our current, we purge it since we don't want the
+// ephemeral key to stick around if we've reset. If we are unable to parse out
+// the value, the key is not valid, or not for the logged in user we return -1
+func (s *DeviceEKStorage) keyToEldestSeqno(key string) keybase1.Seqno {
 	if !strings.HasPrefix(key, deviceEKPrefix) {
-		return -1, nil
+		return -1
 	}
 	parts := strings.Split(key, "-")
-
-	// keyform: deviceEKPrefix-username-eldestSeqNo-generation.ek
 	if len(parts) != 4 {
-		return eldestSeqno, fmt.Errorf("Invalid key format for deviceEK: %v", key)
+		return -1
 	}
 	// Make sure this key is for our current user and not a different one.
 	if parts[1] != s.G().Env.GetUsername().String() {
-		return -1, nil
+		return -1
 	}
 	e, err := strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {
-		return eldestSeqno, err
+		return -1
 	}
-	return keybase1.Seqno(e), nil
+	return keybase1.Seqno(e)
 }
 
-func (s *DeviceEKStorage) keyToGeneration(ctx context.Context, key string) (generation keybase1.EkGeneration, err error) {
+// keyToEldestSeqno parses out the `generation` from a key of the form
+// deviceEKPrefix-username-eldestSeqno-generation.ek. Unparseable keys return a
+// generation of -1 and should be ignored.
+func (s *DeviceEKStorage) keyToGeneration(ctx context.Context, key string) keybase1.EkGeneration {
 	prefix, err := s.keyPrefix(ctx)
 	if err != nil {
-		return generation, err
+		s.G().Log.CDebugf(ctx, "keyToGeneration: unable to get keyPrefix: %v", err)
+		return -1
 	}
-	if !strings.HasPrefix(key, prefix) {
-		return -1, nil
+	if !strings.HasPrefix(key, prefix) || !strings.HasSuffix(key, deviceEKSuffix) {
+		s.G().Log.CDebugf(ctx, "keyToGeneration: key missing prefix: %v or suffix: %s", prefix, deviceEKSuffix)
+		return -1
 	}
-	key = strings.TrimSuffix(key, filepath.Ext(key))
+
+	key = strings.TrimSuffix(key, deviceEKSuffix)
 	parts := strings.Split(key, prefix)
-	// We can expect two elements in `parts` here since we check
-	// strings.HasPrefix above.
+	if len(parts) != 2 {
+		s.G().Log.CDebugf(ctx, "keyToGeneration: unexpected parts: %v, prefix: %v", parts)
+		return -1
+	}
 	g, err := strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
-		return generation, err
+		s.G().Log.CDebugf(ctx, "keyToGeneration: unable to parseUint: %v", err)
+		return -1
 	}
-	return keybase1.EkGeneration(g), nil
+	return keybase1.EkGeneration(g)
 }
 
 func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error) {
@@ -225,12 +239,9 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache deviceEKCache, er
 			return nil, err
 		}
 		for _, key := range keys {
-			generation, err := s.keyToGeneration(ctx, key)
-			if err != nil {
-				return nil, err
-			}
+			generation := s.keyToGeneration(ctx, key)
 			if generation < 0 {
-				s.G().Log.CDebugf(ctx, "DeviceEKStorage#getCache: invalid generation: %s -> %s", key, generation)
+				s.G().Log.CDebugf(ctx, "DeviceEKStorage#getCache: unable to get generation from key: %s", key)
 				continue
 			}
 			deviceEK, err := s.get(ctx, generation)
@@ -496,8 +507,8 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	}
 	epick := libkb.FirstErrorPicker{}
 	for _, key := range keys {
-		eldestSeqno, err := s.keyToEldestSeqno(key)
-		if err != nil || eldestSeqno < 0 {
+		eldestSeqno := s.keyToEldestSeqno(key)
+		if eldestSeqno < 0 {
 			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: skipping delete, invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
 			continue
 		}

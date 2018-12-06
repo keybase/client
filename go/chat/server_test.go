@@ -379,6 +379,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
+	g.StellarSender = types.DummyStellarSender{}
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 

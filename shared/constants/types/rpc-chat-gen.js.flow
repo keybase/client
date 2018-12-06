@@ -599,6 +599,7 @@ export const notifyChatChatActivityType = {
 export const notifyChatStaleUpdateType = {
   clear: 0,
   newactivity: 1,
+  convupdate: 2,
 }
 
 export const remoteChannelMention = {
@@ -908,7 +909,7 @@ export type MessageSystemType =
   | 4 // GITPUSH_4
   | 5 // CHANGEAVATAR_5
 
-export type MessageText = $ReadOnly<{body: String, payments: {[key: string]: TextPaymentResult}}>
+export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>}>
 export type MessageType =
   | 0 // NONE_0
   | 1 // TEXT_1
@@ -1036,6 +1037,7 @@ export type SignatureInfo = $ReadOnly<{v: Int, s: Bytes, k: Bytes}>
 export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
+  | 2 // CONVUPDATE_2
 
 export type StaticConfig = $ReadOnly<{deletableByDeleteHistory?: ?Array<MessageType>}>
 export type SubteamRenameUpdate = $ReadOnly<{convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
@@ -1070,6 +1072,7 @@ export type TeamType =
 
 export type TeamTypeInfo = $ReadOnly<{convID: ConversationID, teamType: TeamType, conv?: ?InboxUIItem}>
 export type TeamTypePayload = $ReadOnly<{Action: String, convID: ConversationID, teamType: TeamType, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
+export type TextPayment = $ReadOnly<{paymentText: String, result: TextPaymentResult}>
 export type TextPaymentResult = {resultTyp: 1, error: ?String} | {resultTyp: 0, sent: ?Stellar1.PaymentID}
 export type TextPaymentResultTyp =
   | 0 // SENT_0

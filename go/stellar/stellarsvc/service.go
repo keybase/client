@@ -70,14 +70,13 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 		}
 		return *opts.Err
 	}
-	fin = s.G().CTraceTimed(ctx, opts.RPCName, getFinalErr)
+	fin = s.G().CTraceTimed(ctx, "LRPC "+opts.RPCName, getFinalErr)
 	if !opts.AllowLoggedOut {
 		if err = s.assertLoggedIn(ctx); err != nil {
 			return ctx, err, fin
 		}
 	}
 	if opts.RequireWallet {
-		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RPCName)
 		cwg, err := stellar.CreateWalletGated(ctx, s.G())
 		if err != nil {
 			return ctx, err, fin

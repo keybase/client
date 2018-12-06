@@ -1870,7 +1870,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean, prefetchStatus: PrefetchStatus}>
+export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean, prefetchStatus: PrefetchStatus, prefetchProgress: PrefetchProgress}>
 export type DirentType =
   | 0 // FILE_0
   | 1 // DIR_1
@@ -1973,7 +1973,7 @@ export type FolderSyncMode =
   | 1 // ENABLED_1
   | 2 // PARTIAL_2
 
-export type FolderSyncStatus = $ReadOnly<{localDiskBytesAvailable: Int64, localDiskBytesTotal: Int64, prefetchStatus: PrefetchStatus}>
+export type FolderSyncStatus = $ReadOnly<{localDiskBytesAvailable: Int64, localDiskBytesTotal: Int64, prefetchStatus: PrefetchStatus, prefetchProgress: PrefetchProgress}>
 export type FolderType =
   | 0 // UNKNOWN_0
   | 1 // PRIVATE_1
@@ -2252,6 +2252,7 @@ export type PhoneNumberVerifiedMsg = $ReadOnly<{phoneNumber: PhoneNumber}>
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
 export type PingResponse = $ReadOnly<{timestamp: Time}>
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
+export type PrefetchProgress = $ReadOnly<{start: Time, endEstimate: Time, bytesTotal: Int64, bytesFetched: Int64}>
 export type PrefetchStatus =
   | 0 // NOT_STARTED_0
   | 1 // IN_PROGRESS_1

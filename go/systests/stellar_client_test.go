@@ -249,6 +249,26 @@ func (s *stellarRetryClient) BuildRequestLocal(ctx context.Context, arg stellar1
 
 }
 
+func (s *stellarRetryClient) StartBuildPaymentLocal(ctx context.Context, arg int) (res stellar1.BuildPaymentID, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.StartBuildPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) StopBuildPaymentLocal(ctx context.Context, arg stellar1.StopBuildPaymentLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.StopBuildPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
 func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.BuildPaymentLocal(ctx, arg)
@@ -257,7 +277,6 @@ func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1
 		}
 	}
 	return res, err
-
 }
 
 func (s *stellarRetryClient) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
