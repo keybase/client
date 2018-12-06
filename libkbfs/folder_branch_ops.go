@@ -979,6 +979,10 @@ pathLoop:
 func (fbo *folderBranchOps) kickOffPartialSync(
 	ctx context.Context, lState *lockState,
 	syncConfig keybase1.FolderSyncConfig, rmd ImmutableRootMetadata) {
+	if fbo.config.DiskBlockCache() == nil {
+		return
+	}
+
 	// Kick off a background partial sync.
 	partialSyncCtx, cancel := context.WithCancel(
 		fbo.ctxWithFBOID(context.Background()))
