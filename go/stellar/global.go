@@ -204,6 +204,13 @@ func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.
 	return SendMiniChatPayments(mctx, s.walletState, payments)
 }
 
+// SpecMiniChatPayments creates a summary of the amounts that a list of MiniChatPayments will
+// result in.
+func (s *Stellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
+	return SpecMiniChatPayments(mctx, s.walletState, payments)
+}
+
+// RefreshWalletState refreshes the WalletState.
 func (s *Stellar) RefreshWalletState(ctx context.Context) {
 	if err := s.walletState.RefreshAll(ctx); err != nil {
 		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)

@@ -99,6 +99,7 @@ type DetailProps = {|
   isXLM: boolean,
   onShowProfile: string => void,
   selectableText: boolean,
+  status: string,
   issuerDescription: string,
 |}
 
@@ -153,7 +154,7 @@ const Detail = (props: DetailProps) => {
     />
   )
 
-  const textStyle = props.canceled ? styles.lineThrough : null
+  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -220,7 +221,7 @@ type AmountXLMProps = {|
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'senderOnly':
-      return globalColors.red
+      return globalColors.black_75
     case 'receiverOnly':
       return globalColors.green
     case 'senderAndReceiver':
@@ -286,6 +287,7 @@ export const TimestampPending = () => (
 )
 
 type TimestampLineProps = {|
+  detailView: ?boolean,
   error: string,
   status: Types.StatusSimplified,
   timestamp: ?Date,
@@ -293,9 +295,6 @@ type TimestampLineProps = {|
 |}
 
 const TimestampLine = (props: TimestampLineProps) => {
-  if (props.error) {
-    return <TimestampError error={props.error} status={props.status} />
-  }
   const timestamp = props.timestamp
   if (!timestamp) {
     return <TimestampPending />
@@ -311,12 +310,27 @@ const TimestampLine = (props: TimestampLineProps) => {
     case 'Claimable':
       status = 'Pending'
       break
+    case 'Error':
+      status = 'Failed'
+      break
   }
   return (
-    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
-      {human}
-      {status ? ` • ${status}` : null}
-    </Text>
+      <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+        {human}
+        {status ? ` • ` : null}
+        {!!status && (
+          <Text selectable={props.selectableText} type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}>
+            {status}
+          </Text>
+        )}
+        {status === 'Failed' && !props.detailView && (
+          <>
+          {' '}(<Text selectable={props.selectableText} type='BodySmallSecondaryLink'>
+            see more
+          </Text>)
+          </>
+        )}
+      </Text>
   )
 }
 
@@ -384,6 +398,7 @@ export const Transaction = (props: Props) => {
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
+              detailView={props.detailView}
               error={props.status === 'error' ? props.statusDetail : ''}
               selectableText={props.selectableText}
               status={props.status}
@@ -401,6 +416,7 @@ export const Transaction = (props: Props) => {
               isXLM={!props.amountUser}
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
+              status={props.status}
               issuerDescription={props.issuerDescription}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
@@ -424,13 +440,15 @@ export const Transaction = (props: Props) => {
                 </Box2>
               )}
               <Box2 direction="horizontal" style={{flex: 1}} />
-              <AmountXLM
-                selectableText={props.selectableText}
-                canceled={props.status === 'canceled'}
-                pending={pending}
-                yourRole={props.yourRole}
-                amountXLM={props.amountXLM}
-              />
+              {props.status !== 'error' && (
+                <AmountXLM
+                  selectableText={props.selectableText}
+                  canceled={props.status === 'canceled'}
+                  pending={pending}
+                  yourRole={props.yourRole}
+                  amountXLM={props.amountXLM}
+                />
+              )}
             </Box2>
           </Box2>
         </Box2>

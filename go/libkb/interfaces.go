@@ -670,6 +670,22 @@ type MiniChatPaymentResult struct {
 	Error     error
 }
 
+// MiniChatPaymentSpec describes the amounts involved in a MiniChatPayment.
+type MiniChatPaymentSpec struct {
+	Username      NormalizedUsername
+	Error         error
+	XLMAmount     string
+	DisplayAmount string // optional
+}
+
+// MiniChatPaymentSummary contains all the recipients and the amounts they
+// will receive plus a total in XLM and in the sender's preferred currency.
+type MiniChatPaymentSummary struct {
+	Specs        []MiniChatPaymentSpec
+	XLMTotal     string
+	DisplayTotal string
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletSoft(context.Context)
@@ -678,6 +694,7 @@ type Stellar interface {
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
+	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	RefreshWalletState(ctx context.Context)
 }

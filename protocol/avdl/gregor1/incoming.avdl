@@ -15,6 +15,7 @@ protocol incoming {
     with one call, as opposed to calling consumeMessage for each UID.
    */
   void consumeMessageMulti(Message msg, array<UID> uids);
+  @compression_type("none")
   string ping();
   string version(UID uid);
 
