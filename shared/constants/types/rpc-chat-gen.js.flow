@@ -693,11 +693,12 @@ export type ChatActivityType =
   | 11 // REACTION_UPDATE_11
   | 12 // MESSAGES_UPDATED_12
 
-export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
+export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<ChatSearchMatch>}>
 export type ChatSearchInboxDone = $ReadOnly<{numHits: Int, numConvs: Int, percentIndexed: Int}>
 export type ChatSearchInboxHit = $ReadOnly<{convID: ConversationID, convName: String, hits?: ?Array<ChatSearchHit>}>
 export type ChatSearchInboxResults = $ReadOnly<{hits?: ?Array<ChatSearchInboxHit>, percentIndexed: Int}>
 export type ChatSearchIndexStatus = $ReadOnly<{percentIndexed: Int}>
+export type ChatSearchMatch = $ReadOnly<{startIndex: Int, endIndex: Int, match: String}>
 export type ChatSyncIncrementalConv = $ReadOnly<{conv: UnverifiedInboxUIItem, shouldUnbox: Boolean}>
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<ChatSyncIncrementalConv>}>
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
