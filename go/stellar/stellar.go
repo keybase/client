@@ -606,6 +606,12 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}, nil
 }
 
+type indexedSpec struct {
+	spec             libkb.MiniChatPaymentSpec
+	index            int
+	xlmAmountNumeric int64
+}
+
 // SpecMiniChatPayments returns a summary of the payment amounts for each recipient
 // and a total.
 func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
@@ -628,34 +634,21 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 	var summary libkb.MiniChatPaymentSummary
 
 	var xlmTotal int64
-	for _, payment := range payments {
-		spec := libkb.MiniChatPaymentSpec{Username: payment.Username}
-		spec.XLMAmount = payment.Amount
-		if payment.Currency != "" && payment.Currency != "XLM" {
-			spec.DisplayAmount = payment.Amount
-			spec.DisplayCurrency = payment.Currency
-			exchangeRate, err := walletState.ExchangeRate(mctx.Ctx(), payment.Currency)
-			if err != nil {
-				spec.Error = err
-				summary.Specs = append(summary.Specs, spec)
-				continue
-			}
-
-			spec.XLMAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
-			if err != nil {
-				spec.Error = err
-				summary.Specs = append(summary.Specs, spec)
-				continue
-			}
+	if len(payments) > 0 {
+		ch := make(chan indexedSpec)
+		for i, payment := range payments {
+			go func(payment libkb.MiniChatPayment, index int) {
+				spec, xlmAmountNumeric := specMiniChatPayment(mctx, walletState, payment)
+				ch <- indexedSpec{spec: spec, index: index, xlmAmountNumeric: xlmAmountNumeric}
+			}(payment, i)
 		}
 
-		summary.Specs = append(summary.Specs, spec)
-
-		xlmAmountNumeric, err := stellarnet.ParseStellarAmount(spec.XLMAmount)
-		if err != nil {
-			return nil, err
+		summary.Specs = make([]libkb.MiniChatPaymentSpec, len(payments))
+		for i := 0; i < len(payments); i++ {
+			ispec := <-ch
+			summary.Specs[ispec.index] = ispec.spec
+			xlmTotal += ispec.xlmAmountNumeric
 		}
-		xlmTotal += xlmAmountNumeric
 	}
 
 	summary.XLMTotal = stellarnet.StringFromStellarAmount(xlmTotal)
@@ -670,11 +663,49 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		}
 	}
 
+	summary.XLMTotal, err = FormatAmountDescriptionXLM(summary.XLMTotal)
 	if err != nil {
 		return nil, err
 	}
 
 	return &summary, nil
+}
+
+func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payment libkb.MiniChatPayment) (libkb.MiniChatPaymentSpec, int64) {
+	spec := libkb.MiniChatPaymentSpec{Username: payment.Username}
+	xlmAmount := payment.Amount
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		exchangeRate, err := walletState.ExchangeRate(mctx.Ctx(), payment.Currency)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), payment.Amount, exchangeRate.Currency, FmtRound)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+	}
+
+	xlmAmountNumeric, err := stellarnet.ParseStellarAmount(xlmAmount)
+	if err != nil {
+		spec.Error = err
+		return spec, 0
+	}
+
+	spec.XLMAmount, err = FormatAmountDescriptionXLM(xlmAmount)
+	if err != nil {
+		spec.Error = err
+		return spec, 0
+	}
+
+	return spec, xlmAmountNumeric
 }
 
 // SendMiniChatPayments sends multiple payments from one sender to multiple
