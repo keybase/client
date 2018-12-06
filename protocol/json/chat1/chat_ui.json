@@ -830,6 +830,27 @@
           "body": "string"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UIMiniChatPaymentSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "xlmTotal"
+        },
+        {
+          "type": "string",
+          "name": "displayTotal"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMiniChatPaymentSpec"
+          },
+          "name": "payments"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1030,18 +1051,28 @@
       ],
       "response": null
     },
-    "chatStellarConfirmData": {
+    "chatStellarDataConfirm": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "data",
-          "type": {
-            "type": "array",
-            "items": "UIMiniChatPaymentSpec"
-          }
+          "name": "summary",
+          "type": "UIMiniChatPaymentSummary"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDataError": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "string"
         }
       ],
       "response": null

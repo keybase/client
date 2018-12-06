@@ -232,6 +232,12 @@ protocol chatUi {
     case SUCCESS: UIMiniChatPaymentSpecSuccess;
     case ERROR: string;
   }
+  record UIMiniChatPaymentSummary {
+    string xlmTotal;
+    string displayTotal;
+    array<UIMiniChatPaymentSpec> payments;
+  }
   void chatStellarShowConfirm(int sessionID);
-  void chatStellarConfirmData(int sessionID, array<UIMiniChatPaymentSpec> data);
+  boolean chatStellarDataConfirm(int sessionID, UIMiniChatPaymentSummary summary);
+  void chatStellarDataError(int sessionID, string message);
 }
