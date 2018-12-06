@@ -62,9 +62,7 @@ declare export var windowStyle: {
   height: number,
 }
 
-declare export function styled<T>(
-  Component: T
-): (...styles: Array<CSS.StylesCrossPlatform | (any => any) | {[key: string]: any}>) => T
+declare export function styled<T>(Component: T): (...styles: Array<any>) => T
 
 declare export var styledCss: any // TODO better type
 declare export var styledKeyframes: any // TODO better type
