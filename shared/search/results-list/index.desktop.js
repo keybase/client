@@ -37,7 +37,7 @@ class SearchResultsList extends Component<Props> {
       return <EmptyResults style={style} />
     }
     return (
-      <Box style={{width: '100%', height: 240, ...style}}>
+      <Box style={{height: 240, width: '100%', ...style}}>
         {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
             <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>

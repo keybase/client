@@ -37,8 +37,8 @@ const mapStateToProps = (state, {routeProps, routeState}) => {
 
   const channels = channelInfos
     .map((info, convID) => ({
-      description: info.description,
       convID,
+      description: info.description,
       name: info.channelname,
       selected: you && info.participants.has(you),
     }))
@@ -61,29 +61,8 @@ const mapStateToProps = (state, {routeProps, routeState}) => {
 const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
-    onBack: () => dispatch(navigateUp()),
-    onClose: () => dispatch(navigateUp()),
-    onEdit: conversationIDKey =>
-      dispatch(navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
-    onCreate: () =>
-      dispatch(navigateTo([{selected: 'createChannel', props: {teamname}}], routePath.butLast())),
-    _saveSubscriptions: (
-      oldChannelState: ChannelMembershipState,
-      nextChannelState: ChannelMembershipState,
-      you: string
-    ) => {
-      dispatch(
-        TeamsGen.createSaveChannelMembership({
-          teamname,
-          oldChannelState,
-          newChannelState: nextChannelState,
-          you,
-        })
-      )
-      dispatch(navigateUp())
-    },
+    _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
     _onView: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
@@ -92,15 +71,36 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
     ) => {
       dispatch(
         TeamsGen.createSaveChannelMembership({
-          teamname,
-          oldChannelState,
           newChannelState: nextChannelState,
+          oldChannelState,
+          teamname,
           you,
         })
       )
       dispatch(navigateUp())
-      dispatch(Chat2Gen.createPreviewConversation({teamname, channelname, reason: 'manageView'}))
+      dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'manageView', teamname}))
     },
+    _saveSubscriptions: (
+      oldChannelState: ChannelMembershipState,
+      nextChannelState: ChannelMembershipState,
+      you: string
+    ) => {
+      dispatch(
+        TeamsGen.createSaveChannelMembership({
+          newChannelState: nextChannelState,
+          oldChannelState,
+          teamname,
+          you,
+        })
+      )
+      dispatch(navigateUp())
+    },
+    onBack: () => dispatch(navigateUp()),
+    onClose: () => dispatch(navigateUp()),
+    onCreate: () =>
+      dispatch(navigateTo([{props: {teamname}, selected: 'createChannel'}], routePath.butLast())),
+    onEdit: conversationIDKey =>
+      dispatch(navigateAppend([{props: {conversationIDKey, teamname}, selected: 'editChannel'}])),
   }
 }
 
@@ -125,6 +125,11 @@ export default compose(
     }
   ),
   withHandlers({
+    onClickChannel: props => (channelname: string) => {
+      props._onView(props.oldChannelState, props.nextChannelState, props._you, channelname)
+    },
+    onSaveSubscriptions: props => () =>
+      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),
     onToggle: props => (convID: ChatTypes.ConversationIDKey) =>
       props.setNextChannelState({
         ...props.nextChannelState,
@@ -132,22 +137,17 @@ export default compose(
           ChatTypes.conversationIDKeyToString(convID)
         ],
       }),
-    onSaveSubscriptions: props => () =>
-      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),
-    onClickChannel: props => (channelname: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, props._you, channelname)
-    },
   }),
   lifecycle({
-    componentDidUpdate(prevProps) {
-      if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
-        this.props.setNextChannelState(this.props.oldChannelState)
-      }
-    },
     componentDidMount() {
       this.props._loadChannels()
       if (!this.props._hasOperations) {
         this.props._loadOperations()
+      }
+    },
+    componentDidUpdate(prevProps) {
+      if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
+        this.props.setNextChannelState(this.props.oldChannelState)
       }
     },
   }),

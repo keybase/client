@@ -301,12 +301,12 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
       {
-        title: 'Select a file or folder to upload',
         properties: [
           'multiSelections',
           ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
           ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
+        title: 'Select a file or folder to upload',
       },
       filePaths => resolve(filePaths || [])
     )
@@ -345,8 +345,8 @@ const loadUserFileEdits = (state: TypedState, action) =>
         ...updateSet.map(path =>
           Saga.put(
             FsGen.createFilePreviewLoad({
-              path,
               identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+              path,
             })
           )
         ),

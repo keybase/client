@@ -38,12 +38,12 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
-	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
-	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (*NameInfo, error)
+	LookupIDUntrusted(ctx context.Context, name string, public bool) (NameInfoUntrusted, error)
+	LookupID(ctx context.Context, name string, public bool) (NameInfo, error)
+	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (CryptKey, *NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
@@ -83,6 +83,7 @@ type ConversationSource interface {
 		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
+	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
@@ -130,7 +131,7 @@ type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error)
+		conv *chat1.Conversation) (SenderPrepareResult, error)
 }
 
 type InboxSource interface {
@@ -176,7 +177,7 @@ type InboxSource interface {
 	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfoUntrusted, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -355,6 +356,10 @@ type NativeVideoHelper interface {
 type StellarLoader interface {
 	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
+}
+
+type StellarSender interface {
+	ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error)
 }
 
 type ConversationBackedStorage interface {

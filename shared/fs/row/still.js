@@ -76,11 +76,11 @@ const downloadBadgeXOffset = -28
 const downloadBadgeYOffset = Styles.isMobile ? 24 : 20
 const styles = Styles.styleSheetCreate({
   downloadBadgeContainer: {
+    height: 0,
     marginLeft: downloadBadgeXOffset,
     marginRight: -downloadBadgeXOffset,
     marginTop: downloadBadgeYOffset,
     width: 0,
-    height: 0,
     zIndex: 100,
   },
 })

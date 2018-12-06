@@ -28,9 +28,9 @@ const mapStateToProps = (state, {routeProps}) => {
   const _channelInfos = getTeamChannelInfos(state, teamname)
   return {
     _channelInfos,
-    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
-    loaded: !!_channelInfos.size,
     _selected: selected,
+    loaded: !!_channelInfos.size,
+    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
   }
 }
 
@@ -41,10 +41,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => {
     _onSubmit: (channelName: string) =>
       dispatch(
         GitGen.createSetTeamRepoSettings({
-          chatDisabled: false,
           channelName,
-          teamname: teamname,
+          chatDisabled: false,
           repoID: repoID,
+          teamname: teamname,
         })
       ),
     onCancel: () => dispatch(navigateUp()),

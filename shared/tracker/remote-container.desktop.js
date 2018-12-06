@@ -28,17 +28,17 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
   _onClose: (username: string) => dispatch(TrackerGen.createOnClose({username})),
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({username})),
   _onIgnore: (username: string) => dispatch(TrackerGen.createIgnore({username})),
-  onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   _onRefollow: (username: string) => dispatch(TrackerGen.createRefollow({username})),
   _onRetry: (username: string) => dispatch(TrackerGen.createGetProfile({ignoreCache: true, username})),
   _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
   _onSetTeamJoinSuccess: (success: boolean) =>
     dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
-  _onUserClick: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({username, ignoreCache: true, forceDisplay: true})),
   _onUpdateSelectedTeam: (selectedTeam: string, username: string) =>
     dispatch(TrackerGen.createUpdateSelectedTeam({selectedTeam, username})),
+  _onUserClick: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -53,9 +53,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onRefollow: () => dispatchProps._onRefollow(stateProps.username),
   onRetry: stateProps.errorMessage ? () => dispatchProps._onRetry(stateProps.username) : null,
   onUnfollow: () => dispatchProps._onUnfollow(stateProps.username),
-  onUserClick: (username: string) => dispatchProps._onUserClick(username),
   onUpdateSelectedTeam: (selectedTeam: string) =>
     dispatchProps._onUpdateSelectedTeam(selectedTeam, stateProps.username),
+  onUserClick: (username: string) => dispatchProps._onUserClick(username),
 })
 
 export default compose(

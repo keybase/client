@@ -174,10 +174,10 @@ export default function(
       const {username} = action.payload
       return updateUserState(state, username, s => ({
         ...s,
+        eldestKidChanged: false,
         lastAction: 'refollowed',
         reason: `You have re-followed ${username}.`,
         trackerState: 'normal',
-        eldestKidChanged: false,
       }))
     }
     case TrackerGen.setOnUnfollow: {
@@ -326,15 +326,15 @@ export default function(
     case TrackerGen.updateUserInfo: {
       const {userCard, username} = action.payload
       const userInfo = {
-        fullname: userCard.fullName,
+        avatar: `https://keybase.io/${username}/picture`,
+        bio: userCard.bio,
         followersCount: userCard.followers,
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
-        uid: userCard.uid,
-        bio: userCard.bio,
-        avatar: `https://keybase.io/${username}/picture`,
+        fullname: userCard.fullName,
         location: userCard.location,
         showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
+        uid: userCard.uid,
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,
@@ -376,8 +376,8 @@ export default function(
       const {trackers, tracking} = action.payload
       return updateUserState(state, action.payload.username, s => ({
         ...s,
-        trackersLoaded: true,
         trackers,
+        trackersLoaded: true,
         tracking,
       }))
     }

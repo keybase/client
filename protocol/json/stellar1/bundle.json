@@ -568,10 +568,6 @@
       "name": "AccountBundle",
       "fields": [
         {
-          "type": "BundleRevision",
-          "name": "revision"
-        },
-        {
           "type": "Hash",
           "name": "prev"
         },

@@ -41,48 +41,48 @@ func (rc *RooterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 
 type RooterServiceType struct{ libkb.BaseServiceType }
 
-func (t RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 var rooterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
-func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
+func (t *RooterServiceType) NormalizeUsername(s string) (string, error) {
 	if !rooterUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t RooterServiceType) NormalizeRemoteName(_ libkb.MetaContext, s string) (string, error) {
+func (t *RooterServiceType) NormalizeRemoteName(_ libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
 }
 
-func (t RooterServiceType) GetPrompt() string {
+func (t *RooterServiceType) GetPrompt() string {
 	return "Your username on Rooter"
 }
 
-func (t RooterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *RooterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t RooterServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *RooterServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please toot the following, and don't delete it:`)
 }
 
-func (t RooterServiceType) DisplayName(un string) string { return "Rooter" }
-func (t RooterServiceType) GetTypeName() string          { return "rooter" }
-func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *RooterServiceType) DisplayName(un string) string { return "Rooter" }
+func (t *RooterServiceType) GetTypeName() string          { return "rooter" }
+func (t *RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }
-func (t RooterServiceType) GetProofType() string { return "test.web_service_binding.rooter" }
+func (t *RooterServiceType) GetProofType() string { return "test.web_service_binding.rooter" }
 
-func (t RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 
-func (t RooterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *RooterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &RooterChecker{l}
 }
 
-func (t RooterServiceType) IsDevelOnly() bool { return true }
+func (t *RooterServiceType) IsDevelOnly() bool { return true }

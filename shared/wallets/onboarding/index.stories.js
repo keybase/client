@@ -9,13 +9,18 @@ import Intro from './intro'
 const load = () => {
   storiesOf('Wallets/Onboarding', module)
     .addDecorator(story => (
-      <Box style={platformStyles({common: {minHeight: 525, maxWidth: 360}, isElectron: {height: 525}})}>
+      <Box style={platformStyles({common: {maxWidth: 360, minHeight: 525}, isElectron: {height: 525}})}>
         {story()}
       </Box>
     ))
     .add('Intro', () => <Intro onClose={action('onClose')} setNextScreen={action('setNextScreen')} />)
     .add('Disclaimer', () => (
-      <Disclaimer onAcceptDisclaimer={action('onAcceptDisclaimer')} onNotNow={action('onNotNow')} />
+      <Disclaimer
+        acceptingDisclaimerDelay={false}
+        onAcceptDisclaimer={action('onAcceptDisclaimer')}
+        onCheckDisclaimer={action('onCheckDisclaimer')}
+        onNotNow={action('onNotNow')}
+      />
     ))
 }
 

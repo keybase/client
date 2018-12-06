@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -188,6 +189,23 @@ type AttachmentUploadResult struct {
 	Metadata []byte
 }
 
+type BoxerEncryptionInfo struct {
+	Key                   CryptKey
+	SigningKeyPair        libkb.NaclSigningKeyPair
+	EphemeralSeed         *keybase1.TeamEk
+	PairwiseMACRecipients []keybase1.KID
+	Version               chat1.MessageBoxedVersion
+}
+
+type SenderPrepareResult struct {
+	Boxed               chat1.MessageBoxed
+	EncryptionInfo      BoxerEncryptionInfo
+	PendingAssetDeletes []chat1.Asset
+	AtMentions          []gregor1.UID
+	ChannelMention      chat1.ChannelMention
+	TopicNameState      *chat1.TopicNameState
+}
+
 type DummyAttachmentFetcher struct{}
 
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
@@ -322,4 +340,10 @@ func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.
 
 func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
 	return nil
+}
+
+type DummyStellarSender struct{}
+
+func (d DummyStellarSender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error) {
+	return nil, nil
 }

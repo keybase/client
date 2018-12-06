@@ -13,6 +13,7 @@ export type OwnProps = {|
   emoji?: string,
   onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
   onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  getAttachmentRef?: () => ?React.Component<any>,
   onLongPress?: () => void,
   onShowPicker?: (showing: boolean) => void,
   ordinal: Types.Ordinal,
@@ -36,6 +37,7 @@ const Wrapper = (props: WrapperProps) =>
       active={props.active}
       conversationIDKey={props.conversationIDKey}
       count={props.count}
+      getAttachmentRef={props.getAttachmentRef}
       emoji={props.emoji}
       onClick={props.onClick}
       onLongPress={props.onLongPress}
@@ -46,6 +48,7 @@ const Wrapper = (props: WrapperProps) =>
     />
   ) : (
     <NewReactionButton
+      getAttachmentRef={props.getAttachmentRef}
       onAddReaction={props.onAddReaction}
       onLongPress={props.onLongPress}
       onOpenEmojiPicker={props.onOpenEmojiPicker}
@@ -93,6 +96,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   conversationIDKey: ownProps.conversationIDKey,
   count: stateProps.count,
   emoji: stateProps.emoji,
+  getAttachmentRef: ownProps.getAttachmentRef,
   onAddReaction: dispatchProps.onAddReaction,
   onClick: dispatchProps.onClick,
   onLongPress: ownProps.onLongPress,

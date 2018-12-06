@@ -84,11 +84,10 @@ func (i *Identify2WithUIDTester) AllStringKeys() []string                   { re
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) GetDisplayPriority(s string) int { return 0 }
-func (i *Identify2WithUIDTester) DisplayName(n string) string     { return n }
-func (i *Identify2WithUIDTester) GetPrompt() string               { return "" }
-func (i *Identify2WithUIDTester) GetProofType() string            { return "" }
-func (i *Identify2WithUIDTester) GetTypeName() string             { return "" }
+func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
+func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
+func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
+func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
@@ -546,11 +545,18 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 
+	// The fast cached should have been primed with the slow cache, so we expected
+	// a fast cache hit
+	runChatGUI()
+	if !tester.fastStats.eq(2, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
+	}
+
 	tester.incNow(time.Second + libkb.Identify2CacheBrokenTimeout)
 	runChatGUI()
 
 	// After the broken timeout passes, we should get timeouts on both caches
-	if !tester.fastStats.eq(1, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
+	if !tester.fastStats.eq(2, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
 		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 }

@@ -38,9 +38,9 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
     case TeamBuildingGen.search: {
       const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
       return state.merge({
+        teamBuildingSearchLimit: limit,
         teamBuildingSearchQuery: trim(query),
         teamBuildingSelectedService: service,
-        teamBuildingSearchLimit: limit,
       })
     }
 

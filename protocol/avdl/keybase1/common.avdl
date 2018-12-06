@@ -46,6 +46,11 @@ protocol Common {
   @typedef("string")
   record PhoneNumber {}
 
+  // 2-letter country region code
+  // Used for phone number and email assertions
+  @typedef("string")
+  record RegionCode {}
+
   // Chain link IDs
   @typedef("string")
   record LinkID {}
@@ -339,5 +344,11 @@ protocol Common {
     UID uid;
     string username;
     UnixTime ctime;
+  }
+
+  // Used for searching by phone number or email
+  enum IdentityVisibility {
+      PRIVATE_0,
+      PUBLIC_1
   }
 }

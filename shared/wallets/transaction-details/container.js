@@ -37,6 +37,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
   onCancelPayment: () =>
     dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID'), showAccount: true})),
+  onChat: (username: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({
@@ -44,8 +46,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         paymentID: routeProps.get('paymentID'),
       })
     ),
-  onChat: (username: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -64,10 +64,12 @@ const mergeProps = (stateProps, dispatchProps) => {
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
+    issuerAccountID: tx.issuerAccountID,
+    issuerDescription: tx.issuerDescription,
     loading: false,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
-    onCancelPayment: tx.statusSimplified === 'cancelable' ? dispatchProps.onCancelPayment : null,
+    onCancelPayment: tx.showCancel ? dispatchProps.onCancelPayment : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,

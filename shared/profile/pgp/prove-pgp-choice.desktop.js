@@ -14,16 +14,16 @@ class ProvePgpChoice extends Component<Props> {
         <ChoiceList
           options={[
             {
-              title: 'Get a new PGP key',
               description: 'Keybase will generate a new PGP key and add it to your profile.',
               icon: 'icon-pgp-key-new-48',
               onClick: () => this.props.onOptionClick('provideInfo'),
+              title: 'Get a new PGP key',
             },
             {
-              title: 'I have one already',
               description: 'Import an existing PGP key to your Keybase profile.',
               icon: 'icon-pgp-key-import-48',
               onClick: () => this.props.onOptionClick('import'),
+              title: 'I have one already',
             },
           ]}
         />

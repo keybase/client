@@ -32,10 +32,10 @@ const stylesContainer = {
   alignItems: 'center',
   backgroundColor: globalColors.blue,
   justifyContent: 'center',
+  paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
 }
 
 export default CreateTeamHeader

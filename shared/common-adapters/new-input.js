@@ -107,26 +107,26 @@ const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       alignItems: 'center',
-      margin: 0,
       borderColor: globalColors.black_10,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
+      margin: 0,
       padding: globalMargins.xtiny,
     },
     isElectron: {width: '100%'},
   }),
-  focused: {
-    borderColor: globalColors.blue,
+  displayFlex: {
+    display: 'flex',
   },
   error: {
     borderColor: globalColors.red,
   },
+  focused: {
+    borderColor: globalColors.blue,
+  },
   hideBorder: {
     borderWidth: 0,
-  },
-  displayFlex: {
-    display: 'flex',
   },
   icon: {
     marginRight: globalMargins.xtiny,

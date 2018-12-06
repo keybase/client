@@ -36,7 +36,7 @@ class _DeleteChannel extends React.Component<Props, State> {
     const items = [
       'Divider',
       {danger: true, onClick: this.props.onConfirmedDelete, title: 'Yes, delete channel'},
-      {onClick: this.props.toggleShowingMenu, title: 'Cancel'},
+      {title: 'Cancel'},
     ]
 
     return (

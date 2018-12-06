@@ -14,8 +14,8 @@ const Container = ({children, style, outerStyle}: Props) => {
 
 const innerContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  marginTop: globalMargins.medium,
   flexGrow: 1,
+  marginTop: globalMargins.medium,
 }
 
 const containerStyle = {

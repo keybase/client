@@ -166,6 +166,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   icon: Styles.platformStyles({
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
     isElectron: {
       position: 'absolute',
       top: -12,
@@ -173,9 +176,6 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       marginBottom: 6,
       marginTop: -15,
-    },
-    isAndroid: {
-      marginTop: Styles.globalMargins.tiny,
     },
   }),
   loadingHeaderTop: Styles.platformStyles({

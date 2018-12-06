@@ -15,9 +15,9 @@ class PgpAdd extends Component<Props> {
   render() {
     const nextDisabled = !this.props.email1 || !this.props.fullName
     const emailInputProps = {
+      autoCapitalize: 'none',
       small: true,
       style: styleEmailInput,
-      autoCapitalize: 'none',
     }
     return (
       <NativeKeyboardAvoidingView behavior="position">
@@ -82,9 +82,9 @@ const styleIcon = {
 }
 
 const styleHeader = {
-  marginTop: globalMargins.medium,
-  marginBottom: globalMargins.medium,
   alignSelf: 'center',
+  marginBottom: globalMargins.medium,
+  marginTop: globalMargins.medium,
 }
 
 const styleEmailInput = {

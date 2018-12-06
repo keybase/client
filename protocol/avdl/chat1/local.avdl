@@ -10,8 +10,24 @@ protocol local {
 
   @typedef("string") record VersionKind {}
 
+  enum TextPaymentResultTyp {
+    SENT_0,
+    ERROR_1
+  }
+
+  variant TextPaymentResult switch (TextPaymentResultTyp resultTyp) {
+  case ERROR: string;
+  case SENT: stellar1.PaymentID;
+  }
+
+  record TextPayment {
+    string paymentText;
+    TextPaymentResult result;
+  }
+
   record MessageText {
     string body;
+    array<TextPayment> payments;
   }
 
   record MessageConversationMetadata {

@@ -38,12 +38,13 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
+	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -171,12 +172,13 @@ func TestExplodeNow(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_TEAM, nil)
 	require.NoError(t, err)
+	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -304,13 +306,14 @@ func TestReactions(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_TEAM, nil)
 	require.NoError(t, err)
+	firstMessageBoxed := prepareRes.Boxed
 
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -724,19 +727,19 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) LookupIDUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
+func (f failingTlf) LookupIDUntrusted(context.Context, string, bool) (res types.NameInfoUntrusted, err error) {
 	require.Fail(f.t, "LookupUnstrusted call")
-	return nil, nil
+	return res, err
 }
 
-func (f failingTlf) LookupID(context.Context, string, bool) (*types.NameInfo, error) {
+func (f failingTlf) LookupID(context.Context, string, bool) (res types.NameInfo, err error) {
 	require.Fail(f.t, "Lookup call")
-	return nil, nil
+	return res, err
 }
 
-func (f failingTlf) LookupName(context.Context, chat1.TLFID, bool) (*types.NameInfo, error) {
+func (f failingTlf) LookupName(context.Context, chat1.TLFID, bool) (res types.NameInfo, err error) {
 	require.Fail(f.t, "Lookup call")
-	return nil, nil
+	return res, err
 }
 
 func (f failingTlf) AllCryptKeys(context.Context, string, bool) (types.AllCryptKeys, error) {
@@ -745,9 +748,9 @@ func (f failingTlf) AllCryptKeys(context.Context, string, bool) (types.AllCryptK
 }
 
 func (f failingTlf) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error) {
+	membersType chat1.ConversationMembersType, public bool) (key types.CryptKey, ni types.NameInfo, err error) {
 	require.Fail(f.t, "EncryptionKey call")
-	return nil, nil, nil
+	return key, ni, err
 }
 
 func (f failingTlf) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -876,12 +879,13 @@ func TestGetThreadCaching(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
+	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -993,9 +997,9 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		msg, _, _, _, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		prepareRes, err := sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
-		require.NotNil(t, msg)
+		msg = &prepareRes.Boxed
 
 		res, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.GetConvID(),

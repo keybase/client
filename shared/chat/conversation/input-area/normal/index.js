@@ -8,7 +8,7 @@ import {throttle} from 'lodash-es'
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 
-class Input extends React.Component<InputProps> {
+class Input extends React.PureComponent<InputProps> {
   _lastQuote: number
   _input: ?TextInput
 
@@ -38,8 +38,8 @@ class Input extends React.Component<InputProps> {
   _setText = (text: string, skipUnsentSaving?: boolean) => {
     if (this._input) {
       this._input.transformText(() => ({
+        selection: {end: text.length, start: text.length},
         text,
-        selection: {start: text.length, end: text.length},
       }))
     }
 

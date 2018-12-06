@@ -57,7 +57,7 @@ export const getContentTypeFromURL = (
   url: string,
   cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
-  const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
+  const req = SafeElectron.getRemote().net.request({method: 'HEAD', url})
   req.on('response', response => {
     let contentType = ''
     let disposition = ''
@@ -67,7 +67,7 @@ export const getContentTypeFromURL = (
       const dispositionHeader = response.headers['content-disposition']
       disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, contentType, disposition})
+    cb({contentType, disposition, statusCode: response.statusCode})
   })
   req.on('error', error => cb({error}))
   req.end()
@@ -212,7 +212,7 @@ const setupEngineListeners = () => {
       NotifyPopup('Client out of date!', {body}, 60 * 60)
       // This is from the API server. Consider notifications from API server
       // always critical.
-      return Saga.put(ConfigGen.createUpdateInfo({isOutOfDate: true, critical: true, message: upgradeMsg}))
+      return Saga.put(ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg}))
     },
   })
 }
@@ -260,8 +260,8 @@ const startOutOfDateCheckLoop = () =>
 const checkForUpdate = () =>
   RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
     ConfigGen.createUpdateInfo({
-      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
       critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
       message,
     })
   )

@@ -1,5 +1,4 @@
 // @flow
-import {Component} from 'react'
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
 
@@ -15,10 +14,10 @@ export type RowProps = {
 }
 
 export type Props = {
+  customCancelText: string,
   customComponent?: ?React.Node,
   headerStyle?: ?Object,
-  onBack: () => void,
-  onCancel?: () => void,
+  onCancel: () => void,
   onPromote: (name: Types.Teamname, promote: boolean) => void,
   teammembercounts: {[string]: number},
   teamnames: Array<Types.Teamname>,
@@ -29,4 +28,4 @@ export type Props = {
   waiting: {[string]: number},
 }
 
-export default class ShowcaseTeamOffer extends Component<Props> {}
+export default class ShowcaseTeamOffer extends React.Component<Props> {}

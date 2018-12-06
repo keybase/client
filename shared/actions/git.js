@@ -96,25 +96,22 @@ const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
 
 const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
   RPCTypes.gitSetTeamRepoSettingsRpcPromise({
-    folder: {
-      name: action.payload.teamname,
-      folderType: RPCTypes.favoriteFolderType.team,
-      private: true,
-      created: false,
-      notificationsOn: false,
-    },
-    repoID: action.payload.repoID,
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
+    folder: {
+      created: false,
+      folderType: RPCTypes.favoriteFolderType.team,
+      name: action.payload.teamname,
+      notificationsOn: false,
+      private: true,
+    },
+    repoID: action.payload.repoID,
   }).then(() => GitGen.createLoadGitRepo({teamname: action.payload.teamname, username: null}))
 
 let _wasOnGitTab = false
-const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
+const clearBadgesAfterNav = (state: TypedState, action: RouteTreeGen.SwitchToPayload) => {
   // on the git tab?
-  const list = I.List(action.payload.path)
-  const root = list.first()
-
-  if (root === Tabs.gitTab) {
+  if (Constants.isLookingAtGit(state, action)) {
     _wasOnGitTab = true
   } else if (_wasOnGitTab) {
     _wasOnGitTab = false
@@ -142,9 +139,9 @@ const navToGit = (_, action: GitGen.NavToGitPayload) => {
   const {routeState} = action.payload
   const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
   const parentPath = []
-  const actions = [Saga.put(RouteTreeGen.createNavigateTo({path, parentPath}))]
+  const actions = [Saga.put(RouteTreeGen.createNavigateTo({parentPath, path}))]
   if (routeState) {
-    actions.push(Saga.put(RouteTreeGen.createSetRouteState({path, partialState: routeState})))
+    actions.push(Saga.put(RouteTreeGen.createSetRouteState({partialState: routeState, path})))
   }
   return Saga.all(actions)
 }

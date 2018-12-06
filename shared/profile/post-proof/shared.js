@@ -39,10 +39,10 @@ export function propsForPlatform(props: Props): MoreProps {
             </Text>
           </Text>
         ),
+        noteText: null,
+        onCompleteText: 'OK tweeted! Check for it!',
         proofActionText: 'Tweet it now',
         proofText: props.proofText,
-        onCompleteText: 'OK tweeted! Check for it!',
-        noteText: null,
       }
     case 'reddit':
       return {
@@ -54,17 +54,17 @@ export function propsForPlatform(props: Props): MoreProps {
           </Text>
         ),
         noteText: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
-        proofText: null,
-        proofActionText: 'Reddit form',
         onCompleteText: 'OK posted! Check for it!',
+        proofActionText: 'Reddit form',
+        proofText: null,
       }
     case 'facebook':
       return {
         ...base,
         descriptionView: <FacebookDescription />,
-        proofText: null,
-        proofActionText: 'Continue with Facebook',
         onCompleteText: 'OK posted! Check for it!',
+        proofActionText: 'Continue with Facebook',
+        proofText: null,
       }
     case 'github':
       return {
@@ -75,10 +75,10 @@ export function propsForPlatform(props: Props): MoreProps {
             called <Text type="BodySemiboldItalic">keybase.md.</Text>
           </Text>
         ),
+        noteText: null,
+        onCompleteText: 'OK posted! Check for it!',
         proofActionText: 'Create gist now',
         proofText: props.proofText,
-        onCompleteText: 'OK posted! Check for it!',
-        noteText: null,
       }
     case 'hackernews':
       return {
@@ -92,10 +92,10 @@ export function propsForPlatform(props: Props): MoreProps {
             to your profile.
           </Text>
         ),
+        noteText: null,
+        onCompleteText: 'OK posted! Check for it!',
         proofActionText: 'Go to Hacker News',
         proofText: props.proofText,
-        onCompleteText: 'OK posted! Check for it!',
-        noteText: null,
       }
     case 'dns':
       return {
@@ -107,9 +107,9 @@ export function propsForPlatform(props: Props): MoreProps {
             it "@".
           </Text>
         ),
+        noteText: null,
         onCompleteText: 'OK posted! Check for it!',
         proofText: props.proofText,
-        noteText: null,
       }
     case 'http':
     case 'https':
@@ -119,7 +119,6 @@ export function propsForPlatform(props: Props): MoreProps {
 
       return {
         ...base,
-        proofText: props.proofText,
         descriptionView: (
           <Box style={globalStyles.flexBoxColumn}>
             <Text type="BodySemibold" {...styleCentered}>
@@ -129,7 +128,7 @@ export function propsForPlatform(props: Props): MoreProps {
             <Text
               type="BodyPrimaryLink"
               onClick={() => openUrl(urlRoot)}
-              style={{color: globalColors.blue, textAlign: 'center', marginTop: globalMargins.tiny}}
+              style={{color: globalColors.blue, marginTop: globalMargins.tiny, textAlign: 'center'}}
             >
               {urlRoot}
             </Text>
@@ -145,6 +144,7 @@ export function propsForPlatform(props: Props): MoreProps {
         noteText:
           'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
         onCompleteText: 'OK posted! Check for it!',
+        proofText: props.proofText,
       }
     default:
       return {}

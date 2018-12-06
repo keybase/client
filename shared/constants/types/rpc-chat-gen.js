@@ -37,6 +37,7 @@ export const commonConversationMemberStatus = {
   left: 2,
   preview: 3,
   reset: 4,
+  neverJoined: 5,
 }
 
 export const commonConversationMembersType = {
@@ -218,6 +219,11 @@ export const localPreviewLocationTyp = {
   bytes: 2,
 }
 
+export const localTextPaymentResultTyp = {
+  sent: 0,
+  error: 1,
+}
+
 export const localUnfurlPromptAction = {
   always: 0,
   never: 1,
@@ -250,6 +256,7 @@ export const notifyChatChatActivityType = {
 export const notifyChatStaleUpdateType = {
   clear: 0,
   newactivity: 1,
+  convupdate: 2,
 }
 
 export const remoteChannelMention = {
@@ -285,6 +292,7 @@ export const unfurlUnfurlMode = {
 export const unfurlUnfurlType = {
   generic: 0,
   youtube: 1,
+  giphy: 2,
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -27,6 +27,7 @@ const PoweredByStellar = () => (
 
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
+    {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header onBack={Styles.isMobile ? props.onClose : null} />
       {props.children}
@@ -45,20 +46,21 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       flexGrow: 1,
       flexShrink: 1,
-      width: '100%',
       maxHeight: '100%',
+      width: '100%',
     },
   }),
-  textContainer: Styles.platformStyles({
-    isElectron: {
-      position: 'absolute',
-      textAlign: 'center',
-      bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
-    },
-  }),
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
   textColor: {
     color: Styles.globalColors.white_40,
   },
+  textContainer: Styles.platformStyles({
+    isElectron: {
+      bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+      position: 'absolute',
+      textAlign: 'center',
+    },
+  }),
 })
 
 export default Root

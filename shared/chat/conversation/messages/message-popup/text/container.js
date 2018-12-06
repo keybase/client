@@ -27,8 +27,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   const _participantsCount = meta.participants.count()
   return {
-    _canDeleteHistory,
     _canAdminDelete,
+    _canDeleteHistory,
     _participantsCount,
     _you: state.config.username,
   }
@@ -107,6 +107,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    isDeleteable,
     onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onCopy: () => dispatchProps._onCopy(message),
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
@@ -126,7 +127,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,
-    isDeleteable,
   }
 }
 

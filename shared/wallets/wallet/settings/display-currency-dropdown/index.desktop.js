@@ -63,12 +63,12 @@ const styles = Styles.styleSheetCreate({
   container: {alignItems: 'center', justifyContent: 'flex-start'},
   dropdown: {
     alignItems: 'center',
-    marginBottom: Styles.globalMargins.xtiny,
     flexShrink: 1,
+    marginBottom: Styles.globalMargins.xtiny,
   },
   dropdownHeader: {
-    textAlign: 'center',
     padding: Styles.globalMargins.xsmall,
+    textAlign: 'center',
   },
   itemSelected: {
     color: Styles.globalColors.blue,

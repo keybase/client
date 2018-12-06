@@ -15,9 +15,9 @@ const mapStateToProps = (state, ownProps: {}) => ({
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onBack: isMobile ? () => dispatch(navigateUp()) : undefined,
+  onRefresh: () => dispatch(SettingsGen.createUnfurlSettingsRefresh()),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) =>
     dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist})),
-  onRefresh: () => dispatch(SettingsGen.createUnfurlSettingsRefresh()),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

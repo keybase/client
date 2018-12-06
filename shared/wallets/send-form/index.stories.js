@@ -19,11 +19,13 @@ const provider = Sb.createPropProviderWithCommon({
   AssetInput: props => assetInputProps,
   Available: props => ({amountErrMsg: ''}: AvailableProps),
   Banner: props => ({}),
-  ConnectedSendBody: props => ({
+  ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
+  ConnectedRequestBody: props => ({
     banners: [],
     isProcessing: props.isProcessing,
   }),
-  ConnectedRequestBody: props => ({
+  ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
+  ConnectedSendBody: props => ({
     banners: [],
     isProcessing: props.isProcessing,
   }),
@@ -33,18 +35,16 @@ const provider = Sb.createPropProviderWithCommon({
     onClickSend: props.isRequest ? undefined : Sb.action('onClickSend'),
   }),
   Header: props => ({}),
-  ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
-  ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
   Participants: props => ({
     recipientType: 'keybaseUser',
   }),
   ParticipantsKeybaseUser: props => ({
     isRequest: false,
-    recipientUsername: 'chris',
+    onChangeRecipient: Sb.action('onChangeRecipient'),
+    onRemoveProfile: Sb.action('onRemoveProfile'),
     onShowProfile: Sb.action('onShowProfile'),
     onShowSuggestions: Sb.action('onShowSuggestions'),
-    onRemoveProfile: Sb.action('onRemoveProfile'),
-    onChangeRecipient: Sb.action('onChangeRecipient'),
+    recipientUsername: 'chris',
   }),
 })
 

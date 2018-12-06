@@ -17,10 +17,10 @@ class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading
             style={{
               ...globalStyles.flexBoxRow,
               alignItems: 'flex-end',
-              zIndex: 2,
+              opacity: this.props.loading ? 1 : 0,
               position: 'relative',
               ...desktopStyles.fadeOpacity,
-              opacity: this.props.loading ? 1 : 0,
+              zIndex: 2,
             }}
           >
             <Box
@@ -85,9 +85,9 @@ class BioRender extends Component<Props> {
               ...globalStyles.flexBoxRow,
               ...desktopStyles.fadeOpacity,
               alignItems: 'flex-end',
-              zIndex: 2,
-              position: 'relative',
               opacity: loading ? 0 : 1,
+              position: 'relative',
+              zIndex: 2,
             }}
           >
             <Avatar
@@ -213,11 +213,11 @@ class BioRender extends Component<Props> {
 
 const stylesEditAvatarIcon = avatarSize => ({
   // Hack to make the hover and onclick register over the avatar
-  position: 'absolute',
   bottom: 0,
-  right: 0,
-  paddingTop: avatarSize,
   paddingLeft: avatarSize,
+  paddingTop: avatarSize,
+  position: 'absolute',
+  right: 0,
 })
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
@@ -227,22 +227,22 @@ const stylesContainer = {
   width: 320,
 }
 const stylesContent = {
-  backgroundColor: globalColors.white,
-  ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
   justifyContent: 'center',
-  width: 320,
   marginTop: -35,
   paddingBottom: globalMargins.tiny,
   paddingTop: 35,
+  width: 320,
   zIndex: 1,
 }
 const stylesUsername = {
   marginTop: 7,
 }
 const stylesFullname = {
-  textAlign: 'center',
   color: globalColors.black_75,
+  textAlign: 'center',
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {

@@ -101,6 +101,9 @@ func (m MetaContext) CErrorf(f string, args ...interface{}) {
 func (m MetaContext) CInfof(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CInfof(m.ctx, f, args...)
 }
+func (m MetaContext) CExitTraceOK(msg string, f func() bool) func() {
+	return func() { m.CDebugf("| %s -> %v", msg, f()) }
+}
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
 	if m.activeDevice != nil {

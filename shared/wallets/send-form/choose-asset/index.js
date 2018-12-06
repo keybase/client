@@ -127,8 +127,8 @@ class ChooseAsset extends React.Component<Props, State> {
         .map(dc => ({...dc, key: dc.currencyCode}))
     if (this.props.displayChoices && !expanded) {
       displayChoicesData.push({
-        key: 'expander',
         currencyCode: 'expander',
+        key: 'expander',
         onClick: () => this.setState({expanded: true}),
         text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
         type: 'expander',
@@ -136,8 +136,8 @@ class ChooseAsset extends React.Component<Props, State> {
     }
     if (!displayChoicesData.find(c => c.currencyCode === 'XLM')) {
       displayChoicesData.unshift({
-        key: 'XLM',
         currencyCode: 'XLM',
+        key: 'XLM',
         selected: this.props.selected === 'XLM',
         symbol: 'XLM',
         type: 'display choice',

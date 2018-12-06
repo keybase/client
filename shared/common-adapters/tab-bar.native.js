@@ -36,14 +36,14 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
 const UnderlineHighlight = () => (
   <Box
     style={{
-      position: 'absolute',
-      bottom: 0,
-      left: 24,
-      right: 24,
-      height: 2,
+      backgroundColor: globalColors.white,
       borderTopLeftRadius: 3,
       borderTopRightRadius: 3,
-      backgroundColor: globalColors.white,
+      bottom: 0,
+      height: 2,
+      left: 24,
+      position: 'absolute',
+      right: 24,
     }}
   />
 )
@@ -55,7 +55,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
   if (props.badgeNumber) {
     if (props.badgePosition === 'top-right') {
       badgeComponent = (
-        <Badge badgeNumber={props.badgeNumber} badgeStyle={{position: 'absolute', top: 2, left: '52%'}} />
+        <Badge badgeNumber={props.badgeNumber} badgeStyle={{left: '52%', position: 'absolute', top: 2}} />
       )
     } else {
       badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
@@ -169,16 +169,16 @@ const stylesTabBarButtonIcon = {
 }
 
 const stylesLabel = {
-  marginTop: 11,
-  marginBottom: 11,
   height: globalMargins.small,
+  marginBottom: 11,
+  marginTop: 11,
 }
 
 const stylesSelectedUnderline = color => ({
-  height: 3,
-  marginBottom: -1,
   alignSelf: 'stretch',
   backgroundColor: color,
+  height: 3,
+  marginBottom: -1,
 })
 
 const stylesUnselected = {
@@ -186,9 +186,9 @@ const stylesUnselected = {
 }
 
 const stylesUnderline = {
-  height: NativeStyleSheet.hairlineWidth,
   alignSelf: 'stretch',
   backgroundColor: globalColors.black_10,
+  height: NativeStyleSheet.hairlineWidth,
 }
 
 export {TabBarItem, TabBarButton}

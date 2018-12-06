@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -25,9 +26,10 @@ type ChatTxCandidate struct {
 	Amount       string
 	CurrencyCode string
 	Username     *string
+	Full         string
 }
 
-func findChatTxCandidates(xs string) []ChatTxCandidate {
+func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// A string that does not appear in the candidate regex so we don't get false positives from concatenations.
 	replacer := "$"
 	replaced := replaceQuotedSubstrings(xs, replacer)
@@ -36,8 +38,13 @@ func findChatTxCandidates(xs string) []ChatTxCandidate {
 	matches := make([]ChatTxCandidate, 0, len(rawMatches))
 	for _, rawMatch := range rawMatches {
 		amount := rawMatch[1]
-		currencyCode := rawMatch[2]
+		currencyCode := strings.ToUpper(rawMatch[2])
 		username := rawMatch[3]
+		atSign := "@"
+		if len(username) == 0 {
+			atSign = ""
+		}
+		full := fmt.Sprintf("+%s%s%s%s", rawMatch[1], rawMatch[2], atSign, rawMatch[3])
 		if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
 			var txUsername *string
 			if username == "" {
@@ -45,7 +52,12 @@ func findChatTxCandidates(xs string) []ChatTxCandidate {
 			} else {
 				txUsername = &username
 			}
-			matches = append(matches, ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: txUsername})
+			matches = append(matches, ChatTxCandidate{
+				Full:         full,
+				Amount:       amount,
+				CurrencyCode: currencyCode,
+				Username:     txUsername,
+			})
 		}
 	}
 	return matches

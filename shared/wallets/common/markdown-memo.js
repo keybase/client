@@ -51,19 +51,19 @@ const styles = Styles.styleSheetCreate({
 })
 
 const styleOverride = Styles.styleSheetCreate({
-  paragraph: {
-    color: Styles.globalColors.black_75,
-  },
-  strong: {
+  del: {
     color: Styles.globalColors.black_75,
   },
   em: {
     color: Styles.globalColors.black_75,
   },
-  del: {
+  link: {
     color: Styles.globalColors.black_75,
   },
-  link: {
+  paragraph: {
+    color: Styles.globalColors.black_75,
+  },
+  strong: {
     color: Styles.globalColors.black_75,
   },
 })

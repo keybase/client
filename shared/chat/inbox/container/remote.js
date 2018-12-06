@@ -30,9 +30,9 @@ const valuesCached = memoize3(
     metaMap
       .filter((_, id) => Constants.isValidConversationIDKey(id))
       .map(v => ({
+        conversation: v,
         hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
         hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
-        conversation: v,
       }))
       .sort((a, b) =>
         a.hasBadge
@@ -93,17 +93,17 @@ export const serialize = ({
     hasResetUsers: !!conversation.resetParticipants && conversation.resetParticipants.size > 0,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
+    isDecryptingSnippet: false,
     isFinalized: !!conversation.wasFinalizedBy,
     isInWidget: true,
     isMuted: conversation.isMuted,
-    isSelected: false,
     // excluding onSelectConversation
+    isSelected: false,
     participantNeedToRekey,
     participants: conversation.teamname
       ? []
       : Constants.getRowParticipants(conversation, _username).toArray(),
     showBold: styles.showBold,
-    isDecryptingSnippet: false,
     snippet: conversation.snippet,
     snippetDecoration: conversation.snippetDecoration,
     subColor: styles.subColor,

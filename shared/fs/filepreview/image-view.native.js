@@ -10,7 +10,7 @@ class ImageView extends React.Component<
   ImageViewProps,
   {...ImageViewProps, width: number, height: number, loaded: boolean}
 > {
-  state = {height: 0, width: 0, loaded: false}
+  state = {height: 0, loaded: false, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -57,8 +57,8 @@ class ImageView extends React.Component<
 
 const styles = Styles.styleSheetCreate({
   image: {
-    flex: 1,
     alignSelf: 'center',
+    flex: 1,
   },
   zoomableBox: {
     flex: 1,
@@ -66,8 +66,8 @@ const styles = Styles.styleSheetCreate({
   },
   zoomableBoxContainer: {
     flex: 1,
-    position: 'relative',
     overflow: 'hidden',
+    position: 'relative',
   },
 })
 

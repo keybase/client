@@ -10,7 +10,7 @@ const Announcement = () => (
       type="iconfont-boom"
       color={globalColors.white}
       fontSize={64}
-      style={{marginTop: -10, marginBottom: -10}}
+      style={{marginBottom: -10, marginTop: -10}}
     />
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
       Set a timeout on your messages and watch them
@@ -37,9 +37,9 @@ const styles = styleSheetCreate({
     paddingBottom: globalMargins.small,
   },
   headline: {
+    flexGrow: 1,
     paddingLeft: globalMargins.medium,
     paddingRight: globalMargins.medium,
-    flexGrow: 1,
     textAlign: 'center',
   },
 })

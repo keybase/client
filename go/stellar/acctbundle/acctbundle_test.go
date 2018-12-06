@@ -43,12 +43,13 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.Len(t, boxed.AcctBundles, 1)
 
 	m := libkb.NewMetaContext(context.Background(), nil)
-	bundle, version, err := DecodeAndUnbox(m, ring, boxed.toBundleEncodedB64())
+	bundle, version, pukGen, err := DecodeAndUnbox(m, ring, boxed.toBundleEncodedB64())
 	require.NoError(t, err)
 	require.NotNil(t, bundle)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	require.Len(t, bundle.Accounts, 1)
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
+	require.Equal(t, pukGen, keybase1.PerUserKeyGeneration(1))
 	acctBundle, ok := bundle.AccountBundles[bundle.Accounts[0].AccountID]
 	require.True(t, ok)
 	acctBundleOriginal, ok := b.AccountBundles[bundle.Accounts[0].AccountID]

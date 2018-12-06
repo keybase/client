@@ -101,6 +101,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           <Kb.List
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
             selectedIndex={props.highlightedIndex || 0}
+            style={styles.list}
             renderItem={(index, result) => (
               <UserResult
                 key={result.userId}
@@ -123,9 +124,6 @@ class TeamBuilding extends React.PureComponent<Props, void> {
 }
 
 const styles = Styles.styleSheetCreate({
-  recText: {
-    marginLeft: Styles.globalMargins.small,
-  },
   container: Styles.platformStyles({
     common: {
       flex: 1,
@@ -133,13 +131,23 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
-      paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
-      width: 470,
       height: 434,
+      width: 470,
     },
   }),
+  list: {
+    paddingBottom: Styles.globalMargins.small,
+  },
+  recText: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
 })
 
 export default TeamBuilding

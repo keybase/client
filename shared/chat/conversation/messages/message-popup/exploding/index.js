@@ -139,7 +139,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           ])}
         >
           {hideTimer ? (
-            <ProgressIndicator white={true} style={{width: 17, height: 17}} />
+            <ProgressIndicator white={true} style={{height: 17, width: 17}} />
           ) : (
             <Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
               <Icon type="iconfont-timer" fontSize={isMobile ? 22 : 16} color={globalColors.white_40} />

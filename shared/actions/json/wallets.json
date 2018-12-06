@@ -10,8 +10,7 @@
       "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "acceptDisclaimer": {
-      "_description": "Accept the Stellar account disclaimer",
-      "nextScreen": "Types.NextScreenAfterAcceptance"
+      "_description": "Accept the Stellar account disclaimer"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -34,12 +33,16 @@
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
-      "forBuilding": "Types.Building"
+      "forBuildCounter": "number"
     },
     "builtRequestReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltRequest",
-      "forBuilding": "Types.Building"
+      "forBuildCounter": "number"
+    },
+    "checkDisclaimer": {
+      "_description": "Discover whether the user has accepted the Stellar disclaimer",
+      "nextScreen": "Types.NextScreenAfterAcceptance"
     },
     "clearBuilding": {
       "_description": "Clear a payment or request that was being prepared"
@@ -64,7 +67,7 @@
       "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "cancelPayment": {
-      "_description": "Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.",
+      "_description": "Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.",
       "showAccount?": "boolean",
       "paymentID": "Types.PaymentID"
     },

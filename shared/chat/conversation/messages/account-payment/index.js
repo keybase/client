@@ -37,6 +37,12 @@ export type Props = {|
   sendButtonLabel: string, // empty string if disabled
 |}
 
+const ButtonText = (props: {text: string, amount: string}) => (
+  <Text style={styles.buttonText} type="BodySemibold">{props.text}{' '}
+    <Text style={styles.buttonText} type="BodyExtrabold">{props.amount}</Text>
+  </Text>
+)
+
 const AccountPayment = (props: Props) => {
   const contents = props.loading ? (
     <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
@@ -87,20 +93,22 @@ const AccountPayment = (props: Props) => {
       {!!props.sendButtonLabel && (
         <Button
           type="Wallet"
-          label={props.sendButtonLabel}
           onClick={props.onSend}
           small={true}
           style={{alignSelf: 'flex-start'}}
-        />
+        >
+          <ButtonText text={props.sendButtonLabel} amount={props.amount} />
+        </Button>
       )}
       {!!props.claimButtonLabel && (
         <Button
           type="Wallet"
-          label={props.claimButtonLabel}
           onClick={props.onClaim}
           small={true}
           style={{alignSelf: 'flex-start'}}
-        />
+        >
+          <ButtonText text={props.claimButtonLabel} amount={props.amount} />
+        </Button>
       )}
       {!!props.cancelButtonLabel && (
         <Box2 direction="vertical" fullWidth={true} gap="xtiny">
@@ -127,6 +135,9 @@ const AccountPayment = (props: Props) => {
 const styles = styleSheetCreate({
   alignItemsCenter: {
     alignItems: 'center',
+  },
+  buttonText: {
+    color: globalColors.white,
   },
   flexWrap: {
     flexWrap: 'wrap',

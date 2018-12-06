@@ -46,8 +46,8 @@ function PaymentForm(props: Props) {
 }
 
 const styleInput = {
-  minWidth: 450,
   marginBottom: globalMargins.small,
+  minWidth: 450,
 }
 
 export default PaymentForm

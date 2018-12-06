@@ -94,17 +94,30 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
 const styles = Styles.styleSheetCreate({
   itemClickBox: Styles.platformStyles({
     common: {
-      width: '100%',
       flexShrink: 0,
+      width: '100%',
     },
     isMobile: {
       minHeight: 40,
     },
   }),
+  overlay: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.white,
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      border: `1px solid ${Styles.globalColors.blue}`,
+      borderRadius: 4,
+      maxHeight: 300,
+      width: 270,
+    },
+  }),
   scrollView: Styles.platformStyles({
     common: {
-      width: '100%',
       height: '100%',
+      width: '100%',
     },
     isMobile: {
       backgroundColor: Styles.globalColors.white,
@@ -112,25 +125,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   selectedBox: Styles.platformStyles({
-    isMobile: {minHeight: 48},
-    isElectron: {minHeight: 32},
     common: {
       ...Styles.globalStyles.flexBoxCenter,
       width: '100%',
     },
-  }),
-  overlay: Styles.platformStyles({
-    isElectron: {
-      border: `1px solid ${Styles.globalColors.blue}`,
-      borderRadius: 4,
-      maxHeight: 300,
-      width: 270,
-    },
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.white,
-      marginTop: Styles.globalMargins.xtiny,
-    },
+    isElectron: {minHeight: 32},
+    isMobile: {minHeight: 48},
   }),
 })
 

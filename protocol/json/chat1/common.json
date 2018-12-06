@@ -282,7 +282,8 @@
         "REMOVED_1",
         "LEFT_2",
         "PREVIEW_3",
-        "RESET_4"
+        "RESET_4",
+        "NEVER_JOINED_5"
       ]
     },
     {
@@ -1469,6 +1470,24 @@
     },
     {
       "type": "record",
+      "name": "ChatSearchMatch",
+      "fields": [
+        {
+          "type": "int",
+          "name": "startIndex"
+        },
+        {
+          "type": "int",
+          "name": "endIndex"
+        },
+        {
+          "type": "string",
+          "name": "match"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ChatSearchHit",
       "fields": [
         {
@@ -1492,7 +1511,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "ChatSearchMatch"
           },
           "name": "matches"
         }

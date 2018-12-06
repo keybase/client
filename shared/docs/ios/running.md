@@ -15,8 +15,10 @@ Install xcode
 # Build the go keybaselib
 yarn rn-gobuild-ios
 
-# if this fails with something like "xcrun: error: unable to lookup item
-# 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
+# if this fails with something like one of these:
+#   * xcrun: error: unable to lookup item 'Path' in SDK 'iphoneos'
+#   * gomobile: -target=ios requires XCode
+# you might have a partial xcode install. try:
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 ```
 
@@ -35,7 +37,7 @@ Alternatively, you could choose "Profile" instead of "Run", which does
 a prod build and thus doesn't need any bundler changes.
 
 
-# Notififications
+# Notifications
 
 They don't work in the simulator at all. If you
 choose "Run" and build on a phone, they _should_ just work. If you

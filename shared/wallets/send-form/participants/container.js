@@ -20,33 +20,33 @@ const mapStateToPropsKeybaseUser = state => {
 
   // If build.to is set, assume it's a valid username.
   return {
+    errorMessage: built.toErrMsg,
     isRequest: build.isRequest,
     recipientUsername: build.to,
-    errorMessage: built.toErrMsg,
   }
 }
 
 const mapDispatchToPropsKeybaseUser = dispatch => ({
-  onOpenTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-  onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
-  onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onOpenTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
+  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
 })
 
 const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
   const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
   return {
     ...stateProps,
+    onChangeRecipient: dispatchProps.onChangeRecipient,
+    onRemoveProfile: dispatchProps.onRemoveProfile,
+    onScanQRCode: dispatchProps.onScanQRCode,
     onShowProfile,
     onShowSuggestions: dispatchProps.onShowSuggestions,
-    onRemoveProfile: dispatchProps.onRemoveProfile,
-    onChangeRecipient: dispatchProps.onChangeRecipient,
-    onScanQRCode: dispatchProps.onScanQRCode,
   }
 }
 

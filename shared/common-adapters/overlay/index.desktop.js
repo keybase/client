@@ -25,17 +25,17 @@ const Overlay = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
-  outerContainer: platformStyles({
-    isElectron: {
-      zIndex: 30, // Put the floating box on top of any profile components and popup dialogs.
-    },
-  }),
   innerContainer: platformStyles({
     isElectron: {
       borderRadius: 3,
       boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
       overflowX: 'hidden',
       overflowY: 'auto',
+    },
+  }),
+  outerContainer: platformStyles({
+    isElectron: {
+      zIndex: 30, // Put the floating box on top of any profile components and popup dialogs.
     },
   }),
 })

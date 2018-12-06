@@ -65,6 +65,7 @@ const (
 	StatusCode_SCSigCannotVerify                  StatusCode = 1002
 	StatusCode_SCSigWrongKey                      StatusCode = 1008
 	StatusCode_SCSigOldSeqno                      StatusCode = 1010
+	StatusCode_SCSigCreationDisallowed            StatusCode = 1016
 	StatusCode_SCBadTrackSession                  StatusCode = 1301
 	StatusCode_SCDeviceBadName                    StatusCode = 1404
 	StatusCode_SCDeviceNameInUse                  StatusCode = 1408
@@ -182,6 +183,7 @@ const (
 	StatusCode_SCStellarNeedDisclaimer            StatusCode = 3109
 	StatusCode_SCStellarDeviceNotMobile           StatusCode = 3110
 	StatusCode_SCStellarMobileOnlyPurgatory       StatusCode = 3111
+	StatusCode_SCStellarIncompatibleVersion       StatusCode = 3112
 	StatusCode_SCNISTWrongSize                    StatusCode = 3201
 	StatusCode_SCNISTBadMode                      StatusCode = 3202
 	StatusCode_SCNISTHashWrongSize                StatusCode = 3203
@@ -263,6 +265,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCSigCannotVerify":                  1002,
 	"SCSigWrongKey":                      1008,
 	"SCSigOldSeqno":                      1010,
+	"SCSigCreationDisallowed":            1016,
 	"SCBadTrackSession":                  1301,
 	"SCDeviceBadName":                    1404,
 	"SCDeviceNameInUse":                  1408,
@@ -380,6 +383,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCStellarNeedDisclaimer":            3109,
 	"SCStellarDeviceNotMobile":           3110,
 	"SCStellarMobileOnlyPurgatory":       3111,
+	"SCStellarIncompatibleVersion":       3112,
 	"SCNISTWrongSize":                    3201,
 	"SCNISTBadMode":                      3202,
 	"SCNISTHashWrongSize":                3203,
@@ -459,6 +463,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1002: "SCSigCannotVerify",
 	1008: "SCSigWrongKey",
 	1010: "SCSigOldSeqno",
+	1016: "SCSigCreationDisallowed",
 	1301: "SCBadTrackSession",
 	1404: "SCDeviceBadName",
 	1408: "SCDeviceNameInUse",
@@ -576,6 +581,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3109: "SCStellarNeedDisclaimer",
 	3110: "SCStellarDeviceNotMobile",
 	3111: "SCStellarMobileOnlyPurgatory",
+	3112: "SCStellarIncompatibleVersion",
 	3201: "SCNISTWrongSize",
 	3202: "SCNISTBadMode",
 	3203: "SCNISTHashWrongSize",

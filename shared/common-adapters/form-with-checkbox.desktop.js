@@ -12,7 +12,7 @@ class FormWithCheckbox extends Component<Props> {
   render() {
     const {inputProps, checkboxesProps} = this.props
     const {errorText = ''} = inputProps
-    const inputWOError = {...inputProps, errorText: null, errorStyle: {opacity: 0}}
+    const inputWOError = {...inputProps, errorStyle: {opacity: 0}, errorText: null}
 
     return (
       <Box
@@ -30,7 +30,7 @@ class FormWithCheckbox extends Component<Props> {
           })}
         </Box>
         {!!errorText && (
-          <Text type="BodySmallError" style={{textAlign: 'center', marginTop: globalMargins.tiny}}>
+          <Text type="BodySmallError" style={{marginTop: globalMargins.tiny, textAlign: 'center'}}>
             {errorText}
           </Text>
         )}
@@ -43,8 +43,8 @@ const styles = {
   checkboxContainer: {
     ...globalStyles.flexBoxRow,
     justifyContent: 'center',
-    position: 'relative',
     marginTop: 7,
+    position: 'relative',
   },
 }
 

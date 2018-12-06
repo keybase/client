@@ -76,7 +76,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isElectron: {
-      wordBreak: 'break-all',
+      wordBreak: 'break-word',
     },
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,

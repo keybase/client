@@ -23,10 +23,10 @@ func main() {
 	logging.Reset()
 	url := args[0]
 	scraper := unfurl.NewScraper(logger)
-	res, err := scraper.Scrape(context.TODO(), url)
+	res, err := scraper.Scrape(context.TODO(), url, nil)
 	if err != nil {
 		fmt.Printf("error scraping URL: %v\n", err)
 		os.Exit(3)
 	}
-	fmt.Printf("%s\n", res)
+	fmt.Printf("%s\n", res.UnsafeDebugString())
 }

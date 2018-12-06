@@ -21,23 +21,23 @@ const idToType = i => {
 
 const activeDevices = withNew => {
   const existingDevices = [
-    {id: stringToDeviceID('1'), key: '1', type: 'device', isNew: false},
-    {id: stringToDeviceID('2'), key: '2', type: 'device', isNew: false},
-    {id: stringToDeviceID('3'), key: '3', type: 'device', isNew: false},
+    {id: stringToDeviceID('1'), isNew: false, key: '1', type: 'device'},
+    {id: stringToDeviceID('2'), isNew: false, key: '2', type: 'device'},
+    {id: stringToDeviceID('3'), isNew: false, key: '3', type: 'device'},
   ]
   if (withNew) {
-    return [...existingDevices, {id: stringToDeviceID('6'), key: '6', type: 'device', isNew: true}]
+    return [...existingDevices, {id: stringToDeviceID('6'), isNew: true, key: '6', type: 'device'}]
   }
   return existingDevices
 }
 
 const revokedDevices = withNew => {
   const existingDevices = [
-    {id: stringToDeviceID('4'), key: '4', type: 'device', isNew: false},
-    {id: stringToDeviceID('5'), key: '5', type: 'device', isNew: false},
+    {id: stringToDeviceID('4'), isNew: false, key: '4', type: 'device'},
+    {id: stringToDeviceID('5'), isNew: false, key: '5', type: 'device'},
   ]
   if (withNew) {
-    return [...existingDevices, {id: stringToDeviceID('7'), key: '7', type: 'device', isNew: true}]
+    return [...existingDevices, {id: stringToDeviceID('7'), isNew: true, key: '7', type: 'device'}]
   }
   return existingDevices
 }
@@ -49,8 +49,8 @@ const provider = Sb.createPropProviderWithCommon({
   DeviceRow: ({deviceID}) => ({
     firstItem: deviceID === '1',
     isCurrentDevice: deviceID === '1',
-    isRevoked: !['1', '2', '3', '6'].includes(deviceID),
     isNew: ['6', '7'].includes(deviceID),
+    isRevoked: !['1', '2', '3', '6'].includes(deviceID),
     name: {
       '1': 'laptop',
       '2': 'phone',
@@ -65,6 +65,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Devices: p => ({
     _stateOverride: p._stateOverride,
+    hasNewlyRevoked: p.revoked.some(i => i.key === '7'),
     hideMenu: Sb.action('hideMenu'),
     items: p.active,
     loadDevices: Sb.action('loaddevices'),
@@ -74,7 +75,6 @@ const provider = Sb.createPropProviderWithCommon({
       {onClick: Sb.action('onAdd paper key'), title: 'New paper key'},
     ],
     revokedItems: p.revoked,
-    hasNewlyRevoked: p.revoked.some(i => i.key === '7'),
     showMenu: Sb.action('showMenu'),
     showingMenu: false,
     waiting: !!p.waiting,

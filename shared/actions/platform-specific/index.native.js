@@ -109,7 +109,7 @@ const getContentTypeFromURL = (
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
   isAndroid
-    ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
+    ? fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
           let disposition = ''
@@ -124,7 +124,7 @@ const getContentTypeFromURL = (
             disposition = response.headers.get('Content-Disposition') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
-          cb({statusCode, contentType, disposition})
+          cb({contentType, disposition, statusCode})
         })
         .catch(error => {
           console.log(error)
@@ -138,7 +138,7 @@ const getContentTypeFromURL = (
             contentType = response.headers.get('Content-Type') || ''
             disposition = response.headers.get('Content-Disposition') || ''
           }
-          cb({statusCode: response.status, contentType, disposition})
+          cb({contentType, disposition, statusCode: response.status})
         })
         .catch(error => {
           console.log(error)

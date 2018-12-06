@@ -10,46 +10,46 @@ import EditChannel from './edit-channel'
 
 const channels = [
   {
+    convID: ChatTypes.stringToConversationIDKey('1'),
     description: 'General things on things.',
     name: 'general',
     selected: true,
-    convID: ChatTypes.stringToConversationIDKey('1'),
   },
   {
+    convID: ChatTypes.stringToConversationIDKey('2'),
     description: 'Random things randomly discussed.',
     name: 'random',
     selected: true,
-    convID: ChatTypes.stringToConversationIDKey('2'),
   },
   {
+    convID: ChatTypes.stringToConversationIDKey('3'),
     description: 'Revenue data worth checking',
     name: 'revenue',
     selected: false,
-    convID: ChatTypes.stringToConversationIDKey('3'),
   },
   {
+    convID: ChatTypes.stringToConversationIDKey('4'),
     description: 'Talk to the sales team',
     name: 'sales',
     selected: false,
-    convID: ChatTypes.stringToConversationIDKey('4'),
   },
   {
+    convID: ChatTypes.stringToConversationIDKey('5'),
     description: 'True discussions on true news.',
     name: 'truechannel',
     selected: false,
-    convID: ChatTypes.stringToConversationIDKey('5'),
   },
   {
+    convID: ChatTypes.stringToConversationIDKey('13'),
     description: 'Boring things not worth discussing',
     name: 'zzz',
     selected: true,
-    convID: ChatTypes.stringToConversationIDKey('13'),
   },
   {
+    convID: ChatTypes.stringToConversationIDKey('21'),
     description: 'This is a very long long long description to test that things flow correctly',
     name: 'superlonglonglongnameforachannel',
     selected: true,
-    convID: ChatTypes.stringToConversationIDKey('21'),
   },
 ]
 
@@ -180,12 +180,12 @@ const toPlatformStyle = styleOpts => ({...styleOpts.common, ...styleOpts[isMobil
 
 const editChannelStyle = {
   common: {},
+  desktop: {
+    border: 'black solid 1px',
+    width: 700,
+  },
   mobile: {
     width: '100%',
-  },
-  desktop: {
-    width: 700,
-    border: 'black solid 1px',
   },
 }
 

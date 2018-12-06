@@ -88,11 +88,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {display: 'inline'},
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
-  teamnameContainer: Styles.platformStyles({
-    isMobile: {
-      height: '100%',
-    },
-  }),
   teamRowContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -103,6 +98,11 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
     isElectron: Styles.desktopStyles.clickable,
+  }),
+  teamnameContainer: Styles.platformStyles({
+    isMobile: {
+      height: '100%',
+    },
   }),
 })
 

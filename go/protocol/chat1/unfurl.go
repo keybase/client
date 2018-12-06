@@ -13,6 +13,7 @@ type UnfurlType int
 const (
 	UnfurlType_GENERIC UnfurlType = 0
 	UnfurlType_YOUTUBE UnfurlType = 1
+	UnfurlType_GIPHY   UnfurlType = 2
 )
 
 func (o UnfurlType) DeepCopy() UnfurlType { return o }
@@ -20,11 +21,13 @@ func (o UnfurlType) DeepCopy() UnfurlType { return o }
 var UnfurlTypeMap = map[string]UnfurlType{
 	"GENERIC": 0,
 	"YOUTUBE": 1,
+	"GIPHY":   2,
 }
 
 var UnfurlTypeRevMap = map[UnfurlType]string{
 	0: "GENERIC",
 	1: "YOUTUBE",
+	2: "GIPHY",
 }
 
 func (e UnfurlType) String() string {
@@ -87,10 +90,51 @@ func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
 	return UnfurlYoutubeRaw{}
 }
 
+type UnfurlGiphyVideo struct {
+	Url    string `codec:"url" json:"url"`
+	Height int    `codec:"height" json:"height"`
+	Width  int    `codec:"width" json:"width"`
+}
+
+func (o UnfurlGiphyVideo) DeepCopy() UnfurlGiphyVideo {
+	return UnfurlGiphyVideo{
+		Url:    o.Url,
+		Height: o.Height,
+		Width:  o.Width,
+	}
+}
+
+type UnfurlGiphyRaw struct {
+	ImageUrl   string            `codec:"imageUrl" json:"imageUrl"`
+	Video      *UnfurlGiphyVideo `codec:"video,omitempty" json:"video,omitempty"`
+	FaviconUrl *string           `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
+}
+
+func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
+	return UnfurlGiphyRaw{
+		ImageUrl: o.ImageUrl,
+		Video: (func(x *UnfurlGiphyVideo) *UnfurlGiphyVideo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Video),
+		FaviconUrl: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FaviconUrl),
+	}
+}
+
 type UnfurlRaw struct {
 	UnfurlType__ UnfurlType        `codec:"unfurlType" json:"unfurlType"`
 	Generic__    *UnfurlGenericRaw `codec:"generic,omitempty" json:"generic,omitempty"`
 	Youtube__    *UnfurlYoutubeRaw `codec:"youtube,omitempty" json:"youtube,omitempty"`
+	Giphy__      *UnfurlGiphyRaw   `codec:"giphy,omitempty" json:"giphy,omitempty"`
 }
 
 func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
@@ -103,6 +147,11 @@ func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
 	case UnfurlType_YOUTUBE:
 		if o.Youtube__ == nil {
 			err = errors.New("unexpected nil value for Youtube__")
+			return ret, err
+		}
+	case UnfurlType_GIPHY:
+		if o.Giphy__ == nil {
+			err = errors.New("unexpected nil value for Giphy__")
 			return ret, err
 		}
 	}
@@ -129,6 +178,16 @@ func (o UnfurlRaw) Youtube() (res UnfurlYoutubeRaw) {
 	return *o.Youtube__
 }
 
+func (o UnfurlRaw) Giphy() (res UnfurlGiphyRaw) {
+	if o.UnfurlType__ != UnfurlType_GIPHY {
+		panic("wrong case accessed")
+	}
+	if o.Giphy__ == nil {
+		return
+	}
+	return *o.Giphy__
+}
+
 func NewUnfurlRawWithGeneric(v UnfurlGenericRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_GENERIC,
@@ -140,6 +199,13 @@ func NewUnfurlRawWithYoutube(v UnfurlYoutubeRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_YOUTUBE,
 		Youtube__:    &v,
+	}
+}
+
+func NewUnfurlRawWithGiphy(v UnfurlGiphyRaw) UnfurlRaw {
+	return UnfurlRaw{
+		UnfurlType__: UnfurlType_GIPHY,
+		Giphy__:      &v,
 	}
 }
 
@@ -160,6 +226,13 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Youtube__),
+		Giphy__: (func(x *UnfurlGiphyRaw) *UnfurlGiphyRaw {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Giphy__),
 	}
 }
 
@@ -216,10 +289,43 @@ func (o UnfurlYoutube) DeepCopy() UnfurlYoutube {
 	return UnfurlYoutube{}
 }
 
+type UnfurlGiphy struct {
+	Favicon *Asset `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image   *Asset `codec:"image,omitempty" json:"image,omitempty"`
+	Video   *Asset `codec:"video,omitempty" json:"video,omitempty"`
+}
+
+func (o UnfurlGiphy) DeepCopy() UnfurlGiphy {
+	return UnfurlGiphy{
+		Favicon: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Favicon),
+		Image: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Image),
+		Video: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Video),
+	}
+}
+
 type Unfurl struct {
 	UnfurlType__ UnfurlType     `codec:"unfurlType" json:"unfurlType"`
 	Generic__    *UnfurlGeneric `codec:"generic,omitempty" json:"generic,omitempty"`
 	Youtube__    *UnfurlYoutube `codec:"youtube,omitempty" json:"youtube,omitempty"`
+	Giphy__      *UnfurlGiphy   `codec:"giphy,omitempty" json:"giphy,omitempty"`
 }
 
 func (o *Unfurl) UnfurlType() (ret UnfurlType, err error) {
@@ -232,6 +338,11 @@ func (o *Unfurl) UnfurlType() (ret UnfurlType, err error) {
 	case UnfurlType_YOUTUBE:
 		if o.Youtube__ == nil {
 			err = errors.New("unexpected nil value for Youtube__")
+			return ret, err
+		}
+	case UnfurlType_GIPHY:
+		if o.Giphy__ == nil {
+			err = errors.New("unexpected nil value for Giphy__")
 			return ret, err
 		}
 	}
@@ -258,6 +369,16 @@ func (o Unfurl) Youtube() (res UnfurlYoutube) {
 	return *o.Youtube__
 }
 
+func (o Unfurl) Giphy() (res UnfurlGiphy) {
+	if o.UnfurlType__ != UnfurlType_GIPHY {
+		panic("wrong case accessed")
+	}
+	if o.Giphy__ == nil {
+		return
+	}
+	return *o.Giphy__
+}
+
 func NewUnfurlWithGeneric(v UnfurlGeneric) Unfurl {
 	return Unfurl{
 		UnfurlType__: UnfurlType_GENERIC,
@@ -269,6 +390,13 @@ func NewUnfurlWithYoutube(v UnfurlYoutube) Unfurl {
 	return Unfurl{
 		UnfurlType__: UnfurlType_YOUTUBE,
 		Youtube__:    &v,
+	}
+}
+
+func NewUnfurlWithGiphy(v UnfurlGiphy) Unfurl {
+	return Unfurl{
+		UnfurlType__: UnfurlType_GIPHY,
+		Giphy__:      &v,
 	}
 }
 
@@ -289,6 +417,13 @@ func (o Unfurl) DeepCopy() Unfurl {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Youtube__),
+		Giphy__: (func(x *UnfurlGiphy) *UnfurlGiphy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Giphy__),
 	}
 }
 
@@ -371,10 +506,43 @@ func (o UnfurlYoutubeDisplay) DeepCopy() UnfurlYoutubeDisplay {
 	return UnfurlYoutubeDisplay{}
 }
 
+type UnfurlGiphyDisplay struct {
+	Favicon *UnfurlImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image   *UnfurlImageDisplay `codec:"image,omitempty" json:"image,omitempty"`
+	Video   *UnfurlImageDisplay `codec:"video,omitempty" json:"video,omitempty"`
+}
+
+func (o UnfurlGiphyDisplay) DeepCopy() UnfurlGiphyDisplay {
+	return UnfurlGiphyDisplay{
+		Favicon: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Favicon),
+		Image: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Image),
+		Video: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Video),
+	}
+}
+
 type UnfurlDisplay struct {
 	UnfurlType__ UnfurlType            `codec:"unfurlType" json:"unfurlType"`
 	Generic__    *UnfurlGenericDisplay `codec:"generic,omitempty" json:"generic,omitempty"`
 	Youtube__    *UnfurlYoutubeDisplay `codec:"youtube,omitempty" json:"youtube,omitempty"`
+	Giphy__      *UnfurlGiphyDisplay   `codec:"giphy,omitempty" json:"giphy,omitempty"`
 }
 
 func (o *UnfurlDisplay) UnfurlType() (ret UnfurlType, err error) {
@@ -387,6 +555,11 @@ func (o *UnfurlDisplay) UnfurlType() (ret UnfurlType, err error) {
 	case UnfurlType_YOUTUBE:
 		if o.Youtube__ == nil {
 			err = errors.New("unexpected nil value for Youtube__")
+			return ret, err
+		}
+	case UnfurlType_GIPHY:
+		if o.Giphy__ == nil {
+			err = errors.New("unexpected nil value for Giphy__")
 			return ret, err
 		}
 	}
@@ -413,6 +586,16 @@ func (o UnfurlDisplay) Youtube() (res UnfurlYoutubeDisplay) {
 	return *o.Youtube__
 }
 
+func (o UnfurlDisplay) Giphy() (res UnfurlGiphyDisplay) {
+	if o.UnfurlType__ != UnfurlType_GIPHY {
+		panic("wrong case accessed")
+	}
+	if o.Giphy__ == nil {
+		return
+	}
+	return *o.Giphy__
+}
+
 func NewUnfurlDisplayWithGeneric(v UnfurlGenericDisplay) UnfurlDisplay {
 	return UnfurlDisplay{
 		UnfurlType__: UnfurlType_GENERIC,
@@ -424,6 +607,13 @@ func NewUnfurlDisplayWithYoutube(v UnfurlYoutubeDisplay) UnfurlDisplay {
 	return UnfurlDisplay{
 		UnfurlType__: UnfurlType_YOUTUBE,
 		Youtube__:    &v,
+	}
+}
+
+func NewUnfurlDisplayWithGiphy(v UnfurlGiphyDisplay) UnfurlDisplay {
+	return UnfurlDisplay{
+		UnfurlType__: UnfurlType_GIPHY,
+		Giphy__:      &v,
 	}
 }
 
@@ -444,6 +634,13 @@ func (o UnfurlDisplay) DeepCopy() UnfurlDisplay {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Youtube__),
+		Giphy__: (func(x *UnfurlGiphyDisplay) *UnfurlGiphyDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Giphy__),
 	}
 }
 

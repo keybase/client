@@ -50,6 +50,7 @@ const Row = (props: Props) => (
         hoverRowinTeam: props.inTeam,
       })}
       direction="horizontal"
+      fullWidth={true}
       centerChildren={true}
       style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
     >
@@ -125,22 +126,22 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={18} color={Styles.globalColors.black_75} />
+const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={16} color={Styles.globalColors.black_75} />
 
 const AddButtonHover = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
-    <Kb.Icon type="iconfont-return" fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-return" fontSize={16} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
 const RemoveButton = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.removeButton}>
-    <Kb.Icon type="iconfont-close" fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-close" fontSize={16} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-check" fontSize={19} color={Styles.globalColors.black_75} />
+  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.black_75} />
 )
 
 const ActionButtonUserInTeam = Kb.HoverHoc(AlreadyAddedIconButton, RemoveButton)
@@ -149,76 +150,68 @@ const ActionButtonUserNotInTeam = Kb.HoverHoc(AddButton, AddButtonHover)
 // TODO fix size for mobile
 const ACTIONBUTTON_SIZE = isMobile ? 32 : 32
 const styles = Styles.styleSheetCreate({
-  rowContainer: Styles.platformStyles({
-    isElectron: {
-      height: 50,
-      width: 420,
-    },
-    common: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-      paddingBottom: Styles.globalMargins.tiny,
-    },
-  }),
-
-  highlighted: {
-    backgroundColor: Styles.globalColors.blue4,
-  },
-
-  username: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.tiny,
-  },
-
-  services: {
-    justifyContent: 'flex-end',
-  },
-  serviceIcon: Styles.platformStyles({
-    isElectron: {
-      height: 18,
-      width: 18,
-    },
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
-
   actionButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
       backgroundColor: Styles.globalColors.lightGrey2,
+      height: ACTIONBUTTON_SIZE,
       marginLeft: Styles.globalMargins.tiny,
       width: ACTIONBUTTON_SIZE,
-      height: ACTIONBUTTON_SIZE,
     },
   }),
   actionButtonHighlight: {
     backgroundColor: Styles.globalColors.blue,
   },
-  removeButtonHighlight: {
-    backgroundColor: Styles.globalColors.red,
-  },
-
   actionButtonHoverContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
+      height: ACTIONBUTTON_SIZE,
       justifyContent: 'center',
       width: ACTIONBUTTON_SIZE,
-      height: ACTIONBUTTON_SIZE,
     },
   }),
-
-  removeButton: {
-    ...Styles.globalStyles.rounded,
-    width: ACTIONBUTTON_SIZE,
-    height: ACTIONBUTTON_SIZE,
-  },
-
   addToTeamIcon: {
     ...Styles.globalStyles.rounded,
-    width: ACTIONBUTTON_SIZE,
     height: ACTIONBUTTON_SIZE,
+    width: ACTIONBUTTON_SIZE,
+  },
+  highlighted: {
+    backgroundColor: Styles.globalColors.blue4,
+  },
+  removeButton: {
+    ...Styles.globalStyles.rounded,
+    height: ACTIONBUTTON_SIZE,
+    width: ACTIONBUTTON_SIZE,
+  },
+  removeButtonHighlight: {
+    backgroundColor: Styles.globalColors.red,
+  },
+  rowContainer: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      height: 50,
+    },
+  }),
+  serviceIcon: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      height: 18,
+      width: 18,
+    },
+  }),
+  services: {
+    justifyContent: 'flex-end',
+  },
+  username: {
+    flex: 1,
+    marginLeft: Styles.globalMargins.tiny,
   },
 })
 

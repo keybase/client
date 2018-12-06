@@ -24,6 +24,7 @@ type CommonProps = {|
   onFilePickerError: (error: Error) => void,
   onSeenExplodingMessages: () => void,
   onSubmit: (text: string) => void,
+  showWalletsIcon: boolean, // used on mobile to determine placeholder
   typing: I.Set<string>,
 |}
 

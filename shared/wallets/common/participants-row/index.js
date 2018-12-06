@@ -80,11 +80,11 @@ const styles = Styles.styleSheetCreate({
   },
   row: {
     alignItems: 'center',
+    maxWidth: '100%',
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
-    maxWidth: '100%',
   },
 })
 

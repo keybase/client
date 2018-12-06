@@ -159,21 +159,24 @@ const styles = Styles.styleSheetCreate({
   divider: {
     height: Styles.globalMargins.xxtiny,
   },
+  error: {
+    color: Styles.globalColors.red,
+  },
   save: {
     marginTop: Styles.globalMargins.tiny,
   },
   whitelist: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      borderWidth: 1,
       borderColor: Styles.globalColors.lightGrey,
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
+      borderWidth: 1,
     },
     isElectron: {
       height: 150,
-      minWidth: 305,
       marginLeft: 22,
+      minWidth: 305,
     },
     isMobile: {
       height: 150,
@@ -183,13 +186,10 @@ const styles = Styles.styleSheetCreate({
   whitelistRowContainer: {
     flexShrink: 0,
     justifyContent: 'space-between',
-    paddingTop: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
-  },
-  error: {
-    color: Styles.globalColors.red,
+    paddingTop: Styles.globalMargins.xtiny,
   },
 })
 

@@ -70,8 +70,8 @@ const mapStateToProps = state => {
   const _userInfo = state.users.infoMap
   const _you = state.config.username
   return {
-    _userInfo,
     _following,
+    _userInfo,
     _you,
   }
 }

@@ -46,14 +46,14 @@ class InfoPanelMenu extends React.Component<Props> {
     const props = this.props
     const addPeopleItems = [
       {
-        title: 'Add someone by username',
-        subTitle: 'Keybase, Twitter, etc.',
         onClick: props.onAddPeople,
         style: {borderTopWidth: 0},
+        subTitle: 'Keybase, Twitter, etc.',
+        title: 'Add someone by username',
       },
       {
-        title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
         onClick: props.onInvite,
+        title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
       },
     ]
     const channelItem = props.isSmallTeam
@@ -77,9 +77,9 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const items = [
       ...(props.canAddPeople ? addPeopleItems : []),
-      {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
+      {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
       channelItem,
-      {title: 'Leave team', onClick: props.onLeaveTeam, danger: true},
+      {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
     ]
 
     const header = {
@@ -113,8 +113,8 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       margin: 4,
       marginTop: 5,
-      right: Styles.globalMargins.tiny,
       position: 'absolute',
+      right: Styles.globalMargins.tiny,
     },
   }),
   headerAvatar: Styles.platformStyles({

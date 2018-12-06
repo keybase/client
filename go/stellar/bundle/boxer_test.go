@@ -108,7 +108,7 @@ func TestBundlePrevs(t *testing.T) {
 
 	bundle3src := bundle1.DeepCopy()
 	bundle3src.Prev = bundle2.OwnHash
-	bundle3src.Accounts[0].IsPrimary = false
+	bundle3src.Accounts[0].Name = "pettycash"
 	res3, err := Box(bundle3src, pukGen2, puk2)
 	require.NoError(t, err)
 
@@ -116,7 +116,7 @@ func TestBundlePrevs(t *testing.T) {
 	require.NoError(t, err)
 	bundle3, _, err := Unbox(nil, enc3, res3.VisB64, puk2)
 	require.NoError(t, err)
-	require.False(t, bundle3.Accounts[0].IsPrimary, "account should not be primary")
+	require.Equal(t, bundle3.Accounts[0].Name, "pettycash")
 	require.Equal(t, bundle2.OwnHash, bundle3.Prev, "bundle 3 should prev bundle 2")
 }
 

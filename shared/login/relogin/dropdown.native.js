@@ -114,7 +114,7 @@ class Dropdown extends React.Component<Props, State> {
 
   _renderPicker(style: Object, selectOnChange: boolean): React.Node {
     const pickItem = this.showingPick
-      ? [{key: pickItemValue, value: pickItemValue, label: this._label(pickItemValue)}]
+      ? [{key: pickItemValue, label: this._label(pickItemValue), value: pickItemValue}]
       : []
     const actualItems = (this.props.options || []).map(o => ({key: o, label: o, value: o}))
     const otherItem = this.props.onOther
@@ -187,12 +187,12 @@ class Dropdown extends React.Component<Props, State> {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  borderColor: globalColors.black_10,
   borderRadius,
+  borderWidth: 1,
   height: 40,
   paddingLeft: 17,
   paddingRight: 17,
-  borderWidth: 1,
-  borderColor: globalColors.black_10,
 }
 
 const styleText = {
@@ -205,9 +205,9 @@ const styleIcon = {
 }
 
 const stylePickerContainer = {
+  backgroundColor: globalColors.black_40,
   flex: 1,
   justifyContent: 'flex-end',
-  backgroundColor: globalColors.black_40,
 }
 
 const stylePickerIOS = {
@@ -216,12 +216,12 @@ const stylePickerIOS = {
 
 const stylePickerAndroid = {
   backgroundColor: globalColors.transparent,
-  color: globalColors.transparent,
-  position: 'absolute',
-  left: 0,
-  top: 0,
   bottom: 0,
+  color: globalColors.transparent,
+  left: 0,
+  position: 'absolute',
   right: 0,
+  top: 0,
 }
 
 export default Dropdown

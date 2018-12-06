@@ -34,9 +34,9 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
+  highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
-  highlightedIndex: 0,
 }
 
 const deriveSearchResults = memoize4(
@@ -47,12 +47,12 @@ const deriveSearchResults = memoize4(
     followingState: I.Set<string>
   ) => {
     return (searchResults || []).map(info => ({
-      userId: info.id,
-      username: info.id.split('@')[0],
-      services: info.serviceMap,
-      prettyName: info.prettyName,
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
       inTeam: teamSoFar.some(u => u.id === info.id),
+      prettyName: info.prettyName,
+      services: info.serviceMap,
+      userId: info.id,
+      username: info.id.split('@')[0],
     }))
   }
 )
@@ -61,9 +61,9 @@ const deriveTeamSoFar = memoize1((teamSoFar: I.Set<User>) =>
   teamSoFar.toArray().map(userInfo => {
     const {username, serviceId} = parseUserId(userInfo.id)
     return {
-      userId: userInfo.id,
       prettyName: userInfo.prettyName,
       service: serviceId,
+      userId: userInfo.id,
       username,
     }
   })
@@ -93,37 +93,37 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   ])
 
   return {
-    userFromUserId: deriveUserFromUserIdFn(userResults),
-    searchResults: deriveSearchResults(
-      userResults,
-      state.chat2.teamBuildingTeamSoFar,
-      state.config.username,
-      state.config.following
-    ),
     recommendations: deriveSearchResults(
       state.chat2.teamBuildingUserRecs,
       state.chat2.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following
     ),
-    teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
+    searchResults: deriveSearchResults(
+      userResults,
+      state.chat2.teamBuildingTeamSoFar,
+      state.config.username,
+      state.config.following
+    ),
     serviceResultCount: deriveServiceResultCount(
       state.chat2.teamBuildingSearchResults,
       ownProps.searchString
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
+    teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
+    userFromUserId: deriveUserFromUserIdFn(userResults),
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
-  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
   _search: debounce((query: string, service: ServiceIdWithContact) => {
     dispatch(TeamBuildingGen.createSearch({query, service}))
   }, 500),
-  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
+  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
+  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
 })
 
 const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => {
@@ -205,20 +205,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
 
   const onEnterKeyDown = deriveOnEnterKeyDown({
-    searchResults,
-    teamSoFar,
+    changeText: ownProps.onChangeText,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    onRemove: dispatchProps.onRemove,
-    changeText: ownProps.onChangeText,
-    searchStringIsEmpty: !ownProps.searchString,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+    onRemove: dispatchProps.onRemove,
+    searchResults,
+    searchStringIsEmpty: !ownProps.searchString,
+    teamSoFar,
   })
 
   return {
+    fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    searchString: ownProps.searchString,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
@@ -226,16 +226,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownArrowKeyDown: deriveOnDownArrowKeyDown(searchResults.length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+    onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onUpArrowKeyDown: ownProps.decHighlightIndex,
+    recommendations,
     searchResults,
+    searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
     showServiceResultCount,
     teamSoFar,
-    onMakeItATeam: () => console.log('todo'),
-    recommendations,
-    fetchUserRecs: dispatchProps.fetchUserRecs,
   }
 }
 

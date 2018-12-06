@@ -263,6 +263,194 @@ function _serverCallMap(
   }
 
   return {
+    'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
+      response.result()
+
+      addToIdleResponseQueue(() => {
+        // How username is handled here is very racy and we could do a ton better
+        if (!username) {
+          return
+        }
+        // Check if there were any errors in the proofs
+        dispatch(TrackerGen.createUpdateProofState({username}))
+        dispatch(TrackerGen.createIdentifyFinished({username}))
+        dispatch(TrackerGen.createMarkActiveIdentifyUi({active: false, username}))
+
+        // Doing a non-tracker so explicitly cleanup instead of using the timeout
+        if (isGetProfile) {
+          dispatch(TrackerGen.createPendingIdentify({pending: false, username}))
+          clearTimeout(clearPendingTimeout)
+        }
+
+        onFinish && onFinish()
+
+        // cleanup bookkeeping
+        delete sessionIDToUsername[sessionID]
+        engine().cancelSession(sessionID)
+      })
+
+      // if we're pending we still want to call onFinish
+      if (alreadyPending) {
+        onFinish && onFinish()
+      }
+    },
+    'keybase.1.identifyUi.confirm': (param, response) => {
+      response.result({
+        autoConfirmed: false,
+        expiringLocal: false,
+        identityConfirmed: false,
+        remoteConfirmed: false,
+      })
+    },
+    'keybase.1.identifyUi.dismiss': ({username}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createRemoteDismiss({username}))
+      })
+    },
+    'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID, type, family}}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        if (family === 'zcash') {
+          dispatch(TrackerGen.createUpdateZcash({address, sigID, username}))
+        } else {
+          dispatch(TrackerGen.createUpdateBTC({address, sigID, username}))
+        }
+        dispatch(TrackerGen.createUpdateProofState({username}))
+      })
+    },
+    'keybase.1.identifyUi.displayKey': ({key}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        if (key.breaksTracking) {
+          dispatch(TrackerGen.createUpdateEldestKidChanged({username}))
+          if (key.trackDiff && key.trackDiff.type === RPCTypes.identifyCommonTrackDiffType.newEldest) {
+            dispatch(
+              TrackerGen.createUpdateReason({reason: `${username} has reset their account!`, username})
+            )
+          } else {
+            dispatch(TrackerGen.createUpdateReason({reason: `${username} has deleted a PGP key.`, username}))
+          }
+          dispatch(TrackerGen.createUpdateProofState({username}))
+          if (!isGetProfile) {
+            dispatch(TrackerGen.createShowTracker({username}))
+          }
+        } else if (key.pgpFingerprint) {
+          dispatch(
+            TrackerGen.createUpdatePGPKey({
+              kid: key.KID,
+              pgpFingerprint: key.pgpFingerprint,
+              username,
+            })
+          )
+          dispatch(TrackerGen.createUpdateProofState({username}))
+        }
+      })
+    },
+    'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        dispatch(
+          TrackerGen.createShowNonUser({
+            nonUser: {
+              assertion: args.assertion,
+              folderName: args.folderName,
+              inviteLink: args.inviteLink,
+              isPrivate: args.isPrivate,
+              service: args.socialAssertion.service,
+              throttled: args.throttled,
+            },
+            username: args.assertion,
+          })
+        )
+      })
+    },
+
+    'keybase.1.identifyUi.displayTrackStatement': (_, response) => {
+      response.result()
+    },
+
+    'keybase.1.identifyUi.displayUserCard': ({card}, response) => {
+      response.result()
+      // run this immediately
+      if (isGetProfile) {
+        // cache profile calls
+        dispatch(
+          TrackerGen.createCacheIdentify({
+            goodTill: Date.now() + Constants.cachedIdentifyGoodUntil,
+            uid: card.uid,
+          })
+        )
+      }
+      dispatch(TrackerGen.createUpdateUserInfo({userCard: card, username}))
+    },
+    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
+      // Cancel is actually the 'last' call that happens
+      response.result()
+    },
+    'keybase.1.identifyUi.finishSocialProofCheck': ({rp, lcr}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createUpdateProof({linkCheckResult: lcr, remoteProof: rp, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
+
+        if (lcr.breaksTracking && !isGetProfile) {
+          dispatch(TrackerGen.createShowTracker({username}))
+        }
+      })
+    },
+    'keybase.1.identifyUi.finishWebProofCheck': ({rp, lcr}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createUpdateProof({linkCheckResult: lcr, remoteProof: rp, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
+
+        if (lcr.breaksTracking && !isGetProfile) {
+          dispatch(TrackerGen.createShowTracker({username}))
+        }
+      })
+    },
+    'keybase.1.identifyUi.launchNetworkChecks': ({identity}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        // This is the first spot that we have access to the user, so let's use that to get
+        // The user information
+
+        dispatch(TrackerGen.createSetProofs({identity, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
+        if (identity.breaksTracking && !isGetProfile) {
+          dispatch(TrackerGen.createShowTracker({username}))
+        }
+      })
+    },
+    'keybase.1.identifyUi.reportLastTrack': ({track}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createReportLastTrack({tracking: !!track, username}))
+
+        if (!track && !isGetProfile) {
+          dispatch(TrackerGen.createShowTracker({username}))
+        }
+      })
+    },
+    'keybase.1.identifyUi.reportTrackToken': ({trackToken}, response) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createUpdateTrackToken({trackToken, username}))
+
+        const userState = getState().tracker.userTrackers[username]
+        if (userState && userState.needTrackTokenDismiss) {
+          _dismissWithToken(trackToken)
+
+          dispatch(
+            TrackerGen.createSetNeedTrackTokenDismiss({
+              needTrackTokenDismiss: false,
+              username,
+            })
+          )
+        }
+      })
+    },
     'keybase.1.identifyUi.start': (
       {username: currentUsername, sessionID, reason, forceDisplay},
       response
@@ -310,194 +498,6 @@ function _serverCallMap(
           dispatch(TrackerGen.createShowTracker({username}))
         }
       })
-    },
-    'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        dispatch(
-          TrackerGen.createShowNonUser({
-            nonUser: {
-              assertion: args.assertion,
-              folderName: args.folderName,
-              inviteLink: args.inviteLink,
-              isPrivate: args.isPrivate,
-              service: args.socialAssertion.service,
-              throttled: args.throttled,
-            },
-            username: args.assertion,
-          })
-        )
-      })
-    },
-    'keybase.1.identifyUi.displayKey': ({key}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        if (key.breaksTracking) {
-          dispatch(TrackerGen.createUpdateEldestKidChanged({username}))
-          if (key.trackDiff && key.trackDiff.type === RPCTypes.identifyCommonTrackDiffType.newEldest) {
-            dispatch(
-              TrackerGen.createUpdateReason({reason: `${username} has reset their account!`, username})
-            )
-          } else {
-            dispatch(TrackerGen.createUpdateReason({reason: `${username} has deleted a PGP key.`, username}))
-          }
-          dispatch(TrackerGen.createUpdateProofState({username}))
-          if (!isGetProfile) {
-            dispatch(TrackerGen.createShowTracker({username}))
-          }
-        } else if (key.pgpFingerprint) {
-          dispatch(
-            TrackerGen.createUpdatePGPKey({
-              kid: key.KID,
-              pgpFingerprint: key.pgpFingerprint,
-              username,
-            })
-          )
-          dispatch(TrackerGen.createUpdateProofState({username}))
-        }
-      })
-    },
-    'keybase.1.identifyUi.reportLastTrack': ({track}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        dispatch(TrackerGen.createReportLastTrack({tracking: !!track, username}))
-
-        if (!track && !isGetProfile) {
-          dispatch(TrackerGen.createShowTracker({username}))
-        }
-      })
-    },
-    'keybase.1.identifyUi.launchNetworkChecks': ({identity}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        // This is the first spot that we have access to the user, so let's use that to get
-        // The user information
-
-        dispatch(TrackerGen.createSetProofs({identity, username}))
-        dispatch(TrackerGen.createUpdateProofState({username}))
-        if (identity.breaksTracking && !isGetProfile) {
-          dispatch(TrackerGen.createShowTracker({username}))
-        }
-      })
-    },
-    'keybase.1.identifyUi.displayTrackStatement': (_, response) => {
-      response.result()
-    },
-
-    'keybase.1.identifyUi.dismiss': ({username}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        dispatch(TrackerGen.createRemoteDismiss({username}))
-      })
-    },
-
-    'keybase.1.identifyUi.finishWebProofCheck': ({rp, lcr}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        dispatch(TrackerGen.createUpdateProof({linkCheckResult: lcr, remoteProof: rp, username}))
-        dispatch(TrackerGen.createUpdateProofState({username}))
-
-        if (lcr.breaksTracking && !isGetProfile) {
-          dispatch(TrackerGen.createShowTracker({username}))
-        }
-      })
-    },
-    'keybase.1.identifyUi.finishSocialProofCheck': ({rp, lcr}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        dispatch(TrackerGen.createUpdateProof({linkCheckResult: lcr, remoteProof: rp, username}))
-        dispatch(TrackerGen.createUpdateProofState({username}))
-
-        if (lcr.breaksTracking && !isGetProfile) {
-          dispatch(TrackerGen.createShowTracker({username}))
-        }
-      })
-    },
-    'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID, type, family}}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        if (family === 'zcash') {
-          dispatch(TrackerGen.createUpdateZcash({address, sigID, username}))
-        } else {
-          dispatch(TrackerGen.createUpdateBTC({address, sigID, username}))
-        }
-        dispatch(TrackerGen.createUpdateProofState({username}))
-      })
-    },
-    'keybase.1.identifyUi.displayUserCard': ({card}, response) => {
-      response.result()
-      // run this immediately
-      if (isGetProfile) {
-        // cache profile calls
-        dispatch(
-          TrackerGen.createCacheIdentify({
-            uid: card.uid,
-            goodTill: Date.now() + Constants.cachedIdentifyGoodUntil,
-          })
-        )
-      }
-      dispatch(TrackerGen.createUpdateUserInfo({userCard: card, username}))
-    },
-    'keybase.1.identifyUi.reportTrackToken': ({trackToken}, response) => {
-      response.result()
-      addToIdleResponseQueue(() => {
-        dispatch(TrackerGen.createUpdateTrackToken({username, trackToken}))
-
-        const userState = getState().tracker.userTrackers[username]
-        if (userState && userState.needTrackTokenDismiss) {
-          _dismissWithToken(trackToken)
-
-          dispatch(
-            TrackerGen.createSetNeedTrackTokenDismiss({
-              needTrackTokenDismiss: false,
-              username,
-            })
-          )
-        }
-      })
-    },
-    'keybase.1.identifyUi.confirm': (param, response) => {
-      response.result({
-        autoConfirmed: false,
-        expiringLocal: false,
-        identityConfirmed: false,
-        remoteConfirmed: false,
-      })
-    },
-    'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
-      response.result()
-
-      addToIdleResponseQueue(() => {
-        // How username is handled here is very racy and we could do a ton better
-        if (!username) {
-          return
-        }
-        // Check if there were any errors in the proofs
-        dispatch(TrackerGen.createUpdateProofState({username}))
-        dispatch(TrackerGen.createIdentifyFinished({username}))
-        dispatch(TrackerGen.createMarkActiveIdentifyUi({active: false, username}))
-
-        // Doing a non-tracker so explicitly cleanup instead of using the timeout
-        if (isGetProfile) {
-          dispatch(TrackerGen.createPendingIdentify({pending: false, username}))
-          clearTimeout(clearPendingTimeout)
-        }
-
-        onFinish && onFinish()
-
-        // cleanup bookkeeping
-        delete sessionIDToUsername[sessionID]
-        engine().cancelSession(sessionID)
-      })
-
-      // if we're pending we still want to call onFinish
-      if (alreadyPending) {
-        onFinish && onFinish()
-      }
-    },
-    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
-      // Cancel is actually the 'last' call that happens
-      response.result()
     },
   }
 }

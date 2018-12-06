@@ -1226,6 +1226,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	switch obm.System().String() {
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
+		g.G().Log.Debug("refreshing wallet state after reconnect")
+		g.G().GetStellar().RefreshWalletState(ctx)
 		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())

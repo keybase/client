@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {
   Animation,
   Box,
@@ -41,7 +41,7 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
+class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _whichMenu: menuType
 
@@ -83,10 +83,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         break
     }
     const permissionDenied = {
-      title: 'Permissions needed',
-      text: permDeniedText,
-      reTryTitle: 'allow in settings',
       okTitle: 'deny',
+      reTryTitle: 'allow in settings',
+      text: permDeniedText,
+      title: 'Permissions needed',
     }
     const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -104,10 +104,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
     switch (location) {
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
     }
   }
@@ -138,8 +138,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
+    if (this.props.isExploding && isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'
+    } else if (this.props.isExploding && !isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
@@ -224,6 +226,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
             isExplodingNew={this.props.isExplodingNew}
+            showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
@@ -249,15 +252,16 @@ const ChannelMentionHud = props => (
 )
 
 const Action = ({
+  explodingModeSeconds,
   hasText,
-  onSubmit,
-  isEditing,
-  openExplodingPicker,
-  openFilePicker,
   insertMentionMarker,
+  isEditing,
   isExploding,
   isExplodingNew,
-  explodingModeSeconds,
+  onSubmit,
+  openExplodingPicker,
+  openFilePicker,
+  showWalletsIcon,
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
@@ -288,7 +292,7 @@ const Action = ({
           {smallGap}
         </>
       )}
-      {flags.walletsEnabled && (
+      {showWalletsIcon && (
         <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
       <Icon

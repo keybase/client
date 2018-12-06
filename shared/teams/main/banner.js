@@ -42,6 +42,24 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
 )
 
 const styles = styleSheetCreate({
+  closeIcon: {
+    padding: globalMargins.xtiny,
+  },
+  closeIconContainer: platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      right: globalMargins.tiny,
+      top: globalMargins.tiny,
+    },
+    isMobile: {
+      height: 26,
+      right: globalMargins.small,
+      top: globalMargins.small,
+      width: 26,
+    },
+  }),
   containerBanner: platformStyles({
     common: {
       alignItems: 'center',
@@ -84,24 +102,6 @@ const styles = styleSheetCreate({
       textAlign: 'center',
     },
   }),
-  closeIconContainer: platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      right: globalMargins.tiny,
-      top: globalMargins.tiny,
-    },
-    isMobile: {
-      right: globalMargins.small,
-      top: globalMargins.small,
-      height: 26,
-      width: 26,
-    },
-  }),
-  closeIcon: {
-    padding: globalMargins.xtiny,
-  },
 })
 
 export default Banner

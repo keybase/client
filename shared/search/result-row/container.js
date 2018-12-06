@@ -40,8 +40,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   )
   const userIsInTeam = leftIsInTeam || rightIsInTeam
   return {
-    result,
     leftFollowingState,
+    result,
     rightFollowingState,
     selectedIds,
     userIsInTeam,

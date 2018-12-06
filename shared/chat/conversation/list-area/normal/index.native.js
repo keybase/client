@@ -19,6 +19,7 @@ class ConversationList extends React.PureComponent<Props> {
 
       return (
         <Message
+          key={ordinal}
           ordinal={ordinal}
           previous={prevOrdinal}
           measure={null}

@@ -4,7 +4,7 @@ import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // When accepting the Stellar disclaimer, next path after acceptance
-export type NextScreenAfterAcceptance = 'linkExisting' | 'openWallet'
+export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
@@ -121,7 +121,7 @@ export type _BuiltRequest = {
 export type StatusSimplified =
   | 'none'
   | 'pending'
-  | 'cancelable'
+  | 'claimable'
   | 'canceled'
   | 'completed'
   | 'error'
@@ -147,12 +147,16 @@ export type _PaymentCommon = {|
   statusSimplified: StatusSimplified,
   statusDescription: string,
   statusDetail: string,
+  showCancel: boolean,
   target: string,
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
   worth: string,
   worthCurrency: string,
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?AccountID,
 |}
 
 export type _PaymentResult = {|
@@ -229,11 +233,13 @@ export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
   acceptedDisclaimer: boolean,
+  acceptingDisclaimerDelay: boolean,
   accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
+  buildCounter: number, // increments when we call buildPayment / buildRequest
   building: Building,
   builtPayment: BuiltPayment,
   builtRequest: BuiltRequest,
