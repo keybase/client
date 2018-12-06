@@ -176,6 +176,30 @@ func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.Ac
 	return payments, err
 }
 
+// RecentPayments is an override of remoter's RecentPayments that uses stored data.
+func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+	useAccountState := true
+	if limit != 0 && limit != 50 {
+		useAccountState = false
+	} else if cursor != nil {
+		useAccountState = false
+	} else if !skipPending {
+		useAccountState = false
+	}
+
+	if !useAccountState {
+		w.G().Log.CDebugf(ctx, "WalletState:RecentPayments using remote due to parameters")
+		return w.Remoter.RecentPayments(ctx, accountID, cursor, limit, skipPending)
+	}
+
+	a, err := w.accountStateRefresh(ctx, accountID)
+	if err != nil {
+		return stellar1.PaymentsPage{}, err
+	}
+
+	return a.RecentPayments(ctx)
+}
+
 // SubmitPayment is an override of remoter's SubmitPayment.
 func (w *WalletState) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
 	result, err := w.Remoter.SubmitPayment(ctx, post)
@@ -248,6 +272,7 @@ type AccountState struct {
 	seqno        uint64
 	balances     []stellar1.Balance
 	pending      []stellar1.PaymentSummary
+	recent       *stellar1.PaymentsPage
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountState {
@@ -275,10 +300,17 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 		a.Unlock()
 	}
 
-	pending, err := a.remoter.PendingPayments(ctx, a.accountID, 100)
+	pending, err := a.remoter.PendingPayments(ctx, a.accountID, 25)
 	if err == nil {
 		a.Lock()
 		a.pending = pending
+		a.Unlock()
+	}
+
+	recent, err := a.remoter.RecentPayments(ctx, a.accountID, nil, 50, true)
+	if err == nil {
+		a.Lock()
+		a.recent = &recent
 		a.Unlock()
 	}
 
@@ -320,6 +352,17 @@ func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stella
 		return a.pending[:limit], nil
 	}
 	return a.pending, nil
+}
+
+// RecentPayments returns the recent payments that have already been fetched for
+// this account.
+func (a *AccountState) RecentPayments(ctx context.Context) (stellar1.PaymentsPage, error) {
+	a.RLock()
+	defer a.RUnlock()
+	if a.recent == nil {
+		return stellar1.PaymentsPage{}, nil
+	}
+	return *a.recent, nil
 }
 
 // String returns a small string representation of AccountState suitable for
