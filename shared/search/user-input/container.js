@@ -222,10 +222,11 @@ const ConnectedUserInput = compose(
         this.props.onFocusInput()
       }
 
-      if (this.props.searchResultIds !== prevProps.searchResultIds && !this.props.showingSearchSuggestions) {
-        this.props.onUpdateSelectedSearchResult(
-          (this.props.searchResultIds && this.props.searchResultIds[0]) || null
-        )
+      const prevTopResult = prevProps.searchResultIds && prevProps.searchResultIds[0]
+      const topResult = this.props.searchResultIds && this.props.searchResultIds[0]
+
+      if (topResult !== prevTopResult && !this.props.showingSearchSuggestions) {
+        this.props.onUpdateSelectedSearchResult(topResult)
         this.props.onFocusInput()
       }
 
