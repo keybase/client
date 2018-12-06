@@ -781,7 +781,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			if req.prefetchStatus == TriggeredPrefetch &&
 				!req.action.DeepSync() &&
 				(isPrefetchWaiting &&
-					req.action.Sync() == pre.req.action.Sync()) {
+					req.action.Sync() == pre.req.action.Sync() &&
+					req.action.StopIfFull() == pre.req.action.StopIfFull()) {
 				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
 					"%s", req.ptr.ID)
 				continue

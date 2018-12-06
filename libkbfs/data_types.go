@@ -1069,13 +1069,20 @@ func (bra BlockRequestAction) DeepSync() bool {
 	return bra == BlockRequestWithDeepSync
 }
 
+// DeepPrefetch returns true if the prefetcher should continue
+// prefetching the children of this block all the way to the leafs of
+// the tree.
+func (bra BlockRequestAction) DeepPrefetch() bool {
+	return bra.DeepSync() || bra == BlockRequestPrefetchUntilFull
+}
+
 // ChildAction returns the action that should propagate down to any
 // children of this block.
 func (bra BlockRequestAction) ChildAction(block Block) BlockRequestAction {
 	// When syncing, always prefetch child blocks of an indirect
 	// block, since it makes no sense to sync just part of a
 	// multi-block object.
-	if bra.DeepSync() || (block.IsIndirect() && bra.Sync()) {
+	if bra.DeepPrefetch() || (block.IsIndirect() && bra.Sync()) {
 		return bra
 	}
 	return bra &^ (blockRequestPrefetch | blockRequestSync)
