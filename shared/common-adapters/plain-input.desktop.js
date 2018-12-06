@@ -287,8 +287,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
                  ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
     return (
       <React.Fragment>
-        <style>{css}</style>
         {this.props.multiline ? <textarea {...inputProps} /> : <input {...inputProps} />}
+        <style>{css}</style>
       </React.Fragment>
     )
   }

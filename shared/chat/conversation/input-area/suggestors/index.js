@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {invert} from 'lodash-es'
 import ChatUsers from './chat-users'
 import type {Suggestor} from './interface'
@@ -57,6 +58,8 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor = invert(this.props.suggestorToMarker)
 
+    _getInputRef = () => this._inputRef.current
+
     _checkTrigger = text => {
       const selection = (this._inputRef.current && this._inputRef.current.getSelection()) || {
         end: 0,
@@ -95,16 +98,42 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
     }
 
     render() {
+      let overlay = null
       if (this.state.active) {
-        lg(this.props.dataSources[this.state.active](this.state.filter))
+        const results = this.props.dataSources[this.state.active](this.state.filter)
+        lg(results)
+        if (results.length) {
+          overlay = (
+            <Kb.Overlay
+              attachTo={this._getInputRef}
+              position="top center"
+              visible={true}
+              propagateOutsideClicks={true}
+              onHidden={() => {}}
+            >
+              <Kb.Box2
+                direction="vertical"
+                style={{backgroundColor: Styles.globalColors.white, height: 320, width: 320}}
+              >
+                <Kb.List
+                  items={results}
+                  renderItem={(index, item) => this.props.renderers[this.state.active](item)}
+                />
+              </Kb.Box2>
+            </Kb.Overlay>
+          )
+        }
       }
       return (
-        <WrappedComponent
-          {...this.props}
-          inputRef={this._inputRef}
-          onChangeText={this.onChangeText}
-          onKeyDown={this.onKeyDown}
-        />
+        <>
+          {overlay}
+          <WrappedComponent
+            {...this.props}
+            inputRef={this._inputRef}
+            onChangeText={this.onChangeText}
+            onKeyDown={this.onKeyDown}
+          />
+        </>
       )
     }
   }
