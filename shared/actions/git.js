@@ -147,7 +147,7 @@ const navToGit = (_, action: GitGen.NavToGitPayload) => {
 }
 
 const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepoPayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const {teamname, repoID} = action.payload
     let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
     if (!id) {

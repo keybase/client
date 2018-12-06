@@ -31,7 +31,7 @@ function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.Load
 const avatarSizes = [960, 256, 192]
 function* avatarCallAndHandle(names: Array<string>, method: Function) {
   try {
-    const resp = yield Saga.call(method, {
+    const resp = yield* Saga.callPromise(method, {
       formats: avatarSizes.map(s => `square_${s}`),
       names,
     })
@@ -63,19 +63,19 @@ let avatarChannel
 function* handleAvatarQueue() {
   avatarChannel = yield Saga.channel(Saga.buffers.dropping(1))
   while (true) {
-    yield Saga.call(Saga.delay, 100)
+    yield Saga.callUntyped(Saga.delay, 100)
     yield Saga.take(avatarChannel)
 
     const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
     if (usernames.length) {
-      yield Saga.call(avatarCallAndHandle, usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
+      yield* avatarCallAndHandle(usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
     }
 
     const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
     if (teamnames.length) {
-      yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
+      yield* avatarCallAndHandle(teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
     }
 
     // more to load?

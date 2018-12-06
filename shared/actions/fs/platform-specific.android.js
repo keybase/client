@@ -50,17 +50,17 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
   switch (intent) {
     case 'camera-roll':
       return Saga.sequentially([
-        Saga.call(saveAttachmentDialog, localPath),
+        Saga.callUntyped(saveAttachmentDialog, localPath),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheetFromURL, {mimeType, url: localPath}),
+        Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':
       return Saga.sequentially([
-        Saga.call(copyToDownloadDir, localPath, mimeType),
+        Saga.callUntyped(copyToDownloadDir, localPath, mimeType),
         // TODO: dismiss download when we get rid of download cards on mobile
       ])
     default:

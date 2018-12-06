@@ -28,7 +28,7 @@ const setupEngineListeners = () => {
       return Saga.put(GregorGen.createPushState({reason, state: goodState}))
     },
     'keybase.1.reachability.reachabilityChanged': ({reachability}) =>
-      Saga.call(function*() {
+      Saga.callUntyped(function*() {
         const state: TypedState = yield Saga.select()
         if (state.config.loggedIn) {
           // Gregor reachability is only valid if we're logged in

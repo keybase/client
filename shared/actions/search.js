@@ -157,7 +157,7 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
       {key: 'service', value: service === 'Keybase' ? '' : service},
     ],
     endpoint: 'user/user_search',
-  }).then(results => JSON.parse(results.body))
+  }).then(results => JSON.parse(results.body).list || [])
 }
 
 function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload) {
@@ -190,23 +190,23 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
   )
 
   try {
-    yield Saga.call(onIdlePromise, 1e3)
-    const searchResults = yield Saga.call(_apiSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.list.map((result: RawResult) =>
+    yield Saga.callUntyped(onIdlePromise, 1e3)
+    const searchResults = yield* Saga.callPromise(_apiSearch, term, _serviceToApiServiceName(service))
+    const rows = searchResults.map((result: RawResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Types.SearchResult> = rows
+    const kbRows = rows
       .filter(r => r.rightService === 'Keybase')
       .map(r =>
         Constants.makeSearchResult({
           id: r.rightUsername || '',
           leftIcon: null,
           leftService: 'Keybase',
-          leftUsername: r.rightUsername,
+          leftUsername: r.rightUsername || '',
         })
       )
     yield Saga.put(
@@ -259,12 +259,9 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
 }
 
 function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSuggestionsPayload) {
-  let suggestions: Array<RPCTypes.InterestingPerson> = yield Saga.call(
-    RPCTypes.userInterestingPeopleRpcPromise,
-    {
-      maxUsers: maxUsers || 50,
-    }
-  )
+  let suggestions = yield* Saga.callPromise(RPCTypes.userInterestingPeopleRpcPromise, {
+    maxUsers: maxUsers || 50,
+  })
 
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []

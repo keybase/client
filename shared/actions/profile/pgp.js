@@ -38,7 +38,7 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
 
   try {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield Saga.call(RPCTypes.revokeRevokeKeyRpcPromise, {keyID: kid})
+    yield * Saga.callPromise(RPCTypes.revokeRevokeKeyRpcPromise, {keyID: kid})
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(navigateTo([], [peopleTab]))
   } catch (e) {
@@ -100,7 +100,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
       throw new Error('KeyGeneration failed')
     }
 
-    yield Saga.call([
+    yield Saga.callUntyped([
       incoming['keybase.1.pgpUi.keyGenerated'].response,
       incoming['keybase.1.pgpUi.keyGenerated'].response.result,
     ])
@@ -115,10 +115,10 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     const {shouldStoreKeyOnServer} = finishedAction.payload
 
     const {response} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.shouldPushPrivate')
-    yield Saga.call([response, response.result], shouldStoreKeyOnServer)
+    yield Saga.callUntyped([response, response.result], shouldStoreKeyOnServer)
 
     const {response: finishedResponse} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.finished')
-    yield Saga.call([finishedResponse, finishedResponse.result])
+    yield Saga.callUntyped([finishedResponse, finishedResponse.result])
 
     yield Saga.put(navigateTo([peopleTab, 'profile']))
   } catch (e) {

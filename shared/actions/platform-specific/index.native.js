@@ -180,9 +180,9 @@ const clearRouteState = () =>
   )
 
 const persistRouteState = (state: TypedState) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     // Put a delay in case we go to a route and crash immediately
-    yield Saga.call(Saga.delay, 3000)
+    yield Saga.callUntyped(Saga.delay, 3000)
     const routePath = getPath(state.routeTree.routeState)
     const selectedTab = routePath.first()
     if (Tabs.isValidInitialTabString(selectedTab)) {
@@ -205,7 +205,7 @@ const persistRouteState = (state: TypedState) =>
   })
 
 const setupNetInfoWatcher = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const channel = Saga.eventChannel(emitter => {
       NetInfo.addEventListener('connectionChange', () => emitter('changed'))
       return () => {}
@@ -278,7 +278,7 @@ const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandsh
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: true,

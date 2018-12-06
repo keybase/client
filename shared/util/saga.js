@@ -7,6 +7,7 @@ import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
+import select from './typed-select'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -149,7 +150,6 @@ export {
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,
-  select,
   spawn,
   take,
   takeEvery,
@@ -157,4 +157,13 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {put, safeTakeEvery, safeTakeEveryPure, actionToPromise, actionToAction, sequentially, callPromise}
+export {
+  select,
+  put,
+  safeTakeEvery,
+  safeTakeEveryPure,
+  actionToPromise,
+  actionToAction,
+  sequentially,
+  callPromise,
+}
