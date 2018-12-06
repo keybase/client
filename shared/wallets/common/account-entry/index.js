@@ -88,6 +88,7 @@ const styles = Styles.styleSheetCreate({
   },
   user: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
 })
 
