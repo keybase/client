@@ -6,6 +6,7 @@ package simplefs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -124,9 +125,13 @@ var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
 func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *SimpleFS {
 	log := config.MakeLogger("simplefs")
-	localHTTPServer, err := libhttpserver.New(appStateUpdater, config)
-	if err != nil {
-		log.Fatalf("initializing localHTTPServer error: %v", err)
+	var localHTTPServer *libhttpserver.Server
+	var err error
+	if config.Mode().LocalHTTPServerEnabled() {
+		localHTTPServer, err = libhttpserver.New(appStateUpdater, config)
+		if err != nil {
+			log.Fatalf("initializing localHTTPServer error: %v", err)
+		}
 	}
 	return &SimpleFS{
 		config:          config,
@@ -1877,6 +1882,9 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 // local KBFS http server.
 func (k *SimpleFS) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (
 	resp keybase1.SimpleFSGetHTTPAddressAndTokenResponse, err error) {
+	if k.localHTTPServer == nil {
+		return resp, errors.New("HTTP server is disabled")
+	}
 	if resp.Token, err = k.localHTTPServer.NewToken(); err != nil {
 		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
 	}
