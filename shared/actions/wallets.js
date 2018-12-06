@@ -43,6 +43,7 @@ const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload)
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
+          bid: '', // DESKTOP-8530
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
@@ -153,8 +154,10 @@ const sendPayment = (state: TypedState) => {
   return RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
-      // FIXME -- support other assets.
       asset: emptyAsset,
+      // FIXME -- support other assets.
+      bid: '', // DESKTOP-8530
+      bypassBid: true, // DESKTOP-8530
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,

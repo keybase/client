@@ -9,6 +9,14 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
+func StartBuildPaymentLocal(mctx libkb.MetaContext) (res stellar1.BuildPaymentID, err error) {
+	return getGlobal(mctx.G()).startBuildPayment(mctx)
+}
+
+func StopBuildPaymentLocal(mctx libkb.MetaContext, bid stellar1.BuildPaymentID) {
+	getGlobal(mctx.G()).stopBuildPayment(mctx, bid)
+}
+
 func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "BuildPaymentLocal", true)
 	defer tracer.Finish()
@@ -19,6 +27,9 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	if err := mctx.Ctx().Err(); err != nil {
 		return res, err
 	}
+
+	// Mark the payment as not ready to send while the new values are validated.
+	getGlobal(mctx.G()).updateBuildPayment(mctx, arg.Bid, nil)
 
 	readyChecklist := struct {
 		from       bool
@@ -260,6 +271,17 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 	if readyChecklist.from && readyChecklist.to && readyChecklist.amount && readyChecklist.secretNote && readyChecklist.publicMemo {
 		res.ReadyToSend = true
+
+		// Mark the payment as ready to send.
+		getGlobal(mctx.G()).updateBuildPayment(mctx, arg.Bid, &frozenPayment{
+			From:          fromInfo.from,
+			To:            arg.To,
+			ToIsAccountID: arg.ToIsAccountID,
+			Amount:        amountX.amountOfAsset,
+			Asset:         amountX.asset,
+			SecretNote:    arg.SecretNote,
+			PublicMemo:    arg.PublicMemo,
+		})
 	}
 	// Return the context's error.
 	// If just `nil` were returned then in the event of a cancellation
@@ -562,4 +584,68 @@ func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
 		available = 0
 	}
 	return stellarnet.StringFromStellarAmount(available)
+}
+
+// Record of an in-progress payment build.
+// Don't you dare mutate. Shared across threads under the assumption of immutability.
+type buildPaymentEntry struct {
+	Bid         stellar1.BuildPaymentID
+	ReadyToSend bool
+	Stopped     bool
+	frozen      *frozenPayment
+}
+
+type frozenPayment struct {
+	From          stellar1.AccountID
+	To            string
+	ToIsAccountID bool
+	Amount        string
+	Asset         stellar1.Asset
+	SecretNote    string
+	PublicMemo    string
+}
+
+// Ready decides whether the frozen payment has been prechecked and
+// the Send request matches it.
+func (f *buildPaymentEntry) CheckReady(arg stellar1.SendPaymentLocalArg) error {
+	if arg.Bid.IsNil() {
+		return fmt.Errorf("missing build ID")
+	}
+	if !arg.Bid.Eq(f.Bid) {
+		return fmt.Errorf("build ID mismatch")
+	}
+	if f.Stopped {
+		return fmt.Errorf("this payment has been stopped")
+	}
+	if !f.ReadyToSend {
+		return fmt.Errorf("this payment is not ready to send")
+	}
+	if f.frozen == nil {
+		return fmt.Errorf("payment is ready to send but missing frozen values")
+	}
+	if !arg.From.Eq(f.frozen.From) {
+		return fmt.Errorf("mismatched from account: %v != %v", arg.From, f.frozen.From)
+	}
+	if arg.To != f.frozen.To {
+		return fmt.Errorf("mismatched recipient: %v != %v", arg.To, f.frozen.To)
+	}
+	if arg.ToIsAccountID != f.frozen.ToIsAccountID {
+		return fmt.Errorf("mismatches account ID type (expected %v)", f.frozen.ToIsAccountID)
+	}
+	// Check the true amount and asset that will be sent.
+	// Don't bother checking the display worth. It's finicky and the server does a coarse check.
+	if arg.Amount != f.frozen.Amount {
+		return fmt.Errorf("mismatched amount: %v != %v", arg.Amount, f.frozen.Amount)
+	}
+	if !arg.Asset.Eq(f.frozen.Asset) {
+		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, f.frozen.Asset)
+	}
+	if arg.SecretNote != f.frozen.SecretNote {
+		// Don't log the secret memo.
+		return fmt.Errorf("mismatched secret note")
+	}
+	if arg.PublicMemo != f.frozen.PublicMemo {
+		return fmt.Errorf("mismatched public memo: '%v' != '%v'", arg.PublicMemo, f.frozen.PublicMemo)
+	}
+	return nil
 }

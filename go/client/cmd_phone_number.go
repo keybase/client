@@ -15,8 +15,11 @@ func NewCmdPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		Usage: "Manage your phone numbers",
 		Subcommands: []cli.Command{
 			NewCmdAddPhoneNumber(cl, g),
+			NewCmdEditPhoneNumber(cl, g),
+			NewCmdDeletePhoneNumber(cl, g),
 			NewCmdListPhoneNumbers(cl, g),
 			NewCmdVerifyPhoneNumber(cl, g),
+			NewCmdSetVisibilityPhoneNumber(cl, g),
 		},
 	}
 }
