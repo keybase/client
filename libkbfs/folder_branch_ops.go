@@ -871,7 +871,7 @@ func (fbo *folderBranchOps) doPartialSync(
 	ctx context.Context, syncConfig keybase1.FolderSyncConfig,
 	latestMerged ImmutableRootMetadata) (err error) {
 	fbo.log.CDebugf(
-		ctx, "Starting partial sync at revision %d", latestMerged.Revision())
+		ctx, "Starting partial sync at revision %d", latestMerged.Revision)
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Partial sync done: %+v", err)
 	}()
@@ -2213,6 +2213,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	var latestRootBlockFetch <-chan error
 	partialSyncMD := md
 	lState := makeFBOLockState()
+	var setHead bool
 	if md.IsReadable() && fbo.config.Mode().PrefetchWorkers() > 0 {
 		// We `Get` the root block to ensure downstream prefetches
 		// occur.  Use a fresh context, in case `ctx` is canceled by
@@ -2226,7 +2227,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		// Kick off partial prefetching once the latest merged
 		// revision is set.
 		defer func() {
-			if err == nil {
+			if setHead && err == nil {
 				fbo.kickOffPartialSyncIfNeeded(ctx, lState, partialSyncMD)
 			}
 		}()
@@ -2299,6 +2300,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		// updated either directly via writes or through the
 		// background update processor.
 		if fbo.head == (ImmutableRootMetadata{}) {
+			setHead = true
 			err = fbo.setInitialHeadTrustedLocked(ctx, lState, md)
 			if err != nil {
 				return err
