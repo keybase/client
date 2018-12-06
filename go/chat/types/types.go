@@ -206,6 +206,21 @@ type SenderPrepareResult struct {
 	TopicNameState      *chat1.TopicNameState
 }
 
+type ParsedStellarPayment struct {
+	Username libkb.NormalizedUsername
+	Full     string
+	Amount   string
+	Currency string
+}
+
+func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
+	return libkb.MiniChatPayment{
+		Username: p.Username,
+		Amount:   p.Amount,
+		Currency: p.Currency,
+	}
+}
+
 type DummyAttachmentFetcher struct{}
 
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
@@ -340,4 +355,19 @@ func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.
 
 func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
 	return nil
+}
+
+type DummyStellarSender struct{}
+
+func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) []ParsedStellarPayment {
+	return nil
+}
+
+func (d DummyStellarSender) DescribePayments(ctx context.Context, payments []ParsedStellarPayment) (*libkb.MiniChatPaymentSummary, error) {
+	return nil, nil
+}
+
+func (d DummyStellarSender) SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
+	return nil, nil
 }

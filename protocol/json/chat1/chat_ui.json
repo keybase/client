@@ -777,6 +777,80 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UIMiniChatPaymentSpecTyp",
+      "symbols": [
+        "SUCCESS_0",
+        "ERROR_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMiniChatPaymentSpecSuccess",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "xlmAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMiniChatPaymentSpec",
+      "switch": {
+        "type": "UIMiniChatPaymentSpecTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SUCCESS",
+            "def": false
+          },
+          "body": "UIMiniChatPaymentSpecSuccess"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMiniChatPaymentSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "xlmTotal"
+        },
+        {
+          "type": "string",
+          "name": "displayTotal"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMiniChatPaymentSpec"
+          },
+          "name": "payments"
+        }
+      ]
     }
   ],
   "messages": {
@@ -967,6 +1041,41 @@
         }
       ],
       "response": "boolean"
+    },
+    "chatStellarShowConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatStellarDataConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "summary",
+          "type": "UIMiniChatPaymentSummary"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDataError": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

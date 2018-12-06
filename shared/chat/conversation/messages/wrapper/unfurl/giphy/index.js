@@ -53,9 +53,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       maxWidth: 500,
     },
-    isMobile: {
-      paddingRight: 0,
-    },
   }),
   favicon: {
     borderRadius: Styles.borderRadius,

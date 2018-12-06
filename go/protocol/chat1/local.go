@@ -4635,6 +4635,7 @@ type PostLocalNonblockArg struct {
 }
 
 type PostTextNonblockArg struct {
+	SessionID         int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName           string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`

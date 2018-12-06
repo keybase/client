@@ -1123,6 +1123,20 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Run Stellar UI on any payments in the body
+	bodyTyp, err := arg.Msg.MessageBody.MessageType()
+	if err == nil && bodyTyp == chat1.MessageType_TEXT {
+		text := arg.Msg.MessageBody.Text().Body
+		payments, err := h.runStellarSendUI(ctx, 0, uid, arg.ConversationID, text)
+		if err != nil {
+			return res, err
+		}
+		arg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body:     text,
+			Payments: payments,
+		})
+	}
+
 	// Make sure sender is set
 	db := make([]byte, 16)
 	deviceID := h.G().Env.GetDeviceID()
@@ -1192,6 +1206,58 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
+func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
+	convID chat1.ConversationID, body string) (res []chat1.TextPayment, err error) {
+	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body)
+	if len(parsedPayments) == 0 {
+		return nil, nil
+	}
+	ui := h.getChatUI(sessionID)
+	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
+		return res, err
+	}
+	summary, err := h.G().StellarSender.DescribePayments(ctx, parsedPayments)
+	if err != nil {
+		ui.ChatStellarDataError(ctx, "Failed to describe Stellar payments, please try again")
+		return res, err
+	}
+	var uiSummary chat1.UIMiniChatPaymentSummary
+	uiSummary.XlmTotal = summary.XLMTotal
+	uiSummary.DisplayTotal = summary.DisplayTotal
+	for _, s := range summary.Specs {
+		var spec chat1.UIMiniChatPaymentSpec
+		if s.Error != nil {
+			spec = chat1.NewUIMiniChatPaymentSpecWithError(s.Error.Error())
+		} else {
+			var displayAmount *string
+			if len(s.DisplayAmount) > 0 {
+				displayAmount = new(string)
+				*displayAmount = s.DisplayAmount
+			}
+			spec = chat1.NewUIMiniChatPaymentSpecWithSuccess(chat1.UIMiniChatPaymentSpecSuccess{
+				Username:      s.Username.String(),
+				XlmAmount:     s.XLMAmount,
+				DisplayAmount: displayAmount,
+			})
+		}
+		uiSummary.Payments = append(uiSummary.Payments, spec)
+	}
+	accepted, err := ui.ChatStellarDataConfirm(ctx, uiSummary)
+	if err != nil {
+		return res, err
+	}
+	if !accepted {
+		return res, errors.New("stellar UI rejected the send")
+	}
+	payments, err := h.G().StellarSender.SendPayments(ctx, parsedPayments)
+	if err != nil {
+		// Send regardless here
+		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
+		return nil, nil
+	}
+	return payments, nil
+}
+
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
@@ -1200,10 +1266,10 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 		return res, err
 	}
 
-	// Trigger any Stellar payments in the message
-	payments, err := h.G().StellarSender.ParseAndSendPayments(ctx, uid, arg.ConversationID, arg.Body)
+	// Determine if the messages contains any Stellar payments, and execute them if so
+	payments, err := h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID, arg.Body)
 	if err != nil {
-		h.Debug(ctx, "PostTextNonblock: failed to send payments: %", err)
+		return res, err
 	}
 
 	var parg chat1.PostLocalNonblockArg

@@ -75,3 +75,21 @@ func (r *RemoteChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSe
 func (r *RemoteChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
 	return r.cli.ChatSearchIndexStatus(ctx, arg)
 }
+
+func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIMiniChatPaymentSummary) (bool, error) {
+	return r.cli.ChatStellarDataConfirm(ctx, chat1.ChatStellarDataConfirmArg{
+		SessionID: r.sessionID,
+		Summary:   summary,
+	})
+}
+
+func (r *RemoteChatUI) ChatStellarShowConfirm(ctx context.Context) error {
+	return r.cli.ChatStellarShowConfirm(ctx, r.sessionID)
+}
+
+func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, msg string) error {
+	return r.cli.ChatStellarDataError(ctx, chat1.ChatStellarDataErrorArg{
+		SessionID: r.sessionID,
+		Message:   msg,
+	})
+}
