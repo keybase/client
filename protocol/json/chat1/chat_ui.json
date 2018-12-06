@@ -777,6 +777,59 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UIMiniChatPaymentSpecTyp",
+      "symbols": [
+        "SUCCESS_0",
+        "ERROR_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMiniChatPaymentSpecSuccess",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "xlmAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMiniChatPaymentSpec",
+      "switch": {
+        "type": "UIMiniChatPaymentSpecTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SUCCESS",
+            "def": false
+          },
+          "body": "UIMiniChatPaymentSpecSuccess"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
     }
   ],
   "messages": {
@@ -967,6 +1020,31 @@
         }
       ],
       "response": "boolean"
+    },
+    "chatStellarShowConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatStellarConfirmData": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "data",
+          "type": {
+            "type": "array",
+            "items": "UIMiniChatPaymentSpec"
+          }
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -58,14 +58,14 @@ func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, convID chat1.
 	return conv.Info.Participants[0].Username, nil
 }
 
-func (s *Sender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body string) (res []chat1.TextPayment, err error) {
-	defer s.Trace(ctx, func() error { return err }, "ParseAndSendPayments")()
+func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) (res []libkb.MiniChatPayment) {
+	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
 	parsed := FindChatTxCandidates(body)
 	if len(parsed) == 0 {
-		return nil, nil
+		return nil
 	}
-	var minis []libkb.MiniChatPayment
+	var err error
 	usernameToFull := make(map[string]string)
 	for _, p := range parsed {
 		var username string
@@ -78,12 +78,19 @@ func (s *Sender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, conv
 			username = *p.Username
 		}
 		usernameToFull[username] = p.Full
-		minis = append(minis, libkb.MiniChatPayment{
+		res = append(res, libkb.MiniChatPayment{
 			Username: libkb.NewNormalizedUsername(username),
 			Amount:   p.Amount,
 			Currency: p.CurrencyCode,
 		})
 	}
+	return res
+}
+
+func (s *Sender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) (res []chat1.TextPayment, err error) {
+	defer s.Trace(ctx, func() error { return err }, "ParseAndSendPayments")()
+
 	paymentRes, err := s.G().GetStellar().SendMiniChatPayments(s.G().MetaContext(ctx), minis)
 	if err != nil {
 		return res, err

@@ -843,6 +843,128 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
+type UIMiniChatPaymentSpecTyp int
+
+const (
+	UIMiniChatPaymentSpecTyp_SUCCESS UIMiniChatPaymentSpecTyp = 0
+	UIMiniChatPaymentSpecTyp_ERROR   UIMiniChatPaymentSpecTyp = 1
+)
+
+func (o UIMiniChatPaymentSpecTyp) DeepCopy() UIMiniChatPaymentSpecTyp { return o }
+
+var UIMiniChatPaymentSpecTypMap = map[string]UIMiniChatPaymentSpecTyp{
+	"SUCCESS": 0,
+	"ERROR":   1,
+}
+
+var UIMiniChatPaymentSpecTypRevMap = map[UIMiniChatPaymentSpecTyp]string{
+	0: "SUCCESS",
+	1: "ERROR",
+}
+
+func (e UIMiniChatPaymentSpecTyp) String() string {
+	if v, ok := UIMiniChatPaymentSpecTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UIMiniChatPaymentSpecSuccess struct {
+	Username      string  `codec:"username" json:"username"`
+	XlmAmount     string  `codec:"xlmAmount" json:"xlmAmount"`
+	DisplayAmount *string `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+}
+
+func (o UIMiniChatPaymentSpecSuccess) DeepCopy() UIMiniChatPaymentSpecSuccess {
+	return UIMiniChatPaymentSpecSuccess{
+		Username:  o.Username,
+		XlmAmount: o.XlmAmount,
+		DisplayAmount: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DisplayAmount),
+	}
+}
+
+type UIMiniChatPaymentSpec struct {
+	Typ__     UIMiniChatPaymentSpecTyp      `codec:"typ" json:"typ"`
+	Success__ *UIMiniChatPaymentSpecSuccess `codec:"success,omitempty" json:"success,omitempty"`
+	Error__   *string                       `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o *UIMiniChatPaymentSpec) Typ() (ret UIMiniChatPaymentSpecTyp, err error) {
+	switch o.Typ__ {
+	case UIMiniChatPaymentSpecTyp_SUCCESS:
+		if o.Success__ == nil {
+			err = errors.New("unexpected nil value for Success__")
+			return ret, err
+		}
+	case UIMiniChatPaymentSpecTyp_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o UIMiniChatPaymentSpec) Success() (res UIMiniChatPaymentSpecSuccess) {
+	if o.Typ__ != UIMiniChatPaymentSpecTyp_SUCCESS {
+		panic("wrong case accessed")
+	}
+	if o.Success__ == nil {
+		return
+	}
+	return *o.Success__
+}
+
+func (o UIMiniChatPaymentSpec) Error() (res string) {
+	if o.Typ__ != UIMiniChatPaymentSpecTyp_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return
+	}
+	return *o.Error__
+}
+
+func NewUIMiniChatPaymentSpecWithSuccess(v UIMiniChatPaymentSpecSuccess) UIMiniChatPaymentSpec {
+	return UIMiniChatPaymentSpec{
+		Typ__:     UIMiniChatPaymentSpecTyp_SUCCESS,
+		Success__: &v,
+	}
+}
+
+func NewUIMiniChatPaymentSpecWithError(v string) UIMiniChatPaymentSpec {
+	return UIMiniChatPaymentSpec{
+		Typ__:   UIMiniChatPaymentSpecTyp_ERROR,
+		Error__: &v,
+	}
+}
+
+func (o UIMiniChatPaymentSpec) DeepCopy() UIMiniChatPaymentSpec {
+	return UIMiniChatPaymentSpec{
+		Typ__: o.Typ__.DeepCopy(),
+		Success__: (func(x *UIMiniChatPaymentSpecSuccess) *UIMiniChatPaymentSpecSuccess {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Success__),
+		Error__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error__),
+	}
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -913,6 +1035,15 @@ type ChatConfirmChannelDeleteArg struct {
 	Channel   string `codec:"channel" json:"channel"`
 }
 
+type ChatStellarShowConfirmArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type ChatStellarConfirmDataArg struct {
+	SessionID int                     `codec:"sessionID" json:"sessionID"`
+	Data      []UIMiniChatPaymentSpec `codec:"data" json:"data"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -928,6 +1059,8 @@ type ChatUiInterface interface {
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
+	ChatStellarShowConfirm(context.Context, int) error
+	ChatStellarConfirmData(context.Context, ChatStellarConfirmDataArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1144,6 +1277,36 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatStellarShowConfirm": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatStellarShowConfirmArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatStellarShowConfirmArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatStellarShowConfirmArg)(nil), args)
+						return
+					}
+					err = i.ChatStellarShowConfirm(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"chatStellarConfirmData": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatStellarConfirmDataArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatStellarConfirmDataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatStellarConfirmDataArg)(nil), args)
+						return
+					}
+					err = i.ChatStellarConfirmData(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1221,5 +1384,16 @@ func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearc
 
 func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
+	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatStellarConfirmData(ctx context.Context, __arg ChatStellarConfirmDataArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarConfirmData", []interface{}{__arg}, nil)
 	return
 }
