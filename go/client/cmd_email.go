@@ -11,8 +11,9 @@ import (
 
 func NewCmdEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "email",
-		Usage: "Manage your emails",
+		Name: "email",
+		// No "usage" hides from view
+		// Usage: "Manage your emails",
 		Subcommands: []cli.Command{
 			NewCmdAddEmail(cl, g),
 			NewCmdEditEmail(cl, g),

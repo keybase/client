@@ -437,6 +437,15 @@ type serverTrustUserLookup struct {
 func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
 	defer m.CTrace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), func() error { return res.err })()
 
+	enabled := m.G().FeatureFlags.Enabled(m, FeatureIMPTOFU)
+	if enabled {
+		m.CDebugf("Resolver: phone number and email proofs enabled")
+	} else {
+		m.CDebugf("Resolver: phone number and email proofs disabled")
+		res.err = NewFeatureFlagError("Proof type disabled.", FeatureIMPTOFU)
+		return res
+	}
+
 	key, val, err := au.ToLookup()
 	if err != nil {
 		res.err = err
