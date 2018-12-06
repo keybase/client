@@ -673,6 +673,7 @@ type MiniChatPaymentResult struct {
 // MiniChatPaymentSpec describes the amounts involved in a MiniChatPayment.
 type MiniChatPaymentSpec struct {
 	Username        NormalizedUsername
+	Error           error
 	XLMAmount       string
 	DisplayAmount   string
 	DisplayCurrency string

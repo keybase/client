@@ -301,6 +301,10 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: fmt.Sprintf("Sender account not found")}
 }
 
+func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	return LookupSender(ctx, g, "" /* empty account id returns primary */)
+}
+
 func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
 	entry, ab, err := lookupSenderEntry(ctx, g, accountID)
 	if err != nil {
@@ -606,7 +610,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 // and a total.
 func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
 	// look up sender account
-	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	_, senderAccountBundle, err := LookupSenderPrimary(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return nil, err
 	}
@@ -616,44 +620,61 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		return nil, err
 	}
 
-	// use this once we have a total
 	senderRate, err := walletState.ExchangeRate(mctx.Ctx(), string(senderCurrency.Code))
 	if err != nil {
 		return nil, err
 	}
-	_ = senderRate
+
+	var summary libkb.MiniChatPaymentSummary
 
 	var xlmTotal int64
 	for _, payment := range payments {
-		xlmAmount := payment.Amount
+		spec := libkb.MiniChatPaymentSpec{Username: payment.Username}
+		spec.XLMAmount = payment.Amount
 		if payment.Currency != "" && payment.Currency != "XLM" {
-			displayAmount := payment.Amount
-			displayCurrency := payment.Currency
-			exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+			spec.DisplayAmount = payment.Amount
+			spec.DisplayCurrency = payment.Currency
+			exchangeRate, err := walletState.ExchangeRate(mctx.Ctx(), payment.Currency)
 			if err != nil {
-				return nil, err
+				spec.Error = err
+				summary.Specs = append(summary.Specs, spec)
+				continue
 			}
 
-			xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+			spec.XLMAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
 			if err != nil {
-				return nil, err
+				spec.Error = err
+				summary.Specs = append(summary.Specs, spec)
+				continue
 			}
 		}
 
-		xlmAmountNumeric, err := stellarnet.ParseStellarAmount(xlmAmount)
+		summary.Specs = append(summary.Specs, spec)
+
+		xlmAmountNumeric, err := stellarnet.ParseStellarAmount(spec.XLMAmount)
 		if err != nil {
 			return nil, err
 		}
 		xlmTotal += xlmAmountNumeric
 	}
 
-	xlmTotalStr := stellarnet.StringFromStellarAmount(xlmTotal)
-	displayTotal, err := stellarnet.ConvertXLMToOutside(xlmTotalStr, senderRate)
+	summary.XLMTotal = stellarnet.StringFromStellarAmount(xlmTotal)
+	if senderRate.Currency != "" && senderRate.Currency != "XLM" {
+		outsideAmount, err := stellarnet.ConvertXLMToOutside(summary.XLMTotal, senderRate.Rate)
+		if err != nil {
+			return nil, err
+		}
+		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), outsideAmount, senderRate.Currency, FmtRound)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, errors.New("not implemented")
+	return &summary, nil
 }
 
 // SendMiniChatPayments sends multiple payments from one sender to multiple
@@ -661,7 +682,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 // like "+1XLM@alice +2XLM@charlie".
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
 	// look up sender account
-	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
 	if err != nil {
 		return nil, err
 	}
