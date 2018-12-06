@@ -2223,6 +2223,9 @@ type InitMode interface {
 	// ClientType indicates the type we should advertise to the
 	// Keybase service.
 	ClientType() keybase1.ClientType
+	// LocalHTTPServerEnabled represents whether we should launch an HTTP
+	// server.
+	LocalHTTPServerEnabled() bool
 	// MaxCleanBlockCacheCapacity is the maximum number of bytes to be taken up
 	// by the clean block cache.
 	MaxCleanBlockCacheCapacity() uint64
