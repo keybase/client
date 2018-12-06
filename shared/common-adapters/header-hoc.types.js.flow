@@ -1,6 +1,12 @@
 // @flow
 import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
+type Action = {
+  custom?: ?React.Node,
+  label?: ?string,
+  icon?: ?string,
+  onPress?: ?Function,
+}
 export type Props = {
   title?: string,
   onBack?: ?() => void,
@@ -12,4 +18,5 @@ export type Props = {
   theme?: 'light' | 'dark', // defaults to light
   rightActionLabel?: string,
   onRightAction?: ?() => void,
+  rightActions?: Action[],
 }

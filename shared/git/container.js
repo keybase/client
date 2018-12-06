@@ -55,6 +55,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
     // TODO use unique id
     setRouteState({expandedSet: old.has(id) ? old.delete(id) : old.add(id)})
   },
+  title: 'Git',
 })
 
 export default compose(

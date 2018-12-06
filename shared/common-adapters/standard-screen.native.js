@@ -4,7 +4,7 @@ import type {Props} from './standard-screen'
 import {NativeScrollView} from './native-wrappers.native'
 import Box from './box'
 import Text from './text'
-import HeaderHoc from './header-hoc'
+import HeaderHocHeader from './header-hoc'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
@@ -68,4 +68,4 @@ const styleContentContainer = (isBannerShowing: boolean) => ({
   ...(isBannerShowing ? {marginTop: MIN_BANNER_HEIGHT} : {}),
 })
 
-export default HeaderHoc(StandardScreen)
+export default HeaderHocHeader(StandardScreen)

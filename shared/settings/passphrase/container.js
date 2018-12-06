@@ -29,6 +29,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
     dispatch(SettingsGen.createOnSubmitNewPassphrase())
   },
   onUpdatePGPSettings: () => dispatch(SettingsGen.createOnUpdatePGPSettings()),
+  title: 'Passphrase',
 })
 
 export default compose(

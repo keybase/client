@@ -4,6 +4,7 @@ import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
+import Icon from './icon'
 import * as Styles from '../styles'
 import type {Props} from './header-hoc.types'
 
@@ -15,41 +16,55 @@ export const HeaderHocHeader = ({
   onCancel,
   customCancelText,
   onBack,
-  onRightAction,
-  rightActionLabel,
+  rightActions,
   theme = 'light',
 }: Props) => (
   <Box style={Styles.collapseStyles([styles.header, theme === 'light' ? styles.headerLight : styles.headerDark, headerStyle])}>
     {customComponent}
-    {!!title && (
-      <Box style={styles.titleContainer}>
-        <Text type="BodySmall" style={styles.title}>{title}</Text>
-      </Box>
-    )}
     {onCancel && (
-      <Text type="BodyBigLink" style={styles.button} onClick={onCancel}>
-        {customCancelText || 'Cancel'}
-      </Text>
-    )}
-    {onBack && (
-      <BackButton
-        hideBackLabel={hideBackLabel}
-        iconColor={theme === 'light' ? Styles.globalColors.black_40 : Styles.globalColors.white}
-        style={styles.button}
-        onClick={onBack}
-      />
-    )}
-    {!!rightActionLabel && (
-      <Box style={styles.rightAction}>
-        <Text
-          type="BodyBigLink"
-          style={Styles.collapseStyles([styles.button, {opacity: onRightAction ? 1 : 0.3}])}
-          onClick={onRightAction}
-        >
-          {rightActionLabel}
+      <Box style={styles.leftAction}>
+        <Text type="BodyBigLink" style={styles.action} onClick={onCancel}>
+          {customCancelText || 'Cancel'}
         </Text>
       </Box>
     )}
+    {onBack && (
+      <Box style={styles.leftAction}>
+        <BackButton
+          hideBackLabel={hideBackLabel}
+          iconColor={theme === 'light' ? Styles.globalColors.black_40 : Styles.globalColors.white}
+          style={styles.action}
+          onClick={onBack}
+        />
+      </Box>
+    )}
+    {!!title && (
+      <Box style={styles.titleContainer}>
+        <Text type="BodySmall" style={styles.title} lineClamp={1}>!{title}</Text>
+      </Box>
+    )}
+    <Box style={styles.rightAction}>
+      {rightActions && rightActions.filter(Boolean).slice(0, 2).map((action, item) => {
+        return action.custom
+          ? <Box style={styles.action}>
+            {action.custom}
+            </Box>
+          : action.label
+            ? <Text
+                type="BodyBigLink"
+                style={Styles.collapseStyles([styles.action, {opacity: action.onPress ? 1 : 0.3}])}
+                onClick={action.onPress}
+              >
+                {action.label}
+              </Text>
+            : <Icon
+                fontSize={22}
+                onClick={action.onPress}
+                style={styles.action}
+                type={`iconfont-${action.icon}`}
+              />
+      })}
+    </Box>
   </Box>
 )
 
@@ -69,7 +84,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
 }
 
 const styles = Styles.styleSheetCreate({
-  button: {
+  action: {
     paddingBottom: 8,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
@@ -88,8 +103,7 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: StyleSheet.hairlineWidth,
     justifyContent: 'flex-start',
     minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
-    paddingRight: Styles.globalMargins.small,
-    position: 'relative',
+    width: '100%',
   },
   headerDark: {
     backgroundColor: Styles.globalColors.darkBlue3,
@@ -100,15 +114,17 @@ const styles = Styles.styleSheetCreate({
   innerWrapper: {
     ...Styles.globalStyles.fillAbsolute,
   },
+  leftAction: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
   rightAction: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
-    bottom: 0,
     flex: 1,
     justifyContent: 'flex-end',
-    position: 'absolute', // This is always right-aligned
-    right: 0,
-    top: 0,
   },
   title: {
     ...Styles.globalStyles.fontSemibold,
@@ -117,13 +133,10 @@ const styles = Styles.styleSheetCreate({
   titleContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    bottom: 0,
     flex: 1,
+    flexShrink: 1,
     justifyContent: 'center',
-    left: 0,
-    position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
-    right: 0,
-    top: 0,
+    width: '100%',
   },
   wrapper: {
     flexGrow: 1,

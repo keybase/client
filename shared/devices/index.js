@@ -116,7 +116,7 @@ const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
       centerChildren={true}
     >
       <Kb.Icon type="iconfont-new" color={Styles.globalColors.blue} />
-      <Kb.Text type="BodyBigLink">Add new...</Kb.Text>
+      <Kb.Text type="BodyBigLink">Add new</Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
 )
