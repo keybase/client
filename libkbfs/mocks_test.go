@@ -7571,6 +7571,18 @@ func (mr *MockInitModeMockRecorder) ClientType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientType", reflect.TypeOf((*MockInitMode)(nil).ClientType))
 }
 
+// LocalHTTPServerEnabled mocks base method
+func (m *MockInitMode) LocalHTTPServerEnabled() bool {
+	ret := m.ctrl.Call(m, "LocalHTTPServerEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// LocalHTTPServerEnabled indicates an expected call of LocalHTTPServerEnabled
+func (mr *MockInitModeMockRecorder) LocalHTTPServerEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalHTTPServerEnabled", reflect.TypeOf((*MockInitMode)(nil).LocalHTTPServerEnabled))
+}
+
 // MaxCleanBlockCacheCapacity mocks base method
 func (m *MockInitMode) MaxCleanBlockCacheCapacity() uint64 {
 	ret := m.ctrl.Call(m, "MaxCleanBlockCacheCapacity")
