@@ -1217,6 +1217,27 @@ func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
 	return nil
 }
 
+func (fs *KBFSOpsStandard) initTLFWithoutIdentifyPopups(
+	ctx context.Context, handle *TlfHandle) error {
+	ctx, err := MakeExtendedIdentify(
+		ctx, keybase1.TLFIdentifyBehavior_KBFS_CHAT)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = fs.getMaybeCreateRootNode(ctx, handle, MasterBranch, false)
+	if err != nil {
+		return err
+	}
+
+	// The popups and errors were suppressed, but any errors would
+	// have been logged.  So just close out the extended identify.  If
+	// the user accesses the TLF directly, another proper identify
+	// should happen that shows errors.
+	_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
+	return nil
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) NewNotificationChannel(
@@ -1247,8 +1268,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
 			// Fully initialize the TLF in order to kick off any
 			// necessary prefetches.
-			_, _, err := fs.getMaybeCreateRootNode(
-				ctx, handle, MasterBranch, false)
+			err := fs.initTLFWithoutIdentifyPopups(ctx, handle)
 			if err != nil {
 				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
 			}
@@ -1416,7 +1436,7 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 				h.GetCanonicalPath(), h.tlfID)
 			// Fully initialize the TLF in order to kick off any
 			// necessary prefetches.
-			_, _, err = fs.getMaybeCreateRootNode(ctx, h, MasterBranch, false)
+			err := fs.initTLFWithoutIdentifyPopups(ctx, h)
 			if err != nil {
 				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
 				continue
@@ -1455,8 +1475,7 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 
 		// Getting the root node populates the head of the TLF, which
 		// kicks off any needed sync operations.
-		h := md.GetTlfHandle()
-		_, _, err = fs.getMaybeCreateRootNode(ctx, h, MasterBranch, false)
+		err = fs.initTLFWithoutIdentifyPopups(ctx, md.GetTlfHandle())
 		if err != nil {
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
 			continue
