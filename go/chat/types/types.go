@@ -359,6 +359,15 @@ func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, setting
 
 type DummyStellarSender struct{}
 
-func (d DummyStellarSender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error) {
+func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) []ParsedStellarPayment {
+	return nil
+}
+
+func (d DummyStellarSender) DescribePayments(ctx context.Context, payments []ParsedStellarPayment) (*libkb.MiniChatPaymentSummary, error) {
+	return nil, nil
+}
+
+func (d DummyStellarSender) SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
 	return nil, nil
 }
