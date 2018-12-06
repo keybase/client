@@ -23,7 +23,7 @@ import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKe
 import type {TypedState, Dispatch} from '../util/container'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
-type TypedActions = {type: string, error: boolean, payload: any}
+type TypedActions = {type: any, error: boolean, payload: any}
 
 type IncomingActionCreator = (
   param: Object,

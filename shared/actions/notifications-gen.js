@@ -31,11 +31,11 @@ export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) =>
 export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload) => ({payload, type: setBadgeCounts})
 
 // Action Payloads
-export type BadgeAppPayload = $Call<typeof createBadgeApp, _BadgeAppPayload>
-export type ListenForKBFSNotificationsPayload = $Call<typeof createListenForKBFSNotifications, _ListenForKBFSNotificationsPayload>
-export type ListenForNotificationsPayload = $Call<typeof createListenForNotifications, _ListenForNotificationsPayload>
-export type ReceivedBadgeStatePayload = $Call<typeof createReceivedBadgeState, _ReceivedBadgeStatePayload>
-export type SetBadgeCountsPayload = $Call<typeof createSetBadgeCounts, _SetBadgeCountsPayload>
+export type BadgeAppPayload = {|+payload: _BadgeAppPayload, +type: 'notifications:badgeApp'|}
+export type ListenForKBFSNotificationsPayload = {|+payload: _ListenForKBFSNotificationsPayload, +type: 'notifications:listenForKBFSNotifications'|}
+export type ListenForNotificationsPayload = {|+payload: _ListenForNotificationsPayload, +type: 'notifications:listenForNotifications'|}
+export type ReceivedBadgeStatePayload = {|+payload: _ReceivedBadgeStatePayload, +type: 'notifications:receivedBadgeState'|}
+export type SetBadgeCountsPayload = {|+payload: _SetBadgeCountsPayload, +type: 'notifications:setBadgeCounts'|}
 
 // All Actions
 // prettier-ignore
