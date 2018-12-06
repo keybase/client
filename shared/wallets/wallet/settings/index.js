@@ -26,10 +26,8 @@ export type SettingsProps = {|
 
 const HoverText = Styles.isMobile
   ? Kb.Text
-  : Styles.glamorous(Kb.Text)({
-      ':hover': {
-        backgroundColor: Styles.globalColors.yellow3,
-      },
+  : Styles.styled(Kb.Text)({
+      ':hover': {backgroundColor: Styles.globalColors.yellow3},
     })
 
 const AccountSettings = (props: SettingsProps) => {

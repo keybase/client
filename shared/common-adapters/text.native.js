@@ -2,14 +2,13 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import {glamorous} from '../styles'
+import * as Styled from '../styles'
 import shallowEqual from 'shallowequal'
 import {Alert, StyleSheet} from 'react-native'
 import {NativeClipboard} from './native-wrappers.native'
-
 import type {Props, TextType, Background} from './text'
 
-const StyledText = glamorous.text({}, props => props.style)
+const StyledText = Styled.styled.text({}, props => props.style)
 
 const backgroundModes = [
   'Normal',
