@@ -4407,7 +4407,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		}
 
 		// create a new channel with a MinWriterRole set to ADMIN and ensure
-		// new users can join
+		// new users can join/leave
 		topicName := "zjoinonsend"
 		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 			chat1.NewConversationLocalArg{
@@ -4441,6 +4441,10 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_JOIN)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(tc2.startCtx, channelID)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_LEAVE)
 	})
 }
 
