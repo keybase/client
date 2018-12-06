@@ -109,7 +109,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             direction="vertical"
             fullWidth={true}
             style={styles.contentUnderAuthorContainer}
-            gap="tiny"
           >
             {children}
           </Kb.Box2>
@@ -205,7 +204,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _containerProps = () => {
     if (Styles.isMobile) {
-      const props = {style: this.props.showUsername ? null : styles.containerNoUsername}
+      const props = {
+        style: this.props.showUsername ? null : styles.containerNoUsername,
+      }
       return this.props.decorate
         ? {
             ...props,
@@ -460,6 +461,7 @@ const fast = {backgroundColor: Styles.globalColors.fastBlank}
 const styles = Styles.styleSheetCreate({
   authorContainer: Styles.platformStyles({
     common: {
+      alignItems: 'flex-start',
       alignSelf: 'flex-start',
       height: Styles.globalMargins.mediumLarge,
     },
@@ -521,19 +523,16 @@ const styles = Styles.styleSheetCreate({
     isMobile: {height: 21},
   }),
   menuButtonsWithAuthor: {marginTop: -16},
-  orangeLine: Styles.platformStyles({
-    common: {
-      // don't push down content due to orange line
-      backgroundColor: Styles.globalColors.orange,
-      flexShrink: 0,
-      height: 1,
-      left: 0,
-      position: 'absolute',
-      right: 0,
-    },
-    isElectron: {top: 0},
-    isMobile: {top: -2},
-  }),
+  orangeLine: {
+    // don't push down content due to orange line
+    backgroundColor: Styles.globalColors.orange,
+    flexShrink: 0,
+    height: Styles.hairlineWidth,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
   }),
