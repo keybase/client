@@ -241,8 +241,8 @@ func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch,
-		subdir, uniqID, priority, true, readwrite)
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, true,
+		readwrite)
 }
 
 // NewReadonlyFS returns a new FS instance, chroot'd to the given TLF
@@ -260,8 +260,8 @@ func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch,
-		subdir, uniqID, priority, false, readonly)
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
+		readonly)
 }
 
 // NewFSIfExists returns a new FS instance, chroot'd to the given TLF
@@ -279,8 +279,8 @@ func NewFSIfExists(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch,
-		subdir, uniqID, priority, false, readwriteNoCreate)
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
+		readwriteNoCreate)
 }
 
 // NewFS returns a new FS instance, chroot'd to the given TLF and
@@ -293,8 +293,8 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
-		ctx, config, tlfHandle, branch,
-		subdir, uniqID, priority, false, readwrite)
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
+		readwrite)
 }
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a

@@ -2374,7 +2374,6 @@ func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
 		if err != nil {
 			return nil, err
 		}
-		fbo.log.CDebugf(ctx, "Got children using an FS")
 		children = make(map[string]EntryInfo, len(fis))
 		for _, fi := range fis {
 			name := fi.Name()

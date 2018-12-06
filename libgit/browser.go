@@ -234,19 +234,23 @@ func (b *Browser) Join(elem ...string) string {
 	return path.Clean(path.Join(elem...))
 }
 
+func (b *Browser) getCachedDirChildren(p string) (fis []os.FileInfo, ok bool) {
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	fis, ok = b.dirChildrenCache[p]
+	return fis, ok
+}
+
 // ReadDir implements the billy.Filesystem interface for Browser.
 func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 	if p == "" {
 		p = "."
 	}
 
-	b.lock.RLock()
-	defer b.lock.RUnlock()
-	if fis, ok := b.dirChildrenCache[p]; ok {
+	if fis, ok := b.getCachedDirChildren(p); ok {
 		return fis, nil
 	}
-	b.lock.RUnlock()
-	defer b.lock.RLock()
+
 	b.lock.Lock()
 	defer b.lock.Unlock()
 

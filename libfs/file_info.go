@@ -166,7 +166,7 @@ func (fi *FileInfo) Sys() interface{} {
 }
 
 // FileInfoFast always returns a returns a read-only mode, and doesn't populate
-// LastWriterUnverified. This allows use to avoid doing a Lookup on the entry,
+// LastWriterUnverified. This allows us to avoid doing a Lookup on the entry,
 // which makes a big difference in ReadDir.
 type FileInfoFast struct {
 	ei   libkbfs.EntryInfo
