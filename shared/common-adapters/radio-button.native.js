@@ -2,8 +2,7 @@
 import React from 'react'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import glamorous from 'glamorous-native'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, glamorous} from '../styles'
 
 import type {Props} from './radio-button'
 

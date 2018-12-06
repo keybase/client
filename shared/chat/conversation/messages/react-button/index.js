@@ -31,12 +31,11 @@ export type Props = {|
 
 let bounceIn, bounceOut
 if (!Styles.isMobile) {
-  const glamor = require('glamor')
-  bounceIn = glamor.css.keyframes({
+  bounceIn = Styles.styledKeyframes({
     from: {transform: 'translateX(-30px)'},
     to: {transform: 'translateX(-8px)'},
   })
-  bounceOut = glamor.css.keyframes({
+  bounceOut = Styles.styledKeyframes({
     from: {transform: 'translateX(-8px)'},
     to: {transform: 'translateX(22px)'},
   })
@@ -218,23 +217,22 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             ))
           )}
         </Box2>
-        {this.state.showingPicker &&
-          !Styles.isMobile && (
-            <FloatingBox
-              attachTo={this.props.getAttachmentRef}
-              containerStyle={styles.emojiContainer}
-              position="top right"
-              onHidden={() => this._setShowingPicker(false)}
-            >
-              <Picker
-                autoFocus={true}
-                emoji="star-struck"
-                title="reacjibase"
-                onClick={this._onAddReaction}
-                backgroundImageFn={backgroundImageFn}
-              />
-            </FloatingBox>
-          )}
+        {this.state.showingPicker && !Styles.isMobile && (
+          <FloatingBox
+            attachTo={this.props.getAttachmentRef}
+            containerStyle={styles.emojiContainer}
+            position="top right"
+            onHidden={() => this._setShowingPicker(false)}
+          >
+            <Picker
+              autoFocus={true}
+              emoji="star-struck"
+              title="reacjibase"
+              onClick={this._onAddReaction}
+              backgroundImageFn={backgroundImageFn}
+            />
+          </FloatingBox>
+        )}
       </ButtonBox>
     )
   }

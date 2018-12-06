@@ -149,7 +149,9 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
-export {default as glamorous} from 'glamorous'
+export {default as glamorous} from '@emotion/styled'
+export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
+export {default as styled} from '@emotion/styled'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4

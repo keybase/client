@@ -62,9 +62,12 @@ declare export var windowStyle: {
   height: number,
 }
 
-declare export function glamorous(
-  Component: any // React.ComponentType<P>
-): (...styles: Array<any>) => any // React.Component<P>
+declare export function styled<T>(
+  Component: T
+): (...styles: Array<CSS.StylesCrossPlatform | (any => CSS.StylesCrossPlatform)>) => T
+
+declare export var styledCss: any // TODO better type
+declare export var styledKeyframes: any // TODO better type
 
 declare export var isAndroid: boolean
 declare export var isIOS: boolean
