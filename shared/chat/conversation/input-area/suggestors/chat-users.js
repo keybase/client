@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import type {TypedState} from '../../../../util/container'
 import type {Suggestor} from './interface'
 
@@ -14,7 +15,19 @@ const ChatUsers: Suggestor = {
       meta.participants.filter(uname => uname !== you && uname.includes(filter)).toArray()
   },
   marker: '@',
-  render: username => <Kb.NameWithIcon horizontal={true} username={username} />,
+  render: username => (
+    <Kb.NameWithIcon
+      containerStyle={{
+        backgroundColor: Styles.globalColors.white,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny + Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      }}
+      horizontal={true}
+      username={username}
+    />
+  ),
   transform: input => input, // TODO
 }
 

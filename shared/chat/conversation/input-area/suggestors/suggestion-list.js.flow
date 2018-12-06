@@ -1,0 +1,11 @@
+// @flow
+import * as React from 'react'
+import * as Styles from '../../../../styles'
+
+export type Props = {
+  items: Array<string>,
+  renderItem: (i: string) => React.Node,
+  style?: Styles.StylesCrossPlatform,
+}
+
+export default class extends React.Component<Props> {}

@@ -5,6 +5,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {invert} from 'lodash-es'
 import ChatUsers from './chat-users'
+import SuggestionList from './suggestion-list'
 import type {Suggestor} from './interface'
 
 const lg = (...args) => console.log('DANNYDEBUG', ...args)
@@ -22,7 +23,7 @@ type OwnProps = {
 
 type SuggestorProps = {
   dataSources: {
-    [key: string]: (filter: string) => Array<any>, // TODO
+    [key: string]: (filter: string) => Array<any>, // typing TODO
   },
   renderers: {
     [key: string]: (item: any) => React.Node,
@@ -113,12 +114,9 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
             >
               <Kb.Box2
                 direction="vertical"
-                style={{backgroundColor: Styles.globalColors.white, height: 320, width: 320}}
+                style={{backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320}}
               >
-                <Kb.List
-                  items={results}
-                  renderItem={(index, item) => this.props.renderers[this.state.active](item)}
-                />
+                <SuggestionList items={results} renderItem={this.props.renderers[this.state.active]} />
               </Kb.Box2>
             </Kb.Overlay>
           )
