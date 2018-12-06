@@ -442,7 +442,7 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 		m.CDebugf("Resolver: phone number and email proofs enabled")
 	} else {
 		m.CDebugf("Resolver: phone number and email proofs disabled")
-		res.err = NewFeatureFlagError("Proof type disabled.", FeatureIMPTOFU)
+		res.err = ResolutionError{Input: input, Msg: "Proof type disabled.", Kind: ResolutionErrorGeneral}
 		return res
 	}
 
