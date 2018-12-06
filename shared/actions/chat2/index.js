@@ -222,7 +222,7 @@ const unboxRows = (
       default:
         logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
         return Saga.callUntyped(function*() {
-          const state: TypedState = yield Saga.select()
+          const state = yield* Saga.selectState()
           yield Saga.put(
             Chat2Gen.createMetaReceivedError({
               conversationIDKey: conversationIDKey,
@@ -1834,7 +1834,7 @@ function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
@@ -2137,7 +2137,7 @@ const mobileChangeSelection = (_: any, state: TypedState) => {
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
   const {conversationIDKey, ordinal} = action.payload
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
@@ -2153,7 +2153,7 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
 // Native save to camera roll
 function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
   const {conversationIDKey, ordinal} = action.payload
-  let state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')

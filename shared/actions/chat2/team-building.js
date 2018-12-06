@@ -75,7 +75,7 @@ const searchResultCounts = (state: TypedState) => {
         while (true) {
           const service = yield Saga.take(serviceChannel)
           // if we aren't in the same query, let's stop
-          if (!isStillInSameQuery(yield Saga.select())) {
+          if (!isStillInSameQuery(yield* Saga.selectState())) {
             break
           }
           const action = yield apiSearch(

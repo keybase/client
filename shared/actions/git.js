@@ -153,7 +153,7 @@ const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepo
     if (!id) {
       yield Saga.put(GitGen.createLoadGit())
       yield Saga.take(GitGen.loaded)
-      const nextState = yield Saga.select()
+      const nextState = yield* Saga.selectState()
       id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
     }
 

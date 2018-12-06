@@ -152,6 +152,11 @@ function* callPromise<Args, T>(fn: (...args: Args) => Promise<T>, ...args: Args)
   return yield Effects.call(fn, ...args)
 }
 
+function* selectState(): Generator<any, TypedState, any> {
+  const state: TypedState = yield Effects.select()
+  return state
+}
+
 export type {Effect, PutEffect, Channel} from 'redux-saga'
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
@@ -162,8 +167,6 @@ export {
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,
-  // TODO deprecate
-  select,
   select as selectUntyped,
   spawn,
   take,
@@ -172,4 +175,13 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {put, safeTakeEvery, safeTakeEveryPure, actionToPromise, actionToAction, sequentially, callPromise}
+export {
+  selectState,
+  put,
+  safeTakeEvery,
+  safeTakeEveryPure,
+  actionToPromise,
+  actionToAction,
+  sequentially,
+  callPromise,
+}

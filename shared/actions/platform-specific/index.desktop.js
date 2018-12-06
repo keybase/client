@@ -192,7 +192,7 @@ const setupEngineListeners = () => {
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) =>
       Saga.callUntyped(function*() {
-        const state = yield Saga.select()
+        const state = yield* Saga.selectState()
         kbfsNotification(notification, NotifyPopup, state)
       }),
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {

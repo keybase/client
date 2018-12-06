@@ -167,8 +167,8 @@ function* folderList(
 
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
-    const state = yield Saga.select()
-    const {lastModifiedTimestamp, lastWriter, size, writable}: Types.FolderPathItem = state.fs.pathItems.get(
+    const state = yield* Saga.selectState()
+    const {lastModifiedTimestamp, lastWriter, size, writable} = state.fs.pathItems.get(
       rootPath,
       Constants.makeFolder({name: Types.getPathName(rootPath)})
     )
@@ -530,7 +530,7 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     mimeTypeRefreshTags.set(refreshTag, path)
   }
 
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   let localHTTPServerInfo = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
   // This should finish within 2 iterations at most. But just in case we bound
   // it at 3.

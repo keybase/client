@@ -18,7 +18,7 @@ const _registerZcash = () =>
   RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
 
 function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const sigID = state.profile.sigID
   if (!sigID) {
     return
@@ -145,7 +145,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
       yield Saga.put(ProfileGen.createCleanupUsername())
       if (_promptUsernameResponse) {
         yield Saga.put(ProfileGen.createUpdateErrorText({}))
-        const state: TypedState = yield Saga.select()
+        const state = yield* Saga.selectState()
         const username = state.profile.username
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
@@ -236,7 +236,7 @@ function* _submitCryptoAddress(
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ): Saga.SagaGenerator<any, any> {
   yield Saga.put(ProfileGen.createCleanupUsername())
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const address = state.profile.username
 
   let wantedFamily
