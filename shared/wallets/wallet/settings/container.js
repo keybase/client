@@ -60,8 +60,11 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
         },
       ])
     ),
-  _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
-    dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
+  _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) => {
+    dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code}))
+    // Refresh the display amounts
+    dispatch(WalletsGen.createSelectAccount({accountID, show: false}))
+  },
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
