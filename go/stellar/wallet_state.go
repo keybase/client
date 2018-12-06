@@ -77,7 +77,7 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 	}
 
 	a = newAccountState(accountID, w.Remoter)
-	if err := a.Refresh(ctx); err != nil {
+	if err := a.Refresh(ctx, w.G().NotifyRouter); err != nil {
 		w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", accountID, err)
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (w *WalletState) RefreshAll(ctx context.Context) error {
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
 		w.G().Log.CDebugf(ctx, "Refresh %s", account.AccountID)
-		if err := a.Refresh(ctx); err != nil {
+		if err := a.Refresh(ctx, w.G().NotifyRouter); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
 		}
@@ -121,7 +121,7 @@ func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID)
 	if !ok {
 		return ErrAccountNotFound
 	}
-	return a.Refresh(ctx)
+	return a.Refresh(ctx, w.G().NotifyRouter)
 }
 
 // AccountSeqno is an override of remoter's AccountSeqno that uses
@@ -293,7 +293,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountSta
 }
 
 // Refresh updates all the data for this account from the server.
-func (a *AccountState) Refresh(ctx context.Context) error {
+func (a *AccountState) Refresh(ctx context.Context, router *libkb.NotifyRouter) error {
 	seqno, err := a.remoter.AccountSeqno(ctx, a.accountID)
 	if err == nil {
 		a.Lock()
@@ -319,9 +319,27 @@ func (a *AccountState) Refresh(ctx context.Context) error {
 
 	pending, err := a.remoter.PendingPayments(ctx, a.accountID, 25)
 	if err == nil {
+		notify := false
 		a.Lock()
+		if len(a.pending) != len(pending) {
+			notify = true
+		} else if len(a.pending) > 0 {
+			existing, err := a.pending[0].TransactionID()
+			if err == nil {
+				next, err := pending[0].TransactionID()
+				if err == nil {
+					if existing != next {
+						notify = true
+					}
+				}
+			}
+		}
 		a.pending = pending
 		a.Unlock()
+
+		if notify && router != nil {
+			router.HandleWalletPendingPaymentsUpdate(ctx, a.accountID, pending)
+		}
 	}
 
 	recent, err := a.remoter.RecentPayments(ctx, a.accountID, nil, 50, true)
