@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Box, Box2, Icon, Meta, Text} from '../../common-adapters'
@@ -23,10 +24,7 @@ const getDownloadingText = (intent: Types.DownloadIntent) => {
     case 'share':
       return 'Preparing to send to other app ...'
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (intent: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return ''
   }
 }

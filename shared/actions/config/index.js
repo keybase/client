@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
+import * as Flow from '../../util/flow'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
@@ -119,10 +120,7 @@ const loadDaemonBootstrapStatus = (
     case ConfigGen.loggedOut:
       return makeCall
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return undefined
   }
 }

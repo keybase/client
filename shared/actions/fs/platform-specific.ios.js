@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import * as Flow from '../../util/flow'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
 import {type TypedState} from '../../util/container'
@@ -28,10 +29,7 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
     case 'none':
       return null
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return null
   }
 }

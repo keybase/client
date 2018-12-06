@@ -3,6 +3,7 @@ import * as UsersGen from '../actions/users-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 const blankUserInfo = Constants.makeUserInfo()
@@ -46,10 +47,7 @@ const reducer = (
     }
     // Saga only actions
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

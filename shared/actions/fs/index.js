@@ -5,6 +5,7 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as Flow from '../../util/flow'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
@@ -254,10 +255,7 @@ function* download(
       // TODO
       return
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
       break
   }
@@ -601,10 +599,7 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
         .catch(makeRetriableErrorHandler(action))
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return new Promise(resolve => resolve())
   }
 }
