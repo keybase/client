@@ -18,7 +18,7 @@ func TestFindCandidates(t *testing.T) {
 	alfaTx := ChatTxCandidate{Amount: "124.005", CurrencyCode: "XLM", Username: &alfa, Full: "+124.005XLM@alfa"}
 	bravoTx := ChatTxCandidate{Amount: ".005", CurrencyCode: "USD", Username: &bravo, Full: "+.005USD@bravo"}
 	charlieTx := ChatTxCandidate{Amount: "5.", CurrencyCode: "HKD", Username: &charlie, Full: "+5.HKD@charlie"}
-	anonTx := ChatTxCandidate{Amount: "25", CurrencyCode: "eur", Username: nil, Full: "+25eur"}
+	anonTx := ChatTxCandidate{Amount: "25", CurrencyCode: "EUR", Username: nil, Full: "+25eur"}
 	testCases := []candidateTestCase{
 		candidateTestCase{"+124.005XLM@alfa", []ChatTxCandidate{alfaTx}},
 		candidateTestCase{"   +124.005XLM@alfa   ", []ChatTxCandidate{alfaTx}},
