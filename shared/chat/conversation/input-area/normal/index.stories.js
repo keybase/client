@@ -81,6 +81,7 @@ const boxProps = {
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
     clearInboxFilter: Sb.action('clearInboxFilter'),
+    clearUnsentText: false,
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
     editText: '',
     explodingModeSeconds: props.explodingModeSeconds,

@@ -25,27 +25,6 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const textHasGiphySearch = (text: string) => {
-  return text.indexOf('!giphy ') === 0
-}
-
-const handleGiphySearch = (
-  doSearch: (Types.ConversationIDKey, ?string) => void,
-  doDismiss: Types.ConversationIDKey => void,
-  conversationIDKey: Types.ConversationIDKey,
-  text: string,
-  showingGiphySearch: boolean
-) => {
-  if (showingGiphySearch && !textHasGiphySearch(text)) {
-    doDismiss(conversationIDKey)
-  } else if (textHasGiphySearch(text)) {
-    const terms = text.split(' ')
-    terms.shift()
-    const query = terms.join(' ')
-    doSearch(conversationIDKey, query.length > 0 ? query : null)
-  }
-}
-
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
@@ -59,6 +38,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
     _you,
+    clearUnsentText: state.chat2.clearedUnsentTextMap.get(conversationIDKey) || false,
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
@@ -68,8 +48,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
+    showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey) || false,
     typing: Constants.getTyping(state, conversationIDKey),
-    showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey),
   }
 }
 
@@ -105,25 +85,26 @@ const mapDispatchToProps = dispatch => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
+  _onTextChanged: debounce(
+    (conversationIDKey: Types.ConversationIDKey, text: string) =>
+      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
+    500
+  ),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
+  _undoClearText: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createClearUnsentText({clear: false, conversationIDKey})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
-  onGiphySearch: debounce(
-    (conversationIDKey: Types.ConversationIDKey, query: ?string) =>
-      dispatch(Chat2Gen.createGiphyRunSearch({conversationIDKey, query})),
-    500
-  ),
-  onGiphyDismiss: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createGiphyDismiss({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   clearInboxFilter: dispatchProps.clearInboxFilter,
+  clearUnsentText: stateProps.clearUnsentText,
   conversationIDKey: stateProps.conversationIDKey,
   editText: stateProps.editText,
   explodingModeSeconds: stateProps.explodingModeSeconds,
@@ -157,14 +138,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
-    handleGiphySearch(
-      dispatchProps.onGiphySearch,
-      dispatchProps.onGiphyDismiss,
-      stateProps.conversationIDKey,
-      text,
-      stateProps.showingGiphySearch
-    )
+    if (!unset && stateProps.clearUnsentText) {
+      dispatchProps._undoClearText(stateProps.conversationIDKey)
+    }
     setUnsentText(stateProps.conversationIDKey, text)
+    dispatchProps._onTextChanged(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
   typing: stateProps.typing,

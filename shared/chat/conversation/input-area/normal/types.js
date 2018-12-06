@@ -26,6 +26,7 @@ type CommonProps = {|
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
   typing: I.Set<string>,
+  clearUnsentText: boolean,
 |}
 
 type InputProps = {|

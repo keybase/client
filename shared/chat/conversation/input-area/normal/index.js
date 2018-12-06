@@ -98,6 +98,11 @@ class Input extends React.Component<InputProps> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
     }
+
+    // If we are force clearing text, then blast it away here
+    if (this.props.clearUnsentText) {
+      this._setText('', true)
+    }
   }
 
   render = () => {

@@ -1,5 +1,5 @@
 // @flow
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
@@ -11,11 +11,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const previews = (state.chat2.giphyResultMap.getIn([conversationIDKey]) || []).map(r => {
     return {
-      targetUrl: r.targetUrl,
-      previewUrl: r.previewUrl,
-      previewWidth: r.previewWidth,
       previewHeight: r.previewHeight,
       previewIsVideo: r.previewIsVideo,
+      previewUrl: r.previewUrl,
+      previewWidth: r.previewWidth,
+      targetUrl: r.targetUrl,
     }
   })
   return {

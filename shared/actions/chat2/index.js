@@ -2662,19 +2662,45 @@ const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePr
   })
 }
 
-const giphyRunSearch = (state: TypedState, action: Chat2Gen.GiphyRunSearchPayload) => {
-  const {conversationIDKey, query} = action.payload
-  return RPCChatTypes.localGiphySearchRpcPromise({query})
-    .then((result: Array<RPCChatTypes.GiphySearchResult>) =>
-      Chat2Gen.createGiphyGotSearchResult({conversationIDKey, result})
+const textHasGiphySearch = (text: string) => {
+  return text.indexOf('!giphy ') === 0
+}
+
+const giphyRunSearch = (state: TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
+  const {conversationIDKey} = action.payload
+  const text = action.payload.text.stringValue()
+  const showingGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey)
+  if (showingGiphySearch && !textHasGiphySearch(text)) {
+    return Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: false}))
+  } else if (textHasGiphySearch(text)) {
+    const actions = []
+    if (!showingGiphySearch) {
+      actions.push(Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: true})))
+    }
+    const terms = text.split(' ')
+    terms.shift()
+    const query = terms.join(' ')
+    actions.push(
+      Saga.call(function*() {
+        try {
+          const result = yield RPCChatTypes.localGiphySearchRpcPromise({
+            query: query.length > 0 ? query : null,
+          })
+          yield Saga.put(Chat2Gen.createGiphyGotSearchResult({conversationIDKey, result}))
+        } catch (e) {
+          logger.info(`Giphy search failed: ${JSON.stringify(e)}`)
+        }
+      })
     )
-    .catch(() => {})
+    return Saga.sequentially(actions)
+  }
 }
 
 const giphySend = (state: TypedState, action: Chat2Gen.GiphySendPayload) => {
   const {conversationIDKey, url} = action.payload
   return Saga.sequentially([
-    Saga.put(Chat2Gen.createGiphyDismiss({conversationIDKey})),
+    Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: false})),
+    Saga.put(Chat2Gen.createClearUnsentText({clear: true, conversationIDKey})),
     Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text: url})),
   ])
 }
@@ -2849,7 +2875,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   // Giphy
-  yield Saga.actionToPromise(Chat2Gen.giphyRunSearch, giphyRunSearch)
+  yield Saga.actionToAction(Chat2Gen.unsentTextChanged, giphyRunSearch)
   yield Saga.actionToAction(Chat2Gen.giphySend, giphySend)
 
   yield Saga.safeTakeEveryPure(

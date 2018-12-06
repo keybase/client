@@ -27,13 +27,13 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
+export const clearUnsentText = 'chat2:clearUnsentText'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const filePickerError = 'chat2:filePickerError'
-export const giphyDismiss = 'chat2:giphyDismiss'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
-export const giphyRunSearch = 'chat2:giphyRunSearch'
 export const giphySend = 'chat2:giphySend'
+export const giphyToggle = 'chat2:giphyToggle'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -100,6 +100,7 @@ export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
+export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -124,13 +125,13 @@ type _AttachmentUploadingPayload = $ReadOnly<{|conversationIDKey: Types.Conversa
 type _AttachmentsUploadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, paths: Array<Types.PathAndOutboxID>, titles: Array<string>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
 type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, reportUser: boolean|}>
+type _ClearUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, clear: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
 type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
-type _GiphyDismissPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, result: Array<RPCChatTypes.GiphySearchResult>|}>
-type _GiphyRunSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: ?string|}>
 type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
+type _GiphyTogglePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, show: boolean|}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
@@ -200,6 +201,7 @@ type _ToggleSmallTeamsExpandedPayload = void
 type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
+type _UnsentTextChangedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
@@ -218,6 +220,10 @@ export const createCreateConversation = (payload: _CreateConversationPayload) =>
  * Add an unfurl prompt to a message
  */
 export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
+/**
+ * Clear unsent text for a conv
+ */
+export const createClearUnsentText = (payload: _ClearUnsentTextPayload) => ({payload, type: clearUnsentText})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -303,6 +309,10 @@ export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) 
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
 /**
+ * Unsent text changed
+ */
+export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload) => ({payload, type: unsentTextChanged})
+/**
  * Update messages that we might have in the store
  */
 export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({payload, type: updateMessages})
@@ -325,11 +335,7 @@ export const createSetPendingConversationExistingConversationIDKey = (payload: _
 /**
  * dismiss Giphy search
  */
-export const createGiphyDismiss = (payload: _GiphyDismissPayload) => ({payload, type: giphyDismiss})
-/**
- * enable the Giphy search pane
- */
-export const createGiphyRunSearch = (payload: _GiphyRunSearchPayload) => ({payload, type: giphyRunSearch})
+export const createGiphyToggle = (payload: _GiphyTogglePayload) => ({payload, type: giphyToggle})
 /**
  * send a message from Giphy search
  */
@@ -414,13 +420,13 @@ export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading,
 export type AttachmentsUploadPayload = $Call<typeof createAttachmentsUpload, _AttachmentsUploadPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BlockConversationPayload = $Call<typeof createBlockConversation, _BlockConversationPayload>
+export type ClearUnsentTextPayload = $Call<typeof createClearUnsentText, _ClearUnsentTextPayload>
 export type CreateConversationPayload = $Call<typeof createCreateConversation, _CreateConversationPayload>
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type FilePickerErrorPayload = $Call<typeof createFilePickerError, _FilePickerErrorPayload>
-export type GiphyDismissPayload = $Call<typeof createGiphyDismiss, _GiphyDismissPayload>
 export type GiphyGotSearchResultPayload = $Call<typeof createGiphyGotSearchResult, _GiphyGotSearchResultPayload>
-export type GiphyRunSearchPayload = $Call<typeof createGiphyRunSearch, _GiphyRunSearchPayload>
 export type GiphySendPayload = $Call<typeof createGiphySend, _GiphySendPayload>
+export type GiphyTogglePayload = $Call<typeof createGiphyToggle, _GiphyTogglePayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
 export type HandleSeeingWalletsPayload = $Call<typeof createHandleSeeingWallets, _HandleSeeingWalletsPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
@@ -487,6 +493,7 @@ export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeam
 export type UnfurlRemovePayload = $Call<typeof createUnfurlRemove, _UnfurlRemovePayload>
 export type UnfurlResolvePromptPayload = $Call<typeof createUnfurlResolvePrompt, _UnfurlResolvePromptPayload>
 export type UnfurlTogglePromptPayload = $Call<typeof createUnfurlTogglePrompt, _UnfurlTogglePromptPayload>
+export type UnsentTextChangedPayload = $Call<typeof createUnsentTextChanged, _UnsentTextChangedPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMessagesPayload = $Call<typeof createUpdateMessages, _UpdateMessagesPayload>
@@ -513,13 +520,13 @@ export type Actions =
   | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
+  | ClearUnsentTextPayload
   | CreateConversationPayload
   | DesktopNotificationPayload
   | FilePickerErrorPayload
-  | GiphyDismissPayload
   | GiphyGotSearchResultPayload
-  | GiphyRunSearchPayload
   | GiphySendPayload
+  | GiphyTogglePayload
   | HandleSeeingExplodingMessagesPayload
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload
@@ -586,6 +593,7 @@ export type Actions =
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
+  | UnsentTextChangedPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload

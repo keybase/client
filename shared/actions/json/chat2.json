@@ -514,14 +514,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     },
-    "giphyRunSearch": {
-      "_description": "enable the Giphy search pane",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "query": "?string"
-    },
-    "giphyDismiss": {
+    "giphyToggle": {
       "_description": "dismiss Giphy search",
-      "conversationIDKey": "Types.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "show": "boolean"
     },
     "giphySend": {
       "_description": "send a message from Giphy search",
@@ -532,6 +528,16 @@
       "_description": "Giphy search results obtained",
       "conversationIDKey": "Types.ConversationIDKey",
       "result": "Array<RPCChatTypes.GiphySearchResult>"
+    },
+    "clearUnsentText": {
+      "_description": "Clear unsent text for a conv",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "clear": "boolean"
+    },
+    "unsentTextChanged": {
+      "_description": "Unsent text changed",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
     }
   }
 }

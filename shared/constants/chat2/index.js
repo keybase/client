@@ -22,9 +22,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
+  clearedUnsentTextMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  giphyResultMap: I.Map(),
+  giphySearchMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
   isExplodingNew: true,
@@ -45,9 +48,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   staticConfig: null,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
-  giphyResultMap: I.Map(),
-  giphySearchMap: I.Map(),
-  attachmentFullscreenMessage: null,
   unreadMap: I.Map(),
 
   // Team Building

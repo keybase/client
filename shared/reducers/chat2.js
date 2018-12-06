@@ -407,10 +407,8 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
-    case Chat2Gen.giphyDismiss:
-      return state.setIn(['giphySearchMap', action.payload.conversationIDKey], false)
-    case Chat2Gen.giphyRunSearch:
-      return state.setIn(['giphySearchMap', action.payload.conversationIDKey], true)
+    case Chat2Gen.giphyToggle:
+      return state.setIn(['giphySearchMap', action.payload.conversationIDKey], action.payload.show)
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.result)
     case Chat2Gen.setInboxFilter:
@@ -872,6 +870,8 @@ const rootReducer = (
       return state.set('isExplodingNew', action.payload.new)
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
+    case Chat2Gen.clearUnsentText:
+      return state.setIn(['clearedUnsentTextMap', action.payload.conversationIDKey], action.payload.clear)
     case Chat2Gen.metasReceived: {
       const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
       return nextState.withMutations(s => {
@@ -991,6 +991,7 @@ const rootReducer = (
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
     case Chat2Gen.giphySend:
+    case Chat2Gen.unsentTextChanged:
       return state
     default:
       /*::

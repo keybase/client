@@ -63,6 +63,7 @@ export type _State = {
   unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>,
   giphyResultMap: I.Map<Common.ConversationIDKey, Array<RPCChatTypes.GiphySearchResult>>,
   giphySearchMap: I.Map<Common.ConversationIDKey, boolean>,
+  clearedUnsentTextMap: I.Map<Common.ConversationIDKey, boolean>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
