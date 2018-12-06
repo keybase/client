@@ -341,3 +341,9 @@ func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.
 func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
 	return nil
 }
+
+type DummyStellarSender struct{}
+
+func (d DummyStellarSender) ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error) {
+	return nil, nil
+}
