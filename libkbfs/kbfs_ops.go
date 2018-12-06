@@ -1245,13 +1245,13 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 				handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-			ops := fs.getOpsByHandle(
-				ctx, handle, FolderBranch{handle.tlfID, MasterBranch},
-				FavoritesOpNoChange)
-			// Don't initialize the entire TLF, because we don't want
-			// to run identifies on it.  Instead, just start the
-			// chat-monitoring part.
-			ops.startMonitorChat(handle.GetCanonicalName())
+			// Fully initialize the TLF in order to kick off any
+			// necessary prefetches.
+			_, _, err := fs.getMaybeCreateRootNode(
+				ctx, handle, MasterBranch, false)
+			if err != nil {
+				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
+			}
 		}()
 	} else {
 		fs.log.CWarningf(ctx,
@@ -1414,13 +1414,13 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		if h.tlfID != tlf.NullID {
 			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
 				h.GetCanonicalPath(), h.tlfID)
-			ops := fs.getOpsByHandle(
-				ctx, h, FolderBranch{h.tlfID, MasterBranch},
-				FavoritesOpNoChange)
-			// Don't initialize the entire TLF, because we don't want
-			// to run identifies on it.  Instead, just start the
-			// chat-monitoring part.
-			ops.startMonitorChat(h.GetCanonicalName())
+			// Fully initialize the TLF in order to kick off any
+			// necessary prefetches.
+			_, _, err = fs.getMaybeCreateRootNode(ctx, h, MasterBranch, false)
+			if err != nil {
+				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
+				continue
+			}
 		} else {
 			fs.log.CWarningf(ctx,
 				"Handle %s for existing folder unexpectedly has no TLF ID",
@@ -1443,7 +1443,6 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 	// without overwhelming the CPU?
 	for _, tlfID := range tlfs {
 		fs.log.CDebugf(ctx, "Initializing synced TLF: %s", tlfID)
-		fb := FolderBranch{Tlf: tlfID, Branch: MasterBranch}
 		md, err := fs.config.MDOps().GetForTLF(ctx, tlfID, nil)
 		if err != nil {
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
@@ -1457,7 +1456,7 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 		// Getting the root node populates the head of the TLF, which
 		// kicks off any needed sync operations.
 		h := md.GetTlfHandle()
-		_, _, err = fs.getMaybeCreateRootNode(ctx, h, fb.Branch, false)
+		_, _, err = fs.getMaybeCreateRootNode(ctx, h, MasterBranch, false)
 		if err != nil {
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
 			continue
