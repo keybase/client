@@ -713,6 +713,10 @@ func doInit(
 	}
 	config.SetMDServer(mdServer)
 
+	// Must do this after setting the md server, since it depends on
+	// being able to fetch MDs.
+	go kbfsOps.initSyncedTlfs()
+
 	// Initialize KeyServer connection.  MDServer is the KeyServer at the
 	// moment.
 	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)

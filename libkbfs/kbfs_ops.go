@@ -78,7 +78,6 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 	}
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
-	go kops.initSyncedTlfs()
 	return kops
 }
 
