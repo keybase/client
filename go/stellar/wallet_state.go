@@ -319,21 +319,8 @@ func (a *AccountState) Refresh(ctx context.Context, router *libkb.NotifyRouter) 
 
 	pending, err := a.remoter.PendingPayments(ctx, a.accountID, 25)
 	if err == nil {
-		notify := false
 		a.Lock()
-		if len(a.pending) != len(pending) {
-			notify = true
-		} else if len(a.pending) > 0 {
-			existing, err := a.pending[0].TransactionID()
-			if err == nil {
-				next, err := pending[0].TransactionID()
-				if err == nil {
-					if existing != next {
-						notify = true
-					}
-				}
-			}
-		}
+		notify := pendingChanged(a.pending, pending)
 		a.pending = pending
 		a.Unlock()
 
@@ -345,8 +332,13 @@ func (a *AccountState) Refresh(ctx context.Context, router *libkb.NotifyRouter) 
 	recent, err := a.remoter.RecentPayments(ctx, a.accountID, nil, 50, true)
 	if err == nil {
 		a.Lock()
+		notify := recentChanged(a.recent, &recent)
 		a.recent = &recent
 		a.Unlock()
+
+		if notify && router != nil {
+			router.HandleWalletRecentPaymentsUpdate(ctx, a.accountID, recent)
+		}
 	}
 
 	return err
@@ -419,4 +411,31 @@ func (a *AccountState) String() string {
 		return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: %d)", a.accountID, a.seqno, len(a.balances), len(a.pending), len(a.recent.Payments))
 	}
 	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: nil)", a.accountID, a.seqno, len(a.balances), len(a.pending))
+}
+
+func pendingChanged(a, b []stellar1.PaymentSummary) bool {
+	if len(a) != len(b) {
+		return true
+	}
+	if len(a) == 0 {
+		return false
+	}
+
+	existing, err := a[0].TransactionID()
+	if err == nil {
+		next, err := b[0].TransactionID()
+		if err == nil {
+			if existing != next {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func recentChanged(a, b *stellar1.PaymentsPage) bool {
+	if len(a.Payments) != len(b.Payments) {
+		return true
+	}
+	return false
 }
