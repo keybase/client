@@ -1088,6 +1088,18 @@ func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearch
 	return nil
 }
 
+func (c *ChatUI) ChatStellarShowConfirm(ctx context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIMiniChatPaymentSummary) (bool, error) {
+	return true, nil
+}
+
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
