@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {
   Animation,
   Box,
@@ -41,7 +41,7 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
+class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _whichMenu: menuType
 
