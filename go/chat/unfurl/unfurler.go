@@ -34,6 +34,7 @@ type UnfurlMessageSender interface {
 
 type Unfurler struct {
 	sync.Mutex
+	prefetchLock sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 
@@ -284,6 +285,8 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 // unfurl so the result is cached.
 func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgText string) (numPrefetched int) {
+	u.prefetchLock.Lock()
+	defer u.prefetchLock.Unlock()
 	defer u.Trace(ctx, func() error { return nil }, "Prefetch")()
 
 	hits, err := u.extractor.Extract(ctx, uid, convID, 0, msgText, u.settings)
