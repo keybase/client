@@ -68,6 +68,7 @@ const (
 	PromptDescriptorImportStellarAccountName
 	PromptDescriptorStellarDisclaimer
 	PromptDescriptorPaperKey
+	PromptDescriptorStellarConfirm
 )
 
 const (
