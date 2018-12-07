@@ -36,7 +36,14 @@ const People = (props: Props) => (
 const _SuggestorTestArea = (props: {...Suggestors.SuggestorHooks, someOtherProps: string}) => (
   <Kb.Box2
     direction="vertical"
-    style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, margin: 20, padding: 10}}
+    style={{
+      borderColor: 'black',
+      borderStyle: 'solid',
+      borderWidth: 1,
+      margin: 20,
+      padding: 10,
+      width: 300,
+    }}
   >
     <Kb.PlainInput onChangeText={props.onChangeText} onKeyDown={props.onKeyDown} ref={props.inputRef} />
   </Kb.Box2>

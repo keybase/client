@@ -72,6 +72,7 @@ const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
         end: 0,
         start: 0,
       }
+      lg('checktrigger', text)
       const upToCursor = text.substring(0, selection.start)
       const words = upToCursor.split(/ |\n/)
       const word = words[words.length - 1]
@@ -104,7 +105,7 @@ const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
       })
 
     _onChangeText = text => {
-      lg('changetext')
+      lg('changetext', text)
       this.props.onChangeText && this.props.onChangeText(text)
       this._checkTrigger(text)
     }
@@ -144,7 +145,21 @@ const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
         const results = this.props.dataSources[this.state.active](this.state.filter)
         lg(results)
         if (results.length) {
-          overlay = (
+          const content = (
+            <Kb.Box2
+              direction="vertical"
+              style={{backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320}}
+            >
+              <SuggestionList
+                items={results}
+                renderItem={this._itemRenderer}
+                selectedIndex={this.state.selected}
+              />
+            </Kb.Box2>
+          )
+          overlay = Styles.isMobile ? (
+            <Kb.FloatingBox onHidden={this._setInactive}>{content}</Kb.FloatingBox>
+          ) : (
             <Kb.Overlay
               attachTo={this._getInputRef}
               position="top center"
@@ -152,16 +167,7 @@ const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
               propagateOutsideClicks={false}
               onHidden={this._setInactive}
             >
-              <Kb.Box2
-                direction="vertical"
-                style={{backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320}}
-              >
-                <SuggestionList
-                  items={results}
-                  renderItem={this._itemRenderer}
-                  selectedIndex={this.state.selected}
-                />
-              </Kb.Box2>
+              {content}
             </Kb.Overlay>
           )
         }
