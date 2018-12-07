@@ -21,54 +21,64 @@ type Props = {|
 
 const PaymentsConfirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onCancel}>
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
-        <Kb.Icon
-          type={
-            Styles.isMobile
-              ? 'icon-fancy-stellar-sending-mobile-149-129'
-              : 'icon-fancy-stellar-sending-desktop-98-86'
-          }
-          style={styles.icon}
-        />
-        <Kb.Text type="Body" style={styles.headerText}>
-          SENDING
-        </Kb.Text>
-        <Kb.Text type="HeaderExtrabold" style={styles.xlmTotal}>
-          {props.xlmTotal}
-        </Kb.Text>
-        <Kb.Text type="Body" style={styles.headerText}>
-          (APPROXIMATELY {props.displayTotal})
-        </Kb.Text>
+    {props.loading ? (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
       </Kb.Box2>
-      <Kb.ScrollView style={styles.paymentsContainer}>
-        {props.payments.map(p => (
-          <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
-            <Kb.NameWithIcon horizontal={true} username={p.username} metaOne={p.fullName} />
-            <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
-              {!!p.displayAmount && <Kb.Text type="BodyExtrabold">{p.displayAmount}</Kb.Text>}
-              <Kb.Text type={p.displayAmount ? 'BodySmallSemibold' : 'BodyExtrabold'}>{p.xlmAmount}</Kb.Text>
+    ) : (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
+          <Kb.Icon
+            type={
+              Styles.isMobile
+                ? 'icon-fancy-stellar-sending-mobile-149-129'
+                : 'icon-fancy-stellar-sending-desktop-98-86'
+            }
+            style={styles.icon}
+          />
+          <Kb.Text type="Body" style={styles.headerText}>
+            SENDING
+          </Kb.Text>
+          <Kb.Text type="HeaderExtrabold" style={styles.xlmTotal}>
+            {props.xlmTotal}
+          </Kb.Text>
+          <Kb.Text type="Body" style={styles.headerText}>
+            (APPROXIMATELY {props.displayTotal})
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.ScrollView style={styles.paymentsContainer}>
+          {props.payments.map(p => (
+            <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
+              <Kb.NameWithIcon horizontal={true} username={p.username} metaOne={p.fullName} />
+              <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
+                {!!p.displayAmount && <Kb.Text type="BodyExtrabold">{p.displayAmount}</Kb.Text>}
+                <Kb.Text type={p.displayAmount ? 'BodySmallSemibold' : 'BodyExtrabold'}>
+                  {p.xlmAmount}
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
-          </Kb.Box2>
-        ))}
-      </Kb.ScrollView>
-      <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-        <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-        <Kb.Button
-          style={styles.submitButton}
-          type="PrimaryGreen"
-          onClick={props.onAccept}
-          children={
-            <Kb.Icon
-              color={Styles.globalColors.white}
-              style={Kb.iconCastPlatformStyles(styles.submitIcon)}
-              type="iconfont-stellar-send"
-            />
-          }
-          label={'Send ' + props.xlmTotal}
-        />
-      </Kb.ButtonBar>
-    </Kb.Box2>
+          ))}
+        </Kb.ScrollView>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
+          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button
+            style={styles.submitButton}
+            type="PrimaryGreen"
+            onClick={props.onAccept}
+            children={
+              <Kb.Icon
+                color={Styles.globalColors.white}
+                style={Kb.iconCastPlatformStyles(styles.submitIcon)}
+                type="iconfont-stellar-send"
+              />
+            }
+            label={'Send ' + props.xlmTotal}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    )}
   </Kb.MaybePopup>
 )
 

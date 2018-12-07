@@ -39,10 +39,16 @@ const props = {
   xlmTotal: '40.0629655 XLM',
 }
 
+const loadingProps = {
+  ...props,
+  loading: true,
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Wallet/Confirm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
     .add('Loaded', () => <PaymentsConfirm {...props} />)
+    .add('Loading', () => <PaymentsConfirm {...loadingProps} />)
 }
 
 export default load
