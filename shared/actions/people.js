@@ -117,11 +117,11 @@ const getPeopleData = (
   })
 }
 
-const _markViewed = (action: PeopleGen.MarkViewedPayload) => Saga.call(RPCTypes.homeHomeMarkViewedRpcPromise)
+const _markViewed = (action: PeopleGen.MarkViewedPayload) => Saga.callUntyped(RPCTypes.homeHomeMarkViewedRpcPromise)
 
 const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   return Saga.sequentially([
-    Saga.call(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
+    Saga.callUntyped(RPCTypes.homeHomeSkipTodoTypeRpcPromise, {
       t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
     }),
     // TODO get rid of this load and have core send us a homeUIRefresh

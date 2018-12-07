@@ -4,6 +4,7 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
+import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
 import {isMobile} from './platform'
 import {invert} from 'lodash-es'
@@ -460,10 +461,7 @@ const paymentToYourInfoAndCounterparty = (
       }
 
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(p.delta)
       throw new Error(`Unexpected delta ${p.delta}`)
   }
 }

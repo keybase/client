@@ -1470,6 +1470,24 @@
     },
     {
       "type": "record",
+      "name": "ChatSearchMatch",
+      "fields": [
+        {
+          "type": "int",
+          "name": "startIndex"
+        },
+        {
+          "type": "int",
+          "name": "endIndex"
+        },
+        {
+          "type": "string",
+          "name": "match"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ChatSearchHit",
       "fields": [
         {
@@ -1493,7 +1511,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "ChatSearchMatch"
           },
           "name": "matches"
         }

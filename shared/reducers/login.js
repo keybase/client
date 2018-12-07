@@ -4,6 +4,7 @@ import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 import * as SignupGen from '../actions/signup-gen'
 import * as ProvisionGen from '../actions/provision-gen'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -25,10 +26,7 @@ export default function(
     case LoginGen.launchForgotPasswordWebPage:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

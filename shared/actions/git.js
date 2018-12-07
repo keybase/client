@@ -147,13 +147,13 @@ const navToGit = (_, action: GitGen.NavToGitPayload) => {
 }
 
 const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepoPayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const {teamname, repoID} = action.payload
     let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
     if (!id) {
       yield Saga.put(GitGen.createLoadGit())
       yield Saga.take(GitGen.loaded)
-      const nextState = yield Saga.select()
+      const nextState = yield* Saga.selectState()
       id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
     }
 

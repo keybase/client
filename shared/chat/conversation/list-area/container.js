@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as SearchConstants from '../../../constants/search'
+import * as Flow from '../../../util/flow'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
@@ -51,10 +52,7 @@ class ListArea extends React.PureComponent<Props> {
       case 'waiting':
         return <Waiting />
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(this.props.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.type)
         return null
     }
   }

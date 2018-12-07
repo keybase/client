@@ -561,11 +561,17 @@
     ConversationIndexMetadata metadata;
   }
 
+  record ChatSearchMatch {
+    int startIndex;
+    int endIndex;
+    string match;
+  }
+
   record ChatSearchHit {
     array<UIMessage> beforeMessages;
     UIMessage hitMessage;
     array<UIMessage> afterMessages;
-    array<string>  matches;
+    array<ChatSearchMatch>  matches;
   }
 
   record ChatSearchInboxHit {

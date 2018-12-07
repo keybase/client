@@ -27,10 +27,10 @@ export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) 
 export const createSkipTodo = (payload: _SkipTodoPayload) => ({payload, type: skipTodo})
 
 // Action Payloads
-export type GetPeopleDataPayload = $Call<typeof createGetPeopleData, _GetPeopleDataPayload>
-export type MarkViewedPayload = $Call<typeof createMarkViewed, _MarkViewedPayload>
-export type PeopleDataProcessedPayload = $Call<typeof createPeopleDataProcessed, _PeopleDataProcessedPayload>
-export type SkipTodoPayload = $Call<typeof createSkipTodo, _SkipTodoPayload>
+export type GetPeopleDataPayload = {|+payload: _GetPeopleDataPayload, +type: 'people:getPeopleData'|}
+export type MarkViewedPayload = {|+payload: _MarkViewedPayload, +type: 'people:markViewed'|}
+export type PeopleDataProcessedPayload = {|+payload: _PeopleDataProcessedPayload, +type: 'people:peopleDataProcessed'|}
+export type SkipTodoPayload = {|+payload: _SkipTodoPayload, +type: 'people:skipTodo'|}
 
 // All Actions
 // prettier-ignore
@@ -39,4 +39,4 @@ export type Actions =
   | MarkViewedPayload
   | PeopleDataProcessedPayload
   | SkipTodoPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}
