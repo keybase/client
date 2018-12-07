@@ -6,14 +6,14 @@ import * as Styles from '../../../../styles'
 import {invert} from 'lodash-es'
 import ChatUsers from './chat-users'
 import SuggestionList from './suggestion-list'
-import type {Suggestor} from './interface'
+import type {SuggestorDatasource} from './interface'
 
 const lg = (...args) => console.log('DANNYDEBUG', ...args)
 
 type SuggestorName = 'chatUsers' | 'chatChannels' | 'emojis'
 type Suggestors = Array<SuggestorName>
 
-const suggestors: {[key: SuggestorName]: Suggestor} = {
+const suggestors: {[key: SuggestorName]: SuggestorDatasource} = {
   chatUsers: ChatUsers,
 }
 
@@ -21,7 +21,7 @@ type ConnectorOwnProps = {
   suggestors: Suggestors,
 }
 
-type SuggestorProps = {
+type AddSuggestorsProps = {
   dataSources: {
     [key: SuggestorName]: (filter: string) => Array<any>, // typing TODO
   },
@@ -53,8 +53,11 @@ export type SuggestorHooks = {
 
 const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
   WrappedComponent: React.ComponentType<WrappedOwnProps & SuggestorHooks>
-): React.ComponentType<WrappedOwnProps & SuggestorProps> => {
-  class SuggestorsComponent extends React.Component<WrappedOwnProps & SuggestorProps, AddSuggestorsState> {
+): React.ComponentType<WrappedOwnProps & AddSuggestorsProps> => {
+  class SuggestorsComponent extends React.Component<
+    WrappedOwnProps & AddSuggestorsProps,
+    AddSuggestorsState
+  > {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _suggestors = Object.keys(this.props.suggestorToMarker)
@@ -207,7 +210,7 @@ const mergeProps = (s, d, o) => {
 export const AddSuggestors = <WrappedOwnProps: {}>(
   wrappedComponent: React.ComponentType<WrappedOwnProps & SuggestorHooks>
 ): React.ComponentType<WrappedOwnProps & ConnectorOwnProps> =>
-  Container.namedConnect<WrappedOwnProps & ConnectorOwnProps, WrappedOwnProps & SuggestorProps, _, _, _>(
+  Container.namedConnect<WrappedOwnProps & ConnectorOwnProps, WrappedOwnProps & AddSuggestorsProps, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps,

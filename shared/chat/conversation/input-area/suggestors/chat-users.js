@@ -4,9 +4,9 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type {TypedState} from '../../../../util/container'
-import type {Suggestor} from './interface'
+import type {SuggestorDatasource} from './interface'
 
-const ChatUsers: Suggestor = {
+const ChatUsers: SuggestorDatasource = {
   getFilter: (state: TypedState) => {
     const selectedConvID = Constants.getSelectedConversation(state)
     const meta = Constants.getMeta(state, selectedConvID)
