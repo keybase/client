@@ -16,6 +16,7 @@ const LongPressable = (props: {|children: React.Node|}) => {
 const styles = Styles.styleSheetCreate({
   view: {
     ...Styles.globalStyles.flexBoxColumn,
+    position: 'relative',
   },
 })
 

@@ -204,8 +204,7 @@ DESCRIPTION:
    {{.Description}}{{end}}{{ if .Subcommands }}
 
 COMMANDS:
-   {{range .Subcommands}}{{if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}
-   {{end}}{{end}}{{if .Flags}}
+{{range .Subcommands}}{{if .Usage }}   {{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ "\n" }}{{ end }}{{end}}{{end}}{{if .Flags}}
 
 OPTIONS:
    {{range .Flags}}{{.}}
@@ -225,6 +224,5 @@ USAGE:
    {{.Name}} <command> [arguments...]
 
 COMMANDS:
-   {{range .Commands}}{{ if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}
-   {{end}}
+{{range .Commands}}{{ if .Usage }}   {{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ "\n" }}{{ end }}{{end}}
 `

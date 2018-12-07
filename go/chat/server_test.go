@@ -379,6 +379,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
+	g.StellarSender = types.DummyStellarSender{}
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -4404,6 +4405,46 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, tvres.Thread.Messages, 4, "messages are accessible")
 		}
+
+		// create a new channel with a MinWriterRole set to ADMIN and ensure
+		// new users can join/leave
+		topicName := "zjoinonsend"
+		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		channelInfo := channel.Conv.Info
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeTeamType(t, listener1)
+		consumeTeamType(t, listener2)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
+
+		channelID := channelInfo.Id
+		role = keybase1.TeamRole_ADMIN
+		err = tc1.chatLocalHandler().SetConvMinWriterRoleLocal(tc1.startCtx, chat1.SetConvMinWriterRoleLocalArg{
+			ConvID: channelID,
+			Role:   role,
+		})
+		require.NoError(t, err)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(tc2.startCtx, chat1.JoinConversationLocalArg{
+			TlfName:    channel.Conv.Info.TlfName,
+			TopicType:  chat1.TopicType_CHAT,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
+			TopicName:  topicName,
+		})
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_JOIN)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(tc2.startCtx, channelID)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_LEAVE)
 	})
 }
 

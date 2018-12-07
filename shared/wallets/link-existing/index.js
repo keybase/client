@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
@@ -126,10 +127,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
         )
         break
       default:
-        /*::
-        declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
-        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.state.view);
-        */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.view)
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
     return (

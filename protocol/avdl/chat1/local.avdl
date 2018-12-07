@@ -20,9 +20,14 @@ protocol local {
   case SENT: stellar1.PaymentID;
   }
 
+  record TextPayment {
+    string paymentText;
+    TextPaymentResult result;
+  }
+
   record MessageText {
     string body;
-    map<string, TextPaymentResult> payments;
+    array<TextPayment> payments;
   }
 
   record MessageConversationMetadata {
@@ -646,7 +651,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
+  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record EditTarget {
@@ -832,7 +837,7 @@ protocol local {
   FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
-  void updateTyping(ConversationID conversationID, boolean typing);
+  void updateTyping(ConversationID conversationID, string text);
 
   // Channel management
   record JoinLeaveConversationLocalRes {

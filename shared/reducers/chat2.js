@@ -12,6 +12,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -986,10 +987,7 @@ const rootReducer = (
     case Chat2Gen.unfurlRemove:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -135,13 +136,25 @@ func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearch
 		return strings.Join(ctx, "")
 	}
 
-	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
+	highlightEscapeHits := func(msg chat1.UIMessage, hits []chat1.ChatSearchMatch) string {
+		colorStrOffset := len(ColorString(c.G(), "red", ""))
+		totalOffset := 0
 		msgText := msg.SearchableText()
 		if msgText != "" {
 			escapedHitText := terminalescaper.Clean(msgText)
 			for _, hit := range hits {
-				escapedHit := terminalescaper.Clean(hit)
-				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
+				escapedHit := terminalescaper.Clean(hit.Match)
+				i := totalOffset + hit.StartIndex
+				j := totalOffset + hit.EndIndex
+				if i > len(escapedHitText) || j > len(escapedHitText) {
+					// sanity check string indices
+					continue
+				}
+				// Splice the match into the result with a color highlight. We
+				// can't do a direct string replacement since the match might
+				// be a substring of the color text.
+				escapedHitText = escapedHitText[:i] + ColorString(c.G(), "red", escapedHit) + escapedHitText[j:]
+				totalOffset += colorStrOffset
 			}
 			return terminalescaper.Clean(getMsgPrefix(msg)) + escapedHitText
 		}
@@ -242,4 +255,44 @@ func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearch
 	}
 	c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", arg.Status.PercentIndexed))
 	return nil
+}
+
+func (c *ChatUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
+	return nil
+}
+
+func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
+	term := c.G().UI.GetTerminalUI()
+	term.Printf("Confirm Stellar Payments:\n\n")
+	term.Printf("Total: %s (%s)\n", arg.Summary.XlmTotal, arg.Summary.DisplayTotal)
+	for _, p := range arg.Summary.Payments {
+		typ, err := p.Typ()
+		if err != nil {
+			continue
+		}
+		switch typ {
+		case chat1.UIMiniChatPaymentSpecTyp_ERROR:
+			term.Printf("Payment Error: %s\n", p.Error())
+		case chat1.UIMiniChatPaymentSpecTyp_SUCCESS:
+			out := fmt.Sprintf("-> %s %s", p.Success().Username, p.Success().XlmAmount)
+			if p.Success().DisplayAmount != nil {
+				out += fmt.Sprintf(" (%s)", *p.Success().DisplayAmount)
+			}
+			term.Printf(out + "\n")
+		}
+	}
+	confirm := "sendmoney"
+	response, err := term.Prompt(PromptDescriptorStellarConfirm,
+		fmt.Sprintf("** if you are sure, please type: %q > ", confirm))
+	if err != nil {
+		return false, err
+	}
+	return strings.TrimSpace(response) == confirm, nil
+}
+
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) error {
+	w := c.terminal.ErrorWriter()
+	msg := "Failed to obtain Stellar payment information, aborting send"
+	fmt.Fprintf(w, msg+"\n")
+	return errors.New(msg)
 }

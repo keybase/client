@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/provision'
 import {ListItem2, BackButton, Box2, List, Text, Icon} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
@@ -30,10 +31,7 @@ class SelectOtherDevice extends React.Component<Props> {
         iconType = 'icon-paper-key-32'
         break
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
         iconType = 'icon-paper-key-32'
     }
 

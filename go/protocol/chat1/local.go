@@ -120,23 +120,34 @@ func (o TextPaymentResult) DeepCopy() TextPaymentResult {
 	}
 }
 
+type TextPayment struct {
+	PaymentText string            `codec:"paymentText" json:"paymentText"`
+	Result      TextPaymentResult `codec:"result" json:"result"`
+}
+
+func (o TextPayment) DeepCopy() TextPayment {
+	return TextPayment{
+		PaymentText: o.PaymentText,
+		Result:      o.Result.DeepCopy(),
+	}
+}
+
 type MessageText struct {
-	Body     string                       `codec:"body" json:"body"`
-	Payments map[string]TextPaymentResult `codec:"payments" json:"payments"`
+	Body     string        `codec:"body" json:"body"`
+	Payments []TextPayment `codec:"payments" json:"payments"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
 	return MessageText{
 		Body: o.Body,
-		Payments: (func(x map[string]TextPaymentResult) map[string]TextPaymentResult {
+		Payments: (func(x []TextPayment) []TextPayment {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]TextPaymentResult, len(x))
-			for k, v := range x {
-				kCopy := k
+			ret := make([]TextPayment, len(x))
+			for i, v := range x {
 				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
+				ret[i] = vCopy
 			}
 			return ret
 		})(o.Payments),
@@ -4606,6 +4617,7 @@ type PostLocalNonblockArg struct {
 }
 
 type PostTextNonblockArg struct {
+	SessionID         int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName           string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
@@ -4838,7 +4850,7 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	Typing         bool           `codec:"typing" json:"typing"`
+	Text           string         `codec:"text" json:"text"`
 }
 
 type JoinConversationLocalArg struct {

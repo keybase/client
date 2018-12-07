@@ -31,8 +31,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamDebug(cl, g),
 		newCmdScript(cl, g),
 		newCmdUploadAvatar(cl, g),
-		NewCmdPhoneNumber(cl, g),
-		NewCmdEmail(cl, g),
 	}
 }
 
@@ -55,7 +53,6 @@ func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalC
 	return []cli.Command{
 		newCmdWalletDump(cl, g),
 		newCmdWalletInit(cl, g),
-		newCmdWalletSetMobileOnly(cl, g),
 	}
 }
 
