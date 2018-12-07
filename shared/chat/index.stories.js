@@ -13,6 +13,7 @@ import messages from './conversation/messages/index.stories'
 import startConversation from './conversation/list-area/start-conversation/index.stories'
 import thread from './conversation/list-area/normal/index.stories'
 import headerArea from './conversation/header-area/normal/index.stories'
+import confirmPayment from './confirm-payment/index.stories'
 
 const load = () => {
   ;[
@@ -30,6 +31,7 @@ const load = () => {
     startConversation,
     thread,
     headerArea,
+    confirmPayment,
   ].forEach(load => load())
 }
 
