@@ -378,8 +378,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 		}
 	}
 	if !ok {
-		return errors.New("StateChecker only works against " +
-			"BlockServerLocal")
+		return errors.New("StateChecker only works against BlockServerLocal")
 	}
 	bserverKnownBlocks, err := bserverLocal.getAllRefsForTest(ctx, tlfID)
 	if err != nil {

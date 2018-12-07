@@ -4101,6 +4101,21 @@ func (b bserverPutToDiskCache) Put(
 	return nil
 }
 
+func enableDiskCacheForTest(
+	t *testing.T, config *ConfigLocal, tempdir string) *diskBlockCacheWrapped {
+	dbc, err := newDiskBlockCacheWrapped(config, "")
+	require.NoError(t, err)
+	config.diskBlockCache = dbc
+	err = dbc.workingSetCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = dbc.syncCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.loadSyncedTlfsLocked()
+	return dbc
+}
+
 func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
@@ -4115,16 +4130,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	dmc := newDiskMDCacheWithCommitChan(dmcLocal, commitCh)
 	config.diskMDCache = dmc
 
-	dbc, err := newDiskBlockCacheWrapped(config, "")
-	require.NoError(t, err)
-	config.diskBlockCache = dbc
-	err = dbc.workingSetCache.WaitUntilStarted()
-	require.NoError(t, err)
-	err = dbc.syncCache.WaitUntilStarted()
-	require.NoError(t, err)
-	err = config.EnableDiskLimiter(tempdir)
-	require.NoError(t, err)
-	config.loadSyncedTlfsLocked()
+	dbc := enableDiskCacheForTest(t, config, tempdir)
 
 	t.Log("Create a private, synced TLF")
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
@@ -4243,16 +4249,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
 	defer ioutil.RemoveAll(tempdir)
-	dbc, err := newDiskBlockCacheWrapped(config, "")
-	require.NoError(t, err)
-	config.diskBlockCache = dbc
-	err = dbc.workingSetCache.WaitUntilStarted()
-	require.NoError(t, err)
-	err = dbc.syncCache.WaitUntilStarted()
-	require.NoError(t, err)
-	err = config.EnableDiskLimiter(tempdir)
-	require.NoError(t, err)
-	config.loadSyncedTlfsLocked()
+	_ = enableDiskCacheForTest(t, config, tempdir)
 
 	t.Log("Sync should start off as disabled.")
 	syncConfig, err := kbfsOps.GetSyncConfig(ctx, h.tlfID)
@@ -4331,6 +4328,20 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	}
 }
 
+func waitForPrefetchInTest(
+	t *testing.T, ctx context.Context, config Config, node Node) {
+	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
+	require.NoError(t, err)
+	ch, err := config.BlockOps().Prefetcher().WaitChannelForBlockPrefetch(
+		ctx, md.BlockInfo.BlockPointer)
+	require.NoError(t, err)
+	select {
+	case <-ch:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+}
+
 func TestKBFSOpsPartialSync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
@@ -4345,16 +4356,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
 	require.NoError(t, err)
 	defer ioutil.RemoveAll(tempdir)
-	dbc, err := newDiskBlockCacheWrapped(config, "")
-	require.NoError(t, err)
-	config.diskBlockCache = dbc
-	err = dbc.workingSetCache.WaitUntilStarted()
-	require.NoError(t, err)
-	err = dbc.syncCache.WaitUntilStarted()
-	require.NoError(t, err)
-	err = config.EnableDiskLimiter(tempdir)
-	require.NoError(t, err)
-	config.loadSyncedTlfsLocked()
+	dbc := enableDiskCacheForTest(t, config, tempdir)
 
 	// config2 is the writer.
 	config2 := ConfigAsUser(config, u1)
@@ -4386,23 +4388,10 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	waitForPrefetch := func(node Node) {
-		md, err := kbfsOps.GetNodeMetadata(ctx, node)
-		require.NoError(t, err)
-		ch, err := config.BlockOps().Prefetcher().WaitChannelForBlockPrefetch(
-			ctx, md.BlockInfo.BlockPointer)
-		require.NoError(t, err)
-		select {
-		case <-ch:
-		case <-ctx.Done():
-			t.Fatal(ctx.Err())
-		}
-	}
-
 	t.Log("Root block and 'a' block should be synced")
 	checkSyncCache := func(expectedBlocks uint64) {
-		waitForPrefetch(rootNode)
-		waitForPrefetch(aNode)
+		waitForPrefetchInTest(t, ctx, config, rootNode)
+		waitForPrefetchInTest(t, ctx, config, aNode)
 		syncStatusMap := dbc.syncCache.Status(ctx)
 		require.Len(t, syncStatusMap, 1)
 		syncStatus, ok := syncStatusMap[syncCacheName]
@@ -4492,4 +4481,78 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus(fNode, FinishedPrefetch)
 	checkStatus(dNode, FinishedPrefetch)
 	checkStatus(gNode, FinishedPrefetch)
+}
+
+func TestKBFSOpsRecentHistorySync(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	// kbfsOpsConcurInit turns off notifications, so turn them back on.
+	config.mode = modeTest{NewInitModeFromType(InitDefault)}
+
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
+	require.NoError(t, err)
+	defer ioutil.RemoveAll(tempdir)
+	dbc := enableDiskCacheForTest(t, config, tempdir)
+
+	// config2 is the writer.
+	config2 := ConfigAsUser(config, u1)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	config2.mode = modeTest{NewInitModeFromType(InitDefault)}
+	kbfsOps2 := config2.KBFSOps()
+
+	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
+
+	t.Log("Initialize the TLF")
+	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	aNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "a")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("No files were edited, but fetching the root block will prefetch a")
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkWorkingSetCache := func(expectedBlocks uint64) {
+		waitForPrefetchInTest(t, ctx, config, rootNode)
+		waitForPrefetchInTest(t, ctx, config, aNode)
+
+		statusMap := dbc.workingSetCache.Status(ctx)
+		require.Len(t, statusMap, 1)
+		status, ok := statusMap[workingSetCacheName]
+		require.True(t, ok)
+		require.Equal(t, expectedBlocks, status.NumBlocks)
+	}
+	checkWorkingSetCache(2)
+
+	checkStatus := func(node Node, expectedStatus PrefetchStatus) {
+		md, err := kbfsOps.GetNodeMetadata(ctx, node)
+		require.NoError(t, err)
+		require.Equal(t, expectedStatus, md.PrefetchStatus)
+	}
+	checkStatus(rootNode, FinishedPrefetch)
+	checkStatus(aNode, FinishedPrefetch)
+
+	t.Log("Writer adds a file, which gets prefetched")
+	bNode, _, err := kbfsOps2.CreateFile(ctx, aNode, "b", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps2.Write(ctx, bNode, []byte("bdata"), 0)
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	checkWorkingSetCache(3)
+	checkStatus(bNode, FinishedPrefetch)
 }
