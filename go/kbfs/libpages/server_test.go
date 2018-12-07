@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/kbfs/ioutil"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

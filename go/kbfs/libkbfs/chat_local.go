@@ -13,8 +13,8 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 

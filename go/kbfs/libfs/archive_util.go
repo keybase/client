@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 // BranchNameFromArchiveRefDir returns a branch name and true if the

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/ioutil"
 	"golang.org/x/net/context"
 )
 

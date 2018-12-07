@@ -13,8 +13,8 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 

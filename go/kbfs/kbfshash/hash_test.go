@@ -7,7 +7,7 @@ package kbfshash
 import (
 	"testing"
 
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )

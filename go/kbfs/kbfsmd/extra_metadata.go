@@ -7,7 +7,7 @@ package kbfsmd
 import (
 	"fmt"
 
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 )
 
 // ExtraMetadata is a per-version blob of extra metadata which may

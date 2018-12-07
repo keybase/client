@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/ioutil"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
 )
 

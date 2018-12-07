@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // PathType describes the types for different paths

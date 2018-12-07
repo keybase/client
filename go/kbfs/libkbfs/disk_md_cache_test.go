@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"

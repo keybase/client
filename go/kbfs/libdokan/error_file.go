@@ -5,7 +5,7 @@
 package libdokan
 
 import (
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfs"
 )
 
 // NewErrorFile returns a special read file that contains a text

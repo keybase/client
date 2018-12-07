@@ -7,7 +7,7 @@ package kbfsmd
 import (
 	"errors"
 
-	"github.com/keybase/kbfs/cache"
+	"github.com/keybase/client/go/kbfs/cache"
 )
 
 // KeyBundleCache is an interface to a key bundle cache for use with v3 metadata.

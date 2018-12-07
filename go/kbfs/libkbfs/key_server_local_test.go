@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 )
 
 // Test that Put/Get works for TLF crypt key server halves.

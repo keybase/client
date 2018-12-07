@@ -7,7 +7,7 @@ package libfuse
 import (
 	"time"
 
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfs"
 )
 
 // NewMetricsFile returns a special read file that contains a text

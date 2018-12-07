@@ -9,7 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 )
 
 const (

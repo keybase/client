@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/dokan"
-	"github.com/keybase/kbfs/libdokan"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/libdokan"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 

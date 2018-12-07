@@ -7,7 +7,7 @@ package libdokan
 import (
 	"time"
 
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfs"
 	"golang.org/x/net/context"
 )
 

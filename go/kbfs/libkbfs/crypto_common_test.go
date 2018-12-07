@@ -12,8 +12,8 @@ import (
 
 	"golang.org/x/crypto/nacl/secretbox"
 
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

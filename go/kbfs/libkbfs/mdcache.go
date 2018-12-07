@@ -9,8 +9,8 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 

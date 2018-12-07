@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/pkg/errors"
 )
 

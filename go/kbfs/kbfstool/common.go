@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 const (

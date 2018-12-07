@@ -19,11 +19,11 @@ import (
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libmime"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libmime"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 const tokenCacheSize = 64

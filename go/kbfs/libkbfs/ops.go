@@ -13,11 +13,11 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsedits"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsedits"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 

@@ -11,7 +11,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/keybase/kbfs/cache"
+	"github.com/keybase/client/go/kbfs/cache"
 	"github.com/pkg/errors"
 )
 

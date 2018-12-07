@@ -6,8 +6,8 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 

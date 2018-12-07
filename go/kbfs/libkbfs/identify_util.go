@@ -12,7 +12,7 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )

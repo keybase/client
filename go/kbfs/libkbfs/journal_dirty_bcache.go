@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 
 	"golang.org/x/net/context"
 )

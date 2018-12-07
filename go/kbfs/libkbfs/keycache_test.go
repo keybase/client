@@ -8,9 +8,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 func TestKeyCacheBasic(t *testing.T) {

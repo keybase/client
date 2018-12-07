@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/keybase/kbfs/libpages/config"
+	"github.com/keybase/client/go/kbfs/libpages/config"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 

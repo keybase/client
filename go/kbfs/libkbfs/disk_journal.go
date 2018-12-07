@@ -11,8 +11,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/keybase/kbfs/ioutil"
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/pkg/errors"
 )
 

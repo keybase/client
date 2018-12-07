@@ -40,7 +40,7 @@ GOPATH0=${GOPATH_ARRAY[0]}
 # Original sources
 client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
-kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
+kbfs_dir="$GOPATH0/src/github.com/keybase/client/go/kbfs"
 
 # Our custom GOPATH for mobile build.
 GOPATH="$tmp_gopath"
@@ -63,7 +63,7 @@ mkdir -p "$GOPATH/src/github.com/keybase"
 
 # Copy source
 go_client_dir="$tmp_gopath/src/github.com/keybase/client/go"
-go_kbfs_dir="$tmp_gopath/src/github.com/keybase/kbfs"
+go_kbfs_dir="$tmp_gopath/src/github.com/keybase/client/go/kbfs"
 
 if [ ! "$local_client" = "1" ]; then
   echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
@@ -77,7 +77,7 @@ fi
 
 if [ ! "$local_kbfs" = "1" ]; then
   echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
-  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/kbfs)
+  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/client/go/kbfs)
   kbfs_dir=$go_kbfs_dir
 else
   # For testing local KBFS changes

@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

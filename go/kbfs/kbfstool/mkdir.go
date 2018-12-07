@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/kbfs/fsrpc"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/fsrpc"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 

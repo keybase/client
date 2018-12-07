@@ -11,9 +11,9 @@ import (
 	"reflect"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/kbfs/cache"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/client/go/kbfs/cache"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"

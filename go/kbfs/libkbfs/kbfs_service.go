@@ -11,7 +11,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
+	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 )
 
 // KBFSErrorUnwrapper unwraps errors from the KBFS service.

@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 )
 
 // testStructUnknownFields calls TestStructUnknownFields with codecs

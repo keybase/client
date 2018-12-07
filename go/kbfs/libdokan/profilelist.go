@@ -7,8 +7,8 @@ package libdokan
 import (
 	"runtime/pprof"
 
-	"github.com/keybase/kbfs/dokan"
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/libfs"
 	"golang.org/x/net/context"
 )
 

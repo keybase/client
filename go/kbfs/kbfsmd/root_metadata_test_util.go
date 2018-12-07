@@ -7,9 +7,9 @@ package kbfsmd
 import (
 	"fmt"
 
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // FakeInitialRekey fakes the initial rekey for the given

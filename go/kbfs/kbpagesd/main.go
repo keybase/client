@@ -13,12 +13,12 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libpages"
-	"github.com/keybase/kbfs/simplefs"
-	"github.com/keybase/kbfs/stderrutils"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/libgit"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libpages"
+	"github.com/keybase/client/go/kbfs/simplefs"
+	"github.com/keybase/client/go/kbfs/stderrutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

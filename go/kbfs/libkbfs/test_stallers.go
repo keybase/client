@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 
 	"golang.org/x/net/context"
 )
@@ -73,7 +73,7 @@ type NaïveStaller struct {
 
 	// We are only supporting stalling one Op per kind at a time for now. If in
 	// the future a dsl test needs to stall different Ops, please see
-	// https://github.com/keybase/kbfs/pull/163 for an implementation.
+	// https://github.com/keybase/client/go/kbfs/pull/163 for an implementation.
 	blockStalled bool
 	mdStalled    bool
 }

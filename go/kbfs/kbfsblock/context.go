@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 )
 
 // RefNonce is a 64-bit unique sequence of bytes for identifying this

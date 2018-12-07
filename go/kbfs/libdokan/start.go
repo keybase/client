@@ -13,11 +13,11 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/dokan"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/simplefs"
+	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libgit"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/simplefs"
 	"golang.org/x/net/context"
 )
 

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	goerrors "github.com/go-errors/errors"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 

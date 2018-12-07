@@ -15,12 +15,12 @@ import (
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/kbfsgit"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/stderrutils"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/kbfsgit"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libgit"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/stderrutils"
 )
 
 var version = flag.Bool("version", false, "Print version")

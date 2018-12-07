@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/kbfs/libpages/config"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/libpages/config"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 const configCacheTime = 2 * time.Minute

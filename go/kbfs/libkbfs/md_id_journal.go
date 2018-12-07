@@ -8,9 +8,9 @@ import (
 	"reflect"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/ioutil"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/pkg/errors"
 )
 

@@ -5,7 +5,7 @@
 package libdokan
 
 import (
-	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/dokan"
 	"golang.org/x/net/context"
 )
 

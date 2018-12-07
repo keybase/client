@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/stretchr/testify/require"
 )
 

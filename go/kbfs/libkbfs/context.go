@@ -4,7 +4,7 @@
 
 package libkbfs
 
-import "github.com/keybase/kbfs/env"
+import "github.com/keybase/client/go/kbfs/env"
 
 // Context defines the environment for this package
 type Context env.Context

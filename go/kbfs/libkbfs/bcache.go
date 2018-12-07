@@ -10,9 +10,9 @@ import (
 	"sync/atomic"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfshash"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfshash"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 

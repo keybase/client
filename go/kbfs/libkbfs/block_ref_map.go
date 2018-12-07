@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 )
 
 type blockRefStatus int

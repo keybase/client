@@ -10,8 +10,8 @@ import (
 	"errors"
 	"math"
 
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfshash"
 )
 
 // ID is the (usually content-based) ID for a data block.

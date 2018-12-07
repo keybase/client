@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 )
 
 type dirEntryFuture struct {

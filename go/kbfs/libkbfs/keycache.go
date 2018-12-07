@@ -6,9 +6,9 @@ package libkbfs
 
 import (
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // KeyCacheStandard is an LRU-based implementation of the KeyCache interface.

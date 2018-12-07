@@ -4,7 +4,7 @@
 
 package kbfsblock
 
-import "github.com/keybase/kbfs/kbfscodec"
+import "github.com/keybase/client/go/kbfs/kbfscodec"
 
 // UsageType indicates the type of usage that quota manager is keeping stats of
 type UsageType int

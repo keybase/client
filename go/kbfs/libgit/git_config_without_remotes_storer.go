@@ -5,7 +5,7 @@
 package libgit
 
 import (
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfs"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"

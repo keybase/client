@@ -4,7 +4,7 @@
 
 package libkbfs
 
-import "github.com/keybase/kbfs/kbfsblock"
+import "github.com/keybase/client/go/kbfs/kbfsblock"
 
 func translateToBlockServerError(err error) error {
 	// TODO: Translate blockContextMismatchError, too, if the

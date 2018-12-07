@@ -10,9 +10,9 @@ import (
 	"github.com/pkg/errors"
 
 	"bazil.org/fuse"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 type errorWithErrno struct {

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 

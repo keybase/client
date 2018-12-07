@@ -46,7 +46,7 @@ if [ "$mode" != "production" ] ; then
   ldflags_client="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
   commit_short_kbfs="$(git -C "$kbfs_repo" rev-parse --short HEAD)"
   build_number_kbfs="$(echo -n "$build_number" | sed 's/+..*/+/')$commit_short_kbfs"
-  ldflags_kbfs="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$build_number_kbfs"
+  ldflags_kbfs="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$build_number_kbfs"
   # kbnm version currently defaults to the keybase client version.
   build_number_kbnm="$build_number"
   ldflags_kbnm="-X main.Version=$build_number_kbnm"
@@ -95,7 +95,7 @@ build_one_architecture() {
   fi
 
   # Add the kbfs repo to our custom GOPATH.
-  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
+  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/client/go/kbfs"
 
   cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
@@ -107,17 +107,17 @@ build_one_architecture() {
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
-    "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+    "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/client/go/kbfs/kbfsfuse
 
   # Build the git-remote-keybase binary, also from the kbfs repo.
   echo "Building git-remote-keybase for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
-    "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/kbfs/kbfsgit/git-remote-keybase
+    "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase
 
   # Build the root redirector binary.
   echo "Building keybase-redirector for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
-    "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/kbfs/redirector
+    "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector
 
   # Build the kbnm binary
   echo "Building kbnm for $GOARCH..."

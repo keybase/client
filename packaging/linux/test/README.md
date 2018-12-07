@@ -6,13 +6,13 @@ To build a package for debian from a local branch in client (on amd64):
     cd $GOPATH/src/github.com/keybase/client/packaging/linux
     docker build -t keybase_packaging_v14 .
     mkdir /var/tmp/keybase_build_work
-    docker run -v /var/tmp/keybase_build_work:/root -v $GOPATH/src/github.com/keybase/client:/CLIENT:ro -v $GOPATH/src/github.com/keybase/kbfs:/KBFS:ro  -e NOWAIT -ti keybase_packaging_v14 bash
+    docker run -v /var/tmp/keybase_build_work:/root -v $GOPATH/src/github.com/keybase/client:/CLIENT:ro -v $GOPATH/src/github.com/keybase/client/go/kbfs:/KBFS:ro  -e NOWAIT -ti keybase_packaging_v14 bash
 
 Then, from inside the docker environment:
 
     cd /root
     git clone https://github.com/keybase/client.git client --reference /CLIENT
-    git clone https://github.com/keybase/kbfs.git kbfs --reference /KBFS
+    git clone https://github.com/keybase/client/go/kbfs.git kbfs --reference /KBFS
     cd client
     git remote add localclient /CLIENT
     git checkout localclient/<NAME_OF_LOCAL_BRANCH_TO_TEST>

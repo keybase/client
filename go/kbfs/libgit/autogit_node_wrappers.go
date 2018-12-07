@@ -12,8 +12,8 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )

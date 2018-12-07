@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfs"
 )
 
 // NewTlfEditHistoryFile returns a special read file that contains a text

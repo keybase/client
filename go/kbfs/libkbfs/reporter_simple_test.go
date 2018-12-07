@@ -8,7 +8,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 func checkReportedErrors(t *testing.T, expected []error,

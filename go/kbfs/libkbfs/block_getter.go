@@ -7,8 +7,8 @@ package libkbfs
 import (
 	"fmt"
 
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 

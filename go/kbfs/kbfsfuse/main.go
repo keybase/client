@@ -14,10 +14,10 @@ import (
 	"bazil.org/fuse"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libfuse"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfuse"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 var runtimeDir = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "runtime directory")

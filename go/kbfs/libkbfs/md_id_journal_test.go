@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 )
 
 type mdIDJournalEntryFuture struct {

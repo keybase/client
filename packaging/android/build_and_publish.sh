@@ -6,7 +6,7 @@ export BABEL_PLATFORM=ReactNative
 
 automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
-kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
 rn_dir="$gopath/src/github.com/keybase/client/shared/react-native"

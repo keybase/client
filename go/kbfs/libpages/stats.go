@@ -12,7 +12,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"go.uber.org/zap"
 )
 

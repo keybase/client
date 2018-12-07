@@ -3,9 +3,9 @@ package libkbfs
 import (
 	"time"
 
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // diskBlockCacheEntry packages an encoded block and serverHalf into one data

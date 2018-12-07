@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	merkle "github.com/keybase/go-merkle-tree"
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 )
 

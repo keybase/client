@@ -8,8 +8,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // IsWriter returns whether or not the currently logged-in user is a

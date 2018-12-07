@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/ioutil"
 )
 
 // ExtCode is used to register codec extensions

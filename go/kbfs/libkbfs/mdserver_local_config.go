@@ -5,8 +5,8 @@
 package libkbfs
 
 import (
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 )
 
 // mdServerLocalConfig is the subset of the Config interface needed by

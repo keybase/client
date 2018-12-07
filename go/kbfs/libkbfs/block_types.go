@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/client/go/kbfs/kbfshash"
 )
 
 // Int64Offset represents the offset of a block within a file.

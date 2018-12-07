@@ -43,7 +43,7 @@ helpers.rootLinuxNode(env, {
     env.GOPATH="${env.BASEDIR}/go"
     env.GO15VENDOREXPERIMENT=1
 
-    ws("${env.GOPATH}/src/github.com/keybase/kbfs") {
+    ws("${env.GOPATH}/src/github.com/keybase/client/go/kbfs") {
         def mysqlImage = docker.image("keybaseprivate/mysql")
         def gregorImage = docker.image("keybaseprivate/kbgregor")
         def kbwebImage = docker.image("keybaseprivate/kbweb")
@@ -140,7 +140,7 @@ helpers.rootLinuxNode(env, {
                                 "TMPDIR=${mountDir}",
                                 "GOTRACEBACK=all",
                             ]) {
-                                ws("${GOPATH}/src/github.com/keybase/kbfs") {
+                                ws("${GOPATH}/src/github.com/keybase/client/go/kbfs") {
                                     println "Checkout OS X"
                                     checkout scm
 
@@ -152,9 +152,9 @@ helpers.rootLinuxNode(env, {
                     },
                     test_kbfs: {
                         // Install kbfsfuse first so we can start on dockerizing.
-                        sh "go install github.com/keybase/kbfs/kbfsfuse"
+                        sh "go install github.com/keybase/client/go/kbfs/kbfsfuse"
                         sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
-                        sh "go install github.com/keybase/kbfs/kbfsgit/git-remote-keybase"
+                        sh "go install github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                         sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
                         withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
                             println "Building Docker"
@@ -256,7 +256,7 @@ def runNixTest(prefix) {
     }
     tests[prefix+'notestingdep'] = {
         // Make sure we don't accidentally pull in the testing package.
-        sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/kbfs/kbfsfuse | grep testing'
+        sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/kbfs/kbfsfuse | grep testing'
     }
     tests[prefix+'vet'] = {
         sh 'make -s lint'
@@ -284,7 +284,7 @@ def runNixTest(prefix) {
     // races.
     sh 'go test -i -tags fuse ./...'
 
-    sh 'go install github.com/keybase/kbfs/...'
+    sh 'go install github.com/keybase/client/go/kbfs/...'
 
     // Keep the list below in sync with the result of
     //

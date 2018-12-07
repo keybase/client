@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 // ErrUnknownPrefetchStatus is returned when the prefetch status given by the

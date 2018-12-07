@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"bazil.org/fuse"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"

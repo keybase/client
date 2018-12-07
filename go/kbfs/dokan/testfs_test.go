@@ -18,8 +18,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/keybase/kbfs/dokan/winacl"
-	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/dokan/winacl"
+	"github.com/keybase/client/go/kbfs/ioutil"
 	"golang.org/x/sys/windows"
 )
 

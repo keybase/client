@@ -32,11 +32,11 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/fsrpc"
-	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/simplefs"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/fsrpc"
+	"github.com/keybase/client/go/kbfs/libgit"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/simplefs"
 	context "golang.org/x/net/context"
 )
 

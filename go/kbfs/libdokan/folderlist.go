@@ -9,10 +9,10 @@ import (
 	"time"
 
 	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/kbfs/dokan"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

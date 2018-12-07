@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"bazil.org/fuse/fs"
-	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libkbfs"
 )
 
 // handleCommonSpecialFile handles special files that are present both

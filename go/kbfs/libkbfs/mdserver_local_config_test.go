@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 

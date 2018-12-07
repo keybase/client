@@ -10,11 +10,11 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 type diskBlockCacheRemoteConfig interface {

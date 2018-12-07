@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // ReporterSimple remembers the last maxErrors errors, or all errors

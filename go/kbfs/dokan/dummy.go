@@ -11,7 +11,7 @@ import "C"
 import (
 	"errors"
 
-	"github.com/keybase/kbfs/dokan/winacl"
+	"github.com/keybase/client/go/kbfs/dokan/winacl"
 )
 
 var errNotWindows = errors.New("dokan not supported outside Windows")

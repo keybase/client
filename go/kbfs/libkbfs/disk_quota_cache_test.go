@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"

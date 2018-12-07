@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 

@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 

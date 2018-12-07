@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )

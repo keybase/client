@@ -10,10 +10,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/ioutil"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 

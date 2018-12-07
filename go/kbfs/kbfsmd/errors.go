@@ -7,7 +7,7 @@ package kbfsmd
 import (
 	"fmt"
 
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // MissingDataError indicates that we are trying to take get the

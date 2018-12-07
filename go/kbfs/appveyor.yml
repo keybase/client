@@ -70,26 +70,26 @@ build_script:
   #
   #   for x in $(find . -mindepth 1 \( -wholename ./vendor -o -wholename ./.git \) -prune -o -type d -print); do [ -n "$(ls -A $x/*_test.go 2>/dev/null)" ] && echo $x; done | sort
   # dokan dir is tested above.
-  - echo github.com/keybase/kbfs/kbfsblock >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfscodec >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfscrypto >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfsedits >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfsgit >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfshash >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfsmd >> testlist.txt
-  - echo github.com/keybase/kbfs/kbfssync >> testlist.txt
-  - echo github.com/keybase/kbfs/kbpagesconfig >> testlist.txt
-  - echo github.com/keybase/kbfs/libdokan >> testlist.txt
-  - echo github.com/keybase/kbfs/libfs >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsblock >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfscodec >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfscrypto >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsedits >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsgit >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfshash >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsmd >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfssync >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbpagesconfig >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libdokan >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libfs >> testlist.txt
   # libfuse is non-Windows-only.
-  - echo github.com/keybase/kbfs/libgit >> testlist.txt
-  - echo github.com/keybase/kbfs/libhttpserver >> testlist.txt
-  - echo github.com/keybase/kbfs/libkbfs >> testlist.txt
-  - echo github.com/keybase/kbfs/libpages >> testlist.txt
-  - echo github.com/keybase/kbfs/libpages/config >> testlist.txt
-  - echo github.com/keybase/kbfs/simplefs >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libgit >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libhttpserver >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libkbfs >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libpages >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libpages/config >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/simplefs >> testlist.txt
   # test dir is tested below.
-  - echo github.com/keybase/kbfs/tlf >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/tlf >> testlist.txt
 # TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
   - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
   - cd test && go test -tags dokan -timeout 300s

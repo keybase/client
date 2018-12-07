@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 )
 
 // JournalAction enumerates all the possible actions to take on a
