@@ -391,24 +391,24 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		task, err := u.getTask(ctx, outboxID)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to get task: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusUnfurling); err != nil {
 			u.Debug(ctx, "unfurl: failed to set status: %s", err)
 		}
 		packaged, err := u.scrapeAndPackage(ctx, task.UID, task.ConvID, task.URL)
 		if err != nil {
-			return unfurl, err
+			return nil, err
 		}
 		unfurl = new(chat1.Unfurl)
 		*unfurl = packaged
 		if err := u.setTaskResult(ctx, outboxID, *unfurl); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task result: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusSuccess); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task status: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		return unfurl, nil
 	}(ctx)
