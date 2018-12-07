@@ -850,12 +850,13 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
 const loadMoreMessages = (
   state: TypedState,
   action:
-    | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
-    | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.SelectConversationPayload
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
+    | Chat2Gen.SetPendingConversationUsersPayload
+    | ConfigGen.ChangedFocusPayload
 ) => {
   // Get the conversationIDKey
   let key = null
@@ -915,6 +916,7 @@ const loadMoreMessages = (
       }
       break
     default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       key = action.payload.conversationIDKey
   }
 
@@ -2119,7 +2121,7 @@ const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, stat
   }
 }
 
-const mobileChangeSelection = (_: any, state: TypedState) => {
+const mobileChangeSelection = (_, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {

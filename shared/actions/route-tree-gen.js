@@ -50,16 +50,16 @@ export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({paylo
 export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
 
 // Action Payloads
-export type NavigateAppendPayload = $Call<typeof createNavigateAppend, _NavigateAppendPayload>
-export type NavigateToPayload = $Call<typeof createNavigateTo, _NavigateToPayload>
-export type NavigateUpPayload = $Call<typeof createNavigateUp, _NavigateUpPayload>
-export type PutActionIfOnPathPayload = $Call<typeof createPutActionIfOnPath, _PutActionIfOnPathPayload>
-export type RefreshRouteDefPayload = $Call<typeof createRefreshRouteDef, _RefreshRouteDefPayload>
-export type ResetRoutePayload = $Call<typeof createResetRoute, _ResetRoutePayload>
-export type SetInitialRouteDefPayload = $Call<typeof createSetInitialRouteDef, _SetInitialRouteDefPayload>
-export type SetRouteStatePayload = $Call<typeof createSetRouteState, _SetRouteStatePayload>
-export type SwitchRouteDefPayload = $Call<typeof createSwitchRouteDef, _SwitchRouteDefPayload>
-export type SwitchToPayload = $Call<typeof createSwitchTo, _SwitchToPayload>
+export type NavigateAppendPayload = {|+payload: _NavigateAppendPayload, +type: 'route-tree:navigateAppend'|}
+export type NavigateToPayload = {|+payload: _NavigateToPayload, +type: 'route-tree:navigateTo'|}
+export type NavigateUpPayload = {|+payload: _NavigateUpPayload, +type: 'route-tree:navigateUp'|}
+export type PutActionIfOnPathPayload = {|+payload: _PutActionIfOnPathPayload, +type: 'route-tree:putActionIfOnPath'|}
+export type RefreshRouteDefPayload = {|+payload: _RefreshRouteDefPayload, +type: 'route-tree:refreshRouteDef'|}
+export type ResetRoutePayload = {|+payload: _ResetRoutePayload, +type: 'route-tree:resetRoute'|}
+export type SetInitialRouteDefPayload = {|+payload: _SetInitialRouteDefPayload, +type: 'route-tree:setInitialRouteDef'|}
+export type SetRouteStatePayload = {|+payload: _SetRouteStatePayload, +type: 'route-tree:setRouteState'|}
+export type SwitchRouteDefPayload = {|+payload: _SwitchRouteDefPayload, +type: 'route-tree:switchRouteDef'|}
+export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:switchTo'|}
 
 // All Actions
 // prettier-ignore

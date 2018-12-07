@@ -27,10 +27,10 @@ export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({payload
 export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({payload, type: subtractEntity})
 
 // Action Payloads
-export type DeleteEntityPayload = $Call<typeof createDeleteEntity, _DeleteEntityPayload>
-export type MergeEntityPayload = $Call<typeof createMergeEntity, _MergeEntityPayload>
-export type ReplaceEntityPayload = $Call<typeof createReplaceEntity, _ReplaceEntityPayload>
-export type SubtractEntityPayload = $Call<typeof createSubtractEntity, _SubtractEntityPayload>
+export type DeleteEntityPayload = {|+payload: _DeleteEntityPayload, +type: 'entities:deleteEntity'|}
+export type MergeEntityPayload = {|+payload: _MergeEntityPayload, +type: 'entities:mergeEntity'|}
+export type ReplaceEntityPayload = {|+payload: _ReplaceEntityPayload, +type: 'entities:replaceEntity'|}
+export type SubtractEntityPayload = {|+payload: _SubtractEntityPayload, +type: 'entities:subtractEntity'|}
 
 // All Actions
 // prettier-ignore

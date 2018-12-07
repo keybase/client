@@ -58,20 +58,20 @@ export const createSetError = (payload: _SetErrorPayload) => ({payload, type: se
 export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({payload, type: setTeamRepoSettings})
 
 // Action Payloads
-export type BadgeAppForGitPayload = $Call<typeof createBadgeAppForGit, _BadgeAppForGitPayload>
-export type CreatePersonalRepoPayload = $Call<typeof createCreatePersonalRepo, _CreatePersonalRepoPayload>
-export type CreateTeamRepoPayload = $Call<typeof createCreateTeamRepo, _CreateTeamRepoPayload>
-export type DeletePersonalRepoPayload = $Call<typeof createDeletePersonalRepo, _DeletePersonalRepoPayload>
-export type DeleteTeamRepoPayload = $Call<typeof createDeleteTeamRepo, _DeleteTeamRepoPayload>
-export type LoadGitPayload = $Call<typeof createLoadGit, _LoadGitPayload>
-export type LoadGitRepoPayload = $Call<typeof createLoadGitRepo, _LoadGitRepoPayload>
-export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
-export type NavToGitPayload = $Call<typeof createNavToGit, _NavToGitPayload>
-export type NavigateToTeamRepoPayload = $Call<typeof createNavigateToTeamRepo, _NavigateToTeamRepoPayload>
-export type RepoCreatedPayload = $Call<typeof createRepoCreated, _RepoCreatedPayload>
-export type RepoDeletedPayload = $Call<typeof createRepoDeleted, _RepoDeletedPayload>
-export type SetErrorPayload = $Call<typeof createSetError, _SetErrorPayload>
-export type SetTeamRepoSettingsPayload = $Call<typeof createSetTeamRepoSettings, _SetTeamRepoSettingsPayload>
+export type BadgeAppForGitPayload = {|+payload: _BadgeAppForGitPayload, +type: 'git:badgeAppForGit'|}
+export type CreatePersonalRepoPayload = {|+payload: _CreatePersonalRepoPayload, +type: 'git:createPersonalRepo'|}
+export type CreateTeamRepoPayload = {|+payload: _CreateTeamRepoPayload, +type: 'git:createTeamRepo'|}
+export type DeletePersonalRepoPayload = {|+payload: _DeletePersonalRepoPayload, +type: 'git:deletePersonalRepo'|}
+export type DeleteTeamRepoPayload = {|+payload: _DeleteTeamRepoPayload, +type: 'git:deleteTeamRepo'|}
+export type LoadGitPayload = {|+payload: _LoadGitPayload, +type: 'git:loadGit'|}
+export type LoadGitRepoPayload = {|+payload: _LoadGitRepoPayload, +type: 'git:loadGitRepo'|}
+export type LoadedPayload = {|+payload: _LoadedPayload, +type: 'git:loaded'|}
+export type NavToGitPayload = {|+payload: _NavToGitPayload, +type: 'git:navToGit'|}
+export type NavigateToTeamRepoPayload = {|+payload: _NavigateToTeamRepoPayload, +type: 'git:navigateToTeamRepo'|}
+export type RepoCreatedPayload = {|+payload: _RepoCreatedPayload, +type: 'git:repoCreated'|}
+export type RepoDeletedPayload = {|+payload: _RepoDeletedPayload, +type: 'git:repoDeleted'|}
+export type SetErrorPayload = {|+payload: _SetErrorPayload, +type: 'git:setError'|}
+export type SetTeamRepoSettingsPayload = {|+payload: _SetTeamRepoSettingsPayload, +type: 'git:setTeamRepoSettings'|}
 
 // All Actions
 // prettier-ignore
