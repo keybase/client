@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -23,6 +24,7 @@ type WalletState struct {
 	libkb.Contextified
 	remote.Remoter
 	accounts map[stellar1.AccountID]*AccountState
+	rates    map[string]rateEntry
 	sync.Mutex
 }
 
@@ -33,6 +35,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		Contextified: libkb.NewContextified(g),
 		Remoter:      r,
 		accounts:     make(map[stellar1.AccountID]*AccountState),
+		rates:        make(map[string]rateEntry),
 	}
 }
 
@@ -242,6 +245,34 @@ func (w *WalletState) MarkAsRead(ctx context.Context, accountID stellar1.Account
 	err := w.Remoter.MarkAsRead(ctx, accountID, mostRecentID)
 	w.Refresh(ctx, accountID)
 	return err
+}
+
+type rateEntry struct {
+	currency string
+	rate     stellar1.OutsideExchangeRate
+	ctime    time.Time
+}
+
+// ExchangeRate is an overrider of remoter's ExchangeRate.
+func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
+	w.Lock()
+	existing, ok := w.rates[currency]
+	if ok && time.Since(existing.ctime) < 1*time.Second {
+		w.Unlock()
+		return existing.rate
+	}
+	rate, err := w.Remoter.ExchangeRate(ctx, currency)
+	if err == nil {
+		w.Lock()
+		w.rates[currency] = rateEntry{
+			currency: currency,
+			rate:     rate,
+			ctime:    time.Now(),
+		}
+		w.Unlock()
+	}
+
+	return rate, err
 }
 
 // DumpToLog outputs a summary of WalletState to the debug log.
