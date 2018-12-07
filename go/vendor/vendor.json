@@ -238,138 +238,6 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
-			"checksumSHA1": "WiW0TQ944oRb3KeJeVc2Bv9Cjds=",
-			"path": "github.com/keybase/client/go/auth",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "UaimIi34AISz5nA3zJ8CoDas/NQ=",
-			"path": "github.com/keybase/client/go/externals",
-			"revision": "4cef882acde8a82e2a22930dce158fba49448ed9",
-			"revisionTime": "2018-11-11T03:54:04Z"
-		},
-		{
-			"checksumSHA1": "sN2RBTeKHJ2ZTm1dgQQWOdCHiG8=",
-			"path": "github.com/keybase/client/go/gregor",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "UyhWiB+FawbOF3ie9c+v7pK/E44=",
-			"path": "github.com/keybase/client/go/install/libnativeinstaller",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "tq1Yd/xv+0s60Y5gutGvDyoZTKk=",
-			"path": "github.com/keybase/client/go/jsonhelpers",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "yQ74y6Ocbat5NJziLuiMiiNnwzU=",
-			"path": "github.com/keybase/client/go/jsonparserw",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "QGxdU2vqMh0fvJ/oXyCik/WZdf0=",
-			"path": "github.com/keybase/client/go/kbconst",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "YvBcKaxmbweXk8GY7DfkAN2v05k=",
-			"path": "github.com/keybase/client/go/kbcrypto",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "MB+yYsvF3iykSuyLqKsvQAtxXz4=",
-			"path": "github.com/keybase/client/go/kbhttp",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "7DHjUlM/cuxNxp9xLUnMDzIzNRY=",
-			"path": "github.com/keybase/client/go/kbun",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "dlRkBkmFO3QsXCSWNSguCxgaKk8=",
-			"path": "github.com/keybase/client/go/kex2",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "R+kdDWoWyX0TpcH2pOg2AcKzCRk=",
-			"path": "github.com/keybase/client/go/libkb",
-			"revision": "4cef882acde8a82e2a22930dce158fba49448ed9",
-			"revisionTime": "2018-11-11T03:54:04Z"
-		},
-		{
-			"checksumSHA1": "HCbc7z1ulXWC8N18wF9ZwIknbNg=",
-			"path": "github.com/keybase/client/go/logger",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "ddWy9jO+YAbx2HRqXEe7ITnIdx8=",
-			"path": "github.com/keybase/client/go/merklestore",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "yl6zKNMkPPA9eJ32Y8ALMLhF0AE=",
-			"path": "github.com/keybase/client/go/minterm",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "OcRh2hGbIPQIXGZ3dLNuhiwDXAY=",
-			"path": "github.com/keybase/client/go/profiling",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "Ar8S9ZX/JyC94d17VSvG2GOXtxg=",
-			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
-			"revisionTime": "2018-11-20T20:41:27Z"
-		},
-		{
-			"checksumSHA1": "+nD1gYj/g2jKBbWSsVf5IufQeME=",
-			"path": "github.com/keybase/client/go/protocol/gregor1",
-			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
-			"revisionTime": "2018-11-20T20:41:27Z"
-		},
-		{
-			"checksumSHA1": "DUKSgOJPEVt9fTKLc5F5cvJR9GY=",
-			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "1b5b8ba08431bc1d59ae9078f31abd8c6d3166e9",
-			"revisionTime": "2018-11-27T19:49:30Z"
-		},
-		{
-			"checksumSHA1": "jvFWbgb5/iEJfgJBUJDBpBuAR5Y=",
-			"path": "github.com/keybase/client/go/protocol/stellar1",
-			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
-			"revisionTime": "2018-11-20T20:41:27Z"
-		},
-		{
-			"checksumSHA1": "8+9jMCvjuPw9tqnUtZuqHkbGEKk=",
-			"path": "github.com/keybase/client/go/pvl",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
-			"checksumSHA1": "hSB9cMsIgWPBGxq1VUhFwHuUBq4=",
-			"path": "github.com/keybase/client/go/systemd",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
-		},
-		{
 			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",
 			"path": "github.com/keybase/clockwork",
 			"revision": "976f45f4a979cd2fd048a639630ba20d8378c9d8",
@@ -485,7 +353,6 @@
 		},
 		{
 			"checksumSHA1": "TGxhSwR5QPlxQfkYDbvnq7bl268=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",
 			"path": "github.com/keybase/go-jsonw",
 			"revision": "75173f3731b662a57247a4ba83bd88c462249848",
 			"revisionTime": "2018-10-05T20:36:34Z"
@@ -1018,14 +885,12 @@
 		},
 		{
 			"checksumSHA1": "vqc3a+oTUGX8PmD0TS+qQ7gmN8I=",
-			"origin": "github.com/keybase/client/go/vendor/golang.org/x/net/html",
 			"path": "golang.org/x/net/html",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "00eQaGynDYrv3tL+C7l9xH0IDZg=",
-			"origin": "github.com/keybase/client/go/vendor/golang.org/x/net/html/atom",
 			"path": "golang.org/x/net/html/atom",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
@@ -1419,5 +1284,5 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		}
 	],
-	"rootPath": "github.com/keybase/kbfs"
+	"rootPath": "github.com/keybase/client/go"
 }
