@@ -869,7 +869,7 @@
         }
       ],
       "response": "SyncAllResult",
-      "compression_type": "none"
+      "compression_type": "msgpackzip"
     },
     "tlfFinalize": {
       "request": [
