@@ -110,7 +110,9 @@ func (e *PGPKeyImportEngine) Name() string {
 }
 
 func (e *PGPKeyImportEngine) Prereqs() Prereqs {
-	return Prereqs{}
+	return Prereqs{
+		Device: true,
+	}
 }
 
 func (e *PGPKeyImportEngine) RequiredUIs() []libkb.UIKind {
