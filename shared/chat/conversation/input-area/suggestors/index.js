@@ -17,7 +17,7 @@ const suggestors: {[key: SuggestorName]: Suggestor} = {
   chatUsers: ChatUsers,
 }
 
-type OwnProps = {
+type ConnectorOwnProps = {
   suggestors: Suggestors,
 }
 
@@ -51,13 +51,10 @@ export type SuggestorHooks = {
   onKeyDown: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 }
 
-const _AddSuggestors = <WrappedOwnProps>(
-  WrappedComponent: React.ComponentType<{...WrappedOwnProps, ...SuggestorHooks}>
-): React.ComponentType<{...WrappedOwnProps, ...SuggestorProps}> => {
-  class SuggestorsComponent extends React.Component<
-    {...WrappedOwnProps, ...SuggestorProps},
-    AddSuggestorsState
-  > {
+const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
+  WrappedComponent: React.ComponentType<WrappedOwnProps & SuggestorHooks>
+): React.ComponentType<WrappedOwnProps & SuggestorProps> => {
+  class SuggestorsComponent extends React.Component<WrappedOwnProps & SuggestorProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _suggestors = Object.keys(this.props.suggestorToMarker)
@@ -130,6 +127,7 @@ const _AddSuggestors = <WrappedOwnProps>(
     _itemRenderer = (index, value) =>
       !this.state.active ? null : (
         <Kb.ClickableBox
+          key={value}
           onClick={() => this._triggerTransform(value)}
           onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
         >
@@ -165,11 +163,12 @@ const _AddSuggestors = <WrappedOwnProps>(
           )
         }
       }
+      const {dataSources, renderers, suggestorToMarker, transformers, ...wrappedOP} = this.props
       return (
         <>
           {overlay}
           <WrappedComponent
-            {...this.props}
+            {...wrappedOP}
             inputRef={this._inputRef}
             onChangeText={this._onChangeText}
             onKeyDown={this._onKeyDown}
@@ -205,14 +204,14 @@ const mergeProps = (s, d, o) => {
   return {...restOwnProps, ...s, ...d}
 }
 
-export const AddSuggestors = <P: OwnProps>(
-  wrappedComponent: React.ComponentType<$Diff<P, OwnProps> & SuggestorHooks>
-): React.ComponentType<P> =>
-  Container.namedConnect<P, $Diff<P, OwnProps> & SuggestorProps, _, _, _>(
+export const AddSuggestors = <WrappedOwnProps: {}>(
+  wrappedComponent: React.ComponentType<WrappedOwnProps & SuggestorHooks>
+): React.ComponentType<WrappedOwnProps & ConnectorOwnProps> =>
+  Container.namedConnect<WrappedOwnProps & ConnectorOwnProps, WrappedOwnProps & SuggestorProps, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps,
     'AddSuggestors'
-  )(_AddSuggestors<$Diff<P, OwnProps> & SuggestorProps>(wrappedComponent))
+  )(_AddSuggestors<WrappedOwnProps>(wrappedComponent))
 
 export default AddSuggestors
