@@ -581,10 +581,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "X618HA40TGuF28A9zkDpXpl98so=",
+			"checksumSHA1": "QWQlyr5zlP/IYY3az5LD6MUY4hQ=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "ec308c87133d9cd9ced3648aee0559cec74e238a",
-			"revisionTime": "2018-11-06T14:21:05Z"
+			"revision": "ac27e7fa664542bd8be68cfe8c47a03b4b2c94ff",
+			"revisionTime": "2018-12-07T13:38:03Z"
 		},
 		{
 			"path": "github.com/kr/pty",
