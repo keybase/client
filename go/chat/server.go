@@ -1220,15 +1220,15 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	}
 	defer ui.ChatStellarDone(ctx)
 	summary, err := h.G().StellarSender.DescribePayments(ctx, parsedPayments)
-	err = errors.New("HAHAHAHA")
 	if err != nil {
 		ui.ChatStellarDataError(ctx, err.Error())
 		return res, err
 	}
+	var toSend []types.ParsedStellarPayment
 	var uiSummary chat1.UIMiniChatPaymentSummary
 	uiSummary.XlmTotal = summary.XLMTotal
 	uiSummary.DisplayTotal = summary.DisplayTotal
-	for _, s := range summary.Specs {
+	for index, s := range summary.Specs {
 		var displayAmount *string
 		var errorMsg *string
 		if len(s.DisplayAmount) > 0 {
@@ -1238,6 +1238,8 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		if s.Error != nil {
 			errorMsg = new(string)
 			*errorMsg = s.Error.Error()
+		} else {
+			toSend = append(toSend, parsedPayments[index])
 		}
 		uiSummary.Payments = append(uiSummary.Payments, chat1.UIMiniChatPayment{
 			Username:      s.Username.String(),
@@ -1255,7 +1257,7 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		return res, errors.New("Payment message declined")
 	}
 	h.Debug(ctx, "runStellarSendUI: message confirmed, sending payments")
-	payments, err := h.G().StellarSender.SendPayments(ctx, parsedPayments)
+	payments, err := h.G().StellarSender.SendPayments(ctx, toSend)
 	if err != nil {
 		// Send regardless here
 		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)

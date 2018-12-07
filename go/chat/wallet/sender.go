@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -27,35 +28,49 @@ func NewSender(g *globals.Context) *Sender {
 }
 
 func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res string, err error) {
-	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-	if err != nil {
-		return res, err
+
+	var membersType chat1.ConversationMembersType
+	var participants []string
+	localConv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
+	if err == nil && localConv.LocalMetadata != nil {
+		membersType = localConv.Conv.GetMembersType()
+		participants = localConv.LocalMetadata.WriterNames
+	} else {
+		inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{convID},
+			}, nil)
+		if err != nil {
+			return res, err
+		}
+		if len(inbox.Convs) != 1 {
+			return res, errors.New("no conv found")
+		}
+		conv := inbox.Convs[0]
+		membersType = conv.GetMembersType()
+		participants = make([]string, len(conv.Info.Participants))
+		for index, p := range conv.Info.Participants {
+			participants[index] = p.Username
+		}
 	}
-	if len(inbox.Convs) != 1 {
-		return res, errors.New("no conv found")
-	}
-	conv := inbox.Convs[0]
-	switch conv.GetMembersType() {
+
+	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		return res, errors.New("must specify username in team chat")
 	default:
 		// let everything else through
 	}
-	if len(conv.Info.Participants) != 2 {
-		return res, fmt.Errorf("must specify username with more than two people: %d tlfname: %s",
-			len(conv.Info.Participants), conv.Info.TLFNameExpanded())
+	if len(participants) != 2 {
+		return res, fmt.Errorf("must specify username with more than two people: %d", len(participants))
 	}
 	username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 	if err != nil {
 		return res, err
 	}
-	if username.String() == conv.Info.Participants[0].Username {
-		return conv.Info.Participants[1].Username, nil
+	if username.String() == participants[0] {
+		return participants[1], nil
 	}
-	return conv.Info.Participants[0].Username, nil
+	return participants[0], nil
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,

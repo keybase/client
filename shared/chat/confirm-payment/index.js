@@ -13,9 +13,7 @@ const PaymentsConfirmLoading = (props: LoadingProps) => (
   </Kb.Box2>
 )
 
-type ErrorProps = {|
-  message: string,
-|}
+type ErrorProps = {||}
 
 const PaymentsConfirmError = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
@@ -26,10 +24,10 @@ const PaymentsConfirmError = (props: ErrorProps) => (
       fullHeight={true}
       style={styles.fullErrorContainer}
     >
-      <Kb.Text type="BodyExtrabold" style={styles.fullError}>
+      <Kb.Text type="BodyExtrabold" style={styles.errorText}>
         Failed to load Stellar payment information
       </Kb.Text>
-      <Kb.Text type="BodyExtrabold" style={styles.fullError}>
+      <Kb.Text type="BodyExtrabold" style={styles.errorText}>
         Please try again
       </Kb.Text>
     </Kb.Box2>
@@ -43,6 +41,24 @@ type PaymentProps = {|
   username: string,
   xlmAmount: string,
 |}
+
+const PaymentRow = (props: PaymentProps) => (
+  <React.Fragment>
+    <Kb.NameWithIcon horizontal={true} username={props.username} metaOne={props.fullName} />
+    <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
+      {!!props.displayAmount && <Kb.Text type="BodyExtrabold">{props.displayAmount}</Kb.Text>}
+      {props.error ? (
+        <Kb.Text type="BodySmallSemibold" style={styles.errorText}>
+          ERROR WILL NOT SEND
+        </Kb.Text>
+      ) : (
+        <Kb.Text type={props.displayAmount ? 'BodySmallSemibold' : 'BodyExtrabold'}>
+          {props.xlmAmount}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  </React.Fragment>
+)
 
 type Props = {|
   displayTotal: string,
@@ -58,8 +74,8 @@ const PaymentsConfirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onCancel}>
     {props.loading ? (
       <PaymentsConfirmLoading />
-    ) : !!props.error ? (
-      <PaymentsConfirmError message={props.error} />
+    ) : props.error ? (
+      <PaymentsConfirmError />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
@@ -84,13 +100,7 @@ const PaymentsConfirm = (props: Props) => (
         <Kb.ScrollView style={styles.paymentsContainer}>
           {props.payments.map(p => (
             <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
-              <Kb.NameWithIcon horizontal={true} username={p.username} metaOne={p.fullName} />
-              <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
-                {!!p.displayAmount && <Kb.Text type="BodyExtrabold">{p.displayAmount}</Kb.Text>}
-                <Kb.Text type={p.displayAmount ? 'BodySmallSemibold' : 'BodyExtrabold'}>
-                  {p.xlmAmount}
-                </Kb.Text>
-              </Kb.Box2>
+              <PaymentRow {...p} />
             </Kb.Box2>
           ))}
         </Kb.ScrollView>
@@ -136,7 +146,7 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
   }),
-  fullError: {
+  errorText: {
     color: Styles.globalColors.red,
   },
   fullErrorContainer: Styles.platformStyles({
