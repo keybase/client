@@ -567,14 +567,10 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
     })
 }
 
-const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
-  const {conversationIDKey, ordinal, requestID} = action.payload
-  return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
-    .then(() =>
-      conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null
-    )
-    .catch(err => logger.error(`Error cancelling request: ${err.message}`))
-}
+const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) =>
+  RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID}).catch(err =>
+    logger.error(`Error cancelling request: ${err.message}`)
+  )
 
 const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState

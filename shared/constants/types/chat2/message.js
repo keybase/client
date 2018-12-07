@@ -166,6 +166,7 @@ export type _ChatRequestInfo = {
   amount: string,
   amountDescription: string,
   asset: WalletTypes.Asset,
+  canceled: boolean,
   currencyCode: string, // set if asset === 'currency'
   type: 'requestInfo',
 }
