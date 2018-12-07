@@ -3,12 +3,39 @@ package teams
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
+
+// Increment to invalidate the disk cache.
+const diskStorageVersionImplicitTeam = 1
+
+type implicitTeamCacheKey struct {
+	public      bool
+	displayName string
+}
+
+func (i implicitTeamCacheKey) MemKey() string {
+	prefix := "r"
+	if i.public {
+		prefix = "u"
+	}
+	return fmt.Sprintf("%s%s", prefix, i.displayName)
+}
+
+func (i implicitTeamCacheKey) DbKey() libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.ObjType(libkb.DBImplicitTeam),
+		Key: i.MemKey(),
+	}
+}
+
+var _ libkb.LRUKeyer = implicitTeamCacheKey{}
 
 type implicitTeamConflict struct {
 	// Note this TeamID is not validated by LookupImplicitTeam. Be aware of server trust.
@@ -37,7 +64,6 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 // Resolves social assertions.
 func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-
 	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public)
 	return team, teamName, impTeamName, err
 }
@@ -63,6 +89,18 @@ func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, 
 }
 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
+	cacheKey := implicitTeamCacheKey{displayName: displayName, public: public}
+	cacher := g.GetImplicitTeamCacher()
+	if cv, err := cacher.Get(ctx, g, cacheKey); err != nil {
+		g.Log.CDebugf(ctx, "In fetching from cache: %v", err)
+	} else if cv != nil {
+		if imp, ok := cv.(implicitTeam); ok {
+			g.Log.CDebugf(ctx, "using cached iteam")
+			return imp, nil
+		}
+		g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
+	}
+
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
 	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
@@ -81,6 +119,10 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 			}
 		}
 		return imp, err
+	}
+	// If the team has any assertions just skip caching
+	if !strings.Contains(imp.DisplayName, "@") {
+		cacher.Put(ctx, g, cacheKey, imp)
 	}
 	return imp, nil
 }
@@ -120,7 +162,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 		if err != nil {
 			// warn, don't fail
-			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
+			g.Log.CDebugf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
 			err = nil
 			continue
 		}
@@ -270,7 +312,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	var suffix string
-	if impTeamName.ConflictInfo != nil && impTeamName.ConflictInfo.IsConflict() {
+	if impTeamName.ConflictInfo.IsConflict() {
 		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 
@@ -294,4 +336,13 @@ func sortStringsFront(ss []string, front string) {
 		}
 		return a < b
 	})
+}
+
+func NewImplicitTeamCache(g *libkb.GlobalContext) *lru.Cache {
+	return lru.NewLRU(g, libkb.ImplicitTeamCacheSize, diskStorageVersionImplicitTeam, implicitTeam{})
+}
+
+func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
+	cache := NewImplicitTeamCache(g)
+	g.SetImplicitTeamCacher(cache)
 }
