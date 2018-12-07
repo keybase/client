@@ -108,7 +108,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChangeColor: '',
         cancelButtonInfo: '',
         cancelButtonLabel: '',
-        canceled: false, // TODO
+        canceled: requestInfo.canceled,
         claimButtonLabel: '',
         icon: 'iconfont-stellar-request',
         loading: false,

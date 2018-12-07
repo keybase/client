@@ -6,6 +6,7 @@ import * as MessageTypes from '../types/chat2/message'
 import * as Flow from '../../util/flow'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCStellarTypes from '../types/rpc-stellar-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
@@ -208,6 +209,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   amount: '',
   amountDescription: '',
   asset: 'native',
+  canceled: false,
   currencyCode: '',
   type: 'requestInfo',
 })
@@ -349,6 +351,7 @@ export const uiRequestInfoToChatRequestInfo = (
     amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
+    canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
   })
 }
