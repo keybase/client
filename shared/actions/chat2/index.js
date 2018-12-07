@@ -1291,6 +1291,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
       ephemeralLifetime
     )
+
     const addMessage = () => {
       return Saga.put(
         Chat2Gen.createMessagesAdd({
@@ -1299,7 +1300,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         })
       )
     }
-
     const onShowConfirm = () => {
       const actions = [
         Saga.put(Chat2Gen.createSetPaymentConfirmInfo({info: null})),
@@ -1326,13 +1326,23 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         })
       )
     }
+    const onDataError = (response: any) => {
+      return Saga.put(
+        Chat2Gen.createSetPaymentConfirmInfo({
+          info: {
+            error: 'Failed to load Stellar payment information, please try again.',
+            response,
+          },
+        })
+      )
+    }
     yield RPCChatTypes.localPostTextNonblockRpcSaga({
       customResponseIncomingCallMap: {
         'chat.1.chatUi.chatStellarDataConfirm': (p, r) => onDataConfirm(p.summary, r),
+        'chat.1.chatUi.chatStellarDataError': (p, r) => onDataError(r),
       },
       incomingCallMap: {
         'chat.1.chatUi.chatPostReadyToSend': p => addMessage(),
-        'chat.1.chatUi.chatStellarDataError': p => null,
         'chat.1.chatUi.chatStellarDone': p => Saga.put(navigateUp()),
         'chat.1.chatUi.chatStellarShowConfirm': p => onShowConfirm(),
       },
@@ -1352,7 +1362,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
     // Do some logging to track down the root cause of a bug causing
     // messages to not send. Do this after creating the objects above to
     // narrow down the places where the action can possibly stop.
-
     logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
     // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the

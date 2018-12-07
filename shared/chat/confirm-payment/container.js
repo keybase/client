@@ -20,19 +20,20 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       response: null,
     }
   } else {
-    const {info, response} = state.chat2.paymentConfirmInfo
+    const {error, info, response} = state.chat2.paymentConfirmInfo
     return {
       info: {
-        displayTotal: info.displayTotal,
+        error,
+        displayTotal: info?.displayTotal,
         loading: false,
-        payments: (info.payments || []).map(p => ({
+        payments: (info?.payments || []).map(p => ({
           username: p.username,
           fullName: p.fullName,
           xlmAmount: p.xlmAmount,
           error: p.error,
           displayAmount: p.displayAmount,
         })),
-        xlmTotal: info.xlmTotal,
+        xlmTotal: info?.xlmTotal,
       },
       response,
     }

@@ -28,7 +28,8 @@ export type _QuoteInfo = {
 export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
 export type PaymentConfirmInfo = {
-  info: RPCChatTypes.UIMiniChatPaymentSummary,
+  error?: string,
+  info?: RPCChatTypes.UIMiniChatPaymentSummary,
   // $FlowIssue let me use any here
   response: any,
 }

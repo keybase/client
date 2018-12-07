@@ -120,8 +120,8 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   componentDidUpdate(prevProps) {
     const loadedForTheFirstTime = prevProps.rows.length === 0 && this.props.rows.length > 0
     // See if the first 6 are small, this implies it's expanded
-    const smallRowsPlusOne = prevProps.rows.slice(0, 6).filter(r => r.type === 'small')
-    const expandedForTheFirstTime = smallRowsPlusOne.length === 5 && this.props.rows.length > 5
+    const smallRowsPlusOne = prevProps.rows.slice(0, 7).filter(r => r.type === 'small')
+    const expandedForTheFirstTime = smallRowsPlusOne.length === 6 && this.props.rows.length > 5
     if (loadedForTheFirstTime || expandedForTheFirstTime) {
       const toUnbox = this.props.rows.slice(0, 20).reduce((arr, row) => {
         if (row.type === 'small' || row.type === 'big') {

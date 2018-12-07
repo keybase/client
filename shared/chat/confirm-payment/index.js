@@ -3,6 +3,39 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
+type LoadingProps = {||}
+
+const PaymentsConfirmLoading = (props: LoadingProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+      <Kb.ProgressIndicator />
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+type ErrorProps = {|
+  message: string,
+|}
+
+const PaymentsConfirmError = (props: ErrorProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      centerChildren={true}
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.fullErrorContainer}
+    >
+      <Kb.Text type="BodyExtrabold" style={styles.fullError}>
+        Failed to load Stellar payment information
+      </Kb.Text>
+      <Kb.Text type="BodyExtrabold" style={styles.fullError}>
+        Please try again
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
 type PaymentProps = {|
   displayAmount?: ?string,
   error?: ?string,
@@ -14,6 +47,7 @@ type PaymentProps = {|
 type Props = {|
   displayTotal: string,
   loading: boolean,
+  error?: string,
   onAccept: () => void,
   onCancel: () => void,
   payments: Array<PaymentProps>,
@@ -23,11 +57,9 @@ type Props = {|
 const PaymentsConfirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onCancel}>
     {props.loading ? (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
-          <Kb.ProgressIndicator />
-        </Kb.Box2>
-      </Kb.Box2>
+      <PaymentsConfirmLoading />
+    ) : !!props.error ? (
+      <PaymentsConfirmError message={props.error} />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
@@ -64,10 +96,11 @@ const PaymentsConfirm = (props: Props) => (
         </Kb.ScrollView>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
           <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-          <Kb.Button
+          <Kb.WaitingButton
             style={styles.submitButton}
             type="PrimaryGreen"
             onClick={props.onAccept}
+            waitingKey={null}
             children={
               <Kb.Icon
                 color={Styles.globalColors.white}
@@ -101,6 +134,14 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 458,
       width: 360,
+    },
+  }),
+  fullError: {
+    color: Styles.globalColors.red,
+  },
+  fullErrorContainer: Styles.platformStyles({
+    isElectron: {
+      padding: 20,
     },
   }),
   headerText: Styles.platformStyles({

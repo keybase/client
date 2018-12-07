@@ -1220,8 +1220,9 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	}
 	defer ui.ChatStellarDone(ctx)
 	summary, err := h.G().StellarSender.DescribePayments(ctx, parsedPayments)
+	err = errors.New("HAHAHAHA")
 	if err != nil {
-		ui.ChatStellarDataError(ctx, "Failed to describe Stellar payments, please try again")
+		ui.ChatStellarDataError(ctx, err.Error())
 		return res, err
 	}
 	var uiSummary chat1.UIMiniChatPaymentSummary
