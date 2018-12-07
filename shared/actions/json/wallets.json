@@ -170,7 +170,8 @@
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
       "accountID": "?Types.AccountID",
-      "setBuildingCurrency?": "boolean"
+      "setBuildingCurrency?": "boolean",
+      "wasSet?": "boolean"
     },
     "displayCurrencyReceived": {
       "_description": "Update display currency for a certain account",
