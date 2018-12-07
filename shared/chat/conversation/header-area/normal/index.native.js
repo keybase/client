@@ -10,7 +10,7 @@ import {
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalStyles, globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 import type {Props} from './index.types'
 
 // width of containers for back button and info button.
@@ -64,7 +64,7 @@ const ChannelHeader = (props: Props) => (
       <Avatar teamname={props.teamName} size={16} />
       <Text
         type={isMobile
-          ? 'BodySmall'
+          ? 'BodySemibold'
           : props.smallTeam
             ? 'BodyBig'
             : 'BodySmallSemibold'}
@@ -79,7 +79,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type={isMobile ? 'BodySmall' : 'BodyBig'} style={styles.channelName}>
+        <Text type={isMobile ? 'BodySemibold' : 'BodyBig'} style={styles.channelName}>
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
@@ -95,7 +95,7 @@ const UsernameHeader = (props: Props) => (
         colorFollowing={true}
         inline={false}
         commaColor={globalColors.black_40}
-        type={isMobile ? 'BodySmall' : 'BodyBig'}
+        type={isMobile ? 'BodySemibold' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
@@ -119,14 +119,9 @@ const styles = styleSheetCreate({
     textAlign: 'center',
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
-  channelName: platformStyles({
-    common: {
-      color: globalColors.black_75,
-    },
-    isMobile: {
-      ...globalStyles.fontSemibold,
-    },
-  }),
+  channelName: {
+    color: globalColors.black_75,
+  },
   channelNameLight: {
     color: globalColors.black_40,
   },

@@ -3747,8 +3747,8 @@
           "type": "ConversationID"
         },
         {
-          "name": "typing",
-          "type": "boolean"
+          "name": "text",
+          "type": "string"
         }
       ],
       "response": null

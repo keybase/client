@@ -356,7 +356,7 @@ export type MessageTypes = {|
     outParam: String,
   |},
   'chat.1.local.updateTyping': {|
-    inParam: $ReadOnly<{|conversationID: ConversationID, typing: Boolean|}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, text: String|}>,
     outParam: void,
   |},
 |}

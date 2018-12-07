@@ -4850,7 +4850,7 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	Typing         bool           `codec:"typing" json:"typing"`
+	Text           string         `codec:"text" json:"text"`
 }
 
 type JoinConversationLocalArg struct {

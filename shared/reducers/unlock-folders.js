@@ -4,6 +4,7 @@ import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
 import * as Types from '../constants/types/unlock-folders'
 import * as DeviceTypes from '../constants/types/devices'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -51,10 +52,7 @@ export default function(state: Types.State = initialState, action: UnlockFolders
     case UnlockFoldersGen.openPopup:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
 import {
@@ -38,10 +39,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'otherAccount':
       return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       return null
   }
 }
@@ -78,10 +76,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'otherAccount':
       return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
   }
   return null
@@ -202,10 +197,7 @@ const Detail = (props: DetailProps) => {
         </Text>
       )
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -227,10 +219,7 @@ const roleToColor = (role: Types.Role): string => {
     case 'senderAndReceiver':
       return globalColors.black_75
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
-  */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -244,10 +233,7 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
     case 'senderAndReceiver':
       return '0 XLM'
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
-  */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -378,10 +364,7 @@ export const Transaction = (props: Props) => {
       showMemo = !!props.memo
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)

@@ -79,7 +79,7 @@ export const setRouteState = (
 export const resetRoute = (path: Path) => RouteTreeGen.createResetRoute({path})
 
 function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const currentPath = pathSelector(state, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {
     yield Saga.put(otherAction)

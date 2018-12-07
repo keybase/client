@@ -141,48 +141,48 @@ export const createUpdateZcash = (payload: _UpdateZcashPayload) => ({payload, ty
 export const createWaiting = (payload: _WaitingPayload) => ({payload, type: waiting})
 
 // Action Payloads
-export type CacheIdentifyPayload = $Call<typeof createCacheIdentify, _CacheIdentifyPayload>
-export type FollowPayload = $Call<typeof createFollow, _FollowPayload>
-export type GetMyProfilePayload = $Call<typeof createGetMyProfile, _GetMyProfilePayload>
-export type GetProfilePayload = $Call<typeof createGetProfile, _GetProfilePayload>
-export type IdentifyFinishedPayload = $Call<typeof createIdentifyFinished, _IdentifyFinishedPayload>
-export type IdentifyFinishedPayloadError = $Call<typeof createIdentifyFinishedError, _IdentifyFinishedPayloadError>
-export type IdentifyStartedPayload = $Call<typeof createIdentifyStarted, _IdentifyStartedPayload>
-export type IgnorePayload = $Call<typeof createIgnore, _IgnorePayload>
-export type MarkActiveIdentifyUiPayload = $Call<typeof createMarkActiveIdentifyUi, _MarkActiveIdentifyUiPayload>
-export type OnClosePayload = $Call<typeof createOnClose, _OnClosePayload>
-export type OnErrorPayload = $Call<typeof createOnError, _OnErrorPayload>
-export type OpenProofUrlPayload = $Call<typeof createOpenProofUrl, _OpenProofUrlPayload>
-export type ParseFriendshipPayload = $Call<typeof createParseFriendship, _ParseFriendshipPayload>
-export type PendingIdentifyPayload = $Call<typeof createPendingIdentify, _PendingIdentifyPayload>
-export type RefollowPayload = $Call<typeof createRefollow, _RefollowPayload>
-export type RemoteDismissPayload = $Call<typeof createRemoteDismiss, _RemoteDismissPayload>
-export type ReportLastTrackPayload = $Call<typeof createReportLastTrack, _ReportLastTrackPayload>
-export type ResetProofsPayload = $Call<typeof createResetProofs, _ResetProofsPayload>
-export type SetNeedTrackTokenDismissPayload = $Call<typeof createSetNeedTrackTokenDismiss, _SetNeedTrackTokenDismissPayload>
-export type SetOnFollowPayload = $Call<typeof createSetOnFollow, _SetOnFollowPayload>
-export type SetOnRefollowPayload = $Call<typeof createSetOnRefollow, _SetOnRefollowPayload>
-export type SetOnUnfollowPayload = $Call<typeof createSetOnUnfollow, _SetOnUnfollowPayload>
-export type SetProofsPayload = $Call<typeof createSetProofs, _SetProofsPayload>
-export type SetRegisterIdentifyUiPayload = $Call<typeof createSetRegisterIdentifyUi, _SetRegisterIdentifyUiPayload>
-export type SetUpdateTrackersPayload = $Call<typeof createSetUpdateTrackers, _SetUpdateTrackersPayload>
-export type ShowNonUserPayload = $Call<typeof createShowNonUser, _ShowNonUserPayload>
-export type ShowTrackerPayload = $Call<typeof createShowTracker, _ShowTrackerPayload>
-export type UnfollowPayload = $Call<typeof createUnfollow, _UnfollowPayload>
-export type UpdateBTCPayload = $Call<typeof createUpdateBTC, _UpdateBTCPayload>
-export type UpdateEldestKidChangedPayload = $Call<typeof createUpdateEldestKidChanged, _UpdateEldestKidChangedPayload>
-export type UpdateFoldersPayload = $Call<typeof createUpdateFolders, _UpdateFoldersPayload>
-export type UpdatePGPKeyPayload = $Call<typeof createUpdatePGPKey, _UpdatePGPKeyPayload>
-export type UpdateProofPayload = $Call<typeof createUpdateProof, _UpdateProofPayload>
-export type UpdateProofStatePayload = $Call<typeof createUpdateProofState, _UpdateProofStatePayload>
-export type UpdateReasonPayload = $Call<typeof createUpdateReason, _UpdateReasonPayload>
-export type UpdateSelectedTeamPayload = $Call<typeof createUpdateSelectedTeam, _UpdateSelectedTeamPayload>
-export type UpdateTrackTokenPayload = $Call<typeof createUpdateTrackToken, _UpdateTrackTokenPayload>
-export type UpdateTrackersPayload = $Call<typeof createUpdateTrackers, _UpdateTrackersPayload>
-export type UpdateUserInfoPayload = $Call<typeof createUpdateUserInfo, _UpdateUserInfoPayload>
-export type UpdateUsernamePayload = $Call<typeof createUpdateUsername, _UpdateUsernamePayload>
-export type UpdateZcashPayload = $Call<typeof createUpdateZcash, _UpdateZcashPayload>
-export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
+export type CacheIdentifyPayload = {|+payload: _CacheIdentifyPayload, +type: 'tracker:cacheIdentify'|}
+export type FollowPayload = {|+payload: _FollowPayload, +type: 'tracker:follow'|}
+export type GetMyProfilePayload = {|+payload: _GetMyProfilePayload, +type: 'tracker:getMyProfile'|}
+export type GetProfilePayload = {|+payload: _GetProfilePayload, +type: 'tracker:getProfile'|}
+export type IdentifyFinishedPayload = {|+payload: _IdentifyFinishedPayload, +type: 'tracker:identifyFinished'|}
+export type IdentifyFinishedPayloadError = {|+error: true, +payload: _IdentifyFinishedPayloadError, +type: 'tracker:identifyFinished'|}
+export type IdentifyStartedPayload = {|+payload: _IdentifyStartedPayload, +type: 'tracker:identifyStarted'|}
+export type IgnorePayload = {|+payload: _IgnorePayload, +type: 'tracker:ignore'|}
+export type MarkActiveIdentifyUiPayload = {|+payload: _MarkActiveIdentifyUiPayload, +type: 'tracker:markActiveIdentifyUi'|}
+export type OnClosePayload = {|+payload: _OnClosePayload, +type: 'tracker:onClose'|}
+export type OnErrorPayload = {|+payload: _OnErrorPayload, +type: 'tracker:onError'|}
+export type OpenProofUrlPayload = {|+payload: _OpenProofUrlPayload, +type: 'tracker:openProofUrl'|}
+export type ParseFriendshipPayload = {|+payload: _ParseFriendshipPayload, +type: 'tracker:parseFriendship'|}
+export type PendingIdentifyPayload = {|+payload: _PendingIdentifyPayload, +type: 'tracker:pendingIdentify'|}
+export type RefollowPayload = {|+payload: _RefollowPayload, +type: 'tracker:refollow'|}
+export type RemoteDismissPayload = {|+payload: _RemoteDismissPayload, +type: 'tracker:remoteDismiss'|}
+export type ReportLastTrackPayload = {|+payload: _ReportLastTrackPayload, +type: 'tracker:reportLastTrack'|}
+export type ResetProofsPayload = {|+payload: _ResetProofsPayload, +type: 'tracker:resetProofs'|}
+export type SetNeedTrackTokenDismissPayload = {|+payload: _SetNeedTrackTokenDismissPayload, +type: 'tracker:setNeedTrackTokenDismiss'|}
+export type SetOnFollowPayload = {|+payload: _SetOnFollowPayload, +type: 'tracker:setOnFollow'|}
+export type SetOnRefollowPayload = {|+payload: _SetOnRefollowPayload, +type: 'tracker:setOnRefollow'|}
+export type SetOnUnfollowPayload = {|+payload: _SetOnUnfollowPayload, +type: 'tracker:setOnUnfollow'|}
+export type SetProofsPayload = {|+payload: _SetProofsPayload, +type: 'tracker:setProofs'|}
+export type SetRegisterIdentifyUiPayload = {|+payload: _SetRegisterIdentifyUiPayload, +type: 'tracker:setRegisterIdentifyUi'|}
+export type SetUpdateTrackersPayload = {|+payload: _SetUpdateTrackersPayload, +type: 'tracker:setUpdateTrackers'|}
+export type ShowNonUserPayload = {|+payload: _ShowNonUserPayload, +type: 'tracker:showNonUser'|}
+export type ShowTrackerPayload = {|+payload: _ShowTrackerPayload, +type: 'tracker:showTracker'|}
+export type UnfollowPayload = {|+payload: _UnfollowPayload, +type: 'tracker:unfollow'|}
+export type UpdateBTCPayload = {|+payload: _UpdateBTCPayload, +type: 'tracker:updateBTC'|}
+export type UpdateEldestKidChangedPayload = {|+payload: _UpdateEldestKidChangedPayload, +type: 'tracker:updateEldestKidChanged'|}
+export type UpdateFoldersPayload = {|+payload: _UpdateFoldersPayload, +type: 'tracker:updateFolders'|}
+export type UpdatePGPKeyPayload = {|+payload: _UpdatePGPKeyPayload, +type: 'tracker:updatePGPKey'|}
+export type UpdateProofPayload = {|+payload: _UpdateProofPayload, +type: 'tracker:updateProof'|}
+export type UpdateProofStatePayload = {|+payload: _UpdateProofStatePayload, +type: 'tracker:updateProofState'|}
+export type UpdateReasonPayload = {|+payload: _UpdateReasonPayload, +type: 'tracker:updateReason'|}
+export type UpdateSelectedTeamPayload = {|+payload: _UpdateSelectedTeamPayload, +type: 'tracker:updateSelectedTeam'|}
+export type UpdateTrackTokenPayload = {|+payload: _UpdateTrackTokenPayload, +type: 'tracker:updateTrackToken'|}
+export type UpdateTrackersPayload = {|+payload: _UpdateTrackersPayload, +type: 'tracker:updateTrackers'|}
+export type UpdateUserInfoPayload = {|+payload: _UpdateUserInfoPayload, +type: 'tracker:updateUserInfo'|}
+export type UpdateUsernamePayload = {|+payload: _UpdateUsernamePayload, +type: 'tracker:updateUsername'|}
+export type UpdateZcashPayload = {|+payload: _UpdateZcashPayload, +type: 'tracker:updateZcash'|}
+export type WaitingPayload = {|+payload: _WaitingPayload, +type: 'tracker:waiting'|}
 
 // All Actions
 // prettier-ignore
@@ -229,4 +229,4 @@ export type Actions =
   | UpdateUsernamePayload
   | UpdateZcashPayload
   | WaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

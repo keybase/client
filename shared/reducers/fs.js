@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
+import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
 
@@ -332,10 +333,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.cancelMoveOrCopy:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

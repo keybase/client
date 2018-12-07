@@ -136,7 +136,7 @@ const reallySignupOnNoErrors = (state: TypedState) => {
   }
 
   type Fn = () => Generator<any, any, any>
-  return Saga.call<_, Fn>(function*() {
+  return Saga.callUntyped<_, Fn>(function*() {
     try {
       yield RPCTypes.signupSignupRpcSaga({
         customResponseIncomingCallMap: {

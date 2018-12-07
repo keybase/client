@@ -74,7 +74,7 @@ function* updateBillingSaga({payload}: Types.UpdateBilling): Saga.SagaGenerator<
 
   // TODO (MM) some loading indicator: true
   try {
-    yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
+    yield Saga.callUntyped(RPCTypes.apiserverPostRpcPromise, {
       args: apiArgsFormatter(updateBillingArgsToApiArgs({...payload, planId})),
       endpoint: 'account/billing_update',
     })
@@ -96,7 +96,7 @@ function* updateBillingSaga({payload}: Types.UpdateBilling): Saga.SagaGenerator<
 
 function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const results: any = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+    const results: any = yield * Saga.callPromise(RPCTypes.apiserverGetWithSessionRpcPromise, {
       endpoint: 'account/billing_overview',
     })
 
@@ -139,7 +139,7 @@ function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
     const state: TypedState = yield Saga.select()
     const username = state.config.username
 
-    const results: any = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
+    const results: any = yield * Saga.callPromise(RPCTypes.apiserverGetRpcPromise, {
       args: apiArgsFormatter({fields: 'billing_and_quotas', username}),
       endpoint: 'user/lookup',
     })
