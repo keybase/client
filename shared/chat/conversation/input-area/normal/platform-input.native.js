@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {
   Animation,
   Box,
@@ -41,7 +41,7 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
+class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _whichMenu: menuType
 
@@ -315,7 +315,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
       <Icon
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-bomb"
+        type="iconfont-timer"
         fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />

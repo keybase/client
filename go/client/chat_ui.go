@@ -136,13 +136,25 @@ func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearch
 		return strings.Join(ctx, "")
 	}
 
-	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
+	highlightEscapeHits := func(msg chat1.UIMessage, hits []chat1.ChatSearchMatch) string {
+		colorStrOffset := len(ColorString(c.G(), "red", ""))
+		totalOffset := 0
 		msgText := msg.SearchableText()
 		if msgText != "" {
 			escapedHitText := terminalescaper.Clean(msgText)
 			for _, hit := range hits {
-				escapedHit := terminalescaper.Clean(hit)
-				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
+				escapedHit := terminalescaper.Clean(hit.Match)
+				i := totalOffset + hit.StartIndex
+				j := totalOffset + hit.EndIndex
+				if i > len(escapedHitText) || j > len(escapedHitText) {
+					// sanity check string indices
+					continue
+				}
+				// Splice the match into the result with a color highlight. We
+				// can't do a direct string replacement since the match might
+				// be a substring of the color text.
+				escapedHitText = escapedHitText[:i] + ColorString(c.G(), "red", escapedHit) + escapedHitText[j:]
+				totalOffset += colorStrOffset
 			}
 			return terminalescaper.Clean(getMsgPrefix(msg)) + escapedHitText
 		}

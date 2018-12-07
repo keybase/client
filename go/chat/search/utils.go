@@ -82,13 +82,23 @@ func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
 	return msgIDSlice
 }
 
-func searchMatches(msg chat1.MessageUnboxed, queryRe *regexp.Regexp) []string {
+func searchMatches(msg chat1.MessageUnboxed, queryRe *regexp.Regexp) (validMatches []chat1.ChatSearchMatch) {
 	msgText := msg.SearchableText()
-	matches := queryRe.FindAllString(msgText, -1)
-	validMatches := []string{}
+	matches := queryRe.FindAllStringIndex(msgText, -1)
 	for _, m := range matches {
-		if m != "" {
-			validMatches = append(validMatches, m)
+		if len(m) != 2 {
+			// sanity check but regex package should always return a two
+			// element slice
+			continue
+		}
+		startIndex := m[0]
+		endIndex := m[1]
+		if startIndex != endIndex {
+			validMatches = append(validMatches, chat1.ChatSearchMatch{
+				StartIndex: startIndex,
+				EndIndex:   endIndex,
+				Match:      msgText[startIndex:endIndex],
+			})
 		}
 	}
 	return validMatches
