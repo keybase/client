@@ -27,6 +27,12 @@ export type _QuoteInfo = {
 }
 export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
+export type PaymentConfirmInfo = {
+  info: RPCChatTypes.UIMiniChatPaymentSummary,
+  // $FlowIssue let me use any here
+  response: any,
+}
+
 // Static config data we use for various things
 export type _StaticConfig = {
   deletableByDeleteHistory: I.Set<Message.MessageType>,
@@ -65,7 +71,7 @@ export type _State = {
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
-  paymentConfirmInfo: ?RPCChatTypes.UIMiniChatPaymentSummary, // chat payment confirm screen data
+  paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

@@ -426,6 +426,8 @@ const rootReducer = (
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
         }
       })
+    case Chat2Gen.setPaymentConfirmInfo:
+      return state.set('paymentConfirmInfo', action.payload.info)
     case Chat2Gen.setPendingStatus:
       return state.set('pendingStatus', action.payload.pendingStatus)
     case Chat2Gen.createConversation:

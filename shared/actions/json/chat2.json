@@ -513,6 +513,10 @@
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "setPaymentConfirmInfo": {
+      "_description": "Set the payment confirm modal payment data",
+      "info": "?Types.PaymentConfirmInfo"
     }
   }
 }

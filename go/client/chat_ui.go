@@ -266,17 +266,12 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStell
 	term.Printf("Confirm Stellar Payments:\n\n")
 	term.Printf("Total: %s (%s)\n", arg.Summary.XlmTotal, arg.Summary.DisplayTotal)
 	for _, p := range arg.Summary.Payments {
-		typ, err := p.Typ()
-		if err != nil {
-			continue
-		}
-		switch typ {
-		case chat1.UIMiniChatPaymentSpecTyp_ERROR:
-			term.Printf("Payment Error: %s\n", p.Error())
-		case chat1.UIMiniChatPaymentSpecTyp_SUCCESS:
-			out := fmt.Sprintf("-> %s %s", p.Success().Username, p.Success().XlmAmount)
-			if p.Success().DisplayAmount != nil {
-				out += fmt.Sprintf(" (%s)", *p.Success().DisplayAmount)
+		if p.Error != nil {
+			term.Printf("Payment Error: %s\n", *p.Error)
+		} else {
+			out := fmt.Sprintf("-> %s %s", p.Username, p.XlmAmount)
+			if p.DisplayAmount != nil {
+				out += fmt.Sprintf(" (%s)", *p.DisplayAmount)
 			}
 			term.Printf(out + "\n")
 		}
@@ -295,4 +290,12 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellar
 	msg := "Failed to obtain Stellar payment information, aborting send"
 	fmt.Fprintf(w, msg+"\n")
 	return errors.New(msg)
+}
+
+func (c *ChatUI) ChatStellarDone(ctx context.Context, sessionID int) error {
+	return nil
+}
+
+func (c *ChatUI) ChatPostReadyToSend(ctx context.Context, sessionID int) error {
+	return nil
 }

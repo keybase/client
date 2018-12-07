@@ -84,6 +84,7 @@ export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
+export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
@@ -180,6 +181,7 @@ type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
+type _SetPaymentConfirmInfoPayload = $ReadOnly<{|info: ?Types.PaymentConfirmInfo|}>
 type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
@@ -254,6 +256,10 @@ export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({payload
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({payload, type: setMinWriterRole})
+/**
+ * Set the payment confirm modal payment data
+ */
+export const createSetPaymentConfirmInfo = (payload: _SetPaymentConfirmInfoPayload) => ({payload, type: setPaymentConfirmInfo})
 /**
  * Set the remote exploding mode for a conversation.
  */
@@ -447,6 +453,7 @@ export type SetExplodingMessagesNewPayload = {|+payload: _SetExplodingMessagesNe
 export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPayload, +type: 'chat2:setExplodingModeLock'|}
 export type SetInboxFilterPayload = {|+payload: _SetInboxFilterPayload, +type: 'chat2:setInboxFilter'|}
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
+export type SetPaymentConfirmInfoPayload = {|+payload: _SetPaymentConfirmInfoPayload, +type: 'chat2:setPaymentConfirmInfo'|}
 export type SetPendingConversationExistingConversationIDKeyPayload = {|+payload: _SetPendingConversationExistingConversationIDKeyPayload, +type: 'chat2:setPendingConversationExistingConversationIDKey'|}
 export type SetPendingConversationUsersPayload = {|+payload: _SetPendingConversationUsersPayload, +type: 'chat2:setPendingConversationUsers'|}
 export type SetPendingModePayload = {|+payload: _SetPendingModePayload, +type: 'chat2:setPendingMode'|}
@@ -542,6 +549,7 @@ export type Actions =
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
   | SetMinWriterRolePayload
+  | SetPaymentConfirmInfoPayload
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload

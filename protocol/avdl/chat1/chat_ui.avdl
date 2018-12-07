@@ -218,6 +218,7 @@ protocol chatUi {
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 
+  void chatPostReadyToSend(int sessionID);
   // Chat Stellar send confirm screen UI
   record UIMiniChatPayment {
     string username;
@@ -234,4 +235,5 @@ protocol chatUi {
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIMiniChatPaymentSummary summary);
   void chatStellarDataError(int sessionID, string message);
+  void chatStellarDone(int sessionID);
 }

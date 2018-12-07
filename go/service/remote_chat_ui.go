@@ -93,3 +93,11 @@ func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, msg string) err
 		Message:   msg,
 	})
 }
+
+func (r *RemoteChatUI) ChatStellarDone(ctx context.Context) error {
+	return r.cli.ChatStellarDone(ctx, r.sessionID)
+}
+
+func (r *RemoteChatUI) ChatPostReadyToSend(ctx context.Context) error {
+	return r.cli.ChatPostReadyToSend(ctx, r.sessionID)
+}

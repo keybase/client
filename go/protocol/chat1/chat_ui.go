@@ -967,6 +967,10 @@ type ChatConfirmChannelDeleteArg struct {
 	Channel   string `codec:"channel" json:"channel"`
 }
 
+type ChatPostReadyToSendArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ChatStellarShowConfirmArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -979,6 +983,10 @@ type ChatStellarDataConfirmArg struct {
 type ChatStellarDataErrorArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Message   string `codec:"message" json:"message"`
+}
+
+type ChatStellarDoneArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type ChatUiInterface interface {
@@ -996,9 +1004,11 @@ type ChatUiInterface interface {
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
+	ChatPostReadyToSend(context.Context, int) error
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) error
+	ChatStellarDone(context.Context, int) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1215,6 +1225,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatPostReadyToSend": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatPostReadyToSendArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatPostReadyToSendArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatPostReadyToSendArg)(nil), args)
+						return
+					}
+					err = i.ChatPostReadyToSend(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"chatStellarShowConfirm": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatStellarShowConfirmArg
@@ -1257,6 +1282,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatStellarDataError(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatStellarDone": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatStellarDoneArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatStellarDoneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatStellarDoneArg)(nil), args)
+						return
+					}
+					err = i.ChatStellarDone(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1340,6 +1380,12 @@ func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatCo
 	return
 }
 
+func (c ChatUiClient) ChatPostReadyToSend(ctx context.Context, sessionID int) (err error) {
+	__arg := ChatPostReadyToSendArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatPostReadyToSend", []interface{}{__arg}, nil)
+	return
+}
+
 func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil)
@@ -1353,5 +1399,11 @@ func (c ChatUiClient) ChatStellarDataConfirm(ctx context.Context, __arg ChatStel
 
 func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStellarDataErrorArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatStellarDone(ctx context.Context, sessionID int) (err error) {
+	__arg := ChatStellarDoneArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil)
 	return
 }

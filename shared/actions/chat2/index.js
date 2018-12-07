@@ -29,7 +29,7 @@ import logger from '../../logger'
 import type {TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
-import {switchTo} from '../route-tree'
+import {switchTo, navigateUp} from '../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -1271,64 +1271,97 @@ const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) =
   )
 }
 
-const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
-  const {conversationIDKey, text} = action.payload
-  const outboxID = Constants.generateOutboxID()
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const tlfName = meta.tlfname
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
+  Saga.callUntyped(function*() {
+    const {conversationIDKey, text} = action.payload
+    const outboxID = Constants.generateOutboxID()
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const tlfName = meta.tlfname
+    const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+    // disable sending exploding messages if flag is false
+    const ephemeralLifetime = flags.explodingMessagesEnabled
+      ? Constants.getConversationExplodingMode(state, conversationIDKey)
+      : 0
+    const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+    const newMsg = Constants.makePendingTextMessage(
+      state,
+      conversationIDKey,
+      text,
+      Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+      ephemeralLifetime
+    )
+    const addMessage = Saga.put(
+      Chat2Gen.createMessagesAdd({
+        context: {type: 'sent'},
+        messages: [newMsg],
+      })
+    )
 
-  // Inject pending message and make the call
-  const newMsg = Constants.makePendingTextMessage(
-    state,
-    conversationIDKey,
-    text,
-    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-    ephemeralLifetime
-  )
-  const addMessage = Saga.put(
-    Chat2Gen.createMessagesAdd({
-      context: {type: 'sent'},
-      messages: [newMsg],
+    const onShowConfirm = () => {
+      const actions = [
+        Saga.put(Chat2Gen.createSetPaymentConfirmInfo({info: null})),
+        Saga.put(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {},
+                selected: 'paymentsConfirm',
+              },
+            ],
+          })
+        ),
+      ]
+      return actions
+    }
+    const onDataConfirm = (result: RPCChatTypes.UIMiniChatPaymentSummary, response: any) => {
+      return Saga.put(
+        Chat2Gen.createSetPaymentConfirmInfo({
+          info: {
+            info: result,
+            response,
+          },
+        })
+      )
+    }
+    yield RPCChatTypes.localPostTextNonblockRpcSaga({
+      customResponseIncomingCallMap: {
+        'chat.1.chatUi.chatStellarDataConfirm': (p, r) => onDataConfirm(p.summary, r),
+      },
+      incomingCallMap: {
+        'chat.1.chatUi.chatPostReadyToSend': p => addMessage,
+        'chat.1.chatUi.chatStellarDataError': p => null,
+        'chat.1.chatUi.chatStellarDone': p => Saga.put(navigateUp()),
+        'chat.1.chatUi.chatStellarShowConfirm': p => onShowConfirm(),
+      },
+      params: {
+        ...ephemeralData,
+        body: text.stringValue(),
+        clientPrev,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        outboxID,
+        tlfName,
+        tlfPublic: false,
+      },
+      waitingKey: Constants.waitingKeyPost,
     })
-  )
 
-  const postText = Saga.callUntyped(
-    RPCChatTypes.localPostTextNonblockRpcPromise,
-    {
-      ...ephemeralData,
-      body: text.stringValue(),
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      outboxID,
-      tlfName,
-      tlfPublic: false,
-    },
-    Constants.waitingKeyPost
-  )
+    // Do some logging to track down the root cause of a bug causing
+    // messages to not send. Do this after creating the objects above to
+    // narrow down the places where the action can possibly stop.
 
-  // Do some logging to track down the root cause of a bug causing
-  // messages to not send. Do this after creating the objects above to
-  // narrow down the places where the action can possibly stop.
+    logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
-  logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-
-  // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
-  // the action to add the pending message fires. This would cause a pending message to be stuck
-  // (with a duplicate sent message in there too).
-  //
-  // We put the addMessage on the back in case the service provides chat thread data in between the
-  // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
-  // that is in the store on the outboxID has been sent.
-  return Saga.sequentially([addMessage, postText, addMessage])
-}
+    // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
+    // the action to add the pending message fires. This would cause a pending message to be stuck
+    // (with a duplicate sent message in there too).
+    //
+    // We put the addMessage on the back in case the service provides chat thread data in between the
+    // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
+    // that is in the store on the outboxID has been sent.
+    yield addMessage
+  })
 
 const messageSendWithResult = (result, action) => {
   logger.info('[MessageSend] success')
