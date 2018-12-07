@@ -10,29 +10,25 @@ import type {SuggestorDatasource} from './interface'
 
 const lg = (...args) => console.log('DANNYDEBUG', ...args)
 
-type SuggestorName = 'chatUsers' | 'chatChannels' | 'emojis'
-type Suggestors = Array<SuggestorName>
+// type SuggestorName = 'chatUsers' | 'chatChannels' | 'emojis'
+// type Suggestors = Array<SuggestorName>
 
-const suggestors: {[key: SuggestorName]: SuggestorDatasource} = {
-  chatUsers: ChatUsers,
-}
-
-type ConnectorOwnProps = {
-  suggestors: Suggestors,
-}
+// const suggestors: {[key: SuggestorName]: SuggestorDatasource} = {
+//   chatUsers: ChatUsers,
+// }
 
 type AddSuggestorsProps = {
   dataSources: {
-    [key: SuggestorName]: (filter: string) => Array<any>, // typing TODO
+    [key: string]: (filter: string) => Array<any>, // typing TODO
   },
   renderers: {
-    [key: SuggestorName]: (item: any, selected: boolean) => React.Node,
+    [key: string]: (item: any, selected: boolean) => React.Node,
   },
   suggestorToMarker: {
-    [key: SuggestorName]: string,
+    [key: string]: string,
   },
   transformers: {
-    [key: SuggestorName]: ({text: string, selection: {start: number, end: number}}) => {
+    [key: string]: ({text: string, selection: {start: number, end: number}}) => {
       text: string,
       selection: {start: number, end: number},
     },
@@ -40,28 +36,33 @@ type AddSuggestorsProps = {
 }
 
 type AddSuggestorsState = {
-  active: ?SuggestorName,
+  active: ?string,
   filter: string,
   selected: number,
 }
 
-export type SuggestorHooks = {
+type SuggestorHooks = {
   inputRef: {current: React.ElementRef<typeof Kb.PlainInput> | null},
   onChangeText: string => void,
   onKeyDown: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 }
 
-const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
-  WrappedComponent: React.ComponentType<WrappedOwnProps & SuggestorHooks>
-): React.ComponentType<WrappedOwnProps & AddSuggestorsProps> => {
+export type PropsWithSuggestor<P> = {|
+  ...$Exact<P>,
+  ...$Exact<SuggestorHooks>,
+|}
+
+const AddSuggestors = <WrappedOwnProps: SuggestorHooks>(
+  WrappedComponent: React.ComponentType<WrappedOwnProps>
+): React.ComponentType<$Diff<WrappedOwnProps, SuggestorHooks> & AddSuggestorsProps> => {
   class SuggestorsComponent extends React.Component<
-    WrappedOwnProps & AddSuggestorsProps,
+    $Diff<WrappedOwnProps, SuggestorHooks> & AddSuggestorsProps,
     AddSuggestorsState
   > {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _suggestors = Object.keys(this.props.suggestorToMarker)
-    _markerToSuggestor: {[key: string]: SuggestorName} = invert(this.props.suggestorToMarker)
+    _markerToSuggestor: {[key: string]: string} = invert(this.props.suggestorToMarker)
 
     _getInputRef = () => this._inputRef.current
 
@@ -189,38 +190,5 @@ const _AddSuggestors = <WrappedOwnProps: $Shape<SuggestorHooks>>(
 
   return SuggestorsComponent
 }
-
-const mapStateToProps = (state, ownProps) => {
-  const ret = {
-    dataSources: {},
-    renderers: {},
-    suggestorToMarker: {},
-    transformers: {},
-  }
-  for (const suggestor of ownProps.suggestors) {
-    ret.dataSources[suggestor] = suggestors[suggestor].getFilter(state)
-    ret.renderers[suggestor] = suggestors[suggestor].render
-    ret.suggestorToMarker[suggestor] = suggestors[suggestor].marker
-    ret.transformers[suggestor] = suggestors[suggestor].transform
-  }
-  return ret
-}
-
-const mapDispatchToProps = (dispatch, ownProps) => ({})
-
-const mergeProps = (s, d, o) => {
-  const {suggestors, ...restOwnProps} = o
-  return {...restOwnProps, ...s, ...d}
-}
-
-export const AddSuggestors = <WrappedOwnProps: {}>(
-  wrappedComponent: React.ComponentType<WrappedOwnProps & SuggestorHooks>
-): React.ComponentType<WrappedOwnProps & ConnectorOwnProps> =>
-  Container.namedConnect<WrappedOwnProps & ConnectorOwnProps, WrappedOwnProps & AddSuggestorsProps, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-    'AddSuggestors'
-  )(_AddSuggestors<WrappedOwnProps>(wrappedComponent))
 
 export default AddSuggestors
