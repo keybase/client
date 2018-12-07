@@ -23,16 +23,16 @@ type OwnProps = {
 
 type SuggestorProps = {
   dataSources: {
-    [key: string]: (filter: string) => Array<any>, // typing TODO
+    [key: SuggestorName]: (filter: string) => Array<any>, // typing TODO
   },
   renderers: {
-    [key: string]: (item: any, selected: boolean) => React.Node,
+    [key: SuggestorName]: (item: any, selected: boolean) => React.Node,
   },
   suggestorToMarker: {
-    [key: string]: string,
+    [key: SuggestorName]: string,
   },
   transformers: {
-    [key: string]: ({text: string, selection: {start: number, end: number}}) => {
+    [key: SuggestorName]: ({text: string, selection: {start: number, end: number}}) => {
       text: string,
       selection: {start: number, end: number},
     },
@@ -62,6 +62,8 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
 
     _getInputRef = () => this._inputRef.current
 
+    _setInactive = () => this.setState({active: null, filter: '', selected: 0})
+
     _checkTrigger = text => {
       const selection = (this._inputRef.current && this._inputRef.current.getSelection()) || {
         end: 0,
@@ -74,7 +76,7 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
         const activeMarker = this.props.suggestorToMarker[this.state.active]
         if (!word.startsWith(activeMarker)) {
           // not active anymore
-          this.setState({active: null, filter: '', selected: 0})
+          this._setInactive()
         } else {
           this.setState({filter: word.substring(activeMarker.length)})
           return
@@ -88,21 +90,46 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
       }
     }
 
+    _move = (up: boolean) =>
+      !this.state.active
+        ? null
+        : this.setState(s => {
+            const length = this.props.dataSources[s.active](s.filter).length
+            const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
+            return selected === s.selected ? null : {selected}
+          })
+
     _onChangeText = text => {
       lg('changetext')
       this.props.onChangeText && this.props.onChangeText(text)
       this._checkTrigger(text)
     }
 
-    _onKeyDown = (evt, ici) => {
+    _onKeyDown = (evt: SyntheticKeyboardEvent<>, ici: boolean) => {
       lg('keydown')
       this.props.onKeyDown && this.props.onKeyDown(evt, ici)
+
+      // check up or down
+      if (evt.key === 'ArrowDown') {
+        evt.preventDefault()
+        this._move(false)
+      } else if (evt.key === 'ArrowUp') {
+        evt.preventDefault()
+        this._move(true)
+      }
+    }
+
+    _triggerTransform = value => {
+      // TODO
     }
 
     _itemRenderer = (index, value) => (
-      <Kb.Box onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}>
+      <Kb.ClickableBox
+        onClick={() => this._triggerTransform(value)}
+        onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
+      >
         {this.props.renderers[this.state.active](value, index === this.state.selected)}
-      </Kb.Box>
+      </Kb.ClickableBox>
     )
 
     render() {
@@ -117,13 +144,17 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
               position="top center"
               visible={true}
               propagateOutsideClicks={false}
-              onHidden={() => {}}
+              onHidden={this._setInactive}
             >
               <Kb.Box2
                 direction="vertical"
                 style={{backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320}}
               >
-                <SuggestionList items={results} renderItem={this._itemRenderer} />
+                <SuggestionList
+                  items={results}
+                  renderItem={this._itemRenderer}
+                  selectedIndex={this.state.selected}
+                />
               </Kb.Box2>
             </Kb.Overlay>
           )

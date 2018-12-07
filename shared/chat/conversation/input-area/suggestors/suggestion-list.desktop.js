@@ -5,14 +5,27 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type {Props} from './suggestion-list'
 
-const SuggestionList = (props: Props) => (
-  <Kb.ScrollView style={Styles.collapseStyles([styles.fullHeight, props.style])}>
-    <ReactList
-      itemRenderer={index => props.renderItem(index, props.items[index])}
-      length={props.items.length}
-    />
-  </Kb.ScrollView>
-)
+class SuggestionList extends React.Component<Props> {
+  _listRef = React.createRef<ReactList>()
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.selectedIndex !== this.props.selectedIndex && this._listRef.current) {
+      this._listRef.current.scrollAround(this.props.selectedIndex)
+    }
+  }
+
+  render() {
+    return (
+      <Kb.ScrollView style={Styles.collapseStyles([styles.fullHeight, this.props.style])}>
+        <ReactList
+          ref={this._listRef}
+          itemRenderer={index => this.props.renderItem(index, this.props.items[index])}
+          length={this.props.items.length}
+        />
+      </Kb.ScrollView>
+    )
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   fullHeight: {
