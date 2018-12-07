@@ -195,6 +195,8 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
           Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(yourRole)
           throw new Error(`Unexpected role ${yourRole}`)
       }
+    case 'error':
+      return 'Failed'
     default:
       return capitalize(status)
   }
@@ -340,9 +342,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Icon
               color={colorForStatus(props.status)}
               fontSize={16}
+              style={Kb.iconCastPlatformStyles(styles.statusIcon)}
               type={
                 ['error', 'canceled'].includes(props.status)
-                  ? 'iconfont-close'
+                  ? 'iconfont-remove'
                   : props.status === 'completed'
                   ? 'iconfont-success'
                   : 'iconfont-clock'
@@ -364,6 +367,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
               selectableText={true}
               timestamp={props.timestamp}
             />
+          )}
+          {props.status === 'error' && (
+            <Kb.Text type='BodySmallError' selectable={true}>
+              {props.statusDetail}
+            </Kb.Text>
           )}
         </Kb.Box2>
 
@@ -480,6 +488,10 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     alignSelf: 'flex-start',
+  },
+  statusIcon: {
+    position: 'relative',
+    top: 1,
   },
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,

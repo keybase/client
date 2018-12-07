@@ -97,7 +97,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     let children
     switch (this.state.mode) {
       case 'countdown':
-        const bombIconSize = Styles.isMobile ? 21 : 14
+        const stopWatchIconSize = Styles.isMobile ? 21 : 14
         children = (
           <Kb.Box2 direction="horizontal" gap="xtiny">
             {this.props.pending ? (
@@ -119,7 +119,11 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Kb.Text>
               </Kb.Box2>
             )}
-            <Kb.Icon type="iconfont-bomb" fontSize={bombIconSize} color={Styles.globalColors.black_75} />
+            <Kb.Icon
+              type="iconfont-timer"
+              fontSize={stopWatchIconSize}
+              color={Styles.globalColors.black_75}
+            />
           </Kb.Box2>
         )
         break

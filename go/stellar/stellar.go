@@ -301,6 +301,10 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: fmt.Sprintf("Sender account not found")}
 }
 
+func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	return LookupSender(ctx, g, "" /* empty account id returns primary */)
+}
+
 func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
 	entry, ab, err := lookupSenderEntry(ctx, g, accountID)
 	if err != nil {
@@ -602,13 +606,115 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}, nil
 }
 
+type indexedSpec struct {
+	spec             libkb.MiniChatPaymentSpec
+	index            int
+	xlmAmountNumeric int64
+}
+
+// SpecMiniChatPayments returns a summary of the payment amounts for each recipient
+// and a total.
+func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
+	// look up sender account
+	_, senderAccountBundle, err := LookupSenderPrimary(mctx.Ctx(), mctx.G())
+	if err != nil {
+		return nil, err
+	}
+	senderAccountID := senderAccountBundle.AccountID
+	senderCurrency, err := GetCurrencySetting(mctx, walletState, senderAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	senderRate, err := walletState.ExchangeRate(mctx.Ctx(), string(senderCurrency.Code))
+	if err != nil {
+		return nil, err
+	}
+
+	var summary libkb.MiniChatPaymentSummary
+
+	var xlmTotal int64
+	if len(payments) > 0 {
+		ch := make(chan indexedSpec)
+		for i, payment := range payments {
+			go func(payment libkb.MiniChatPayment, index int) {
+				spec, xlmAmountNumeric := specMiniChatPayment(mctx, walletState, payment)
+				ch <- indexedSpec{spec: spec, index: index, xlmAmountNumeric: xlmAmountNumeric}
+			}(payment, i)
+		}
+
+		summary.Specs = make([]libkb.MiniChatPaymentSpec, len(payments))
+		for i := 0; i < len(payments); i++ {
+			ispec := <-ch
+			summary.Specs[ispec.index] = ispec.spec
+			xlmTotal += ispec.xlmAmountNumeric
+		}
+	}
+
+	summary.XLMTotal = stellarnet.StringFromStellarAmount(xlmTotal)
+	if senderRate.Currency != "" && senderRate.Currency != "XLM" {
+		outsideAmount, err := stellarnet.ConvertXLMToOutside(summary.XLMTotal, senderRate.Rate)
+		if err != nil {
+			return nil, err
+		}
+		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), outsideAmount, senderRate.Currency, FmtRound)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	summary.XLMTotal, err = FormatAmountDescriptionXLM(summary.XLMTotal)
+	if err != nil {
+		return nil, err
+	}
+
+	return &summary, nil
+}
+
+func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payment libkb.MiniChatPayment) (libkb.MiniChatPaymentSpec, int64) {
+	spec := libkb.MiniChatPaymentSpec{Username: payment.Username}
+	xlmAmount := payment.Amount
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		exchangeRate, err := walletState.ExchangeRate(mctx.Ctx(), payment.Currency)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), payment.Amount, exchangeRate.Currency, FmtRound)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+	}
+
+	xlmAmountNumeric, err := stellarnet.ParseStellarAmount(xlmAmount)
+	if err != nil {
+		spec.Error = err
+		return spec, 0
+	}
+
+	spec.XLMAmount, err = FormatAmountDescriptionXLM(xlmAmount)
+	if err != nil {
+		spec.Error = err
+		return spec, 0
+	}
+
+	return spec, xlmAmountNumeric
+}
+
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
-	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
 	if err != nil {
 		return nil, err
 	}
@@ -1035,7 +1141,12 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 		if p.Claim != nil {
 			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 				// If the claim succeeded, the relay payment is done.
-				res.Status = "Completed"
+				switch p.Claim.Dir {
+				case stellar1.RelayDirection_CLAIM:
+					res.Status = "Completed"
+				case stellar1.RelayDirection_YANK:
+					res.Status = "Canceled"
+				}
 				res.ToStellar = &p.Claim.ToStellar
 				res.ToUsername, err = username(p.Claim.To.Uid)
 				if err != nil {

@@ -8,7 +8,7 @@ import {throttle} from 'lodash-es'
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 
-class Input extends React.Component<InputProps> {
+class Input extends React.PureComponent<InputProps> {
   _lastQuote: number
   _input: ?TextInput
 
@@ -32,7 +32,7 @@ class Input extends React.Component<InputProps> {
 
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
-    throttled(this.props.sendTyping, !!text)
+    throttled(this.props.sendTyping, text)
   }
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
@@ -46,7 +46,7 @@ class Input extends React.Component<InputProps> {
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-    throttled(this.props.sendTyping, !!text)
+    throttled(this.props.sendTyping, text)
   }
 
   componentDidMount = () => {

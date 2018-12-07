@@ -38,7 +38,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	matches := make([]ChatTxCandidate, 0, len(rawMatches))
 	for _, rawMatch := range rawMatches {
 		amount := rawMatch[1]
-		currencyCode := rawMatch[2]
+		currencyCode := strings.ToUpper(rawMatch[2])
 		username := rawMatch[3]
 		atSign := "@"
 		if len(username) == 0 {

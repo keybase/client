@@ -3,6 +3,8 @@
 protocol unfurl {
     import idl "common.avdl";
 
+    // NOTE if adding a new type here, also add the case to the
+    // `UnfurlRaw.GetURL` type since a URL is used as a key for caching
     enum UnfurlType {
       GENERIC_0,
       YOUTUBE_1,

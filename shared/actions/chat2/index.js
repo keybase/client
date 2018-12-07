@@ -490,7 +490,20 @@ const onChatThreadStale = updates => {
       }
       return arr
     }, [])
-    if (conversationIDKeys.length > 0) {
+    // load the inbox instead
+    if (key === 'convupdate') {
+      logger.info(
+        `onChatThreadStale: dispatching inbox unbox actions for ${
+          conversationIDKeys.length
+        } convs of type ${key}`
+      )
+      actions = actions.concat([
+        Chat2Gen.createMetaRequestTrusted({
+          conversationIDKeys,
+          force: true,
+        }),
+      ])
+    } else if (conversationIDKeys.length > 0) {
       logger.info(
         `onChatThreadStale: dispatching thread reload actions for ${
           conversationIDKeys.length
@@ -1940,10 +1953,10 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
 // Tell service we're typing
 const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
-  const {conversationIDKey, typing} = action.payload
+  const {conversationIDKey, text} = action.payload
   return Saga.callUntyped(RPCChatTypes.localUpdateTypingRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
-    typing,
+    text: text.stringValue(),
   })
 }
 
