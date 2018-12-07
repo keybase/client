@@ -48,90 +48,48 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
   }
 }
 
-// TODO(mm) handle error better
-function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']))
+function generatePgp(state: TypedState) {
+  const pgpInfo = state.profile.pgpInfo
+  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(Boolean).map(email => ({
+    comment: '',
+    email: email || '',
+    username: pgpInfo.fullName || '',
+  }))
 
-  const state = yield* Saga.selectState()
-  const {
-    profile: {pgpInfo},
-  } = state
-  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3]
-    .filter(email => !!email)
-    .map(email => ({
-      comment: '',
-      email: email || '',
-      username: pgpInfo.fullName || '',
-    }))
+  const onKeyGenerated = ({key}) => Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
+  const onShouldPushPrivate = (_, response) => {
+    return Saga.callUntyped(function*() {
+      yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate', 'finished']))
+      const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
+      response.result(action.payload.shouldStoreKeyOnServer)
+      yield Saga.put(navigateTo([peopleTab, 'profile']))
+    })
+  }
+  const onFinished = () => {}
 
-  const generatePgpKeyChanMap: any = RPCTypes.pgpPgpKeyGenDefaultRpcChannelMap(
-    [
-      'keybase.1.pgpUi.keyGenerated',
-      'keybase.1.pgpUi.shouldPushPrivate',
-      'keybase.1.pgpUi.finished',
-      'finished',
-    ],
-    {
-      createUids: {
-        ids: identities,
-        useDefault: false,
+  return Saga.callUntyped(function*() {
+    yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']))
+    yield RPCTypes.pgpPgpKeyGenDefaultRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.pgpUi.shouldPushPrivate': onShouldPushPrivate,
       },
-    }
-  )
-
-  try {
-    const incoming = yield generatePgpKeyChanMap.race({
-      racers: {
-        cancel: Saga.take(ProfileGen.cancelPgpGen),
+      incomingCallMap: {
+        'keybase.1.pgpUi.finished': onFinished,
+        'keybase.1.pgpUi.keyGenerated': onKeyGenerated,
+      },
+      params: {
+        createUids: {
+          ids: identities,
+          useDefault: false,
+        },
       },
     })
-
-    if (incoming.cancel) {
-      generatePgpKeyChanMap.close()
-      yield Saga.put(navigateTo([], [peopleTab]))
-      return
-    }
-
-    if (incoming.finished && incoming.finished.error) {
-      throw incoming.finished.error
-    }
-
-    if (!incoming['keybase.1.pgpUi.keyGenerated']) {
-      throw new Error('KeyGeneration failed')
-    }
-
-    yield Saga.callUntyped([
-      incoming['keybase.1.pgpUi.keyGenerated'].response,
-      incoming['keybase.1.pgpUi.keyGenerated'].response.result,
-    ])
-    const publicKey = incoming['keybase.1.pgpUi.keyGenerated'].params.key.key
-
-    yield Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey}))
-    yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate', 'finished']))
-
-    const finishedAction: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(
-      ProfileGen.finishedWithKeyGen
-    )
-    const {shouldStoreKeyOnServer} = finishedAction.payload
-
-    const {response} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.shouldPushPrivate')
-    yield Saga.callUntyped([response, response.result], shouldStoreKeyOnServer)
-
-    const {response: finishedResponse} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.finished')
-    yield Saga.callUntyped([finishedResponse, finishedResponse.result])
-
-    yield Saga.put(navigateTo([peopleTab, 'profile']))
-  } catch (e) {
-    generatePgpKeyChanMap.close()
-    logger.info('error in generating pgp key', e)
-    yield Saga.put(navigateTo([peopleTab, 'profile']))
-    throw e
-  }
+  })
 }
 
 function* pgpSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(a => a && a.type === ProfileGen.updatePgpInfo && !a.error, _checkPgpInfo)
-  yield Saga.safeTakeEvery(ProfileGen.generatePgp, _generatePgpSaga)
+  yield Saga.actionToAction(ProfileGen.generatePgp, generatePgp)
   yield Saga.safeTakeEvery(ProfileGen.dropPgp, _dropPgpSaga)
 }
 
