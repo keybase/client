@@ -110,6 +110,7 @@ class PlainInput extends Component<InternalProps, State> {
       }
     }
     this._lastNativeText = t
+    // setTimeout to let selection settle before notifying about change
     this.props.onChangeText && setTimeout(() => this.props.onChangeText && this.props.onChangeText(t), 0)
   }
 
