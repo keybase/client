@@ -91,14 +91,16 @@ func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
 	cacheKey := implicitTeamCacheKey{displayName: displayName, public: public}
 	cacher := g.GetImplicitTeamCacher()
-	if cv, err := cacher.Get(ctx, g, cacheKey); err != nil {
-		g.Log.CDebugf(ctx, "In fetching from cache: %v", err)
-	} else if cv != nil {
-		if imp, ok := cv.(implicitTeam); ok {
-			g.Log.CDebugf(ctx, "using cached iteam")
-			return imp, nil
+	if cacher != nil {
+		if cv, err := cacher.Get(ctx, g, cacheKey); err != nil {
+			g.Log.CDebugf(ctx, "In fetching from cache: %v", err)
+		} else if cv != nil {
+			if imp, ok := cv.(implicitTeam); ok {
+				g.Log.CDebugf(ctx, "using cached iteam")
+				return imp, nil
+			}
+			g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
 		}
-		g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
 	}
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
@@ -121,7 +123,7 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 		return imp, err
 	}
 	// If the team has any assertions just skip caching
-	if !strings.Contains(imp.DisplayName, "@") {
+	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
 		cacher.Put(ctx, g, cacheKey, imp)
 	}
 	return imp, nil
