@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
+import * as Flow from '../../util/flow'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
@@ -30,18 +31,18 @@ const setupEngineListeners = () => {
 
   getEngine().setIncomingCallMap({
     'keybase.1.NotifySession.loggedIn': ({username}) =>
-      Saga.call(function*() {
+      Saga.callUntyped(function*() {
         logger.info('keybase.1.NotifySession.loggedIn')
-        const state: TypedState = yield Saga.select()
+        const state = yield* Saga.selectState()
         // only send this if we think we're not logged in
         if (!state.config.loggedIn) {
           yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
         }
       }),
     'keybase.1.NotifySession.loggedOut': () =>
-      Saga.call(function*() {
+      Saga.callUntyped(function*() {
         logger.info('keybase.1.NotifySession.loggedOut')
-        const state: TypedState = yield Saga.select()
+        const state = yield* Saga.selectState()
         // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
         if (state.config.loggedIn) {
           yield Saga.put(ConfigGen.createLoggedOut())
@@ -64,7 +65,7 @@ const loadDaemonBootstrapStatus = (
     return
   }
 
-  const makeCall = Saga.call(function*() {
+  const makeCall = Saga.callUntyped(function*() {
     const loadedAction = yield RPCTypes.configGetBootstrapStatusRpcPromise().then(
       (s: RPCTypes.BootstrapStatus) =>
         ConfigGen.createBootstrapStatusLoaded({
@@ -83,7 +84,7 @@ const loadDaemonBootstrapStatus = (
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState = yield Saga.select()
+      const newState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -119,10 +120,7 @@ const loadDaemonBootstrapStatus = (
     case ConfigGen.loggedOut:
       return makeCall
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return undefined
   }
 }
@@ -190,7 +188,7 @@ const loadDaemonAccounts = (
     }
   }
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     try {
       if (handshakeWait) {
         yield Saga.put(
@@ -210,7 +208,7 @@ const loadDaemonAccounts = (
       yield Saga.put(loadedAction)
       if (handshakeWait) {
         // someone dismissed this already?
-        const newState: TypedState = yield Saga.select()
+        const newState = yield* Saga.selectState()
         if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
           yield Saga.put(
             ConfigGen.createDaemonHandshakeWait({
@@ -224,7 +222,7 @@ const loadDaemonAccounts = (
     } catch (error) {
       if (handshakeWait) {
         // someone dismissed this already?
-        const newState: TypedState = yield Saga.select()
+        const newState = yield* Saga.selectState()
         if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
           yield Saga.put(
             ConfigGen.createDaemonHandshakeWait({
@@ -268,7 +266,7 @@ const startLogoutHandshake = (state: TypedState) =>
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
 // stuff to trigger this due to a timeout if there's no listeners or something
 const maybeDoneWithLogoutHandshake = (state: TypedState) =>
-  state.config.logoutHandshakeWaiters.size <= 0 && Saga.call(RPCTypes.loginLogoutRpcPromise)
+  state.config.logoutHandshakeWaiters.size <= 0 && Saga.callUntyped(RPCTypes.loginLogoutRpcPromise)
 
 let routeToInitialScreenOnce = false
 // We figure out where to go (push, link, saved state, etc) once ever in a session
@@ -355,7 +353,7 @@ const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
         version: action.payload.version,
       })
     ),
-    Saga.call(Saga.delay, 10),
+    Saga.callUntyped(Saga.delay, 10),
     Saga.put(
       ConfigGen.createLogoutHandshakeWait({
         increment: false,
@@ -366,9 +364,9 @@ const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
   ])
 
 const updateServerConfig = (state: TypedState) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     try {
-      const str = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+      const str = yield* Saga.callPromise(RPCTypes.apiserverGetWithSessionRpcPromise, {
         endpoint: 'user/features',
       })
 

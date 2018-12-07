@@ -34,12 +34,12 @@ export const createUpdateCategory = (payload: _UpdateCategoryPayload) => ({paylo
 export const createUpdateReachable = (payload: _UpdateReachablePayload) => ({payload, type: updateReachable})
 
 // Action Payloads
-export type CheckReachabilityPayload = $Call<typeof createCheckReachability, _CheckReachabilityPayload>
-export type PushOOBMPayload = $Call<typeof createPushOOBM, _PushOOBMPayload>
-export type PushStatePayload = $Call<typeof createPushState, _PushStatePayload>
-export type StartReachabilityPayload = $Call<typeof createStartReachability, _StartReachabilityPayload>
-export type UpdateCategoryPayload = $Call<typeof createUpdateCategory, _UpdateCategoryPayload>
-export type UpdateReachablePayload = $Call<typeof createUpdateReachable, _UpdateReachablePayload>
+export type CheckReachabilityPayload = {|+payload: _CheckReachabilityPayload, +type: 'gregor:checkReachability'|}
+export type PushOOBMPayload = {|+payload: _PushOOBMPayload, +type: 'gregor:pushOOBM'|}
+export type PushStatePayload = {|+payload: _PushStatePayload, +type: 'gregor:pushState'|}
+export type StartReachabilityPayload = {|+payload: _StartReachabilityPayload, +type: 'gregor:startReachability'|}
+export type UpdateCategoryPayload = {|+payload: _UpdateCategoryPayload, +type: 'gregor:updateCategory'|}
+export type UpdateReachablePayload = {|+payload: _UpdateReachablePayload, +type: 'gregor:updateReachable'|}
 
 // All Actions
 // prettier-ignore

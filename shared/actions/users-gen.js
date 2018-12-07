@@ -20,8 +20,8 @@ export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload) => (
 export const createUpdateFullnames = (payload: _UpdateFullnamesPayload) => ({payload, type: updateFullnames})
 
 // Action Payloads
-export type UpdateBrokenStatePayload = $Call<typeof createUpdateBrokenState, _UpdateBrokenStatePayload>
-export type UpdateFullnamesPayload = $Call<typeof createUpdateFullnames, _UpdateFullnamesPayload>
+export type UpdateBrokenStatePayload = {|+payload: _UpdateBrokenStatePayload, +type: 'users:updateBrokenState'|}
+export type UpdateFullnamesPayload = {|+payload: _UpdateFullnamesPayload, +type: 'users:updateFullnames'|}
 
 // All Actions
 // prettier-ignore

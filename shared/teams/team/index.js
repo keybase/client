@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/teams'
 import {renderItem as renderInvitesItem} from './invites-tab/helper'
 import {renderItem as renderMemberItem} from './members-tab/helper'
@@ -59,11 +60,8 @@ class Team extends React.Component<Props> {
       case 'settings':
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-        // $FlowIssue row any type above doesn't make this work
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
-      */
+        // $FlowIssue row is any!
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered in team page list: ${row.type}`)
       }
     }

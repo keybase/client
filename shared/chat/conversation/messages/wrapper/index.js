@@ -1,6 +1,7 @@
 // @flow
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
+import * as Flow from '../../../../util/flow'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
@@ -342,10 +343,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'deleted':
         return null
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(message.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(message.type)
         return null
     }
     const retainHeight =

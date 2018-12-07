@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
+import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
@@ -119,10 +120,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'otherAccount':
       return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
   }
   return null
@@ -194,10 +192,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
         case 'senderAndReceiver':
           return 'Sent'
         default:
-          /*::
-          declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-          ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
-          */
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(yourRole)
           throw new Error(`Unexpected role ${yourRole}`)
       }
     default:
@@ -245,10 +240,7 @@ const propsToParties = (props: NotLoadingProps) => {
       // account details as the recipient.
       return {receiver: counterparty, sender: you}
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }

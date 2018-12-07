@@ -19,7 +19,7 @@ import type {TypedState} from '../../constants/reducer'
 function _editProfile(action: ProfileGen.EditProfilePayload) {
   const {bio, fullname, location} = action.payload
   return Saga.sequentially([
-    Saga.call(RPCTypes.userProfileEditRpcPromise, {
+    Saga.callUntyped(RPCTypes.userProfileEditRpcPromise, {
       bio,
       fullName: fullname,
       location,
@@ -32,7 +32,7 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
 function _uploadAvatar(action: ProfileGen.UploadAvatarPayload) {
   const {filename, crop} = action.payload
   return Saga.sequentially([
-    Saga.call(RPCTypes.userUploadUserAvatarRpcPromise, {
+    Saga.callUntyped(RPCTypes.userUploadUserAvatarRpcPromise, {
       crop,
       filename,
     }),
@@ -70,7 +70,7 @@ function _onClickAvatar(action: ProfileGen.OnClickAvatarPayload) {
   if (!action.payload.openWebsite) {
     return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
-    return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}`)
+    return Saga.callUntyped(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
 }
 
@@ -84,14 +84,14 @@ function _openProfileOrWebsite(
   if (!action.payload.openWebsite) {
     return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
-    return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
+    return Saga.callUntyped(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
 function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield Saga.call(RPCTypes.revokeRevokeSigsRpcPromise, {sigIDQueries: [action.payload.proofId]})
+    yield * Saga.callPromise(RPCTypes.revokeRevokeSigsRpcPromise, {sigIDQueries: [action.payload.proofId]})
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createFinishRevoking())
   } catch (error) {
@@ -120,20 +120,20 @@ function _outputInstructionsActionLink(
   const profile = state.profile
   switch (profile.platform) {
     case 'twitter':
-      return Saga.call(
+      return Saga.callUntyped(
         _openURLIfNotNull,
         profile.proofText,
         `https://twitter.com/home?status=${profile.proofText || ''}`,
         'twitter url'
       )
     case 'github':
-      return Saga.call(openURL, 'https://gist.github.com/')
+      return Saga.callUntyped(openURL, 'https://gist.github.com/')
     case 'reddit':
-      return Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
+      return Saga.callUntyped(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
     case 'facebook':
-      return Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
+      return Saga.callUntyped(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
     case 'hackernews':
-      return Saga.call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
+      return Saga.callUntyped(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
     default:
       break
   }

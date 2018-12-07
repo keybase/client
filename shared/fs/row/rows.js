@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
@@ -84,11 +85,7 @@ class Rows extends React.PureComponent<Props> {
       case 'empty':
         return <EmptyRow />
       default:
-        /*::
-      let rowType = item.rowType
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (rowType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item.rowType)
         return (
           <WrapRow>
             <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
