@@ -190,6 +190,15 @@ func (fs *Memory) Readlink(link string) (string, error) {
 	return string(f.content.bytes), nil
 }
 
+// Capabilities implements the Capable interface.
+func (fs *Memory) Capabilities() billy.Capability {
+	return billy.WriteCapability |
+		billy.ReadCapability |
+		billy.ReadAndWriteCapability |
+		billy.SeekCapability |
+		billy.TruncateCapability
+}
+
 type file struct {
 	name     string
 	content  *content
@@ -273,7 +282,7 @@ func (f *file) Close() error {
 func (f *file) Truncate(size int64) error {
 	if size < int64(len(f.content.bytes)) {
 		f.content.bytes = f.content.bytes[:size]
-	} else if more := int(size)-len(f.content.bytes); more > 0 {
+	} else if more := int(size) - len(f.content.bytes); more > 0 {
 		f.content.bytes = append(f.content.bytes, make([]byte, more)...)
 	}
 

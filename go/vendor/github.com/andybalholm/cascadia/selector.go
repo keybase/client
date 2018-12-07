@@ -169,6 +169,23 @@ func attributeEqualsSelector(key, val string) Selector {
 		})
 }
 
+// attributeNotEqualSelector returns a Selector that matches elements where
+// the attribute named key does not have the value val.
+func attributeNotEqualSelector(key, val string) Selector {
+	key = toLowerASCII(key)
+	return func(n *html.Node) bool {
+		if n.Type != html.ElementNode {
+			return false
+		}
+		for _, a := range n.Attr {
+			if a.Key == key && a.Val == val {
+				return false
+			}
+		}
+		return true
+	}
+}
+
 // attributeIncludesSelector returns a Selector that matches elements where
 // the attribute named key is a whitespace-separated list that includes val.
 func attributeIncludesSelector(key, val string) Selector {
@@ -211,6 +228,9 @@ func attributeDashmatchSelector(key, val string) Selector {
 func attributePrefixSelector(key, val string) Selector {
 	return attributeSelector(key,
 		func(s string) bool {
+			if strings.TrimSpace(s) == "" {
+				return false
+			}
 			return strings.HasPrefix(s, val)
 		})
 }
@@ -220,6 +240,9 @@ func attributePrefixSelector(key, val string) Selector {
 func attributeSuffixSelector(key, val string) Selector {
 	return attributeSelector(key,
 		func(s string) bool {
+			if strings.TrimSpace(s) == "" {
+				return false
+			}
 			return strings.HasSuffix(s, val)
 		})
 }
@@ -229,6 +252,9 @@ func attributeSuffixSelector(key, val string) Selector {
 func attributeSubstringSelector(key, val string) Selector {
 	return attributeSelector(key,
 		func(s string) bool {
+			if strings.TrimSpace(s) == "" {
+				return false
+			}
 			return strings.Contains(s, val)
 		})
 }
@@ -369,6 +395,10 @@ func nthChildSelector(a, b int, last, ofType bool) Selector {
 			return false
 		}
 
+		if parent.Type == html.DocumentNode {
+			return false
+		}
+
 		i := -1
 		count := 0
 		for c := parent.FirstChild; c != nil; c = c.NextSibling {
@@ -402,6 +432,75 @@ func nthChildSelector(a, b int, last, ofType bool) Selector {
 	}
 }
 
+// simpleNthChildSelector returns a selector that implements :nth-child(b).
+// If ofType is true, implements :nth-of-type instead.
+func simpleNthChildSelector(b int, ofType bool) Selector {
+	return func(n *html.Node) bool {
+		if n.Type != html.ElementNode {
+			return false
+		}
+
+		parent := n.Parent
+		if parent == nil {
+			return false
+		}
+
+		if parent.Type == html.DocumentNode {
+			return false
+		}
+
+		count := 0
+		for c := parent.FirstChild; c != nil; c = c.NextSibling {
+			if c.Type != html.ElementNode || (ofType && c.Data != n.Data) {
+				continue
+			}
+			count++
+			if c == n {
+				return count == b
+			}
+			if count >= b {
+				return false
+			}
+		}
+		return false
+	}
+}
+
+// simpleNthLastChildSelector returns a selector that implements
+// :nth-last-child(b). If ofType is true, implements :nth-last-of-type
+// instead.
+func simpleNthLastChildSelector(b int, ofType bool) Selector {
+	return func(n *html.Node) bool {
+		if n.Type != html.ElementNode {
+			return false
+		}
+
+		parent := n.Parent
+		if parent == nil {
+			return false
+		}
+
+		if parent.Type == html.DocumentNode {
+			return false
+		}
+
+		count := 0
+		for c := parent.LastChild; c != nil; c = c.PrevSibling {
+			if c.Type != html.ElementNode || (ofType && c.Data != n.Data) {
+				continue
+			}
+			count++
+			if c == n {
+				return count == b
+			}
+			if count >= b {
+				return false
+			}
+		}
+		return false
+	}
+}
+
 // onlyChildSelector returns a selector that implements :only-child.
 // If ofType is true, it implements :only-of-type instead.
 func onlyChildSelector(ofType bool) Selector {
@@ -412,6 +511,10 @@ func onlyChildSelector(ofType bool) Selector {
 
 		parent := n.Parent
 		if parent == nil {
+			return false
+		}
+
+		if parent.Type == html.DocumentNode {
 			return false
 		}
 
@@ -505,4 +608,15 @@ func siblingSelector(s1, s2 Selector, adjacent bool) Selector {
 
 		return false
 	}
+}
+
+// rootSelector implements :root
+func rootSelector(n *html.Node) bool {
+	if n.Type != html.ElementNode {
+		return false
+	}
+	if n.Parent == nil {
+		return false
+	}
+	return n.Parent.Type == html.DocumentNode
 }

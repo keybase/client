@@ -1,14 +1,70 @@
 package goquery
 
 import (
+	"bytes"
+
 	"golang.org/x/net/html"
 )
 
-func getChildren(n *html.Node) (result []*html.Node) {
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		result = append(result, c)
+// used to determine if a set (map[*html.Node]bool) should be used
+// instead of iterating over a slice. The set uses more memory and
+// is slower than slice iteration for small N.
+const minNodesForSet = 1000
+
+var nodeNames = []string{
+	html.ErrorNode:    "#error",
+	html.TextNode:     "#text",
+	html.DocumentNode: "#document",
+	html.CommentNode:  "#comment",
+}
+
+// NodeName returns the node name of the first element in the selection.
+// It tries to behave in a similar way as the DOM's nodeName property
+// (https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName).
+//
+// Go's net/html package defines the following node types, listed with
+// the corresponding returned value from this function:
+//
+//     ErrorNode : #error
+//     TextNode : #text
+//     DocumentNode : #document
+//     ElementNode : the element's tag name
+//     CommentNode : #comment
+//     DoctypeNode : the name of the document type
+//
+func NodeName(s *Selection) string {
+	if s.Length() == 0 {
+		return ""
 	}
-	return result
+	switch n := s.Get(0); n.Type {
+	case html.ElementNode, html.DoctypeNode:
+		return n.Data
+	default:
+		if n.Type >= 0 && int(n.Type) < len(nodeNames) {
+			return nodeNames[n.Type]
+		}
+		return ""
+	}
+}
+
+// OuterHtml returns the outer HTML rendering of the first item in
+// the selection - that is, the HTML including the first element's
+// tag and attributes.
+//
+// Unlike InnerHtml, this is a function and not a method on the Selection,
+// because this is not a jQuery method (in javascript-land, this is
+// a property provided by the DOM).
+func OuterHtml(s *Selection) (string, error) {
+	var buf bytes.Buffer
+
+	if s.Length() == 0 {
+		return "", nil
+	}
+	n := s.Get(0)
+	if err := html.Render(&buf, n); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 // Loop through all container nodes to search for the target node.
@@ -54,11 +110,32 @@ func indexInSlice(slice []*html.Node, node *html.Node) int {
 // Appends the new nodes to the target slice, making sure no duplicate is added.
 // There is no check to the original state of the target slice, so it may still
 // contain duplicates. The target slice is returned because append() may create
-// a new underlying array.
-func appendWithoutDuplicates(target []*html.Node, nodes []*html.Node) []*html.Node {
+// a new underlying array. If targetSet is nil, a local set is created with the
+// target if len(target) + len(nodes) is greater than minNodesForSet.
+func appendWithoutDuplicates(target []*html.Node, nodes []*html.Node, targetSet map[*html.Node]bool) []*html.Node {
+	// if there are not that many nodes, don't use the map, faster to just use nested loops
+	// (unless a non-nil targetSet is passed, in which case the caller knows better).
+	if targetSet == nil && len(target)+len(nodes) < minNodesForSet {
+		for _, n := range nodes {
+			if !isInSlice(target, n) {
+				target = append(target, n)
+			}
+		}
+		return target
+	}
+
+	// if a targetSet is passed, then assume it is reliable, otherwise create one
+	// and initialize it with the current target contents.
+	if targetSet == nil {
+		targetSet = make(map[*html.Node]bool, len(target))
+		for _, n := range target {
+			targetSet[n] = true
+		}
+	}
 	for _, n := range nodes {
-		if !isInSlice(target, n) {
+		if !targetSet[n] {
 			target = append(target, n)
+			targetSet[n] = true
 		}
 	}
 
