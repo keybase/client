@@ -29,10 +29,10 @@ import (
 
 const AccountNameMaxRunes = 24
 
-// Timeout added as Timebounds to Stellar transactions that client creates.
-// After this time, transaction will not become validated. We can safely assume
-// that a transaction will never end up in a ledger if it's not included before
-// this time.
+// Timeout added as Timebounds.MaxTime to Stellar transactions that client
+// creates, effectively adding a "deadline" to the transaction. We can safely
+// assume that a transaction will never end up in a ledger if it's not included
+// before the deadline.
 const txTimeboundTimeout = 30 * time.Second
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
