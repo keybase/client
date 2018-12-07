@@ -580,10 +580,16 @@ func (p *blockPrefetcher) stopIfNeeded(
 		return false
 	}
 
+	defer func() {
+		if doStop {
+			p.log.CDebugf(ctx,
+				"stopping prefetch for block %s due to full cache (sync=%t)",
+				req.ptr.ID, req.action.Sync())
+		}
+	}()
+
 	if req.action.Sync() {
 		// If the sync cache is close to full, reschedule the prefetch.
-		p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
-			"full sync cache.", req.ptr.ID)
 		p.reschedulePrefetch(req)
 		return true
 	}
