@@ -566,18 +566,18 @@ func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
 }
 
 func (p *blockPrefetcher) stopIfNeeded(
-	ctx context.Context, req *prefetchRequest) (doStop bool) {
+	ctx context.Context, req *prefetchRequest) (doStop, doCancel bool) {
 	dbc := p.config.DiskBlockCache()
 	if dbc == nil {
-		return false
+		return false, false
 	}
 	hasRoom, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
 	if err != nil {
 		p.log.CDebugf(ctx, "Error checking space: +%v", err)
-		return false
+		return false, false
 	}
 	if hasRoom {
-		return false
+		return false, false
 	}
 
 	defer func() {
@@ -591,11 +591,15 @@ func (p *blockPrefetcher) stopIfNeeded(
 	if req.action.Sync() {
 		// If the sync cache is close to full, reschedule the prefetch.
 		p.reschedulePrefetch(req)
-		return true
+		return true, false
 	}
 
 	// Otherwise, only stop if we're supposed to stop when full.
-	return req.action.StopIfFull()
+	doStop = req.action.StopIfFull()
+	if doStop {
+		doCancel = true
+	}
+	return doStop, doCancel
 }
 
 // run prefetches blocks.
@@ -797,13 +801,16 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// Bail out early if we know the sync cache is already
 			// full, to avoid enqueuing the child blocks when they
 			// aren't able to be cached.
-			if p.stopIfNeeded(ctx, req) {
+			if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
 				// This is inefficient since it'd be better to know if
 				// the `subtreeBlockCount` below is 0, or if `isTail`
 				// below is true before needlessly rescheduling this.
 				// But currently that requires some complexity to
 				// figure out, so for now just do this early and
 				// revisit if it becomes a problem.
+				if doCancel && isPrefetchWaiting {
+					p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
+				}
 				continue
 			}
 
@@ -989,7 +996,10 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		if err != nil {
 			return
 		}
-		if p.stopIfNeeded(ctx, req) {
+		if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
+			if doCancel {
+				p.CancelPrefetch(ptr)
+			}
 			return
 		}
 	}
