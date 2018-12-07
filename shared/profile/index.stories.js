@@ -3,7 +3,6 @@ import confirmOrPending from './confirm-or-pending/index.stories'
 import editAvatar from './edit-avatar/index.stories'
 import editProfile from './edit-profile/index.stories'
 import folders from './folders/index.stories'
-import pgp from './pgp/index.stories'
 import postProof from './post-proof/index.stories'
 import profile from './profile.stories'
 import proveEnter from './prove-enter-username/index.stories'
@@ -17,7 +16,6 @@ const load = () => {
     editAvatar,
     editProfile,
     folders,
-    pgp,
     postProof,
     profile,
     proveEnter,
