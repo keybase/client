@@ -13,6 +13,29 @@ protocol home {
   variant HomeScreenItemData switch (HomeScreenItemType t) {
     case TODO: HomeScreenTodo;
     case PEOPLE: HomeScreenPeopleNotification;
+    case ANNOUNCEMENT: HomeScreenAnnouncement;
+  }
+
+  enum AppLinkType {
+    NONE_0,
+    PEOPLE_1,
+    CHAT_2,
+    FILES_3,
+    WALLET_4,
+    GIT_5,
+    DEVICES_6,
+    SETTINGS_7
+  }
+
+  record HomeScreenAnnouncement {
+    int id;
+    int version;
+    AppLinkType appLink;
+    string confirmLabel;
+    boolean dismissable;
+    string iconUrl;
+    string text;
+    string url;
   }
 
   enum HomeScreenTodoType {
@@ -28,7 +51,8 @@ protocol home {
     GIT_REPO_9,
     TEAM_SHOWCASE_10,
     AVATAR_USER_11,
-    AVATAR_TEAM_12
+    AVATAR_TEAM_12,
+    ANNOUNCEMENT_10000,
   }
 
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
