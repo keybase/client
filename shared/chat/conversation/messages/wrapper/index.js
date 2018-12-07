@@ -101,7 +101,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               onUsernameClicked={this._onAuthorClick}
               containerStyle={styles.fast}
             />
-            <Kb.Text type="BodyTiny" style={styles.fast}>
+            <Kb.Text type="BodyTiny" style={styles.timestamp}>
               {formatTimeForChat(this.props.message.timestamp)}
             </Kb.Text>
           </Kb.Box2>
@@ -542,6 +542,13 @@ const styles = Styles.styleSheetCreate({
       right: 12,
     },
     isMobile: {right: 0},
+  }),
+  timestamp: Styles.platformStyles({
+    isMobile: {
+      ...fast,
+      position: 'relative',
+      top: 2,
+    },
   }),
 })
 
