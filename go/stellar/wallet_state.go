@@ -313,8 +313,13 @@ func (a *AccountState) Refresh(ctx context.Context, router *libkb.NotifyRouter) 
 	details, err := a.remoter.Details(ctx, a.accountID)
 	if err == nil {
 		a.Lock()
+		notify := detailsChanged(a.details, &details)
 		a.details = &details
 		a.Unlock()
+
+		if notify && router != nil {
+			router.HandleWalletAccountDetailsUpdate(ctx, a.accountID, details)
+		}
 	}
 
 	pending, err := a.remoter.PendingPayments(ctx, a.accountID, 25)
@@ -413,6 +418,49 @@ func (a *AccountState) String() string {
 	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: nil)", a.accountID, a.seqno, len(a.balances), len(a.pending))
 }
 
+func detailsChanged(a, b *stellar1.AccountDetails) bool {
+	if a == nil && b == nil {
+		return false
+	}
+	if a == nil && b != nil {
+		return true
+	}
+	if a.Seqno != b.Seqno {
+		return true
+	}
+	if a.UnreadPayments != b.UnreadPayments {
+		return true
+	}
+	if a.Available != b.Available {
+		return true
+	}
+	if a.ReadTransactionID != nil && b.ReadTransactionID != nil {
+		if *a.ReadTransactionID != *b.ReadTransactionID {
+			return true
+		}
+	}
+	if a.SubentryCount != b.SubentryCount {
+		return true
+	}
+	if len(a.Balances) != len(b.Balances) {
+		return true
+	}
+	for i := 0; i < len(a.Balances); i++ {
+		if a.Balances[i] != b.Balances[i] {
+			return true
+		}
+	}
+	if len(a.Reserves) != len(b.Reserves) {
+		return true
+	}
+	for i := 0; i < len(a.Reserves); i++ {
+		if a.Reserves[i] != b.Reserves[i] {
+			return true
+		}
+	}
+	return false
+}
+
 func pendingChanged(a, b []stellar1.PaymentSummary) bool {
 	if len(a) != len(b) {
 		return true
@@ -434,8 +482,31 @@ func pendingChanged(a, b []stellar1.PaymentSummary) bool {
 }
 
 func recentChanged(a, b *stellar1.PaymentsPage) bool {
+	if a == nil && b == nil {
+		return false
+	}
+	if a == nil && b != nil {
+		return true
+	}
 	if len(a.Payments) != len(b.Payments) {
 		return true
+	}
+	if a.Cursor != nil && b.Cursor != nil {
+		if *a.Cursor != *b.Cursor {
+			return true
+		}
+	}
+	if len(a.Payments) == 0 {
+		return false
+	}
+	existing, err := a.Payments[0].TransactionID()
+	if err == nil {
+		next, err := b.Payments[0].TransactionID()
+		if err == nil {
+			if existing != next {
+				return true
+			}
+		}
 	}
 	return false
 }
