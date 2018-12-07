@@ -5,7 +5,6 @@ import * as GregorGen from './gregor-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import engine from '../engine'
-import type {TypedState} from '../constants/reducer'
 
 const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
@@ -28,8 +27,8 @@ const setupEngineListeners = () => {
       return Saga.put(GregorGen.createPushState({reason, state: goodState}))
     },
     'keybase.1.reachability.reachabilityChanged': ({reachability}) =>
-      Saga.call(function*() {
-        const state: TypedState = yield Saga.select()
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
         if (state.config.loggedIn) {
           // Gregor reachability is only valid if we're logged in
           yield Saga.put(GregorGen.createUpdateReachable({reachable: reachability.reachable}))

@@ -164,24 +164,27 @@ function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusR
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const prevStatus = state.fs.fuseStatus
 
-  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
+  let status = yield* Saga.callPromise(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
   if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
     // Check if another Dokan we didn't install mounted the filesystem
-    const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
+    const kbfsMount = yield* Saga.callPromise(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
-      status.installStatus = RPCTypes.installInstallStatus.installed
-      status.installAction = RPCTypes.installInstallAction.none
-      status.kextStarted = true
+      status = {
+        ...status,
+        installAction: RPCTypes.installInstallAction.none,
+        installStatus: RPCTypes.installInstallStatus.installed,
+        kextStarted: true,
+      }
     }
   }
   yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
 }
 
 function* installFuseSaga(): Saga.SagaGenerator<any, any> {
-  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
+  const result: RPCTypes.InstallResult = yield* Saga.callPromise(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults =
     result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
   const kextPermissionError =
@@ -217,8 +220,8 @@ const uninstallKBFSConfirmSuccess = resp =>
   resp
     ? undefined
     : Saga.sequentially([
-        Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-        Saga.call(() => {
+        Saga.callUntyped(RPCTypes.installUninstallKBFSRpcPromise),
+        Saga.callUntyped(() => {
           // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
           SafeElectron.getApp().relaunch()
           SafeElectron.getApp().exit(0)
@@ -226,7 +229,7 @@ const uninstallKBFSConfirmSuccess = resp =>
       ])
 
 const openSecurityPreferences = () =>
-  Saga.call(
+  Saga.callUntyped(
     () =>
       new Promise((resolve, reject) => {
         SafeElectron.getShell().openExternal(
@@ -277,7 +280,7 @@ function installCachedDokan() {
 }
 
 function installDokanSaga() {
-  return Saga.call(installCachedDokan)
+  return Saga.callUntyped(installCachedDokan)
 }
 
 const uninstallDokanPromise = (state: TypedState) => {
@@ -313,8 +316,8 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
   )
 
 const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
-  Saga.call(function*() {
-    const localPaths = yield Saga.call(openAndUploadToPromise, state, action)
+  Saga.callUntyped(function*() {
+    const localPaths = yield* Saga.callPromise(openAndUploadToPromise, state, action)
     yield Saga.all(
       localPaths.map(localPath =>
         Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
@@ -323,9 +326,9 @@ const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   })
 
 const loadUserFileEdits = (state: TypedState, action) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     try {
-      const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+      const writerEdits = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
       const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
       const updateSet = tlfUpdates
         .reduce(

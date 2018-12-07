@@ -26,10 +26,10 @@ export const createDecrementWaiting = (payload: _DecrementWaitingPayload) => ({p
 export const createIncrementWaiting = (payload: _IncrementWaitingPayload) => ({payload, type: incrementWaiting})
 
 // Action Payloads
-export type ChangeWaitingPayload = $Call<typeof createChangeWaiting, _ChangeWaitingPayload>
-export type ClearWaitingPayload = $Call<typeof createClearWaiting, _ClearWaitingPayload>
-export type DecrementWaitingPayload = $Call<typeof createDecrementWaiting, _DecrementWaitingPayload>
-export type IncrementWaitingPayload = $Call<typeof createIncrementWaiting, _IncrementWaitingPayload>
+export type ChangeWaitingPayload = {|+payload: _ChangeWaitingPayload, +type: 'waiting:changeWaiting'|}
+export type ClearWaitingPayload = {|+payload: _ClearWaitingPayload, +type: 'waiting:clearWaiting'|}
+export type DecrementWaitingPayload = {|+payload: _DecrementWaitingPayload, +type: 'waiting:decrementWaiting'|}
+export type IncrementWaitingPayload = {|+payload: _IncrementWaitingPayload, +type: 'waiting:incrementWaiting'|}
 
 // All Actions
 // prettier-ignore
@@ -38,4 +38,4 @@ export type Actions =
   | ClearWaitingPayload
   | DecrementWaitingPayload
   | IncrementWaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

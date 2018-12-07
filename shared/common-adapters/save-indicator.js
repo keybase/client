@@ -5,6 +5,7 @@ import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
+import * as Flow from '../util/flow'
 import {collapseStyles, globalColors, globalMargins, globalStyles, type StylesCrossPlatform} from '../styles'
 
 // States of the state machine for the save indicator:
@@ -98,10 +99,7 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
       return 'steady'
 
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(saveState);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)
       throw new Error(`Unexpected state ${saveState}`)
   }
 }

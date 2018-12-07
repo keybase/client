@@ -40,14 +40,14 @@ export const createSearch = (payload: _SearchPayload) => ({payload, type: search
 export const createSearchResultsLoaded = (payload: _SearchResultsLoadedPayload) => ({payload, type: searchResultsLoaded})
 
 // Action Payloads
-export type AddUsersToTeamSoFarPayload = $Call<typeof createAddUsersToTeamSoFar, _AddUsersToTeamSoFarPayload>
-export type CancelTeamBuildingPayload = $Call<typeof createCancelTeamBuilding, _CancelTeamBuildingPayload>
-export type FetchUserRecsPayload = $Call<typeof createFetchUserRecs, _FetchUserRecsPayload>
-export type FetchedUserRecsPayload = $Call<typeof createFetchedUserRecs, _FetchedUserRecsPayload>
-export type FinishedTeamBuildingPayload = $Call<typeof createFinishedTeamBuilding, _FinishedTeamBuildingPayload>
-export type RemoveUsersFromTeamSoFarPayload = $Call<typeof createRemoveUsersFromTeamSoFar, _RemoveUsersFromTeamSoFarPayload>
-export type SearchPayload = $Call<typeof createSearch, _SearchPayload>
-export type SearchResultsLoadedPayload = $Call<typeof createSearchResultsLoaded, _SearchResultsLoadedPayload>
+export type AddUsersToTeamSoFarPayload = {|+payload: _AddUsersToTeamSoFarPayload, +type: 'team-building:addUsersToTeamSoFar'|}
+export type CancelTeamBuildingPayload = {|+payload: _CancelTeamBuildingPayload, +type: 'team-building:cancelTeamBuilding'|}
+export type FetchUserRecsPayload = {|+payload: _FetchUserRecsPayload, +type: 'team-building:fetchUserRecs'|}
+export type FetchedUserRecsPayload = {|+payload: _FetchedUserRecsPayload, +type: 'team-building:fetchedUserRecs'|}
+export type FinishedTeamBuildingPayload = {|+payload: _FinishedTeamBuildingPayload, +type: 'team-building:finishedTeamBuilding'|}
+export type RemoveUsersFromTeamSoFarPayload = {|+payload: _RemoveUsersFromTeamSoFarPayload, +type: 'team-building:removeUsersFromTeamSoFar'|}
+export type SearchPayload = {|+payload: _SearchPayload, +type: 'team-building:search'|}
+export type SearchResultsLoadedPayload = {|+payload: _SearchResultsLoadedPayload, +type: 'team-building:searchResultsLoaded'|}
 
 // All Actions
 // prettier-ignore
@@ -60,4 +60,4 @@ export type Actions =
   | RemoveUsersFromTeamSoFarPayload
   | SearchPayload
   | SearchResultsLoadedPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

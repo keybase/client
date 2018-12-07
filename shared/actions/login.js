@@ -45,7 +45,7 @@ const getPassphraseHandler = passphrase => (params, response) => {
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
 const login = (_: any, action: LoginGen.LoginPayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     try {
       yield RPCTypes.loginLoginRpcSaga({
         customResponseIncomingCallMap: {
@@ -81,8 +81,8 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
     }
   })
 
-const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
-const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
+const launchForgotPasswordWebPage = () => Saga.callUntyped(openURL, 'https://keybase.io/#password-reset')
+const launchAccountResetWebPage = () => Saga.callUntyped(openURL, 'https://keybase.io/#account-reset')
 
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
