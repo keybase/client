@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
+import * as Flow from '../../util/flow'
 import * as FsGen from '../fs-gen'
 import {type TypedState} from '../../util/container'
 import RNFetchBlob from 'rn-fetch-blob'
@@ -64,10 +65,7 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
         // TODO: dismiss download when we get rid of download cards on mobile
       ])
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return null
   }
 }
