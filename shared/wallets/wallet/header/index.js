@@ -33,9 +33,7 @@ const Header = (props: Props) => (
         {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
         {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
         {props.walletName ? (
-          <Kb.Text selectable={true} type="BodyBig">
-            {props.walletName}
-          </Kb.Text>
+          <AddWallet onAddNew={() => {}} onLinkExisting={() => {}} walletName={props.walletName} />
         ) : (
           <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         )}
@@ -164,6 +162,41 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
     )
   }
 }
+
+type AddProps = {
+  onAddNew: () => void,
+  onLinkExisting: () => void,
+  walletName: string,
+}
+
+const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
+  const menuItems = [
+    {
+      onClick: () => props.onAddNew(),
+      title: 'Create a new account',
+    },
+    {
+      onClick: () => props.onLinkExisting(),
+      title: 'Link an existing Stellar account',
+    },
+  ]
+
+  return (
+    <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+      <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+      <Kb.FloatingMenu
+        attachTo={props.getAttachmentRef}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={props.toggleShowingMenu}
+        visible={props.showingMenu}
+        position="bottom center"
+      />
+    </Kb.ClickableBox>
+  )
+}
+
+const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
 const styles = Styles.styleSheetCreate({
   backButton: {
