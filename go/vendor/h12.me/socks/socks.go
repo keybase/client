@@ -164,7 +164,7 @@ func dialSocks4(socksType int, proxy, targetAddr string) (conn net.Conn, err err
 	case 91:
 		err = errors.New("Socks connection request rejected or failed.")
 	case 92:
-		err = errors.New("Socks connection request rejected because SOCKS server cannot connect to identd on the client.")
+		err = errors.New("Socks connection request rejected becasue SOCKS server cannot connect to identd on the client.")
 	case 93:
 		err = errors.New("Socks connection request rejected because the client program and identd report different user-ids.")
 	default:

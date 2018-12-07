@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/stellar/go/network"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
@@ -57,7 +58,6 @@ func Random() (*Full, error) {
 	return kp, nil
 }
 
-/*
 // Master returns the master keypair for a given network passphrase
 func Master(networkPassphrase string) KP {
 	kp, err := FromRawSeed(network.ID(networkPassphrase))
@@ -68,7 +68,6 @@ func Master(networkPassphrase string) KP {
 
 	return kp
 }
-*/
 
 // Parse constructs a new KP from the provided string, which should be either
 // an address, or a seed.  If the provided input is a seed, the resulting KP

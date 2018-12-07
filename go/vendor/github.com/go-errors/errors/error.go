@@ -118,17 +118,15 @@ func Wrap(e interface{}, skip int) *Error {
 // 1 from its caller, etc.
 func WrapPrefix(e interface{}, prefix string, skip int) *Error {
 
-	err := Wrap(e, 1+skip)
+	err := Wrap(e, skip)
 
 	if err.prefix != "" {
-		prefix = fmt.Sprintf("%s: %s", prefix, err.prefix)
+		err.prefix = fmt.Sprintf("%s: %s", prefix, err.prefix)
+	} else {
+		err.prefix = prefix
 	}
 
-	return &Error{
-		Err:    err.Err,
-		stack:  err.stack,
-		prefix: prefix,
-	}
+	return err
 
 }
 
@@ -180,12 +178,6 @@ func (err *Error) Stack() []byte {
 	}
 
 	return buf.Bytes()
-}
-
-// Callers satisfies the bugsnag ErrorWithCallerS() interface
-// so that the stack can be read out.
-func (err *Error) Callers() []uintptr {
-	return err.stack
 }
 
 // ErrorStack returns a string that contains both the

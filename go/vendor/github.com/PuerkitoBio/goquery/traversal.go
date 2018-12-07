@@ -1,6 +1,9 @@
 package goquery
 
-import "golang.org/x/net/html"
+import (
+	"github.com/andybalholm/cascadia"
+	"golang.org/x/net/html"
+)
 
 type siblingType int
 
@@ -21,7 +24,7 @@ const (
 // elements, filtered by a selector. It returns a new Selection object
 // containing these matched elements.
 func (s *Selection) Find(selector string) *Selection {
-	return pushStack(s, findWithMatcher(s.Nodes, compileMatcher(selector)))
+	return pushStack(s, findWithMatcher(s.Nodes, cascadia.MustCompile(selector)))
 }
 
 // FindMatcher gets the descendants of each element in the current set of matched
@@ -90,7 +93,7 @@ func (s *Selection) Children() *Selection {
 // filtered by the specified selector. It returns a new
 // Selection object containing these elements.
 func (s *Selection) ChildrenFiltered(selector string) *Selection {
-	return filterAndPush(s, getChildrenNodes(s.Nodes, siblingAll), compileMatcher(selector))
+	return filterAndPush(s, getChildrenNodes(s.Nodes, siblingAll), cascadia.MustCompile(selector))
 }
 
 // ChildrenMatcher gets the child elements of each element in the Selection,
@@ -109,7 +112,7 @@ func (s *Selection) Parent() *Selection {
 // ParentFiltered gets the parent of each element in the Selection filtered by a
 // selector. It returns a new Selection object containing the matched elements.
 func (s *Selection) ParentFiltered(selector string) *Selection {
-	return filterAndPush(s, getParentNodes(s.Nodes), compileMatcher(selector))
+	return filterAndPush(s, getParentNodes(s.Nodes), cascadia.MustCompile(selector))
 }
 
 // ParentMatcher gets the parent of each element in the Selection filtered by a
@@ -121,7 +124,7 @@ func (s *Selection) ParentMatcher(m Matcher) *Selection {
 // Closest gets the first element that matches the selector by testing the
 // element itself and traversing up through its ancestors in the DOM tree.
 func (s *Selection) Closest(selector string) *Selection {
-	cs := compileMatcher(selector)
+	cs := cascadia.MustCompile(selector)
 	return s.ClosestMatcher(cs)
 }
 
@@ -174,7 +177,7 @@ func (s *Selection) Parents() *Selection {
 // ParentsFiltered gets the ancestors of each element in the current
 // Selection. It returns a new Selection object with the matched elements.
 func (s *Selection) ParentsFiltered(selector string) *Selection {
-	return filterAndPush(s, getParentsNodes(s.Nodes, nil, nil), compileMatcher(selector))
+	return filterAndPush(s, getParentsNodes(s.Nodes, nil, nil), cascadia.MustCompile(selector))
 }
 
 // ParentsMatcher gets the ancestors of each element in the current
@@ -187,7 +190,7 @@ func (s *Selection) ParentsMatcher(m Matcher) *Selection {
 // not including the element matched by the selector. It returns a new Selection
 // object containing the matched elements.
 func (s *Selection) ParentsUntil(selector string) *Selection {
-	return pushStack(s, getParentsNodes(s.Nodes, compileMatcher(selector), nil))
+	return pushStack(s, getParentsNodes(s.Nodes, cascadia.MustCompile(selector), nil))
 }
 
 // ParentsUntilMatcher gets the ancestors of each element in the Selection, up to but
@@ -218,7 +221,7 @@ func (s *Selection) ParentsUntilNodes(nodes ...*html.Node) *Selection {
 // results based on a selector string. It returns a new Selection
 // object containing the matched elements.
 func (s *Selection) ParentsFilteredUntil(filterSelector, untilSelector string) *Selection {
-	return filterAndPush(s, getParentsNodes(s.Nodes, compileMatcher(untilSelector), nil), compileMatcher(filterSelector))
+	return filterAndPush(s, getParentsNodes(s.Nodes, cascadia.MustCompile(untilSelector), nil), cascadia.MustCompile(filterSelector))
 }
 
 // ParentsFilteredUntilMatcher is like ParentsUntilMatcher, with the option to filter the
@@ -231,7 +234,7 @@ func (s *Selection) ParentsFilteredUntilMatcher(filter, until Matcher) *Selectio
 // option to filter the results based on a selector string. It returns a new
 // Selection object containing the matched elements.
 func (s *Selection) ParentsFilteredUntilSelection(filterSelector string, sel *Selection) *Selection {
-	return s.ParentsMatcherUntilSelection(compileMatcher(filterSelector), sel)
+	return s.ParentsMatcherUntilSelection(cascadia.MustCompile(filterSelector), sel)
 }
 
 // ParentsMatcherUntilSelection is like ParentsUntilSelection, with the
@@ -248,7 +251,7 @@ func (s *Selection) ParentsMatcherUntilSelection(filter Matcher, sel *Selection)
 // option to filter the results based on a selector string. It returns a new
 // Selection object containing the matched elements.
 func (s *Selection) ParentsFilteredUntilNodes(filterSelector string, nodes ...*html.Node) *Selection {
-	return filterAndPush(s, getParentsNodes(s.Nodes, nil, nodes), compileMatcher(filterSelector))
+	return filterAndPush(s, getParentsNodes(s.Nodes, nil, nodes), cascadia.MustCompile(filterSelector))
 }
 
 // ParentsMatcherUntilNodes is like ParentsUntilNodes, with the
@@ -268,7 +271,7 @@ func (s *Selection) Siblings() *Selection {
 // filtered by a selector. It returns a new Selection object containing the
 // matched elements.
 func (s *Selection) SiblingsFiltered(selector string) *Selection {
-	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingAll, nil, nil), compileMatcher(selector))
+	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingAll, nil, nil), cascadia.MustCompile(selector))
 }
 
 // SiblingsMatcher gets the siblings of each element in the Selection
@@ -288,7 +291,7 @@ func (s *Selection) Next() *Selection {
 // Selection filtered by a selector. It returns a new Selection object
 // containing the matched elements.
 func (s *Selection) NextFiltered(selector string) *Selection {
-	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingNext, nil, nil), compileMatcher(selector))
+	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingNext, nil, nil), cascadia.MustCompile(selector))
 }
 
 // NextMatcher gets the immediately following sibling of each element in the
@@ -308,7 +311,7 @@ func (s *Selection) NextAll() *Selection {
 // Selection filtered by a selector. It returns a new Selection object
 // containing the matched elements.
 func (s *Selection) NextAllFiltered(selector string) *Selection {
-	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingNextAll, nil, nil), compileMatcher(selector))
+	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingNextAll, nil, nil), cascadia.MustCompile(selector))
 }
 
 // NextAllMatcher gets all the following siblings of each element in the
@@ -328,7 +331,7 @@ func (s *Selection) Prev() *Selection {
 // Selection filtered by a selector. It returns a new Selection object
 // containing the matched elements.
 func (s *Selection) PrevFiltered(selector string) *Selection {
-	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingPrev, nil, nil), compileMatcher(selector))
+	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingPrev, nil, nil), cascadia.MustCompile(selector))
 }
 
 // PrevMatcher gets the immediately preceding sibling of each element in the
@@ -348,7 +351,7 @@ func (s *Selection) PrevAll() *Selection {
 // Selection filtered by a selector. It returns a new Selection object
 // containing the matched elements.
 func (s *Selection) PrevAllFiltered(selector string) *Selection {
-	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingPrevAll, nil, nil), compileMatcher(selector))
+	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingPrevAll, nil, nil), cascadia.MustCompile(selector))
 }
 
 // PrevAllMatcher gets all the preceding siblings of each element in the
@@ -363,7 +366,7 @@ func (s *Selection) PrevAllMatcher(m Matcher) *Selection {
 // object containing the matched elements.
 func (s *Selection) NextUntil(selector string) *Selection {
 	return pushStack(s, getSiblingNodes(s.Nodes, siblingNextUntil,
-		compileMatcher(selector), nil))
+		cascadia.MustCompile(selector), nil))
 }
 
 // NextUntilMatcher gets all following siblings of each element up to but not
@@ -397,7 +400,7 @@ func (s *Selection) NextUntilNodes(nodes ...*html.Node) *Selection {
 // object containing the matched elements.
 func (s *Selection) PrevUntil(selector string) *Selection {
 	return pushStack(s, getSiblingNodes(s.Nodes, siblingPrevUntil,
-		compileMatcher(selector), nil))
+		cascadia.MustCompile(selector), nil))
 }
 
 // PrevUntilMatcher gets all preceding siblings of each element up to but not
@@ -431,7 +434,7 @@ func (s *Selection) PrevUntilNodes(nodes ...*html.Node) *Selection {
 // It returns a new Selection object containing the matched elements.
 func (s *Selection) NextFilteredUntil(filterSelector, untilSelector string) *Selection {
 	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingNextUntil,
-		compileMatcher(untilSelector), nil), compileMatcher(filterSelector))
+		cascadia.MustCompile(untilSelector), nil), cascadia.MustCompile(filterSelector))
 }
 
 // NextFilteredUntilMatcher is like NextUntilMatcher, with the option to filter
@@ -446,7 +449,7 @@ func (s *Selection) NextFilteredUntilMatcher(filter, until Matcher) *Selection {
 // option to filter the results based on a selector string. It returns a new
 // Selection object containing the matched elements.
 func (s *Selection) NextFilteredUntilSelection(filterSelector string, sel *Selection) *Selection {
-	return s.NextMatcherUntilSelection(compileMatcher(filterSelector), sel)
+	return s.NextMatcherUntilSelection(cascadia.MustCompile(filterSelector), sel)
 }
 
 // NextMatcherUntilSelection is like NextUntilSelection, with the
@@ -464,7 +467,7 @@ func (s *Selection) NextMatcherUntilSelection(filter Matcher, sel *Selection) *S
 // Selection object containing the matched elements.
 func (s *Selection) NextFilteredUntilNodes(filterSelector string, nodes ...*html.Node) *Selection {
 	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingNextUntil,
-		nil, nodes), compileMatcher(filterSelector))
+		nil, nodes), cascadia.MustCompile(filterSelector))
 }
 
 // NextMatcherUntilNodes is like NextUntilNodes, with the
@@ -480,7 +483,7 @@ func (s *Selection) NextMatcherUntilNodes(filter Matcher, nodes ...*html.Node) *
 // It returns a new Selection object containing the matched elements.
 func (s *Selection) PrevFilteredUntil(filterSelector, untilSelector string) *Selection {
 	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingPrevUntil,
-		compileMatcher(untilSelector), nil), compileMatcher(filterSelector))
+		cascadia.MustCompile(untilSelector), nil), cascadia.MustCompile(filterSelector))
 }
 
 // PrevFilteredUntilMatcher is like PrevUntilMatcher, with the option to filter
@@ -495,7 +498,7 @@ func (s *Selection) PrevFilteredUntilMatcher(filter, until Matcher) *Selection {
 // option to filter the results based on a selector string. It returns a new
 // Selection object containing the matched elements.
 func (s *Selection) PrevFilteredUntilSelection(filterSelector string, sel *Selection) *Selection {
-	return s.PrevMatcherUntilSelection(compileMatcher(filterSelector), sel)
+	return s.PrevMatcherUntilSelection(cascadia.MustCompile(filterSelector), sel)
 }
 
 // PrevMatcherUntilSelection is like PrevUntilSelection, with the
@@ -513,7 +516,7 @@ func (s *Selection) PrevMatcherUntilSelection(filter Matcher, sel *Selection) *S
 // Selection object containing the matched elements.
 func (s *Selection) PrevFilteredUntilNodes(filterSelector string, nodes ...*html.Node) *Selection {
 	return filterAndPush(s, getSiblingNodes(s.Nodes, siblingPrevUntil,
-		nil, nodes), compileMatcher(filterSelector))
+		nil, nodes), cascadia.MustCompile(filterSelector))
 }
 
 // PrevMatcherUntilNodes is like PrevUntilNodes, with the
