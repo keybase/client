@@ -34,7 +34,12 @@ const Info = (props: Props) => {
         {' '}
         Fill in your public info.
       </Kb.Text>
-      <Kb.Input hintText="Your full name" value={props.fullName} onChangeText={props.onChangeFullName} />
+      <Kb.Input
+        autoFocus={true}
+        hintText="Your full name"
+        value={props.fullName}
+        onChangeText={props.onChangeFullName}
+      />
       <Kb.Input
         small={true}
         smallLabel="Email 1:"

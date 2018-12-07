@@ -11,14 +11,14 @@ const initialState: State = {
   errorCode: null,
   errorText: null,
   pgpInfo: {
-    email1: null,
+    email1: 'a@a.com', // TEMP
     email2: null,
     email3: null,
     errorEmail1: false,
     errorEmail2: false,
     errorEmail3: false,
     errorText: null,
-    fullName: null,
+    fullName: 'aaa', // TEMP
   },
   pgpPublicKey: null,
   platform: null,

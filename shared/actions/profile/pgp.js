@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import {RPCError} from '../../util/errors'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
 import {navigateTo} from '../../actions/route-tree'
 import {peopleTab} from '../../constants/tabs'
@@ -49,41 +50,61 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
 }
 
 function generatePgp(state: TypedState) {
+  let canceled = false
+
   const pgpInfo = state.profile.pgpInfo
-  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(Boolean).map(email => ({
+  const ids = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(Boolean).map(email => ({
     comment: '',
     email: email || '',
     username: pgpInfo.fullName || '',
   }))
 
-  const onKeyGenerated = ({key}) => Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
+  const navBack = Saga.put(navigateTo([peopleTab, 'profile']))
+
+  const onKeyGenerated = ({key}, response) => {
+    if (canceled) {
+      response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
+      return navBack
+    } else {
+      response.result()
+      return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
+    }
+  }
+
   const onShouldPushPrivate = (_, response) => {
     return Saga.callUntyped(function*() {
       yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate', 'finished']))
       const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
       response.result(action.payload.shouldStoreKeyOnServer)
-      yield Saga.put(navigateTo([peopleTab, 'profile']))
+      yield navBack
     })
   }
   const onFinished = () => {}
 
   return Saga.callUntyped(function*() {
     yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']))
-    yield RPCTypes.pgpPgpKeyGenDefaultRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.pgpUi.shouldPushPrivate': onShouldPushPrivate,
-      },
-      incomingCallMap: {
-        'keybase.1.pgpUi.finished': onFinished,
-        'keybase.1.pgpUi.keyGenerated': onKeyGenerated,
-      },
-      params: {
-        createUids: {
-          ids: identities,
-          useDefault: false,
-        },
-      },
+    // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
+    const cancelTask = yield Saga._fork(function*() {
+      yield Saga.take(ProfileGen.cancelPgpGen)
+      yield navBack
+      canceled = true
     })
+    try {
+      yield RPCTypes.pgpPgpKeyGenDefaultRpcSaga({
+        customResponseIncomingCallMap: {
+          'keybase.1.pgpUi.keyGenerated': onKeyGenerated,
+          'keybase.1.pgpUi.shouldPushPrivate': onShouldPushPrivate,
+        },
+        incomingCallMap: {'keybase.1.pgpUi.finished': onFinished},
+        params: {createUids: {ids, useDefault: false}},
+      })
+    } catch (e) {
+      // did we cancel?
+      if (e.code !== RPCTypes.constantsStatusCode.scinputcanceled) {
+        throw e
+      }
+    }
+    cancelTask.cancel()
   })
 }
 

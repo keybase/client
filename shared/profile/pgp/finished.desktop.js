@@ -34,9 +34,7 @@ class Finished extends React.Component<Props, State> {
           pgp help` from your terminal. If you have GPG installed, it has also been written to GPG’s keychain.
         </Kb.Text>
         <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignSelf: 'stretch'}}>
-          <textinput style={stylePgpKeyString} readOnly={true}>
-            {this.props.pgpKeyString}
-          </textinput>
+          <textarea style={stylePgpKeyString} readOnly={true} value={this.props.pgpKeyString} />
         </Kb.Box>
         <Kb.Box style={styleUploadContainer}>
           <Kb.Checkbox
