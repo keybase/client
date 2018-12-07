@@ -531,7 +531,7 @@ const styles = Styles.styleSheetCreate({
     left: 0,
     position: 'absolute',
     right: 0,
-    top: 0,
+    top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
   },
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
