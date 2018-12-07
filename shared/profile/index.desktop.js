@@ -5,7 +5,7 @@ import Friendships from './friendships.desktop'
 import * as React from 'react'
 import moment from 'moment'
 import * as Kb from '../common-adapters'
-import UserActions, {makeStellarAddressMenuItems, type stellarFederatedAddressProps} from './user-actions'
+import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
@@ -15,7 +15,6 @@ import Folders from './folders/container'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
-import HOCTimers, {type PropsWithTimer} from '../common-adapters/hoc-timers'
 
 const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
@@ -83,39 +82,11 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 
-type TProps = PropsWithTimer<{
-  getAttachmentRef: () => ?React.Component<any>,
-}>
-type TState = {
-  showingToast: boolean,
-}
-
-class _ToastContainer extends React.Component<TProps, TState> {
-  state = {showingToast: false}
-  copy = () => {
-    this.setState({showingToast: true}, () =>
-      this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
-    )
-  }
-
-  render() {
-    return (
-      <Kb.Toast position="top left" attachTo={this.props.getAttachmentRef} visible={this.state.showingToast}>
-        {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-        <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
-          Copied to clipboard
-        </Kb.Text>
-      </Kb.Toast>
-    )
-  }
-}
-const ToastContainer = HOCTimers(_ToastContainer)
-
 class _StellarFederatedAddress extends React.PureComponent<
-  stellarFederatedAddressProps & Kb.OverlayParentProps
+  StellarFederatedAddressProps & Kb.OverlayParentProps
 > {
   _attachmentRef = null
-  _toastRef: ?_ToastContainer = null
+  _toastRef: ?Kb._ToastContainer = null
   _onCopyAddress = () => {
     this._toastRef && this._toastRef.copy()
     this.props.onCopyAddress()
@@ -136,7 +107,7 @@ class _StellarFederatedAddress extends React.PureComponent<
     return (
       <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
         {/* $FlowIssue innerRef not typed yet */}
-        <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <Kb.ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
@@ -495,7 +466,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
-                {this.props.stellarAddress && !loading && (
+                {!!this.props.stellarAddress && !loading && (
                   <StellarFederatedAddress
                     currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
                     stellarAddress={this.props.stellarAddress}

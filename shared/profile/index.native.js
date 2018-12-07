@@ -11,7 +11,7 @@ import Folders from './folders/container'
 import React, {Component} from 'react'
 import {chunk} from 'lodash-es'
 import moment from 'moment'
-import UserActions, {makeStellarAddressMenuItems, type stellarFederatedAddressProps} from './user-actions'
+import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
@@ -88,7 +88,7 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 
-const _StellarFederatedAddress = (props: stellarFederatedAddressProps & Kb.OverlayParentProps) => {
+const _StellarFederatedAddress = (props: StellarFederatedAddressProps & Kb.OverlayParentProps) => {
   const _menuItems = makeStellarAddressMenuItems(props)
   const stellarAddressNameStyle = {
     color: props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
@@ -381,7 +381,7 @@ class Profile extends Component<Props, State> {
             loadingComponent={this._makeUserProofs(true)}
             doneLoadingComponent={this._makeUserProofs(false)}
           />
-          {this.props.stellarAddress && !this.props.loading && (
+          {!!this.props.stellarAddress && !this.props.loading && (
             <StellarFederatedAddress
               currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
               stellarAddress={this.props.stellarAddress}

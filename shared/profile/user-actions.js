@@ -200,14 +200,14 @@ const _DropdownButton = (props: DropdownProps & Kb.OverlayParentProps) => (
   </Kb.ClickableBox>
 )
 
-export type stellarFederatedAddressProps = {|
+export type StellarFederatedAddressProps = {|
   currentlyFollowing?: boolean,
   stellarAddress: string,
   onSendOrRequest: (isRequest: boolean) => void,
   onCopyAddress: () => void,
 |}
 
-export const makeStellarAddressMenuItems = (props: stellarFederatedAddressProps) => [
+export const makeStellarAddressMenuItems = (props: StellarFederatedAddressProps) => [
   ...(Styles.isMobile
     ? [
         {
