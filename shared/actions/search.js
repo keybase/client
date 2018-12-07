@@ -161,7 +161,7 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
 }
 
 function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = Selectors.cachedSearchResults(state, searchQuery)
   if (cachedResults) {
@@ -310,7 +310,7 @@ const updateSelectedSearchResult = ({
 function* addResultsToUserInput({
   payload: {searchKey, searchResults},
 }: SearchGen.AddResultsToUserInputPayload) {
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const maybeUpgradedUsers = searchResults.map(u =>
@@ -324,7 +324,7 @@ function* addResultsToUserInput({
       keyPath: ['search', 'searchKeyToUserInputItemIds'],
     })
   )
-  state = yield Saga.select()
+  state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -334,7 +334,7 @@ function* addResultsToUserInput({
 function* removeResultsToUserInput({
   payload: {searchKey, searchResults},
 }: SearchGen.RemoveResultsToUserInputPayload) {
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
   yield Saga.put.resolve(
     EntitiesGen.createSubtractEntity({
@@ -342,7 +342,7 @@ function* removeResultsToUserInput({
       keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
     })
   )
-  state = yield Saga.select()
+  state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -350,7 +350,7 @@ function* removeResultsToUserInput({
 }
 
 function* setUserInputItems({payload: {searchKey, searchResults}}: SearchGen.SetUserInputItemsPayload) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!ids.equals(I.OrderedSet(searchResults))) {
     yield Saga.put.resolve(

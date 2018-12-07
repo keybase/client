@@ -38,7 +38,7 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
 
   try {
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield * Saga.callPromise(RPCTypes.revokeRevokeKeyRpcPromise, {keyID: kid})
+    yield* Saga.callPromise(RPCTypes.revokeRevokeKeyRpcPromise, {keyID: kid})
     yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(navigateTo([], [peopleTab]))
   } catch (e) {
@@ -52,7 +52,7 @@ function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<an
 function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(navigateTo([peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']))
 
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const {
     profile: {pgpInfo},
   } = state

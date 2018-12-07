@@ -145,7 +145,7 @@ const _leftTeam = (state: TypedState, action: TeamsGen.LeftTeamPayload) => {
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const ids = SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').toArray()
   logger.info(`Adding ${ids.length} people to ${teamname}`)
   logger.info(`Adding ${ids.join(',')}`)
@@ -182,7 +182,7 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
 
 const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolicyPayload) {
   const {teamname} = action.payload
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const teamID = Constants.getTeamID(state, teamname)
   if (!teamID) {
     const errMsg = `getTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
@@ -461,7 +461,7 @@ const _createNewTeamFromConversation = function*(
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, teamname} = action.payload
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const me = state.config.username
   let participants: Array<string> = []
 
@@ -525,7 +525,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
 
     // Get requests to join
     let requests
-    const state = yield Saga.select()
+    const state = yield* Saga.selectState()
     if (Constants.getCanPerform(state, teamname).manageMembers) {
       // TODO (DESKTOP-6478) move this somewhere else
       requests = yield* Saga.callPromise(RPCTypes.teamsTeamListRequestsRpcPromise, {
@@ -1157,7 +1157,7 @@ const setupEngineListeners = () => {
     'keybase.1.NotifyTeam.teamChangedByName': param =>
       Saga.callUntyped(function*() {
         logger.info(`Got teamChanged for ${param.teamName} from service`)
-        const state = yield Saga.select()
+        const state = yield* Saga.selectState()
         const selectedTeamNames = Constants.getSelectedTeamNames(state)
         if (selectedTeamNames.includes(param.teamName)) {
           // only reload if that team is selected
@@ -1167,7 +1167,7 @@ const setupEngineListeners = () => {
       }),
     'keybase.1.NotifyTeam.teamDeleted': param =>
       Saga.callUntyped(function*() {
-        const state = yield Saga.select()
+        const state = yield* Saga.selectState()
         const {teamID} = param
         const selectedTeamNames = Constants.getSelectedTeamNames(state)
         if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
@@ -1180,7 +1180,7 @@ const setupEngineListeners = () => {
       }),
     'keybase.1.NotifyTeam.teamExit': param =>
       Saga.callUntyped(function*() {
-        const state = yield Saga.select()
+        const state = yield* Saga.selectState()
         const {teamID} = param
         const selectedTeamNames = Constants.getSelectedTeamNames(state)
         if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
@@ -1222,7 +1222,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
 }
 
 function* _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsPayload) {
-  const state = yield Saga.select()
+  const state = yield* Saga.selectState()
   const existingTeams = state.teams.teamsWithChosenChannels
   const {teamname} = action.payload
   if (state.teams.teamsWithChosenChannels.has(teamname)) {

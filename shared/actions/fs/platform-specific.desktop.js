@@ -164,7 +164,7 @@ function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusR
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const prevStatus = state.fs.fuseStatus
 
   let status = yield* Saga.callPromise(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})

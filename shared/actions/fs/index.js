@@ -5,6 +5,7 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as Flow from '../../util/flow'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
@@ -167,8 +168,8 @@ function* folderList(
 
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
-    const state = yield Saga.select()
-    const {lastModifiedTimestamp, lastWriter, size, writable}: Types.FolderPathItem = state.fs.pathItems.get(
+    const state = yield* Saga.selectState()
+    const {lastModifiedTimestamp, lastWriter, size, writable} = state.fs.pathItems.get(
       rootPath,
       Constants.makeFolder({name: Types.getPathName(rootPath)})
     )
@@ -254,10 +255,7 @@ function* download(
       // TODO
       return
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
       break
   }
@@ -530,7 +528,7 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     mimeTypeRefreshTags.set(refreshTag, path)
   }
 
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   let localHTTPServerInfo = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
   // This should finish within 2 iterations at most. But just in case we bound
   // it at 3.
@@ -601,10 +599,7 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
         .catch(makeRetriableErrorHandler(action))
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return new Promise(resolve => resolve())
   }
 }

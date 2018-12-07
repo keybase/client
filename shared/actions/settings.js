@@ -27,7 +27,7 @@ function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
 
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const newEmail = state.settings.email.newEmail
     yield* Saga.callPromise(RPCTypes.accountEmailChangeRpcPromise, {
       newEmail,
@@ -45,7 +45,7 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
 
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
     if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
       yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error: new Error("Passphrases don't match")}))
@@ -67,7 +67,7 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
 function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const current = state.settings.notifications
 
     if (!current || !current.groups.email) {

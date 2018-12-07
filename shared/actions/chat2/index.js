@@ -5,6 +5,7 @@ import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
 import * as FsGen from '../fs-gen'
+import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
@@ -145,10 +146,7 @@ const rpcMetaRequestConversationIDKeys = (
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
@@ -222,7 +220,7 @@ const unboxRows = (
       default:
         logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
         return Saga.callUntyped(function*() {
-          const state: TypedState = yield Saga.select()
+          const state = yield* Saga.selectState()
           yield Saga.put(
             Chat2Gen.createMetaReceivedError({
               conversationIDKey: conversationIDKey,
@@ -852,12 +850,13 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
 const loadMoreMessages = (
   state: TypedState,
   action:
-    | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
-    | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.SelectConversationPayload
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
+    | Chat2Gen.SetPendingConversationUsersPayload
+    | ConfigGen.ChangedFocusPayload
 ) => {
   // Get the conversationIDKey
   let key = null
@@ -917,6 +916,7 @@ const loadMoreMessages = (
       }
       break
     default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       key = action.payload.conversationIDKey
   }
 
@@ -1834,7 +1834,7 @@ function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
@@ -2121,7 +2121,7 @@ const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, stat
   }
 }
 
-const mobileChangeSelection = (_: any, state: TypedState) => {
+const mobileChangeSelection = (_, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
@@ -2137,7 +2137,7 @@ const mobileChangeSelection = (_: any, state: TypedState) => {
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
   const {conversationIDKey, ordinal} = action.payload
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
@@ -2153,7 +2153,7 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
 // Native save to camera roll
 function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
   const {conversationIDKey, ordinal} = action.payload
-  let state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
@@ -2527,26 +2527,24 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePa
       })
     ),
     Saga.callUntyped(function*() {
-      const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
-        (res: RPCChatTypes.StaticConfig) => {
-          if (!res.deletableByDeleteHistory) {
-            logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-            return
-          }
-          const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
-            const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-            if (ourTypes) {
-              res.push(...ourTypes)
-            }
-            return res
-          }, [])
-          return Chat2Gen.createStaticConfigLoaded({
-            staticConfig: Constants.makeStaticConfig({
-              deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
-            }),
-          })
+      const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(res => {
+        if (!res.deletableByDeleteHistory) {
+          logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+          return
         }
-      )
+        const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+          const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+          if (ourTypes) {
+            res.push(...ourTypes)
+          }
+          return res
+        }, [])
+        return Chat2Gen.createStaticConfigLoaded({
+          staticConfig: Constants.makeStaticConfig({
+            deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+          }),
+        })
+      })
 
       if (loadAction) {
         yield Saga.put(loadAction)

@@ -21,8 +21,8 @@ export const createDebugCount = (payload: _DebugCountPayload) => ({payload, type
 export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload) => ({payload, type: updateDebugConfig})
 
 // Action Payloads
-export type DebugCountPayload = $Call<typeof createDebugCount, _DebugCountPayload>
-export type UpdateDebugConfigPayload = $Call<typeof createUpdateDebugConfig, _UpdateDebugConfigPayload>
+export type DebugCountPayload = {|+payload: _DebugCountPayload, +type: 'dev:debugCount'|}
+export type UpdateDebugConfigPayload = {|+payload: _UpdateDebugConfigPayload, +type: 'dev:updateDebugConfig'|}
 
 // All Actions
 // prettier-ignore

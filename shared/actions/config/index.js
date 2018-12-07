@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
+import * as Flow from '../../util/flow'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
@@ -32,7 +33,7 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.loggedIn': ({username}) =>
       Saga.callUntyped(function*() {
         logger.info('keybase.1.NotifySession.loggedIn')
-        const state: TypedState = yield Saga.select()
+        const state = yield* Saga.selectState()
         // only send this if we think we're not logged in
         if (!state.config.loggedIn) {
           yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
@@ -41,7 +42,7 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.loggedOut': () =>
       Saga.callUntyped(function*() {
         logger.info('keybase.1.NotifySession.loggedOut')
-        const state: TypedState = yield Saga.select()
+        const state = yield* Saga.selectState()
         // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
         if (state.config.loggedIn) {
           yield Saga.put(ConfigGen.createLoggedOut())
@@ -83,7 +84,7 @@ const loadDaemonBootstrapStatus = (
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState = yield Saga.select()
+      const newState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -119,10 +120,7 @@ const loadDaemonBootstrapStatus = (
     case ConfigGen.loggedOut:
       return makeCall
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return undefined
   }
 }
@@ -210,7 +208,7 @@ const loadDaemonAccounts = (
       yield Saga.put(loadedAction)
       if (handshakeWait) {
         // someone dismissed this already?
-        const newState: TypedState = yield Saga.select()
+        const newState = yield* Saga.selectState()
         if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
           yield Saga.put(
             ConfigGen.createDaemonHandshakeWait({
@@ -224,7 +222,7 @@ const loadDaemonAccounts = (
     } catch (error) {
       if (handshakeWait) {
         // someone dismissed this already?
-        const newState: TypedState = yield Saga.select()
+        const newState = yield* Saga.selectState()
         if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
           yield Saga.put(
             ConfigGen.createDaemonHandshakeWait({

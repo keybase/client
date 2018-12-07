@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {type TypedState} from '../../constants/reducer'
 
 const maxAvatarsPerLoad = 50
 
@@ -36,7 +35,7 @@ function* avatarCallAndHandle(names: Array<string>, method: Function) {
       names,
     })
 
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const old = state.config.avatars
     const vals = []
     Object.keys(resp.picmap).forEach(name => {

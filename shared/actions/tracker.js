@@ -18,12 +18,12 @@ import type {Dispatch} from '../util/container'
 function* _trackerTimer(): Generator<any, void, any> {
   while (true) {
     yield Saga.callUntyped(Saga.delay, Constants.rpcUpdateTimerSeconds)
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const trackers = state.tracker.userTrackers
     if (Object.keys(trackers).some(username => !trackers[username].closed)) {
       try {
         // never kill this loop on rpc errors
-        yield * Saga.callPromise(RPCTypes.trackCheckTrackingRpcPromise)
+        yield* Saga.callPromise(RPCTypes.trackCheckTrackingRpcPromise)
       } catch (e) {}
     }
   }
@@ -68,7 +68,7 @@ function _getMyProfile(action: TrackerGen.GetMyProfilePayload, state: TypedState
 const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisplay: boolean = false) =>
   function*() {
     yield Saga.put(TrackerGen.createIdentifyStarted({username: uid || userAssertion}))
-    const action = yield * Saga.callPromise(
+    const action = yield* Saga.callPromise(
       () =>
         new Promise((resolve, reject) => {
           RPCTypes.identifyIdentify2RpcPromise({
@@ -103,12 +103,12 @@ const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisp
 
 function* _refollow(action: TrackerGen.RefollowPayload) {
   const {username} = action.payload
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const trackToken = _getTrackToken(state, username)
 
   yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
   try {
-    yield * Saga.callPromise(_trackUser, trackToken, false)
+    yield* Saga.callPromise(_trackUser, trackToken, false)
     yield Saga.put(TrackerGen.createSetOnRefollow({username}))
   } catch (e) {
     logger.warn("Couldn't track user:", e)
@@ -122,7 +122,7 @@ function* _unfollow(action: TrackerGen.UnfollowPayload) {
   const {username} = action.payload
   yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
   try {
-    yield * Saga.callPromise(RPCTypes.trackUntrackRpcPromise, {
+    yield* Saga.callPromise(RPCTypes.trackUntrackRpcPromise, {
       username,
     })
     yield Saga.put(TrackerGen.createReportLastTrack({username}))
@@ -183,12 +183,12 @@ function _getUsername(uid: string, state: TypedState): ?string {
 
 function* _follow(action: TrackerGen.FollowPayload) {
   const {username, localIgnore} = action.payload
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const trackToken = _getTrackToken(state, username)
 
   yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
   try {
-    yield * Saga.callPromise(_trackUser, trackToken, localIgnore || false)
+    yield* Saga.callPromise(_trackUser, trackToken, localIgnore || false)
     yield Saga.put(TrackerGen.createSetOnFollow({username}))
   } catch (e) {
     logger.warn("Couldn't track user: ", e)
@@ -530,7 +530,8 @@ const _listTrackersOrTracking = (
 
 const _fillFolders = (username: string) =>
   function*() {
-    const state = yield Saga.select()
+    const state = yield* Saga.selectState()
+    // $FlowIssue this no longer exists!!! cc: @song
     const root = state.favorite
     const pubIg = get(root, 'public.ignored', [])
     const pubTlf = get(root, 'public.tlfs', [])

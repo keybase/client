@@ -5,6 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
+import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
@@ -162,10 +163,7 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
       logState = RPCTypes.appStateAppState.inactive
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (v: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.payload.nextAppState);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
       logState = RPCTypes.appStateAppState.foreground
   }
