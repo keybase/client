@@ -11,8 +11,8 @@ import ReactButton, {NewReactionButton} from '.'
 export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
-  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
-  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  onMouseLeave?: (evt: SyntheticEvent<>) => void,
+  onMouseOver?: (evt: SyntheticEvent<>) => void,
   getAttachmentRef?: () => ?React.Component<any>,
   onLongPress?: () => void,
   onShowPicker?: (showing: boolean) => void,
