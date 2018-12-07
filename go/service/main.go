@@ -364,6 +364,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
+	d.runHomePoller(ctx)
 	go d.identifySelf()
 }
 
@@ -532,6 +533,11 @@ func (d *Service) runTLFUpgrade() {
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
 	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
+	return
+}
+
+func (d *Service) runHomePoller(ctx context.Context) {
+	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
 	return
 }
 
