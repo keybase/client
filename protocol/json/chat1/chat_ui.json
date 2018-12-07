@@ -779,20 +779,16 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "UIMiniChatPaymentSpecTyp",
-      "symbols": [
-        "SUCCESS_0",
-        "ERROR_1"
-      ]
-    },
-    {
       "type": "record",
-      "name": "UIMiniChatPaymentSpecSuccess",
+      "name": "UIMiniChatPayment",
       "fields": [
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
         },
         {
           "type": "string",
@@ -803,31 +799,14 @@
             null,
             "string"
           ],
-          "name": "displayAmount"
-        }
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "UIMiniChatPaymentSpec",
-      "switch": {
-        "type": "UIMiniChatPaymentSpecTyp",
-        "name": "typ"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "SUCCESS",
-            "def": false
-          },
-          "body": "UIMiniChatPaymentSpecSuccess"
+          "name": "error"
         },
         {
-          "label": {
-            "name": "ERROR",
-            "def": false
-          },
-          "body": "string"
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
         }
       ]
     },
@@ -846,7 +825,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UIMiniChatPaymentSpec"
+            "items": "UIMiniChatPayment"
           },
           "name": "payments"
         }

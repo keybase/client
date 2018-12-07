@@ -18,7 +18,6 @@ const props = {
       xlmAmount: '4.4811371 XLM',
     },
     {
-      displayAmount: null,
       fullName: 'Patrick Crosby',
       username: 'patrick',
       xlmAmount: '10 XLM',
@@ -30,7 +29,6 @@ const props = {
       xlmAmount: '25.5818284 XLM',
     },
     {
-      displayAmount: null,
       fullName: 'Max Krohn',
       username: 'max',
       xlmAmount: '14 XLM',

@@ -65,6 +65,7 @@ export type _State = {
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
+  paymentConfirmInfo: ?RPCChatTypes.UIMiniChatPaymentSummary, // chat payment confirm screen data
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

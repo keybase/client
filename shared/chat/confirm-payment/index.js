@@ -4,7 +4,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type PaymentProps = {|
-  displayAmount: ?string,
+  displayAmount?: string,
+  error?: string,
   fullName: string,
   username: string,
   xlmAmount: string,

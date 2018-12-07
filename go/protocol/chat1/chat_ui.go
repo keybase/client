@@ -843,42 +843,26 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
-type UIMiniChatPaymentSpecTyp int
-
-const (
-	UIMiniChatPaymentSpecTyp_SUCCESS UIMiniChatPaymentSpecTyp = 0
-	UIMiniChatPaymentSpecTyp_ERROR   UIMiniChatPaymentSpecTyp = 1
-)
-
-func (o UIMiniChatPaymentSpecTyp) DeepCopy() UIMiniChatPaymentSpecTyp { return o }
-
-var UIMiniChatPaymentSpecTypMap = map[string]UIMiniChatPaymentSpecTyp{
-	"SUCCESS": 0,
-	"ERROR":   1,
-}
-
-var UIMiniChatPaymentSpecTypRevMap = map[UIMiniChatPaymentSpecTyp]string{
-	0: "SUCCESS",
-	1: "ERROR",
-}
-
-func (e UIMiniChatPaymentSpecTyp) String() string {
-	if v, ok := UIMiniChatPaymentSpecTypRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
-type UIMiniChatPaymentSpecSuccess struct {
+type UIMiniChatPayment struct {
 	Username      string  `codec:"username" json:"username"`
+	FullName      string  `codec:"fullName" json:"fullName"`
 	XlmAmount     string  `codec:"xlmAmount" json:"xlmAmount"`
+	Error         *string `codec:"error,omitempty" json:"error,omitempty"`
 	DisplayAmount *string `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
 }
 
-func (o UIMiniChatPaymentSpecSuccess) DeepCopy() UIMiniChatPaymentSpecSuccess {
-	return UIMiniChatPaymentSpecSuccess{
+func (o UIMiniChatPayment) DeepCopy() UIMiniChatPayment {
+	return UIMiniChatPayment{
 		Username:  o.Username,
+		FullName:  o.FullName,
 		XlmAmount: o.XlmAmount,
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
 		DisplayAmount: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -889,97 +873,21 @@ func (o UIMiniChatPaymentSpecSuccess) DeepCopy() UIMiniChatPaymentSpecSuccess {
 	}
 }
 
-type UIMiniChatPaymentSpec struct {
-	Typ__     UIMiniChatPaymentSpecTyp      `codec:"typ" json:"typ"`
-	Success__ *UIMiniChatPaymentSpecSuccess `codec:"success,omitempty" json:"success,omitempty"`
-	Error__   *string                       `codec:"error,omitempty" json:"error,omitempty"`
-}
-
-func (o *UIMiniChatPaymentSpec) Typ() (ret UIMiniChatPaymentSpecTyp, err error) {
-	switch o.Typ__ {
-	case UIMiniChatPaymentSpecTyp_SUCCESS:
-		if o.Success__ == nil {
-			err = errors.New("unexpected nil value for Success__")
-			return ret, err
-		}
-	case UIMiniChatPaymentSpecTyp_ERROR:
-		if o.Error__ == nil {
-			err = errors.New("unexpected nil value for Error__")
-			return ret, err
-		}
-	}
-	return o.Typ__, nil
-}
-
-func (o UIMiniChatPaymentSpec) Success() (res UIMiniChatPaymentSpecSuccess) {
-	if o.Typ__ != UIMiniChatPaymentSpecTyp_SUCCESS {
-		panic("wrong case accessed")
-	}
-	if o.Success__ == nil {
-		return
-	}
-	return *o.Success__
-}
-
-func (o UIMiniChatPaymentSpec) Error() (res string) {
-	if o.Typ__ != UIMiniChatPaymentSpecTyp_ERROR {
-		panic("wrong case accessed")
-	}
-	if o.Error__ == nil {
-		return
-	}
-	return *o.Error__
-}
-
-func NewUIMiniChatPaymentSpecWithSuccess(v UIMiniChatPaymentSpecSuccess) UIMiniChatPaymentSpec {
-	return UIMiniChatPaymentSpec{
-		Typ__:     UIMiniChatPaymentSpecTyp_SUCCESS,
-		Success__: &v,
-	}
-}
-
-func NewUIMiniChatPaymentSpecWithError(v string) UIMiniChatPaymentSpec {
-	return UIMiniChatPaymentSpec{
-		Typ__:   UIMiniChatPaymentSpecTyp_ERROR,
-		Error__: &v,
-	}
-}
-
-func (o UIMiniChatPaymentSpec) DeepCopy() UIMiniChatPaymentSpec {
-	return UIMiniChatPaymentSpec{
-		Typ__: o.Typ__.DeepCopy(),
-		Success__: (func(x *UIMiniChatPaymentSpecSuccess) *UIMiniChatPaymentSpecSuccess {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Success__),
-		Error__: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.Error__),
-	}
-}
-
 type UIMiniChatPaymentSummary struct {
-	XlmTotal     string                  `codec:"xlmTotal" json:"xlmTotal"`
-	DisplayTotal string                  `codec:"displayTotal" json:"displayTotal"`
-	Payments     []UIMiniChatPaymentSpec `codec:"payments" json:"payments"`
+	XlmTotal     string              `codec:"xlmTotal" json:"xlmTotal"`
+	DisplayTotal string              `codec:"displayTotal" json:"displayTotal"`
+	Payments     []UIMiniChatPayment `codec:"payments" json:"payments"`
 }
 
 func (o UIMiniChatPaymentSummary) DeepCopy() UIMiniChatPaymentSummary {
 	return UIMiniChatPaymentSummary{
 		XlmTotal:     o.XlmTotal,
 		DisplayTotal: o.DisplayTotal,
-		Payments: (func(x []UIMiniChatPaymentSpec) []UIMiniChatPaymentSpec {
+		Payments: (func(x []UIMiniChatPayment) []UIMiniChatPayment {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UIMiniChatPaymentSpec, len(x))
+			ret := make([]UIMiniChatPayment, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

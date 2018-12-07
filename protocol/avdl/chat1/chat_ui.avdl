@@ -219,23 +219,17 @@ protocol chatUi {
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 
   // Chat Stellar send confirm screen UI
-  enum UIMiniChatPaymentSpecTyp {
-    SUCCESS_0,
-    ERROR_1
-  }
-  record UIMiniChatPaymentSpecSuccess {
+  record UIMiniChatPayment {
     string username;
+    string fullName;
     string xlmAmount;
+    union { null, string } error;
     union { null, string } displayAmount;
-  }
-  variant UIMiniChatPaymentSpec switch (UIMiniChatPaymentSpecTyp typ) {
-    case SUCCESS: UIMiniChatPaymentSpecSuccess;
-    case ERROR: string;
   }
   record UIMiniChatPaymentSummary {
     string xlmTotal;
     string displayTotal;
-    array<UIMiniChatPaymentSpec> payments;
+    array<UIMiniChatPayment> payments;
   }
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIMiniChatPaymentSummary summary);
