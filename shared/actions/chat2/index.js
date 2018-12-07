@@ -1291,12 +1291,14 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
       ephemeralLifetime
     )
-    const addMessage = Saga.put(
-      Chat2Gen.createMessagesAdd({
-        context: {type: 'sent'},
-        messages: [newMsg],
-      })
-    )
+    const addMessage = () => {
+      return Saga.put(
+        Chat2Gen.createMessagesAdd({
+          context: {type: 'sent'},
+          messages: [newMsg],
+        })
+      )
+    }
 
     const onShowConfirm = () => {
       const actions = [
@@ -1329,7 +1331,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         'chat.1.chatUi.chatStellarDataConfirm': (p, r) => onDataConfirm(p.summary, r),
       },
       incomingCallMap: {
-        'chat.1.chatUi.chatPostReadyToSend': p => addMessage,
+        'chat.1.chatUi.chatPostReadyToSend': p => addMessage(),
         'chat.1.chatUi.chatStellarDataError': p => null,
         'chat.1.chatUi.chatStellarDone': p => Saga.put(navigateUp()),
         'chat.1.chatUi.chatStellarShowConfirm': p => onShowConfirm(),
@@ -1360,7 +1362,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
     // We put the addMessage on the back in case the service provides chat thread data in between the
     // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
     // that is in the store on the outboxID has been sent.
-    yield addMessage
+    yield addMessage()
   })
 
 const messageSendWithResult = (result, action) => {
