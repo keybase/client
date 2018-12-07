@@ -1,15 +1,16 @@
 // @flow
 import {WalletSwitcher, type Props} from '.'
 import * as RouteTree from '../../../../actions/route-tree'
-import * as Types from '../../../../constants/types/wallets'
 import {connect, isMobile} from '../../../../util/container'
+import {getAccountIDs} from '../../../../constants/wallets'
 
 type OwnProps = {|
-  accountID: Types.AccountID,
   walletName: string,
 |}
 
-const mapStateToProps = state => ({})
+const mapStateToProps = state => ({
+  accounts: getAccountIDs(state),
+})
 
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
@@ -25,8 +26,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
-  accountID: ownProps.accountID,
-  accountIDs: [],
+  accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
   walletName: ownProps.walletName,

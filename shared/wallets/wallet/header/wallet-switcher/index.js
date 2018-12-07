@@ -5,7 +5,6 @@ import * as Types from '../../../../constants/types/wallets'
 import WalletRow from '../../../wallet-list/wallet-row/container'
 
 export type Props = {
-  accountID: Types.AccountID,
   accountIDs: Array<Types.AccountID>,
   onAddNew: () => void,
   onLinkExisting: () => void,
