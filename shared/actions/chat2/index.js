@@ -1950,10 +1950,10 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
 // Tell service we're typing
 const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
-  const {conversationIDKey, typing} = action.payload
+  const {conversationIDKey, text} = action.payload
   return Saga.call(RPCChatTypes.localUpdateTypingRpcPromise, {
     conversationID: Types.keyToConversationID(conversationIDKey),
-    typing,
+    text: text.stringValue(),
   })
 }
 

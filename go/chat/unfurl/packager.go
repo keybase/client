@@ -252,6 +252,7 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 
 	cacheKey := p.cacheKey(uid, convID, raw)
 	if item, valid := p.cache.get(cacheKey); cacheKey != "" && valid {
+		p.Debug(ctx, "Package: using cached value")
 		return item.data.(chat1.Unfurl), item.err
 	}
 	defer func() {

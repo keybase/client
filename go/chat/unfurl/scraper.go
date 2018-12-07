@@ -37,6 +37,7 @@ func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.Unfurl
 	defer s.Trace(ctx, func() error { return err }, "Scrape")()
 	// Check if we have a cached valued
 	if item, valid := s.cache.get(uri); valid {
+		s.Debug(ctx, "Scape: using cached value")
 		return item.data.(chat1.UnfurlRaw), item.err
 	}
 	defer func() {
