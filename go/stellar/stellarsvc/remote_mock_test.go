@@ -624,6 +624,11 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		return stellar1.PaymentResult{}, errors.New("can only handle native")
 	}
 
+	require.NotNil(tc.T, extract.TimeBounds, "We are expecting TimeBounds in all txs")
+	if extract.TimeBounds != nil {
+		require.NotZero(tc.T, extract.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
+	}
+
 	toIsFunded := false
 	b, toExists := r.accounts[extract.To]
 
