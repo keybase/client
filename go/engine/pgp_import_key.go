@@ -110,9 +110,7 @@ func (e *PGPKeyImportEngine) Name() string {
 }
 
 func (e *PGPKeyImportEngine) Prereqs() Prereqs {
-	return Prereqs{
-		Device: true,
-	}
+	return Prereqs{}
 }
 
 func (e *PGPKeyImportEngine) RequiredUIs() []libkb.UIKind {
@@ -158,6 +156,10 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if err = e.loadMe(m); err != nil {
+		switch err.(type) {
+		case libkb.SelfNotFoundError:
+			err = libkb.LoginRequiredError{}
+		}
 		return err
 	}
 
@@ -170,6 +172,10 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 			return err
 		}
 		if err = e.loadDelegator(m); err != nil {
+			switch err.(type) {
+			case libkb.NoUsernameError:
+				err = libkb.LoginRequiredError{}
+			}
 			return err
 		}
 	}
