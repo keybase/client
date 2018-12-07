@@ -51,14 +51,17 @@ export type SuggestorHooks = {
   onKeyDown: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 }
 
-const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
-  WrappedComponent: React.ComponentType<$Diff<OuterProps, SuggestorProps> & SuggestorHooks>
-): React.ComponentType<OuterProps> => {
-  class SuggestorsComponent extends React.Component<OuterProps, AddSuggestorsState> {
+const _AddSuggestors = <WrappedOwnProps>(
+  WrappedComponent: React.ComponentType<{...WrappedOwnProps, ...SuggestorHooks}>
+): React.ComponentType<{...WrappedOwnProps, ...SuggestorProps}> => {
+  class SuggestorsComponent extends React.Component<
+    {...WrappedOwnProps, ...SuggestorProps},
+    AddSuggestorsState
+  > {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _suggestors = Object.keys(this.props.suggestorToMarker)
-    _markerToSuggestor = invert(this.props.suggestorToMarker)
+    _markerToSuggestor: {[key: string]: SuggestorName} = invert(this.props.suggestorToMarker)
 
     _getInputRef = () => this._inputRef.current
 
@@ -91,13 +94,14 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
     }
 
     _move = (up: boolean) =>
-      !this.state.active
-        ? null
-        : this.setState(s => {
-            const length = this.props.dataSources[s.active](s.filter).length
-            const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
-            return selected === s.selected ? null : {selected}
-          })
+      this.setState(s => {
+        if (!s.active) {
+          return null
+        }
+        const length = this.props.dataSources[s.active](s.filter).length
+        const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
+        return selected === s.selected ? null : {selected}
+      })
 
     _onChangeText = text => {
       lg('changetext')
@@ -123,14 +127,15 @@ const _AddSuggestors = <OuterProps: $Subtype<SuggestorProps>>(
       // TODO
     }
 
-    _itemRenderer = (index, value) => (
-      <Kb.ClickableBox
-        onClick={() => this._triggerTransform(value)}
-        onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
-      >
-        {this.props.renderers[this.state.active](value, index === this.state.selected)}
-      </Kb.ClickableBox>
-    )
+    _itemRenderer = (index, value) =>
+      !this.state.active ? null : (
+        <Kb.ClickableBox
+          onClick={() => this._triggerTransform(value)}
+          onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
+        >
+          {this.props.renderers[this.state.active](value, index === this.state.selected)}
+        </Kb.ClickableBox>
+      )
 
     render() {
       let overlay = null
