@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 )
 
 type unfurlTask struct {
@@ -67,6 +68,11 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 		settings:     settings,
 		sender:       sender,
 	}
+}
+
+func (u *Unfurler) SetClock(clock clockwork.Clock) {
+	u.scraper.cache.setClock(clock)
+	u.packager.cache.setClock(clock)
 }
 
 func (u *Unfurler) SetTestingRetryCh(ch chan struct{}) {
