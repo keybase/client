@@ -541,6 +541,12 @@
 			"revisionTime": "2018-08-06T20:08:11Z"
 		},
 		{
+			"checksumSHA1": "BPchgsOpEkhEBKK6NvSqGYTOcuA=",
+			"path": "github.com/keybase/msgpackzip",
+			"revision": "8309a3782fdb9c2d52c69d3f8080e2797883faa1",
+			"revisionTime": "2018-12-07T16:10:41Z"
+		},
+		{
 			"checksumSHA1": "o3BupHtJ9Txi4Cfns9vcvvLrQC8=",
 			"path": "github.com/keybase/pipeliner",
 			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
