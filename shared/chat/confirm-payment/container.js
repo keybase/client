@@ -6,10 +6,10 @@ type OwnProps = {||}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const pinfo = state.chat2.paymentConfirmInfo
-  const payments = pinfo?.info?.payments || []
+  const payments = pinfo?.summary?.payments || []
   return {
     info: {
-      displayTotal: pinfo?.info?.displayTotal,
+      displayTotal: pinfo?.summary?.displayTotal,
       error: pinfo?.error,
       loading: !pinfo,
       payments: payments.map(p => ({
@@ -19,7 +19,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         username: p.username,
         xlmAmount: p.xlmAmount,
       })),
-      xlmTotal: pinfo?.info?.xlmTotal,
+      xlmTotal: pinfo?.summary?.xlmTotal,
     },
     response: pinfo?.response,
   }
