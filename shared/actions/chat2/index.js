@@ -1292,32 +1292,28 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       ephemeralLifetime
     )
 
-    const addMessage = () => {
-      return Saga.put(
+    const addMessage = () =>
+      Saga.put(
         Chat2Gen.createMessagesAdd({
           context: {type: 'sent'},
           messages: [newMsg],
         })
       )
-    }
-    const onShowConfirm = () => {
-      const actions = [
-        Saga.put(Chat2Gen.createSetPaymentConfirmInfo({info: null})),
-        Saga.put(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {},
-                selected: 'paymentsConfirm',
-              },
-            ],
-          })
-        ),
-      ]
-      return actions
-    }
-    const onDataConfirm = (result: RPCChatTypes.UIChatPaymentSummary, response: any) => {
-      return Saga.put(
+    const onShowConfirm = () => [
+      Saga.put(Chat2Gen.createSetPaymentConfirmInfo({info: null})),
+      Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {},
+              selected: 'paymentsConfirm',
+            },
+          ],
+        })
+      ),
+    ]
+    const onDataConfirm = (result: RPCChatTypes.UIChatPaymentSummary, response: any) =>
+      Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
             info: result,
@@ -1325,9 +1321,8 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
           },
         })
       )
-    }
-    const onDataError = (response: any) => {
-      return Saga.put(
+    const onDataError = (response: any) =>
+      Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
             error: 'Failed to load Stellar payment information, please try again.',
@@ -1335,7 +1330,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
           },
         })
       )
-    }
     yield RPCChatTypes.localPostTextNonblockRpcSaga({
       customResponseIncomingCallMap: {
         'chat.1.chatUi.chatStellarDataConfirm': (p, r) => onDataConfirm(p.summary, r),

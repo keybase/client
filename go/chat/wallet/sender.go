@@ -112,6 +112,7 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 				continue
 			}
 		} else {
+			// TODO make sure user is in the chat
 			username = *p.Username
 		}
 		res = append(res, types.ParsedStellarPayment{
