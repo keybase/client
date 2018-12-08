@@ -1092,11 +1092,19 @@ func (c *ChatUI) ChatStellarShowConfirm(ctx context.Context) error {
 	return nil
 }
 
-func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIMiniChatPaymentSummary) (bool, error) {
+func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
 	return true, nil
 }
 
 func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) error {
+	return nil
+}
+
+func (c *ChatUI) ChatStellarDone(ctx context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatPostReadyToSend(ctx context.Context) error {
 	return nil
 }
 

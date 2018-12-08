@@ -2064,6 +2064,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			defer ctc.cleanup()
 			users := ctc.users()
 
+			ui := kbtest.NewChatUI(nil, nil, nil, nil, nil, nil)
+			ctc.as(t, users[0]).h.mockChatUI = ui
 			tc := ctc.as(t, users[0])
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
