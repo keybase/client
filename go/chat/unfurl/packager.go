@@ -256,7 +256,7 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return item.data.(chat1.Unfurl), nil
 	}
 	defer func() {
-		if cacheKey != "" && err != nil {
+		if cacheKey != "" && err == nil {
 			p.cache.put(cacheKey, res)
 		}
 	}()

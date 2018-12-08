@@ -41,7 +41,7 @@ func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.Unfurl
 		return item.data.(chat1.UnfurlRaw), nil
 	}
 	defer func() {
-		if err != nil {
+		if err == nil {
 			s.cache.put(uri, res)
 		}
 	}()
