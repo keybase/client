@@ -5,14 +5,14 @@ export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
 // Use services from constants instead, here to avoid a circular dependency
 export const _services = {
-  keybase: true,
   contact: true,
-  twitter: true,
   facebook: true,
   github: true,
-  reddit: true,
   hackernews: true,
+  keybase: true,
   pgp: true,
+  reddit: true,
+  twitter: true,
 }
 
 export type ServiceIdWithContact = $Keys<typeof _services>

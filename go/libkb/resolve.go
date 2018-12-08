@@ -251,14 +251,18 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 
 	if p := r.getFromMemCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		trace += "m"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	if p := r.getFromDiskCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		p.mutable = isMutable(au)
 		r.putToMemCache(m, ck, *p)
 		trace += "d"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	// We can check the UPAK loader for the username if we're just mapping a UID to a username.
@@ -287,6 +291,14 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 	return res
 }
 
+func (res *ResolveResult) decorate(au AssertionURL) {
+	if au.IsKeybase() {
+		res.queriedKbUsername = au.GetValue()
+	} else if au.IsUID() {
+		res.queriedByUID = true
+	}
+}
+
 func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
@@ -302,11 +314,7 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 	var ares *APIRes
 	var l int
 
-	if au.IsKeybase() {
-		res.queriedKbUsername = au.GetValue()
-	} else if au.IsUID() {
-		res.queriedByUID = true
-	}
+	res.decorate(au)
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
 		return
@@ -429,6 +437,15 @@ type serverTrustUserLookup struct {
 func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
 	defer m.CTrace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), func() error { return res.err })()
 
+	enabled := m.G().FeatureFlags.Enabled(m, FeatureIMPTOFU)
+	if enabled {
+		m.CDebugf("Resolver: phone number and email proofs enabled")
+	} else {
+		m.CDebugf("Resolver: phone number and email proofs disabled")
+		res.err = ResolutionError{Input: input, Msg: "Proof type disabled.", Kind: ResolutionErrorInvalidInput}
+		return res
+	}
+
 	key, val, err := au.ToLookup()
 	if err != nil {
 		res.err = err
@@ -441,7 +458,7 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 		arg = NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
 		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
 	case "email":
-		arg = NewAPIArgWithMetaContext(m, "user/emails_search")
+		arg = NewAPIArgWithMetaContext(m, "email/search")
 		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
 	default:
 		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}

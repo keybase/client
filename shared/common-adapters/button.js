@@ -57,12 +57,12 @@ class Button extends React.Component<Props> {
   render() {
     const backgroundModeName = this.props.backgroundMode
       ? {
-          Normal: '',
-          Terminal: 'OnTerminal',
-          Red: 'Red',
-          Green: 'Green',
-          Blue: 'Blue',
           Black: 'Black',
+          Blue: 'Blue',
+          Green: 'Green',
+          Normal: '',
+          Red: 'Red',
+          Terminal: 'OnTerminal',
         }[this.props.backgroundMode]
       : ''
 
@@ -174,6 +174,10 @@ const containerStyles = styleSheetCreate({
   Custom: {},
   Danger: {...common, backgroundColor: globalColors.red},
   Primary: {...common, backgroundColor: globalColors.blue},
+  PrimaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundRed: {...common, backgroundColor: globalColors.white},
   PrimaryGreen: {...common, backgroundColor: globalColors.green},
   PrimaryGreenActive: platformStyles({
     common: {
@@ -186,30 +190,26 @@ const containerStyles = styleSheetCreate({
   }),
   PrimaryPrivate: {...common, backgroundColor: globalColors.darkBlue2},
   Secondary: {...common, backgroundColor: globalColors.lightGrey2},
+  SecondaryColoredBackground: {...common, backgroundColor: globalColors.black_20},
   SecondaryOnTerminal: {...common, backgroundColor: globalColors.blue_30},
   Wallet: {...common, backgroundColor: globalColors.purple2},
-  PrimaryColoredBackgroundRed: {...common, backgroundColor: globalColors.white},
-  PrimaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.white},
-  PrimaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.white},
-  PrimaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.white},
-  SecondaryColoredBackground: {...common, backgroundColor: globalColors.black_20},
 })
 
 const labelStyles = styleSheetCreate({
   CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
   DangerLabel: commonLabel,
+  PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
+  PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
+  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
   PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green},
   PrimaryGreenLabel: commonLabel,
   PrimaryLabel: commonLabel,
   PrimaryPrivateLabel: commonLabel,
+  SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
   SecondaryLabel: {...commonLabel, color: globalColors.black_75},
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
-  PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
-  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
-  PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
-  PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
-  SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
 })
 
 export default Button

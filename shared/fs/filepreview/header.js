@@ -43,8 +43,8 @@ const filePreviewHeaderStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexGrow,
   alignItems: 'center',
-  height: 48,
   borderBottomWidth: 0,
+  height: 48,
   justifyContent: 'center',
 }
 

@@ -91,8 +91,8 @@ export const TeamMemberRow = (props: Props) => {
         <ClickableBox
           style={{
             ...globalStyles.flexBoxRow,
-            flexGrow: 1,
             alignItems: 'center',
+            flexGrow: 1,
           }}
           onClick={active ? props.onClick : props.status === 'deleted' ? null : props.onShowTracker}
         >
@@ -103,7 +103,7 @@ export const TeamMemberRow = (props: Props) => {
                 type="BodySemibold"
                 colorFollowing={true}
                 users={[
-                  {username: props.username, following: props.following, you: props.you === props.username},
+                  {following: props.following, username: props.username, you: props.you === props.username},
                 ]}
               />
             </Box>
@@ -115,8 +115,8 @@ export const TeamMemberRow = (props: Props) => {
                   type="BodySmall"
                   style={{
                     ...globalStyles.fontBold,
-                    color: globalColors.white,
                     backgroundColor: globalColors.red,
+                    color: globalColors.white,
                     marginRight: globalMargins.xtiny,
                     paddingLeft: globalMargins.xtiny,
                     paddingRight: globalMargins.xtiny,
@@ -211,9 +211,9 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
-  width: '100%',
   height: '100%',
   position: 'relative',
+  width: '100%',
 }
 
 const stylesContainerReset = {

@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {
   Animation,
   Box,
@@ -41,7 +41,7 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
+class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _whichMenu: menuType
 
@@ -83,10 +83,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         break
     }
     const permissionDenied = {
-      title: 'Permissions needed',
-      text: permDeniedText,
-      reTryTitle: 'allow in settings',
       okTitle: 'deny',
+      reTryTitle: 'allow in settings',
+      text: permDeniedText,
+      title: 'Permissions needed',
     }
     const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -104,10 +104,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
     switch (location) {
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
     }
   }
@@ -315,7 +315,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
       <Icon
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-bomb"
+        type="iconfont-timer"
         fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />

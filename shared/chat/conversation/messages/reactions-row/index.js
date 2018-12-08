@@ -37,6 +37,10 @@ class ReactionsRow extends React.Component<Props, State> {
   _setShowMobileTooltip = (showMobileTooltip: boolean) =>
     this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
+  _newAttachmentRef: any = null
+  _getNewAttachmentRef = () => this._newAttachmentRef
+  _setNewAttachmentRef = r => (this._newAttachmentRef = r)
+
   render() {
     return this.props.emojis.length === 0 ? null : (
       <Box2
@@ -73,6 +77,8 @@ class ReactionsRow extends React.Component<Props, State> {
         ))}
         <ReactButton
           conversationIDKey={this.props.conversationIDKey}
+          ref={this._setNewAttachmentRef}
+          getAttachmentRef={this._getNewAttachmentRef}
           onLongPress={() => this._setShowMobileTooltip(true)}
           ordinal={this.props.ordinal}
           showBorder={true}
@@ -94,12 +100,10 @@ class ReactionsRow extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  button: {marginBottom: globalMargins.tiny},
+  button: {marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny},
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',
-    // refer to `WrapperAuthor` styles
-    marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
     paddingRight: 66,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),

@@ -241,11 +241,20 @@ protocol local {
     string subtext; // Examples: "", "max doesn't accept HUGZ"
   }
 
+  // An ID representing a session with the send form.
+  @typedef("string")
+  record BuildPaymentID {}
+
+  BuildPaymentID startBuildPaymentLocal(int sessionID);
+
+  void stopBuildPaymentLocal(int sessionID, BuildPaymentID bid);
+
   // Check but do not send a payment.
   // Arguments are optional unless marked [required] or otherwise described.
   // However, a coherent payment is required in order for res.readyToSend to returned as true.
   BuildPaymentResLocal buildPaymentLocal(
     int sessionID,
+    BuildPaymentID bid,
 
     // Exactly one of `from` and `fromPrimaryAccount` must be set.
     AccountID from,
@@ -334,6 +343,8 @@ protocol local {
   // Send a payment
   SendPaymentResLocal sendPaymentLocal(
     int sessionID,
+    BuildPaymentID bid,
+    boolean bypassBid,
     AccountID from,
     string to,                             // Username, acctID, or assertion. Examples: "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     boolean toIsAccountID,

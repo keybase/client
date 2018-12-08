@@ -129,7 +129,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
-          <Text type="BodyBig" style={{color: globalColors.white, textAlign: 'center', flex: 1}}>
+          <Text type="BodyBig" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
             {summary}
           </Text>
           {summary && (

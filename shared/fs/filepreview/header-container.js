@@ -29,10 +29,10 @@ const mergeProps = (stateProps, dispatchProps) => {
   const {path, pathItem} = stateProps
   const {loadFilePreview, onBack} = dispatchProps
   return {
-    path,
-    pathItem,
     loadFilePreview,
     onBack,
+    path,
+    pathItem,
   }
 }
 

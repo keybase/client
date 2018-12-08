@@ -22,13 +22,13 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
       </Text>
     </Box>
   )
-  const notification = {type: 'error', message: bannerEl}
+  const notification = {message: bannerEl, type: 'error'}
 
   return (
     <StandardScreen onBack={onBack} theme="dark" notification={notification}>
       <Box style={containerStyle}>
         <Box
-          style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'stretch', justifyContent: 'center'}}
+          style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', flex: 1, justifyContent: 'center'}}
         >
           <Text type="BodySmall" style={textStyle} backgroundMode="Terminal">
             To unlock this conversation, open one of your other devices or enter a paperkey.
@@ -53,9 +53,9 @@ const containerStyle = {
 }
 
 const textStyle = {
-  textAlign: 'center',
-  marginTop: globalMargins.large,
   marginBottom: globalMargins.large,
+  marginTop: globalMargins.large,
+  textAlign: 'center',
 }
 
 export default YouRekey

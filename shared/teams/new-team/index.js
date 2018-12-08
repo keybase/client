@@ -90,8 +90,8 @@ class Contents extends React.Component<Props> {
               ...globalStyles.flexBoxColumn,
               ...stylePadding,
               alignItems: 'center',
-              justifyContent: 'center',
               backgroundColor: globalColors.white,
+              justifyContent: 'center',
             }}
           >
             <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
@@ -145,13 +145,13 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexBoxCenter,
   ...(isMobile ? {} : {cursor: 'default'}),
+  borderTopLeftRadius: isMobile ? 0 : 4,
+  borderTopRightRadius: isMobile ? 0 : 4,
   minHeight: 40,
+  paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-  borderTopLeftRadius: isMobile ? 0 : 4,
-  borderTopRightRadius: isMobile ? 0 : 4,
 }
 
 const stylePadding = isMobile

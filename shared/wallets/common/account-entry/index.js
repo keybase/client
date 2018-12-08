@@ -33,7 +33,11 @@ const AccountEntry = (props: AccountEntryProps) => (
       />
     )}
     <Kb.Box2 direction="vertical" style={styles.rightColumn}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.user}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.user, props.center && styles.userCenter])}
+      >
         {props.keybaseUser && props.isDefault && (
           <Kb.Avatar
             size={16}
@@ -48,7 +52,7 @@ const AccountEntry = (props: AccountEntryProps) => (
       <Kb.Text
         type="BodySmall"
         selectable={true}
-        style={Styles.collapseStyles([styles.amount, props.center ? {textAlign: 'center'} : {}])}
+        style={Styles.collapseStyles([styles.amount, props.center && styles.amountCenter])}
       >
         {props.contents}
       </Kb.Text>
@@ -69,14 +73,17 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
-  containerBox: {
-    overflow: 'hidden',
-  },
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_40,
   },
+  amountCenter: {
+    textAlign: 'center',
+  },
   avatar: {marginRight: Styles.globalMargins.xtiny},
+  containerBox: {
+    overflow: 'hidden',
+  },
   icon: {
     alignSelf: 'center',
     height: 32,
@@ -88,6 +95,9 @@ const styles = Styles.styleSheetCreate({
   },
   user: {
     alignItems: 'center',
+  },
+  userCenter: {
+    justifyContent: 'center',
   },
 })
 

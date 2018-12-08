@@ -1874,6 +1874,20 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	return 100 * (1 - (len(missingIDs) / numMessages))
 }
 
+func (u UnfurlRaw) GetUrl() string {
+	typ, err := u.UnfurlType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case UnfurlType_GENERIC:
+		return u.Generic().Url
+	case UnfurlType_GIPHY:
+		return u.Giphy().ImageUrl
+	}
+	return ""
+}
+
 func (u UnfurlRaw) UnsafeDebugString() string {
 	typ, err := u.UnfurlType()
 	if err != nil {

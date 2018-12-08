@@ -8,7 +8,7 @@ import {Avatars, TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
 export type Props = {
-  backgroundColor: string,
+  backgroundColor: ?string,
   channelname?: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
@@ -39,7 +39,7 @@ type State = {
 
 const SmallTeamBox = Styles.isMobile
   ? Kb.ClickableBox
-  : Styles.glamorous(Kb.Box)({
+  : Styles.styled(Kb.Box)({
       '& .small-team-gear': {display: 'none'},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},

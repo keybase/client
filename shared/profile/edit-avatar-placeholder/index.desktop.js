@@ -13,14 +13,14 @@ const Render = ({keybaseUsername, hasAvatar, onAck}: Props) => {
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
-        flex: 1,
         alignItems: 'center',
+        flex: 1,
         justifyContent: 'center',
         padding: globalMargins.large,
       }}
     >
       <Avatar size={128} username={keybaseUsername} />
-      <Text type="Body" style={{marginTop: globalMargins.medium, textAlign: 'center', maxWidth: 560}}>
+      <Text type="Body" style={{marginTop: globalMargins.medium, maxWidth: 560, textAlign: 'center'}}>
         {text}
       </Text>
       <ButtonBar>

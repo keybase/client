@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -58,7 +59,21 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 			ui.Printf("Status: fully synced\n")
 		case keybase1.PrefetchStatus_IN_PROGRESS:
 			ui.Printf("Status: sync in progress\n")
-			// TODO: add progress stats here
+			if res.Status.PrefetchProgress.BytesTotal > 0 {
+				ui.Printf("%s/%s (%.2f%%)\n",
+					humanizeBytes(
+						res.Status.PrefetchProgress.BytesFetched, false),
+					humanizeBytes(
+						res.Status.PrefetchProgress.BytesTotal, false),
+					100*float64(res.Status.PrefetchProgress.BytesFetched)/
+						float64(res.Status.PrefetchProgress.BytesTotal))
+			}
+			if res.Status.PrefetchProgress.EndEstimate > 0 {
+				timeRemaining := time.Until(
+					keybase1.FromTime(res.Status.PrefetchProgress.EndEstimate))
+				ui.Printf("Estimated time remaining: %s\n",
+					timeRemaining.Round(1*time.Second))
+			}
 		case keybase1.PrefetchStatus_NOT_STARTED:
 			ui.Printf("Status: sync not yet started\n")
 		default:

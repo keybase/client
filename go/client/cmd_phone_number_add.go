@@ -5,6 +5,8 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -16,6 +18,7 @@ import (
 type CmdAddPhoneNumber struct {
 	libkb.Contextified
 	PhoneNumber string
+	Visibility  keybase1.IdentityVisibility
 }
 
 func NewCmdAddPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -25,7 +28,7 @@ func NewCmdAddPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	return cli.Command{
 		Name:         "add",
 		Usage:        "Add phone number to your Keybase account",
-		ArgumentHelp: "<phone number>",
+		ArgumentHelp: "<phone number> <private|public>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "add", c)
 		},
@@ -33,10 +36,15 @@ func NewCmdAddPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 }
 
 func (c *CmdAddPhoneNumber) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
-		return errors.New("add requires one argument (phone number)")
+	if len(ctx.Args()) != 2 {
+		return errors.New("add requires two arguments (phone number, visibility)")
 	}
 	c.PhoneNumber = ctx.Args()[0]
+	visibility, ok := keybase1.IdentityVisibilityMap[strings.ToUpper(ctx.Args()[1])]
+	if !ok {
+		return fmt.Errorf("Unknown identity visibility: %s", visibility)
+	}
+	c.Visibility = visibility
 	return nil
 }
 
@@ -47,8 +55,14 @@ func (c *CmdAddPhoneNumber) Run() error {
 	}
 	arg := keybase1.AddPhoneNumberArg{
 		PhoneNumber: keybase1.PhoneNumber(c.PhoneNumber),
+		Visibility:  c.Visibility,
 	}
-	return cli.AddPhoneNumber(context.Background(), arg)
+	err = cli.AddPhoneNumber(context.Background(), arg)
+	if err != nil {
+		return err
+	}
+	fmt.Println("A verification code has been sent to your phone number; verify with `keybase phonenumber verify <phone number> <code>.`")
+	return nil
 }
 
 func (c *CmdAddPhoneNumber) GetUsage() libkb.Usage {

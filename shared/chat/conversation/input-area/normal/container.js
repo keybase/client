@@ -53,8 +53,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
-      path: p,
       outboxID: null,
+      path: p,
     }))
     dispatch(
       RouteTree.navigateAppend([
@@ -82,14 +82,15 @@ const mapDispatchToProps = dispatch => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
+  _sendTyping: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     // only valid conversations
-    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
+    conversationIDKey &&
+    dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
+  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
-  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -105,8 +106,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isExplodingNew: stateProps.isExplodingNew,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-  onFilePickerError: dispatchProps.onFilePickerError,
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  onFilePickerError: dispatchProps.onFilePickerError,
   onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {
@@ -117,8 +118,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
-  sendTyping: (typing: boolean) => {
-    dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
+  sendTyping: (text: string) => {
+    dispatchProps._sendTyping(stateProps.conversationIDKey, text)
   },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0

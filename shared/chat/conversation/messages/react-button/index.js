@@ -22,46 +22,38 @@ export type Props = {|
   emoji: string,
   onClick: () => void,
   onLongPress?: () => void,
-  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
-  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  onMouseLeave?: (evt: SyntheticEvent<>) => void,
+  onMouseOver?: (evt: SyntheticEvent<>) => void,
+  getAttachmentRef?: () => ?React.Component<any>,
   ordinal: Types.Ordinal,
   style?: Styles.StylesCrossPlatform,
 |}
 
 let bounceIn, bounceOut
 if (!Styles.isMobile) {
-  const glamor = require('glamor')
-  bounceIn = glamor.css.keyframes({
+  bounceIn = Styles.styledKeyframes({
     from: {transform: 'translateX(-30px)'},
     to: {transform: 'translateX(-8px)'},
   })
-  bounceOut = glamor.css.keyframes({
+  bounceOut = Styles.styledKeyframes({
     from: {transform: 'translateX(-8px)'},
     to: {transform: 'translateX(22px)'},
   })
 }
 
-const ButtonBox = Styles.glamorous(ClickableBox)(props => ({
-  ...(Styles.isMobile
-    ? {}
+const ButtonBox = Styles.styled(ClickableBox)(props =>
+  Styles.isMobile
+    ? {borderColor: Styles.globalColors.black_10}
     : {
         ...(props.border
-          ? {
-              ':hover': {
-                backgroundColor: Styles.globalColors.blue4,
-                borderColor: Styles.globalColors.blue,
-              },
-            }
+          ? {':hover': {backgroundColor: Styles.globalColors.blue4, borderColor: Styles.globalColors.blue}}
           : {}),
-        '& .centered': {
-          animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
-        },
-        '& .offscreen': {
-          animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
-        },
-      }),
-  borderColor: Styles.globalColors.black_10,
-}))
+        '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+        '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+        borderColor: Styles.globalColors.black_10,
+      }
+)
+
 const ReactButton = (props: Props) => (
   <ButtonBox
     onLongPress={props.onLongPress}
@@ -96,6 +88,7 @@ const iconCycle = [
   'iconfont-reacji-sheep',
 ]
 export type NewReactionButtonProps = {|
+  getAttachmentRef?: () => ?React.Component<any>,
   onAddReaction: (emoji: string) => void,
   onLongPress?: () => void,
   onOpenEmojiPicker: () => void,
@@ -166,8 +159,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this.props.onShowPicker && this.props.onShowPicker(false)
   }
 
-  _getAttachmentRef = () => this._attachmentRef
-
   render() {
     return (
       <ButtonBox
@@ -184,7 +175,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         ])}
       >
         <Box2
-          ref={attachmentRef => (this._attachmentRef = attachmentRef)}
           centerChildren={true}
           fullHeight={true}
           direction="horizontal"
@@ -207,7 +197,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([
                     styles.emojiIconWrapper,
-                    !Styles.isMobile && (this.props.showBorder ? {top: 3} : {top: 1}),
+                    !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
                     !this.state.applyClasses &&
                       (iconIndex === this.state.iconIndex
                         ? {transform: 'translateX(-8px)'}
@@ -221,9 +211,9 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         </Box2>
         {this.state.showingPicker && !Styles.isMobile && (
           <FloatingBox
-            attachTo={this._getAttachmentRef}
+            attachTo={this.props.getAttachmentRef}
             containerStyle={styles.emojiContainer}
-            position="bottom left"
+            position="top right"
             onHidden={() => this._setShowingPicker(false)}
           >
             <Picker

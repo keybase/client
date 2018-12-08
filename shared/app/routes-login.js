@@ -8,13 +8,13 @@ import loginRoutes from '../login/routes'
 // TODO: We have only a single tab, so consider making loginRoutes the
 // root.
 const loginRouteTree = makeRouteDefNode({
-  tags: makeLeafTags({title: loginRouteTreeTitle}),
   children: {
     // $FlowIssue TODO have clean flow with new route tree
     [loginTab]: loginRoutes,
   },
   containerComponent: Nav,
   defaultSelected: loginTab,
+  tags: makeLeafTags({title: loginRouteTreeTitle}),
 })
 
 export default loginRouteTree

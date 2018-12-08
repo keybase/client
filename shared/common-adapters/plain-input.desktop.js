@@ -27,6 +27,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _controlled = () => typeof this.props.value === 'string'
 
   _onChange = ({target: {value = ''}}) => {
+    if (this.props.maxBytes) {
+      const {maxBytes} = this.props
+      if (Buffer.byteLength(value) > maxBytes) {
+        return
+      }
+    }
+
     this.props.onChangeText && this.props.onChangeText(value)
     this._autoResize()
   }
@@ -87,11 +94,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
-        text: n.value,
         selection: {
-          start: n.selectionStart,
           end: n.selectionEnd,
+          start: n.selectionStart,
         },
+        text: n.value,
       }
       const newTextInfo = fn(textInfo)
       checkTextInfo(newTextInfo)
@@ -110,7 +117,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   getSelection = () => {
     const n = this._input
     if (n) {
-      return {start: n.selectionStart, end: n.selectionEnd}
+      return {end: n.selectionEnd, start: n.selectionStart}
     }
     return null
   }

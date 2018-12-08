@@ -82,10 +82,10 @@ export default function() {
     // DPI scaling issues
     // https://github.com/electron/electron/issues/10862
     mainWindow.window.setBounds({
+      height: appState.state.height,
+      width: appState.state.width,
       x: appState.state.x,
       y: appState.state.y,
-      width: appState.state.width,
-      height: appState.state.height,
     })
   }
 

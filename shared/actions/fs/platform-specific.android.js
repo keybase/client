@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
+import * as Flow from '../../util/flow'
 import * as FsGen from '../fs-gen'
 import {type TypedState} from '../../util/container'
 import RNFetchBlob from 'rn-fetch-blob'
@@ -13,8 +14,8 @@ function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-    title: 'Keybase Storage Permission',
     message: 'Keybase needs access to your storage so we can download a file to it',
+    title: 'Keybase Storage Permission',
   })
     .then(permissionStatus => {
       if (permissionStatus !== 'granted') {
@@ -25,11 +26,11 @@ function copyToDownloadDir(path: string, mimeType: string) {
     .then(() => unlink(path))
     .then(() =>
       RNFetchBlob.android.addCompleteDownload({
-        title: fileName,
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,
         path: downloadPath,
         showNotification: true,
+        title: fileName,
       })
     )
     .catch(err => {
@@ -50,24 +51,21 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
   switch (intent) {
     case 'camera-roll':
       return Saga.sequentially([
-        Saga.call(saveAttachmentDialog, localPath),
+        Saga.callUntyped(saveAttachmentDialog, localPath),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheetFromURL, {url: localPath, mimeType}),
+        Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':
       return Saga.sequentially([
-        Saga.call(copyToDownloadDir, localPath, mimeType),
+        Saga.callUntyped(copyToDownloadDir, localPath, mimeType),
         // TODO: dismiss download when we get rid of download cards on mobile
       ])
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return null
   }
 }

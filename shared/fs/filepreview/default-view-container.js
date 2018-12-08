@@ -16,8 +16,8 @@ const mapStateToProps = (state, {path}: OwnProps) => {
   const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
-    _username,
     _path: path,
+    _username,
     fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
     pathItem,
   }
@@ -35,10 +35,10 @@ const mergeProps = (stateProps, dispatchProps) => {
   const {download, saveMedia, shareNative, showInSystemFileManager} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
+    download,
     fileUIEnabled,
     itemStyles,
     pathItem,
-    download,
     saveMedia,
     shareNative,
     showInSystemFileManager,

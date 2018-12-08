@@ -13,6 +13,11 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUIMiniChatPaymentSpecTyp = {
+  success: 0,
+  error: 1,
+}
+
 export const commonAssetMetadataType = {
   none: 0,
   image: 1,
@@ -219,6 +224,11 @@ export const localPreviewLocationTyp = {
   bytes: 2,
 }
 
+export const localTextPaymentResultTyp = {
+  sent: 0,
+  error: 1,
+}
+
 export const localUnfurlPromptAction = {
   always: 0,
   never: 1,
@@ -251,6 +261,7 @@ export const notifyChatChatActivityType = {
 export const notifyChatStaleUpdateType = {
   clear: 0,
   newactivity: 1,
+  convupdate: 2,
 }
 
 export const remoteChannelMention = {

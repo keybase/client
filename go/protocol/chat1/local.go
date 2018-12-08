@@ -18,13 +18,139 @@ func (o VersionKind) DeepCopy() VersionKind {
 	return o
 }
 
+type TextPaymentResultTyp int
+
+const (
+	TextPaymentResultTyp_SENT  TextPaymentResultTyp = 0
+	TextPaymentResultTyp_ERROR TextPaymentResultTyp = 1
+)
+
+func (o TextPaymentResultTyp) DeepCopy() TextPaymentResultTyp { return o }
+
+var TextPaymentResultTypMap = map[string]TextPaymentResultTyp{
+	"SENT":  0,
+	"ERROR": 1,
+}
+
+var TextPaymentResultTypRevMap = map[TextPaymentResultTyp]string{
+	0: "SENT",
+	1: "ERROR",
+}
+
+func (e TextPaymentResultTyp) String() string {
+	if v, ok := TextPaymentResultTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type TextPaymentResult struct {
+	ResultTyp__ TextPaymentResultTyp `codec:"resultTyp" json:"resultTyp"`
+	Error__     *string              `codec:"error,omitempty" json:"error,omitempty"`
+	Sent__      *stellar1.PaymentID  `codec:"sent,omitempty" json:"sent,omitempty"`
+}
+
+func (o *TextPaymentResult) ResultTyp() (ret TextPaymentResultTyp, err error) {
+	switch o.ResultTyp__ {
+	case TextPaymentResultTyp_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	case TextPaymentResultTyp_SENT:
+		if o.Sent__ == nil {
+			err = errors.New("unexpected nil value for Sent__")
+			return ret, err
+		}
+	}
+	return o.ResultTyp__, nil
+}
+
+func (o TextPaymentResult) Error() (res string) {
+	if o.ResultTyp__ != TextPaymentResultTyp_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return
+	}
+	return *o.Error__
+}
+
+func (o TextPaymentResult) Sent() (res stellar1.PaymentID) {
+	if o.ResultTyp__ != TextPaymentResultTyp_SENT {
+		panic("wrong case accessed")
+	}
+	if o.Sent__ == nil {
+		return
+	}
+	return *o.Sent__
+}
+
+func NewTextPaymentResultWithError(v string) TextPaymentResult {
+	return TextPaymentResult{
+		ResultTyp__: TextPaymentResultTyp_ERROR,
+		Error__:     &v,
+	}
+}
+
+func NewTextPaymentResultWithSent(v stellar1.PaymentID) TextPaymentResult {
+	return TextPaymentResult{
+		ResultTyp__: TextPaymentResultTyp_SENT,
+		Sent__:      &v,
+	}
+}
+
+func (o TextPaymentResult) DeepCopy() TextPaymentResult {
+	return TextPaymentResult{
+		ResultTyp__: o.ResultTyp__.DeepCopy(),
+		Error__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error__),
+		Sent__: (func(x *stellar1.PaymentID) *stellar1.PaymentID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sent__),
+	}
+}
+
+type TextPayment struct {
+	PaymentText string            `codec:"paymentText" json:"paymentText"`
+	Result      TextPaymentResult `codec:"result" json:"result"`
+}
+
+func (o TextPayment) DeepCopy() TextPayment {
+	return TextPayment{
+		PaymentText: o.PaymentText,
+		Result:      o.Result.DeepCopy(),
+	}
+}
+
 type MessageText struct {
-	Body string `codec:"body" json:"body"`
+	Body     string        `codec:"body" json:"body"`
+	Payments []TextPayment `codec:"payments" json:"payments"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
 	return MessageText{
 		Body: o.Body,
+		Payments: (func(x []TextPayment) []TextPayment {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TextPayment, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Payments),
 	}
 }
 
@@ -4491,6 +4617,7 @@ type PostLocalNonblockArg struct {
 }
 
 type PostTextNonblockArg struct {
+	SessionID         int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName           string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
@@ -4723,7 +4850,7 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	Typing         bool           `codec:"typing" json:"typing"`
+	Text           string         `codec:"text" json:"text"`
 }
 
 type JoinConversationLocalArg struct {

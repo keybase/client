@@ -21,10 +21,10 @@ class ListItem extends Component<Props> {
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
-              height: minHeight,
-              width: minHeight,
               alignItems: 'center',
+              height: minHeight,
               justifyContent: 'center',
+              width: minHeight,
             }}
           >
             {this.props.icon}
@@ -57,11 +57,11 @@ function actionStyle(extraMargin) {
 
 const bodyContainerStyle = (type: 'Large' | 'Small') => ({
   flex: 2,
-  marginTop: type === 'Small' ? 4 : 8,
+  justifyContent: 'center',
   marginBottom: type === 'Small' ? 4 : 8,
   marginLeft: 8,
   marginRight: 8,
-  justifyContent: 'center',
+  marginTop: type === 'Small' ? 4 : 8,
 })
 
 export default ListItem

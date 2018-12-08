@@ -41,7 +41,7 @@ const Row = (
       onCheck={props.onToggle}
     />
     <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
+      style={{...globalStyles.flexBoxColumn, flex: 1, paddingLeft: globalMargins.tiny, position: 'relative'}}
     >
       <Text
         type="BodySemiboldLink"
@@ -59,8 +59,8 @@ const Row = (
       <Edit
         style={{
           ...globalStyles.flexBoxRow,
-          justifyContent: 'flex-end',
           alignItems: 'center',
+          justifyContent: 'flex-end',
         }}
         onClick={props.onEdit}
       />

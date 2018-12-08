@@ -64,14 +64,14 @@ const NonUserRender = (props: Props) => (
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
   height: '100%',
+  position: 'relative',
 }
 
 const styleHeader = {
+  height: HEADER_SIZE,
   position: 'absolute',
   width: '100%',
-  height: HEADER_SIZE,
 }
 
 const styleBioBlurb = {

@@ -1,21 +1,31 @@
 // @flow
-import * as React from 'react'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import TextMessage from '.'
+import {namedConnect} from '../../../../util/container'
 
-type Props = {|
-  isEditing: boolean,
+type OwnProps = {|
   message: Types.MessageText,
 |}
 
-const Wrapper = (props: Props) => (
-  <TextMessage
-    isEditing={props.isEditing}
-    mentionsAt={props.message.mentionsAt}
-    mentionsChannel={props.message.mentionsChannel}
-    mentionsChannelName={props.message.mentionsChannelName}
-    text={props.message.text.stringValue()}
-    type={props.message.errorReason ? 'error' : props.message.submitState === null ? 'sent' : 'pending'}
-  />
-)
-export default Wrapper
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
+  const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
+  return {isEditing}
+}
+const mapDispatchToProps = dispatch => ({})
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  isEditing: stateProps.isEditing,
+  mentionsAt: ownProps.message.mentionsAt,
+  mentionsChannel: ownProps.message.mentionsChannel,
+  mentionsChannelName: ownProps.message.mentionsChannelName,
+  text: ownProps.message.text.stringValue(),
+  type: ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending',
+})
+
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'TextMessage'
+)(TextMessage)

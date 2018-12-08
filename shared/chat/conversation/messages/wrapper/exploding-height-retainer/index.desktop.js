@@ -23,7 +23,7 @@ type State = {
   children: ?React.Node,
   height: number,
 }
-class ExplodingHeightRetainer extends React.Component<Props, State> {
+class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
@@ -77,6 +77,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     return (
       <Kb.Box
         style={Styles.collapseStyles([
+          styles.container,
           this.props.style,
           // paddingRight is to compensate for the message menu
           // to make sure we don't rewrap text when showing the animation
@@ -100,7 +101,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 }
 
-const AshBox = Styles.glamorous.div({
+const AshBox = Styles.styled.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,
@@ -208,6 +209,7 @@ class Flame extends React.Component<{}, {color: string, timer: number, width: nu
 }
 
 const styles = Styles.styleSheetCreate({
+  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
   exploded: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,

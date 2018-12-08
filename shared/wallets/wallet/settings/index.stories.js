@@ -9,63 +9,63 @@ import * as I from 'immutable'
 
 const testCurrencies = I.List([
   {
-    description: 'USD ($)',
     code: 'USD',
-    symbol: '$',
+    description: 'USD ($)',
     name: 'US Dollar',
-  },
-  {
-    description: 'XLM',
-    code: 'XLLM',
-    symbol: 'XLM',
-    name: 'Lumens',
-  },
-  {
-    description: 'CAD ($)',
-    code: 'CAD',
     symbol: '$',
+  },
+  {
+    code: 'XLLM',
+    description: 'XLM',
+    name: 'Lumens',
+    symbol: 'XLM',
+  },
+  {
+    code: 'CAD',
+    description: 'CAD ($)',
     name: 'Canadian Dollar',
+    symbol: '$',
   },
   {
-    description: 'EUR (€)',
     code: 'EUR',
-    symbol: '€',
+    description: 'EUR (€)',
     name: 'Euro',
+    symbol: '€',
   },
   {
-    description: 'GBP (£)',
     code: 'GPB',
-    symbol: '£',
+    description: 'GBP (£)',
     name: 'British Pount',
+    symbol: '£',
   },
 ]).map(c => Constants.currenciesResultToCurrencies(c))
 
 const sharedSettingsProps = {
   accountID: Types.noAccountID,
-  user: 'testuser',
-  currencyWaiting: false,
   currencies: testCurrencies,
-  onDelete: Sb.action('onDelete'),
-  onSetDefault: Sb.action('setDefault'),
-  onEditName: Sb.action('onEditName'),
-  onCurrencyChange: Sb.action('onCurrencyChange'),
+  currencyWaiting: false,
   onBack: Sb.action('onBack'),
+  onCurrencyChange: Sb.action('onCurrencyChange'),
+  onDelete: Sb.action('onDelete'),
+  onEditName: Sb.action('onEditName'),
+  onSetDefault: Sb.action('setDefault'),
   refresh: () => {},
   saveCurrencyWaiting: false,
+  user: 'testuser',
 }
 
 const defaultSettingsProps = {
   ...sharedSettingsProps,
-  name: 'awesome account',
-  isDefault: true,
   currency: testCurrencies.get(1),
+  isDefault: true,
+  name: 'awesome account',
 }
 
 const secondarySettingsProps = {
   ...sharedSettingsProps,
-  name: 'some other account',
-  isDefault: false,
   currency: testCurrencies.get(0),
+  isDefault: false,
+  name: 'some other account',
 }
 
 const load = () => {

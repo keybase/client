@@ -36,7 +36,7 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
     <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
     {!!isYou && (
       <Kb.Icon
-        style={{margin: 2, width: 28, height: 28, padding: 6}}
+        style={{height: 28, margin: 2, padding: 6, width: 28}}
         type="iconfont-edit"
         onClick={onClickShowcaseOffer}
       />
@@ -90,8 +90,8 @@ const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 
 class Profile extends Component<Props, State> {
   state = {
-    currentFriendshipsTab: 'Followers',
     activeMenuProof: null,
+    currentFriendshipsTab: 'Followers',
   }
 
   _handleToggleMenu(idx: number) {
@@ -153,14 +153,14 @@ class Profile extends Component<Props, State> {
     if (proof.meta === Constants.metaUnreachable) {
       return {
         header: {
+          danger: true,
           title:
             'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?',
-          danger: true,
         },
         items: [
-          ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
-          {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
-          {title: 'Revoke proof', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          ...(proof.humanUrl ? [{onClick: () => this.props.onViewProof(proof), title: 'View proof'}] : []),
+          {onClick: () => this.props.onRecheckProof(proof), title: 'I fixed it - recheck'},
+          {danger: true, onClick: () => this.props.onRevokeProof(proof), title: 'Revoke proof'},
         ],
       }
     }
@@ -174,7 +174,7 @@ class Profile extends Component<Props, State> {
       }
       return {
         header: pendingMessage ? {title: pendingMessage} : undefined,
-        items: [{title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)}],
+        items: [{danger: true, onClick: () => this.props.onRevokeProof(proof), title: 'Revoke'}],
       }
     }
     return {
@@ -197,10 +197,10 @@ class Profile extends Component<Props, State> {
       },
       items: [
         {
-          title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
           onClick: () => this.props.onViewProof(proof),
+          title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
         },
-        {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+        {danger: true, onClick: () => this.props.onRevokeProof(proof), title: 'Revoke'},
       ],
     }
   }
@@ -280,8 +280,8 @@ class Profile extends Component<Props, State> {
             style={{
               ...Styles.globalStyles.fillAbsolute,
               backgroundColor: trackerStateColors.header.background,
-              height: 56,
               bottom: undefined,
+              height: 56,
             }}
           />
           <LoadingWrapper
@@ -313,10 +313,10 @@ class Profile extends Component<Props, State> {
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
-            marginTop: Styles.globalMargins.small,
-            marginRight: Styles.globalMargins.medium,
-            marginLeft: Styles.globalMargins.medium,
             alignItems: 'flex-start',
+            marginLeft: Styles.globalMargins.medium,
+            marginRight: Styles.globalMargins.medium,
+            marginTop: Styles.globalMargins.small,
           }}
         >
           {showEdit && (
@@ -378,9 +378,9 @@ class Profile extends Component<Props, State> {
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
-            paddingTop: Styles.globalMargins.tiny,
             paddingLeft: Styles.globalMargins.tiny,
             paddingRight: Styles.globalMargins.tiny,
+            paddingTop: Styles.globalMargins.tiny,
           }}
         >
           {this.props.onBack && (
@@ -405,10 +405,10 @@ class Profile extends Component<Props, State> {
           style={{
             ...Styles.globalStyles.flexBoxRow,
             backgroundColor: Styles.globalColors.white,
-            paddingTop: Styles.globalMargins.tiny + Styles.statusBarHeight,
-            borderBottomWidth: 1,
             borderBottomColor: Styles.globalColors.black_10,
+            borderBottomWidth: 1,
             borderStyle: 'solid',
+            paddingTop: Styles.globalMargins.tiny + Styles.statusBarHeight,
           }}
         >
           {['Followers', 'Following'].map(f => (
@@ -424,8 +424,8 @@ class Profile extends Component<Props, State> {
                 this.setState({currentFriendshipsTab: f}, () => {
                   this._list &&
                     this._list.scrollToLocation({
-                      sectionIndex: 1,
                       itemIndex: 0,
+                      sectionIndex: 1,
                       viewOffset: Styles.statusBarHeight + Styles.globalMargins.tiny + 40,
                     })
                 })
@@ -434,11 +434,11 @@ class Profile extends Component<Props, State> {
               <Kb.Text
                 type="BodySmallSemibold"
                 style={{
-                  padding: 10,
                   color:
                     this.state.currentFriendshipsTab === f
                       ? Styles.globalColors.black_75
                       : Styles.globalColors.black_60,
+                  padding: 10,
                 }}
               >
                 {`${f.toUpperCase()} (${
@@ -447,12 +447,12 @@ class Profile extends Component<Props, State> {
               </Kb.Text>
               <Kb.Box
                 style={{
-                  width: '100%',
-                  minHeight: 3,
                   backgroundColor:
                     this.state.currentFriendshipsTab === f
                       ? Styles.globalColors.blue
                       : Styles.globalColors.transparent,
+                  minHeight: 3,
+                  width: '100%',
                 }}
               />
             </Kb.ClickableBox>
@@ -498,7 +498,7 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
-        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: trackerStateColors.header.background}} />
+        <Kb.SafeAreaViewTop style={{backgroundColor: trackerStateColors.header.background, flexGrow: 0}} />
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
@@ -509,8 +509,8 @@ class Profile extends Component<Props, State> {
           forceRenderProofs={this.props.proofs}
           forceRenderBio={this.props.userInfo}
           sections={[
-            {renderItem: this._renderProfile, title: 'profile', data: [{key: 'profile'}]},
-            {renderItem: this._renderFriends, title: 'friends', data: friendData},
+            {data: [{key: 'profile'}], renderItem: this._renderProfile, title: 'profile'},
+            {data: friendData, renderItem: this._renderFriends, title: 'friends'},
           ]}
         />
         {!!activeMenuProof && (
@@ -627,8 +627,8 @@ const styleProofNotice = {
 
 const styleActions = {
   ...Styles.globalStyles.flexBoxRow,
-  marginTop: Styles.globalMargins.small,
   justifyContent: 'center',
+  marginTop: Styles.globalMargins.small,
 }
 
 const styleProofsAndFolders = {
@@ -658,10 +658,10 @@ const styleSearch = {
 
 const styleSearchText = {
   ...styleSearch,
+  color: Styles.globalColors.white_75,
   fontSize: 16,
   position: 'relative',
   top: -1,
-  color: Styles.globalColors.white_75,
 }
 
 const styleShowcasedTeamContainer = {
@@ -685,8 +685,8 @@ const styleShowcasedTeamAvatar = {
 const styleShowcasedTeamName = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'center',
   alignSelf: 'center',
+  justifyContent: 'center',
   paddingLeft: Styles.globalMargins.tiny,
 }
 

@@ -47,16 +47,16 @@ export const createShowPaperKeyPage = (payload: _ShowPaperKeyPagePayload) => ({p
 export const createShowRevokePage = (payload: _ShowRevokePagePayload) => ({payload, type: showRevokePage})
 
 // Action Payloads
-export type BadgeAppForDevicesPayload = $Call<typeof createBadgeAppForDevices, _BadgeAppForDevicesPayload>
-export type EndangeredTLFsLoadedPayload = $Call<typeof createEndangeredTLFsLoaded, _EndangeredTLFsLoadedPayload>
-export type LoadPayload = $Call<typeof createLoad, _LoadPayload>
-export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
-export type PaperKeyCreatedPayload = $Call<typeof createPaperKeyCreated, _PaperKeyCreatedPayload>
-export type RevokePayload = $Call<typeof createRevoke, _RevokePayload>
-export type RevokedPayload = $Call<typeof createRevoked, _RevokedPayload>
-export type ShowDevicePagePayload = $Call<typeof createShowDevicePage, _ShowDevicePagePayload>
-export type ShowPaperKeyPagePayload = $Call<typeof createShowPaperKeyPage, _ShowPaperKeyPagePayload>
-export type ShowRevokePagePayload = $Call<typeof createShowRevokePage, _ShowRevokePagePayload>
+export type BadgeAppForDevicesPayload = {|+payload: _BadgeAppForDevicesPayload, +type: 'devices:badgeAppForDevices'|}
+export type EndangeredTLFsLoadedPayload = {|+payload: _EndangeredTLFsLoadedPayload, +type: 'devices:endangeredTLFsLoaded'|}
+export type LoadPayload = {|+payload: _LoadPayload, +type: 'devices:load'|}
+export type LoadedPayload = {|+payload: _LoadedPayload, +type: 'devices:loaded'|}
+export type PaperKeyCreatedPayload = {|+payload: _PaperKeyCreatedPayload, +type: 'devices:paperKeyCreated'|}
+export type RevokePayload = {|+payload: _RevokePayload, +type: 'devices:revoke'|}
+export type RevokedPayload = {|+payload: _RevokedPayload, +type: 'devices:revoked'|}
+export type ShowDevicePagePayload = {|+payload: _ShowDevicePagePayload, +type: 'devices:showDevicePage'|}
+export type ShowPaperKeyPagePayload = {|+payload: _ShowPaperKeyPagePayload, +type: 'devices:showPaperKeyPage'|}
+export type ShowRevokePagePayload = {|+payload: _ShowRevokePagePayload, +type: 'devices:showRevokePage'|}
 
 // All Actions
 // prettier-ignore
@@ -71,4 +71,4 @@ export type Actions =
   | ShowDevicePagePayload
   | ShowPaperKeyPagePayload
   | ShowRevokePagePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

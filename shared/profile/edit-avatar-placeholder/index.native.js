@@ -24,9 +24,9 @@ const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
 }
 
 const styleCaption = {
-  marginTop: globalMargins.medium,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
+  marginTop: globalMargins.medium,
   textAlign: 'center',
 }
 

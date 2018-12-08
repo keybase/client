@@ -60,10 +60,10 @@ function bufferToNiceHexString(fingerPrint: Buffer): string {
 
 const initialState: Types.State = {
   cachedIdentifies: {},
+  nonUserTrackers: {},
   pendingIdentifies: {},
   serverStarted: false,
   userTrackers: {},
-  nonUserTrackers: {},
 }
 
 const initialTrackerState = (username: string): Types.TrackerState => ({
@@ -76,14 +76,14 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
   needTrackTokenDismiss: false,
   proofs: [],
   reason: null,
-  serverActive: true,
   selectedTeam: '',
+  serverActive: true,
   shouldFollow: true,
   tlfs: [],
   trackToken: null,
   trackerState: checking,
-  trackersLoaded: false,
   trackers: [],
+  trackersLoaded: false,
   tracking: [],
   type: trackerType,
   userInfo: {

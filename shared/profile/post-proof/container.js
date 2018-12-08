@@ -36,10 +36,10 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 export default (compose(

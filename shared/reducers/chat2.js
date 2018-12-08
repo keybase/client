@@ -12,6 +12,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -298,7 +299,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           return l
         }
         // $FlowIssue it's not really possible to do anything to a message in general
-        return l.concat({ordinal, msg: msg.message.set('ordinal', ordinal)})
+        return l.concat({msg: msg.message.set('ordinal', ordinal), ordinal})
       }, [])
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
         if (!messages) {
@@ -986,10 +987,7 @@ const rootReducer = (
     case Chat2Gen.unfurlRemove:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

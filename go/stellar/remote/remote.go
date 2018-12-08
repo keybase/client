@@ -632,6 +632,9 @@ func FetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bu
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes fetchRes
+	if g.API == nil {
+		return res, 0, 0, errors.New("global API not configured yet")
+	}
 	err = g.API.GetDecode(arg, &apiRes)
 	switch err := err.(type) {
 	case nil:

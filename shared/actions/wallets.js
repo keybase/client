@@ -24,22 +24,8 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (
-  state: TypedState,
-  action:
-    | WalletsGen.BuildPaymentPayload
-    | WalletsGen.SetBuildingAmountPayload
-    | WalletsGen.SetBuildingCurrencyPayload
-    | WalletsGen.SetBuildingFromPayload
-    | WalletsGen.SetBuildingIsRequestPayload
-    | WalletsGen.SetBuildingToPayload
-    | WalletsGen.DisplayCurrencyReceivedPayload
-) => {
-  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
-    // didn't change state.building; no need to call build
-    return
-  }
-  return (state.wallets.building.isRequest
+const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload) =>
+  (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
@@ -51,15 +37,16 @@ const buildPayment = (
       ).then(build =>
         WalletsGen.createBuiltRequestReceived({
           build: Constants.buildRequestResultToBuiltRequest(build),
-          forBuilding: state.wallets.building,
+          forBuildCounter: state.wallets.buildCounter,
         })
       )
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
+          bid: '', // DESKTOP-8530
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
+          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           publicMemo: state.wallets.building.publicMemo.stringValue(),
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
@@ -71,7 +58,7 @@ const buildPayment = (
       ).then(build =>
         WalletsGen.createBuiltPaymentReceived({
           build: Constants.buildPaymentResultToBuiltPayment(build),
-          forBuilding: state.wallets.building,
+          forBuildCounter: state.wallets.buildCounter,
         })
       )
   ).catch(error => {
@@ -81,6 +68,22 @@ const buildPayment = (
       throw error
     }
   })
+
+const spawnBuildPayment = (
+  state: TypedState,
+  action:
+    | WalletsGen.SetBuildingAmountPayload
+    | WalletsGen.SetBuildingCurrencyPayload
+    | WalletsGen.SetBuildingFromPayload
+    | WalletsGen.SetBuildingIsRequestPayload
+    | WalletsGen.SetBuildingToPayload
+    | WalletsGen.DisplayCurrencyReceivedPayload
+) => {
+  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
+    // didn't change state.building; no need to call build
+    return
+  }
+  return Saga.put(WalletsGen.createBuildPayment())
 }
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
@@ -134,8 +137,8 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     .then(accountID =>
       WalletsGen.createCreatedNewAccount({
         accountID,
-        showOnCreation: action.payload.showOnCreation,
         setBuildingTo: action.payload.setBuildingTo,
+        showOnCreation: action.payload.showOnCreation,
       })
     )
     .catch(err => {
@@ -144,15 +147,17 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     })
 }
 
-const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
+const emptyAsset = {code: '', issuer: '', issuerName: '', type: 'native', verifiedDomain: ''}
 
 const sendPayment = (state: TypedState) => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   return RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
-      // FIXME -- support other assets.
       asset: emptyAsset,
+      // FIXME -- support other assets.
+      bid: '', // DESKTOP-8530
+      bypassBid: true, // DESKTOP-8530
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -196,8 +201,8 @@ const requestPayment = (state: TypedState) =>
         state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
           ? state.wallets.building.currency
           : undefined,
-      recipient: state.wallets.building.to,
       note: state.wallets.building.secretNote.stringValue(),
+      recipient: state.wallets.building.to,
     },
     Constants.requestPaymentWaitingKey
   ).then(kbRqID =>
@@ -430,8 +435,8 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     .then(accountID =>
       WalletsGen.createLinkedExistingAccount({
         accountID,
-        showOnCreation: action.payload.showOnCreation,
         setBuildingTo: action.payload.setBuildingTo,
+        showOnCreation: action.payload.showOnCreation,
       })
     )
     .catch(err => {
@@ -729,9 +734,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   // We don't call this for publicMemo/secretNote so the button doesn't
   // spinner as you type
-  yield Saga.actionToPromise(
+  yield Saga.actionToPromise(WalletsGen.buildPayment, buildPayment)
+  yield Saga.actionToAction(
     [
-      WalletsGen.buildPayment,
       WalletsGen.setBuildingAmount,
       WalletsGen.setBuildingCurrency,
       WalletsGen.setBuildingFrom,
@@ -739,7 +744,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingTo,
       WalletsGen.displayCurrencyReceived,
     ],
-    buildPayment
+    spawnBuildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
 

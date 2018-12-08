@@ -28,12 +28,12 @@ const getEditingRows = (
     .filter(edit => edit.parentPath === parentPath)
     .toArray()
     .map(([editID, edit]) => ({
-      rowType: 'editing',
       editID,
-      name: edit.name,
-      key: `edit:${Types.editIDToString(editID)}`,
-      // fields for sortable
       editType: edit.type,
+      key: `edit:${Types.editIDToString(editID)}`,
+      name: edit.name,
+      // fields for sortable
+      rowType: 'editing',
       type: 'folder',
     }))
 
@@ -48,13 +48,13 @@ const getStillRows = (
     return [
       ...items,
       {
-        rowType: 'still',
-        path,
-        name: item.name,
         key: `still:${name}`,
-        // fields for sortable
-        type: item.type,
         lastModifiedTimestamp: item.lastModifiedTimestamp,
+        name: item.name,
+        path,
+        // fields for sortable
+        rowType: 'still',
+        type: item.type,
       },
     ]
   }, [])
@@ -75,19 +75,19 @@ const amendStillRows = (
       return still
     }
     return ({
-      rowType: 'uploading',
+      key: `uploading:${name}`,
       name,
       path,
-      key: `uploading:${name}`,
+      rowType: 'uploading',
       // field for sortable
       type,
     }: SortableUploadingRowItem)
   })
 
 const getPlaceholderRows = type => [
-  {rowType: 'placeholder', name: '1', type, key: 'placeholder:1'},
-  {rowType: 'placeholder', name: '2', type, key: 'placeholder:2'},
-  {rowType: 'placeholder', name: '3', type, key: 'placeholder:3'},
+  {key: 'placeholder:1', name: '1', rowType: 'placeholder', type},
+  {key: 'placeholder:2', name: '2', rowType: 'placeholder', type},
+  {key: 'placeholder:3', name: '3', rowType: 'placeholder', type},
 ]
 
 const getInTlfItemsFromStateProps = (stateProps, path: Types.Path, sortSetting) => {
@@ -113,9 +113,9 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path, sortSetting) 
 const getRootRows = (stateProps, sortSetting) =>
   sortRowItems(
     [
-      {rowType: 'tlf-type', name: 'private', type: 'folder', key: 'tlfType:private'},
-      {rowType: 'tlf-type', name: 'public', type: 'folder', key: 'tlfType:public'},
-      {rowType: 'tlf-type', name: 'team', type: 'folder', key: 'tlfType:team'},
+      {key: 'tlfType:private', name: 'private', rowType: 'tlf-type', type: 'folder'},
+      {key: 'tlfType:public', name: 'public', rowType: 'tlf-type', type: 'folder'},
+      {key: 'tlfType:team', name: 'team', rowType: 'tlf-type', type: 'folder'},
     ],
     sortSetting,
     undefined
@@ -130,10 +130,10 @@ const getTlfRowsFromTlfs = (tlfs: I.Map<string, Types.Tlf>, tlfType: Types.TlfTy
             ...rows,
             {
               isNew,
+              key: `tlf:${name}`,
+              name,
               rowType: 'tlf',
               tlfType,
-              name,
-              key: `tlf:${name}`,
               type: 'folder',
             },
           ],
@@ -180,9 +180,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o: OwnProps) => ({
+  destinationPickerIndex: o.destinationPickerIndex,
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
   routePath: o.routePath,
-  destinationPickerIndex: o.destinationPickerIndex,
 })
 
 export default compose(

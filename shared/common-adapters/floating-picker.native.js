@@ -43,39 +43,36 @@ const FloatingPicker = <T: string | number>(props: Props<T>) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  safeArea: {
-    backgroundColor: Styles.globalColors.white,
+  actionButtons: {
+    alignItems: 'stretch',
+    height: 56,
+    justifyContent: 'flex-end',
   },
   flexOne: {
     flex: 1,
-  },
-  overlayContainer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  overlay: {
-    ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.black_40,
-  },
-  menu: {
-    justifyContent: 'flex-end',
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
   },
   link: {
     color: Styles.globalColors.blue,
     fontSize: 17,
     padding: Styles.globalMargins.small,
   },
-  actionButtons: {
-    height: 56,
-    justifyContent: 'flex-end',
+  menu: {
     alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.white,
+    justifyContent: 'flex-end',
+  },
+  overlay: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.black_40,
+    justifyContent: 'flex-end',
+  },
+  overlayContainer: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   picker: Styles.platformStyles({
     isAndroid: {
@@ -83,6 +80,9 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.medium,
     },
   }),
+  safeArea: {
+    backgroundColor: Styles.globalColors.white,
+  },
 })
 
 export default FloatingPicker

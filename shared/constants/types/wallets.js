@@ -239,6 +239,7 @@ export type _State = {
   accountNameError: string,
   accountNameValidationState: ValidationState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
+  buildCounter: number, // increments when we call buildPayment / buildRequest
   building: Building,
   builtPayment: BuiltPayment,
   builtRequest: BuiltRequest,

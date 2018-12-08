@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -533,7 +535,7 @@ func TestRelayTransferInnards(t *testing.T) {
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
-		SeqnoProvider: stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.remoter),
+		SeqnoProvider: stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.walletState),
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
@@ -665,7 +667,11 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
 
 	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
@@ -680,7 +686,11 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -712,6 +722,8 @@ func testRelayReset(t *testing.T, yank bool) {
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
+
+	// tcs[0].Srv.wallet.RefreshAll(context.Background())
 
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -1221,6 +1233,49 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	checker.assertBundle(t, acctBundle, 4, 3, stellar1.AccountMode_USER)
 }
 
+func TestAutoClaimLoop(t *testing.T) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingFull})
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "100")
+	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
+		Recipient:  tcs[1].Fu.Username,
+		Amount:     "3",
+		Asset:      stellar1.AssetNative(),
+		ForceRelay: true,
+	})
+	require.NoError(t, err)
+
+	acceptDisclaimer(tcs[1])
+	tcs[1].Backend.ImportAccountsForUser(tcs[1])
+	tcs[1].Backend.EnableAutoclaimMock(tcs[1])
+
+	tcs[1].G.GetStellar().KickAutoClaimRunner(tcs[1].MetaContext(), gregor1.MsgID{})
+
+	var found bool
+	for i := 0; i < 10; i++ {
+		time.Sleep(100 * time.Millisecond * libkb.CITimeMultiplier(tcs[1].G))
+		payment := tcs[1].Backend.txLog.Find(sendRes.KbTxID.String())
+		claim := payment.Summary.Relay().Claim
+		if claim != nil {
+			require.Equal(t, stellar1.TransactionStatus_SUCCESS, claim.TxStatus)
+			require.Equal(t, stellar1.RelayDirection_CLAIM, claim.Dir)
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Fatal("Timed out waiting for auto claim")
+	}
+
+	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
+	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
+}
+
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
 	deviceID := g.ActiveDevice.DeviceID()
 	apiArg := libkb.APIArg{
@@ -1333,8 +1388,9 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 			Backend: bem,
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
-		tc2.Srv = New(tc.G, newTestUISource(), rcm)
-		stellar.ServiceInit(tc.G, rcm, nil)
+		ws := stellar.NewWalletState(tc.G, rcm)
+		tc2.Srv = New(tc.G, newTestUISource(), ws)
+		stellar.ServiceInit(tc.G, ws, nil)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

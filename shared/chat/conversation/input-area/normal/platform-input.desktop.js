@@ -143,11 +143,11 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
         const newText = text.slice(0, selection.start) + emojiColons + text.slice(selection.end)
         const pos = selection.start + emojiColons.length
         return {
-          text: newText,
           selection: {
-            start: pos,
             end: pos,
+            start: pos,
           },
+          text: newText,
         }
       }, true)
       this._inputFocus()
@@ -539,11 +539,6 @@ const styles = Styles.styleSheetCreate({
     left: 24,
     position: 'absolute',
   },
-  walletsIcon: {
-    alignSelf: 'flex-end',
-    marginBottom: 6,
-    marginRight: Styles.globalMargins.tiny,
-  },
   mentionCatcher: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.transparent,
@@ -569,9 +564,14 @@ const styles = Styles.styleSheetCreate({
     bottom: 6,
     position: 'relative',
   },
+  walletsIcon: {
+    alignSelf: 'flex-end',
+    marginBottom: 6,
+    marginRight: Styles.globalMargins.tiny,
+  },
 })
 
-const HoverBox = Styles.glamorous(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
     color: Styles.globalColors.black_75,
   },

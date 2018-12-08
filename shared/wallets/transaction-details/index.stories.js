@@ -20,6 +20,8 @@ const props = {
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
+  issuerAccountID: null,
+  issuerDescription: '',
   loading: false,
   memo,
   onBack: Sb.action('onBack'),
@@ -40,8 +42,6 @@ const props = {
   you: 'cjb',
   yourAccountName: '',
   yourRole: 'senderOnly',
-  issuerDescription: '',
-  issuerAccountID: null,
 }
 
 const load = () => {
@@ -149,6 +149,19 @@ const load = () => {
         onBack={Sb.action('onBack')}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         title="Transaction Details"
+      />
+    ))
+    .add('Received from Stellar account with warning', () => (
+      <TransactionDetails
+        {...props}
+        counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
+        counterpartyType="stellarPublicKey"
+        counterpartyMeta={null}
+        amountUser="$100"
+        amountXLM="545.2562704 XLM"
+        publicMemo="compliance trigger warning"
+        yourAccountName="First account"
+        yourRole="receiverOnly"
       />
     ))
 }

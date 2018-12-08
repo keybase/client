@@ -469,6 +469,12 @@
     },
     {
       "type": "record",
+      "name": "BuildPaymentID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "BuildPaymentResLocal",
       "fields": [
         {
@@ -1185,11 +1191,37 @@
         "items": "SendAssetChoiceLocal"
       }
     },
+    "startBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "BuildPaymentID"
+    },
+    "stopBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "buildPaymentLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
         },
         {
           "name": "from",
@@ -1241,6 +1273,14 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        },
+        {
+          "name": "bypassBid",
+          "type": "boolean"
         },
         {
           "name": "from",

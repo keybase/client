@@ -24,26 +24,25 @@ import Screenprotector from './screenprotector-container.native'
 import * as Constants from '../constants/settings'
 
 const routeTree = makeRouteDefNode({
-  component: Settings,
   children: {
     [Constants.aboutTab]: {
-      component: About,
       children: {
         privacyPolicy: {component: WebLinks},
         terms: {component: WebLinks},
       },
+      component: About,
     },
     [Constants.passphraseTab]: {component: Passphrase},
     [Constants.feedbackTab]: {component: Feedback},
     [Constants.landingTab]: {component: About},
     [Constants.screenprotectorTab]: {component: Screenprotector},
     [Constants.invitationsTab]: {
-      component: InvitationsContainer,
       children: {
         inviteSent: {
           component: InviteGenerated,
         },
       },
+      component: InvitationsContainer,
     },
     [Constants.fsTab]: FilesRoute,
     [Constants.devicesTab]: DevicesRoute,
@@ -52,22 +51,23 @@ const routeTree = makeRouteDefNode({
     [Constants.notificationsTab]: {component: NotificationsContainer},
     [Constants.chatTab]: {component: ChatContainer},
     [Constants.advancedTab]: {
-      component: AdvancedContainer,
       children: {
         dbNukeConfirm: {
           component: DBNukeConfirm,
           tags: makeLeafTags({modal: true}),
         },
       },
+      component: AdvancedContainer,
     },
     [Constants.deleteMeTab]: {
-      component: DeleteContainer,
       children: {
         deleteConfirm: {component: DeleteConfirm},
         removeDevice: {component: RemoveDevice},
       },
+      component: DeleteContainer,
     },
   },
+  component: Settings,
 })
 
 export default routeTree

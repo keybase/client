@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 
 type Props = {|
@@ -26,10 +27,7 @@ const DeviceRow = (props: Props) => {
       icon = props.isCurrentDevice ? 'icon-phone-success-32' : 'icon-phone-32'
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(props.type)
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.type)
       icon = 'icon-paper-key-48'
   }
 

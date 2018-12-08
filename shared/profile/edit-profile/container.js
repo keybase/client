@@ -24,9 +24,9 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(navigateUp()),
   _onSubmit: (bio: string, fullname: string, location: string) =>
     dispatch(createEditProfile({bio, fullname, location})),
+  onBack: () => dispatch(navigateUp()),
 })
 
 const Component = HeaderOnMobile(Render)

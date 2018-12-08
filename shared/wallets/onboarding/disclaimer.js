@@ -54,7 +54,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
 
   componentDidUpdate(prevProps: DisclaimerProps) {
-    if (this.props.acceptingDisclaimerDelay && !prevProps.acceptingDisclaimerDelay) {
+    if (this.props.acceptingDisclaimerDelay && !this.afterTimer) {
       // Start the after countdown
       this.afterTimer = addTicker(this.afterTick)
     }
@@ -220,14 +220,14 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
 }
 
 const styles = Styles.styleSheetCreate({
+  bodyBullet: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
+  },
   bodyText: {
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.xsmall,
     textAlign: 'left',
-  },
-  bodyBullet: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginLeft: Styles.globalMargins.tiny,
   },
   buttonBar: Styles.platformStyles({
     isElectron: {

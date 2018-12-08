@@ -5,6 +5,7 @@ import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {trim} from 'lodash-es'
+import * as Flow from '../util/flow'
 
 export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
   state: S,
@@ -38,9 +39,9 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
     case TeamBuildingGen.search: {
       const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
       return state.merge({
+        teamBuildingSearchLimit: limit,
         teamBuildingSearchQuery: trim(query),
         teamBuildingSelectedService: service,
-        teamBuildingSearchLimit: limit,
       })
     }
 
@@ -48,10 +49,7 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
       return state
 
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

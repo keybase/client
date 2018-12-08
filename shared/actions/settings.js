@@ -16,7 +16,7 @@ import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
 function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
   try {
-    const {hasServerKeys} = yield Saga.call(RPCTypes.accountHasServerKeysRpcPromise)
+    const {hasServerKeys} = yield* Saga.callPromise(RPCTypes.accountHasServerKeysRpcPromise)
     yield Saga.put(SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
@@ -27,9 +27,9 @@ function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
 
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const newEmail = state.settings.email.newEmail
-    yield Saga.call(RPCTypes.accountEmailChangeRpcPromise, {
+    yield* Saga.callPromise(RPCTypes.accountEmailChangeRpcPromise, {
       newEmail,
     })
     yield Saga.put(SettingsGen.createLoadSettings())
@@ -45,16 +45,16 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
 
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
     if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
       yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error: new Error("Passphrases don't match")}))
       return
     }
-    yield Saga.call(RPCTypes.accountPassphraseChangeRpcPromise, {
+    yield* Saga.callPromise(RPCTypes.accountPassphraseChangeRpcPromise, {
+      force: true,
       oldPassphrase: '',
       passphrase: newPassphrase.stringValue(),
-      force: true,
     })
     yield Saga.put(navigateUp())
   } catch (error) {
@@ -67,7 +67,7 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
 function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const current = state.settings.notifications
 
     if (!current || !current.groups.email) {
@@ -102,12 +102,12 @@ function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
     }
 
     const [result] = yield Saga.all([
-      Saga.call(RPCTypes.apiserverPostJSONRpcPromise, {
-        endpoint: 'account/subscribe',
-        args: [],
+      Saga.callUntyped(RPCTypes.apiserverPostJSONRpcPromise, {
         JSONPayload,
+        args: [],
+        endpoint: 'account/subscribe',
       }),
-      Saga.call(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
+      Saga.callUntyped(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
         settings: {
           ...chatGlobalArg,
         },
@@ -128,9 +128,9 @@ function* _reclaimInviteSaga(
 ): Saga.SagaGenerator<any, any> {
   const {inviteId} = invitesReclaimAction.payload
   try {
-    yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      endpoint: 'cancel_invitation',
+    yield* Saga.callPromise(RPCTypes.apiserverPostRpcPromise, {
       args: [{key: 'invitation_id', value: inviteId}],
+      endpoint: 'cancel_invitation',
     })
     yield Saga.put(SettingsGen.createInvitesReclaimed())
   } catch (e) {
@@ -145,9 +145,9 @@ function* _reclaimInviteSaga(
 }
 
 function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
-  const json: ?{body: string} = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-    endpoint: 'invitations_sent',
+  const json = yield* Saga.callPromise(RPCTypes.apiserverGetWithSessionRpcPromise, {
     args: [],
+    endpoint: 'invitations_sent',
   })
 
   const results: {
@@ -174,10 +174,10 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
       key: i.invitation_id,
       // type will get filled in later
       type: '',
-      username: i.username,
       uid: i.uid,
       // First ten chars of invite code is sufficient
       url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
+      username: i.username,
     }
     // Here's an algorithm for interpreting invitation entries.
     // 1: username+uid => accepted invite, else
@@ -195,8 +195,8 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.createInvitesRefreshed({
       invites: {
         acceptedInvites,
-        pendingInvites,
         error: null,
+        pendingInvites,
       },
     })
   )
@@ -212,9 +212,9 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
       args.push({key: 'invitation_message', value: message})
     }
 
-    const response: ?{body: string} = yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
-      endpoint: 'send_invitation',
+    const response = yield* Saga.callPromise(RPCTypes.apiserverPostRpcPromise, {
       args,
+      endpoint: 'send_invitation',
     })
     if (response) {
       const parsedBody = JSON.parse(response.body)
@@ -232,11 +232,11 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
       yield Saga.put(
         navigateAppend([
           {
-            selected: 'inviteSent',
             props: {
               email,
               link,
             },
+            selected: 'inviteSent',
           },
         ])
       )
@@ -253,7 +253,7 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
 function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   // If the rpc is fast don't clear it out first
   const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
-    yield Saga.call(delay, 500)
+    yield Saga.callUntyped(delay, 500)
     yield Saga.put(
       // $FlowIssue this isn't type correct at all TODO
       SettingsGen.createNotificationsRefreshed({
@@ -266,11 +266,11 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
 
   const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
     [
-      Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-        endpoint: 'account/subscriptions',
+      Saga.callUntyped(RPCTypes.apiserverGetWithSessionRpcPromise, {
         args: [],
+        endpoint: 'account/subscriptions',
       }),
-      Saga.call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
+      Saga.callUntyped(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
     ]
   )
   yield Saga.cancel(delayThenEmptyTask)
@@ -299,8 +299,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   results.notifications[Constants.securityGroup] = {
     settings: [
       {
-        name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
+        name: 'plaintextmobile',
         subscribed: !!chatGlobalSettings.settings[
           `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
         ],
@@ -309,8 +309,8 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
         ? []
         : [
             {
-              name: 'defaultsoundmobile',
               description: 'Use mobile system default notification sound',
+              name: 'defaultsoundmobile',
               subscribed: !!chatGlobalSettings.settings[
                 `${ChatTypes.commonGlobalAppNotificationSetting.defaultsoundmobile}`
               ],
@@ -322,9 +322,9 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
 
   const settingsToPayload = s =>
     ({
+      description: s.description,
       name: s.name,
       subscribed: s.subscribed,
-      description: s.description,
     } || [])
 
   const groups = results.notifications
@@ -340,7 +340,7 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-const _dbNukeSaga = () => Saga.call(RPCTypes.ctlDbNukeRpcPromise)
+const _dbNukeSaga = () => Saga.callUntyped(RPCTypes.ctlDbNukeRpcPromise)
 
 function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPayload, state: TypedState) {
   const username = state.config.username
@@ -355,22 +355,22 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
   }
 
   return Saga.sequentially([
-    Saga.call(RPCTypes.loginAccountDeleteRpcPromise),
+    Saga.callUntyped(RPCTypes.loginAccountDeleteRpcPromise),
     Saga.put(ConfigGen.createSetDeletedSelf({deletedUsername: username})),
   ])
 }
 
-const _loadSettings = () => Saga.call(RPCTypes.userLoadMySettingsRpcPromise)
+const _loadSettings = () => Saga.callUntyped(RPCTypes.userLoadMySettingsRpcPromise)
 const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
 
-const _getRememberPassphrase = () => Saga.call(RPCTypes.configGetRememberPassphraseRpcPromise)
+const _getRememberPassphrase = () => Saga.callUntyped(RPCTypes.configGetRememberPassphraseRpcPromise)
 const _getRememberPassphraseSuccess = (remember: boolean) =>
   Saga.put(SettingsGen.createLoadedRememberPassphrase({remember}))
 
 const _traceSaga = (action: SettingsGen.TracePayload) => {
   const durationSeconds = action.payload.durationSeconds
   return Saga.sequentially([
-    Saga.call(RPCTypes.pprofLogTraceRpcPromise, {
+    Saga.callUntyped(RPCTypes.pprofLogTraceRpcPromise, {
       logDirForMobile: pprofDir,
       traceDurationSeconds: durationSeconds,
     }),
@@ -383,7 +383,7 @@ const _traceSaga = (action: SettingsGen.TracePayload) => {
 const _processorProfileSaga = (action: SettingsGen.ProcessorProfilePayload) => {
   const durationSeconds = action.payload.durationSeconds
   return Saga.sequentially([
-    Saga.call(RPCTypes.pprofLogProcessorProfileRpcPromise, {
+    Saga.callUntyped(RPCTypes.pprofLogProcessorProfileRpcPromise, {
       logDirForMobile: pprofDir,
       profileDurationSeconds: durationSeconds,
     }),
@@ -395,7 +395,7 @@ const _processorProfileSaga = (action: SettingsGen.ProcessorProfilePayload) => {
 
 const _rememberPassphraseSaga = (action: SettingsGen.OnChangeRememberPassphrasePayload) => {
   const {remember} = action.payload
-  return Saga.call(RPCTypes.configSetRememberPassphraseRpcPromise, {
+  return Saga.callUntyped(RPCTypes.configSetRememberPassphraseRpcPromise, {
     remember,
   })
 }
