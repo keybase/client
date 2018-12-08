@@ -67,8 +67,8 @@ const PaymentRow = (props: PaymentProps) => (
 
 type Props = {|
   displayTotal: string,
-  loading: boolean,
   error?: string,
+  loading: boolean,
   onAccept: () => void,
   onCancel: () => void,
   payments: Array<PaymentProps>,

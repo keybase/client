@@ -1,42 +1,26 @@
 // @flow
-import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {namedConnect} from '../../util/container'
-
 import PaymentsConfirm from '.'
 
 type OwnProps = {||}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  if (!state.chat2.paymentConfirmInfo) {
-    return {
-      info: {
-        displayTotal: '',
-        loading: true,
-        payments: [],
-        xlmTotal: '',
-      },
-      response: null,
-    }
-  } else {
-    const {error, info, response} = state.chat2.paymentConfirmInfo
-    return {
-      info: {
-        error,
-        displayTotal: info?.displayTotal,
-        loading: false,
-        payments: (info?.payments || []).map(p => ({
-          username: p.username,
-          fullName: p.fullName,
-          xlmAmount: p.xlmAmount,
-          error: p.error,
-          displayAmount: p.displayAmount,
-        })),
-        xlmTotal: info?.xlmTotal,
-      },
-      response,
-    }
+  const payments = state.chat2.paymentConfirmInfo?.info?.payments
+  return {
+    info: {
+      displayTotal: state.chat2.paymentConfirmInfo?.info?.displayTotal,
+      error: state.chat2.paymentConfirmInfo?.error,
+      loading: !state.chat2.paymentConfirmInfo,
+      payments: (payments || []).map(p => ({
+        displayAmount: p.displayAmount,
+        error: p.error,
+        fullName: p.fullName,
+        username: p.username,
+        xlmAmount: p.xlmAmount,
+      })),
+      xlmTotal: state.chat2.paymentConfirmInfo?.info?.xlmTotal,
+    },
+    response: state.chat2.paymentConfirmInfo?.response,
   }
 }
 
