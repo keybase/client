@@ -92,7 +92,6 @@ func TestPackager(t *testing.T) {
 	cacheKey := packager.cacheKey(uid, convID, raw)
 	cachedRes, valid := packager.cache.get(cacheKey)
 	require.True(t, valid)
-	require.NoError(t, cachedRes.err)
 	require.Equal(t, res, cachedRes.data.(chat1.Unfurl))
 
 	clock.Advance(defaultCacheLifetime * 2)

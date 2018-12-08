@@ -38,10 +38,12 @@ func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.Unfurl
 	// Check if we have a cached valued
 	if item, valid := s.cache.get(uri); valid {
 		s.Debug(ctx, "Scape: using cached value")
-		return item.data.(chat1.UnfurlRaw), item.err
+		return item.data.(chat1.UnfurlRaw), nil
 	}
 	defer func() {
-		s.cache.put(uri, res, err)
+		if err == nil {
+			s.cache.put(uri, res)
+		}
 	}()
 
 	domain, err := GetDomain(uri)
