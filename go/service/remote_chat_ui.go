@@ -76,7 +76,7 @@ func (r *RemoteChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.Chat
 	return r.cli.ChatSearchIndexStatus(ctx, arg)
 }
 
-func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIMiniChatPaymentSummary) (bool, error) {
+func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
 	return r.cli.ChatStellarDataConfirm(ctx, chat1.ChatStellarDataConfirmArg{
 		SessionID: r.sessionID,
 		Summary:   summary,

@@ -780,7 +780,7 @@
     },
     {
       "type": "record",
-      "name": "UIMiniChatPayment",
+      "name": "UIChatPayment",
       "fields": [
         {
           "type": "string",
@@ -812,7 +812,7 @@
     },
     {
       "type": "record",
-      "name": "UIMiniChatPaymentSummary",
+      "name": "UIChatPaymentSummary",
       "fields": [
         {
           "type": "string",
@@ -825,7 +825,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UIMiniChatPayment"
+            "items": "UIChatPayment"
           },
           "name": "payments"
         }
@@ -1047,7 +1047,7 @@
         },
         {
           "name": "summary",
-          "type": "UIMiniChatPaymentSummary"
+          "type": "UIChatPaymentSummary"
         }
       ],
       "response": "boolean"

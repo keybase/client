@@ -27,50 +27,73 @@ func NewSender(g *globals.Context) *Sender {
 	}
 }
 
-func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res string, err error) {
+func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
+	// slow path just in case (still should be fast)
+	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+	if err != nil {
+		return res, err
+	}
+	if len(inbox.Convs) != 1 {
+		return res, errors.New("too many/little convs")
+	}
+	return inbox.Convs[0], nil
+}
 
-	var membersType chat1.ConversationMembersType
-	var participants []string
+func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (parts []string, membersType chat1.ConversationMembersType, err error) {
 	localConv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
 	if err == nil && localConv.LocalMetadata != nil {
+		// fast path (should always get hit)
 		membersType = localConv.Conv.GetMembersType()
-		participants = localConv.LocalMetadata.WriterNames
+		parts = localConv.LocalMetadata.WriterNames
 	} else {
-		inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
-			&chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{convID},
-			}, nil)
+		conv, err := s.getConv(ctx, uid, convID)
 		if err != nil {
-			return res, err
+			return parts, membersType, err
 		}
-		if len(inbox.Convs) != 1 {
-			return res, errors.New("no conv found")
-		}
-		conv := inbox.Convs[0]
 		membersType = conv.GetMembersType()
-		participants = make([]string, len(conv.Info.Participants))
+		parts = make([]string, len(conv.Info.Participants))
 		for index, p := range conv.Info.Participants {
-			participants[index] = p.Username
+			parts[index] = p.Username
 		}
 	}
+	return parts, membersType, nil
+}
 
+func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res map[string]string, err error) {
+	res = make(map[string]string)
+	conv, err := s.getConv(ctx, uid, convID)
+	if err != nil {
+		return res, err
+	}
+	for _, p := range conv.Info.Participants {
+		if p.Fullname != nil {
+			res[p.Username] = *p.Fullname
+		}
+	}
+	return res, nil
+}
+
+func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, parts []string,
+	membersType chat1.ConversationMembersType) (res string, err error) {
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		return res, errors.New("must specify username in team chat")
 	default:
-		// let everything else through
 	}
-	if len(participants) != 2 {
-		return res, fmt.Errorf("must specify username with more than two people: %d", len(participants))
+	if len(parts) != 2 {
+		return res, fmt.Errorf("must specify username with more than two people: %d", len(parts))
 	}
 	username, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 	if err != nil {
 		return res, err
 	}
-	if username.String() == participants[0] {
-		return participants[1], nil
+	if username.String() == parts[0] {
+		return parts[1], nil
 	}
-	return participants[0], nil
+	return parts[0], nil
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -80,11 +103,11 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 	if len(parsed) == 0 {
 		return nil
 	}
-	var err error
+	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
 	for _, p := range parsed {
 		var username string
 		if p.Username == nil {
-			if username, err = s.getUsername(ctx, uid, convID); err != nil {
+			if username, err = s.getUsername(ctx, uid, parts, membersType); err != nil {
 				s.Debug(ctx, "ParseAndSendPayments: failed to get username, skipping: %s", err)
 				continue
 			}
@@ -108,9 +131,41 @@ func (s *Sender) paymentsToMinis(payments []types.ParsedStellarPayment) (minis [
 	return minis
 }
 
-func (s *Sender) DescribePayments(ctx context.Context, payments []types.ParsedStellarPayment) (res *libkb.MiniChatPaymentSummary, err error) {
+func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	payments []types.ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []types.ParsedStellarPayment, err error) {
 	defer s.Trace(ctx, func() error { return err }, "DescribePayments")()
-	return s.G().GetStellar().SpecMiniChatPayments(s.G().MetaContext(ctx), s.paymentsToMinis(payments))
+	specs, err := s.G().GetStellar().SpecMiniChatPayments(s.G().MetaContext(ctx), s.paymentsToMinis(payments))
+	if err != nil {
+		return res, toSend, err
+	}
+	fullnames, err := s.getConvFullnames(ctx, uid, convID)
+	if err != nil {
+		return res, toSend, err
+	}
+	res.XlmTotal = specs.XLMTotal
+	res.DisplayTotal = specs.DisplayTotal
+	for index, s := range specs.Specs {
+		var displayAmount *string
+		var errorMsg *string
+		if len(s.DisplayAmount) > 0 {
+			displayAmount = new(string)
+			*displayAmount = s.DisplayAmount
+		}
+		if s.Error != nil {
+			errorMsg = new(string)
+			*errorMsg = s.Error.Error()
+		} else {
+			toSend = append(toSend, payments[index])
+		}
+		res.Payments = append(res.Payments, chat1.UIChatPayment{
+			Username:      s.Username.String(),
+			FullName:      fullnames[s.Username.String()],
+			XlmAmount:     s.XLMAmount,
+			DisplayAmount: displayAmount,
+			Error:         errorMsg,
+		})
+	}
+	return res, toSend, nil
 }
 
 func (s *Sender) SendPayments(ctx context.Context, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {

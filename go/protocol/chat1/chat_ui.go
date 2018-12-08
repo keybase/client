@@ -843,7 +843,7 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
-type UIMiniChatPayment struct {
+type UIChatPayment struct {
 	Username      string  `codec:"username" json:"username"`
 	FullName      string  `codec:"fullName" json:"fullName"`
 	XlmAmount     string  `codec:"xlmAmount" json:"xlmAmount"`
@@ -851,8 +851,8 @@ type UIMiniChatPayment struct {
 	DisplayAmount *string `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
 }
 
-func (o UIMiniChatPayment) DeepCopy() UIMiniChatPayment {
-	return UIMiniChatPayment{
+func (o UIChatPayment) DeepCopy() UIChatPayment {
+	return UIChatPayment{
 		Username:  o.Username,
 		FullName:  o.FullName,
 		XlmAmount: o.XlmAmount,
@@ -873,21 +873,21 @@ func (o UIMiniChatPayment) DeepCopy() UIMiniChatPayment {
 	}
 }
 
-type UIMiniChatPaymentSummary struct {
-	XlmTotal     string              `codec:"xlmTotal" json:"xlmTotal"`
-	DisplayTotal string              `codec:"displayTotal" json:"displayTotal"`
-	Payments     []UIMiniChatPayment `codec:"payments" json:"payments"`
+type UIChatPaymentSummary struct {
+	XlmTotal     string          `codec:"xlmTotal" json:"xlmTotal"`
+	DisplayTotal string          `codec:"displayTotal" json:"displayTotal"`
+	Payments     []UIChatPayment `codec:"payments" json:"payments"`
 }
 
-func (o UIMiniChatPaymentSummary) DeepCopy() UIMiniChatPaymentSummary {
-	return UIMiniChatPaymentSummary{
+func (o UIChatPaymentSummary) DeepCopy() UIChatPaymentSummary {
+	return UIChatPaymentSummary{
 		XlmTotal:     o.XlmTotal,
 		DisplayTotal: o.DisplayTotal,
-		Payments: (func(x []UIMiniChatPayment) []UIMiniChatPayment {
+		Payments: (func(x []UIChatPayment) []UIChatPayment {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UIMiniChatPayment, len(x))
+			ret := make([]UIChatPayment, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -976,8 +976,8 @@ type ChatStellarShowConfirmArg struct {
 }
 
 type ChatStellarDataConfirmArg struct {
-	SessionID int                      `codec:"sessionID" json:"sessionID"`
-	Summary   UIMiniChatPaymentSummary `codec:"summary" json:"summary"`
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	Summary   UIChatPaymentSummary `codec:"summary" json:"summary"`
 }
 
 type ChatStellarDataErrorArg struct {

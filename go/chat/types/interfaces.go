@@ -361,7 +361,8 @@ type StellarLoader interface {
 type StellarSender interface {
 	ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		body string) []ParsedStellarPayment
-	DescribePayments(ctx context.Context, payments []ParsedStellarPayment) (*libkb.MiniChatPaymentSummary, error)
+	DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		payments []ParsedStellarPayment) (chat1.UIChatPaymentSummary, []ParsedStellarPayment, error)
 	SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 

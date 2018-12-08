@@ -1219,34 +1219,10 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		return res, err
 	}
 	defer ui.ChatStellarDone(ctx)
-	summary, err := h.G().StellarSender.DescribePayments(ctx, parsedPayments)
+	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
 	if err != nil {
 		ui.ChatStellarDataError(ctx, err.Error())
 		return res, err
-	}
-	var toSend []types.ParsedStellarPayment
-	var uiSummary chat1.UIMiniChatPaymentSummary
-	uiSummary.XlmTotal = summary.XLMTotal
-	uiSummary.DisplayTotal = summary.DisplayTotal
-	for index, s := range summary.Specs {
-		var displayAmount *string
-		var errorMsg *string
-		if len(s.DisplayAmount) > 0 {
-			displayAmount = new(string)
-			*displayAmount = s.DisplayAmount
-		}
-		if s.Error != nil {
-			errorMsg = new(string)
-			*errorMsg = s.Error.Error()
-		} else {
-			toSend = append(toSend, parsedPayments[index])
-		}
-		uiSummary.Payments = append(uiSummary.Payments, chat1.UIMiniChatPayment{
-			Username:      s.Username.String(),
-			XlmAmount:     s.XLMAmount,
-			DisplayAmount: displayAmount,
-			Error:         errorMsg,
-		})
 	}
 	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")
 	accepted, err := ui.ChatStellarDataConfirm(ctx, uiSummary)

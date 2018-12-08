@@ -1316,7 +1316,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       ]
       return actions
     }
-    const onDataConfirm = (result: RPCChatTypes.UIMiniChatPaymentSummary, response: any) => {
+    const onDataConfirm = (result: RPCChatTypes.UIChatPaymentSummary, response: any) => {
       return Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
