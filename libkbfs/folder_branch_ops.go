@@ -871,7 +871,7 @@ func (fbo *folderBranchOps) doPartialSync(
 	ctx context.Context, syncConfig keybase1.FolderSyncConfig,
 	latestMerged ImmutableRootMetadata) (err error) {
 	fbo.log.CDebugf(
-		ctx, "Starting partial sync at revision %d", latestMerged.Revision)
+		ctx, "Starting partial sync at revision %d", latestMerged.Revision())
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Partial sync done: %+v", err)
 	}()
