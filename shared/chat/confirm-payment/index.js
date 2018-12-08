@@ -13,10 +13,15 @@ const PaymentsConfirmLoading = (props: LoadingProps) => (
   </Kb.Box2>
 )
 
-type ErrorProps = {||}
+type ErrorProps = {|
+  onCancel: () => void,
+|}
 
 const PaymentsConfirmError = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    {Styles.isMobile && (
+      <Kb.Icon type="iconfont-close" onClick={props.onCancel} style={styles.errorClose} fontSize={24} />
+    )}
     <Kb.Box2
       direction="vertical"
       centerChildren={true}
@@ -25,7 +30,7 @@ const PaymentsConfirmError = (props: ErrorProps) => (
       style={styles.fullErrorContainer}
     >
       <Kb.Text type="BodyExtrabold" style={styles.errorText}>
-        Failed to load Stellar payment information
+        Error loading payment info
       </Kb.Text>
       <Kb.Text type="BodyExtrabold" style={styles.errorText}>
         Please try again
@@ -75,7 +80,7 @@ const PaymentsConfirm = (props: Props) => (
     {props.loading ? (
       <PaymentsConfirmLoading />
     ) : props.error ? (
-      <PaymentsConfirmError />
+      <PaymentsConfirmError onCancel={props.onCancel} />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
@@ -105,9 +110,16 @@ const PaymentsConfirm = (props: Props) => (
           ))}
         </Kb.ScrollView>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button
+            type="Secondary"
+            small={Styles.isMobile}
+            onClick={props.onCancel}
+            style={styles.cancelButton}
+            label="Cancel"
+          />
           <Kb.WaitingButton
             style={styles.submitButton}
+            small={Styles.isMobile}
             type="PrimaryGreen"
             onClick={props.onAccept}
             waitingKey={null}
@@ -146,6 +158,9 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
   }),
+  errorClose: {
+    padding: Styles.globalMargins.tiny,
+  },
   errorText: {
     color: Styles.globalColors.red,
   },
@@ -170,6 +185,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       borderColor: Styles.globalColors.lightGrey,
       borderStyle: 'solid',
+      borderWidth: 1,
       justifyContent: 'space-between',
       padding: Styles.globalMargins.tiny,
     },

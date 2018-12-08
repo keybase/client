@@ -29,9 +29,10 @@ const props = {
       xlmAmount: '25.5818284 XLM',
     },
     {
+      error: 'Failed!',
       fullName: 'Max Krohn',
       username: 'max',
-      xlmAmount: '14 XLM',
+      xlmAmount: '',
     },
   ],
   xlmTotal: '40.0629655 XLM',
@@ -42,11 +43,17 @@ const loadingProps = {
   loading: true,
 }
 
+const errorProps = {
+  ...props,
+  error: 'Failed!',
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Wallet/Confirm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
     .add('Loaded', () => <PaymentsConfirm {...props} />)
     .add('Loading', () => <PaymentsConfirm {...loadingProps} />)
+    .add('Error', () => <PaymentsConfirm {...errorProps} />)
 }
 
 export default load
