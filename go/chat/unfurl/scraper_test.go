@@ -145,7 +145,6 @@ func TestScraper(t *testing.T) {
 		// test caching
 		cachedRes, valid := scraper.cache.get(uri)
 		require.True(t, valid)
-		require.NoError(t, cachedRes.err)
 		require.Equal(t, res, cachedRes.data.(chat1.UnfurlRaw))
 
 		clock.Advance(defaultCacheLifetime * 2)
