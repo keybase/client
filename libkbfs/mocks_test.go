@@ -1132,6 +1132,20 @@ func (mr *MockBlockMockRecorder) IsIndirect() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIndirect", reflect.TypeOf((*MockBlock)(nil).IsIndirect))
 }
 
+// IsTail mocks base method
+func (m *MockBlock) IsTail() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsTail")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsTail indicates an expected call of IsTail
+func (mr *MockBlockMockRecorder) IsTail() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTail", reflect.TypeOf((*MockBlock)(nil).IsTail))
+}
+
 // OffsetExceedsData mocks base method
 func (m *MockBlock) OffsetExceedsData(startOff, off Offset) bool {
 	m.ctrl.T.Helper()
@@ -1275,6 +1289,20 @@ func (m *MockBlockWithPtrs) IsIndirect() bool {
 func (mr *MockBlockWithPtrsMockRecorder) IsIndirect() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIndirect", reflect.TypeOf((*MockBlockWithPtrs)(nil).IsIndirect))
+}
+
+// IsTail mocks base method
+func (m *MockBlockWithPtrs) IsTail() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsTail")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsTail indicates an expected call of IsTail
+func (mr *MockBlockWithPtrsMockRecorder) IsTail() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTail", reflect.TypeOf((*MockBlockWithPtrs)(nil).IsTail))
 }
 
 // OffsetExceedsData mocks base method

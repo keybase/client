@@ -148,6 +148,9 @@ type Block interface {
 	ToCommonBlock() *CommonBlock
 	// IsIndirect indicates whether this block contains indirect pointers.
 	IsIndirect() bool
+	// IsTail returns true if this block doesn't point to any other
+	// blocks, either indirectly or in child directory entries.
+	IsTail() bool
 	// OffsetExceedsData returns true if `off` is greater than the
 	// data contained in a direct block, assuming it starts at
 	// `startOff`.  Note that the offset of the next block isn't

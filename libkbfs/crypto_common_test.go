@@ -107,6 +107,10 @@ func (tb *TestBlock) IsIndirect() bool {
 	return false
 }
 
+func (tb *TestBlock) IsTail() bool {
+	return true
+}
+
 func (tb TestBlock) OffsetExceedsData(_, _ Offset) bool {
 	return false
 }
@@ -403,6 +407,10 @@ func (tba *testBlockArray) Set(other Block) {
 
 func (tba testBlockArray) IsIndirect() bool {
 	return false
+}
+
+func (tba *testBlockArray) IsTail() bool {
+	return true
 }
 
 func (tba testBlockArray) OffsetExceedsData(_, _ Offset) bool {
