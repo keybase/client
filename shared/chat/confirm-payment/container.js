@@ -5,12 +5,13 @@ import PaymentsConfirm from '.'
 type OwnProps = {||}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const payments = state.chat2.paymentConfirmInfo?.info?.payments
+  const pinfo = state.chat2.paymentConfirmInfo
+  const payments = pinfo?.info?.payments
   return {
     info: {
-      displayTotal: state.chat2.paymentConfirmInfo?.info?.displayTotal,
-      error: state.chat2.paymentConfirmInfo?.error,
-      loading: !state.chat2.paymentConfirmInfo,
+      displayTotal: pinfo?.info?.displayTotal,
+      error: pinfo?.error,
+      loading: !pinfo,
       payments: (payments || []).map(p => ({
         displayAmount: p.displayAmount,
         error: p.error,
@@ -18,9 +19,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         username: p.username,
         xlmAmount: p.xlmAmount,
       })),
-      xlmTotal: state.chat2.paymentConfirmInfo?.info?.xlmTotal,
+      xlmTotal: pinfo?.info?.xlmTotal,
     },
-    response: state.chat2.paymentConfirmInfo?.response,
+    response: pinfo?.response,
   }
 }
 
