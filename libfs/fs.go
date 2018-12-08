@@ -113,6 +113,9 @@ type accessType int
 
 const (
 	readwrite accessType = iota
+	// readwriteNoCreate creates a read-write file system, but doesn't
+	// create the TLF if it doesn't already exists.  Instead, it
+	// creates an empty file system.
 	readwriteNoCreate
 	readonly
 )
@@ -515,7 +518,7 @@ func (fs *FS) ensureParentDir(filename string) error {
 	return nil
 }
 
-func (fs *FS) checkEmpty() error {
+func (fs *FS) requireNonEmpty() error {
 	if fs.empty {
 		return errors.New("Not supported for an empty TLF")
 	}
@@ -532,7 +535,7 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
@@ -601,7 +604,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 				Type: libkbfs.Dir,
 			},
 		}, nil
-	} else if err := fs.checkEmpty(); err != nil {
+	} else if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
@@ -626,7 +629,7 @@ func (fs *FS) Rename(oldpath, newpath string) (err error) {
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 
@@ -657,7 +660,7 @@ func (fs *FS) Remove(filename string) (err error) {
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 
@@ -684,7 +687,7 @@ func (fs *FS) Join(elem ...string) string {
 
 // TempFile implements the billy.Filesystem interface for FS.
 func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
@@ -735,7 +738,7 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 
 	if fs.empty && (p == "" || p == ".") {
 		return nil, nil
-	} else if err := fs.checkEmpty(); err != nil {
+	} else if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
@@ -753,7 +756,7 @@ func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
 		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 
@@ -776,7 +779,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 				Type: libkbfs.Dir,
 			},
 		}, nil
-	} else if err := fs.checkEmpty(); err != nil {
+	} else if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
@@ -819,7 +822,7 @@ func (fs *FS) Symlink(target, link string) (err error) {
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 
@@ -845,7 +848,7 @@ func (fs *FS) Readlink(link string) (target string, err error) {
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return "", err
 	}
 
@@ -873,7 +876,7 @@ func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 
@@ -910,7 +913,7 @@ func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 
@@ -930,7 +933,7 @@ func (fs *FS) ChrootAsLibFS(p string) (newFS *FS, err error) {
 		err = translateErr(err)
 	}()
 
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
@@ -975,7 +978,7 @@ func (fs *FS) Root() string {
 
 // SyncAll syncs any outstanding buffered writes to the KBFS journal.
 func (fs *FS) SyncAll() error {
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return err
 	}
 	return fs.config.KBFSOps().SyncAll(fs.ctx, fs.root.GetFolderBranch())
@@ -1061,7 +1064,7 @@ func (o folderHandleChangeObserver) TlfHandleChange(
 // reaches obsolescence, meaning if user of this object caches it for long term
 // use, it should invalide this entry and create a new one using NewFS.
 func (fs *FS) SubscribeToObsolete() (<-chan struct{}, error) {
-	if err := fs.checkEmpty(); err != nil {
+	if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
 	}
 
