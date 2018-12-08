@@ -231,13 +231,12 @@ func (db *DirBlock) IsTail() bool {
 	if db.IsInd {
 		return len(db.IPtrs) == 0
 	}
-	syms := 0
 	for _, de := range db.Children {
-		if de.Type == Sym {
-			syms++
+		if de.Type != Sym {
+			return false
 		}
 	}
-	return syms == len(db.Children)
+	return true
 }
 
 // DataVersion returns data version for this block, which is assumed
