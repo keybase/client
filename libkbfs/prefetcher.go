@@ -367,7 +367,13 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	}
 	// If this is a new prefetch, or if we need to update the action,
 	// send a new request.
-	if !isPrefetchWaiting || pre.req.action != action.Combine(pre.req.action) {
+	newAction := action.Combine(pre.req.action)
+	if !isPrefetchWaiting || pre.req.action != newAction {
+		// Update the action to prevent any early cancellation of a
+		// previous, non-deeply-synced request, and trigger a new
+		// request in case the previous request has already been
+		// handled.
+		pre.req.action = newAction
 		ch := p.retriever.Request(
 			pre.ctx, priority, kmd, ptr, block, lifetime, action)
 		p.inFlightFetches.In() <- ch
@@ -699,7 +705,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			if isPrefetchWaiting {
 				ctx = pre.ctx
 			}
-			p.log.CDebugf(ctx, "Handling request for %v", req.ptr)
+			p.log.CDebugf(ctx, "Handling request for %v, action=%s",
+				req.ptr, req.action)
 
 			// Ensure the block is in the right cache.
 			b := req.block.NewEmpty()
@@ -713,7 +720,10 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				continue
 			}
 
-			if req.prefetchStatus == FinishedPrefetch {
+			// If the request is finished (i.e., if it's marked as
+			// finished or if it has no children block to fetch), then
+			// complete the prefetch.
+			if req.prefetchStatus == FinishedPrefetch || b.IsTail() {
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
 					if pre.subtreeBlockCount < 0 {
@@ -727,26 +737,43 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					// Since we decrement by `pre.subtreeBlockCount`, we're
 					// guaranteed that `pre` will be removed from the
 					// prefetcher.
-					p.log.CDebugf(ctx, "finishing prefetch for block %s",
-						req.ptr.ID)
 					p.applyToParentsRecursive(
 						p.completePrefetch(pre.subtreeBlockCount),
 						req.ptr.ID, pre)
 				} else {
 					p.log.CDebugf(ctx, "skipping prefetch for finished block "+
 						"%s", req.ptr.ID)
+					if req.prefetchStatus != FinishedPrefetch {
+						// Mark this block as finished in the cache.
+						err = p.retriever.PutInCaches(
+							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
+							FinishedPrefetch)
+						if err != nil {
+							p.log.CDebugf(ctx,
+								"Couldn't put finished block %s in cache: %+v",
+								req.ptr, err)
+						}
+					}
 				}
 				// Always short circuit a finished prefetch.
 				continue
 			}
 			if !req.action.Prefetch(b) {
-				p.log.CDebugf(ctx, "skipping prefetch for block %s, action %d",
+				p.log.CDebugf(ctx, "skipping prefetch for block %s, action %s",
 					req.ptr.ID, req.action)
+				if isPrefetchWaiting && !pre.req.action.Prefetch(b) {
+					// Cancel this prefetch if we're skipping it and
+					// there's not already another prefetch in
+					// progress.  It's not a tail block since that
+					// case is caught above, so we are definitely
+					// giving up here without fetching its children.
+					p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
+				}
 				continue
 			}
 			if req.prefetchStatus == TriggeredPrefetch &&
 				!req.action.DeepSync() &&
-				(!isPrefetchWaiting ||
+				(isPrefetchWaiting &&
 					req.action.Sync() == pre.req.action.Sync()) {
 				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
 					"%s", req.ptr.ID)
@@ -767,6 +794,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			}
 
 			if isPrefetchWaiting {
+				newAction := pre.req.action.Combine(req.action)
 				if pre.subtreeTriggered {
 					p.log.CDebugf(ctx, "prefetch subtree already triggered "+
 						"for block ID %s", req.ptr.ID)
@@ -782,7 +810,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						p.applyToPtrParentsRecursive(
 							p.cancelPrefetch, req.ptr, pre)
 					}
-					newAction := pre.req.action.Combine(req.action)
 					if newAction != pre.req.action {
 						// This can happen for example if the
 						// prefetcher doesn't know about a deep sync
@@ -809,6 +836,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					p.applyToParentsRecursive(p.decrementPrefetch, req.ptr.ID,
 						pre)
 					pre.subtreeTriggered = true
+					pre.req.action = newAction
 				}
 			} else {
 				// Ensure we have a prefetch to work with.

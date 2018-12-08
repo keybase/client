@@ -1657,7 +1657,7 @@ type Prefetcher interface {
 	// the block isn't currently being prefetched, it will return an
 	// already-closed channel.  When the channel is closed, the caller
 	// should still verify that the prefetch status of the block is
-	// `FinishedPrefetch`, in case there was an error.
+	// what they expect it to be, in case there was an error.
 	WaitChannelForBlockPrefetch(ctx context.Context, ptr BlockPointer) (
 		<-chan struct{}, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be

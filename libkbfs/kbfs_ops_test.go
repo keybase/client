@@ -3378,6 +3378,9 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	kbfsOps := config.KBFSOps()
 
+	// Don't let the prefetcher bring the block back into the cache.
+	config.BlockOps().Prefetcher().Shutdown()
+
 	// Create a/b/c.
 	nodeA, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -4383,8 +4386,23 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
+	waitForPrefetch := func(node Node) {
+		md, err := kbfsOps.GetNodeMetadata(ctx, node)
+		require.NoError(t, err)
+		ch, err := config.BlockOps().Prefetcher().WaitChannelForBlockPrefetch(
+			ctx, md.BlockInfo.BlockPointer)
+		require.NoError(t, err)
+		select {
+		case <-ch:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
+	}
+
 	t.Log("Root block and 'a' block should be synced")
 	checkSyncCache := func(expectedBlocks uint64) {
+		waitForPrefetch(rootNode)
+		waitForPrefetch(aNode)
 		syncStatusMap := dbc.syncCache.Status(ctx)
 		require.Len(t, syncStatusMap, 1)
 		syncStatus, ok := syncStatusMap[syncCacheName]
@@ -4400,7 +4418,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 	cNode, _, err := kbfsOps2.CreateDir(ctx, bNode, "c")
 	require.NoError(t, err)
-	c2Node, _, err := kbfsOps2.CreateDir(ctx, b2Node, "c2")
+	_, _, err = kbfsOps2.CreateDir(ctx, b2Node, "c2")
 	require.NoError(t, err)
 	dNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "d")
 	require.NoError(t, err)
@@ -4425,13 +4443,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	// kbfsOps2 into kbfsOps here.  That's necessary to avoid
 	// prefetching on the normal path by kbfsOps on the lookups it
 	// would take to make those nodes.
-	checkStatus(rootNode, TriggeredPrefetch)
-	checkStatus(aNode, TriggeredPrefetch)
-	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
 	checkStatus(cNode, FinishedPrefetch)
-	checkStatus(b2Node, NoPrefetch)
-	checkStatus(c2Node, NoPrefetch)
-	checkStatus(dNode, NoPrefetch)
 
 	t.Log("Add more data under prefetched path")
 	eNode, _, err := kbfsOps2.CreateDir(ctx, cNode, "e")
@@ -4448,15 +4460,9 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(10)
-	checkStatus(rootNode, TriggeredPrefetch)
-	checkStatus(aNode, TriggeredPrefetch)
-	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
-	checkStatus(b2Node, TriggeredPrefetch) // due to GetNodeMetadata(c2) above
-	checkStatus(c2Node, NoPrefetch)
-	checkStatus(dNode, NoPrefetch)
 
 	t.Log("Add something that's not synced")
 	gNode, _, err := kbfsOps2.CreateDir(ctx, dNode, "g")
@@ -4469,16 +4475,9 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(10)
-	checkStatus(rootNode, TriggeredPrefetch)
-	checkStatus(aNode, TriggeredPrefetch)
-	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
-	checkStatus(b2Node, TriggeredPrefetch)
-	checkStatus(c2Node, NoPrefetch)
-	checkStatus(dNode, NoPrefetch)
-	checkStatus(gNode, NoPrefetch)
 
 	t.Log("Sync the new path")
 	syncConfig.Paths = append(syncConfig.Paths, "d")
@@ -4488,14 +4487,9 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	checkSyncCache(12)
-	checkStatus(rootNode, TriggeredPrefetch)
-	checkStatus(aNode, TriggeredPrefetch)
-	checkStatus(bNode, FinishedPrefetch) // due to normal prefetching
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
-	checkStatus(b2Node, TriggeredPrefetch)
-	checkStatus(c2Node, NoPrefetch)
 	checkStatus(dNode, FinishedPrefetch)
 	checkStatus(gNode, FinishedPrefetch)
 }
