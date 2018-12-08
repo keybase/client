@@ -471,23 +471,6 @@ func (fbo *folderBlockOps) getFileBlockHelperLocked(ctx context.Context,
 	return fblock, nil
 }
 
-// GetBlockForReading retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server.  The
-// returned block may have a generic type (not DirBlock or FileBlock).
-//
-// This should be called for "internal" operations, like conflict
-// resolution and state checking, which don't know what kind of block
-// the pointer refers to.  The block will not be cached, if it wasn't
-// in the cache already.
-func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, ptr BlockPointer, branch BranchName) (
-	Block, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getBlockHelperLocked(ctx, lState, kmd, ptr, branch,
-		NewCommonBlock, NoCacheEntry, path{}, blockRead)
-}
-
 // GetCleanEncodedBlocksSizeSum retrieves the sum of the encoded sizes
 // of the blocks pointed to by ptrs, all of which must be valid,
 // either from the cache or from the server.
