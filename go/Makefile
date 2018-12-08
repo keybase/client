@@ -70,4 +70,7 @@ coverlibkb:
 coverclean:
 	rm /tmp/count.out
 
-.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean
+gen-deps:
+	./gen_deps.pl
+
+.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean gen-deps
