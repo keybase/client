@@ -106,18 +106,24 @@ helpers.rootLinuxNode(env, {
                     test_linux_deps: {
                         if (hasGoChanges) {
                             // Build the client docker first so we can immediately kick off KBFS
-                            dir('go') {
-                                sh "go install github.com/keybase/client/go/keybase"
-                                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                clientImage = docker.build("keybaseprivate/kbclient")
-                                sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                archive("kbclient.tar.gz")
-                                sh "rm kbclient.tar.gz"
-                            }
+                            dir('go') { parallel (
+                                build_image: {
+                                    sh "go install github.com/keybase/client/go/keybase"
+                                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                    clientImage = docker.build("keybaseprivate/kbclient")
+                                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                    archive("kbclient.tar.gz")
+                                    sh "rm kbclient.tar.gz"
+                                },
+                                calc_deps: {
+                                    sh "make gen-deps"
+                                },
+                            )}
                         }
                         parallel (
                             test_linux: {
                                 dir("protocol") {
+                                    // Must happen after `make gen-deps` above iff there are go changes.
                                     sh "./diff_test.sh"
                                 }
                                 parallel (

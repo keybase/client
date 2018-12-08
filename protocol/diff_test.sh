@@ -21,7 +21,7 @@ make
 # checked in.
 if ! git diff --quiet --exit-code HEAD -- ./ ../go/; then
   git diff HEAD -- ./ ../go/;
-  echo 'ERROR: `git diff` detected changes. The generated protocol files are stale.'
+  echo 'ERROR: `git diff` detected changes. The generated protocol or dependency files are stale.'
   exit 1
 fi
 
