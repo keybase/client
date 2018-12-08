@@ -128,7 +128,7 @@ const PaymentsConfirm = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   buttonContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       justifyContent: 'space-between',
     },
   }),
@@ -167,13 +167,14 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   paymentContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       borderColor: Styles.globalColors.lightGrey,
       borderStyle: 'solid',
-      borderWidth: 1,
       justifyContent: 'space-between',
-      margin: -1,
       padding: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      margin: -1,
     },
   }),
   paymentTotalsContainer: Styles.platformStyles({
@@ -207,8 +208,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   xlmTotal: Styles.platformStyles({
-    isElectron: {
+    common: {
       color: Styles.globalColors.white,
+    },
+    isElectron: {
       fontSize: 24,
       lineHeight: 28,
     },
