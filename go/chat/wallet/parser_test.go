@@ -52,6 +52,14 @@ func TestFindCandidates(t *testing.T) {
 		candidateTestCase{"thanks friend,+25eur", []ChatTxCandidate{anonTx}},
 		candidateTestCase{"thanks friend,+25eur\nnewline", []ChatTxCandidate{anonTx}},
 		candidateTestCase{"thanks friend,+25eur\ttabbed", []ChatTxCandidate{anonTx}},
+
+		// some extra checks
+		candidateTestCase{"+0.05XLM", []ChatTxCandidate{{Amount: "0.05", CurrencyCode: "XLM", Username: nil, Full: "+0.05XLM"}}},
+		candidateTestCase{"+.05XLM", []ChatTxCandidate{{Amount: ".05", CurrencyCode: "XLM", Username: nil, Full: "+.05XLM"}}},
+		candidateTestCase{"+0.5xlm", []ChatTxCandidate{{Amount: "0.5", CurrencyCode: "XLM", Username: nil, Full: "+0.5xlm"}}},
+		candidateTestCase{"hello `in my code +0.5XLM blah` ok?", []ChatTxCandidate{}},
+		candidateTestCase{"hello ```in my code +0.5XLM blah``` ok?", []ChatTxCandidate{}},
+		candidateTestCase{"> quoted pay me +0.5XLM ok?", []ChatTxCandidate{}},
 	}
 
 	for _, testCase := range testCases {
