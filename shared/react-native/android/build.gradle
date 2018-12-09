@@ -26,6 +26,10 @@ buildscript {
     }
 }
 
+// Work around dependencies with old gradle versions depending on
+// com.android.tools:common:25.3.3 , which disappeared from jcenter.
+// Once these dependencies update their gradle version or otherwise fix
+// the problem themselves, we can remove this.
 subprojects {project ->
     if (project.name.contains('react-native-contacts') || project.name.contains('react-native-fast-image') || project.name.contains('react-native-fetch-blob') || project.name.contains('react-native-image-picker')) {
             buildscript {
