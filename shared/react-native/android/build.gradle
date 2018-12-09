@@ -26,6 +26,16 @@ buildscript {
     }
 }
 
+subprojects {project ->
+    if (project.name.contains('react-native-contacts')) {
+            buildscript {
+                repositories {
+                maven { url = 'https://dl.bintray.com/android/android-tools/'  }
+            }    
+        }
+    }
+}
+
 allprojects {
     repositories {
         mavenLocal()
