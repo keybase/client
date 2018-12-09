@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
-import AddSuggestors, * as Suggestors from '../chat/conversation/input-area/suggestors'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
@@ -29,32 +28,8 @@ const People = (props: Props) => (
       style={Kb.avatarCastPlatformStyles(styles.avatar)}
     />
     <PeoplePageList {...props} />
-    <SuggestorTestArea
-      dataSources={{}}
-      renderers={{}}
-      suggestorToMarker={{}}
-      transformers={{}}
-      someOtherProps="hi"
-    />
   </Kb.ScrollView>
 )
-
-const _SuggestorTestArea = (props: Suggestors.PropsWithSuggestor<{someOtherProps: string}>) => (
-  <Kb.Box2
-    direction="vertical"
-    style={{
-      borderColor: 'black',
-      borderStyle: 'solid',
-      borderWidth: 1,
-      margin: 20,
-      padding: 10,
-      width: 300,
-    }}
-  >
-    <Kb.PlainInput onChangeText={props.onChangeText} onKeyDown={props.onKeyDown} ref={props.inputRef} />
-  </Kb.Box2>
-)
-const SuggestorTestArea = AddSuggestors(_SuggestorTestArea)
 
 const styles = styleSheetCreate({
   avatar: {
