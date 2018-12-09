@@ -10,13 +10,6 @@ import type {SuggestorDatasource} from './interface'
 
 const lg = (...args) => console.log('DANNYDEBUG', ...args)
 
-// type SuggestorName = 'chatUsers' | 'chatChannels' | 'emojis'
-// type Suggestors = Array<SuggestorName>
-
-// const suggestors: {[key: SuggestorName]: SuggestorDatasource} = {
-//   chatUsers: ChatUsers,
-// }
-
 type AddSuggestorsProps = {
   dataSources: {
     [key: string]: (filter: string) => Array<any>, // typing TODO
@@ -52,11 +45,11 @@ export type PropsWithSuggestor<P> = {|
   ...$Exact<SuggestorHooks>,
 |}
 
-const AddSuggestors = <WrappedOwnProps: SuggestorHooks>(
-  WrappedComponent: React.ComponentType<WrappedOwnProps>
-): React.ComponentType<$Diff<WrappedOwnProps, SuggestorHooks> & AddSuggestorsProps> => {
+const AddSuggestors = <WrappedOwnProps: {}>(
+  WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
+): React.ComponentType<WrappedOwnProps & AddSuggestorsProps> => {
   class SuggestorsComponent extends React.Component<
-    $Diff<WrappedOwnProps, SuggestorHooks> & AddSuggestorsProps,
+    WrappedOwnProps & AddSuggestorsProps,
     AddSuggestorsState
   > {
     state = {active: null, filter: '', selected: 0}

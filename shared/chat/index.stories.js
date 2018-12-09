@@ -8,6 +8,7 @@ import inputArea from './conversation/input-area/normal/index.stories'
 import manageChannels from './manage-channels/index.stories'
 import messagePopup from './conversation/messages/message-popup/index.stories'
 import setExplodingMessage from './conversation/messages/set-explode-popup/index.stories'
+import suggestors from './conversation/input-area/suggestors/index.stories'
 import userMentionHud from './conversation/input-area/user-mention-hud/index.stories'
 import messages from './conversation/messages/index.stories'
 import startConversation from './conversation/list-area/start-conversation/index.stories'
@@ -27,6 +28,7 @@ const load = () => {
     messagePopup,
     messages,
     setExplodingMessage,
+    suggestors,
     userMentionHud,
     startConversation,
     thread,
