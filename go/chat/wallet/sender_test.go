@@ -176,5 +176,12 @@ func TestStellarSender(t *testing.T) {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID))
+	testCase("+1XLM@patrick and also +10USD@max, and +10cad@karenm", []paymentRes{paymentRes{
+		resultTyp: chat1.TextPaymentResultTyp_SENT,
+		text:      "+1XLM@patrick",
+	}, paymentRes{
+		resultTyp: chat1.TextPaymentResultTyp_SENT,
+		text:      "+10USD@max",
+	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID))
 
 }
