@@ -300,6 +300,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('moveOrCopy', mc =>
         mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
       )
+    case FsGen.showSendLinkToChat:
+      return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
+    case FsGen.setSendLinkToChatConvID:
+      // $FlowIssue
+      return state.setIn(['sendLinkToChat', 'convID'], action.payload.convID)
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:

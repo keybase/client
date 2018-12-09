@@ -2,8 +2,12 @@
 import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
+import * as TeamsGen from '../teams-gen'
+import * as TeamsConstants from '../../constants/teams'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as SettingsConstants from '../../constants/settings'
@@ -783,6 +787,79 @@ const cancelMoveOrCopy = isMobile
   ? (state, action) => Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
   : (state, action) => Saga.put(navigateUp())
 
+const showSendLinkToChat = (state, action) => {
+  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
+  const routeChange = Saga.put(
+    action.payload.routePath
+      ? putActionIfOnPath(action.payload.routePath, navigateAppend(['sendLinkToChat']))
+      : navigateAppend(['sendLinkToChat'])
+  )
+  if (elems.length < 3) {
+    // Not a TLF; so just show the modal and let user copy the path.
+    return routeChange
+  }
+
+  const actions = [routeChange]
+
+  if (elems[1] !== 'team') {
+    // It's an impl team conversation. So resolve to a convID directly.
+    actions.push(
+      Saga.callUntyped(function*() {
+        const result = yield Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+          oneChatPerTLF: false,
+          tlfName: elems[2],
+          topicName: '',
+          topicType: RPCChatTypes.commonTopicType.chat,
+          visibility: RPCTypes.commonTLFVisibility.private,
+        })
+
+        if (!result.conversations || !result.conversations.length) {
+          // TODO: error?
+          return
+        }
+
+        yield Saga.put(
+          FsGen.createSetSendLinkToChatConvID({
+            convID: ChatTypes.conversationIDToKey(result.conversations[0].info.id),
+          })
+        )
+      })
+    )
+  } else {
+    // It's a real team, but we don't know if it's a small team or big team. So
+    // fire TeamsGen.getChannels to find out. We'll listen for
+    // TeamsGen.setTeamChannels and see if we should automatically set convID.
+    // We might already have that, but just refresh anyway to get latest info.
+    actions.push(Saga.put(TeamsGen.createGetChannels({teamname: elems[2]})))
+  }
+
+  return Saga.all(actions)
+}
+
+const setSendLinkToChatConvIDForTeamIfPossible = (state, action) => {
+  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
+  if (elems.length < 3 || elems[1] !== 'team') {
+    // sendLinkToChat is not dealing with a team link, so no need to set
+    // convID here.
+    return
+  }
+  const channelInfos = TeamsConstants.getTeamChannelInfos(state, elems[2])
+  if (channelInfos.size !== 1) {
+    // Either we haven't got channel info for this team yet (size === 0), which
+    // likely means the action that triggered this was for a different team, or
+    // it has more than 1 channel. Either case, we don't need to set the
+    // convID.
+    return
+  }
+  return Saga.put(
+    FsGen.createSetSendLinkToChatConvID({
+      convID: channelInfos.keySeq().first(),
+    })
+  )
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -805,6 +882,11 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.moveOrCopyOpen, isMobile ? moveOrCopyOpenMobile : moveOrCopyOpenDesktop)
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
+  yield Saga.actionToAction(FsGen.showSendLinkToChat, showSendLinkToChat)
+  yield Saga.actionToAction(
+    [TeamsGen.setTeamChannels, FsGen.showSendLinkToChat],
+    setSendLinkToChatConvIDForTeamIfPossible
+  )
 
   yield Saga.spawn(platformSpecificSaga)
 }

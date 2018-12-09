@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
+import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
 import * as Flow from '../util/flow'
 import {type TypedState} from '../util/container'
@@ -179,6 +180,11 @@ export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
   sourceItemPath: Types.stringToPath(''),
 })
 
+export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
+  convID: ChatConstants.noConversationIDKey,
+  path: Types.stringToPath('/keybase'),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
@@ -190,6 +196,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   moveOrCopy: makeMoveOrCopy(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  sendLinkToChat: makeSendLinkToChat(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),

@@ -793,6 +793,8 @@ function _afterGetChannels(fromGetChannels: any[]) {
   })
 
   return Saga.all([
+    // NOTE: FsGen.showSendLinkToChat depends on this action. If we ever change
+    // this please make sure it doesn't break it.
     Saga.put(TeamsGen.createSetTeamChannels({channelInfos: I.Map(channelInfos), teamname})),
     Saga.put(WaitingGen.createDecrementWaiting(waitingKey)),
   ])

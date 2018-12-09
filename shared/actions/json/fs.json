@@ -1,5 +1,8 @@
 {
-  "prelude": ["import * as Types from '../constants/types/fs'"],
+  "prelude": [
+    "import * as Types from '../constants/types/fs'",
+    "import * as ChatTypes from '../constants/types/chat2'"
+  ],
   "actions": {
     "folderListLoad": {
       "path": "Types.Path",
@@ -203,6 +206,13 @@
     },
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
+    "showSendLinkToChat": {
+      "path": "Types.Path",
+      "routePath?": "?I.List<string>"
+    },
+    "setSendLinkToChatConvID": {
+      "convID": "ChatTypes.ConversationIDKey"
+    },
 
     "placeholderAction": {}
   }

@@ -1,11 +1,13 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
+import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
+import {memoize1} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 
@@ -236,6 +238,15 @@ export type _MoveOrCopy = {
 }
 export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
 
+export type _SendLinkToChat = {
+  path: Path,
+  // This is the convID that we are sending into. So for group chats or small
+  // teams, this is the conversation. For big teams, this is the selected
+  // channel.
+  convID: ChatTypes.ConversationIDKey,
+}
+export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
@@ -250,6 +261,7 @@ export type _State = {
   errors: I.Map<string, FsError>,
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,
+  sendLinkToChat: SendLinkToChat,
 }
 export type State = I.RecordOf<_State>
 
@@ -288,7 +300,7 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
-export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+export const getPathElements = memoize1((p: Path): Array<string> => (!p ? [] : p.split('/').slice(1)))
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
