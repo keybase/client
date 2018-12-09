@@ -966,24 +966,22 @@ type NonblockSearchResult struct {
 }
 
 type ChatUI struct {
-	inboxCb           chan NonblockInboxResult
-	threadCb          chan NonblockThreadResult
-	searchHitCb       chan chat1.ChatSearchHitArg
-	searchDoneCb      chan chat1.ChatSearchDoneArg
-	inboxSearchHitCb  chan chat1.ChatSearchInboxHitArg
-	inboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg
+	InboxCb           chan NonblockInboxResult
+	ThreadCb          chan NonblockThreadResult
+	SearchHitCb       chan chat1.ChatSearchHitArg
+	SearchDoneCb      chan chat1.ChatSearchDoneArg
+	InboxSearchHitCb  chan chat1.ChatSearchInboxHitArg
+	InboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg
 }
 
-func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult,
-	searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg,
-	inboxSearchHitCb chan chat1.ChatSearchInboxHitArg, inboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg) *ChatUI {
+func NewChatUI() *ChatUI {
 	return &ChatUI{
-		inboxCb:           inboxCb,
-		threadCb:          threadCb,
-		searchHitCb:       searchHitCb,
-		searchDoneCb:      searchDoneCb,
-		inboxSearchHitCb:  inboxSearchHitCb,
-		inboxSearchDoneCb: inboxSearchDoneCb,
+		InboxCb:           make(chan NonblockInboxResult, 20),
+		ThreadCb:          make(chan NonblockThreadResult, 20),
+		SearchHitCb:       make(chan chat1.ChatSearchHitArg, 20),
+		SearchDoneCb:      make(chan chat1.ChatSearchDoneArg, 20),
+		InboxSearchHitCb:  make(chan chat1.ChatSearchInboxHitArg, 20),
+		InboxSearchDoneCb: make(chan chat1.ChatSearchInboxDoneArg, 20),
 	}
 }
 
@@ -1004,7 +1002,7 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 	if err := json.Unmarshal([]byte(arg.Conv), &inboxItem); err != nil {
 		return err
 	}
-	c.inboxCb <- NonblockInboxResult{
+	c.InboxCb <- NonblockInboxResult{
 		ConvRes: &inboxItem,
 		ConvID:  inboxItem.GetConvID(),
 	}
@@ -1012,7 +1010,7 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 }
 
 func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
-	c.inboxCb <- NonblockInboxResult{
+	c.InboxCb <- NonblockInboxResult{
 		Err: fmt.Errorf("%s", arg.Error.Message),
 	}
 	return nil
@@ -1023,7 +1021,7 @@ func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnv
 	if err := json.Unmarshal([]byte(arg.Inbox), &inbox); err != nil {
 		return err
 	}
-	c.inboxCb <- NonblockInboxResult{
+	c.InboxCb <- NonblockInboxResult{
 		InboxRes: &inbox,
 	}
 	return nil
@@ -1032,7 +1030,7 @@ func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnv
 func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
 	var thread chat1.UIMessages
 	if arg.Thread == nil {
-		c.threadCb <- NonblockThreadResult{
+		c.ThreadCb <- NonblockThreadResult{
 			Thread: nil,
 			Full:   false,
 		}
@@ -1040,7 +1038,7 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 		if err := json.Unmarshal([]byte(*arg.Thread), &thread); err != nil {
 			return err
 		}
-		c.threadCb <- NonblockThreadResult{
+		c.ThreadCb <- NonblockThreadResult{
 			Thread: &thread,
 			Full:   false,
 		}
@@ -1053,7 +1051,7 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 	if err := json.Unmarshal([]byte(arg.Thread), &thread); err != nil {
 		return err
 	}
-	c.threadCb <- NonblockThreadResult{
+	c.ThreadCb <- NonblockThreadResult{
 		Thread: &thread,
 		Full:   true,
 	}
@@ -1065,22 +1063,22 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 }
 
 func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
-	c.searchHitCb <- arg
+	c.SearchHitCb <- arg
 	return nil
 }
 
 func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
-	c.searchDoneCb <- arg
+	c.SearchDoneCb <- arg
 	return nil
 }
 
 func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
-	c.inboxSearchHitCb <- arg
+	c.InboxSearchHitCb <- arg
 	return nil
 }
 
 func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
-	c.inboxSearchDoneCb <- arg
+	c.InboxSearchDoneCb <- arg
 	return nil
 }
 

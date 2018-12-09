@@ -810,9 +810,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		users := ctc.users()
 
 		numconvs := 5
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		var firstConv chat1.ConversationInfoLocal
@@ -870,7 +868,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		}
 
 		select {
-		case ibox := <-inboxCb:
+		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for _, conv := range ibox.InboxRes.Items {
@@ -882,7 +880,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		// Get all convos
 		for i := 0; i < numconvs; i++ {
 			select {
-			case conv := <-inboxCb:
+			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
 				delete(convs, conv.ConvID.String())
 			case <-time.After(20 * time.Second):
@@ -899,7 +897,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		require.NoError(t, err)
 
 		select {
-		case ibox := <-inboxCb:
+		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for index, conv := range ibox.InboxRes.Items {
@@ -932,7 +930,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		// Get all convos
 		for i := 0; i < numconvs; i++ {
 			select {
-			case conv := <-inboxCb:
+			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
 				delete(convs, conv.ConvID.String())
 			case <-time.After(20 * time.Second):
@@ -950,9 +948,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		users := ctc.users()
 
 		numconvs := 5
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		// Create a bunch of blank convos
@@ -973,7 +969,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		)
 		require.NoError(t, err)
 		select {
-		case ibox := <-inboxCb:
+		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			switch mt {
 			case chat1.ConversationMembersType_TEAM:
@@ -987,7 +983,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		// Get all convos
 		for i := 0; i < numconvs; i++ {
 			select {
-			case conv := <-inboxCb:
+			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
 				delete(convs, conv.ConvID.String())
 			case <-time.After(20 * time.Second):
@@ -1029,7 +1025,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		)
 		require.NoError(t, err)
 		select {
-		case ibox := <-inboxCb:
+		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, len(convs), len(ibox.InboxRes.Items), "wrong size inbox")
 		case <-time.After(20 * time.Second):
@@ -1038,7 +1034,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		// Get all convos
 		for i := 0; i < numconvs; i++ {
 			select {
-			case conv := <-inboxCb:
+			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
 				delete(convs, conv.ConvID.String())
 			case <-time.After(20 * time.Second):
@@ -1049,7 +1045,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 
 		// Make sure there is nothing left
 		select {
-		case <-inboxCb:
+		case <-ui.InboxCb:
 			require.Fail(t, "should have drained channel")
 		default:
 		}
@@ -2064,7 +2060,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			defer ctc.cleanup()
 			users := ctc.users()
 
-			ui := kbtest.NewChatUI(nil, nil, nil, nil, nil, nil)
+			ui := kbtest.NewChatUI()
 			ctc.as(t, users[0]).h.mockChatUI = ui
 			tc := ctc.as(t, users[0])
 			listener := newServerChatListener()
@@ -2582,9 +2578,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -2624,7 +2618,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 		case <-time.After(20 * time.Second):
@@ -2632,7 +2626,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.Equal(t, chat1.MessageID(6), res.Thread.Messages[0].GetMessageID())
@@ -2664,7 +2658,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 		case <-time.After(20 * time.Second):
@@ -2672,7 +2666,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.Equal(t, chat1.MessageID(5), res.Thread.Messages[0].GetMessageID())
@@ -2693,9 +2687,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -2730,7 +2722,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, numMsgs, len(res.Thread.Messages))
 		case <-time.After(20 * time.Second):
@@ -2738,7 +2730,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, numMsgs, len(res.Thread.Messages))
 		case <-time.After(20 * time.Second):
@@ -2766,7 +2758,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, numMsgs, len(res.Thread.Messages))
 		case <-time.After(20 * time.Second):
@@ -2775,7 +2767,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.True(t, res.Thread.Pagination.Last)
@@ -2817,9 +2809,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		users := ctc.users()
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -2868,7 +2858,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			require.Equal(t, msgIDs, utils.PluckUIMessageIDs(res.Thread.Messages))
@@ -2881,7 +2871,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			confirmIsPlaceholder(t, editMsgID1, res.Thread.Messages[0], true)
@@ -2916,7 +2906,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			require.Equal(t, msgIDs, utils.PluckUIMessageIDs(res.Thread.Messages))
@@ -2930,7 +2920,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			confirmIsPlaceholder(t, deleteMsgID, res.Thread.Messages[0], true)
@@ -3014,9 +3004,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		users := ctc.users()
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -3069,7 +3057,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 			close(cb)
 		}()
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			require.Equal(t, msgIDs, utils.PluckUIMessageIDs(res.Thread.Messages))
@@ -3084,7 +3072,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
 			confirmIsPlaceholder(t, editMsgID2, res.Thread.Messages[0], true)
@@ -3110,9 +3098,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		users := ctc.users()
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -3161,7 +3147,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		}()
 		clock.Advance(50 * time.Millisecond)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			require.Equal(t, msgIDs, utils.PluckUIMessageIDs(res.Thread.Messages))
@@ -3173,7 +3159,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		}
 		clock.Advance(20 * time.Minute)
 		select {
-		case res := <-threadCb:
+		case res := <-ui.ThreadCb:
 			require.True(t, res.Full)
 			require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
 			confirmIsText(t, msgID2, res.Thread.Messages[0], "hi")
@@ -3199,9 +3185,7 @@ func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
 		}
 
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		bgConvLoads := make(chan chat1.ConversationID, 10)
@@ -3236,7 +3220,7 @@ func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		res := receiveThreadResult(t, threadCb)
+		res := receiveThreadResult(t, ui.ThreadCb)
 		require.Equal(t, 1, len(res.Messages))
 		select {
 		case <-bgConvLoads:
@@ -3257,9 +3241,7 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		t.Logf("test empty thread")
@@ -3276,7 +3258,7 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		res := receiveThreadResult(t, threadCb)
+		res := receiveThreadResult(t, ui.ThreadCb)
 		require.Zero(t, len(res.Messages))
 
 		t.Logf("send a bunch of messages")
@@ -3295,7 +3277,7 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		res = receiveThreadResult(t, threadCb)
+		res = receiveThreadResult(t, ui.ThreadCb)
 		require.Equal(t, numMsgs, len(res.Messages))
 
 		t.Logf("read back with a delay on the local pull")
@@ -3312,11 +3294,11 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		res = receiveThreadResult(t, threadCb)
+		res = receiveThreadResult(t, ui.ThreadCb)
 		require.Equal(t, numMsgs, len(res.Messages))
 		clock.Advance(20 * time.Minute)
 		select {
-		case <-threadCb:
+		case <-ui.ThreadCb:
 			require.Fail(t, "no cb expected")
 		default:
 		}
@@ -3333,9 +3315,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 
 		uid := users[0].User.GetUID().ToBytes()
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -3389,9 +3369,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 
 		uid := users[0].User.GetUID().ToBytes()
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
@@ -3420,13 +3398,13 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		// Eat untrusted CB
 		select {
-		case <-inboxCb:
+		case <-ui.InboxCb:
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no untrusted inbox")
 		}
 
 		select {
-		case nbres := <-inboxCb:
+		case nbres := <-ui.InboxCb:
 			require.Error(t, nbres.Err)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox load event")
@@ -4860,9 +4838,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
-		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
-		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
+		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true

@@ -17,11 +17,8 @@ type ErrorProps = {|
   onCancel: () => void,
 |}
 
-const PaymentsConfirmError = (props: ErrorProps) => (
+const _PaymentsConfirmError = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    {Styles.isMobile && (
-      <Kb.Icon type="iconfont-close" onClick={props.onCancel} style={styles.errorClose} fontSize={24} />
-    )}
     <Kb.Box2
       direction="vertical"
       centerChildren={true}
@@ -38,6 +35,8 @@ const PaymentsConfirmError = (props: ErrorProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
+
+const PaymentsConfirmError = Kb.HeaderOnMobile(_PaymentsConfirmError)
 
 type PaymentProps = {|
   displayAmount?: ?string,
