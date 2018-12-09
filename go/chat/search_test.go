@@ -383,8 +383,6 @@ func TestChatSearchInbox(t *testing.T) {
 		g1 := ctc.world.Tcs[u1.Username].Context()
 		g2 := ctc.world.Tcs[u2.Username].Context()
 
-		searchInboxHitCb := make(chan chat1.ChatSearchInboxHitArg, 100)
-		searchInboxDoneCb := make(chan chat1.ChatSearchInboxDoneArg, 100)
 		chatUI := kbtest.NewChatUI()
 		tc1.h.mockChatUI = chatUI
 
@@ -697,8 +695,8 @@ func TestChatSearchInbox(t *testing.T) {
 		timeout := 20 * time.Second
 		for i := 0; i < 8+4; i++ {
 			select {
-			case <-searchInboxHitCb:
-			case <-searchInboxDoneCb:
+			case <-chatUI.InboxSearchHitCb:
+			case <-chatUI.InboxSearchDoneCb:
 			case <-time.After(timeout):
 				require.Fail(t, "no search result received")
 			}
