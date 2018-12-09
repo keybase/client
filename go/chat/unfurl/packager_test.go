@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,6 +45,8 @@ func TestPackager(t *testing.T) {
 	s3Signer := &ptsigner{}
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	packager := NewPackager(log, store, s3Signer, ri)
+	clock := clockwork.NewFakeClock()
+	packager.cache.setClock(clock)
 	srvFile := func(w io.Writer, name string) {
 		file, err := os.Open(name)
 		require.NoError(t, err)
@@ -67,6 +70,7 @@ func TestPackager(t *testing.T) {
 	imageURL := fmt.Sprintf("http://%s/?typ=image", addr)
 	faviconURL := fmt.Sprintf("http://%s/?typ=favicon", addr)
 	raw := chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Url:        "https://example.com",
 		ImageUrl:   &imageURL,
 		FaviconUrl: &faviconURL,
 	})
@@ -83,6 +87,16 @@ func TestPackager(t *testing.T) {
 	require.NotZero(t, image.Metadata.Image().Width)
 	require.NotZero(t, favicon.Metadata.Image().Height)
 	require.NotZero(t, favicon.Metadata.Image().Width)
+
+	// test caching
+	cacheKey := packager.cacheKey(uid, convID, raw)
+	cachedRes, valid := packager.cache.get(cacheKey)
+	require.True(t, valid)
+	require.Equal(t, res, cachedRes.data.(chat1.Unfurl))
+
+	clock.Advance(defaultCacheLifetime * 2)
+	cachedRes, valid = packager.cache.get(cacheKey)
+	require.False(t, valid)
 
 	compareSol := func(name string, resDat []byte) {
 		dat, err := ioutil.ReadFile(filepath.Join("testcases", name))

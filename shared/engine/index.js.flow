@@ -38,7 +38,7 @@ declare export class Engine {
   deprecatedGetGetState: () => () => TypedState; // escape hatch for deprecated code to get getState, TODO remove all usages of this
   dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
-  cancelRPC(): void;
+  cancelRPC(response: any, error: any): void;
   cancelSession(sessionID: any): void;
   rpc(): void;
   setFailOnError(): void;

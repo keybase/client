@@ -42,15 +42,15 @@ export const createUpdateSelectedSearchResult = (payload: _UpdateSelectedSearchR
 export const createUserInputItemsUpdated = (payload: _UserInputItemsUpdatedPayload) => ({payload, type: userInputItemsUpdated})
 
 // Action Payloads
-export type AddResultsToUserInputPayload = $Call<typeof createAddResultsToUserInput, _AddResultsToUserInputPayload>
-export type ClearSearchResultsPayload = $Call<typeof createClearSearchResults, _ClearSearchResultsPayload>
-export type FinishedSearchPayload = $Call<typeof createFinishedSearch, _FinishedSearchPayload>
-export type RemoveResultsToUserInputPayload = $Call<typeof createRemoveResultsToUserInput, _RemoveResultsToUserInputPayload>
-export type SearchPayload = $Call<typeof createSearch, _SearchPayload>
-export type SearchSuggestionsPayload = $Call<typeof createSearchSuggestions, _SearchSuggestionsPayload>
-export type SetUserInputItemsPayload = $Call<typeof createSetUserInputItems, _SetUserInputItemsPayload>
-export type UpdateSelectedSearchResultPayload = $Call<typeof createUpdateSelectedSearchResult, _UpdateSelectedSearchResultPayload>
-export type UserInputItemsUpdatedPayload = $Call<typeof createUserInputItemsUpdated, _UserInputItemsUpdatedPayload>
+export type AddResultsToUserInputPayload = {|+payload: _AddResultsToUserInputPayload, +type: 'search:addResultsToUserInput'|}
+export type ClearSearchResultsPayload = {|+payload: _ClearSearchResultsPayload, +type: 'search:clearSearchResults'|}
+export type FinishedSearchPayload = {|+payload: _FinishedSearchPayload, +type: 'search:finishedSearch'|}
+export type RemoveResultsToUserInputPayload = {|+payload: _RemoveResultsToUserInputPayload, +type: 'search:removeResultsToUserInput'|}
+export type SearchPayload = {|+payload: _SearchPayload, +type: 'search:search'|}
+export type SearchSuggestionsPayload = {|+payload: _SearchSuggestionsPayload, +type: 'search:searchSuggestions'|}
+export type SetUserInputItemsPayload = {|+payload: _SetUserInputItemsPayload, +type: 'search:setUserInputItems'|}
+export type UpdateSelectedSearchResultPayload = {|+payload: _UpdateSelectedSearchResultPayload, +type: 'search:updateSelectedSearchResult'|}
+export type UserInputItemsUpdatedPayload = {|+payload: _UserInputItemsUpdatedPayload, +type: 'search:userInputItemsUpdated'|}
 
 // All Actions
 // prettier-ignore
@@ -64,4 +64,4 @@ export type Actions =
   | SetUserInputItemsPayload
   | UpdateSelectedSearchResultPayload
   | UserInputItemsUpdatedPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

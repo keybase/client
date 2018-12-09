@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
+import * as Flow from '../../util/flow'
 import {isMobile} from '../../styles'
 import {connect} from '../../util/container'
 import Normal from './normal/container'
@@ -47,10 +48,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'rekey':
         return <Rekey conversationIDKey={this.props.conversationIDKey} />
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.type)
         return <NoConversation />
     }
   }

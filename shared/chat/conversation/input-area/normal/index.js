@@ -32,7 +32,7 @@ class Input extends React.PureComponent<InputProps> {
 
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
-    throttled(this.props.sendTyping, !!text)
+    throttled(this.props.sendTyping, text)
   }
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
@@ -46,7 +46,7 @@ class Input extends React.PureComponent<InputProps> {
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-    throttled(this.props.sendTyping, !!text)
+    throttled(this.props.sendTyping, text)
   }
 
   componentDidMount = () => {

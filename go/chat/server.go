@@ -1751,22 +1751,24 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	if err != nil {
 		return err
 	}
-	deviceID := make([]byte, libkb.DeviceIDLen)
-	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
-		return err
-	}
-
 	// Just bail out if we are offline
 	if !h.G().Syncer.IsConnected(ctx) {
 		return nil
+	}
+	// Attempt to prefetch any unfurls in the background that are in the message text
+	go h.G().Unfurler.Prefetch(ctx, uid, arg.ConversationID, arg.Text)
+
+	deviceID := make([]byte, libkb.DeviceIDLen)
+	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
+		return err
 	}
 	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
 		Uid:      uid,
 		DeviceID: deviceID,
 		ConvID:   arg.ConversationID,
-		Typing:   arg.Typing,
+		Typing:   len(arg.Text) > 0,
 	}); err != nil {
-		h.Debug(ctx, "StartTyping: failed to hit the server: %s", err.Error())
+		h.Debug(ctx, "UpdateTyping: failed to hit the server: %s", err.Error())
 	}
 
 	return nil

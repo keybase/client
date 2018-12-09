@@ -363,7 +363,7 @@
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "typing": "boolean"
+      "text": "HiddenString"
     },
     // On startup we're automatically loading a thread sometimes. When we first view it we should
     // go through our marking as read logic
@@ -528,16 +528,6 @@
       "_description": "Giphy search results obtained",
       "conversationIDKey": "Types.ConversationIDKey",
       "result": "Array<RPCChatTypes.GiphySearchResult>"
-    },
-    "clearUnsentText": {
-      "_description": "Clear unsent text for a conv",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "clear": "boolean"
-    },
-    "unsentTextChanged": {
-      "_description": "Unsent text changed",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
     }
   }
 }

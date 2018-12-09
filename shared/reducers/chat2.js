@@ -12,6 +12,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -870,8 +871,6 @@ const rootReducer = (
       return state.set('isExplodingNew', action.payload.new)
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
-    case Chat2Gen.clearUnsentText:
-      return state.setIn(['clearedUnsentTextMap', action.payload.conversationIDKey], action.payload.clear)
     case Chat2Gen.metasReceived: {
       const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
       return nextState.withMutations(s => {
@@ -991,13 +990,9 @@ const rootReducer = (
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
     case Chat2Gen.giphySend:
-    case Chat2Gen.unsentTextChanged:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

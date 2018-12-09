@@ -5,7 +5,6 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
-import {debounce} from 'lodash-es'
 import Input, {type Props} from '.'
 
 type OwnProps = {
@@ -85,16 +84,10 @@ const mapDispatchToProps = dispatch => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _onTextChanged: debounce(
-    (conversationIDKey: Types.ConversationIDKey, text: string) =>
-      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
-    500
-  ),
-  _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
+  _sendTyping: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     // only valid conversations
-    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
-  _undoClearText: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createClearUnsentText({clear: false, conversationIDKey})),
+    conversationIDKey &&
+    dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
@@ -128,8 +121,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
-  sendTyping: (typing: boolean) => {
-    dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
+  sendTyping: (text: string) => {
+    dispatchProps._sendTyping(stateProps.conversationIDKey, text)
   },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0
@@ -138,11 +131,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
-    if (!unset && stateProps.clearUnsentText) {
-      dispatchProps._undoClearText(stateProps.conversationIDKey)
-    }
     setUnsentText(stateProps.conversationIDKey, text)
-    dispatchProps._onTextChanged(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
   typing: stateProps.typing,

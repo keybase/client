@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
+import * as Flow from '../../util/flow'
 import * as FsGen from '../fs-gen'
 import {type TypedState} from '../../util/container'
 import RNFetchBlob from 'rn-fetch-blob'
@@ -50,24 +51,21 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
   switch (intent) {
     case 'camera-roll':
       return Saga.sequentially([
-        Saga.call(saveAttachmentDialog, localPath),
+        Saga.callUntyped(saveAttachmentDialog, localPath),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheetFromURL, {mimeType, url: localPath}),
+        Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':
       return Saga.sequentially([
-        Saga.call(copyToDownloadDir, localPath, mimeType),
+        Saga.callUntyped(copyToDownloadDir, localPath, mimeType),
         // TODO: dismiss download when we get rid of download cards on mobile
       ])
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return null
   }
 }

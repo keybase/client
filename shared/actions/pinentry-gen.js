@@ -36,13 +36,13 @@ export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({payload
 export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({payload, type: subtractEntity})
 
 // Action Payloads
-export type DeleteEntityPayload = $Call<typeof createDeleteEntity, _DeleteEntityPayload>
-export type MergeEntityPayload = $Call<typeof createMergeEntity, _MergeEntityPayload>
-export type NewPinentryPayload = $Call<typeof createNewPinentry, _NewPinentryPayload>
-export type OnCancelPayload = $Call<typeof createOnCancel, _OnCancelPayload>
-export type OnSubmitPayload = $Call<typeof createOnSubmit, _OnSubmitPayload>
-export type ReplaceEntityPayload = $Call<typeof createReplaceEntity, _ReplaceEntityPayload>
-export type SubtractEntityPayload = $Call<typeof createSubtractEntity, _SubtractEntityPayload>
+export type DeleteEntityPayload = {|+payload: _DeleteEntityPayload, +type: 'pinentry:deleteEntity'|}
+export type MergeEntityPayload = {|+payload: _MergeEntityPayload, +type: 'pinentry:mergeEntity'|}
+export type NewPinentryPayload = {|+payload: _NewPinentryPayload, +type: 'pinentry:newPinentry'|}
+export type OnCancelPayload = {|+payload: _OnCancelPayload, +type: 'pinentry:onCancel'|}
+export type OnSubmitPayload = {|+payload: _OnSubmitPayload, +type: 'pinentry:onSubmit'|}
+export type ReplaceEntityPayload = {|+payload: _ReplaceEntityPayload, +type: 'pinentry:replaceEntity'|}
+export type SubtractEntityPayload = {|+payload: _SubtractEntityPayload, +type: 'pinentry:subtractEntity'|}
 
 // All Actions
 // prettier-ignore
@@ -54,4 +54,4 @@ export type Actions =
   | OnSubmitPayload
   | ReplaceEntityPayload
   | SubtractEntityPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

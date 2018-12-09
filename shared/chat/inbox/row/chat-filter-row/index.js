@@ -72,6 +72,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       this.props.onSetFilter('')
       this._stopEditing()
       this._input && this._input.blur()
+      this.props.onSelectDown()
     }
   }
 
