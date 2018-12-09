@@ -27,7 +27,7 @@ buildscript {
 }
 
 subprojects {project ->
-    if (project.name.contains('react-native-contacts')) {
+    if (project.name.contains('react-native-contacts') || project.name.contains('react-native-fast-image') || project.name.contains('react-native-fetch-blob') || project.name.contains('react-native-image-picker')) {
             buildscript {
                 repositories {
                 maven { url = 'https://dl.bintray.com/android/android-tools/'  }
