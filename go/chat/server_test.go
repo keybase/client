@@ -5375,6 +5375,15 @@ func (m *mockStellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []li
 	return m.specFn(payments)
 }
 
+type xlmDeclineChatUI struct {
+	*kbtest.ChatUI
+}
+
+func (c *xlmDeclineChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
+	c.StellarDataConfirm <- summary
+	return false, nil
+}
+
 func TestChatSrvStellarUI(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
@@ -5386,10 +5395,11 @@ func TestChatSrvStellarUI(t *testing.T) {
 	//uid := users[0].User.GetUID().ToBytes()
 	tc := ctc.world.Tcs[users[0].Username]
 	ui := kbtest.NewChatUI()
+	declineUI := &xlmDeclineChatUI{ChatUI: ui}
 	ctx := ctc.as(t, users[0]).startCtx
 	ctc.as(t, users[0]).h.mockChatUI = ui
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
+		chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 	mst := &mockStellar{}
 	tc.G.SetStellar(mst)
 	tc.ChatG.StellarSender = wallet.NewSender(tc.Context())
@@ -5400,23 +5410,105 @@ func TestChatSrvStellarUI(t *testing.T) {
 		for _, p := range payments {
 			res.Specs = append(res.Specs, libkb.MiniChatPaymentSpec{
 				Username:  p.Username,
-				XLMAmount: p.Amount,
+				XLMAmount: p.Amount + " XLM",
 			})
 		}
 		return res, nil
 	}
-	//specFail := func(payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
-	//		return res, errors.New("failed!")
-	//	}
-	mst.specFn = specSuccess
+	specFail := func(payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
+		return res, errors.New("failed")
+	}
+	successCase := func(expectError bool) {
+		mst.specFn = specSuccess
+		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
+			ConversationID: conv.Id,
+			TlfName:        conv.TlfName,
+			Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
+		})
+		if expectError {
+			require.Error(t, err)
+		} else {
+			require.NoError(t, err)
+		}
+		select {
+		case <-ui.StellarShowConfirm:
+		case <-time.After(delay):
+			require.Fail(t, "no confirm")
+		}
+		select {
+		case data := <-ui.StellarDataConfirm:
+			require.Equal(t, 2, len(data.Payments))
+			require.Equal(t, "10 XLM", data.XlmTotal)
+			require.Equal(t, "1 XLM", data.Payments[0].XlmAmount)
+			require.Equal(t, "5 XLM", data.Payments[1].XlmAmount)
+			require.Equal(t, users[1].Username, data.Payments[0].Username)
+			require.Equal(t, users[2].Username, data.Payments[1].Username)
+		case <-time.After(delay):
+			require.Fail(t, "no confirm")
+		}
+		select {
+		case <-ui.StellarDone:
+		case <-time.After(delay):
+			require.Fail(t, "no done")
+		}
+		if !expectError {
+			select {
+			case <-ui.PostReadyToSend:
+			case <-time.After(delay):
+				require.Fail(t, "no ready to send")
+			}
+		}
+	}
+	t.Logf("success accept")
+	successCase(false)
+	t.Logf("success decline")
+	ctc.as(t, users[0]).h.mockChatUI = declineUI
+	successCase(true)
+	ctc.as(t, users[0]).h.mockChatUI = ui
+
+	t.Logf("fail")
+	mst.specFn = specFail
 	_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
 		ConversationID: conv.Id,
 		TlfName:        conv.TlfName,
-		Body:           "+1xlm",
+		Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
+	})
+	require.Error(t, err)
+	select {
+	case <-ui.StellarShowConfirm:
+	case <-time.After(delay):
+		require.Fail(t, "no confirm")
+	}
+	select {
+	case <-ui.StellarDataConfirm:
+		require.Fail(t, "no confirm")
+	default:
+	}
+	select {
+	case <-ui.StellarDataError:
+	case <-time.After(delay):
+		require.Fail(t, "no error")
+	}
+	select {
+	case <-ui.StellarDone:
+	case <-time.After(delay):
+		require.Fail(t, "no done")
+	}
+
+	t.Logf("no payments")
+	_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
+		ConversationID: conv.Id,
+		TlfName:        conv.TlfName,
+		Body:           "pay me back",
 	})
 	require.NoError(t, err)
 	select {
 	case <-ui.StellarShowConfirm:
+		require.Fail(t, "confirm")
+	default:
+	}
+	select {
+	case <-ui.PostReadyToSend:
 	case <-time.After(delay):
 		require.Fail(t, "no confirm")
 	}
