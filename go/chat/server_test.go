@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -5352,6 +5353,73 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 	require.Equal(t, chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, res)
+}
+
+type mockStellar struct {
+	libkb.Stellar
+	specFn func([]libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error)
+}
+
+func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+	for _, p := range payments {
+		res = append(res, libkb.MiniChatPaymentResult{
+			Username:  p.Username,
+			PaymentID: stellar1.PaymentID("AHHH"),
+			Error:     nil,
+		})
+	}
+	return res, nil
+}
+
+func (m *mockStellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
+	return m.specFn(payments)
+}
+
+func TestChatSrvStellarUI(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvStellarUI", 3)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	delay := 2 * time.Second
+	//uid := users[0].User.GetUID().ToBytes()
+	tc := ctc.world.Tcs[users[0].Username]
+	ui := kbtest.NewChatUI()
+	ctx := ctc.as(t, users[0]).startCtx
+	ctc.as(t, users[0]).h.mockChatUI = ui
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
+	mst := &mockStellar{}
+	tc.G.SetStellar(mst)
+	tc.ChatG.StellarSender = wallet.NewSender(tc.Context())
+	specSuccess := func(payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
+		res = new(libkb.MiniChatPaymentSummary)
+		res.XLMTotal = "10 XLM"
+		res.DisplayTotal = "10 USD"
+		for _, p := range payments {
+			res.Specs = append(res.Specs, libkb.MiniChatPaymentSpec{
+				Username:  p.Username,
+				XLMAmount: p.Amount,
+			})
+		}
+		return res, nil
+	}
+	//specFail := func(payments []libkb.MiniChatPayment) (res *libkb.MiniChatPaymentSummary, err error) {
+	//		return res, errors.New("failed!")
+	//	}
+	mst.specFn = specSuccess
+	_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
+		ConversationID: conv.Id,
+		TlfName:        conv.TlfName,
+		Body:           "+1xlm",
+	})
+	require.NoError(t, err)
+	select {
+	case <-ui.StellarShowConfirm:
+	case <-time.After(delay):
+		require.Fail(t, "no confirm")
+	}
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {

@@ -966,22 +966,32 @@ type NonblockSearchResult struct {
 }
 
 type ChatUI struct {
-	InboxCb           chan NonblockInboxResult
-	ThreadCb          chan NonblockThreadResult
-	SearchHitCb       chan chat1.ChatSearchHitArg
-	SearchDoneCb      chan chat1.ChatSearchDoneArg
-	InboxSearchHitCb  chan chat1.ChatSearchInboxHitArg
-	InboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg
+	InboxCb            chan NonblockInboxResult
+	ThreadCb           chan NonblockThreadResult
+	SearchHitCb        chan chat1.ChatSearchHitArg
+	SearchDoneCb       chan chat1.ChatSearchDoneArg
+	InboxSearchHitCb   chan chat1.ChatSearchInboxHitArg
+	InboxSearchDoneCb  chan chat1.ChatSearchInboxDoneArg
+	StellarShowConfirm chan struct{}
+	StellarDataConfirm chan chat1.UIChatPaymentSummary
+	StellarDataError   chan string
+	StellarDone        chan struct{}
+	PostReadyToSend    chan struct{}
 }
 
 func NewChatUI() *ChatUI {
 	return &ChatUI{
-		InboxCb:           make(chan NonblockInboxResult, 20),
-		ThreadCb:          make(chan NonblockThreadResult, 20),
-		SearchHitCb:       make(chan chat1.ChatSearchHitArg, 20),
-		SearchDoneCb:      make(chan chat1.ChatSearchDoneArg, 20),
-		InboxSearchHitCb:  make(chan chat1.ChatSearchInboxHitArg, 20),
-		InboxSearchDoneCb: make(chan chat1.ChatSearchInboxDoneArg, 20),
+		InboxCb:            make(chan NonblockInboxResult, 50),
+		ThreadCb:           make(chan NonblockThreadResult, 50),
+		SearchHitCb:        make(chan chat1.ChatSearchHitArg, 50),
+		SearchDoneCb:       make(chan chat1.ChatSearchDoneArg, 50),
+		InboxSearchHitCb:   make(chan chat1.ChatSearchInboxHitArg, 50),
+		InboxSearchDoneCb:  make(chan chat1.ChatSearchInboxDoneArg, 50),
+		StellarShowConfirm: make(chan struct{}, 10),
+		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
+		StellarDataError:   make(chan string, 10),
+		StellarDone:        make(chan struct{}, 10),
+		PostReadyToSend:    make(chan struct{}, 100),
 	}
 }
 
@@ -1087,22 +1097,27 @@ func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearch
 }
 
 func (c *ChatUI) ChatStellarShowConfirm(ctx context.Context) error {
+	c.StellarShowConfirm <- struct{}{}
 	return nil
 }
 
 func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
+	c.StellarDataConfirm <- summary
 	return true, nil
 }
 
 func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) error {
+	c.StellarDataError <- msg
 	return nil
 }
 
 func (c *ChatUI) ChatStellarDone(ctx context.Context) error {
+	c.StellarDone <- struct{}{}
 	return nil
 }
 
 func (c *ChatUI) ChatPostReadyToSend(ctx context.Context) error {
+	c.PostReadyToSend <- struct{}{}
 	return nil
 }
 

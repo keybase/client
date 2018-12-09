@@ -48,6 +48,10 @@ type mockStellar struct {
 	miniFn func([]libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error)
 }
 
+func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+	return m.miniFn(payments)
+}
+
 type mockUpakLoader struct {
 	libkb.UPAKLoader
 	usernameFn func(gregor1.UID) string
@@ -70,10 +74,6 @@ func (m *mockUpakLoader) getUser(uid gregor1.UID) string {
 
 func (m *mockUpakLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	return libkb.NewNormalizedUsername(m.usernames[uid.String()]), nil
-}
-
-func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
-	return m.miniFn(payments)
 }
 
 func TestStellarSender(t *testing.T) {
