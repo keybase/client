@@ -44,7 +44,7 @@ func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 
 func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (parts []string, membersType chat1.ConversationMembersType, err error) {
 	localConv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
-	if err == nil && localConv.LocalMetadata != nil {
+	if err == nil && localConv.LocalMetadata != nil && len(localConv.LocalMetadata.WriterNames) > 0 {
 		// fast path (should always get hit)
 		membersType = localConv.Conv.GetMembersType()
 		parts = localConv.LocalMetadata.WriterNames
@@ -96,6 +96,16 @@ func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, parts []strin
 	return parts[0], nil
 }
 
+func (s *Sender) validConvUsername(ctx context.Context, username string, parts []string) bool {
+	for _, p := range parts {
+		s.Debug(ctx, "part: %s", p)
+		if username == p {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body string) (res []types.ParsedStellarPayment) {
 	defer s.Trace(ctx, func() error { return nil }, "ParsePayments")()
@@ -108,12 +118,14 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 		var username string
 		if p.Username == nil {
 			if username, err = s.getUsername(ctx, uid, parts, membersType); err != nil {
-				s.Debug(ctx, "ParseAndSendPayments: failed to get username, skipping: %s", err)
+				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}
-		} else {
-			// TODO make sure user is in the chat
+		} else if s.validConvUsername(ctx, *p.Username, parts) {
 			username = *p.Username
+		} else {
+			s.Debug(ctx, "ParsePayments: skipping mention for not being in conv")
+			continue
 		}
 		res = append(res, types.ParsedStellarPayment{
 			Username: libkb.NewNormalizedUsername(username),

@@ -1292,16 +1292,17 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       ephemeralLifetime
     )
 
-    const addMessage = (response: any) =>
-      Saga.callUntyped(function*() {
-        yield Saga.put(
-          Chat2Gen.createMessagesAdd({
-            context: {type: 'sent'},
-            messages: [newMsg],
-          })
-        )
+    const addMessage = (response: any) => [
+      Saga.put(
+        Chat2Gen.createMessagesAdd({
+          context: {type: 'sent'},
+          messages: [newMsg],
+        })
+      ),
+      Saga.callUntyped(function() {
         response && response.result()
-      })
+      }),
+    ]
     const onShowConfirm = () => [
       Saga.put(Chat2Gen.createSetPaymentConfirmInfo({info: null})),
       Saga.put(
@@ -1324,11 +1325,11 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
           },
         })
       )
-    const onDataError = (response: any) =>
+    const onDataError = (error: string, response: any) =>
       Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
-            error: 'Failed to load Stellar payment information, please try again.',
+            error,
             response,
           },
         })
@@ -1337,7 +1338,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       customResponseIncomingCallMap: {
         'chat.1.chatUi.chatPostReadyToSend': (p, r) => addMessage(r),
         'chat.1.chatUi.chatStellarDataConfirm': (p, r) => onDataConfirm(p.summary, r),
-        'chat.1.chatUi.chatStellarDataError': (p, r) => onDataError(r),
+        'chat.1.chatUi.chatStellarDataError': (p, r) => onDataError(p.message, r),
       },
       incomingCallMap: {
         'chat.1.chatUi.chatStellarDone': p => Saga.put(navigateUp()),
@@ -1368,7 +1369,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
     // We put the addMessage on the back in case the service provides chat thread data in between the
     // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
     // that is in the store on the outboxID has been sent.
-    yield addMessage(null)
+    yield addMessage()
   })
 
 const messageSendWithResult = (result, action) => {
