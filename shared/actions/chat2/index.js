@@ -2680,7 +2680,7 @@ const textHasGiphySearch = (text: string) => {
   return text.indexOf('!giphy ') === 0
 }
 
-const giphyRunSearch = (state: TypedState, action: Chat2Gen.SendTypingPayload) => {
+const giphyRunSearch = (state: TypedState, action: Chat2Gen.UnsetTextChangedPayload) => {
   const {conversationIDKey} = action.payload
   const text = action.payload.text.stringValue()
   const showingGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey)
@@ -2888,7 +2888,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   // Giphy
-  yield Saga.actionToAction(Chat2Gen.sendTyping, giphyRunSearch)
+  yield Saga.actionToAction(Chat2Gen.unsentTextChanged, giphyRunSearch)
   yield Saga.actionToAction(Chat2Gen.giphySend, giphySend)
 
   yield Saga.safeTakeEveryPure(

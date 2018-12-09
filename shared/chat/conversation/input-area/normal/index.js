@@ -3,10 +3,11 @@ import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
 import MentionInput from './mention-input'
 import {type InputProps} from './types'
-import {throttle} from 'lodash-es'
+import {debounce, throttle} from 'lodash-es'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
+const debounced = debounce((f, param) => f(param), 500)
 
 class Input extends React.PureComponent<InputProps> {
   _lastQuote: number
@@ -33,6 +34,7 @@ class Input extends React.PureComponent<InputProps> {
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
     throttled(this.props.sendTyping, text)
+    debounced(this.props.unsentTextChanged, text)
   }
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
@@ -97,11 +99,6 @@ class Input extends React.PureComponent<InputProps> {
     if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
       const text = this.props.getUnsentText()
       this._setText(text, true)
-    }
-
-    // If we are force clearing text, then blast it away here
-    if (this.props.clearUnsentText) {
-      this._setText('', true)
     }
   }
 

@@ -85,9 +85,11 @@ const mapDispatchToProps = dispatch => ({
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, text: string) =>
-    // only valid conversations
     conversationIDKey &&
     dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
+  _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
+    conversationIDKey &&
+    dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
@@ -123,6 +125,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   quoteText: stateProps.quoteText,
   sendTyping: (text: string) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, text)
+  },
+  unsentTextChanged: (text: string) => {
+    dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0

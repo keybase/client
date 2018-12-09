@@ -99,6 +99,7 @@ export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
+export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -198,6 +199,7 @@ type _ToggleSmallTeamsExpandedPayload = void
 type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
+type _UnsentTextChangedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
@@ -300,6 +302,10 @@ export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) 
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
+/**
+ * Unsent text changed
+ */
+export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload) => ({payload, type: unsentTextChanged})
 /**
  * Update messages that we might have in the store
  */
@@ -480,6 +486,7 @@ export type ToggleSmallTeamsExpandedPayload = {|+payload: _ToggleSmallTeamsExpan
 export type UnfurlRemovePayload = {|+payload: _UnfurlRemovePayload, +type: 'chat2:unfurlRemove'|}
 export type UnfurlResolvePromptPayload = {|+payload: _UnfurlResolvePromptPayload, +type: 'chat2:unfurlResolvePrompt'|}
 export type UnfurlTogglePromptPayload = {|+payload: _UnfurlTogglePromptPayload, +type: 'chat2:unfurlTogglePrompt'|}
+export type UnsentTextChangedPayload = {|+payload: _UnsentTextChangedPayload, +type: 'chat2:unsentTextChanged'|}
 export type UpdateConvExplodingModesPayload = {|+payload: _UpdateConvExplodingModesPayload, +type: 'chat2:updateConvExplodingModes'|}
 export type UpdateConvRetentionPolicyPayload = {|+payload: _UpdateConvRetentionPolicyPayload, +type: 'chat2:updateConvRetentionPolicy'|}
 export type UpdateMessagesPayload = {|+payload: _UpdateMessagesPayload, +type: 'chat2:updateMessages'|}
@@ -578,6 +585,7 @@ export type Actions =
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
+  | UnsentTextChangedPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload

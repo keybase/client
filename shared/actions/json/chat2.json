@@ -528,6 +528,11 @@
       "_description": "Giphy search results obtained",
       "conversationIDKey": "Types.ConversationIDKey",
       "result": "Array<RPCChatTypes.GiphySearchResult>"
+    },
+    "unsentTextChanged": {
+      "_description": "Unsent text changed",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
     }
   }
 }
