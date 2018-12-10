@@ -123,7 +123,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-end',
   },
   title: {
-    ...Styles.globalStyles.fontSemibold,
     color: Styles.globalColors.black_75,
   },
   titleContainer: {
