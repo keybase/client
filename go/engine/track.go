@@ -11,12 +11,11 @@ import (
 )
 
 type TrackEngineArg struct {
-	UserAssertion     string
-	Me                *libkb.User
-	Options           keybase1.TrackOptions
-	ForceRemoteCheck  bool
-	AllowSelfIdentify bool
-	SigVersion        libkb.SigVersion
+	UserAssertion    string
+	Me               *libkb.User
+	Options          keybase1.TrackOptions
+	ForceRemoteCheck bool
+	SigVersion       libkb.SigVersion
 }
 
 type TrackEngine struct {
@@ -85,6 +84,11 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 	upk := res.Upk
+
+	if _, uid, _ := libkb.BootstrapActiveDeviceWithMetaContext(m); uid.Equal(upk.GetUID()) {
+		return errors.New("You can't follow yourself.")
+	}
+
 	loadarg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(upk.GetUID()).WithPublicKeyOptional()
 	e.them, err = libkb.LoadUser(loadarg)
 	if err != nil {
