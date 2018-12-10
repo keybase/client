@@ -118,7 +118,7 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   }
 
   _isExpanded(rows: Array<RowItem>) {
-    return rows.slice(0, 7).filter(r => r.type === 'small').length > 5
+    return rows.length > 5 && rows[5].type === 'small'
   }
 
   componentDidUpdate(prevProps) {
