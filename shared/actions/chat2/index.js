@@ -1326,12 +1326,12 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         })
       )
     }
-    const onDataError = ({error}, response) => {
+    const onDataError = ({message}, response) => {
       stellarConfirmWindowResponse = response
       return Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
-            error,
+            error: message,
           },
         })
       )
@@ -1382,9 +1382,9 @@ const messageSendWithError = (result, action) => {
   logger.info('[MessageSend] error')
 }
 
-let stellarConfirmWindowResponse = null
+let stellarConfirmWindowResponse: any = null
 
-const confirmScreenResponse = (action: Chat2Gen.ConfirmScreenResponsePayload, state: TypedState) => {
+const confirmScreenResponse = (state: TypedState, action: Chat2Gen.ConfirmScreenResponsePayload) => {
   stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
 }
 

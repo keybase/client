@@ -24,23 +24,17 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  _onAccept: (response: any) => {
+  onAccept: () => {
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: true}))
   },
-  _onCancel: (response: any) => {
+  onCancel: () => {
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
   },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  ...stateProps,
-  onAccept: () => dispatchProps._onAccept(stateProps.response),
-  onCancel: () => dispatchProps._onCancel(stateProps.response),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps,
+  (s, d, o) => ({...o, ...s, ...d}),
   'PaymentsConfirm'
 )(PaymentsConfirm)
