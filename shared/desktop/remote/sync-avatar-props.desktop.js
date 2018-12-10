@@ -70,7 +70,7 @@ export const deserialize = (state: any = initialState, props: any) => {
 }
 
 function SyncAvatarProps(ComposedComponent: any) {
-  class RemoteAvatarConnected extends React.PureComponent<Props> {
+  class RemoteAvatarConnected extends React.Component<Props> {
     _onRemoteActionFired = (
       event: any,
       action: {type: string, payload: Object},
@@ -86,6 +86,26 @@ function SyncAvatarProps(ComposedComponent: any) {
           this.props.setUsernames(this.props.usernames.concat(teamnames))
         }
       }
+    }
+
+    // Do an immutable comparison
+    shouldComponentUpdate(nextProps: Props) {
+      if (this.props.avatars !== nextProps.avatars) {
+        if (!this.props.avatars.equals(nextProps.avatars)) {
+          return true
+        }
+      }
+      if (this.props.followers !== nextProps.followers) {
+        if (!this.props.followers.equals(nextProps.followers)) {
+          return true
+        }
+      }
+      if (this.props.following !== nextProps.following) {
+        if (!this.props.following.equals(nextProps.following)) {
+          return true
+        }
+      }
+      return false
     }
 
     componentDidMount() {
@@ -122,7 +142,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     windowComponent: string,
     windowParam: string,
   }
-  class Wrapper extends React.Component<WrapperProps, {usernames: I.Set<string>}> {
+  class Wrapper extends React.PureComponent<WrapperProps, {usernames: I.Set<string>}> {
     state = {usernames: I.Set()}
     setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
     render() {
