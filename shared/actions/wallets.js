@@ -538,8 +538,10 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
 
 const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
   // load the display currency of each wallet, now that we have the IDs
-  action.payload.accounts.map(account =>
-    Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+  Saga.sequentially(
+    action.payload.accounts.map(account =>
+      Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+    )
   )
 
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
