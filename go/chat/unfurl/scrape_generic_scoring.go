@@ -101,12 +101,12 @@ func getHrefAndContentAttr(e *colly.HTMLElement) []string {
 }
 
 func getOpenGraphVideo(e *colly.HTMLElement) []string {
-	sibs := e.DOM.Siblings()
-	size := sibs.Size()
 	url := e.Attr("content")
 	if len(url) == 0 {
 		return nil
 	}
+	sibs := e.DOM.Siblings()
+	size := sibs.Size()
 	mimeType := "video/mp4"
 	var height, width *int
 	for i := 0; i < size; i++ {
