@@ -11,6 +11,7 @@ import (
 )
 
 type PaymentDirectPost struct {
+	Bid               BuildPaymentID        `codec:"bid" json:"bid"`
 	FromDeviceID      keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
 	To                *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
 	DisplayAmount     string                `codec:"displayAmount" json:"displayAmount"`
@@ -22,6 +23,7 @@ type PaymentDirectPost struct {
 
 func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 	return PaymentDirectPost{
+		Bid:          o.Bid.DeepCopy(),
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
 		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
 			if x == nil {
@@ -39,6 +41,7 @@ func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 }
 
 type PaymentRelayPost struct {
+	Bid               BuildPaymentID        `codec:"bid" json:"bid"`
 	FromDeviceID      keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
 	To                *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
 	ToAssertion       string                `codec:"toAssertion" json:"toAssertion"`
@@ -53,6 +56,7 @@ type PaymentRelayPost struct {
 
 func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
 	return PaymentRelayPost{
+		Bid:          o.Bid.DeepCopy(),
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
 		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
 			if x == nil {

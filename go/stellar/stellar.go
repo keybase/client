@@ -439,6 +439,7 @@ type DisplayBalance struct {
 }
 
 type SendPaymentArg struct {
+	Bid            stellar1.BuildPaymentID
 	From           stellar1.AccountID // Optional. Defaults to primary account.
 	To             stellarcommon.RecipientInput
 	Amount         string // Amount of XLM to send.
@@ -495,7 +496,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
 	if recipient.AccountID == nil || sendArg.ForceRelay {
-		return sendRelayPayment(m, walletState,
+		return sendRelayPayment(m, walletState, sendArg.Bid,
 			senderSeed, recipient, sendArg.Amount, sendArg.DisplayBalance,
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
@@ -525,6 +526,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}
 
 	post := stellar1.PaymentDirectPost{
+		Bid:             sendArg.Bid,
 		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
 		DisplayAmount:   sendArg.DisplayBalance.Amount,
 		DisplayCurrency: sendArg.DisplayBalance.Currency,
@@ -831,7 +833,7 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
+func sendRelayPayment(m libkb.MetaContext, walletState *WalletState, buildID stellar1.BuildPaymentID,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
 	secretNote string, publicMemo string, quickReturn bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
@@ -852,6 +854,7 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 		return res, err
 	}
 	post := stellar1.PaymentRelayPost{
+		BuildPaymentID:    buildID,
 		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,

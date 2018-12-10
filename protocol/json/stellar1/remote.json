@@ -17,6 +17,10 @@
       "name": "PaymentDirectPost",
       "fields": [
         {
+          "type": "BuildPaymentID",
+          "name": "bid"
+        },
+        {
           "type": "keybase1.DeviceID",
           "name": "fromDeviceID"
         },
@@ -53,6 +57,10 @@
       "type": "record",
       "name": "PaymentRelayPost",
       "fields": [
+        {
+          "type": "BuildPaymentID",
+          "name": "bid"
+        },
         {
           "type": "keybase1.DeviceID",
           "name": "fromDeviceID"

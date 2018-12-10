@@ -5,6 +5,7 @@ protocol remote {
   import idl "common.avdl";
 
   record PaymentDirectPost {
+    BuildPaymentID bid;
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
     string displayAmount;
@@ -17,6 +18,7 @@ protocol remote {
   }
 
   record PaymentRelayPost {
+    BuildPaymentID bid;
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to; // Nil for SBS
     string toAssertion; // Ex: 'mlsteele' or 'maxtaco@reddit'
