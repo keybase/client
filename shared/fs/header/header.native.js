@@ -10,10 +10,12 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
     rightActions={[
       onChat ? {
         icon: 'iconfont-chat',
+        label: 'Chat',
         onPress: onChat,
-      } : {},
+      } : null,
       {
         custom: <AddNew path={path} />,
+        label: 'Add new…',
       },
     ]}
     title={title}

@@ -5,60 +5,94 @@ import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Badge from './badge'
 import Box from './box'
+import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import * as Styles from '../styles'
 import type {Props} from './header-hoc.types'
 
-export const HeaderHocHeader = (props: Props) => (
-  <Box style={Styles.collapseStyles([styles.header, props.theme === 'light' ? styles.headerLight : styles.headerDark, props.headerStyle])}>
-    {props.customComponent}
-    {props.onCancel && (
-      <Box style={styles.leftAction}>
-        <Text type="BodyBigLink" style={styles.action} onClick={props.onCancel}>
-          {props.customCancelText || 'Cancel'}
-        </Text>
-      </Box>
-    )}
-    {props.onBack && (
-      <Box style={styles.leftAction}>
-        <BackButton
-          hideBackLabel={props.hideBackLabel}
-          iconColor={props.theme === 'light' ? Styles.globalColors.black_40 : Styles.globalColors.white}
-          style={styles.action}
-          onClick={props.onBack}
-        />
-        {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
-      </Box>
-    )}
-    {!!props.title && (
-      <Box style={styles.titleContainer}>
-        <Text type="BodySemibold" style={styles.title} lineClamp={1}>!{props.title}</Text>
-      </Box>
-    )}
-    <Box style={styles.rightAction}>
-      {props.rightActions && props.rightActions.filter(Boolean).slice(0, 2).map((action, item) => (
-        action.custom
-          ? <Box style={styles.action}>
-            {action.custom}
-            </Box>
-          : action.icon
-            ? <Icon
+const MAX_RIGHT_ACTIONS = 3
+type State = {|
+  floatingMenuVisible: boolean,
+|}
+export class HeaderHocHeader extends React.Component<Props, State> {
+  state = {
+    floatingMenuVisible: false,
+  }
+  _onHidden = () => this.setState({floatingMenuVisible: false})
+  _showFloatingMenu = () => this.setState({floatingMenuVisible: true})
+  render() {
+    return (
+      <Box style={Styles.collapseStyles([styles.header, this.props.theme === 'dark' ? styles.headerDark : styles.headerLight, this.props.headerStyle])}>
+        {this.props.customComponent}
+        {this.props.onCancel && (
+          <Box style={styles.leftAction}>
+            <Text type="BodyBigLink" style={styles.action} onClick={this.props.onCancel}>
+              {this.props.customCancelText || 'Cancel'}
+            </Text>
+          </Box>
+        )}
+        {this.props.onBack && (
+          <Box style={styles.leftAction}>
+            <BackButton
+              hideBackLabel={this.props.hideBackLabel}
+              iconColor={this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
+              style={styles.action}
+              onClick={this.props.onBack}
+            />
+            {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
+          </Box>
+        )}
+        {!!this.props.title && (
+          <Box style={styles.titleContainer}>
+            <Text type="BodySemibold" style={styles.title} lineClamp={1}>!{this.props.title}</Text>
+          </Box>
+        )}
+        <Box style={Styles.collapseStyles([styles.rightActions, this.props.rightActions && styles.rightActionsPadding])}>
+          {this.props.rightActions && this.props.rightActions.filter(Boolean).slice(0, this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1).map((action, item) => (
+            action.custom
+              ? <Box style={styles.action}>
+                {action.custom}
+                </Box>
+              : action.icon
+                ? <Icon
+                    fontSize={22}
+                    onClick={action.onPress}
+                    style={styles.action}
+                    type={action.icon}
+                  />
+                : <Text
+                    type="BodyBigLink"
+                    style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
+                    onClick={action.onPress}
+                  >
+                    {action.label}
+                  </Text>
+          ))}
+          {this.props.rightActions && this.props.rightActions.length > MAX_RIGHT_ACTIONS && (
+            <>
+              <Icon
                 fontSize={22}
-                onClick={action.onPress}
+                onClick={this._showFloatingMenu}
                 style={styles.action}
-                type={action.icon}
+                type="iconfont-ellipsis"
               />
-            : <Text
-                type="BodyBigLink"
-                style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
-                onClick={action.onPress}
-              >
-                {action.label}
-              </Text>
-      ))}
-    </Box>
-  </Box>
-)
+              <FloatingMenu
+                visible={this.state.floatingMenuVisible}
+                items={this.props.rightActions.filter(Boolean).slice(MAX_RIGHT_ACTIONS - 1).map((action, item) => ({
+                  onClick: action.onPress,
+                  title: action.label,
+                }))}
+                onHidden={this._onHidden}
+                position="bottom left"
+                closeOnSelect={true}
+              />
+            </>
+          )}
+        </Box>
+      </Box>
+    )
+  }
+}
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
@@ -78,10 +112,10 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
 const styles = Styles.styleSheetCreate({
   action: {
     opacity: 1,
-    paddingBottom: 8,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: 8,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
   actionPressed: {
     opacity: 0.3,
@@ -116,11 +150,14 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     justifyContent: 'flex-start',
   },
-  rightAction: {
+  rightActions: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
     flex: 1,
     justifyContent: 'flex-end',
+  },
+  rightActionsPadding: {
+    paddingRight: Styles.globalMargins.tiny,
   },
   title: {
     color: Styles.globalColors.black_75,

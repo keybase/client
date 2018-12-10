@@ -4,7 +4,7 @@ import {type StylesCrossPlatform} from '../styles'
 import {type IconType} from './icon.constants'
 type Action = {
   custom?: React.Node,
-  label?: string,
+  label: string,
   icon?: IconType,
   onPress?: ?Function,
 }
@@ -20,5 +20,5 @@ export type Props = {
   theme?: 'light' | 'dark', // defaults to light
   rightActionLabel?: string,
   onRightAction?: ?() => void,
-  rightActions?: Action[],
+  rightActions?: (?Action)[],
 }
