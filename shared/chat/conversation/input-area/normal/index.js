@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
+import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
@@ -11,12 +12,35 @@ import {throttle} from 'lodash-es'
 const throttled = throttle((f, param) => f(param), 2000)
 
 const suggestorToMarker = {
+  emoji: ':',
   users: '@',
 }
 
 const suggestorKeyExtractors = {
+  emoji: item => item.id,
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
+
+const emojiDatasource = (filter: string) => (filter.length >= 2 ? emojiIndex.search(filter) : [])
+const emojiRenderer = (item, selected: boolean) => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={{
+      alignItems: 'center',
+      backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
+    }}
+    gap="small"
+  >
+    <Kb.Emoji emojiName={item.colons} size={40} />
+    <Kb.Text type="Body">{item.colons}</Kb.Text>
+  </Kb.Box2>
+)
+const emojiTransformer = input => input
 
 class Input extends React.PureComponent<InputProps> {
   _lastQuote: number
@@ -29,9 +53,9 @@ class Input extends React.PureComponent<InputProps> {
   constructor(props: InputProps) {
     super(props)
     this._lastQuote = 0
-    this._suggestorDatasource = {users: this._getUserSuggestions}
-    this._suggestorRenderer = {users: this._renderUserSuggestion}
-    this._suggestorTransformer = {users: this._transformUserSuggestion}
+    this._suggestorDatasource = {emoji: emojiDatasource, users: this._getUserSuggestions}
+    this._suggestorRenderer = {emoji: emojiRenderer, users: this._renderUserSuggestion}
+    this._suggestorTransformer = {emoji: emojiTransformer, users: this._transformUserSuggestion}
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
