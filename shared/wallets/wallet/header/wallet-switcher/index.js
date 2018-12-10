@@ -23,7 +23,7 @@ const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => {
     },
   ].concat(
     props.accountIDs.map(accountID => ({
-      title: 'test',
+      title: accountID,
       view: <WalletRow accountID={accountID} />,
     }))
   )
