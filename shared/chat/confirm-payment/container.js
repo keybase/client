@@ -12,13 +12,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     displayTotal: pinfo?.summary?.displayTotal,
     error: pinfo?.error,
     loading: !pinfo,
-    payments: payments.map(p => ({
-      displayAmount: p.displayAmount,
-      error: p.error,
-      fullName: p.fullName,
-      username: p.username,
-      xlmAmount: p.xlmAmount,
-    })),
+    payments,
     xlmTotal: pinfo?.summary?.xlmTotal,
   }
 }

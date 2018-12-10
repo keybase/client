@@ -48,10 +48,29 @@ const errorProps = {
   error: 'Failed!',
 }
 
+const smallProps = {
+  ...props,
+  xlmTotal: '1 XLM',
+}
+
+const onePaymentProps = {
+  ...props,
+  payments: [
+    {
+      displayAmount: '$1.00 USD',
+      fullName: 'Cécile Boucheron',
+      username: 'cecileb',
+      xlmAmount: '4.4811371 XLM',
+    },
+  ],
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Wallet/Confirm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
     .add('Loaded', () => <PaymentsConfirm {...props} />)
+    .add('Loaded (one)', () => <PaymentsConfirm {...onePaymentProps} />)
+    .add('Loaded (small total)', () => <PaymentsConfirm {...smallProps} />)
     .add('Loading', () => <PaymentsConfirm {...loadingProps} />)
     .add('Error', () => <PaymentsConfirm {...errorProps} />)
 }
