@@ -131,7 +131,12 @@ const styles = Styles.styleSheetCreate({
   siteNameContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
+    },
+    isElectron: {
       minHeight: 16,
+    },
+    isMobile: {
+      minHeight: 21,
     },
   }),
   url: {

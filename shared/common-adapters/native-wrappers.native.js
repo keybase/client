@@ -1,6 +1,7 @@
 // @flow
 import {
   ActivityIndicator as NativeActivityIndicator,
+  Alert as NativeAlert,
   Animated as NativeAnimated,
   BackHandler as NativeBackHandler,
   Clipboard as NativeClipboard,
@@ -37,6 +38,7 @@ import NativeVirtualizedList from './virtualized-list.native'
 // We set some useful default here
 export {
   NativeActivityIndicator,
+  NativeAlert,
   NativeAnimated,
   NativeClipboard,
   NativeBackHandler,
