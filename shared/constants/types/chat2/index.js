@@ -30,8 +30,6 @@ export type QuoteInfo = I.RecordOf<_QuoteInfo>
 export type PaymentConfirmInfo = {
   error?: string,
   summary?: RPCChatTypes.UIChatPaymentSummary,
-  // $FlowIssue let me use any here
-  response: any,
 }
 
 // Static config data we use for various things

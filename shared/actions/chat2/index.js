@@ -1292,7 +1292,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       ephemeralLifetime
     )
 
-    const addMessage = (response: any) => [
+    const addMessage = (p, response) => [
       Saga.put(
         Chat2Gen.createMessagesAdd({
           context: {type: 'sent'},
@@ -1316,33 +1316,35 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         })
       ),
     ]
-    const onDataConfirm = (summary: RPCChatTypes.UIChatPaymentSummary, response: any) =>
-      Saga.put(
+    const onDataConfirm = ({summary}, response) => {
+      stellarConfirmWindowResponse = response
+      return Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
-            response,
             summary,
           },
         })
       )
-    const onDataError = (error: string, response: any) =>
-      Saga.put(
+    }
+    const onDataError = ({error}, response) => {
+      stellarConfirmWindowResponse = response
+      return Saga.put(
         Chat2Gen.createSetPaymentConfirmInfo({
           info: {
             error,
-            response,
           },
         })
       )
+    }
     yield RPCChatTypes.localPostTextNonblockRpcSaga({
       customResponseIncomingCallMap: {
-        'chat.1.chatUi.chatPostReadyToSend': (p, r) => addMessage(r),
-        'chat.1.chatUi.chatStellarDataConfirm': (p, r) => onDataConfirm(p.summary, r),
-        'chat.1.chatUi.chatStellarDataError': (p, r) => onDataError(p.message, r),
+        'chat.1.chatUi.chatPostReadyToSend': addMessage,
+        'chat.1.chatUi.chatStellarDataConfirm': onDataConfirm,
+        'chat.1.chatUi.chatStellarDataError': onDataError,
       },
       incomingCallMap: {
         'chat.1.chatUi.chatStellarDone': p => Saga.put(navigateUp()),
-        'chat.1.chatUi.chatStellarShowConfirm': p => onShowConfirm(),
+        'chat.1.chatUi.chatStellarShowConfirm': onShowConfirm,
       },
       params: {
         ...ephemeralData,
@@ -1378,6 +1380,12 @@ const messageSendWithResult = (result, action) => {
 
 const messageSendWithError = (result, action) => {
   logger.info('[MessageSend] error')
+}
+
+let stellarConfirmWindowResponse = null
+
+const confirmScreenResponse = (action: Chat2Gen.ConfirmScreenResponsePayload, state: TypedState) => {
+  stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
 }
 
 const previewConversationAfterFindExisting = (
@@ -2878,6 +2886,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
+  yield Saga.actionToAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)

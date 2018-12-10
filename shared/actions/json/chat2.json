@@ -517,6 +517,10 @@
     "setPaymentConfirmInfo": {
       "_description": "Set the payment confirm modal payment data",
       "info": "?Types.PaymentConfirmInfo"
+    },
+    "confirmScreenResponse": {
+      "_description": "User responded to the chat Stellar confirm screen",
+      "accept": "boolean"
     }
   }
 }
