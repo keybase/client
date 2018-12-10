@@ -4,6 +4,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
@@ -26,7 +27,6 @@ import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
-import * as ConfigGen from '../actions/config-gen'
 
 type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: Types.FriendshipsTab}>
 
@@ -112,6 +112,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
       ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
       : dispatch(navigateAppend(['editAvatarPlaceholder'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
+  onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onFolderClick: folder =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(folder.path)})),
   onMissingProofClick: (missingProof: MissingProof) =>
