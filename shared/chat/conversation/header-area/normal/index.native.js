@@ -1,23 +1,14 @@
 // @flow
 import * as React from 'react'
-import {
-  Avatar,
-  Badge,
-  Box2,
-  ClickableBox,
-  Icon,
-  iconCastPlatformStyles,
-  Text,
-  ConnectedUsernames,
-} from '../../../../common-adapters'
-import {collapseStyles, globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 
 // width of containers for back button and info button.
 // must be increased if something else will go in those,
 // remember to check that nothing overflows on android!
 const marginWidth = 60
-const shhIconColor = globalColors.black_20
+const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const Wrapper = (props: {
@@ -26,32 +17,32 @@ const Wrapper = (props: {
   onBack: () => void,
   onToggleInfoPanel: () => void,
 }) => (
-  <Box2 direction="horizontal" style={styles.container}>
-    <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon
+  <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.ClickableBox onClick={props.onBack} style={styles.leftMargin}>
+      <Kb.Icon
         type="iconfont-arrow-left"
         fontSize={24}
-        color={globalColors.black_40}
-        style={iconCastPlatformStyles(styles.arrow)}
+        color={Styles.globalColors.black_40}
+        style={Kb.iconCastPlatformStyles(styles.arrow)}
       />
-      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
-    </ClickableBox>
-    <Box2
+      {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} />}
+    </Kb.ClickableBox>
+    <Kb.Box2
       direction="vertical"
-      style={collapseStyles([styles.contentContainer, !!props.badgeNumber && styles.extraCenterPadding])}
+      style={Styles.collapseStyles([styles.contentContainer, !!props.badgeNumber && styles.extraCenterPadding])}
     >
       {props.children}
-    </Box2>
-    <ClickableBox onClick={props.onToggleInfoPanel} style={styles.rightMargin}>
-      <Icon type="iconfont-info" fontSize={24} />
-    </ClickableBox>
-  </Box2>
+    </Kb.Box2>
+    <Kb.ClickableBox onClick={props.onToggleInfoPanel} style={styles.rightMargin}>
+      <Kb.Icon type="iconfont-info" fontSize={24} />
+    </Kb.ClickableBox>
+  </Kb.Box2>
 )
 
 const ShhIcon = props => (
-  <Icon
+  <Kb.Icon
     type="iconfont-shh"
-    style={iconCastPlatformStyles(styles.shhIcon)}
+    style={Kb.iconCastPlatformStyles(styles.shhIcon)}
     color={shhIconColor}
     fontSize={shhIconFontSize}
     onClick={props.onClick}
@@ -60,59 +51,59 @@ const ShhIcon = props => (
 
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
-    <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName} size={16} />
-      <Text
-        type={isMobile
+    <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+      <Kb.Avatar teamname={props.teamName} size={16} />
+      <Kb.Text
+        type={Styles.isMobile
           ? 'BodySemibold'
           : props.smallTeam
             ? 'BodyBig'
             : 'BodySmallSemibold'}
         lineClamp={1}
         ellipsizeMode="middle"
-        style={collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
+        style={Styles.collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
       >
         &nbsp;
         {props.teamName}
-      </Text>
+      </Kb.Text>
       {props.smallTeam && props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
+    </Kb.Box2>
     {!props.smallTeam && (
-      <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type={isMobile ? 'BodySemibold' : 'BodyBig'} style={styles.channelName}>
+      <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+        <Kb.Text type={Styles.isMobile ? 'BodySemibold' : 'BodyBig'} style={styles.channelName}>
           #{props.channelName}
-        </Text>
+        </Kb.Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-      </Box2>
+      </Kb.Box2>
     )}
   </Wrapper>
 )
 
 const UsernameHeader = (props: Props) => (
   <Wrapper {...props}>
-    <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
-      <ConnectedUsernames
+    <Kb.Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
+      <Kb.ConnectedUsernames
         colorFollowing={true}
         inline={false}
-        commaColor={globalColors.black_40}
-        type={isMobile ? 'BodySemibold' : 'BodyBig'}
+        commaColor={Styles.globalColors.black_40}
+        type={Styles.isMobile ? 'BodySemibold' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
         skipSelf={props.participants.length > 1}
       />
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
+    </Kb.Box2>
   </Wrapper>
 )
 
 const marginStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   width: marginWidth,
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   arrow: {marginRight: -3, marginTop: 3},
   center: {
     justifyContent: 'center',
@@ -120,15 +111,15 @@ const styles = styleSheetCreate({
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
   channelName: {
-    color: globalColors.black_75,
+    color: Styles.globalColors.black_75,
   },
   channelNameLight: {
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_40,
   },
   container: {
     alignItems: 'stretch',
-    backgroundColor: globalColors.fastBlank,
-    borderBottomColor: globalColors.black_10,
+    backgroundColor: Styles.globalColors.fastBlank,
+    borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     minHeight: 44,
   },
@@ -136,21 +127,21 @@ const styles = styleSheetCreate({
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
-  extraCenterPadding: {paddingLeft: globalMargins.tiny, paddingRight: globalMargins.tiny},
+  extraCenterPadding: {paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.tiny},
   leftMargin: {
     ...marginStyle,
     justifyContent: 'flex-start',
-    paddingLeft: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
   },
   rightMargin: {
     ...marginStyle,
     justifyContent: 'flex-end',
-    paddingRight: globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
-  shhIcon: {marginLeft: globalMargins.xtiny},
+  shhIcon: {marginLeft: Styles.globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
 })
 
