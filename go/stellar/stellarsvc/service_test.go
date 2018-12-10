@@ -1464,12 +1464,12 @@ func (t *testUISource) StellarUI() stellar1.UiInterface {
 }
 
 type mockStellarUI struct {
-	UIPaymentReviewHandler func(context.Context, stellar1.UiPaymentReviewArg) error
+	PaymentReviewedHandler func(context.Context, stellar1.PaymentReviewedArg) error
 }
 
-func (ui *mockStellarUI) UiPaymentReview(ctx context.Context, arg stellar1.UiPaymentReviewArg) error {
-	if ui.UIPaymentReviewHandler != nil {
-		return ui.UIPaymentReviewHandler(ctx, arg)
+func (ui *mockStellarUI) PaymentReviewed(ctx context.Context, arg stellar1.PaymentReviewedArg) error {
+	if ui.PaymentReviewedHandler != nil {
+		return ui.PaymentReviewedHandler(ctx, arg)
 	}
 	return fmt.Errorf("mockStellarUI.UiPaymentReview called with no handler")
 }

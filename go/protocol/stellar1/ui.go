@@ -8,15 +8,15 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type UIPaymentReview struct {
+type UIPaymentReviewed struct {
 	Bid        BuildPaymentID    `codec:"bid" json:"bid"`
 	Seqno      int               `codec:"seqno" json:"seqno"`
 	Banners    []SendBannerLocal `codec:"banners" json:"banners"`
 	NextButton string            `codec:"nextButton" json:"nextButton"`
 }
 
-func (o UIPaymentReview) DeepCopy() UIPaymentReview {
-	return UIPaymentReview{
+func (o UIPaymentReviewed) DeepCopy() UIPaymentReviewed {
+	return UIPaymentReviewed{
 		Bid:   o.Bid.DeepCopy(),
 		Seqno: o.Seqno,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
@@ -34,31 +34,31 @@ func (o UIPaymentReview) DeepCopy() UIPaymentReview {
 	}
 }
 
-type UiPaymentReviewArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Msg       UIPaymentReview `codec:"msg" json:"msg"`
+type PaymentReviewedArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Msg       UIPaymentReviewed `codec:"msg" json:"msg"`
 }
 
 type UiInterface interface {
-	UiPaymentReview(context.Context, UiPaymentReviewArg) error
+	PaymentReviewed(context.Context, PaymentReviewedArg) error
 }
 
 func UiProtocol(i UiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "stellar.1.ui",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"uiPaymentReview": {
+			"paymentReviewed": {
 				MakeArg: func() interface{} {
-					var ret [1]UiPaymentReviewArg
+					var ret [1]PaymentReviewedArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UiPaymentReviewArg)
+					typedArgs, ok := args.(*[1]PaymentReviewedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]UiPaymentReviewArg)(nil), args)
+						err = rpc.NewTypeError((*[1]PaymentReviewedArg)(nil), args)
 						return
 					}
-					err = i.UiPaymentReview(ctx, typedArgs[0])
+					err = i.PaymentReviewed(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -70,7 +70,7 @@ type UiClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c UiClient) UiPaymentReview(ctx context.Context, __arg UiPaymentReviewArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.ui.uiPaymentReview", []interface{}{__arg}, nil)
+func (c UiClient) PaymentReviewed(ctx context.Context, __arg PaymentReviewedArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.ui.paymentReviewed", []interface{}{__arg}, nil)
 	return
 }

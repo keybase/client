@@ -329,9 +329,9 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 		mctx.CDebugf("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
 			arg.Bid, arg.SessionID, seqno, nextButton, len(banners))
 		go func() {
-			err := stellarUI.UiPaymentReview(mctx.Ctx(), stellar1.UiPaymentReviewArg{
+			err := stellarUI.PaymentReviewed(mctx.Ctx(), stellar1.PaymentReviewedArg{
 				SessionID: arg.SessionID,
-				Msg: stellar1.UIPaymentReview{
+				Msg: stellar1.UIPaymentReviewed{
 					Bid:        arg.Bid,
 					Seqno:      seqno,
 					Banners:    banners,

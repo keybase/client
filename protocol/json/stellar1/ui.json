@@ -9,7 +9,7 @@
   "types": [
     {
       "type": "record",
-      "name": "UIPaymentReview",
+      "name": "UIPaymentReviewed",
       "fields": [
         {
           "type": "BuildPaymentID",
@@ -34,7 +34,7 @@
     }
   ],
   "messages": {
-    "uiPaymentReview": {
+    "paymentReviewed": {
       "request": [
         {
           "name": "sessionID",
@@ -42,7 +42,7 @@
         },
         {
           "name": "msg",
-          "type": "UIPaymentReview"
+          "type": "UIPaymentReviewed"
         }
       ],
       "response": null
