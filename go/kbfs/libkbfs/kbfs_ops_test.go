@@ -4448,6 +4448,40 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus(fNode, FinishedPrefetch)
 	checkStatus(dNode, FinishedPrefetch)
 	checkStatus(gNode, FinishedPrefetch)
+
+	t.Log("Remove a synced path")
+	syncConfig.Paths = syncConfig.Paths[:len(syncConfig.Paths)-1]
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkSyncCache(10)
+	checkStatus(bNode, FinishedPrefetch)
+	checkStatus(cNode, FinishedPrefetch)
+	checkStatus(eNode, FinishedPrefetch)
+	checkStatus(fNode, FinishedPrefetch)
+	checkStatus(dNode, NoPrefetch)
+	checkStatus(gNode, NoPrefetch)
+
+	t.Log("Move a synced subdirectory somewhere else")
+	err = kbfsOps2.Rename(ctx, cNode, "e", dNode, "e")
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	t.Log("Trigger a mark-and-sweep right away, to simulate the timer")
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	ops.triggerMarkAndSweepLocked()
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	checkSyncCache(8)
+	checkStatus(bNode, FinishedPrefetch)
+	checkStatus(cNode, FinishedPrefetch)
+	checkStatus(eNode, NoPrefetch)
+	checkStatus(fNode, NoPrefetch)
 }
 
 func TestKBFSOpsRecentHistorySync(t *testing.T) {
