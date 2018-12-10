@@ -467,6 +467,8 @@ func SendPaymentCLI(m libkb.MetaContext, walletState *WalletState, sendArg SendP
 
 // SendPaymentGUI sends XLM from GUI.
 func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	// GUI should always use QuickReturn.
+	sendArg.QuickReturn = true
 	return sendPayment(m, walletState, sendArg, false)
 }
 
