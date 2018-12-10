@@ -110,13 +110,11 @@ func getOpenGraphVideo(e *colly.HTMLElement) []string {
 	heightStr, _ :=
 		e.DOM.SiblingsFiltered("meta[content][property=\"og:video:height\"]").Eq(0).Attr("content")
 	if h, err := strconv.Atoi(heightStr); err == nil && h > 0 {
-		height = new(int)
-		*height = h
+		height = &h
 	}
 	widthStr, _ := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:width\"]").Eq(0).Attr("content")
 	if w, err := strconv.Atoi(widthStr); err == nil && w > 0 {
-		width = new(int)
-		*width = w
+		width = &w
 	}
 	typeStr, ok := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:type\"]").Eq(0).Attr("content")
 	if ok {
