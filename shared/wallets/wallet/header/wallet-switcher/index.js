@@ -71,11 +71,11 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
     )
     .concat([
       {
-        title: 'Close',
+        title: 'Cancel',
         view: renderItem(
           {
             onClick: props.toggleShowingMenu,
-            title: 'Close',
+            title: 'Cancel',
           },
           // pass in nothing to onHidden so it doesn't trigger it twice
           () => {}
