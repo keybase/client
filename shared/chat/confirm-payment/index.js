@@ -101,44 +101,37 @@ const PaymentsConfirm = (props: Props) => (
             (APPROXIMATELY {props.displayTotal})
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.summaryContainer}>
-          <Kb.ScrollView style={styles.paymentsContainer}>
-            {props.payments.map(p => (
-              <Kb.Box2
-                key={p.username}
-                direction="horizontal"
-                fullWidth={true}
-                style={styles.paymentContainer}
-              >
-                <PaymentRow {...p} />
-              </Kb.Box2>
-            ))}
-          </Kb.ScrollView>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-            <Kb.Button
-              type="Secondary"
-              small={Styles.isMobile}
-              onClick={props.onCancel}
-              style={styles.cancelButton}
-              label="Cancel"
-            />
-            <Kb.WaitingButton
-              style={styles.submitButton}
-              small={Styles.isMobile}
-              type="PrimaryGreen"
-              onClick={props.onAccept}
-              waitingKey={null}
-              children={
-                <Kb.Icon
-                  color={Styles.globalColors.white}
-                  style={Kb.iconCastPlatformStyles(styles.submitIcon)}
-                  type="iconfont-stellar-send"
-                />
-              }
-              label={'Send ' + props.xlmTotal}
-            />
-          </Kb.ButtonBar>
-        </Kb.Box2>
+        <Kb.ScrollView style={styles.paymentsContainer}>
+          {props.payments.map(p => (
+            <Kb.Box2 key={p.username} direction="horizontal" fullWidth={true} style={styles.paymentContainer}>
+              <PaymentRow {...p} />
+            </Kb.Box2>
+          ))}
+        </Kb.ScrollView>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
+          <Kb.Button
+            type="Secondary"
+            small={Styles.isMobile}
+            onClick={props.onCancel}
+            style={styles.cancelButton}
+            label="Cancel"
+          />
+          <Kb.WaitingButton
+            style={styles.submitButton}
+            small={Styles.isMobile}
+            type="PrimaryGreen"
+            onClick={props.onAccept}
+            waitingKey={null}
+            children={
+              <Kb.Icon
+                color={Styles.globalColors.white}
+                style={Kb.iconCastPlatformStyles(styles.submitIcon)}
+                type="iconfont-stellar-send"
+              />
+            }
+            label={'Send ' + props.xlmTotal}
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     )}
   </Kb.MaybePopup>
@@ -158,7 +151,6 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
-      justifyContent: 'space-between',
     },
     isElectron: {
       height: 458,
@@ -173,7 +165,7 @@ const styles = Styles.styleSheetCreate({
   },
   fullErrorContainer: Styles.platformStyles({
     isElectron: {
-      padding: Styles.globalMargins.small,
+      padding: 20,
     },
   }),
   headerText: Styles.platformStyles({
@@ -183,7 +175,7 @@ const styles = Styles.styleSheetCreate({
   }),
   icon: Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.small,
+      marginBottom: 16,
       marginTop: 35,
     },
   }),
@@ -205,9 +197,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   paymentsContainer: Styles.platformStyles({
-    common: {
-      maxHeight: 150,
-      minHeight: 50,
+    isElectron: {
+      minHeight: 150,
     },
   }),
   submitButton: Styles.platformStyles({
@@ -218,15 +209,7 @@ const styles = Styles.styleSheetCreate({
   }),
   submitIcon: Styles.platformStyles({
     isElectron: {
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  summaryContainer: Styles.platformStyles({
-    common: {
-      justifyContent: 'space-between',
-    },
-    isElectron: {
-      height: '100%',
+      paddingRight: 8,
     },
   }),
   totalContainer: Styles.platformStyles({
@@ -235,8 +218,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.purple,
     },
     isElectron: {
-      height: '100%',
-      paddingBottom: 50,
+      height: 242,
     },
   }),
   xlmTotal: Styles.platformStyles({
