@@ -736,7 +736,7 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 		err = translateErr(err)
 	}()
 
-	if fs.empty && (p == "" || p == ".") {
+	if fs.empty && (p == "" || p == "." || p == "/") {
 		return nil, nil
 	} else if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
@@ -932,6 +932,10 @@ func (fs *FS) ChrootAsLibFS(p string) (newFS *FS, err error) {
 		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
 		err = translateErr(err)
 	}()
+
+	if p == "" || p == "." {
+		return fs, nil
+	}
 
 	if err := fs.requireNonEmpty(); err != nil {
 		return nil, err
