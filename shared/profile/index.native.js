@@ -11,7 +11,7 @@ import Folders from './folders/container'
 import React, {Component} from 'react'
 import {chunk} from 'lodash-es'
 import moment from 'moment'
-import UserActions from './user-actions'
+import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
@@ -87,6 +87,47 @@ const _ShowcasedTeamRow = (
   </Kb.ClickableBox>
 )
 const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
+
+const _StellarFederatedAddress = (props: StellarFederatedAddressProps & Kb.OverlayParentProps) => {
+  const _menuItems = makeStellarAddressMenuItems(props)
+  const stellarAddressNameStyle = {
+    color: props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
+  }
+  return (
+    <Kb.Box style={styles.styleRow}>
+      <Kb.Box style={styles.iconContainer}>
+        <Kb.Icon
+          style={styles.styleService}
+          color={styles.styleServiceContainer.color}
+          fontSize={styles.styleServiceContainer.fontSize}
+          textAlign="center"
+          type={'iconfont-identity-stellar'}
+          onClick={props.toggleShowingMenu}
+        />
+      </Kb.Box>
+      <Kb.Box style={styles.styleProofNameSection}>
+        <Kb.Box style={styles.proofNameLabelContainer}>
+          <Kb.Text type="Body" onClick={props.toggleShowingMenu} selectable={true}>
+            <Kb.Text type="Body" style={stellarAddressNameStyle}>
+              {props.stellarAddress}
+            </Kb.Text>
+          </Kb.Text>
+          <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={{marginTop: 1}} />
+        </Kb.Box>
+      </Kb.Box>
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        attachTo={props.getAttachmentRef}
+        containerStyle={styles.floatingMenu}
+        items={_menuItems}
+        onHidden={props.toggleShowingMenu}
+        position="bottom right"
+        visible={props.showingMenu}
+      />
+    </Kb.Box>
+  )
+}
+const StellarFederatedAddress = Kb.OverlayParentHOC(_StellarFederatedAddress)
 
 class Profile extends Component<Props, State> {
   state = {
@@ -340,6 +381,14 @@ class Profile extends Component<Props, State> {
             loadingComponent={this._makeUserProofs(true)}
             doneLoadingComponent={this._makeUserProofs(false)}
           />
+          {!!this.props.stellarAddress && !this.props.loading && (
+            <StellarFederatedAddress
+              currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
+              stellarAddress={this.props.stellarAddress}
+              onSendOrRequest={this.props.onSendOrRequestStellarAddress}
+              onCopyAddress={this.props.onCopyStellarAddress}
+            />
+          )}
           {!this.props.loading && (
             <Kb.UserProofs
               type={'missingProofs'}
@@ -567,12 +616,53 @@ class UserEntry extends React.PureComponent<UserEntryProps> {
 const userEntryMinHeight = 108
 
 const styles = Styles.styleSheetCreate({
+  floatingMenu: {
+    marginTop: 4,
+    width: 250,
+  },
   friendRow: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.white,
     flex: 1,
     justifyContent: 'space-around',
     minHeight: userEntryMinHeight,
+  },
+  iconContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    height: 32,
+    minHeight: 32,
+    minWidth: 28,
+  },
+  proofNameLabelContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
+  },
+  styleProofNameSection: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
+    flex: 1,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  styleRow: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+    left: -5,
+    marginBottom: 2,
+    marginTop: 2,
+    minHeight: 32,
+    // RN-BUG: set maxWidth once that prop is supported
+  },
+  styleService: {
+    marginRight: Styles.globalMargins.xtiny,
+    marginTop: 2,
+    padding: 5,
+  },
+  styleServiceContainer: {
+    color: Styles.globalColors.black_75,
+    fontSize: 20,
   },
   userEntryAvatar: {
     marginBottom: Styles.globalMargins.xtiny,

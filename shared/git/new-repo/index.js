@@ -1,17 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Text,
-  Icon,
-  Input,
-  Dropdown,
-  Checkbox,
-  ScrollView,
-  WaitingButton,
-} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {
   error: ?Error,
@@ -46,38 +36,42 @@ class NewRepo extends React.Component<Props, State> {
   _makeDropdownItem = (item: ?string) => {
     if (!item) {
       return (
-        <Box style={globalStyles.flexBoxCenter}>
-          <Text type="BodyBig">Pick a team</Text>
-        </Box>
+        <Kb.Box style={Styles.globalStyles.flexBoxCenter}>
+          <Kb.Text type="BodyBig">Pick a team</Kb.Text>
+        </Kb.Box>
       )
     }
 
     if (item === NewTeamSentry) {
       return (
-        <Box
+        <Kb.Box
           key={NewTeamSentry}
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', paddingLeft: globalMargins.small}}
+          style={{
+            ...Styles.globalStyles.flexBoxRow,
+            alignItems: 'center',
+            paddingLeft: Styles.globalMargins.small,
+          }}
         >
-          <Text type="Header">New team...</Text>
-        </Box>
+          <Kb.Text type="Header">New team...</Kb.Text>
+        </Kb.Box>
       )
     }
 
     return (
-      <Box
+      <Kb.Box
         key={item}
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
           width: '100%',
         }}
       >
-        <Avatar isTeam={true} teamname={item} size={16} style={{marginRight: globalMargins.tiny}} />
-        <Text
+        <Kb.Avatar isTeam={true} teamname={item} size={16} style={{marginRight: Styles.globalMargins.tiny}} />
+        <Kb.Text
           type="Header"
-          style={platformStyles({
+          style={Styles.platformStyles({
             common: {
               overflow: 'hidden',
               width: '100%',
@@ -90,8 +84,8 @@ class NewRepo extends React.Component<Props, State> {
           })}
         >
           {item}
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
     )
   }
 
@@ -120,43 +114,43 @@ class NewRepo extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView>
-        <Box style={_containerStyle}>
+      <Kb.ScrollView>
+        <Kb.Box style={_containerStyle}>
           {!!this.props.error && (
-            <Box
+            <Kb.Box
               style={{
                 alignSelf: 'stretch',
-                backgroundColor: globalColors.red,
-                marginBottom: globalMargins.small,
-                padding: globalMargins.tiny,
+                backgroundColor: Styles.globalColors.red,
+                marginBottom: Styles.globalMargins.small,
+                padding: Styles.globalMargins.tiny,
               }}
             >
-              <Text type="Body" backgroundMode="Terminal">
+              <Kb.Text type="Body" backgroundMode="Terminal">
                 {this.props.error.message}
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
-          <Text type="Header" style={{marginBottom: 27}}>
+          <Kb.Text type="Header" style={{marginBottom: 27}}>
             New {this.props.isTeam ? 'team' : 'personal'} git repository
-          </Text>
-          <Icon
+          </Kb.Text>
+          <Kb.Icon
             type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
             style={_addIconStyle}
           />
-          <Text type="Body" style={{marginBottom: 27}}>
+          <Kb.Text type="Body" style={{marginBottom: 27}}>
             {this.props.isTeam
               ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
               : 'Your repository will be encrypted and only accessible by you.'}
-          </Text>
+          </Kb.Text>
           {this.props.isTeam && (
-            <Dropdown
+            <Kb.Dropdown
               items={this._makeDropdownItems()}
               selected={this._makeDropdownItem(this.state.selectedTeam)}
               onChanged={this._dropdownChanged}
-              style={{marginBottom: globalMargins.small}}
+              style={{marginBottom: Styles.globalMargins.small}}
             />
           )}
-          <Input
+          <Kb.Input
             value={this.state.name}
             autoFocus={true}
             onChangeText={name => this.setState({name})}
@@ -164,43 +158,43 @@ class NewRepo extends React.Component<Props, State> {
             onEnterKeyDown={this._onSubmit}
           />
           {this.props.isTeam && (
-            <Checkbox
+            <Kb.Checkbox
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+              style={{marginBottom: Styles.globalMargins.small, marginTop: Styles.globalMargins.small}}
             />
           )}
-          <Box style={{flex: 1}} />
-          <Box style={globalStyles.flexBoxRow}>
-            <WaitingButton
+          <Kb.Box style={{flex: 1}} />
+          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.WaitingButton
               type="Secondary"
               onClick={this.props.onClose}
               label="Cancel"
-              style={{marginRight: globalMargins.tiny}}
+              style={{marginRight: Styles.globalMargins.tiny}}
               waitingKey={this.props.waitingKey}
               onlyDisable={true}
             />
-            <WaitingButton
+            <Kb.WaitingButton
               type="Primary"
               onClick={this._onSubmit}
               label="Create"
               disabled={!this._canSubmit()}
               waitingKey={this.props.waitingKey}
             />
-          </Box>
-        </Box>
-      </ScrollView>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.ScrollView>
     )
   }
 }
 
 const _containerStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
   height: '100%',
-  padding: isMobile ? globalMargins.tiny : globalMargins.large,
+  padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
 }
 
 const _addIconStyle = {

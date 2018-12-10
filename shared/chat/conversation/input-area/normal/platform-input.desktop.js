@@ -571,7 +571,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const HoverBox = Styles.glamorous(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
     color: Styles.globalColors.black_75,
   },

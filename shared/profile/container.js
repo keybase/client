@@ -10,7 +10,7 @@ import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
 import * as WalletsGen from '../actions/wallets-gen'
-import {noAccountID} from '../constants/types/wallets'
+import {noAccountID, type CounterpartyType} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
 import Profile from './index'
@@ -26,6 +26,7 @@ import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
+import * as ConfigGen from '../actions/config-gen'
 
 type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: Types.FriendshipsTab}>
 
@@ -65,6 +66,8 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
     myUsername,
     profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
+    // TODO: use real federated stellar address
+    stellarAddress: flags.walletsEnabled ? username + '*keybase.io' : '',
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
     username,
     youAreInTeams,
@@ -72,6 +75,7 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
 }
 
 const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
+  _copyStellarAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   _onBrowsePublicFolder: (username: string) =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/public/${username}`)})),
@@ -87,12 +91,12 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
         path: FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`),
       })
     ),
-  _onSendOrRequestLumens: (to: string, isRequest) => {
+  _onSendOrRequestLumens: (to: string, isRequest, recipientType: CounterpartyType) => {
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: noAccountID,
         isRequest,
-        recipientType: 'keybaseUser',
+        recipientType,
         to,
       })
     )
@@ -183,15 +187,20 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickFollowers: () => dispatchProps._onClickFollowers(username),
     onClickFollowing: () => dispatchProps._onClickFollowing(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
+    onCopyStellarAddress: () => dispatchProps._copyStellarAddress(stateProps.stellarAddress),
     onFollow: () => dispatchProps._onFollow(username),
     onOpenPrivateFolder: () => {
       stateProps.myUsername && dispatchProps._onOpenPrivateFolder(stateProps.myUsername || '', username || '')
     },
-    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true),
+    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true, 'keybaseUser'),
     onSearch: () => dispatchProps.onSearch(),
-    onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false),
+    onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false, 'keybaseUser'),
+    // TODO: shouldn't there be 'stellarFederatedAddress'?
+    onSendOrRequestStellarAddress: (isRequest: boolean) =>
+      dispatchProps._onSendOrRequestLumens(stateProps.stellarAddress, isRequest, 'stellarPublicKey'),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
+    stellarAddress: stateProps.stellarAddress ? stateProps.stellarAddress : '',
     username,
     youAreInTeams: stateProps.youAreInTeams,
   }

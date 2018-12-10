@@ -10,7 +10,7 @@ type State = {
   open: boolean,
 }
 
-const ItemBox = Styles.glamorous(Kb.Box)({
+const ItemBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxCenter,
   ':hover': {
     backgroundColor: Styles.globalColors.blue3_40,
@@ -20,7 +20,7 @@ const ItemBox = Styles.glamorous(Kb.Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.glamorous(Kb.Box)({
+const ButtonBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxRow,
   ':hover': {
     border: `solid 1px ${Styles.globalColors.blue2}`,

@@ -20,6 +20,7 @@
 <PROJECT_ROOT>/node_modules/simple-markdown
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
 <PROJECT_ROOT>/node_modules/react-native-fast-image/.*
+<PROJECT_ROOT>/node_modules/@emotion
 .*[.]gif$
 .*[.]png$
 

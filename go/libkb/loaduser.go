@@ -486,10 +486,15 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 		if err != nil {
 			return nil, err
 		}
+		visibilityCode, err := emailPayload.AtKey("visibility").GetInt()
+		if err != nil {
+			return nil, err
+		}
 		emails = append(emails, keybase1.Email{
 			Email:      keybase1.EmailAddress(email),
 			IsVerified: isVerified == 1,
 			IsPrimary:  isPrimary == 1,
+			Visibility: keybase1.IdentityVisibility(visibilityCode),
 		})
 	}
 
