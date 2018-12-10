@@ -156,6 +156,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
         evt.preventDefault()
         this._move(true)
       } else if (evt.key === 'Enter') {
+        evt.preventDefault()
         this._triggerTransform(this._getResults()[this.state.selected])
       }
     }

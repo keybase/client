@@ -32,9 +32,14 @@ const TestArea = AddSuggestors(_TestArea)
 
 // prettier-ignore
 const fruit = ['apple', 'orange', 'raspberry', 'cantaloupe', 'durian', 'blackberry', 'fruit (generic)', 'mango', 'nectarine', 'pineapple', 'lemon']
+// prettier-ignore
+const users = ['mlsteele', 'mikem', 'ayoubd', 'max', 'chrisnojima', 'chris', 'aimeedavid', 'jakob223', 'joshblum', 'xgess', 'modalduality', 'kurt']
 
 const props = {
-  dataSources: {fruit: filter => fruit.filter(f => f.includes(filter)).sort()},
+  dataSources: {
+    fruit: filter => fruit.filter(f => f.includes(filter)).sort(),
+    users: filter => users.filter(u => u.includes(filter)).sort(),
+  },
   renderers: {
     fruit: (fruitName: string, selected) => (
       <Kb.NameWithIcon
@@ -47,13 +52,28 @@ const props = {
         }}
       />
     ),
+    users: (username: string, selected) => (
+      <Kb.NameWithIcon
+        username={username}
+        horizontal={true}
+        containerStyle={{
+          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+          padding: 10,
+        }}
+      />
+    ),
   },
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
-  suggestorToMarker: {fruit: '$'},
+  suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
     fruit: (item, {position: {end, start}, text}) => {
       const newText = text.substring(0, start) + '$' + item + ' ' + text.substring(end)
       const newPos = start + item.length + 2 // start of marker previously + length of inserted text + length of space
+      return {selection: {end: newPos, start: newPos}, text: newText}
+    },
+    users: (item, {position: {end, start}, text}) => {
+      const newText = text.substring(0, start) + '@' + item + ' ' + text.substring(end)
+      const newPos = start + item.length + 2
       return {selection: {end: newPos, start: newPos}, text: newText}
     },
   },
