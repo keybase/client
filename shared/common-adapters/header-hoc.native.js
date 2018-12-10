@@ -46,7 +46,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           {!!this.props.title && !this.props.children && (
               <Text type="BodySemibold" style={styles.title} lineClamp={1}>!{this.props.title}</Text>
           )}
-          {this.props.children && !!this.props.title && this.props.children}
+          {this.props.children}
         </Box>
         <Box style={Styles.collapseStyles([styles.rightActions, this.props.rightActions && styles.rightActionsPadding])}>
           {this.props.rightActions && this.props.rightActions.filter(Boolean).slice(0, this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1).map((action, item) => (
