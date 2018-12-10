@@ -3,7 +3,7 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, connect} from '../util/container'
+import {NullComponent, namedConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
@@ -87,8 +87,9 @@ const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>)
   }
 
 // Actions are handled by remote-container
-export default connect<Props | {}, _, _, _, _>(
+export default namedConnect<Props | {}, _, _, _, _>(
   mapStateToProps,
   () => ({}),
-  mergeProps
+  mergeProps,
+  'MenubarRemoteProxy'
 )(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))

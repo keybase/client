@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {connect} from '../../util/container'
-import {memoize2} from '../../util/memoize'
+import {memoize2, memoize3} from '../../util/memoize'
 
 type OwnProps = {|
   usernames: I.Set<string>,
@@ -89,24 +89,24 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
 
     // Do an immutable comparison
-    shouldComponentUpdate(nextProps: Props) {
-      if (this.props.avatars !== nextProps.avatars) {
-        if (!this.props.avatars.equals(nextProps.avatars)) {
-          return true
-        }
-      }
-      if (this.props.followers !== nextProps.followers) {
-        if (!this.props.followers.equals(nextProps.followers)) {
-          return true
-        }
-      }
-      if (this.props.following !== nextProps.following) {
-        if (!this.props.following.equals(nextProps.following)) {
-          return true
-        }
-      }
-      return false
-    }
+    // shouldComponentUpdate(nextProps: Props) {
+    // if (this.props.avatars !== nextProps.avatars) {
+    // if (!this.props.avatars.equals(nextProps.avatars)) {
+    // return true
+    // }
+    // }
+    // if (this.props.followers !== nextProps.followers) {
+    // if (!this.props.followers.equals(nextProps.followers)) {
+    // return true
+    // }
+    // }
+    // if (this.props.following !== nextProps.following) {
+    // if (!this.props.following.equals(nextProps.following)) {
+    // return true
+    // }
+    // }
+    // return false
+    // }
 
     componentDidMount() {
       SafeElectron.getIpcRenderer().on('dispatchAction', this._onRemoteActionFired)
@@ -121,15 +121,22 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
   }
 
-  const mapStateToProps = (state, ownProps) => ({
-    avatars: getRemoteAvatars(state.config.avatars, ownProps.usernames),
-    followers: getRemoteFollowers(state.config.followers, ownProps.usernames),
-    following: getRemoteFollowing(state.config.following, ownProps.usernames),
-  })
+  const mapStateToProps = (state, ownProps) =>
+    immutableCached(
+      getRemoteAvatars(state.config.avatars, ownProps.usernames),
+      getRemoteFollowers(state.config.followers, ownProps.usernames),
+      getRemoteFollowing(state.config.following, ownProps.usernames)
+    )
 
   const getRemoteAvatars = memoize2((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
   const getRemoteFollowers = memoize2((followers, usernames) => followers.intersect(usernames))
   const getRemoteFollowing = memoize2((following, usernames) => following.intersect(usernames))
+
+  // use an immutable equals to not rerender if its the same
+  const immutableCached = memoize3(
+    (avatars, followers, following) => ({avatars, followers, following}),
+    (a, b) => a.equals(b)
+  )
 
   const Connected = connect<OwnProps, _, _, _, _>(
     mapStateToProps,
