@@ -34,6 +34,11 @@ const props = {
       username: 'max',
       xlmAmount: '',
     },
+    {
+      fullName: 'Karen Maxim',
+      username: 'karenm',
+      xlmAmount: '3 XLM',
+    },
   ],
   xlmTotal: '40.0629655 XLM',
 }

@@ -198,7 +198,7 @@ const styles = Styles.styleSheetCreate({
   }),
   paymentsContainer: Styles.platformStyles({
     isElectron: {
-      minHeight: 150,
+      height: 150,
     },
   }),
   submitButton: Styles.platformStyles({
