@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {TouchableOpacity, SafeAreaView} from 'react-native'
+import {TouchableOpacity} from 'react-native'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
@@ -51,24 +51,19 @@ export type MenuLayoutProps = {
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   render() {
-    const menuItemsNoDividers = this.props.items
-
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <Kb.Box style={styles.menuBox}>
-          <Kb.Box style={styles.menuGroup}>
-            {menuItemsNoDividers.map((mi, idx) => (
-              <MenuRow
-                key={mi.title}
-                {...mi}
-                index={idx}
-                numItems={menuItemsNoDividers.length}
-                onHidden={this.props.onHidden}
-              />
-            ))}
-          </Kb.Box>
-        </Kb.Box>
-      </SafeAreaView>
+      <Kb.List
+        items={this.props.items}
+        renderItem={(index, item) => (
+          <MenuRow
+            key={item.title}
+            {...item}
+            index={index}
+            numItems={this.props.items.length}
+            onHidden={this.props.onHidden}
+          />
+        )}
+      />
     )
   }
 }
