@@ -29,12 +29,6 @@ import (
 
 const AccountNameMaxRunes = 24
 
-// Timeout added as Timebounds.MaxTime to Stellar transactions that client
-// creates, effectively adding a "deadline" to the transaction. We can safely
-// assume that a transaction will never end up in a ledger if it's not included
-// before the deadline.
-const txTimeboundTimeout = 30 * time.Second
-
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe (but wasteful) to call even if the user has a bundle already.
@@ -445,6 +439,13 @@ type DisplayBalance struct {
 }
 
 func getTimeboundsForSending(m libkb.MetaContext, walletState *WalletState) (*build.Timebounds, error) {
+	// Timeout added as Timebounds.MaxTime to Stellar transactions that client
+	// creates, effectively adding a "deadline" to the transaction. We can
+	// safely assume that a transaction will never end up in a ledger if it's
+	// not included before the deadline.
+
+	// We ask server for timebounds because local clock might not be accurate,
+	// and typically we will be setting timeout as 30 seconds.
 	start := time.Now()
 	serverTimes, err := walletState.ServerTimeboundsRecommendation(m.Ctx())
 	if err != nil {
