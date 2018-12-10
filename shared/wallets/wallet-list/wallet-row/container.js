@@ -5,7 +5,10 @@ import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
 
-type OwnProps = {accountID: AccountID}
+type OwnProps = {
+  accountID: AccountID,
+  onSelect?: () => void,
+}
 
 const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
   const account = getAccount(state, ownProps.accountID)
@@ -38,6 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
     // First clear any new payments on the currently selected acct.
     dispatchProps._onClearNewPayments(stateProps.selectedAccount)
     dispatchProps._onSelectAccount(ownProps.accountID)
+    ownProps.onSelect && ownProps.onSelect()
   },
   unreadPayments: stateProps.unreadPayments,
 })

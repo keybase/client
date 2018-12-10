@@ -24,7 +24,7 @@ const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => {
   ].concat(
     props.accountIDs.map(accountID => ({
       title: accountID,
-      view: <WalletRow accountID={accountID} />,
+      view: <WalletRow accountID={accountID} onSelect={props.toggleShowingMenu} />,
     }))
   )
 
