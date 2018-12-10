@@ -9,6 +9,8 @@ import type {SuggestorDatasource} from './interface'
 
 const lg = (...args) => console.log('DANNYDEBUG', ...args)
 
+// For better performance, try not to recreate these objects on every render
+// i.e. don't instantiate the objects inline (like dataSources={{...}})
 type AddSuggestorsProps = {
   dataSources: {
     [key: string]: (filter: string) => Array<any>, // typing TODO
@@ -116,6 +118,23 @@ const AddSuggestors = <WrappedOwnProps: {}>(
       }, 0)
     }
 
+    _validateProps = () => {
+      const {active} = this.state
+      if (!active) {
+        return
+      }
+      if (
+        !this.props.dataSources[active] ||
+        !this.props.renderers[active] ||
+        !this.props.suggestorToMarker[active] ||
+        !this.props.transformers[active]
+      ) {
+        throw new Error(
+          `AddSuggestors: invalid props for suggestor '${active}', did you miss a key somewhere?`
+        )
+      }
+    }
+
     _move = (up: boolean) =>
       this.setState(s => {
         if (!s.active) {
@@ -215,6 +234,9 @@ const AddSuggestors = <WrappedOwnProps: {}>(
 
     render() {
       let overlay = null
+      if (this.state.active) {
+        this._validateProps()
+      }
       const results = this._getResults()
       lg(results)
       if (results.length) {
