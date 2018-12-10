@@ -67,15 +67,6 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
               />
             ))}
           </Kb.Box>
-          <Kb.Box style={styles.closeGroup}>
-            <MenuRow
-              title="Close"
-              index={0}
-              numItems={1}
-              onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
-              onHidden={() => {}}
-            />
-          </Kb.Box>
         </Kb.Box>
       </SafeAreaView>
     )
@@ -143,12 +134,30 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
       onClick: props.onLinkExisting,
       title: 'Link an existing Stellar account',
     },
-  ].concat(
-    props.accountIDs.map(accountID => ({
-      title: accountID,
-      view: <WalletRow accountID={accountID} onSelect={props.toggleShowingMenu} />,
-    }))
-  )
+  ]
+    .concat(
+      props.accountIDs.map(accountID => ({
+        title: accountID,
+        view: <WalletRow accountID={accountID} onSelect={props.toggleShowingMenu} />,
+      }))
+    )
+    .concat([
+      {
+        title: 'Close',
+        view: (
+          <Kb.Box style={styles.closeGroup}>
+            <MenuRow
+              title="Close"
+              index={0}
+              numItems={1}
+              onClick={props.toggleShowingMenu}
+              // pass in nothing to onHidden so it doesn't trigger it twice
+              onHidden={() => {}}
+            />
+          </Kb.Box>
+        ),
+      },
+    ])
 
   return (
     <Kb.Overlay
