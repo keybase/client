@@ -14,11 +14,11 @@ export type Props = {
 const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => {
   const menuItems = [
     {
-      onClick: () => props.onAddNew(),
+      onClick: props.onAddNew,
       title: 'Create a new account',
     },
     {
-      onClick: () => props.onLinkExisting(),
+      onClick: props.onLinkExisting,
       title: 'Link an existing Stellar account',
     },
   ].concat(
