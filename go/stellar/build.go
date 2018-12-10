@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -404,6 +405,8 @@ type buildPaymentAmountResult struct {
 	sendingIntentionXLM bool
 }
 
+var zeroOrNoAmountRE = regexp.MustCompile(`^0*\.?0*$`)
+
 func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg buildPaymentAmountArg) (res buildPaymentAmountResult) {
 	log := func(format string, args ...interface{}) {
 		mctx.CDebugf("bpl: "+format, args...)
@@ -414,8 +417,9 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		// Amount is of outside currency.
 		res.sendingIntentionXLM = false
 		convertAmountOutside := "0"
-		if arg.Amount == "" {
-			// No amount given. Still convert for 0.
+
+		if zeroOrNoAmountRE.MatchString(arg.Amount) {
+			// Zero or no amount given. Still convert for 0.
 		} else {
 			amount, err := stellarnet.ParseAmount(arg.Amount)
 			if err != nil || amount.Sign() < 0 {
@@ -479,7 +483,9 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		}
 		// Amount is of asset.
 		useAmount := "0"
-		if arg.Amount != "" {
+		if zeroOrNoAmountRE.MatchString(arg.Amount) {
+			// Zero or no amount given.
+		} else {
 			amountInt64, err := stellarnet.ParseStellarAmount(arg.Amount)
 			if err != nil || amountInt64 <= 0 {
 				res.amountErrMsg = "Invalid amount."
