@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/keybase/client/go/engine"
@@ -446,12 +445,12 @@ func getTimeboundsForSending(m libkb.MetaContext, walletState *WalletState) (*bu
 
 	// We ask server for timebounds because local clock might not be accurate,
 	// and typically we will be setting timeout as 30 seconds.
-	start := time.Now()
+	start := m.G().Clock().Now()
 	serverTimes, err := walletState.ServerTimeboundsRecommendation(m.Ctx())
 	if err != nil {
 		return nil, err
 	}
-	took := time.Now().Sub(start)
+	took := m.G().Clock().Since(start)
 	m.CDebugf("Server timebounds recommendation is: %+v. Request took %fs", serverTimes, took.Seconds())
 	if serverTimes.TimeNow == 0 {
 		return nil, fmt.Errorf("Invalid server response for transaction timebounds")
@@ -467,7 +466,7 @@ func getTimeboundsForSending(m libkb.MetaContext, walletState *WalletState) (*bu
 	// time will be the same for both requests, we can offset timebounds here
 	// by entire roundtrip time and then we will have MaxTime set as 30 seconds
 	// counting from when the server gets our signed tx.
-	deadline := serverTimes.TimeNow.UnixSeconds() + serverTimes.Timeout + int64(took.Seconds())
+	deadline := serverTimes.TimeNow.Time().Add(took).Unix() + serverTimes.Timeout
 	tb := build.Timebounds{
 		MaxTime: uint64(deadline),
 	}
