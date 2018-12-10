@@ -38,16 +38,18 @@ func (e UnfurlType) String() string {
 }
 
 type UnfurlVideo struct {
-	Url    string `codec:"url" json:"url"`
-	Height int    `codec:"height" json:"height"`
-	Width  int    `codec:"width" json:"width"`
+	Url      string `codec:"url" json:"url"`
+	MimeType string `codec:"mimeType" json:"mimeType"`
+	Height   int    `codec:"height" json:"height"`
+	Width    int    `codec:"width" json:"width"`
 }
 
 func (o UnfurlVideo) DeepCopy() UnfurlVideo {
 	return UnfurlVideo{
-		Url:    o.Url,
-		Height: o.Height,
-		Width:  o.Width,
+		Url:      o.Url,
+		MimeType: o.MimeType,
+		Height:   o.Height,
+		Width:    o.Width,
 	}
 }
 

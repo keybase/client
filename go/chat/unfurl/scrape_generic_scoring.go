@@ -107,6 +107,7 @@ func getOpenGraphVideo(e *colly.HTMLElement) []string {
 	if len(url) == 0 {
 		return nil
 	}
+	mimeType := "video/mp4"
 	var height, width *int
 	for i := 0; i < size; i++ {
 		property, propOk := sibs.Eq(i).Attr("property")
@@ -122,13 +123,15 @@ func getOpenGraphVideo(e *colly.HTMLElement) []string {
 					width = new(int)
 					*width = w
 				}
+			} else if property == "og:video:type" {
+				mimeType = content
 			}
 		}
 	}
 	if height == nil || width == nil {
 		return nil
 	}
-	return []string{fmt.Sprintf("%s %d %d", url, *height, *width)}
+	return []string{fmt.Sprintf("%s %d %d %s", url, *height, *width, mimeType)}
 }
 
 // Map of supported attributes/tags
@@ -315,9 +318,10 @@ func (g *scoredGenericRaw) setVideo(videoDesc string, score int) {
 		height, _ := strconv.Atoi(parts[1])
 		width, _ := strconv.Atoi(parts[2])
 		g.Video = &chat1.UnfurlVideo{
-			Url:    parts[0],
-			Height: height,
-			Width:  width,
+			Url:      parts[0],
+			MimeType: parts[3],
+			Height:   height,
+			Width:    width,
 		}
 		g.videoScore = score
 	}

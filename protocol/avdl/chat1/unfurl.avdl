@@ -13,6 +13,7 @@ protocol unfurl {
 
   record UnfurlVideo {
     string url;
+    string mimeType;
     int height;
     int width;
   }

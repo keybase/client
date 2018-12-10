@@ -1156,7 +1156,7 @@ export type UnfurlType =
   | 1 // YOUTUBE_1
   | 2 // GIPHY_2
 
-export type UnfurlVideo = $ReadOnly<{url: String, height: Int, width: Int}>
+export type UnfurlVideo = $ReadOnly<{url: String, mimeType: String, height: Int, width: Int}>
 export type UnfurlYoutube = $ReadOnly<{}>
 export type UnfurlYoutubeDisplay = $ReadOnly<{}>
 export type UnfurlYoutubeRaw = $ReadOnly<{}>

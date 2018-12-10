@@ -25,6 +25,10 @@
           "name": "url"
         },
         {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
           "type": "int",
           "name": "height"
         },

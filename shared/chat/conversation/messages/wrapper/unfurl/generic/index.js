@@ -14,6 +14,7 @@ export type Props = {
   imageURL?: string,
   imageHeight?: number,
   imageWidth?: number,
+  imageIsVideo?: boolean,
   faviconURL?: string,
   onClose?: () => void,
   showImageOnSide: boolean,
@@ -66,7 +67,8 @@ class UnfurlGeneric extends React.Component<Props> {
                 height={this.props.imageHeight}
                 width={this.props.imageWidth}
                 style={styles.bottomImage}
-                isVideo={false}
+                isVideo={this.props.imageIsVideo}
+                autoplayVideo={false}
               />
             )}
         </Kb.Box2>

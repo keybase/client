@@ -1945,7 +1945,7 @@ Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
 }
 
 func (v UnfurlVideo) String() string {
-	return fmt.Sprintf("[url: %s width: %d height: %d]", v.Url, v.Width, v.Height)
+	return fmt.Sprintf("[url: %s width: %d height: %d mime: %s]", v.Url, v.Width, v.Height, v.MimeType)
 }
 
 func NewUnfurlSettings() UnfurlSettings {
