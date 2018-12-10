@@ -444,10 +444,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "fpcbrPzGAdPWTzfU6e3LBQdslYs=",
+			"checksumSHA1": "XUhUnRs+MARPJEG13Q85CJctOUo=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "48455d254edf8198c8ff95baba2e9a5adbd19485",
-			"revisionTime": "2018-12-07T15:28:24Z"
+			"revision": "a27a4f7712dd5021fa6f4f09f2f96f905e8b7747",
+			"revisionTime": "2018-12-10T15:01:50Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -539,6 +539,12 @@
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
 			"revision": "84ebf93577bf48141063f7842bc137c3d40c4b82",
 			"revisionTime": "2018-08-06T20:08:11Z"
+		},
+		{
+			"checksumSHA1": "BPchgsOpEkhEBKK6NvSqGYTOcuA=",
+			"path": "github.com/keybase/msgpackzip",
+			"revision": "8309a3782fdb9c2d52c69d3f8080e2797883faa1",
+			"revisionTime": "2018-12-07T16:10:41Z"
 		},
 		{
 			"checksumSHA1": "o3BupHtJ9Txi4Cfns9vcvvLrQC8=",

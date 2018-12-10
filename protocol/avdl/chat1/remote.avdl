@@ -225,7 +225,7 @@ protocol remote {
     UnreadUpdateFull badge;
   }
 
-  @compression_type("none")
+  @compression_type("msgpackzip")
   SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
