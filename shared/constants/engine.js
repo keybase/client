@@ -61,7 +61,7 @@ export class EngineChannel {
     const initMap = {
       ...(timeout
         ? {
-            timeout: Saga.call(Saga.delay, timeout),
+            timeout: Saga.callUntyped(Saga.delay, timeout),
           }
         : {}),
       ...otherRacers,
@@ -106,7 +106,7 @@ function _sagaWaitingDecorator(rpcNameKey, saga, waitingAction) {
       yield Saga.put(waitingAction(false))
     }
     // $FlowIssue has no way to type this
-    yield Saga.call(saga, ...args)
+    yield Saga.callUntyped(saga, ...args)
     if (waitingAction) {
       yield Saga.put(waitingAction(true))
     }
@@ -116,15 +116,15 @@ function _sagaWaitingDecorator(rpcNameKey, saga, waitingAction) {
 // This decorator deals with responding to the rpc
 function _handleRPCDecorator(rpcNameKey, saga) {
   return function* _handleRPCDecoratorHelper({params, response}) {
-    const returnVal = yield Saga.call(saga, params)
+    const returnVal = yield Saga.callUntyped(saga, params)
     const payload = (returnVal || {}).payload
     if (_isResult(returnVal)) {
-      yield Saga.call([response, response.result], payload)
+      yield Saga.callUntyped([response, response.result], payload)
     } else if (_isCancel(returnVal)) {
-      const engineInst = yield Saga.call(getEngine)
-      yield Saga.call([engineInst, engineInst.cancelRPC], response, payload)
+      const engineInst = yield Saga.callUntyped(getEngine)
+      yield Saga.callUntyped([engineInst, engineInst.cancelRPC], response, payload)
     } else if (_isError(returnVal)) {
-      yield Saga.call([response, response.error], payload)
+      yield Saga.callUntyped([response, response.error], payload)
     } else {
       throw new Error(`SubSaga for ${rpcNameKey} did not return a response to the rpc!`)
     }
@@ -134,7 +134,7 @@ function _handleRPCDecorator(rpcNameKey, saga) {
 // This decorator to put the result on a channel
 function _putReturnOnChan(chan, saga) {
   return function* _putReturnOnChanHelper(...args: any) {
-    const returnVal = yield Saga.call(saga, ...args)
+    const returnVal = yield Saga.callUntyped(saga, ...args)
     yield Saga.put(chan, _subSagaFinished(returnVal))
   }
 }
@@ -212,7 +212,7 @@ class EngineRpcCall {
   }
 
   *run(timeout: ?number): Generator<any, RpcRunResult, any> {
-    this._engineChannel = yield Saga.call(
+    this._engineChannel = yield Saga.callUntyped(
       this._rpc,
       [...Object.keys(this._subSagas), 'finished'],
       this._request
@@ -231,14 +231,14 @@ class EngineRpcCall {
         // Race against a subSaga task returning by taking on
         // We want to cancel that task if another message comes in
         // We also want to check to see if the last task tells us to bail early
-        const incoming = yield Saga.call([this._engineChannel, this._engineChannel.race], {
+        const incoming = yield Saga.callUntyped([this._engineChannel, this._engineChannel.race], {
           racers: {subSagaFinished: Saga.take(this._subSagaChannel)},
           // If we have a task currently running, we don't want to race with the timeout
           timeout: subSagaTasks.filter(t => t.isRunning()).length ? undefined : timeout,
         })
 
         if (incoming.timeout) {
-          yield Saga.call([this, this._cleanup], subSagaTasks)
+          yield Saga.callUntyped([this, this._cleanup], subSagaTasks)
           throw new Error(
             `RPC timeout error on ${this._rpcNameKey}. Had a ttl of: ${timeout || 'Undefined timeout'}`
           )
@@ -247,7 +247,7 @@ class EngineRpcCall {
         if (incoming.finished) {
           // Used just by device add for now. This is to fix a bug and I'm not sure this should apply generally
           if (incoming.finished.error && this._finishedErrorShouldCancel) {
-            yield Saga.call([this, this._cleanup], subSagaTasks)
+            yield Saga.callUntyped([this, this._cleanup], subSagaTasks)
             const {error, params} = incoming.finished
             return finished({error, params})
           }
@@ -255,7 +255,7 @@ class EngineRpcCall {
           if (subSagaTasks.length) {
             yield Saga.join(...subSagaTasks)
           }
-          yield Saga.call([this, this._cleanup], subSagaTasks)
+          yield Saga.callUntyped([this, this._cleanup], subSagaTasks)
           const {error, params} = incoming.finished
           return finished({error, params})
         }
@@ -266,7 +266,7 @@ class EngineRpcCall {
         if (raceWinner === 'subSagaFinished') {
           const result = incoming.subSagaFinished.payload
           if (_isCancel(result) || _isError(result)) {
-            yield Saga.call([this, this._cleanup], subSagaTasks)
+            yield Saga.callUntyped([this, this._cleanup], subSagaTasks)
             return BailedEarly
           } else {
             // Put a delay(0) so a task that is just about finished will correctly return false for .isRunning()
@@ -290,7 +290,7 @@ class EngineRpcCall {
         subSagaTasks.push(subSagaTask)
       } finally {
         if (yield Saga.cancelled()) {
-          yield Saga.call([this, this._cleanup], subSagaTasks)
+          yield Saga.callUntyped([this, this._cleanup], subSagaTasks)
         }
       }
     }
