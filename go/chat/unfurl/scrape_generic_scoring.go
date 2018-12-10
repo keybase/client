@@ -105,28 +105,22 @@ func getOpenGraphVideo(e *colly.HTMLElement) []string {
 	if len(url) == 0 {
 		return nil
 	}
-	sibs := e.DOM.Siblings()
-	size := sibs.Size()
 	mimeType := "video/mp4"
 	var height, width *int
-	for i := 0; i < size; i++ {
-		property, propOk := sibs.Eq(i).Attr("property")
-		content, contentOk := sibs.Eq(i).Attr("content")
-		if propOk && contentOk {
-			if property == "og:video:height" {
-				if h, err := strconv.Atoi(content); err == nil {
-					height = new(int)
-					*height = h
-				}
-			} else if property == "og:video:width" {
-				if w, err := strconv.Atoi(content); err == nil {
-					width = new(int)
-					*width = w
-				}
-			} else if property == "og:video:type" {
-				mimeType = content
-			}
-		}
+	heightStr, _ :=
+		e.DOM.SiblingsFiltered("meta[content][property=\"og:video:height\"]").Eq(0).Attr("content")
+	if h, err := strconv.Atoi(heightStr); err == nil && h > 0 {
+		height = new(int)
+		*height = h
+	}
+	widthStr, _ := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:width\"]").Eq(0).Attr("content")
+	if w, err := strconv.Atoi(widthStr); err == nil && w > 0 {
+		width = new(int)
+		*width = w
+	}
+	typeStr, ok := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:type\"]").Eq(0).Attr("content")
+	if ok {
+		mimeType = typeStr
 	}
 	if height == nil || width == nil {
 		return nil
