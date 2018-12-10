@@ -1,6 +1,7 @@
 package unfurl
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -27,6 +28,7 @@ const (
 	setImageURL
 	setPublishTime
 	setDescription
+	setVideo
 )
 
 func getOpenGraphScore(domain string, e *colly.HTMLElement) int {
@@ -98,6 +100,37 @@ func getHrefAndContentAttr(e *colly.HTMLElement) []string {
 	return append(getHrefAttr(e), getContentAttr(e)...)
 }
 
+func getOpenGraphVideo(e *colly.HTMLElement) []string {
+	sibs := e.DOM.Siblings()
+	size := sibs.Size()
+	url := e.Attr("content")
+	if len(url) == 0 {
+		return nil
+	}
+	var height, width *int
+	for i := 0; i < size; i++ {
+		property, propOk := sibs.Eq(i).Attr("property")
+		content, contentOk := sibs.Eq(i).Attr("content")
+		if propOk && contentOk {
+			if property == "og:video:height" {
+				if h, err := strconv.Atoi(content); err == nil {
+					height = new(int)
+					*height = h
+				}
+			} else if property == "og:video:width" {
+				if w, err := strconv.Atoi(content); err == nil {
+					width = new(int)
+					*width = w
+				}
+			}
+		}
+	}
+	if height == nil || width == nil {
+		return nil
+	}
+	return []string{fmt.Sprintf("%s %d %d", url, *height, *width)}
+}
+
 // Map of supported attributes/tags
 var attrRankMap = map[string]attrRanker{
 	// title
@@ -165,6 +198,13 @@ var attrRankMap = map[string]attrRanker{
 		setter:  setImageURL,
 	},
 
+	// video
+	"og:video": attrRanker{
+		content: getOpenGraphVideo,
+		score:   getOpenGraphScore,
+		setter:  setVideo,
+	},
+
 	// publishTime
 	"lastmod": attrRanker{
 		content: getContentAttr,
@@ -229,6 +269,7 @@ type scoredGenericRaw struct {
 	siteNameScore    int
 	faviconURLScore  int
 	imageURLScore    int
+	videoScore       int
 	publishTimeScore int
 	descriptionScore int
 }
@@ -265,6 +306,20 @@ func (g *scoredGenericRaw) setImageURL(imageURL *string, score int) {
 	if score > g.imageURLScore || g.ImageUrl == nil {
 		g.ImageUrl = imageURL
 		g.imageURLScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setVideo(videoDesc string, score int) {
+	if score > g.videoScore || g.Video == nil {
+		parts := strings.Split(videoDesc, " ")
+		height, _ := strconv.Atoi(parts[1])
+		width, _ := strconv.Atoi(parts[2])
+		g.Video = &chat1.UnfurlVideo{
+			Url:    parts[0],
+			Height: height,
+			Width:  width,
+		}
+		g.videoScore = score
 	}
 }
 

@@ -30,8 +30,8 @@ func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convI
 	res.PublishTime = unfurl.PublishTime
 	res.Description = unfurl.Description
 	if unfurl.Image != nil {
-		res.Image = new(chat1.UnfurlImageDisplay)
-		*res.Image = assetToImageDisplay(ctx, convID, *unfurl.Image, srv)
+		res.Media = new(chat1.UnfurlImageDisplay)
+		*res.Media = assetToImageDisplay(ctx, convID, *unfurl.Image, srv)
 	}
 	if unfurl.Favicon != nil {
 		res.Favicon = new(chat1.UnfurlImageDisplay)

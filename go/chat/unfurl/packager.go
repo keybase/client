@@ -144,7 +144,7 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 }
 
 func (p *Packager) uploadGiphyVideo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body io.ReadCloser, len int64, video chat1.UnfurlGiphyVideo) (res chat1.Asset, err error) {
+	body io.ReadCloser, len int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
 	dat, err := ioutil.ReadAll(body)
 	if err != nil {
 		return res, err
