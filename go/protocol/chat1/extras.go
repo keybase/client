@@ -6,11 +6,13 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"hash"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -820,8 +822,16 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"reported": ConversationStatus_REPORTED,
 }
 
+var sha256Pool = sync.Pool{
+	New: func() interface{} {
+		return sha256.New()
+	},
+}
+
 func (t ConversationIDTriple) Hash() []byte {
-	h := sha256.New()
+	h := sha256Pool.Get().(hash.Hash)
+	defer sha256Pool.Put(h)
+	h.Reset()
 	h.Write(t.Tlfid)
 	h.Write(t.TopicID)
 	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
