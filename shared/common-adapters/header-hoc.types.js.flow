@@ -10,6 +10,7 @@ type Action = {
 }
 export type Props = {
   badgeNumber?: number,
+  children?: React.Node,
   title?: string,
   onBack?: ?() => void,
   onCancel?: ?() => void,
