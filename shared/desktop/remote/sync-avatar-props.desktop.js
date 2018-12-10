@@ -70,7 +70,7 @@ export const deserialize = (state: any = initialState, props: any) => {
 }
 
 function SyncAvatarProps(ComposedComponent: any) {
-  class RemoteAvatarConnected extends React.Component<Props> {
+  class RemoteAvatarConnected extends React.PureComponent<Props> {
     _onRemoteActionFired = (
       event: any,
       action: {type: string, payload: Object},
@@ -87,26 +87,6 @@ function SyncAvatarProps(ComposedComponent: any) {
         }
       }
     }
-
-    // Do an immutable comparison
-    // shouldComponentUpdate(nextProps: Props) {
-    // if (this.props.avatars !== nextProps.avatars) {
-    // if (!this.props.avatars.equals(nextProps.avatars)) {
-    // return true
-    // }
-    // }
-    // if (this.props.followers !== nextProps.followers) {
-    // if (!this.props.followers.equals(nextProps.followers)) {
-    // return true
-    // }
-    // }
-    // if (this.props.following !== nextProps.following) {
-    // if (!this.props.following.equals(nextProps.following)) {
-    // return true
-    // }
-    // }
-    // return false
-    // }
 
     componentDidMount() {
       SafeElectron.getIpcRenderer().on('dispatchAction', this._onRemoteActionFired)
