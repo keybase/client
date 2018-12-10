@@ -18,6 +18,24 @@
     },
     {
       "type": "record",
+      "name": "UnfurlVideo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnfurlGenericRaw",
       "fields": [
         {
@@ -49,6 +67,13 @@
         {
           "type": [
             null,
+            "UnfurlVideo"
+          ],
+          "name": "video"
+        },
+        {
+          "type": [
+            null,
             "int"
           ],
           "name": "publishTime"
@@ -69,24 +94,6 @@
     },
     {
       "type": "record",
-      "name": "UnfurlGiphyVideo",
-      "fields": [
-        {
-          "type": "string",
-          "name": "url"
-        },
-        {
-          "type": "int",
-          "name": "height"
-        },
-        {
-          "type": "int",
-          "name": "width"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "UnfurlGiphyRaw",
       "fields": [
         {
@@ -96,7 +103,7 @@
         {
           "type": [
             null,
-            "UnfurlGiphyVideo"
+            "UnfurlVideo"
           ],
           "name": "video"
         },
@@ -278,6 +285,10 @@
         {
           "type": "int",
           "name": "width"
+        },
+        {
+          "type": "boolean",
+          "name": "isVideo"
         }
       ]
     },
@@ -309,7 +320,7 @@
             null,
             "UnfurlImageDisplay"
           ],
-          "name": "image"
+          "name": "media"
         },
         {
           "type": [
