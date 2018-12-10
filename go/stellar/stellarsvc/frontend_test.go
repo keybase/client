@@ -1765,12 +1765,12 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 	}
 	timeoutCh := time.After(timeout)
 	mockUI := tc.Srv.uiSource.(*testUISource).stellarUI.(*mockStellarUI)
-	original := mockUI.UiPaymentReviewHandler
+	original := mockUI.UIPaymentReviewHandler
 	defer func() {
-		mockUI.UiPaymentReviewHandler = original
+		mockUI.UIPaymentReviewHandler = original
 	}()
 	reviewSuccessCh := make(chan struct{}, 1)
-	mockUI.UiPaymentReviewHandler = func(ctx context.Context, notification stellar1.UiPaymentReviewArg) error {
+	mockUI.UIPaymentReviewHandler = func(ctx context.Context, notification stellar1.UiPaymentReviewArg) error {
 		assert.Equal(t, arg.Bid, notification.Msg.Bid)
 		assert.Nil(t, notification.Msg.Banners)
 		switch notification.Msg.NextButton {
@@ -1806,11 +1806,11 @@ func reviewPaymentExpectContractFailure(t testing.TB, tc *TestContext, arg stell
 	}
 	timeoutCh := time.After(timeout)
 	mockUI := tc.Srv.uiSource.(*testUISource).stellarUI.(*mockStellarUI)
-	original := mockUI.UiPaymentReviewHandler
+	original := mockUI.UIPaymentReviewHandler
 	defer func() {
-		mockUI.UiPaymentReviewHandler = original
+		mockUI.UIPaymentReviewHandler = original
 	}()
-	mockUI.UiPaymentReviewHandler = func(ctx context.Context, notification stellar1.UiPaymentReviewArg) error {
+	mockUI.UIPaymentReviewHandler = func(ctx context.Context, notification stellar1.UiPaymentReviewArg) error {
 		assert.Equal(t, arg.Bid, notification.Msg.Bid)
 		switch notification.Msg.NextButton {
 		case "spinning":
