@@ -7,14 +7,9 @@ import * as Styles from '../../../../styles'
 import WalletRow from '../../../wallet-list/wallet-row/container'
 
 export type MenuItem = {|
-  danger?: boolean,
-  disabled?: boolean,
   onClick?: ?(evt?: SyntheticEvent<>) => void,
-  onPress?: void,
-  style?: Object,
-  subTitle?: string, // subTitle is not used on native
-  title: string, // Only used as ID if view is provided for Header
-  view?: React.Node, // Required for header
+  title: string,
+  view?: React.Node,
 |}
 
 type MenuRowProps = {
@@ -27,7 +22,6 @@ type MenuRowProps = {
 
 const MenuRow = (props: MenuRowProps) => (
   <TouchableOpacity
-    disabled={props.disabled}
     onPress={() => {
       props.onHidden && props.onHidden() // auto hide after a selection
       props.onClick && props.onClick()
@@ -35,7 +29,7 @@ const MenuRow = (props: MenuRowProps) => (
     style={styles.row}
   >
     {props.view || (
-      <Kb.Text type={'BodyBig'} style={styleRowText(props)}>
+      <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
         {props.title}
       </Kb.Text>
     )}
@@ -66,12 +60,6 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
       />
     )
   }
-}
-
-const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
-  const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
-  const color = props.isHeader ? Styles.globalColors.white : dangerColor
-  return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
 }
 
 const styles = Styles.styleSheetCreate({
