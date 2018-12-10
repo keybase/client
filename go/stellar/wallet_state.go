@@ -257,9 +257,9 @@ type rateEntry struct {
 func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error) {
 	w.Lock()
 	existing, ok := w.rates[currency]
-	if ok && time.Since(existing.ctime) < 1*time.Second {
-		w.Unlock()
-		return existing.rate
+	w.Unlock()
+	if ok && time.Since(existing.ctime) < 10*time.Second {
+		return existing.rate, nil
 	}
 	rate, err := w.Remoter.ExchangeRate(ctx, currency)
 	if err == nil {
