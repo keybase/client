@@ -4,31 +4,43 @@ import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
 import type {Props} from './video.types'
 
-export class Video extends React.Component<Props> {
+type State = {
+  playingVideo: boolean,
+}
+export class Video extends React.Component<Props, State> {
   videoRef: any
-  playingVideo: boolean
+  state = {playingVideo: this.props.autoPlay}
   constructor(props: Props) {
     super(props)
     this.videoRef = React.createRef()
-    this.playingVideo = props.autoPlay
   }
   _onClick = () => {
     if (!(this.videoRef && this.videoRef.current)) {
       return
     }
-    if (!this.playingVideo) {
+    if (!this.state.playingVideo) {
       this.videoRef.current.play()
     } else {
       this.videoRef.current.pause()
     }
-    this.playingVideo = !this.playingVideo
+    this.setState({playingVideo: !this.state.playingVideo})
   }
   render() {
     return (
-      <React.Fragment>
-        {!this.playingVideo && (
-          <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
-        )}
+      <Kb.Box2 direction="horizontal" style={styles.container}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.absoluteContainer,
+            {
+              height: this.props.style.height,
+              width: this.props.style.width,
+            },
+          ])}
+        >
+          {!this.state.playingVideo && (
+            <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
+          )}
+        </Kb.Box>
         <video
           ref={this.videoRef}
           onClick={this._onClick}
@@ -38,12 +50,20 @@ export class Video extends React.Component<Props> {
           style={this.props.style}
           loop={true}
         />
-      </React.Fragment>
+      </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
+  absoluteContainer: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  container: {
+    position: 'relative',
+  },
   playButton: {
     bottom: '50%',
     left: '50%',

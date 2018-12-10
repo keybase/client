@@ -67,7 +67,7 @@ class UnfurlGeneric extends React.Component<Props> {
                 height={this.props.imageHeight}
                 width={this.props.imageWidth}
                 style={styles.bottomImage}
-                isVideo={this.props.imageIsVideo}
+                isVideo={this.props.imageIsVideo || false}
                 autoplayVideo={false}
               />
             )}
