@@ -34,6 +34,7 @@ import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
+import AddSuggestors, {type PropsWithSuggestor} from '../suggestors'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -41,11 +42,14 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
+class PlatformInput extends PureComponent<
+  PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<OverlayParentProps>}>,
+  State
+> {
   _input: ?Input
   _whichMenu: menuType
 
-  constructor(props: PlatformInputProps & OverlayParentProps) {
+  constructor(props: PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<OverlayParentProps>}>) {
     super(props)
     this.state = {
       hasText: false,
@@ -148,30 +152,6 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
 
     return (
       <Box>
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.insertMention}
-            filter={this.props.mentionFilter}
-            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.insertChannelMention}
-            filter={this.props.channelMentionFilter}
-            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
-          />
-        )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}

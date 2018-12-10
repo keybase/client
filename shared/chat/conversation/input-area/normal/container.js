@@ -47,6 +47,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
+    suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -132,6 +133,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     setUnsentText(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
+  suggestChannels: [],
+  suggestUsers: stateProps.suggestUsers,
   typing: stateProps.typing,
 })
 

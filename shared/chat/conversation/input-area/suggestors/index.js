@@ -13,6 +13,9 @@ type AddSuggestorsProps = {
   dataSources: {
     [key: string]: (filter: string) => Array<any>, // typing TODO
   },
+  keyExtractors?: {
+    [key: string]: (item: any) => string | number,
+  },
   renderers: {
     [key: string]: (item: any, selected: boolean) => React.Node,
   },
@@ -48,6 +51,11 @@ type SuggestorHooks = {
   onSelectionChange: ({start: number, end: number}) => void,
 }
 
+export type PropsWithSuggestorOuter<P> = {|
+  ...$Exact<P>,
+  ...$Exact<AddSuggestorsProps>,
+|}
+
 export type PropsWithSuggestor<P> = {|
   ...$Exact<P>,
   ...$Exact<SuggestorHooks>,
@@ -55,9 +63,9 @@ export type PropsWithSuggestor<P> = {|
 
 const AddSuggestors = <WrappedOwnProps: {}>(
   WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
-): React.ComponentType<WrappedOwnProps & AddSuggestorsProps> => {
+): React.ComponentType<PropsWithSuggestorOuter<WrappedOwnProps>> => {
   class SuggestorsComponent extends React.Component<
-    WrappedOwnProps & AddSuggestorsProps,
+    PropsWithSuggestorOuter<WrappedOwnProps>,
     AddSuggestorsState
   > {
     state = {active: null, filter: '', selected: 0}
@@ -74,7 +82,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
       if (this._inputRef.current) {
         const input = this._inputRef.current
         const selection = input.getSelection()
-        if (!selection || !this._lastText) {
+        if (!selection || this._lastText === null) {
           return null
         }
         const text = this._lastText
@@ -153,28 +161,38 @@ const AddSuggestors = <WrappedOwnProps: {}>(
 
     _onKeyDown = (evt: SyntheticKeyboardEvent<>, ici: boolean) => {
       lg('keydown')
-      // $FlowIssue TODO (DA) but I don't think this is an issue
-      this.props.onKeyDown && this.props.onKeyDown(evt, ici)
 
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         this._checkTrigger(this._lastText || '')
       }
 
-      if (!this.state.active) {
+      if (!this.state.active || this._getResults().length === 0) {
         // not showing list, bail
+        // $FlowIssue TODO (DA) but I don't think this is an issue
+        this.props.onKeyDown && this.props.onKeyDown(evt, ici)
         return
       }
+
+      let shouldCallParentCallback = true
 
       // check up or down
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
         this._move(false)
+        shouldCallParentCallback = false
       } else if (evt.key === 'ArrowUp') {
         evt.preventDefault()
         this._move(true)
+        shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
         this._triggerTransform(this._getResults()[this.state.selected])
+        shouldCallParentCallback = false
+      }
+
+      if (shouldCallParentCallback) {
+        // $FlowIssue TODO (DA) but I don't think this is an issue
+        this.props.onKeyDown && this.props.onKeyDown(evt, ici)
       }
     }
 
@@ -216,7 +234,12 @@ const AddSuggestors = <WrappedOwnProps: {}>(
     _itemRenderer = (index, value) =>
       !this.state.active ? null : (
         <Kb.ClickableBox
-          key={value}
+          key={
+            (this.props.keyExtractors &&
+              this.props.keyExtractors[this.state.active] &&
+              this.props.keyExtractors[this.state.active](value)) ||
+            value
+          }
           onClick={() => this._triggerTransform(value)}
           onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
         >
@@ -268,7 +291,15 @@ const AddSuggestors = <WrappedOwnProps: {}>(
         )
       }
 
-      const {dataSources, renderers, suggestorToMarker, transformers, ...wrappedOP} = this.props
+      const {
+        dataSources,
+        keyExtractors,
+        renderers,
+        suggestionListStyle,
+        suggestorToMarker,
+        transformers,
+        ...wrappedOP
+      } = this.props
       return (
         <>
           {overlay}

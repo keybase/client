@@ -13,6 +13,7 @@ import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
 import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
+import {getFullname} from '../users'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -46,9 +47,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
-    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
-      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-    i.localMetadata.resetParticipants
+      (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+        i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+      i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
@@ -203,7 +204,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   const resetParticipants = I.Set(
     (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
       i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-    i.resetParticipants
+      i.resetParticipants
       ? i.resetParticipants
       : []
   )
@@ -307,6 +308,16 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
+export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {participants, teamType} = getMeta(state, id)
+  let suggestions = participants.map(username => ({fullName: getFullname(state, username) || '', username}))
+  if (teamType !== 'adhoc') {
+    const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+    suggestions = suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+  }
+  return suggestions
+}
+
 const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (meta: Types.ConversationMeta, yourUsername: string) =>
@@ -321,10 +332,10 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
   const subColor = isError
     ? globalColors.red
     : isSelected
-      ? globalColors.white
-      : hasUnread
-        ? globalColors.black_75
-        : globalColors.black_40
+    ? globalColors.white
+    : hasUnread
+    ? globalColors.black_75
+    : globalColors.black_40
   const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 

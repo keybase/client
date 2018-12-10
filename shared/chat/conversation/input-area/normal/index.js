@@ -1,23 +1,40 @@
 // @flow
 import * as React from 'react'
-import {Input as TextInput} from '../../../../common-adapters'
-import MentionInput from './mention-input'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import * as Constants from '../../../../constants/chat2'
+import PlatformInput from './platform-input'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 
+const suggestorToMarker = {
+  users: '@',
+}
+
+const suggestorKeyExtractors = {
+  users: ({username, fullName}: {username: string, fullName: string}) => username,
+}
+
 class Input extends React.PureComponent<InputProps> {
   _lastQuote: number
-  _input: ?TextInput
+  _input: ?Kb.PlainInput
+  _lastText: ?string
+  _suggestorDatasource: {}
+  _suggestorRenderer: {}
+  _suggestorTransformer: {}
 
   constructor(props: InputProps) {
     super(props)
     this._lastQuote = 0
+    this._suggestorDatasource = {users: this._getUserSuggestions}
+    this._suggestorRenderer = {users: this._renderUserSuggestion}
+    this._suggestorTransformer = {users: this._transformUserSuggestion}
   }
 
-  _inputSetRef = (input: ?TextInput) => {
+  _inputSetRef = (input: null | Kb.PlainInput) => {
     this._input = input
   }
 
@@ -32,7 +49,16 @@ class Input extends React.PureComponent<InputProps> {
 
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
+    this._lastText = text
     throttled(this.props.sendTyping, text)
+  }
+
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey) && this._lastText) {
+      const toSubmit = this._lastText
+      e.preventDefault()
+      this._onSubmit(toSubmit)
+    }
   }
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
@@ -100,10 +126,55 @@ class Input extends React.PureComponent<InputProps> {
     }
   }
 
+  _getUserSuggestions = filter =>
+    this.props.suggestUsers
+      .filter(user => user.username.includes(filter) || user.fullName.includes(filter))
+      .toArray()
+
+  _renderUserSuggestion = ({username, fullName}: {username: string, fullName: string}, selected: boolean) => (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={{
+        alignItems: 'center',
+        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      }}
+      gap="small"
+    >
+      {!Constants.isSpecialMention(username) ? (
+        <Kb.Avatar username={username} size={32} />
+      ) : (
+        <Kb.Icon
+          type="iconfont-people"
+          style={{
+            padding: Styles.globalMargins.xtiny,
+          }}
+          color={Styles.globalColors.blue}
+          fontSize={24}
+        />
+      )}{' '}
+      <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+      <Kb.Text type="BodySmall">{fullName}</Kb.Text>
+    </Kb.Box2>
+  )
+
+  _transformUserSuggestion = input => input
+
   render = () => {
+    const {suggestUsers, suggestChannels, ...platformInputProps} = this.props
     return (
-      <MentionInput
-        {...this.props}
+      <PlatformInput
+        {...platformInputProps}
+        dataSources={this._suggestorDatasource}
+        renderers={this._suggestorRenderer}
+        suggestorToMarker={suggestorToMarker}
+        keyExtractors={suggestorKeyExtractors}
+        transformers={this._suggestorTransformer}
+        onKeyDown={this._onKeyDown}
         onSubmit={this._onSubmit}
         inputSetRef={this._inputSetRef}
         onChangeText={this._onChangeText}

@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
-import {Input as TextInput} from '../../../../common-adapters'
+import {PlainInput} from '../../../../common-adapters'
 
 // There are three components in this directory:
 //
@@ -25,11 +25,8 @@ type CommonProps = {|
   onSeenExplodingMessages: () => void,
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
-  typing: I.Set<string>,
-|}
 
-type InputProps = {|
-  ...CommonProps,
+  typing: I.Set<string>,
   editText: string,
   quoteCounter: number,
   quoteText: string,
@@ -39,38 +36,17 @@ type InputProps = {|
   sendTyping: (text: string) => void,
 |}
 
-type MentionInputProps = {|
-  ...InputProps,
-  inputSetRef: (r: ?TextInput) => void,
+type InputProps = {|
+  ...CommonProps,
+  suggestUsers: I.List<{username: string, fullName: string}>,
+  suggestChannels: Array<string>,
+|}
+
+type PlatformInputProps = {|
+  ...CommonProps,
+  inputSetRef: (r: null | PlainInput) => void,
   onChangeText: (newText: string) => void,
+  onKeyDown: (evt: SyntheticKeyboardEvent<>) => void,
 |}
 
-type MentionProps = {|
-  insertMention: (u: string, options?: {notUser: boolean}) => void,
-  insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
-
-  // on desktop:
-  onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
-  switchMention?: (u: string) => void,
-  switchChannelMention?: (c: string) => void,
-  upArrowCounter?: number,
-  downArrowCounter?: number,
-  // on mobile:
-  onBlur?: () => void,
-  onFocus?: () => void,
-  insertMentionMarker?: () => void,
-
-  pickSelectedCounter: number,
-  channelMentionFilter: string,
-  channelMentionPopupOpen: boolean,
-  setChannelMentionHudIsShowing: (channelMentionHudIsShowing: boolean) => void,
-  setChannelMentionPopupOpen: (setOpen: boolean) => void,
-  mentionFilter: string,
-  mentionPopupOpen: boolean,
-  setMentionHudIsShowing: (mentionHudIsShowing: boolean) => void,
-  setMentionPopupOpen: (setOpen: boolean) => void,
-|}
-
-type PlatformInputProps = {...MentionInputProps, ...MentionProps}
-
-export type {InputProps, MentionInputProps, PlatformInputProps}
+export type {InputProps, PlatformInputProps}

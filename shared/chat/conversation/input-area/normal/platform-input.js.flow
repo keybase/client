@@ -1,5 +1,6 @@
 // @flow
 import {Component} from 'react'
 import {type PlatformInputProps} from './types'
+import {type PropsWithSuggestorOuter} from '../suggestors'
 
-export default class PlatformInput extends Component<PlatformInputProps> {}
+export default class PlatformInput extends Component<PropsWithSuggestorOuter<PlatformInputProps>> {}
