@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as Flow from '../../../util/flow'
 import {Box, Divider, HeaderOnMobile, List} from '../../../common-adapters'
 import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc.types'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
@@ -280,10 +281,7 @@ const typeSizeEstimator = (row: Row): number => {
       return row.canSetMinWriterRole ? 84 : 35
 
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
       throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
@@ -412,10 +410,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }

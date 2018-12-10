@@ -359,7 +359,10 @@ type StellarLoader interface {
 }
 
 type StellarSender interface {
-	ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error)
+	ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		body string) []ParsedStellarPayment
+	DescribePayments(ctx context.Context, payments []ParsedStellarPayment) (*libkb.MiniChatPaymentSummary, error)
+	SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 
 type ConversationBackedStorage interface {
@@ -376,6 +379,7 @@ type WhitelistExemption interface {
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed)
+	Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int
 	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error)
 	Retry(ctx context.Context, outboxID chat1.OutboxID)
 	Complete(ctx context.Context, outboxID chat1.OutboxID)

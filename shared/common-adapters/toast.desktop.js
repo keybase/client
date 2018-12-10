@@ -4,14 +4,10 @@ import type {Props} from './toast'
 import FloatingBox from './floating-box'
 import * as Styles from '../styles'
 
-const FadeBox = Styles.glamorous.div({
+const FadeBox = Styles.styled.div({
   ...Styles.transition('opacity'),
-  '&.active': {
-    opacity: 1,
-  },
-  '&.visible': {
-    opacity: 1,
-  },
+  '&.active': {opacity: 1},
+  '&.visible': {opacity: 1},
   opacity: 0,
 })
 

@@ -2,6 +2,7 @@
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/profile'
+import * as Flow from '../util/flow'
 
 export default function(
   state: Types.State = Constants.initialState,
@@ -130,10 +131,7 @@ export default function(
     case ProfileGen.uploadAvatar:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

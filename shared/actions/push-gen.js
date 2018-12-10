@@ -33,12 +33,12 @@ export const createUpdateHasPermissions = (payload: _UpdateHasPermissionsPayload
 export const createUpdatePushToken = (payload: _UpdatePushTokenPayload) => ({payload, type: updatePushToken})
 
 // Action Payloads
-export type NotificationPayload = $Call<typeof createNotification, _NotificationPayload>
-export type RejectPermissionsPayload = $Call<typeof createRejectPermissions, _RejectPermissionsPayload>
-export type RequestPermissionsPayload = $Call<typeof createRequestPermissions, _RequestPermissionsPayload>
-export type ShowPermissionsPromptPayload = $Call<typeof createShowPermissionsPrompt, _ShowPermissionsPromptPayload>
-export type UpdateHasPermissionsPayload = $Call<typeof createUpdateHasPermissions, _UpdateHasPermissionsPayload>
-export type UpdatePushTokenPayload = $Call<typeof createUpdatePushToken, _UpdatePushTokenPayload>
+export type NotificationPayload = {|+payload: _NotificationPayload, +type: 'push:notification'|}
+export type RejectPermissionsPayload = {|+payload: _RejectPermissionsPayload, +type: 'push:rejectPermissions'|}
+export type RequestPermissionsPayload = {|+payload: _RequestPermissionsPayload, +type: 'push:requestPermissions'|}
+export type ShowPermissionsPromptPayload = {|+payload: _ShowPermissionsPromptPayload, +type: 'push:showPermissionsPrompt'|}
+export type UpdateHasPermissionsPayload = {|+payload: _UpdateHasPermissionsPayload, +type: 'push:updateHasPermissions'|}
+export type UpdatePushTokenPayload = {|+payload: _UpdatePushTokenPayload, +type: 'push:updatePushToken'|}
 
 // All Actions
 // prettier-ignore
@@ -49,4 +49,4 @@ export type Actions =
   | ShowPermissionsPromptPayload
   | UpdateHasPermissionsPayload
   | UpdatePushTokenPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

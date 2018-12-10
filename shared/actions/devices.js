@@ -21,7 +21,7 @@ const load = (state: TypedState) =>
     .catch(() => {})
 
 const requestPaperKey = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     yield RPCTypes.loginPaperKeyRpcSaga({
       customResponseIncomingCallMap: {
         'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {

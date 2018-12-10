@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as Flow from '../../../util/flow'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
@@ -175,10 +176,7 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsOtherAccount />
 
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.recipientType);
-    */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.recipientType)
       throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
 }

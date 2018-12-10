@@ -10,7 +10,7 @@ type Props = {
   toggle: () => void,
 }
 
-const DividerBox = Styles.glamorous(Kb.Box)({
+const DividerBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {backgroundColor: Styles.globalColors.fastBlank}

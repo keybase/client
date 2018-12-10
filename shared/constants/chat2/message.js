@@ -3,6 +3,7 @@
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
 import * as MessageTypes from '../types/chat2/message'
+import * as Flow from '../../util/flow'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
@@ -101,13 +102,11 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.tlfname:
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
+    case RPCChatTypes.commonMessageType.unfurl:
       return []
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove: (t: empty) => any
-      // $FlowIssue can't figure out the preceding list is exhaustive
-      ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove(t);
-      */
+      // $FlowIssue need these to be opaque types
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(t)
       return []
   }
 }
@@ -471,11 +470,8 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          /*::
-          // $FlowIssue flow gets confused about this switch statement
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(iType);
-      */
+          // $FlowIssue need these to be opaque types
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(iType)
           inviteType = 'unknown'
           break
       }
@@ -523,10 +519,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
       })
     }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(body.systemType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null
   }
 }
@@ -730,11 +723,8 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      /*::
-      // $FlowIssue flow gets confused by the fallthroughs
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(m.messageBody.messageType);
-      */
+      // $FlowIssue need these to be opaque types
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(m.messageBody.messageType)
       return null
   }
 }
@@ -878,10 +868,7 @@ export const uiMessageToMessage = (
       }
       return null
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(uiMessage.state);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(uiMessage.state)
       return null
   }
 }

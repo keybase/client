@@ -106,7 +106,7 @@ const listenForPushNotificationsFromJS = emitter => {
 }
 
 const setupPushEventLoop = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const pushChannel = yield Saga.eventChannel(emitter => {
       if (!isIOS) {
         listenForNativeAndroidIntentNotifications(emitter)
@@ -138,13 +138,13 @@ const handleLoudMessage = notification => {
 
   const {conversationIDKey, unboxPayload, membersType} = notification
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
     yield Saga.put(Chat2Gen.createNavigateToThread())
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
-        yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+        yield* Saga.callPromise(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: conversationIDKey,
           membersType,
           payload: unboxPayload,
@@ -220,7 +220,7 @@ const uploadPushToken = (state: TypedState) =>
     })
 
 const deletePushToken = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const waitKey = 'push:deleteToken'
     yield Saga.put(
       ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -233,7 +233,7 @@ const deletePushToken = (state: TypedState, action: ConfigGen.DaemonHandshakePay
         return
       }
 
-      yield Saga.call(RPCTypes.apiserverDeleteRpcPromise, {
+      yield* Saga.callPromise(RPCTypes.apiserverDeleteRpcPromise, {
         args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: Constants.tokenType}],
         endpoint: 'device/push_token',
       })
@@ -266,9 +266,9 @@ const neverShowMonsterAgain = (state: TypedState) =>
   )
 
 const requestPermissions = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     if (isIOS) {
-      const shownPushPrompt = yield Saga.call(askNativeIfSystemPushPromptHasBeenShown)
+      const shownPushPrompt = yield* Saga.callPromise(askNativeIfSystemPushPromptHasBeenShown)
       if (shownPushPrompt) {
         // we've already shown the prompt, take them to settings
         yield Saga.put(ConfigGen.createOpenAppSettings())
@@ -279,7 +279,7 @@ const requestPermissions = () =>
     try {
       yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
       logger.info('[PushRequesting] asking native')
-      const permissions = yield Saga.call(requestPermissionsFromNative)
+      const permissions = yield* Saga.callPromise(requestPermissionsFromNative)
       logger.info('[PushRequesting] after prompt:', permissions)
       if (permissions?.alert || permissions?.badge) {
         logger.info('[PushRequesting] enabled')
@@ -331,15 +331,15 @@ const checkPermissions = (_: any, action: ConfigGen.MobileAppStatePayload | null
     return false
   }
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     console.log('[PushCheck] checking ', action ? 'on foreground' : 'on startup')
-    const permissions = yield Saga.call(checkPermissionsFromNative)
+    const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
     if (permissions.alert || permissions.badge) {
-      const state: TypedState = yield Saga.select()
+      const state = yield* Saga.selectState()
       if (!state.push.hasPermissions) {
         logger.info('[PushCheck] enabled: getting token')
         yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-        yield Saga.call(requestPermissionsFromNative)
+        yield* Saga.callPromise(requestPermissionsFromNative)
       } else {
         logger.info('[PushCheck] enabled already')
       }

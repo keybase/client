@@ -116,40 +116,40 @@ export const createUploadAvatar = (payload: _UploadAvatarPayload) => ({payload, 
 export const createWaiting = (payload: _WaitingPayload) => ({payload, type: waiting})
 
 // Action Payloads
-export type AddProofPayload = $Call<typeof createAddProof, _AddProofPayload>
-export type BackToProfilePayload = $Call<typeof createBackToProfile, _BackToProfilePayload>
-export type CancelAddProofPayload = $Call<typeof createCancelAddProof, _CancelAddProofPayload>
-export type CancelPgpGenPayload = $Call<typeof createCancelPgpGen, _CancelPgpGenPayload>
-export type CheckProofPayload = $Call<typeof createCheckProof, _CheckProofPayload>
-export type CleanupUsernamePayload = $Call<typeof createCleanupUsername, _CleanupUsernamePayload>
-export type DropPgpPayload = $Call<typeof createDropPgp, _DropPgpPayload>
-export type EditProfilePayload = $Call<typeof createEditProfile, _EditProfilePayload>
-export type FinishRevokingPayload = $Call<typeof createFinishRevoking, _FinishRevokingPayload>
-export type FinishedWithKeyGenPayload = $Call<typeof createFinishedWithKeyGen, _FinishedWithKeyGenPayload>
-export type GeneratePgpPayload = $Call<typeof createGeneratePgp, _GeneratePgpPayload>
-export type OnClickAvatarPayload = $Call<typeof createOnClickAvatar, _OnClickAvatarPayload>
-export type OnClickFollowersPayload = $Call<typeof createOnClickFollowers, _OnClickFollowersPayload>
-export type OnClickFollowingPayload = $Call<typeof createOnClickFollowing, _OnClickFollowingPayload>
-export type OutputInstructionsActionLinkPayload = $Call<typeof createOutputInstructionsActionLink, _OutputInstructionsActionLinkPayload>
-export type RevokeFinishPayload = $Call<typeof createRevokeFinish, _RevokeFinishPayload>
-export type RevokeFinishPayloadError = $Call<typeof createRevokeFinishError, _RevokeFinishPayloadError>
-export type RevokeWaitingPayload = $Call<typeof createRevokeWaiting, _RevokeWaitingPayload>
-export type ShowUserProfilePayload = $Call<typeof createShowUserProfile, _ShowUserProfilePayload>
-export type SubmitBTCAddressPayload = $Call<typeof createSubmitBTCAddress, _SubmitBTCAddressPayload>
-export type SubmitRevokeProofPayload = $Call<typeof createSubmitRevokeProof, _SubmitRevokeProofPayload>
-export type SubmitUsernamePayload = $Call<typeof createSubmitUsername, _SubmitUsernamePayload>
-export type SubmitZcashAddressPayload = $Call<typeof createSubmitZcashAddress, _SubmitZcashAddressPayload>
-export type UpdateErrorTextPayload = $Call<typeof createUpdateErrorText, _UpdateErrorTextPayload>
-export type UpdatePgpInfoPayload = $Call<typeof createUpdatePgpInfo, _UpdatePgpInfoPayload>
-export type UpdatePgpInfoPayloadError = $Call<typeof createUpdatePgpInfoError, _UpdatePgpInfoPayloadError>
-export type UpdatePgpPublicKeyPayload = $Call<typeof createUpdatePgpPublicKey, _UpdatePgpPublicKeyPayload>
-export type UpdatePlatformPayload = $Call<typeof createUpdatePlatform, _UpdatePlatformPayload>
-export type UpdateProofStatusPayload = $Call<typeof createUpdateProofStatus, _UpdateProofStatusPayload>
-export type UpdateProofTextPayload = $Call<typeof createUpdateProofText, _UpdateProofTextPayload>
-export type UpdateSigIDPayload = $Call<typeof createUpdateSigID, _UpdateSigIDPayload>
-export type UpdateUsernamePayload = $Call<typeof createUpdateUsername, _UpdateUsernamePayload>
-export type UploadAvatarPayload = $Call<typeof createUploadAvatar, _UploadAvatarPayload>
-export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
+export type AddProofPayload = {|+payload: _AddProofPayload, +type: 'profile:addProof'|}
+export type BackToProfilePayload = {|+payload: _BackToProfilePayload, +type: 'profile:backToProfile'|}
+export type CancelAddProofPayload = {|+payload: _CancelAddProofPayload, +type: 'profile:cancelAddProof'|}
+export type CancelPgpGenPayload = {|+payload: _CancelPgpGenPayload, +type: 'profile:cancelPgpGen'|}
+export type CheckProofPayload = {|+payload: _CheckProofPayload, +type: 'profile:checkProof'|}
+export type CleanupUsernamePayload = {|+payload: _CleanupUsernamePayload, +type: 'profile:cleanupUsername'|}
+export type DropPgpPayload = {|+payload: _DropPgpPayload, +type: 'profile:dropPgp'|}
+export type EditProfilePayload = {|+payload: _EditProfilePayload, +type: 'profile:editProfile'|}
+export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: 'profile:finishRevoking'|}
+export type FinishedWithKeyGenPayload = {|+payload: _FinishedWithKeyGenPayload, +type: 'profile:finishedWithKeyGen'|}
+export type GeneratePgpPayload = {|+payload: _GeneratePgpPayload, +type: 'profile:generatePgp'|}
+export type OnClickAvatarPayload = {|+payload: _OnClickAvatarPayload, +type: 'profile:onClickAvatar'|}
+export type OnClickFollowersPayload = {|+payload: _OnClickFollowersPayload, +type: 'profile:onClickFollowers'|}
+export type OnClickFollowingPayload = {|+payload: _OnClickFollowingPayload, +type: 'profile:onClickFollowing'|}
+export type OutputInstructionsActionLinkPayload = {|+payload: _OutputInstructionsActionLinkPayload, +type: 'profile:outputInstructionsActionLink'|}
+export type RevokeFinishPayload = {|+payload: _RevokeFinishPayload, +type: 'profile:revokeFinish'|}
+export type RevokeFinishPayloadError = {|+error: true, +payload: _RevokeFinishPayloadError, +type: 'profile:revokeFinish'|}
+export type RevokeWaitingPayload = {|+payload: _RevokeWaitingPayload, +type: 'profile:revokeWaiting'|}
+export type ShowUserProfilePayload = {|+payload: _ShowUserProfilePayload, +type: 'profile:showUserProfile'|}
+export type SubmitBTCAddressPayload = {|+payload: _SubmitBTCAddressPayload, +type: 'profile:submitBTCAddress'|}
+export type SubmitRevokeProofPayload = {|+payload: _SubmitRevokeProofPayload, +type: 'profile:submitRevokeProof'|}
+export type SubmitUsernamePayload = {|+payload: _SubmitUsernamePayload, +type: 'profile:submitUsername'|}
+export type SubmitZcashAddressPayload = {|+payload: _SubmitZcashAddressPayload, +type: 'profile:submitZcashAddress'|}
+export type UpdateErrorTextPayload = {|+payload: _UpdateErrorTextPayload, +type: 'profile:updateErrorText'|}
+export type UpdatePgpInfoPayload = {|+payload: _UpdatePgpInfoPayload, +type: 'profile:updatePgpInfo'|}
+export type UpdatePgpInfoPayloadError = {|+error: true, +payload: _UpdatePgpInfoPayloadError, +type: 'profile:updatePgpInfo'|}
+export type UpdatePgpPublicKeyPayload = {|+payload: _UpdatePgpPublicKeyPayload, +type: 'profile:updatePgpPublicKey'|}
+export type UpdatePlatformPayload = {|+payload: _UpdatePlatformPayload, +type: 'profile:updatePlatform'|}
+export type UpdateProofStatusPayload = {|+payload: _UpdateProofStatusPayload, +type: 'profile:updateProofStatus'|}
+export type UpdateProofTextPayload = {|+payload: _UpdateProofTextPayload, +type: 'profile:updateProofText'|}
+export type UpdateSigIDPayload = {|+payload: _UpdateSigIDPayload, +type: 'profile:updateSigID'|}
+export type UpdateUsernamePayload = {|+payload: _UpdateUsernamePayload, +type: 'profile:updateUsername'|}
+export type UploadAvatarPayload = {|+payload: _UploadAvatarPayload, +type: 'profile:uploadAvatar'|}
+export type WaitingPayload = {|+payload: _WaitingPayload, +type: 'profile:waiting'|}
 
 // All Actions
 // prettier-ignore
@@ -188,4 +188,4 @@ export type Actions =
   | UpdateUsernamePayload
   | UploadAvatarPayload
   | WaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

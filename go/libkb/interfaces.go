@@ -393,6 +393,9 @@ type ChatUI interface {
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatStellarShowConfirm(context.Context) error
+	ChatStellarDataConfirm(context.Context, chat1.UIMiniChatPaymentSummary) (bool, error)
+	ChatStellarDataError(context.Context, string) error
 }
 
 type PromptDefault int

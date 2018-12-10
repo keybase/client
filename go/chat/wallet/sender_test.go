@@ -129,7 +129,8 @@ func TestStellarSender(t *testing.T) {
 		mi.membersTypFn = typFn
 		mi.partsFn = partsFn
 		ms.miniFn = miniFn
-		res, err := sender.ParseAndSendPayments(context.TODO(), senderUID, convID, body)
+		parsedPayments := sender.ParsePayments(context.TODO(), senderUID, convID, body)
+		res, err := sender.SendPayments(context.TODO(), parsedPayments)
 		require.NoError(t, err)
 		require.Equal(t, len(expected), len(res))
 		for index, r := range expected {

@@ -132,6 +132,12 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignSelf: 'flex-start',
     },
+    isElectron: {
+      minHeight: 16,
+    },
+    isMobile: {
+      minHeight: 21,
+    },
   }),
   url: {
     ...Styles.globalStyles.fontSemibold,

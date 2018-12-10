@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
+import * as Flow from '../util/flow'
 import {type TypedState} from '../util/container'
 import {isLinux, isWindows, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
@@ -369,10 +370,7 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
     case 'new-folder':
       return 'folder'
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return 'unknown'
   }
 }
@@ -699,10 +697,7 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Ty
     case 'team':
       return tlfs.team
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove: (tlfType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove(tlfType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return I.Map()
   }
 }
@@ -752,10 +747,7 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
     case 'team':
       return tlfs.team.get(name, makeTlf())
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove: (tlfType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove(tlfType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return makeTlf()
   }
 }

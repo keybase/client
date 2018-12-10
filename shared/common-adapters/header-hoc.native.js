@@ -32,7 +32,7 @@ export const HeaderHocHeader = (props: Props) => (
     )}
     {!!props.title && (
       <Box style={styles.titleContainer}>
-        <Text type="BodySmall" style={styles.title} lineClamp={1}>!{props.title}</Text>
+        <Text type="BodySemibold" style={styles.title} lineClamp={1}>!{props.title}</Text>
       </Box>
     )}
     <Box style={styles.rightAction}>

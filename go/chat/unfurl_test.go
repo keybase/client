@@ -17,6 +17,7 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -120,6 +121,8 @@ func TestChatSrvUnfurl(t *testing.T) {
 		unfurlCh := make(chan *chat1.Unfurl, 5)
 		unfurler.SetTestingRetryCh(retryCh)
 		unfurler.SetTestingUnfurlCh(unfurlCh)
+		clock := clockwork.NewFakeClock()
+		unfurler.SetClock(clock)
 		tc.ChatG.Unfurler = unfurler
 		fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
 		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), fetcher,
@@ -241,7 +244,11 @@ func TestChatSrvUnfurl(t *testing.T) {
 			default:
 			}
 		}
+		// now that we we can succeed, clear our cached value so we don't serve
+		// back the cached error
 		httpSrv.succeed = true
+		clock.Advance(2 * 10 * time.Minute) // unfurl.DefaultCacheTime
+
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
 		recvSingleRetry()
 		u := recvUnfurl()
