@@ -6,31 +6,24 @@ import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
 import WalletRow from '../../../wallet-list/wallet-row/container'
 
-export type MenuItem = {|
+type MenuItem = {|
   onClick?: ?(evt?: SyntheticEvent<>) => void,
   title: string,
   view?: React.Node,
 |}
 
-type MenuRowProps = {
-  ...MenuItem,
-  isHeader?: boolean,
-  index: number,
-  numItems: number,
-  onHidden?: ?() => void,
-}
-
-const MenuRow = (props: MenuRowProps) => (
+const renderItem = (index, item, onHidden: () => void) => (
   <TouchableOpacity
+    key={item.title}
     onPress={() => {
-      props.onHidden && props.onHidden() // auto hide after a selection
-      props.onClick && props.onClick()
+      onHidden && onHidden() // auto hide after a selection
+      item.onClick && item.onClick()
     }}
     style={styles.row}
   >
-    {props.view || (
+    {item.view || (
       <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
-        {props.title}
+        {item.title}
       </Kb.Text>
     )}
   </TouchableOpacity>
@@ -48,15 +41,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
     return (
       <Kb.List
         items={this.props.items}
-        renderItem={(index, item) => (
-          <MenuRow
-            key={item.title}
-            {...item}
-            index={index}
-            numItems={this.props.items.length}
-            onHidden={this.props.onHidden}
-          />
-        )}
+        renderItem={(index, item) => renderItem(index, item, this.props.onHidden)}
       />
     )
   }
@@ -129,14 +114,15 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
         title: 'Close',
         view: (
           <Kb.Box style={styles.closeGroup}>
-            <MenuRow
-              title="Close"
-              index={0}
-              numItems={1}
-              onClick={props.toggleShowingMenu}
+            {renderItem(
+              0,
+              {
+                onClick: props.toggleShowingMenu,
+                title: 'Close',
+              },
               // pass in nothing to onHidden so it doesn't trigger it twice
-              onHidden={() => {}}
-            />
+              () => {}
+            )}
           </Kb.Box>
         ),
       },
