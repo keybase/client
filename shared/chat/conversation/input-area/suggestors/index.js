@@ -3,9 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {invert} from 'lodash-es'
-import ChatUsers from './chat-users'
 import SuggestionList from './suggestion-list'
-import type {SuggestorDatasource} from './interface'
 
 const lg = (...args) => console.log('DANNYDEBUG', ...args)
 
