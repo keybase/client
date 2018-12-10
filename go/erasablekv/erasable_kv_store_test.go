@@ -23,14 +23,13 @@ func TestErasableKVStore(t *testing.T) {
 	s := NewFileErasableKVStore(tc.G, subDir)
 	key := "test-key.key"
 	expected := "value"
-	var val string
-
 	err = s.Put(context.Background(), key, expected)
 	require.NoError(t, err)
 
-	err = s.Get(context.Background(), key, val)
-	require.Error(t, err)
-	require.NotEqual(t, expected, val)
+	var val string
+	err = s.Get(context.Background(), key, &val)
+	require.NoError(t, err)
+	require.Equal(t, expected, val)
 
 	// create a tmp file in the storage dir, ensure we clean it up when calling
 	// `AllKeys`
@@ -59,7 +58,7 @@ func TestErasableKVStore(t *testing.T) {
 	require.NoError(t, err)
 
 	var corrupt string
-	err = s.Get(context.Background(), key, corrupt)
+	err = s.Get(context.Background(), key, &corrupt)
 	require.Error(t, err)
 	uerr, ok := err.(UnboxError)
 	require.True(t, ok)
