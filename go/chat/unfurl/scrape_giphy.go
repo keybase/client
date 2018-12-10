@@ -12,7 +12,8 @@ import (
 func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.UnfurlRaw, err error) {
 	c := s.makeCollector()
 	var giphy chat1.UnfurlGiphyRaw
-	var video chat1.UnfurlGiphyVideo
+	var video chat1.UnfurlVideo
+	video.MimeType = "video/mp4"
 	generic := new(scoredGenericRaw)
 	if err = s.addGenericScraperToCollector(ctx, c, generic, uri, "giphy.com"); err != nil {
 		return res, err
