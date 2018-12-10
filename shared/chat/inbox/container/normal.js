@@ -54,25 +54,28 @@ const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
     ? a.channelname.localeCompare(b.channelname)
     : a.teamname.localeCompare(b.teamname)
-const getBigRows = memoize1(bigMetas => {
-  let lastTeam: ?string
-  return bigMetas.sort(sortByTeamChannel).reduce((arr, meta) => {
-    // headers for new teams
-    if (meta.teamname !== lastTeam) {
-      lastTeam = meta.teamname
-      arr.push({teamname: lastTeam, type: 'bigHeader'})
-    }
-    // channels
-    arr.push({
-      channelname: meta.channelname,
-      conversationIDKey: meta.conversationIDKey,
-      teamname: lastTeam,
-      type: 'big',
-    })
+const getBigRows = memoize1(
+  bigMetas => {
+    let lastTeam: ?string
+    return bigMetas.sort(sortByTeamChannel).reduce((arr, meta) => {
+      // headers for new teams
+      if (meta.teamname !== lastTeam) {
+        lastTeam = meta.teamname
+        arr.push({teamname: lastTeam, type: 'bigHeader'})
+      }
+      // channels
+      arr.push({
+        channelname: meta.channelname,
+        conversationIDKey: meta.conversationIDKey,
+        teamname: lastTeam,
+        type: 'big',
+      })
 
-    return arr
-  }, [])
-}, shallowEqual)
+      return arr
+    }, [])
+  },
+  (a, b) => shallowEqual(a, b)
+)
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems

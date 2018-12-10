@@ -454,8 +454,12 @@ const rootReducer = (
         ])
       )
       return state.withMutations(s => {
-        s.set('badgeMap', badgeMap)
-        s.set('unreadMap', unreadMap)
+        if (!s.badgeMap.equals(badgeMap)) {
+          s.set('badgeMap', badgeMap)
+        }
+        if (!s.unreadMap.equals(unreadMap)) {
+          s.set('unreadMap', unreadMap)
+        }
       })
     }
     case Chat2Gen.messageSetEditing:
@@ -873,6 +877,9 @@ const rootReducer = (
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+        s.update('inboxVersion', old =>
+          action.payload.metas.reduce((v, meta) => Math.max(v, meta.inboxVersion), old)
+        )
       })
     }
     case Chat2Gen.paymentInfoReceived: {

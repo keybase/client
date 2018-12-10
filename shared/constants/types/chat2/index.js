@@ -45,6 +45,7 @@ export type _State = {
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  inboxVersion: number, // gets incremented as we get updates. used to know when the inbox has actually changed content
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
