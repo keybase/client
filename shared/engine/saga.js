@@ -51,19 +51,21 @@ const makeWaitingResponse = (r, waitingKey) => {
   return response
 }
 
-// TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
-function* call(p: {
+type CallParams = {
   method: string,
   params: ?Object,
   incomingCallMap?: {[method: string]: any}, // this is typed by the generated helpers
   customResponseIncomingCallMap?: {[method: string]: any},
   waitingKey?: string,
-}): Generator<any, any, any> {
+}
+
+// Do an actual engine call and deal with the (custom)incomingCallMap
+function* call(p: CallParams): Generator<any, any, any> {
   const {method, params, waitingKey} = p
   const incomingCallMap = p.incomingCallMap || {}
   const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
 
-  // custom and normal incomingCallMaps
+  // merge the maps to simplify bookkeeping internally
   const bothCallMaps = [
     ...Object.keys(incomingCallMap).map(method => ({
       custom: false,
@@ -84,9 +86,10 @@ function* call(p: {
 
   const buffer = RS.buffers.expanding(10)
 
-  // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
+  // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form.
+  // This lets us bridge engine and sagas
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
-    // convert call map
+    // Override the passed in incoming maps to handle waiting states and send to the saga side
     const callMap = bothCallMaps.reduce((map, {method, custom, handler}) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
@@ -102,22 +105,12 @@ function* call(p: {
           }
         }
 
-        if (!custom) {
-          if (response) {
-            response.result()
-            response = null
-          }
-        }
+        console.log('aaa channel', method)
 
-        // defer to process network first
+        // Emit deferred
         setTimeout(() => {
-          const toEmit: EmittedCall = {
-            method,
-            params,
-            response,
-          }
-          emitter(toEmit)
-        }, 5)
+          emitter({method, params, response})
+        }, 1)
       }
       return map
     }, {})
@@ -140,9 +133,9 @@ function* call(p: {
         // Send results deferred
         setTimeout(() => {
           emitter(toEmit)
-        }, 5)
+        }, 1)
 
-        // Send end when our buffers are clear
+        // Send 'end' when our buffers are clear
         const endIntervalID = setInterval(() => {
           if (buffer.isEmpty()) {
             emitter(RS.END)
@@ -168,14 +161,23 @@ function* call(p: {
       // Take things that we put into the eventChannel above
       const r = yield RSE.take(eventChannel)
 
+      console.log('aaa take', r.method)
       if (r.method) {
         const res: EmittedCall = (r: EmittedCall)
         let actions
 
+        // Has a response?
         if (res.response) {
-          const cb = customResponseIncomingCallMap[r.method]
-          if (cb) {
-            actions = yield RSE.call(cb, res.params, res.response)
+          const custom = customResponseIncomingCallMap[r.method]
+          if (custom) {
+            actions = yield RSE.call(custom, res.params, res.response)
+          } else {
+            const auto = incomingCallMap[r.method]
+            if (auto) {
+              // We reply ourselves first
+              res.response.result()
+              actions = yield RSE.call(auto, res.params)
+            }
           }
         } else {
           const cb = incomingCallMap[r.method]
