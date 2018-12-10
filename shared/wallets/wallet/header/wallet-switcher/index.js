@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import MenuLayout from '../../../../common-adapters/floating-menu/menu-layout'
 import * as Types from '../../../../constants/types/wallets'
 import WalletRow from '../../../wallet-list/wallet-row/container'
 
@@ -11,7 +12,11 @@ export type Props = {
   walletName: string,
 }
 
-const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => {
+const Menu = (props: Props & Kb.OverlayParentProps) => {
+  if (!props.showingMenu) {
+    return null
+  }
+
   const menuItems = [
     {
       onClick: props.onAddNew,
@@ -29,18 +34,22 @@ const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => {
   )
 
   return (
-    <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        closeOnSelect={true}
-        items={menuItems}
-        onHidden={props.toggleShowingMenu}
-        visible={props.showingMenu}
-        position="bottom center"
-      />
-    </Kb.ClickableBox>
+    <Kb.Overlay
+      position="bottom center"
+      onHidden={props.toggleShowingMenu}
+      visible={props.showingMenu}
+      attachTo={props.getAttachmentRef}
+    >
+      <MenuLayout onHidden={props.toggleShowingMenu} items={menuItems} closeOnClick={true} />
+    </Kb.Overlay>
   )
 }
+
+const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => (
+  <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+    <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+    <Menu {...props} />
+  </Kb.ClickableBox>
+)
 
 export const WalletSwitcher = Kb.OverlayParentHOC(_WalletSwitcher)
