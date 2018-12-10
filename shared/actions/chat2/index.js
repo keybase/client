@@ -549,7 +549,7 @@ const onChatIdentifyUpdate = update => {
     }
   })
 
-  return [UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})]
+  return Saga.put(UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed}))
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
@@ -653,7 +653,7 @@ const setupEngineListeners = () => {
       )
     },
     'chat.1.NotifyChat.ChatIdentifyUpdate': ({update}) =>
-      arrayOfActionsToSequentially(onChatIdentifyUpdate(update)),
+      onChatIdentifyUpdate(update),
     'chat.1.NotifyChat.ChatInboxStale': () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'inboxStale'})),
     'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
       Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
