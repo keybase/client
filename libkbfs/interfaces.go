@@ -1355,6 +1355,15 @@ type DiskBlockCache interface {
 	// space.
 	DoesCacheHaveSpace(
 		ctx context.Context, cacheType DiskBlockCacheType) (bool, error)
+	// Mark tags a given block in the disk cache with the given tag.
+	Mark(
+		ctx context.Context, blockID kbfsblock.ID, tag string,
+		cacheType DiskBlockCacheType) error
+	// DeleteUnmarked deletes all the given TLF's blocks in the disk
+	// cache without the given tag.
+	DeleteUnmarked(
+		ctx context.Context, tlfID tlf.ID, tag string,
+		cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }

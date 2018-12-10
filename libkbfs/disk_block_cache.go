@@ -35,6 +35,7 @@ const (
 	evictionConsiderationFactor   int    = 3
 	defaultNumBlocksToEvict       int    = 10
 	numBlocksToEvictOnClear       int    = 100
+	numUnmarkedBlocksToCheck      int    = 100
 	clearTickerDuration                  = 1 * time.Second
 	maxEvictionsPerPut            int    = 4
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
@@ -906,10 +907,6 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 		}
 		key := iter.Key()
 
-		if err != nil {
-			cache.log.CWarningf(ctx, "Error decoding block ID %x", key)
-			continue
-		}
 		blockID, err := kbfsblock.IDFromBytes(key)
 		if err != nil {
 			cache.log.CWarningf(ctx, "Error getting id from bytes %x", key)
@@ -1101,6 +1098,121 @@ func (cache *DiskBlockCacheLocal) DoesCacheHaveSpace(
 		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99
 	default:
 		panic(fmt.Sprintf("Unknown cache type: %d", cache.cacheType))
+	}
+}
+
+// Mark updates the metadata of the given block with the tag.
+func (cache *DiskBlockCacheLocal) Mark(
+	ctx context.Context, blockID kbfsblock.ID, tag string) error {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	err := cache.checkCacheLocked("Block(UpdateMetadata)")
+	if err != nil {
+		return err
+	}
+
+	md, err := cache.getMetadataLocked(blockID, false)
+	if err != nil {
+		return NoSuchBlockError{blockID}
+	}
+	md.Tag = tag
+	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, false)
+}
+
+func (cache *DiskBlockCacheLocal) deleteNextUnmarkedBatchFromTlf(
+	ctx context.Context, tlfID tlf.ID, tag string, startingKey []byte) (
+	nextKey []byte, err error) {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	err = cache.checkCacheLocked("Block(deleteNextUnmarkedBatchFromTlf)")
+	if err != nil {
+		return nil, err
+	}
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
+	tlfBytes := tlfID.Bytes()
+	rng := &util.Range{
+		Start: startingKey,
+		Limit: append(tlfBytes, cache.maxBlockID...),
+	}
+	iter := cache.tlfDb.NewIterator(rng, nil)
+	defer iter.Release()
+
+	blockIDs := make([]kbfsblock.ID, 0, numUnmarkedBlocksToCheck)
+	for i := 0; i < numUnmarkedBlocksToCheck; i++ {
+		if !iter.Next() {
+			break
+		}
+		key := iter.Key()
+
+		blockIDBytes := key[len(tlfBytes):]
+		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
+		if err != nil {
+			cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
+			continue
+		}
+		md, err := cache.getMetadataLocked(blockID, false)
+		if err != nil {
+			cache.log.CWarningf(
+				ctx, "No metadata for %s while checking mark", blockID)
+			continue
+		}
+		if md.Tag != tag {
+			blockIDs = append(blockIDs, blockID)
+		}
+	}
+
+	if iter.Next() {
+		nextKey = iter.Key()
+	}
+
+	if len(blockIDs) > 0 {
+		cache.log.CDebugf(ctx, "Deleting %d unmarked blocks (tag=%s) from %s",
+			len(blockIDs), tag, tlfID)
+		_, _, err = cache.deleteLocked(ctx, blockIDs)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return nextKey, nil
+}
+
+// DeleteUnmarked deletes all the blocks without the given tag.
+func (cache *DiskBlockCacheLocal) DeleteUnmarked(
+	ctx context.Context, tlfID tlf.ID, tag string) (err error) {
+	defer func() {
+		cache.log.CDebugf(ctx,
+			"Finished deleting unmarked blocks (tag=%s) from %s: %+v",
+			tag, tlfID, err)
+	}()
+
+	// Delete the blocks in batches, so we don't keep the lock for too
+	// long.
+	startingKey := cache.tlfKey(tlfID, nil)
+	for {
+		cache.log.CDebugf(
+			ctx, "Deleting a batch of unmarked blocks (tag=%s) from %s",
+			tag, tlfID)
+		startingKey, err = cache.deleteNextUnmarkedBatchFromTlf(
+			ctx, tlfID, tag, startingKey)
+		if err != nil {
+			return err
+		}
+		if startingKey == nil {
+			return nil
+		}
+
+		c := time.After(clearTickerDuration)
+		select {
+		case <-c:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 }
 

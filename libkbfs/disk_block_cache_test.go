@@ -758,3 +758,52 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 	require.Equal(t, 1, cache.syncCache.numBlocks)
 	require.Equal(t, NoPrefetch, prefetchStatus)
 }
+
+func TestDiskBlockCacheMark(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that basic disk cache marking and deleting work.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+	standardCache := cache.syncCache
+	ctx := context.Background()
+
+	t.Log("Insert lots of blocks.")
+	numTlfs := 3
+	numBlocksPerTlf := 5
+	numBlocks := numTlfs * numBlocksPerTlf
+	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
+	require.Equal(t, numBlocks, standardCache.numBlocks)
+
+	t.Log("Generate some blocks we can mark.")
+	tlfID := tlf.FakeID(1, tlf.Private)
+	ids := make([]kbfsblock.ID, numBlocksPerTlf)
+	for i := 0; i < numBlocksPerTlf; i++ {
+		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
+			t, config)
+		err := cache.Put(
+			ctx, tlfID, blockPtr.ID, blockEncoded, serverHalf,
+			DiskBlockSyncCache)
+		require.NoError(t, err)
+		ids[i] = blockPtr.ID
+	}
+	numBlocks += numBlocksPerTlf
+	require.Equal(t, numBlocks, standardCache.numBlocks)
+
+	t.Log("Mark a couple blocks.")
+	tag := "mark"
+	err := cache.Mark(ctx, ids[1], tag, DiskBlockSyncCache)
+	require.NoError(t, err)
+	err = cache.Mark(ctx, ids[3], tag, DiskBlockSyncCache)
+	require.NoError(t, err)
+
+	t.Log("Delete all unmarked blocks.")
+	err = cache.DeleteUnmarked(ctx, tlfID, tag, DiskBlockSyncCache)
+	require.NoError(t, err)
+	require.Equal(t, numBlocks-(2*numBlocksPerTlf-2), standardCache.numBlocks)
+	_, _, _, err = cache.Get(ctx, tlfID, ids[0], DiskBlockAnyCache)
+	require.EqualError(t, err, NoSuchBlockError{ids[0]}.Error())
+	_, _, _, err = cache.Get(ctx, tlfID, ids[2], DiskBlockAnyCache)
+	require.EqualError(t, err, NoSuchBlockError{ids[2]}.Error())
+	_, _, _, err = cache.Get(ctx, tlfID, ids[4], DiskBlockAnyCache)
+	require.EqualError(t, err, NoSuchBlockError{ids[4]}.Error())
+}

@@ -331,6 +331,33 @@ func (cache *diskBlockCacheWrapped) Status(
 	return statuses
 }
 
+// Mark implements the DiskBlockCache interface for diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) Mark(
+	ctx context.Context, blockID kbfsblock.ID, tag string,
+	cacheType DiskBlockCacheType) error {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+	c, err := cache.getCacheLocked(cacheType)
+	if err != nil {
+		return err
+	}
+	return c.Mark(ctx, blockID, tag)
+}
+
+// DeleteUnmarked implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) DeleteUnmarked(
+	ctx context.Context, tlfID tlf.ID, tag string,
+	cacheType DiskBlockCacheType) error {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+	c, err := cache.getCacheLocked(cacheType)
+	if err != nil {
+		return err
+	}
+	return c.DeleteUnmarked(ctx, tlfID, tag)
+}
+
 func (cache *diskBlockCacheWrapped) waitForDeletes(ctx context.Context) error {
 	return cache.deleteGroup.Wait(ctx)
 }

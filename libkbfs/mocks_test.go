@@ -5260,6 +5260,34 @@ func (mr *MockDiskBlockCacheMockRecorder) DoesCacheHaveSpace(ctx, cacheType inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoesCacheHaveSpace", reflect.TypeOf((*MockDiskBlockCache)(nil).DoesCacheHaveSpace), ctx, cacheType)
 }
 
+// Mark mocks base method
+func (m *MockDiskBlockCache) Mark(ctx context.Context, blockID kbfsblock.ID, tag string, cacheType DiskBlockCacheType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Mark", ctx, blockID, tag, cacheType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Mark indicates an expected call of Mark
+func (mr *MockDiskBlockCacheMockRecorder) Mark(ctx, blockID, tag, cacheType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mark", reflect.TypeOf((*MockDiskBlockCache)(nil).Mark), ctx, blockID, tag, cacheType)
+}
+
+// DeleteUnmarked mocks base method
+func (m *MockDiskBlockCache) DeleteUnmarked(ctx context.Context, tlfID tlf.ID, tag string, cacheType DiskBlockCacheType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnmarked", ctx, tlfID, tag, cacheType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnmarked indicates an expected call of DeleteUnmarked
+func (mr *MockDiskBlockCacheMockRecorder) DeleteUnmarked(ctx, tlfID, tag, cacheType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnmarked", reflect.TypeOf((*MockDiskBlockCache)(nil).DeleteUnmarked), ctx, tlfID, tag, cacheType)
+}
+
 // Shutdown mocks base method
 func (m *MockDiskBlockCache) Shutdown(ctx context.Context) {
 	m.ctrl.T.Helper()
