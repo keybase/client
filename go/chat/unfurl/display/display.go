@@ -21,7 +21,7 @@ func assetToImageDisplay(ctx context.Context, convID chat1.ConversationID, asset
 		height = asset.Metadata.Image().Height
 		width = asset.Metadata.Image().Width
 	case chat1.AssetMetadataType_VIDEO:
-		isVideo = true
+		isVideo = asset.MimeType != "image/gif"
 		height = asset.Metadata.Video().Height
 		width = asset.Metadata.Video().Width
 	default:

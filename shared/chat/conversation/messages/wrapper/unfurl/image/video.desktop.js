@@ -62,6 +62,7 @@ const styles = Styles.styleSheetCreate({
     top: 0,
   },
   container: {
+    alignSelf: 'flex-start',
     position: 'relative',
   },
   playButton: {

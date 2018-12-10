@@ -14,12 +14,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     description: unfurl.description || undefined,
     faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
     imageHeight: unfurl.media ? unfurl.media.height : undefined,
+    imageIsVideo: unfurl.media ? unfurl.media.isVideo : undefined,
     imageURL: unfurl.media ? unfurl.media.url : undefined,
     imageWidth: unfurl.media ? unfurl.media.width : undefined,
-    imageIsVideo: unfurl.media ? unfurl.media.isVideo : undefined,
     onClose,
     publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
-    showImageOnSide: unfurl.media ? unfurl.media.height >= unfurl.media.width : false,
+    showImageOnSide: unfurl.media
+      ? unfurl.media.height >= unfurl.media.width && !unfurl.media.isVideo
+      : false,
     siteName: unfurl.siteName,
     title: unfurl.title,
     url: unfurl.url,
