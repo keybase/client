@@ -583,6 +583,8 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		return res, err
 	}
 
+	walletState.Refresh(m.Ctx(), senderEntry.AccountID)
+
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {
 			if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
