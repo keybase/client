@@ -105,8 +105,6 @@ function* call(p: CallParams): Generator<any, any, any> {
           }
         }
 
-        console.log('aaa channel', method)
-
         // Emit deferred
         setTimeout(() => {
           emitter({method, params, response})
@@ -161,7 +159,6 @@ function* call(p: CallParams): Generator<any, any, any> {
       // Take things that we put into the eventChannel above
       const r = yield RSE.take(eventChannel)
 
-      console.log('aaa take', r.method)
       if (r.method) {
         const res: EmittedCall = (r: EmittedCall)
         let actions
