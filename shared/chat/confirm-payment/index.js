@@ -175,7 +175,7 @@ const styles = Styles.styleSheetCreate({
   }),
   icon: Styles.platformStyles({
     isElectron: {
-      marginBottom: 16,
+      marginBottom: Styles.globalMargins.small,
       marginTop: 35,
     },
   }),
@@ -209,13 +209,14 @@ const styles = Styles.styleSheetCreate({
   }),
   submitIcon: Styles.platformStyles({
     isElectron: {
-      paddingRight: 8,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
   totalContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.purple,
+      paddingBottom: Styles.globalMargins.tiny,
     },
     isElectron: {
       height: 242,
