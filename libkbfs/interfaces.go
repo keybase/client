@@ -1274,6 +1274,19 @@ const (
 	DiskBlockSyncCache
 )
 
+func (dbct DiskBlockCacheType) String() string {
+	switch dbct {
+	case DiskBlockSyncCache:
+		return "DiskBlockSyncCache"
+	case DiskBlockWorkingSetCache:
+		return "DiskBlockWorkingSetCache"
+	case DiskBlockAnyCache:
+		return "DiskBlockAnyCache"
+	default:
+		return "unknown DiskBlockCacheType"
+	}
+}
+
 // DiskBlockCache caches blocks to the disk.
 type DiskBlockCache interface {
 	// Get gets a block from the disk cache.  If a specific preferred

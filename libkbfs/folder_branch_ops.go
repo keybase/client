@@ -6493,7 +6493,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
 		return err
 	}
-	if err := fbo.fbm.waitForSyncCacheCleans(ctx); err != nil {
+	if err := fbo.fbm.waitForDiskCacheCleans(ctx); err != nil {
 		return err
 	}
 	if err := fbo.partialSyncs.Wait(ctx); err != nil {
