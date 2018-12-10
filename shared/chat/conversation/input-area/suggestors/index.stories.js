@@ -7,10 +7,17 @@ import AddSuggestors, * as Suggestors from '.'
 
 const _TestArea = (props: Suggestors.PropsWithSuggestor<{somethingElse: 'this'}>) => (
   <Kb.Box2 direction="vertical" gap="tiny" style={{padding: 10}}>
-    <Kb.Text type="BodySmall">Available triggers: {availableTriggers.toLocaleString()}</Kb.Text>
+    <Kb.Text type="BodySmall" selectable={true}>
+      Available triggers: {availableTriggers.toLocaleString()}
+    </Kb.Text>
     <Kb.PlainInput
+      onBlur={props.onBlur}
+      onFocus={props.onFocus}
       onChangeText={props.onChangeText}
       onKeyDown={props.onKeyDown}
+      onSelectionChange={props.onSelectionChange}
+      multiline={true}
+      rowsMax={3}
       ref={props.inputRef}
       style={{
         borderColor: 'black',

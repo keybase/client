@@ -123,6 +123,7 @@ class PlainInput extends Component<InternalProps, State> {
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
     this._lastNativeSelection = {end, start}
+    this.props.onSelectionChange && this.props.onSelectionChange(this._lastNativeSelection)
   }
 
   _onContentSizeChange = (event: ContentSizeChangeEvent) => {

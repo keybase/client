@@ -40,7 +40,12 @@ type AddSuggestorsState = {
 type SuggestorHooks = {
   inputRef: {current: React.ElementRef<typeof Kb.PlainInput> | null},
   onChangeText: string => void,
+  // Desktop only
   onKeyDown: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  // Mobile only
+  onBlur: () => void,
+  onFocus: () => void,
+  onSelectionChange: ({start: number, end: number}) => void,
 }
 
 export type PropsWithSuggestor<P> = {|
@@ -63,7 +68,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
 
     _getInputRef = () => this._inputRef.current
 
-    _setInactive = () => this.setState({active: null, filter: '', selected: 0})
+    _setInactive = () => this.setState(s => (s.active ? {active: null, filter: '', selected: 0} : null))
 
     _getWordAtCursor = () => {
       if (this._inputRef.current) {
@@ -155,6 +160,24 @@ const AddSuggestors = <WrappedOwnProps: {}>(
       }
     }
 
+    _onBlur = () => {
+      // $FlowIssue TODO (DA) but I don't think this is an issue
+      this.props.onBlur && this.props.onBlur()
+      this._setInactive()
+    }
+
+    _onFocus = () => {
+      // $FlowIssue TODO (DA) but I don't think this is an issue
+      this.props.onFocus && this.props.onFocus()
+      this._checkTrigger(this._lastText || '')
+    }
+
+    _onSelectionChange = selection => {
+      // $FlowIssue TODO (DA) but I don't think this is an issue
+      this.props.onSelectionChange && this.props.onSelectionChange()
+      this._checkTrigger(this._lastText || '')
+    }
+
     _triggerTransform = value => {
       lg('triggerTransform', value)
       if (this._inputRef.current && this.state.active) {
@@ -231,8 +254,11 @@ const AddSuggestors = <WrappedOwnProps: {}>(
           <WrappedComponent
             {...wrappedOP}
             inputRef={this._inputRef}
+            onBlur={this._onBlur}
+            onFocus={this._onFocus}
             onChangeText={this._onChangeText}
             onKeyDown={this._onKeyDown}
+            onSelectionChange={this._onSelectionChange}
           />
         </>
       )
