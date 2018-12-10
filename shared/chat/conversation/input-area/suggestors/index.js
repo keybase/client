@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {invert} from 'lodash-es'
@@ -17,6 +16,7 @@ type AddSuggestorsProps = {
   renderers: {
     [key: string]: (item: any, selected: boolean) => React.Node,
   },
+  suggestionListStyle?: Styles.StylesCrossPlatform,
   suggestorToMarker: {
     [key: string]: string,
   },
@@ -54,6 +54,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
   > {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
+    _lastText = null
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[key: string]: string} = invert(this.props.suggestorToMarker)
 
@@ -62,30 +63,34 @@ const AddSuggestors = <WrappedOwnProps: {}>(
     _setInactive = () => this.setState({active: null, filter: '', selected: 0})
 
     _checkTrigger = text => {
-      const selection = (this._inputRef.current && this._inputRef.current.getSelection()) || {
-        end: 0,
-        start: 0,
-      }
-      lg('checktrigger', text)
-      const upToCursor = text.substring(0, selection.start)
-      const words = upToCursor.split(/ |\n/)
-      const word = words[words.length - 1]
-      if (this.state.active) {
-        const activeMarker = this.props.suggestorToMarker[this.state.active]
-        if (!word.startsWith(activeMarker)) {
-          // not active anymore
-          this._setInactive()
-        } else {
-          this.setState({filter: word.substring(activeMarker.length)})
-          return
+      setTimeout(() => {
+        // inside a timeout so selection will settle, there was a problem where
+        // desktop would get the previous selection on arrowleft / arrowright
+        const selection = (this._inputRef.current && this._inputRef.current.getSelection()) || {
+          end: 0,
+          start: 0,
         }
-      }
-      for (let marker of Object.keys(this._markerToSuggestor)) {
-        if (word.startsWith(marker)) {
-          this.setState({active: this._markerToSuggestor[marker], filter: word.substring(marker.length)})
-          lg('wut!', marker)
+        lg('checktrigger', text)
+        const upToCursor = text.substring(0, selection.start)
+        const words = upToCursor.split(/ |\n/)
+        const word = words[words.length - 1]
+        if (this.state.active) {
+          const activeMarker = this.props.suggestorToMarker[this.state.active]
+          if (!word.startsWith(activeMarker)) {
+            // not active anymore
+            this._setInactive()
+          } else {
+            this.setState({filter: word.substring(activeMarker.length)})
+            return
+          }
         }
-      }
+        for (let marker of Object.keys(this._markerToSuggestor)) {
+          if (word.startsWith(marker)) {
+            this.setState({active: this._markerToSuggestor[marker], filter: word.substring(marker.length)})
+            lg('wut!', marker)
+          }
+        }
+      }, 0)
     }
 
     _move = (up: boolean) =>
@@ -100,12 +105,15 @@ const AddSuggestors = <WrappedOwnProps: {}>(
 
     _onChangeText = text => {
       lg('changetext', text)
+      this._lastText = text
+      // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onChangeText && this.props.onChangeText(text)
       this._checkTrigger(text)
     }
 
     _onKeyDown = (evt: SyntheticKeyboardEvent<>, ici: boolean) => {
       lg('keydown')
+      // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onKeyDown && this.props.onKeyDown(evt, ici)
 
       // check up or down
@@ -115,6 +123,10 @@ const AddSuggestors = <WrappedOwnProps: {}>(
       } else if (evt.key === 'ArrowUp') {
         evt.preventDefault()
         this._move(true)
+      } else if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
+        if (this._inputRef.current) {
+          this._checkTrigger(this._lastText || '')
+        }
       }
     }
 
@@ -142,7 +154,10 @@ const AddSuggestors = <WrappedOwnProps: {}>(
           const content = (
             <Kb.Box2
               direction="vertical"
-              style={{backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320}}
+              style={Styles.collapseStyles([
+                {backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320},
+                this.props.suggestionListStyle,
+              ])}
             >
               <SuggestionList
                 items={results}
