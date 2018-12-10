@@ -376,8 +376,26 @@ func TestListRecursive(t *testing.T) {
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
-	// make a temp remote directory + files we will clean up later
+	t.Log("List directory before it's created")
 	pathJDoe := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
+		OpID: opid,
+		Path: pathJDoe,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE, pathJDoe,
+		keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 0,
+		"Expected 0 directory entries in listing")
+
+	// make a temp remote directory + files we will clean up later
 	writeRemoteDir(ctx, t, sfs, pathAppend(pathJDoe, `a`))
 	patha := keybase1.NewPathWithKbfs(`/private/jdoe/a`)
 	writeRemoteDir(ctx, t, sfs, pathAppend(patha, `aa`))
@@ -390,7 +408,7 @@ func TestListRecursive(t *testing.T) {
 	writeRemoteFile(ctx, t, sfs, pathAppend(pathab, `test2.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(patha, `.testfile`), []byte(`foo`))
 
-	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
 		OpID: opid,
@@ -400,7 +418,7 @@ func TestListRecursive(t *testing.T) {
 	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE, pathJDoe, keybase1.Path{}, true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
-	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 	expected := []string{
 		"a",
