@@ -82,7 +82,7 @@ const PaymentsConfirm = (props: Props) => (
       <PaymentsConfirmError onCancel={props.onCancel} />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.totalContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
           <Kb.Icon
             type={
               Styles.isMobile
@@ -101,7 +101,7 @@ const PaymentsConfirm = (props: Props) => (
             (APPROXIMATELY {props.displayTotal})
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.summaryContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.summaryContainer}>
           <Kb.ScrollView style={styles.paymentsContainer}>
             {props.payments.map(p => (
               <Kb.Box2
@@ -114,7 +114,7 @@ const PaymentsConfirm = (props: Props) => (
               </Kb.Box2>
             ))}
           </Kb.ScrollView>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
             <Kb.Button
               type="Secondary"
               small={Styles.isMobile}
@@ -145,9 +145,6 @@ const PaymentsConfirm = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonBar: {
-    alignSelf: 'flex-end',
-  },
   buttonContainer: Styles.platformStyles({
     common: {
       justifyContent: 'space-between',
@@ -188,7 +185,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       marginBottom: Styles.globalMargins.small,
       marginTop: 35,
-      minHeight: 0,
     },
   }),
   paymentContainer: Styles.platformStyles({
@@ -209,7 +205,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   paymentsContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       maxHeight: 150,
       minHeight: 50,
     },
@@ -229,6 +225,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       justifyContent: 'space-between',
     },
+    isElectron: {
+      height: '100%',
+    },
   }),
   totalContainer: Styles.platformStyles({
     common: {
@@ -236,6 +235,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.purple,
     },
     isElectron: {
+      height: '100%',
       paddingBottom: 50,
     },
   }),
