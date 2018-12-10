@@ -35,12 +35,16 @@ func TestErasableKVStore(t *testing.T) {
 	// `AllKeys`
 	tmp, err := ioutil.TempFile(s.storageDir, key)
 	require.NoError(t, err)
-	keys, err := s.AllKeys(context.Background(), ".key")
-	require.NoError(t, err)
-	require.Equal(t, []string{key}, keys)
-	exists, err := libkb.FileExists(tmp.Name())
-	require.False(t, exists)
-	require.NoError(t, err)
+	for i := 0; i < 5; i++ {
+		keys, err := s.AllKeys(context.Background(), ".key")
+		require.NoError(t, err)
+		require.Equal(t, []string{key}, keys)
+		exists, err := libkb.FileExists(tmp.Name())
+		require.NoError(t, err)
+		if !exists {
+			break
+		}
+	}
 
 	// Test noise file corruption
 	noiseName := fmt.Sprintf("%s%s", key, noiseSuffix)
@@ -68,7 +72,7 @@ func TestErasableKVStore(t *testing.T) {
 	err = s.Erase(context.Background(), key)
 	require.NoError(t, err)
 
-	keys, err = s.AllKeys(context.Background(), ".key")
+	keys, err := s.AllKeys(context.Background(), ".key")
 	require.NoError(t, err)
 	require.Equal(t, []string(nil), keys)
 }
