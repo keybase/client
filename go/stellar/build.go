@@ -374,7 +374,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	if err := mctx.Ctx().Err(); err != nil {
 		return err
 	}
-	receivedEnableCh := notify(2, nil, "enabled")
+	receivedEnableCh := notify(2, nil, reviewButtonEnabled)
 
 	// Stay open until this call gets canceled or until frontend
 	// acks a notification that enables the button.

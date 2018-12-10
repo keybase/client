@@ -1794,7 +1794,7 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 		assert.Fail(t, "timed out")
 	case <-reviewSuccessCh:
 	}
-	t.Logf("review ran for %v", time.Now().Sub(start))
+	t.Logf("review ran for %v", time.Since(start))
 	check(t)
 }
 
@@ -1832,7 +1832,7 @@ func reviewPaymentExpectContractFailure(t testing.TB, tc *TestContext, arg stell
 		require.Error(t, err)
 		require.Equal(t, msg, err.Error())
 	}
-	t.Logf("review ran for %v", time.Now().Sub(start))
+	t.Logf("review ran for %v", time.Since(start))
 	check(t)
 }
 

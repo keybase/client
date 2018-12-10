@@ -915,7 +915,7 @@ func IsIOS() bool {
 	return isIOS
 }
 
-// AcquireWithContextAndTimeout attempts to acquire a lock with a context.
+// AcquireWithContext attempts to acquire a lock with a context.
 // Returns nil if the lock was acquired.
 // Returns an error if it was not. The error is from ctx.Err().
 func AcquireWithContext(ctx context.Context, lock sync.Locker) (err error) {
