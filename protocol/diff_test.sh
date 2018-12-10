@@ -8,7 +8,7 @@ cd "$here"
 # First let's get the index clean from other files that CI runs
 git add -A ./ ../go/ ../shared/
 
-npm i
+yarn
 make clean
 make
 
