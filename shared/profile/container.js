@@ -27,7 +27,6 @@ import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
-import * as ConfigGen from '../actions/config-gen'
 
 type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: Types.FriendshipsTab}>
 
