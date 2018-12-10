@@ -42,31 +42,20 @@ const MenuRow = (props: MenuRowProps) => (
   </TouchableOpacity>
 )
 
-export type MenuItems = Array<MenuItem | 'Divider' | null>
+export type MenuItems = Array<MenuItem>
 
 export type MenuLayoutProps = {
   items: MenuItems,
-  header?: ?MenuItem,
   onHidden: () => void,
-  closeOnClick?: boolean,
-  style?: Object,
-  hoverColor?: string,
 }
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   render() {
-    const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
-      if (mi && mi !== 'Divider') {
-        arr.push(mi)
-      }
-      return arr
-    }, [])
+    const menuItemsNoDividers = this.props.items
 
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Kb.Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
-          {/* Display header if there is one */}
-          {this.props.header && this.props.header.view}
+        <Kb.Box style={styles.menuBox}>
           <Kb.Box style={styles.menuGroup}>
             {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
@@ -74,7 +63,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
                 {...mi}
                 index={idx}
                 numItems={menuItemsNoDividers.length}
-                onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
+                onHidden={this.props.onHidden}
               />
             ))}
           </Kb.Box>
@@ -168,7 +157,7 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <MenuLayout onHidden={props.toggleShowingMenu} items={menuItems} closeOnClick={true} />
+      <MenuLayout onHidden={props.toggleShowingMenu} items={menuItems} />
     </Kb.Overlay>
   )
 }
