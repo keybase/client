@@ -62,7 +62,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		SecretNote:     arg.SecretNote,
 		PublicMemo:     arg.PublicMemo,
 		ForceRelay:     false,
-		QuickReturn:    arg.QuickReturn,
+		QuickReturn:    true, /* GUI should always use QuickReturn */
 	})
 	if err != nil {
 		return res, err
