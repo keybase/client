@@ -206,5 +206,7 @@
   "stellar.1.local.markAsReadLocal": {"promise": true},
   "stellar.1.local.sendPaymentLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
-  "stellar.1.local.validateSecretKeyLocal": {"promise": true}
+  "stellar.1.local.validateSecretKeyLocal": {"promise": true},
+  "stellar.1.local.isAccountMobileOnlyLocal": {"promise": true},
+  "stellar.1.local.setAccountMobileOnlyLocal": {"promise": true}
 }

@@ -963,7 +963,8 @@ func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAc
 		return false, err
 	}
 
-	return s.remoter.IsAccountMobileOnly(ctx, arg.AccountID)
+	//return s.remoter.IsAccountMobileOnly(ctx, arg.AccountID)
+	return true, nil
 }
 
 func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.SetAccountMobileOnlyLocalArg) (err error) {

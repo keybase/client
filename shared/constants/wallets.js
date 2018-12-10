@@ -97,6 +97,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   lastSentXLM: false,
   linkExistingAccountError: '',
+  mobileOnlyMap: I.Map(),
   newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
@@ -595,6 +596,10 @@ const rootWalletPath = [...rootWalletTab, ...(isMobile ? [SettingsConstants.wall
 const isLookingAtWallet = (routeState: ?RouteStateNode) =>
   getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
 
+const getMobileOnlyWaitingKey = (id: Types.AccountID) => `wallets:getMobileOnly:${id}`
+const getMobileOnly = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.mobileOnlyMap.get(accountID, false)
+
 export {
   acceptDisclaimerWaitingKey,
   accountResultToAccount,
@@ -670,4 +675,6 @@ export {
   updatePaymentsReceived,
   validateAccountNameWaitingKey,
   validateSecretKeyWaitingKey,
+  getMobileOnlyWaitingKey,
+  getMobileOnly,
 }

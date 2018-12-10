@@ -46,13 +46,16 @@ export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
+export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const loadRequestDetail = 'wallets:loadRequestDetail'
 export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
 export const loadWalletDisclaimer = 'wallets:loadWalletDisclaimer'
+export const loadedMobileOnlyMode = 'wallets:loadedMobileOnlyMode'
 export const markAsRead = 'wallets:markAsRead'
+export const onChangeMobileOnlyMode = 'wallets:onChangeMobileOnlyMode'
 export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
@@ -123,13 +126,16 @@ type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
+type _LoadMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _LoadSendAssetChoicesPayload = $ReadOnly<{|from: Types.AccountID, to: string|}>
 type _LoadWalletDisclaimerPayload = void
+type _LoadedMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: Types.PaymentID|}>
+type _OnChangeMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
@@ -458,6 +464,9 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
+export const createLoadMobileOnlyMode = (payload: _LoadMobileOnlyModePayload) => ({payload, type: loadMobileOnlyMode})
+export const createLoadedMobileOnlyMode = (payload: _LoadedMobileOnlyModePayload) => ({payload, type: loadedMobileOnlyMode})
+export const createOnChangeMobileOnlyMode = (payload: _OnChangeMobileOnlyModePayload) => ({payload, type: onChangeMobileOnlyMode})
 
 // Action Payloads
 export type AbandonPaymentPayload = {|+payload: _AbandonPaymentPayload, +type: 'wallets:abandonPayment'|}
@@ -497,13 +506,16 @@ export type LoadAccountsPayload = {|+payload: _LoadAccountsPayload, +type: 'wall
 export type LoadAssetsPayload = {|+payload: _LoadAssetsPayload, +type: 'wallets:loadAssets'|}
 export type LoadDisplayCurrenciesPayload = {|+payload: _LoadDisplayCurrenciesPayload, +type: 'wallets:loadDisplayCurrencies'|}
 export type LoadDisplayCurrencyPayload = {|+payload: _LoadDisplayCurrencyPayload, +type: 'wallets:loadDisplayCurrency'|}
+export type LoadMobileOnlyModePayload = {|+payload: _LoadMobileOnlyModePayload, +type: 'wallets:loadMobileOnlyMode'|}
 export type LoadMorePaymentsPayload = {|+payload: _LoadMorePaymentsPayload, +type: 'wallets:loadMorePayments'|}
 export type LoadPaymentDetailPayload = {|+payload: _LoadPaymentDetailPayload, +type: 'wallets:loadPaymentDetail'|}
 export type LoadPaymentsPayload = {|+payload: _LoadPaymentsPayload, +type: 'wallets:loadPayments'|}
 export type LoadRequestDetailPayload = {|+payload: _LoadRequestDetailPayload, +type: 'wallets:loadRequestDetail'|}
 export type LoadSendAssetChoicesPayload = {|+payload: _LoadSendAssetChoicesPayload, +type: 'wallets:loadSendAssetChoices'|}
 export type LoadWalletDisclaimerPayload = {|+payload: _LoadWalletDisclaimerPayload, +type: 'wallets:loadWalletDisclaimer'|}
+export type LoadedMobileOnlyModePayload = {|+payload: _LoadedMobileOnlyModePayload, +type: 'wallets:loadedMobileOnlyMode'|}
 export type MarkAsReadPayload = {|+payload: _MarkAsReadPayload, +type: 'wallets:markAsRead'|}
+export type OnChangeMobileOnlyModePayload = {|+payload: _OnChangeMobileOnlyModePayload, +type: 'wallets:onChangeMobileOnlyMode'|}
 export type OpenSendRequestFormPayload = {|+payload: _OpenSendRequestFormPayload, +type: 'wallets:openSendRequestForm'|}
 export type PaymentDetailReceivedPayload = {|+payload: _PaymentDetailReceivedPayload, +type: 'wallets:paymentDetailReceived'|}
 export type PaymentsReceivedPayload = {|+payload: _PaymentsReceivedPayload, +type: 'wallets:paymentsReceived'|}
@@ -578,13 +590,16 @@ export type Actions =
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
+  | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
   | LoadRequestDetailPayload
   | LoadSendAssetChoicesPayload
   | LoadWalletDisclaimerPayload
+  | LoadedMobileOnlyModePayload
   | MarkAsReadPayload
+  | OnChangeMobileOnlyModePayload
   | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload

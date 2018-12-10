@@ -674,6 +674,21 @@ const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       : Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab])
   )
 
+const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnlyModePayload) => {
+  let accountID = action.payload.accountID
+  return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise(
+    {
+      accountID: accountID,
+    },
+    Constants.getMobileOnlyWaitingKey(accountID)
+  ).then(res =>
+    WalletsGen.createLoadedMobileOnlyMode({
+      accountID: accountID,
+      enabled: res,
+    })
+  )
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -788,6 +803,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.checkDisclaimer, checkDisclaimer)
   yield Saga.actionToAction(WalletsGen.checkDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
+
+  yield Saga.actionToPromise(WalletsGen.loadMobileOnlyMode, loadMobileOnlyMode)
 }
 
 export default walletsSaga

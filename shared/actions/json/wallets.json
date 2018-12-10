@@ -343,6 +343,16 @@
         "secretKey": "HiddenString",
         "error": "string"
       }
+    },
+    "loadMobileOnlyMode": {
+      "accountID": "Types.AccountID"
+    },
+    "loadedMobileOnlyMode": {
+      "accountID": "Types.AccountID",
+      "enabled": "boolean"
+    },
+    "onChangeMobileOnlyMode": {
+      "accountID": "Types.AccountID"
     }
   }
 }

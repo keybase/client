@@ -22,6 +22,7 @@ const mapStateToProps = (state, {routeProps}) => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+  const mobileOnlyMode = Constants.getMobileOnly(state, accountID)
 
   return {
     accountID,
@@ -29,6 +30,7 @@ const mapStateToProps = (state, {routeProps}) => {
     currency,
     currencyWaiting,
     isDefault: account.isDefault,
+    mobileOnlyMode,
     name,
     saveCurrencyWaiting,
     user,
@@ -65,6 +67,7 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
+    dispatch(WalletsGen.createLoadMobileOnlyMode({accountID: routeProps.get('accountID')}))
   },
 })
 
