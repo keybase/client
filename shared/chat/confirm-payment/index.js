@@ -219,7 +219,7 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: Styles.globalMargins.tiny,
     },
     isElectron: {
-      height: 242,
+      paddingBottom: 50,
     },
   }),
   xlmTotal: Styles.platformStyles({
