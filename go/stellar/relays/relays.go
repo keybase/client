@@ -76,6 +76,7 @@ type Input struct {
 	// Implicit-team key to encrypt for
 	EncryptFor    keybase1.TeamApplicationKey
 	SeqnoProvider build.SequenceProvider
+	Timebounds    *build.Timebounds
 }
 
 type Output struct {
@@ -104,8 +105,8 @@ func Create(in Input) (res Output, err error) {
 	if err != nil {
 		return res, err
 	}
-	sig, err := stellarnet.CreateAccountXLMTransaction(
-		senderSeed, relayAccountID, in.AmountXLM, in.PublicMemo, in.SeqnoProvider)
+	sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed, relayAccountID, in.AmountXLM,
+		in.PublicMemo, in.SeqnoProvider, in.Timebounds)
 	if err != nil {
 		return res, err
 	}
