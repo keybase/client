@@ -14,7 +14,6 @@ type MenuItem = {|
 
 const renderItem = (item: MenuItem, onHidden: () => void) => (
   <TouchableOpacity
-    key={item.title}
     onPress={() => {
       onHidden && onHidden() // auto hide after a selection
       item.onClick && item.onClick()
@@ -91,7 +90,11 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <Kb.List items={menuItems} renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)} />
+      <Kb.List
+        items={menuItems}
+        keyProperty="title"
+        renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)}
+      />
     </Kb.Overlay>
   )
 }
