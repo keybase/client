@@ -40,17 +40,17 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	s := tc.G.GetTeamEKBoxStorage()
 
 	// Test Get nonexistent
-	nonexistent, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation+1)
+	nonexistent, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.TeamEk{}, nonexistent)
 
 	// Test invalid teamID
-	nonexistent2, err := s.Get(context.Background(), invalidID, teamEKMetadata.Generation+1)
+	nonexistent2, err := s.Get(context.Background(), invalidID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.TeamEk{}, nonexistent2)
 
 	// Test get valid & unbox
-	teamEK, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation)
+	teamEK, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation, nil)
 	require.NoError(t, err)
 
 	verifyTeamEK(t, teamEKMetadata, teamEK)
@@ -90,7 +90,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	userEKBoxStorage.ClearCache()
 
-	teamEK, err = s.Get(context.Background(), teamID, teamEKMetadata.Generation)
+	teamEK, err = s.Get(context.Background(), teamID, teamEKMetadata.Generation, nil)
 	require.NoError(t, err)
 	verifyTeamEK(t, teamEKMetadata, teamEK)
 
@@ -104,7 +104,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
-	bad, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation)
+	bad, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.TeamEk{}, bad)
 
@@ -132,7 +132,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	// Verify we store failures in the cache
 	t.Logf("cache failures")
-	nonexistent, err = rawTeamEKBoxStorage.Get(context.Background(), teamID, teamEKMetadata.Generation+1)
+	nonexistent, err = rawTeamEKBoxStorage.Get(context.Background(), teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.TeamEk{}, nonexistent)
 	cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(context.Background(), teamID)

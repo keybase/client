@@ -222,7 +222,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// If we try to access an older teamEK that we cannot access, we don't
 	// create a new teamEK
-	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1)
+	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1, nil)
 	require.Error(t, err)
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
@@ -245,7 +245,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
 
-	teamEK, err = ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen)
+	teamEK, err = ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen, nil)
 	require.Error(t, err)
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 
@@ -256,7 +256,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// Fake the teamEK creation time so we are forced to generate a new one.
 	forceEKCtime := func(generation keybase1.EkGeneration, d time.Duration) {
-		rawTeamEKBoxStorage.Get(context.Background(), teamID, generation)
+		rawTeamEKBoxStorage.Get(context.Background(), teamID, generation, nil)
 		cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(context.Background(), teamID)
 		require.NoError(t, err)
 		require.True(t, found)

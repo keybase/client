@@ -35,13 +35,13 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test Get nonexistent
-	nonexistent, err := s.Get(context.Background(), userEKMetadata.Generation+1)
+	nonexistent, err := s.Get(context.Background(), userEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
 	// Test get valid & unbox
 	s.ClearCache()
-	userEK, err := s.Get(context.Background(), userEKMetadata.Generation)
+	userEK, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
 	require.NoError(t, err)
 
 	verifyUserEK(t, userEKMetadata, userEK)
@@ -74,7 +74,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
-	bad, err := s.Get(context.Background(), userEKMetadata.Generation)
+	bad, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.UserEk{}, bad)
 
@@ -82,7 +82,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	err = rawUserEKBoxStorage.Delete(context.Background(), userEKMetadata.Generation)
 	require.NoError(t, err)
 
-	userEK, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation)
+	userEK, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation, nil)
 	require.Error(t, err)
 
 	s.ClearCache()
@@ -98,7 +98,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	// Verify we store failures in the cache
 	t.Logf("cache failures")
-	nonexistent, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation+1)
+	nonexistent, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 

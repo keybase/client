@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
@@ -431,7 +432,8 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfNam
 }
 
 func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	if public {
 		return teamEK, NewPublicTeamEphemeralKeyError()
 	}
@@ -440,7 +442,7 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
 }
 
 func (t *TeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -761,12 +763,12 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
 }
 
 func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
