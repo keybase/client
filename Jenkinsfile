@@ -95,7 +95,8 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = helpers.hasChanges('go', env)
+        def goChanges = helpers.getChangesForSubdir('go', env)
+        def hasGoChanges = goChanges.size() != 0
         def hasJSChanges = helpers.hasChanges('shared', env)
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
@@ -115,18 +116,30 @@ helpers.rootLinuxNode(env, {
                                     archive("kbclient.tar.gz")
                                     sh "rm kbclient.tar.gz"
                                 },
-                                calc_deps: {
-                                    sh "make gen-deps"
-                                },
                             )}
+
+                            // Check protocol diffs
+                            // Clean the index first
+                            sh "git add -A"
+                            // Generate protocols
+                            dir ('protocol') {
+                                sh "npm i"
+                                sh "make clean"
+                                sh "make"
+                            }
+                            checkDiffs(['./go/', './protocol/'])
                         }
                         parallel (
                             test_linux: {
-                                dir("protocol") {
-                                    // Must happen after `make gen-deps` above iff there are go changes.
-                                    sh "./diff_test.sh"
-                                }
                                 parallel (
+                                    check_deps: {
+                                        // Checking deps can happen in parallel
+                                        // since we won't be rebuilding anything in Go.
+                                        if (hasGoChanges) {
+                                            sh "make gen-deps"
+                                            checkDiffs(['./go/'])
+                                        }
+                                    },
                                     test_linux_go: { withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
@@ -367,4 +380,15 @@ def testGo(prefix) {
             parallel(parallelTests[i])
         }
     }}
+}
+
+def checkDiffs(dirs) {
+    def joinedDirs = dirs.join(" ")
+    try {
+        sh "git diff --quiet --exit-code HEAD -- ${joinedDirs}"
+    } catch (ex) {
+      sh "git diff HEAD -- ${joinedDirs}"
+      println "ERROR: `git diff` detected changes. Some files in the directories {${dirs.join(", ")}} are stale"
+      throw ex
+    }
 }
