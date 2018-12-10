@@ -188,7 +188,7 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.tiny,
     },
     isElectron: {
-      margin: -1,
+      marginBottom: -1,
     },
   }),
   paymentTotalsContainer: Styles.platformStyles({
