@@ -12,7 +12,7 @@ type MenuItem = {|
   view?: React.Node,
 |}
 
-const renderItem = (index, item, onHidden: () => void) => (
+const renderItem = (item: MenuItem, onHidden: () => void) => (
   <TouchableOpacity
     key={item.title}
     onPress={() => {
@@ -29,43 +29,7 @@ const renderItem = (index, item, onHidden: () => void) => (
   </TouchableOpacity>
 )
 
-export type MenuItems = Array<MenuItem>
-
-export type MenuLayoutProps = {
-  items: MenuItems,
-  onHidden: () => void,
-}
-
-class MenuLayout extends React.Component<MenuLayoutProps> {
-  render() {
-    return (
-      <Kb.List
-        items={this.props.items}
-        renderItem={(index, item) => renderItem(index, item, this.props.onHidden)}
-      />
-    )
-  }
-}
-
 const styles = Styles.styleSheetCreate({
-  closeGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    borderColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-    justifyContent: 'flex-end',
-  },
-  menuBox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'flex-end',
-  },
-  menuGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    justifyContent: 'flex-end',
-  },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -75,9 +39,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
-  },
-  safeArea: {
-    backgroundColor: Styles.globalColors.white,
   },
 })
 
@@ -112,18 +73,13 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
     .concat([
       {
         title: 'Close',
-        view: (
-          <Kb.Box style={styles.closeGroup}>
-            {renderItem(
-              0,
-              {
-                onClick: props.toggleShowingMenu,
-                title: 'Close',
-              },
-              // pass in nothing to onHidden so it doesn't trigger it twice
-              () => {}
-            )}
-          </Kb.Box>
+        view: renderItem(
+          {
+            onClick: props.toggleShowingMenu,
+            title: 'Close',
+          },
+          // pass in nothing to onHidden so it doesn't trigger it twice
+          () => {}
         ),
       },
     ])
@@ -135,7 +91,7 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <MenuLayout onHidden={props.toggleShowingMenu} items={menuItems} />
+      <Kb.List items={menuItems} renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)} />
     </Kb.Overlay>
   )
 }
