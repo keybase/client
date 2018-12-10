@@ -294,6 +294,9 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 	if !crg.HasWallet {
 		return fmt.Errorf("user wallet not created")
 	}
+
+	s.walletState.RefreshAll(ctx)
+
 	return nil
 }
 
@@ -317,6 +320,8 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 	if err != nil {
 		return "", err
 	}
+
+	s.walletState.RefreshAll(ctx)
 
 	return accountID, nil
 }

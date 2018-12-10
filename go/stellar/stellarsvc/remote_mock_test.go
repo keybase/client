@@ -952,7 +952,6 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
 	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
-	defer r.Unlock()
 	bundle, _, _, err := remote.FetchWholeBundle(context.Background(), tc.G)
 	require.NoError(r.T, err)
 	for _, account := range bundle.Accounts {
@@ -963,6 +962,10 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
 		res = append(res, acc)
 	}
+	r.Unlock()
+
+	tc.Srv.walletState.RefreshAll(context.Background())
+
 	return res
 }
 
