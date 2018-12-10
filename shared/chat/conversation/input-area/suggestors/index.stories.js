@@ -16,8 +16,7 @@ const _TestArea = (props: Suggestors.PropsWithSuggestor<{somethingElse: 'this'}>
         borderColor: 'black',
         borderStyle: 'solid',
         borderWidth: 1,
-        padding: 10,
-        width: 400,
+        width: 200,
       }}
     />
   </Kb.Box2>
@@ -42,9 +41,15 @@ const props = {
       />
     ),
   },
-  suggestionListStyle: {width: 400},
+  suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$'},
-  transformers: {fruit: input => input},
+  transformers: {
+    fruit: (item, {position: {end, start}, text}) => {
+      const newText = text.substring(0, start) + '$' + item + ' ' + text.substring(end)
+      const newPos = start + item.length + 2 // start of marker previously + length of inserted text + length of space
+      return {selection: {end: newPos, start: newPos}, text: newText}
+    },
+  },
 }
 
 const availableTriggers = Object.values(props.suggestorToMarker)

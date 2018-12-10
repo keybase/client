@@ -21,7 +21,10 @@ type AddSuggestorsProps = {
     [key: string]: string,
   },
   transformers: {
-    [key: string]: ({text: string, selection: {start: number, end: number}}) => {
+    [key: string]: (
+      item: any,
+      {text: string, position: {start: number, end: number}}
+    ) => {
       text: string,
       selection: {start: number, end: number},
     },
@@ -62,18 +65,33 @@ const AddSuggestors = <WrappedOwnProps: {}>(
 
     _setInactive = () => this.setState({active: null, filter: '', selected: 0})
 
+    _getWordAtCursor = () => {
+      if (this._inputRef.current) {
+        const input = this._inputRef.current
+        const selection = input.getSelection()
+        if (!selection || !this._lastText) {
+          return null
+        }
+        const text = this._lastText
+        const upToCursor = text.substring(0, selection.start)
+        const words = upToCursor.split(/ |\n/)
+        const word = words[words.length - 1]
+        const position = {end: selection.start, start: selection.start - word.length}
+        return {position, word}
+      }
+      return null
+    }
+
     _checkTrigger = text => {
       setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
         // desktop would get the previous selection on arrowleft / arrowright
-        const selection = (this._inputRef.current && this._inputRef.current.getSelection()) || {
-          end: 0,
-          start: 0,
-        }
         lg('checktrigger', text)
-        const upToCursor = text.substring(0, selection.start)
-        const words = upToCursor.split(/ |\n/)
-        const word = words[words.length - 1]
+        const cursorInfo = this._getWordAtCursor()
+        if (!cursorInfo) {
+          return
+        }
+        const {word} = cursorInfo
         if (this.state.active) {
           const activeMarker = this.props.suggestorToMarker[this.state.active]
           if (!word.startsWith(activeMarker)) {
@@ -98,7 +116,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
         if (!s.active) {
           return null
         }
-        const length = this.props.dataSources[s.active](s.filter).length
+        const length = this._getResults().length
         const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
         return selected === s.selected ? null : {selected}
       })
@@ -116,6 +134,15 @@ const AddSuggestors = <WrappedOwnProps: {}>(
       // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onKeyDown && this.props.onKeyDown(evt, ici)
 
+      if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
+        this._checkTrigger(this._lastText || '')
+      }
+
+      if (!this.state.active) {
+        // not showing list, bail
+        return
+      }
+
       // check up or down
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
@@ -123,15 +150,26 @@ const AddSuggestors = <WrappedOwnProps: {}>(
       } else if (evt.key === 'ArrowUp') {
         evt.preventDefault()
         this._move(true)
-      } else if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-        if (this._inputRef.current) {
-          this._checkTrigger(this._lastText || '')
-        }
+      } else if (evt.key === 'Enter') {
+        this._triggerTransform(this._getResults()[this.state.selected])
       }
     }
 
     _triggerTransform = value => {
-      // TODO
+      lg('triggerTransform', value)
+      if (this._inputRef.current && this.state.active) {
+        const input = this._inputRef.current
+        const active = this.state.active
+        const cursorInfo = this._getWordAtCursor()
+        if (!cursorInfo) {
+          return
+        }
+        const transformedText = this.props.transformers[active](value, {
+          position: cursorInfo.position,
+          text: this._lastText || '',
+        })
+        input.transformText(textInfo => transformedText, true)
+      }
     }
 
     _itemRenderer = (index, value) =>
@@ -141,46 +179,51 @@ const AddSuggestors = <WrappedOwnProps: {}>(
           onClick={() => this._triggerTransform(value)}
           onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
         >
-          {this.props.renderers[this.state.active](value, index === this.state.selected)}
+          {this.props.renderers[this.state.active](
+            value,
+            Styles.isMobile ? false : index === this.state.selected
+          )}
         </Kb.ClickableBox>
       )
 
+    _getResults = () =>
+      this.state.active ? this.props.dataSources[this.state.active](this.state.filter) : []
+
     render() {
       let overlay = null
-      if (this.state.active) {
-        const results = this.props.dataSources[this.state.active](this.state.filter)
-        lg(results)
-        if (results.length) {
-          const content = (
-            <Kb.Box2
-              direction="vertical"
-              style={Styles.collapseStyles([
-                {backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320},
-                this.props.suggestionListStyle,
-              ])}
-            >
-              <SuggestionList
-                items={results}
-                renderItem={this._itemRenderer}
-                selectedIndex={this.state.selected}
-              />
-            </Kb.Box2>
-          )
-          overlay = Styles.isMobile ? (
-            <Kb.FloatingBox onHidden={this._setInactive}>{content}</Kb.FloatingBox>
-          ) : (
-            <Kb.Overlay
-              attachTo={this._getInputRef}
-              position="top center"
-              visible={true}
-              propagateOutsideClicks={false}
-              onHidden={this._setInactive}
-            >
-              {content}
-            </Kb.Overlay>
-          )
-        }
+      const results = this._getResults()
+      lg(results)
+      if (results.length) {
+        const content = (
+          <Kb.Box2
+            direction="vertical"
+            style={Styles.collapseStyles([
+              {backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320},
+              this.props.suggestionListStyle,
+            ])}
+          >
+            <SuggestionList
+              items={results}
+              renderItem={this._itemRenderer}
+              selectedIndex={this.state.selected}
+            />
+          </Kb.Box2>
+        )
+        overlay = Styles.isMobile ? (
+          <Kb.FloatingBox onHidden={this._setInactive}>{content}</Kb.FloatingBox>
+        ) : (
+          <Kb.Overlay
+            attachTo={this._getInputRef}
+            position="top center"
+            visible={true}
+            propagateOutsideClicks={false}
+            onHidden={this._setInactive}
+          >
+            {content}
+          </Kb.Overlay>
+        )
       }
+
       const {dataSources, renderers, suggestorToMarker, transformers, ...wrappedOP} = this.props
       return (
         <>
