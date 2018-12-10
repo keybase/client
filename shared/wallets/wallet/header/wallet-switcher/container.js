@@ -3,6 +3,7 @@ import {WalletSwitcher, type Props} from '.'
 import * as RouteTree from '../../../../actions/route-tree'
 import {connect, isMobile} from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
+import openURL from '../../../../util/open-url'
 
 type OwnProps = {|
   walletName: string,
@@ -23,12 +24,14 @@ const mapDispatchToProps = dispatch => ({
   onLinkExisting: () => {
     dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
   },
+  onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
+  onWhatIsStellar: dispatchProps.onWhatIsStellar,
   walletName: ownProps.walletName,
 })
 

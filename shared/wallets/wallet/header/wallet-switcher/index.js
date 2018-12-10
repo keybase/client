@@ -29,6 +29,11 @@ const renderItem = (item: MenuItem, onHidden: () => void) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  infoText: {
+    paddingLeft: Styles.globalMargins.tiny,
+    position: 'relative',
+    top: -1,
+  },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -45,6 +50,7 @@ export type Props = {
   accountIDs: Array<Types.AccountID>,
   onAddNew: () => void,
   onLinkExisting: () => void,
+  onWhatIsStellar: () => void,
   walletName: string,
 }
 
@@ -54,6 +60,18 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
   }
 
   const menuItems = [
+    {
+      onClick: props.onWhatIsStellar,
+      title: 'What is Stellar?',
+      view: (
+        <Kb.Box2 centerChildren={true} direction="horizontal">
+          <Kb.Icon size={16} type="iconfont-info" />
+          <Kb.Text style={styles.infoText} type="BodySemibold">
+            What is Stellar?
+          </Kb.Text>
+        </Kb.Box2>
+      ),
+    },
     {
       onClick: props.onAddNew,
       title: 'Create a new account',
