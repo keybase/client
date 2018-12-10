@@ -606,6 +606,18 @@ func (o RequestDetails) DeepCopy() RequestDetails {
 	}
 }
 
+type TimeboundsRecommendation struct {
+	TimeNow keybase1.UnixTime `codec:"timeNow" json:"time_now"`
+	Timeout int64             `codec:"timeout" json:"timeout"`
+}
+
+func (o TimeboundsRecommendation) DeepCopy() TimeboundsRecommendation {
+	return TimeboundsRecommendation{
+		TimeNow: o.TimeNow.DeepCopy(),
+		Timeout: o.Timeout,
+	}
+}
+
 type BalancesArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`

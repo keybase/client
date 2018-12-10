@@ -379,6 +379,7 @@ export type SendPaymentResLocal = $ReadOnly<{kbTxID: KeybaseTransactionID, pendi
 export type SendResultCLILocal = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID}>
 export type StellarServerDefinitions = $ReadOnly<{revision: Int, currencies: {[key: string]: OutsideCurrencyDefinition}}>
 export type TimeMs = Long
+export type TimeboundsRecommendation = $ReadOnly<{timeNow: Keybase1.UnixTime, timeout: Int64}>
 export type TransactionID = String
 export type TransactionStatus =
   | 0 // NONE_0

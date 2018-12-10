@@ -444,10 +444,34 @@ type DisplayBalance struct {
 	Currency string
 }
 
-func getTimeboundsForSending(m libkb.MetaContext) *build.Timebounds {
-	deadline := m.G().Clock().Now().Add(txTimeboundTimeout)
-	tb := stellarnet.MakeTimeboundsWithMaxTime(deadline)
-	return &tb
+func getTimeboundsForSending(m libkb.MetaContext, walletState *WalletState) (*build.Timebounds, error) {
+	start := time.Now()
+	serverTimes, err := walletState.ServerTimeboundsRecommendation(m.Ctx())
+	if err != nil {
+		return nil, err
+	}
+	took := time.Now().Sub(start)
+	m.CDebugf("Server timebounds recommendation is: %+v. Request took %fs", serverTimes, took.Seconds())
+	if serverTimes.TimeNow == 0 {
+		return nil, fmt.Errorf("Invalid server response for transaction timebounds")
+	}
+	if serverTimes.Timeout == 0 {
+		m.CDebugf("Returning nil timebounds")
+		return nil, nil
+	}
+
+	// Offset server time by our latency to the server. We are making two
+	// requests to submit a transaction: one here to get the server time, and
+	// another one to send the signed transaction. Assuming server roundtrip
+	// time will be the same for both requests, we can offset timebounds here
+	// by entire roundtrip time and then we will have MaxTime set as 30 seconds
+	// counting from when the server gets our signed tx.
+	deadline := serverTimes.TimeNow.UnixSeconds() + serverTimes.Timeout + int64(took.Seconds())
+	tb := build.Timebounds{
+		MaxTime: uint64(deadline),
+	}
+	m.CDebugf("Returning timebounds for tx: %+v", tb)
+	return &tb, nil
 }
 
 type SendPaymentArg struct {
@@ -547,7 +571,11 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}
 
 	sp := NewSeqnoProvider(m, walletState)
-	tb := getTimeboundsForSending(m)
+
+	tb, err := getTimeboundsForSending(m, walletState)
+	if err != nil {
+		return res, err
+	}
 
 	// check if recipient account exists
 	var txID string
@@ -739,10 +767,14 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payment
 	prepared := make(chan *miniPrepared)
 
 	sp := NewSeqnoProvider(m, walletState)
+	tb, err := getTimeboundsForSending(m, walletState)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, payment := range payments {
 		go func(p libkb.MiniChatPayment) {
-			prepared <- prepareMiniChatPayment(m, walletState, sp, senderSeed, p)
+			prepared <- prepareMiniChatPayment(m, walletState, sp, tb, senderSeed, p)
 		}(payment)
 	}
 
@@ -783,7 +815,7 @@ type miniPrepared struct {
 	Error    error
 }
 
-func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
 	result := &miniPrepared{Username: payment.Username}
 
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
@@ -826,8 +858,6 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 		}
 	}
 
-	tb := getTimeboundsForSending(m)
-
 	var signResult stellarnet.SignResult
 	if funded {
 		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb)
@@ -855,7 +885,10 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 		return res, err
 	}
 	sp := NewSeqnoProvider(m, walletState)
-	tb := getTimeboundsForSending(m)
+	tb, err := getTimeboundsForSending(m, walletState)
+	if err != nil {
+		return res, err
+	}
 	relay, err := relays.Create(relays.Input{
 		From:          from,
 		AmountXLM:     amount,
@@ -970,7 +1003,10 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 	}
 	mctx := libkb.NewMetaContext(ctx, g)
 	sp := NewSeqnoProvider(mctx, walletState)
-	tb := getTimeboundsForSending(mctx)
+	tb, err := getTimeboundsForSending(mctx, walletState)
+	if err != nil {
+		return res, err
+	}
 	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
 		stellarnet.AddressStr(into.String()), destinationFunded, nil, sp, tb)
 	if err != nil {
