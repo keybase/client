@@ -23,10 +23,11 @@ const rightColumnStyle = Styles.platformStyles({
 const styles = Styles.styleSheetCreate({
   amount: {
     ...rightColumnStyle,
+    color: Styles.globalColors.blue,
   },
   amountSelected: {
     ...rightColumnStyle,
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.black_75,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   badge: {
@@ -46,12 +47,12 @@ const styles = Styles.styleSheetCreate({
 
   title: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.blue,
   },
   titleSelected: {
     ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.black_75,
   },
   unread: {
     backgroundColor: Styles.globalColors.orange,

@@ -1,6 +1,6 @@
 // @flow
 import {WalletRow, type Props} from '.'
-import {connect, isMobile} from '../../../../../util/container'
+import {connect} from '../../../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../../../constants/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import {type AccountID} from '../../../../../constants/types/wallets'
@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   contents: stateProps.contents,
-  isSelected: !isMobile && stateProps.isSelected,
+  isSelected: stateProps.isSelected,
   keybaseUser: stateProps.keybaseUser,
   name: stateProps.name,
   onSelect: () => {
