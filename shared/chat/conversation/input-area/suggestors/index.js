@@ -6,7 +6,8 @@ import {invert} from 'lodash-es'
 import SuggestionList from './suggestion-list'
 
 // Adds suggestors (list of autocomplete options) to an input
-// Only class components allowed
+// Only class components allowed. Rendered suggestions must
+// have a fixed height.
 
 const lg = (...args) => {}
 
@@ -271,7 +272,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
           <Kb.Box2
             direction="vertical"
             style={Styles.collapseStyles([
-              {backgroundColor: Styles.globalColors.white, maxHeight: 224, width: '100%'},
+              {borderRadius: 4, maxHeight: 224, width: '100%'},
               this.props.suggestionListStyle,
             ])}
           >
@@ -305,6 +306,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         keyExtractors,
         renderers,
         suggestionListStyle,
+        suggestionOverlayStyle,
         suggestorToMarker,
         transformers,
         ...wrappedOP
