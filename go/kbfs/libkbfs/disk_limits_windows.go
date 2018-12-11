@@ -30,8 +30,6 @@ func getDiskLimits(path string) (
 	// (which signifies function failure).
 	if r1 == 0 {
 		return 0, 0, 0, 0, errors.WithStack(err)
-	} else {
-		err = nil
 	}
 
 	// TODO: According to http://superuser.com/a/104224 , on
