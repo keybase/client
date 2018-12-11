@@ -17,7 +17,7 @@ const suggestorToMarker = {
 }
 
 const suggestorKeyExtractors = {
-  emoji: item => item.id,
+  emoji: (item: {id: string}) => item.id,
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
 
@@ -40,15 +40,19 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = input => input
+const emojiTransformer = (emoji: {colons: string}, {position: {end, start}, text}) => {
+  const newText = `${text.substring(0, start)}${emoji.colons} ${text.substring(end)}`
+  const newSelection = start + emoji.colons.length + 1
+  return {selection: {end: newSelection, start: newSelection}, text: newText}
+}
 
 class Input extends React.PureComponent<InputProps> {
   _lastQuote: number
   _input: ?Kb.PlainInput
   _lastText: ?string
-  _suggestorDatasource: {}
-  _suggestorRenderer: {}
-  _suggestorTransformer: {}
+  _suggestorDatasource = {}
+  _suggestorRenderer = {}
+  _suggestorTransformer = {}
 
   constructor(props: InputProps) {
     super(props)
@@ -186,7 +190,14 @@ class Input extends React.PureComponent<InputProps> {
     </Kb.Box2>
   )
 
-  _transformUserSuggestion = input => input
+  _transformUserSuggestion = (
+    input: {fullName: string, username: string},
+    {position: {end, start}, text}: {position: {end: number, start: number}, text: string}
+  ) => {
+    const newText = `${text.substring(0, start)}@${input.username} ${text.substring(end)}`
+    const newSelection = start + input.username.length + 2
+    return {selection: {end: newSelection, start: newSelection}, text: newText}
+  }
 
   render = () => {
     const {suggestUsers, suggestChannels, ...platformInputProps} = this.props
