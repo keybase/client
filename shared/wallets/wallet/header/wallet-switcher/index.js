@@ -8,6 +8,7 @@ import WalletRow from '../../../wallet-list/wallet-row/container'
 
 type MenuItem = {|
   onClick?: ?(evt?: SyntheticEvent<>) => void,
+  style?: Styles.StylesCrossPlatform,
   title: string,
   view?: React.Node,
 |}
@@ -18,7 +19,7 @@ const renderItem = (item: MenuItem, onHidden: () => void) => (
       onHidden && onHidden() // auto hide after a selection
       item.onClick && item.onClick()
     }}
-    style={styles.row}
+    style={Styles.collapseStyles([styles.row, item.style])}
   >
     {item.view || (
       <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
@@ -31,8 +32,9 @@ const renderItem = (item: MenuItem, onHidden: () => void) => (
 const styles = Styles.styleSheetCreate({
   infoText: {
     paddingLeft: Styles.globalMargins.tiny,
-    position: 'relative',
-    top: -1,
+  },
+  infoTextRow: {
+    backgroundColor: Styles.globalColors.lightGrey,
   },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -62,6 +64,7 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
   const menuItems = [
     {
       onClick: props.onWhatIsStellar,
+      style: styles.infoTextRow,
       title: 'What is Stellar?',
       view: (
         <Kb.Box2 centerChildren={true} direction="horizontal">
