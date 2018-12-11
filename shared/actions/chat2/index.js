@@ -1304,37 +1304,20 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       }),
     ]
     const onShowConfirm = () => [
-      Saga.put(Chat2Gen.createSetPaymentConfirmInfo({info: null})),
+      Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
       Saga.put(
         RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {},
-              selected: 'paymentsConfirm',
-            },
-          ],
+          path: ['paymentsConfirm'],
         })
       ),
     ]
     const onDataConfirm = ({summary}, response) => {
       stellarConfirmWindowResponse = response
-      return Saga.put(
-        Chat2Gen.createSetPaymentConfirmInfo({
-          info: {
-            summary,
-          },
-        })
-      )
+      return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
     }
     const onDataError = ({message}, response) => {
       stellarConfirmWindowResponse = response
-      return Saga.put(
-        Chat2Gen.createSetPaymentConfirmInfo({
-          info: {
-            error: message,
-          },
-        })
-      )
+      return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
     }
     yield RPCChatTypes.localPostTextNonblockRpcSaga({
       customResponseIncomingCallMap: {
@@ -1386,6 +1369,7 @@ let stellarConfirmWindowResponse: any = null
 
 const confirmScreenResponse = (state: TypedState, action: Chat2Gen.ConfirmScreenResponsePayload) => {
   stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
+  stellarConfirmWindowResponse = null
 }
 
 const previewConversationAfterFindExisting = (
