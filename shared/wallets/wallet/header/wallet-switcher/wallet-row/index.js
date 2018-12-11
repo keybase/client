@@ -23,18 +23,18 @@ const rightColumnStyle = Styles.platformStyles({
 const styles = Styles.styleSheetCreate({
   amount: {
     ...rightColumnStyle,
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.black_40,
   },
   amountSelected: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black_40,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   badge: {
     marginLeft: 6,
   },
   containerBox: {
-    height: Styles.isMobile ? 56 : 48,
+    height: 48,
   },
   icon: {
     alignSelf: 'center',
@@ -97,11 +97,7 @@ const WalletRow = (props: Props) => {
 
 const UnreadIcon = (props: {unreadPayments: number}) => (
   <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
-    {Styles.isMobile ? (
-      <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
-    ) : (
-      <Kb.Box2 direction="vertical" style={styles.unread} />
-    )}
+    <Kb.Box2 direction="vertical" style={styles.unread} />
   </Kb.Box2>
 )
 export type {Props}
