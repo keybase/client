@@ -17,6 +17,7 @@ import (
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/federation"
 	"github.com/stellar/go/clients/horizon"
+	"stathat.com/c/ramcache"
 )
 
 func ServiceInit(g *libkb.GlobalContext, walletState *WalletState, badger *badges.Badger) {
@@ -57,19 +58,29 @@ type Stellar struct {
 	migrationLock sync.Mutex
 
 	badger *badges.Badger
+
+	accountCurrencyCache *ramcache.Ramcache
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
+func newAccountCurrencyCache(maxAge time.Duration) *ramcache.Ramcache {
+	a := ramcache.New()
+	a.MaxAge = maxAge
+	a.TTL = maxAge
+	return a
+}
+
 func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges.Badger) *Stellar {
 	return &Stellar{
-		Contextified:     libkb.NewContextified(g),
-		remoter:          walletState,
-		walletState:      walletState,
-		hasWalletCache:   make(map[keybase1.UserVersion]bool),
-		federationClient: getFederationClient(g),
-		buildPaymentSlot: slotctx.NewPriority(),
-		badger:           badger,
+		Contextified:         libkb.NewContextified(g),
+		remoter:              walletState,
+		walletState:          walletState,
+		hasWalletCache:       make(map[keybase1.UserVersion]bool),
+		federationClient:     getFederationClient(g),
+		buildPaymentSlot:     slotctx.NewPriority(),
+		badger:               badger,
+		accountCurrencyCache: newAccountCurrencyCache(30 * time.Second),
 	}
 }
 
@@ -139,6 +150,10 @@ func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.Stella
 	}
 
 	return s.cachedServerConf, nil
+}
+
+func (s *Stellar) GetAccountCurrencyCache() *ramcache.Ramcache {
+	return s.accountCurrencyCache
 }
 
 // `trigger` is optional, and is of the gregor message that caused the kick.

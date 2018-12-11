@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/gregor"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
+	"stathat.com/c/ramcache"
 )
 
 type nullStellar struct {
@@ -41,6 +42,8 @@ func (n *nullStellar) UpdateUnreadCount(context.Context, stellar1.AccountID, int
 }
 
 func (n *nullStellar) GetMigrationLock() *sync.Mutex { return new(sync.Mutex) }
+
+func (n *nullStellar) GetAccountCurrencyCache() *ramcache.Ramcache { return ramcache.New() }
 
 func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
 	return nil, errors.New("nullStellar SendMiniChatPayments")

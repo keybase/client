@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"stathat.com/c/ramcache"
 
 	"github.com/PuerkitoBio/goquery"
 	gregor "github.com/keybase/client/go/gregor"
@@ -699,6 +700,7 @@ type Stellar interface {
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
+	GetAccountCurrencyCache() *ramcache.Ramcache
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	RefreshWalletState(ctx context.Context)

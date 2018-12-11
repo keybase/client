@@ -988,6 +988,8 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
 	currency string) error {
+	// bust the cache if anything is being changed
+	_ = g.GetStellar().GetAccountCurrencyCache().Delete(accountID.String())
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
