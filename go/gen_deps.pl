@@ -17,6 +17,8 @@ for (my $i=0; $i<$num_packages; $i++) {
     printf STDERR ("%d of %d complete (%.1f%%)", $i+1, $num_packages, $percent_complete);
 
     # This should include vendored dependencies.
+    $ENV{'GOOS'} = 'linux';
+    $ENV{'GOARCH'} = 'amd64';
     my @deps = split /\n/, `go list -f '{{ print (join .TestImports "\\n") "\\n" (join .Imports "\\n") }}' "$package" 2>/dev/null | xargs go list -f '{{ join .Deps "\\n" }}' 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
 
     foreach my $dep (@deps) {
