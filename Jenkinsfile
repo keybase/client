@@ -138,8 +138,10 @@ helpers.rootLinuxNode(env, {
                                         // Checking deps can happen in parallel
                                         // since we won't be rebuilding anything in Go.
                                         if (hasGoChanges) {
-                                            sh "make gen-deps"
-                                            checkDiffs(['./go/'])
+                                            dir(go) {
+                                                sh "make gen-deps"
+                                                checkDiffs(['./'])
+                                            }
                                         }
                                     },
                                     test_linux_go: { withEnv([
