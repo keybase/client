@@ -393,7 +393,7 @@ def testGo(prefix) {
 def checkDiffs(dirs) {
     def joinedDirs = dirs.join(" ")
     try {
-        sh "git diff --exit-code HEAD -- ${joinedDirs}"
+        sh "git diff --patience --exit-code HEAD -- ${joinedDirs}"
     } catch (ex) {
         println "ERROR: `git diff` detected changes. Some files in the directories {${dirs.join(", ")}} are stale"
         throw ex
