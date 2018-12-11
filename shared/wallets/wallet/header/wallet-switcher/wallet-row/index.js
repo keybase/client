@@ -16,9 +16,6 @@ const styles = Styles.styleSheetCreate({
   amount: {
     color: Styles.globalColors.black_40,
   },
-  amountSelected: {
-    color: Styles.globalColors.black_40,
-  },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   badge: {
     marginLeft: 6,
@@ -72,7 +69,7 @@ const WalletRow = (props: Props) => {
             {props.name}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
+        <Kb.Text type="BodySmall" style={styles.amount}>
           {props.contents}
         </Kb.Text>
       </Kb.Box2>
