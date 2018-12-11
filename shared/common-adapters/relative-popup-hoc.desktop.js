@@ -85,7 +85,7 @@ function _computePopupStyle(
 ): ComputedStyle {
   const style: ComputedStyle = {position: 'absolute', zIndex: 30}
 
-  const {pageYOffset, pageXOffset} = window
+  const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
 
   if (includes(position, 'right')) {
@@ -139,7 +139,7 @@ function _computePopupStyle(
 }
 
 function isStyleInViewport(style, popupCoords: ClientRect): boolean {
-  const {pageYOffset, pageXOffset} = window
+  const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
 
   const element = {
@@ -156,15 +156,77 @@ function isStyleInViewport(style, popupCoords: ClientRect): boolean {
   }
 
   // hidden on top
-  if (element.top < pageYOffset) return false
+  if (typeof element.top === 'number' && element.top < pageYOffset) return false
   // hidden on the bottom
-  if (element.top + element.height > pageYOffset + clientHeight) return false
+  if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight)
+    return false
   // hidden the left
-  if (element.left < pageXOffset) return false
+  if (typeof element.left === 'number' && element.left < pageXOffset) return false
   // hidden on the right
-  if (element.left + element.width > pageXOffset + clientWidth) return false
+  if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth)
+    return false
 
   return true
+}
+
+function pushStyleIntoViewport(style, popupCoords: ClientRect) {
+  const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
+  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+
+  const element = {
+    height: popupCoords.height,
+    left: style.left,
+    top: style.top,
+    width: popupCoords.width,
+  }
+  if (typeof style.right === 'number') {
+    element.left = clientWidth - style.right - element.width
+  }
+  if (typeof style.bottom === 'number') {
+    element.top = clientHeight - style.bottom - element.height
+  }
+
+  if (typeof element.top === 'number' && element.top < pageYOffset) {
+    // push down
+    const off = pageYOffset - element.top
+    if (typeof style.top === 'number') {
+      style.top += off
+    }
+    if (typeof style.bottom === 'number') {
+      style.bottom -= off
+    }
+  } else if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight) {
+    // push up
+    const off = element.top + element.height - (pageYOffset + clientHeight)
+    if (typeof style.top === 'number') {
+      style.top -= off
+    }
+    if (typeof style.bottom === 'number') {
+      style.bottom += off
+    }
+  }
+
+  if (typeof element.left === 'number' && element.left < pageXOffset) {
+    // push right
+    const off = pageXOffset - element.left
+    if (typeof style.left === 'number') {
+      style.left += off
+    }
+    if (typeof style.right === 'number') {
+      style.right -= off
+    }
+  } else if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth) {
+    // push left
+    const off = element.left + element.width - (pageXOffset + clientWidth)
+    if (typeof style.left === 'number') {
+      style.left -= off
+    }
+    if (typeof style.right === 'number') {
+      style.right += off
+    }
+  }
+
+  return style
 }
 
 function computePopupStyle(
@@ -181,6 +243,9 @@ function computePopupStyle(
   const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
     style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, matchDimension, offset)
+  }
+  if (!isStyleInViewport(style, popupCoords)) {
+    style = pushStyleIntoViewport(style, popupCoords)
   }
   return style
 }

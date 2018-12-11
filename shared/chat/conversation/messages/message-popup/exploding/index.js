@@ -172,6 +172,7 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
       items={props.items}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
     />

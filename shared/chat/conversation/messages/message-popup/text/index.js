@@ -81,6 +81,7 @@ const TextPopupMenu = (props: Props) => {
       items={items}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
     />
