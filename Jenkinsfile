@@ -232,7 +232,7 @@ helpers.rootLinuxNode(env, {
                                     "TMPDIR=${mountDir}",
                                 ]) {
                                 ws("$GOPATH/src/github.com/keybase/client") {
-                                    println "Checkout OS X"
+                                    println "Checkout macOS"
                                     retry(3) {
                                         checkout scm
                                     }
@@ -253,6 +253,8 @@ helpers.rootLinuxNode(env, {
                                                     sh "go build --tags=production"
                                                 }
                                                 testGo("test_macos_go_")
+                                                // Android side is tested on CircleCI.
+                                                sh "./shared/react-native/gobuild.sh ios"
                                             }
                                         }
                                     )
