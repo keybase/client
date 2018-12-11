@@ -1140,7 +1140,10 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
 	// try to make it accessible on all devices, which shouldn't work
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+		Enabled:   false,
+	})
 	aerr, ok = err.(libkb.AppStatusError)
 	if !ok {
 		t.Fatalf("invalid error type %T", err)
@@ -1234,7 +1237,10 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// make it accessible on all devices
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+		Enabled:   false,
+	})
 	require.NoError(t, err)
 
 	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
