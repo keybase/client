@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"go4.org/syncutil/singleflight"
 )
 
 // ErrAccountNotFound is returned when the account is not in
@@ -23,8 +24,9 @@ var ErrAccountNotFound = errors.New("account not found for user")
 type WalletState struct {
 	libkb.Contextified
 	remote.Remoter
-	accounts map[stellar1.AccountID]*AccountState
-	rates    map[string]rateEntry
+	accounts     map[stellar1.AccountID]*AccountState
+	rates        map[string]rateEntry
+	refreshGroup *singleflight.Group
 	sync.Mutex
 }
 
@@ -36,6 +38,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		Remoter:      r,
 		accounts:     make(map[stellar1.AccountID]*AccountState),
 		rates:        make(map[string]rateEntry),
+		refreshGroup: &singleflight.Group{},
 	}
 }
 
@@ -91,6 +94,14 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(ctx context.Context) error {
+	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {
+		doErr := w.refreshAll(ctx)
+		return nil, doErr
+	})
+	return err
+}
+
+func (w *WalletState) refreshAll(ctx context.Context) error {
 	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, w.G())
 	if err != nil {
 		return err
