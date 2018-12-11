@@ -3109,6 +3109,14 @@ func TestKbfsFileInfo(t *testing.T) {
 	defer mnt2.Close()
 	defer cancelFn2()
 
+	// Turn off the prefetcher to avoid races when reading the file info file.
+	ch := config2.BlockOps().TogglePrefetcher(false)
+	select {
+	case <-ch:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
 	mydir1 := filepath.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
 	if err := ioutil.Mkdir(mydir1, 0755); err != nil {
 		t.Fatal(err)
