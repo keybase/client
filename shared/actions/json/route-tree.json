@@ -30,6 +30,7 @@
       "parentPath?": "?RCConstants.Path"
     },
     "navigateUp": {},
+    "navigateUp2": {},
     "putActionIfOnPath": {
       "expectedPath": "RCConstants.Path",
       "otherAction": "any",

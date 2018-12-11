@@ -143,6 +143,11 @@ function routeStateReducer(routeDef, routeState, action) {
       return routeNavigate(routeDef, routeState, path.skipLast(1))
     }
 
+    case RouteTreeGen.navigateUp2: {
+      const path = getPath(routeState)
+      return routeNavigate(routeDef, routeState, path.skipLast(2))
+    }
+
     case RouteTreeGen.setRouteState:
       return routeSetState(routeDef, routeState, action.payload.path, action.payload.partialState)
 

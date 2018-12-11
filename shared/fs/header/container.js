@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
-import {putActionIfOnPath, navigateUp} from '../../actions/route-tree'
+import {putActionIfOnPath, navigateUp2} from '../../actions/route-tree'
 import {namedConnect} from '../../util/container'
 import FolderHeader from './header'
 
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
-  onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
+  onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp2())),
 })
 
 const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
