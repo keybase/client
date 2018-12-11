@@ -316,8 +316,9 @@ func (w *WalletState) Reset(ctx context.Context) {
 // AccountState holds the current data for a stellar account.
 type AccountState struct {
 	// these are only set when AccountState created, they never change
-	accountID stellar1.AccountID
-	remoter   remote.Remoter
+	accountID    stellar1.AccountID
+	remoter      remote.Remoter
+	refreshGroup *singleflight.Group
 
 	sync.RWMutex // protects everything that follows
 	seqno        uint64
@@ -329,13 +330,22 @@ type AccountState struct {
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountState {
 	return &AccountState{
-		accountID: accountID,
-		remoter:   r,
+		accountID:    accountID,
+		remoter:      r,
+		refreshGroup: &singleflight.Group{},
 	}
 }
 
 // Refresh updates all the data for this account from the server.
 func (a *AccountState) Refresh(ctx context.Context, router *libkb.NotifyRouter) error {
+	_, err := a.refreshGroup.Do("Refresh", func() (interface{}, error) {
+		doErr := a.refresh(ctx, router)
+		return nil, doErr
+	})
+	return err
+}
+
+func (a *AccountState) refresh(ctx context.Context, router *libkb.NotifyRouter) error {
 	seqno, err := a.remoter.AccountSeqno(ctx, a.accountID)
 	if err == nil {
 		a.Lock()
