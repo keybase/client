@@ -25,6 +25,7 @@ import ConfirmForm from '../wallets/confirm-form/container'
 import SendForm from '../wallets/send-form/container'
 import ChooseAsset from '../wallets/send-form/choose-asset/container'
 import QRScan from '../wallets/qr-scan/container'
+import PaymentsConfirm from './confirm-payment/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -82,6 +83,11 @@ const chatChildren = {
     children: key => makeRouteDefNode(chatChildren[key]),
     component: TeamBuilding,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+  },
+  paymentsConfirm: {
+    children: key => makeRouteDefNode(chatChildren[key]),
+    component: PaymentsConfirm,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   reallyLeaveTeam: {
     children: key => makeRouteDefNode(chatChildren[key]),

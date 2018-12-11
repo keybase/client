@@ -426,6 +426,12 @@ const rootReducer = (
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
         }
       })
+    case Chat2Gen.setPaymentConfirmInfo:
+      return action.error
+        ? state.set('paymentConfirmInfo', {error: action.payload.error})
+        : state.set('paymentConfirmInfo', {summary: action.payload.summary})
+    case Chat2Gen.clearPaymentConfirmInfo:
+      return state.set('paymentConfirmInfo', null)
     case Chat2Gen.setPendingStatus:
       return state.set('pendingStatus', action.payload.pendingStatus)
     case Chat2Gen.createConversation:
@@ -984,6 +990,7 @@ const rootReducer = (
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
+    case Chat2Gen.confirmScreenResponse:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

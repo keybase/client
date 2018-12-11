@@ -509,6 +509,20 @@
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "clearPaymentConfirmInfo": {
+      "_description": "Clear data for payment confirm modal"
+    },
+    "setPaymentConfirmInfo": {
+      "_description": "Set the payment confirm modal payment data",
+      "summary": "RPCChatTypes.UIChatPaymentSummary",
+      "canError": {
+        "error": "string"
+      }
+    },
+    "confirmScreenResponse": {
+      "_description": "User responded to the chat Stellar confirm screen",
+      "accept": "boolean"
     }
   }
 }
