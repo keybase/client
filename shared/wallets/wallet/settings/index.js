@@ -130,31 +130,28 @@ const AccountSettings = (props: SettingsProps) => {
               <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          {Styles.isMobile && <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />}
+          <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />
           <Kb.Box2
             direction="vertical"
             gap="tiny"
             style={Styles.collapseStyles([styles.sidePaddings, {marginBottom: Styles.globalMargins.small}])}
           >
             <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
-              <Kb.Text type="BodySmallSemibold">Mobile-only account</Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
-              <Kb.Text type="BodySmall">
-                Accounts in mobile-only mode are only available from mobile devices.
-              </Kb.Text>
-              <Kb.Text type="BodySmall">
-                If enabled, secret keys for this account will be encrypted separately and will not be
-                available on desktop computers.
-              </Kb.Text>
-              <Kb.Box style={{...Styles.globalStyles.flexBoxRow, marginTop: Styles.globalMargins.tiny}}>
+              <Kb.Box
+                style={{
+                  ...Styles.globalStyles.flexBoxRow,
+                  marginBottom: Styles.globalMargins.tiny,
+                  marginTop: Styles.globalMargins.tiny,
+                }}
+              >
                 <Kb.Checkbox
                   checked={props.mobileOnlyMode}
                   disabled={false}
-                  label="Enable mobile-only for this account"
+                  label="Mobile only"
                   onCheck={props.onMobileOnlyModeChange}
                 />
               </Kb.Box>
+              <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && <Kb.Divider />}

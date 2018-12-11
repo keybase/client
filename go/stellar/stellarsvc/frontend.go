@@ -976,8 +976,10 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 		return err
 	}
 
-	return fmt.Errorf("Test error %s %t", arg.AccountID, false)
-	//return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
+	if arg.Enabled {
+		return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
+	}
+	return fmt.Errorf("Disabling not implemented, TODO")
 }
 
 // accountExchangeRate gets the exchange rate for the logged in user's currency

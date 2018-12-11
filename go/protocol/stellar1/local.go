@@ -934,6 +934,7 @@ type MakeRequestLocalArg struct {
 type SetAccountMobileOnlyLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Enabled   bool      `codec:"enabled" json:"enabled"`
 }
 
 type IsAccountMobileOnlyLocalArg struct {

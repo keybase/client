@@ -124,7 +124,7 @@ export type MessageTypes = {|
     outParam: SendPaymentResLocal,
   |},
   'stellar.1.local.setAccountMobileOnlyLocal': {|
-    inParam: $ReadOnly<{|accountID: AccountID|}>,
+    inParam: $ReadOnly<{|accountID: AccountID, enabled: Boolean|}>,
     outParam: void,
   |},
   'stellar.1.local.setWalletAccountAsDefaultLocal': {|
