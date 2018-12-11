@@ -162,7 +162,7 @@ class ChooseAsset extends React.Component<Props, State> {
           ]),
     ]
     return (
-      <MaybePopup onClose={this.props.onBack}>
+      <MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
           <Header onBack={this.props.onBack} whiteBackground={true} />
           <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
@@ -170,6 +170,7 @@ class ChooseAsset extends React.Component<Props, State> {
               sections={sections}
               renderItem={this._renderItem}
               renderSectionHeader={this._renderSectionHeader}
+              contentContainerStyle={styles.sectionList}
             />
           </Box2>
         </Box2>
@@ -307,6 +308,7 @@ const styles = styleSheetCreate({
       width: 360,
     },
     isMobile: {
+      flex: 1,
       width: '100%',
     },
   }),
@@ -329,7 +331,12 @@ const styles = styleSheetCreate({
       maxHeight: 525 - 48,
     },
     isMobile: {
-      paddingBottom: 100,
+      flex: 1,
+    },
+  }),
+  mobileFlex: platformStyles({
+    isMobile: {
+      flex: 1,
     },
   }),
   sectionHeaderContainer: platformStyles({
@@ -346,6 +353,9 @@ const styles = styleSheetCreate({
       height: 40,
     },
   }),
+  sectionList: {
+    flexGrow: 0,
+  },
   spacer: {
     flex: 1,
   },
