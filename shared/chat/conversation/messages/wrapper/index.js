@@ -348,7 +348,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return null
     }
     const retainHeight =
-      this.props.failureDescription === 'This exploding message is not available to you' || exploded
+      this.props.failureDescription === 'This exploding message is not available to you' ||
+      this.props.failureDescription ===
+        'Unable to decrypt chat message: Device is missing required ephemeral keys' ||
+      exploded
 
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
