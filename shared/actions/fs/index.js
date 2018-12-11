@@ -606,27 +606,47 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   }
 }
 
-const _getRouteChangeForOpenMobile = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  route: any
-) =>
-  action.type === FsGen.openPathItem
-    ? navigateAppend([route])
-    : navigateTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder', route])
-
-const _getRouteChangeForOpenDesktop = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  route: any
-) =>
-  action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, 'folder', route])
+const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
+  isMobile
+    ? navigateTo([
+        Tabs.settingsTab,
+        SettingsConstants.fsTab,
+        // Construct all parent folders so back button works all the way back
+        // to /keybase
+        ...Types.getPathElements(action.payload.path)
+          .slice(0, -1)
+          .reduce(
+            (routes, elem) => [
+              ...routes,
+              {
+                props: {
+                  path: routes.length
+                    ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                    : Types.stringToPath(`/${elem}`),
+                },
+                selected: 'folder',
+              },
+            ],
+            []
+          ),
+        finalRoute,
+      ])
+    : navigateTo([
+        Tabs.fsTab,
+        // Prepend the parent folder so when user clicks the back button they'd
+        // go back to the parent folder.
+        {props: {path: Types.getPathParent(action.payload.path)}, selected: 'folder'},
+        finalRoute,
+      ])
 
 const _getRouteChangeActionForOpen = (
   action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  route: any
+  finalRoute: any
 ) => {
-  const routeChange = isMobile
-    ? _getRouteChangeForOpenMobile(action, route)
-    : _getRouteChangeForOpenDesktop(action, route)
+  const routeChange =
+    action.type === FsGen.openPathItem
+      ? navigateAppend([finalRoute])
+      : _getRouteChangeForOpenPathInFilesTab(action, finalRoute)
   return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
 
