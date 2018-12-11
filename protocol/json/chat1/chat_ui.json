@@ -643,11 +643,11 @@
           "name": "hasPairwiseMacs"
         },
         {
-          "type": [
-            null,
-            "UIPaymentInfo"
-          ],
-          "name": "paymentInfo"
+          "type": {
+            "type": "array",
+            "items": "UIPaymentInfo"
+          },
+          "name": "paymentInfos"
         },
         {
           "type": [
