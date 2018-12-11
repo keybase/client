@@ -199,6 +199,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         message={this.props.message}
         onHidden={this.props.toggleShowingMenu}
         position="top right"
+        style={styles.messagePopupContainer}
         visible={this.props.showingMenu}
       />
     )
@@ -521,6 +522,9 @@ const styles = Styles.styleSheetCreate({
     isMobile: {height: 21},
   }),
   menuButtonsWithAuthor: {marginTop: -16},
+  messagePopupContainer: {
+    marginRight: Styles.globalMargins.small,
+  },
   orangeLine: {
     // don't push down content due to orange line
     backgroundColor: Styles.globalColors.orange,

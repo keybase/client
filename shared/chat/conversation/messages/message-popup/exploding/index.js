@@ -12,7 +12,7 @@ import {
   type PropsWithTimer,
   PopupHeaderText,
 } from '../../../../../common-adapters/'
-import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
+import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles, type StylesCrossPlatform} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
@@ -31,7 +31,7 @@ type Props = {
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   position: Position,
-  style?: Object,
+  style?: StylesCrossPlatform,
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,

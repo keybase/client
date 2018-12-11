@@ -37,6 +37,7 @@ type Props = {|
   onHidden: () => void,
   onSeeDetails: ?() => void, // if falsy this doesn't have a details page
   position: Position,
+  style?: Styles.StylesCrossPlatform,
   visible: boolean,
 |}
 
@@ -126,6 +127,7 @@ const PaymentPopup = (props: Props) => {
     onHidden,
     onSeeDetails,
     position,
+    style,
     visible,
     ...headerProps
   } = props
@@ -141,6 +143,7 @@ const PaymentPopup = (props: Props) => {
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}
+      containerStyle={style}
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position}
