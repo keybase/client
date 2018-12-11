@@ -1106,9 +1106,9 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UICha
 	return true, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) error {
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, error) {
 	c.StellarDataError <- msg
-	return nil
+	return false, nil
 }
 
 func (c *ChatUI) ChatStellarDone(ctx context.Context) error {

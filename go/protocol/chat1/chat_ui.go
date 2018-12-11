@@ -1007,7 +1007,7 @@ type ChatUiInterface interface {
 	ChatPostReadyToSend(context.Context, int) error
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
-	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) error
+	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
 	ChatStellarDone(context.Context, int) error
 }
 
@@ -1281,7 +1281,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatStellarDataErrorArg)(nil), args)
 						return
 					}
-					err = i.ChatStellarDataError(ctx, typedArgs[0])
+					ret, err = i.ChatStellarDataError(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1397,8 +1397,8 @@ func (c ChatUiClient) ChatStellarDataConfirm(ctx context.Context, __arg ChatStel
 	return
 }
 
-func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStellarDataErrorArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStellarDataErrorArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []interface{}{__arg}, &res)
 	return
 }
 

@@ -285,11 +285,11 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStell
 	return strings.TrimSpace(response) == confirm, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) error {
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
 	w := c.terminal.ErrorWriter()
 	msg := "Failed to obtain Stellar payment information, aborting send"
 	fmt.Fprintf(w, msg+"\n")
-	return errors.New(msg)
+	return false, errors.New(msg)
 }
 
 func (c *ChatUI) ChatStellarDone(ctx context.Context, sessionID int) error {

@@ -1271,8 +1271,6 @@ const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) =
   )
 }
 
-let stellarConfirmPaymentModalShown = false
-
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
   Saga.callUntyped(function*() {
     const {conversationIDKey, text} = action.payload
@@ -1294,6 +1292,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       ephemeralLifetime
     )
 
+    const routeName = 'paymentsConfirm'
     const addMessage = (p, response) => [
       Saga.put(
         Chat2Gen.createMessagesAdd({
@@ -1301,28 +1300,29 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
           messages: [newMsg],
         })
       ),
+      // We need to make extra certain that the message is added into the store before
+      // we get any callbacks from the service for that same message. Currently, it seems possible
+      // that with a mixed custom and vanilla call map those actions generated from the
+      // service can interleave, and cause a duplicate message.
       Saga.callUntyped(function() {
         response && response.result()
       }),
     ]
-    const onShowConfirm = () => {
-      stellarConfirmPaymentModalShown = true
-      return [
-        Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
-        Saga.put(
-          RouteTreeGen.createNavigateAppend({
-            path: ['paymentsConfirm'],
-          })
-        ),
-      ]
-    }
-    const onHideConfirm = () => {
-      if (!stellarConfirmPaymentModalShown) {
-        return
-      }
-      stellarConfirmPaymentModalShown = false
-      return Saga.put(navigateUp())
-    }
+    const onShowConfirm = () => [
+      Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
+      Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [routeName],
+        })
+      ),
+    ]
+    const onHideConfirm = () =>
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
+        if (getPath(state.routeTree.routeState).last() === routeName) {
+          yield Saga.put(navigateUp())
+        }
+      })
     const onDataConfirm = ({summary}, response) => {
       stellarConfirmWindowResponse = response
       return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
@@ -1367,6 +1367,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
     // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
     // that is in the store on the outboxID has been sent.
     yield addMessage()
+    yield Saga.put(Chat2Gen.createClearPaymentConfirmInfo())
   })
 
 const messageSendWithResult = (result, action) => {
@@ -1377,7 +1378,7 @@ const messageSendWithError = (result, action) => {
   logger.info('[MessageSend] error')
 }
 
-let stellarConfirmWindowResponse: any = null
+let stellarConfirmWindowResponse = null
 
 const confirmScreenResponse = (state: TypedState, action: Chat2Gen.ConfirmScreenResponsePayload) => {
   stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)

@@ -395,7 +395,7 @@ type ChatUI interface {
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
-	ChatStellarDataError(context.Context, string) error
+	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context) error
 	ChatPostReadyToSend(context.Context) error
 }

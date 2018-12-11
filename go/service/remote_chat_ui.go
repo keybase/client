@@ -87,7 +87,7 @@ func (r *RemoteChatUI) ChatStellarShowConfirm(ctx context.Context) error {
 	return r.cli.ChatStellarShowConfirm(ctx, r.sessionID)
 }
 
-func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, msg string) error {
+func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, error) {
 	return r.cli.ChatStellarDataError(ctx, chat1.ChatStellarDataErrorArg{
 		SessionID: r.sessionID,
 		Message:   msg,
