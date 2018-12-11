@@ -1367,7 +1367,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
     // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
     // that is in the store on the outboxID has been sent.
     yield addMessage()
-    yield Saga.put(Chat2Gen.createClearPaymentConfirmInfo())
+    stellarConfirmWindowResponse = null
   })
 
 const messageSendWithResult = (result, action) => {
