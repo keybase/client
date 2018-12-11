@@ -86,11 +86,6 @@ const WalletRow = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
       >
-        <Kb.Icon
-          type={props.isSelected ? 'icon-wallet-open-32' : 'icon-wallet-32'}
-          color={Styles.globalColors.black_75}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
-        />
         <Kb.Box2 direction="vertical" style={styles.rightColumn}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {!!props.keybaseUser && (
@@ -110,7 +105,6 @@ const WalletRow = (props: Props) => {
         </Kb.Box2>
         {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
       </HoverBox>
-      <Kb.Divider />
     </Kb.ClickableBox>
   )
 }
