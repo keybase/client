@@ -613,9 +613,10 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	}()
 
 	if fs.empty && (filename == "" || filename == ".") {
-		// TODO: use FileInfoFast.
-		return &FileInfo{
-			fs: fs,
+		// Always use FileInfoFast here for this no matter fast mode is enabled
+		// or not.
+		return &FileInfoFast{
+			name: filename,
 			ei: libkbfs.EntryInfo{
 				Type: libkbfs.Dir,
 			},
@@ -781,9 +782,10 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 	}()
 
 	if fs.empty && (filename == "" || filename == ".") {
-		// TODO: use FileInfoFast.
-		return &FileInfo{
-			fs: fs,
+		// Always use FileInfoFast here for this no matter fast mode is enabled
+		// or not.
+		return &FileInfoFast{
+			name: filename,
 			ei: libkbfs.EntryInfo{
 				Type: libkbfs.Dir,
 			},
