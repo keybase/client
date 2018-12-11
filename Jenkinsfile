@@ -109,16 +109,17 @@ helpers.rootLinuxNode(env, {
                     test_linux_deps: {
                         if (hasGoChanges) {
                             // Build the client docker first so we can immediately kick off KBFS
-                            dir('go') { parallel (
-                                build_image: {
-                                    sh "go install github.com/keybase/client/go/keybase"
-                                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                    clientImage = docker.build("keybaseprivate/kbclient")
-                                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                    archive("kbclient.tar.gz")
-                                    sh "rm kbclient.tar.gz"
-                                },
-                            )}
+                            // FIXME: temporarily avoid this while we merge the Jenkinsfiles.
+                            // dir('go') { parallel (
+                            //     build_image: {
+                            //         sh "go install github.com/keybase/client/go/keybase"
+                            //         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                            //         clientImage = docker.build("keybaseprivate/kbclient")
+                            //         sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                            //         archive("kbclient.tar.gz")
+                            //         sh "rm kbclient.tar.gz"
+                            //     },
+                            // )}
 
                             // Check protocol diffs
                             // Clean the index first
@@ -168,27 +169,6 @@ helpers.rootLinuxNode(env, {
                                         }
                                     }},
                                 )
-                            },
-                            test_kbfs: {
-                                // Only build KBFS on master builds. This means
-                                // that we can have master breaks, but it
-                                // strikes a good balance between velocity and
-                                // test coverage.
-                                if (env.BRANCH_NAME == "master") {
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            string(
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ),
-                                            string(
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ),
-                                        ]
-                                    ])
-                                }
                             },
                         )
                     },
@@ -415,8 +395,8 @@ def checkDiffs(dirs) {
     try {
         sh "git diff --quiet --exit-code HEAD -- ${joinedDirs}"
     } catch (ex) {
-      sh "git diff HEAD -- ${joinedDirs}"
-      println "ERROR: `git diff` detected changes. Some files in the directories {${dirs.join(", ")}} are stale"
-      throw ex
+        sh "git diff HEAD -- ${joinedDirs}"
+        println "ERROR: `git diff` detected changes. Some files in the directories {${dirs.join(", ")}} are stale"
+        throw ex
     }
 }
