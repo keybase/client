@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
 import {type IconType} from './icon.constants'
-type Action = {
+export type Action = {
   custom?: React.Node,
   label: string,
   icon?: IconType,
@@ -12,9 +12,9 @@ export type Props = {
   badgeNumber?: number,
   children?: React.Node,
   title?: string,
-  onBack?: ?() => void,
-  onCancel?: ?() => void,
-  customCancelText?: string,
+  leftAction?: 'back' | 'cancel',
+  onLeftAction?: ?() => void,
+  leftActionText?: string, // defaults to 'cancel' when leftAction is 'cancel'
   hideBackLabel?: boolean,
   headerStyle?: StylesCrossPlatform,
   customComponent?: ?React.Node,

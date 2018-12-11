@@ -8,7 +8,7 @@ import Box from './box'
 import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import * as Styles from '../styles'
-import type {Props} from './header-hoc.types'
+import type {Action, Props} from './header-hoc.types'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -24,50 +24,31 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     return (
       <Box style={Styles.collapseStyles([styles.header, this.props.theme === 'dark' ? styles.headerDark : styles.headerLight, this.props.headerStyle])}>
         {this.props.customComponent}
-        {this.props.onCancel && (
-          <Box style={styles.leftAction}>
-            <Text type="BodyBigLink" style={styles.action} onClick={this.props.onCancel}>
-              {this.props.customCancelText || 'Cancel'}
+        <Box style={styles.leftAction}>
+          {this.props.leftAction
+            ? this.props.leftAction === 'back' && (
+              <BackButton
+                hideBackLabel={this.props.hideBackLabel}
+                iconColor={this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
+                style={styles.action}
+                onClick={this.props.onLeftAction}
+              />
+          ) : this.props.leftAction === 'cancel' && (
+            <Text type="BodyBigLink" style={styles.action} onClick={this.props.onLeftAction}>
+              {this.props.leftActionText || 'Cancel'}
             </Text>
-          </Box>
-        )}
-        {this.props.onBack && (
-          <Box style={styles.leftAction}>
-            <BackButton
-              hideBackLabel={this.props.hideBackLabel}
-              iconColor={this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
-              style={styles.action}
-              onClick={this.props.onBack}
-            />
-            {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
-          </Box>
-        )}
+          )}
+          {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
+        </Box>
         <Box style={styles.titleContainer}>
           {!!this.props.title && !this.props.children && (
               <Text type="BodySemibold" style={styles.title} lineClamp={1}>!{this.props.title}</Text>
           )}
           {this.props.children}
         </Box>
-        <Box style={Styles.collapseStyles([styles.rightActions, this.props.rightActions && styles.rightActionsPadding])}>
+        <Box style={Styles.collapseStyles([styles.rightActions, this.props.rightActions && Styles.isIOS && styles.rightActionsPadding])}>
           {this.props.rightActions && this.props.rightActions.filter(Boolean).slice(0, this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1).map((action, item) => (
-            action.custom
-              ? <Box style={styles.action}>
-                {action.custom}
-                </Box>
-              : action.icon
-                ? <Icon
-                    fontSize={22}
-                    onClick={action.onPress}
-                    style={styles.action}
-                    type={action.icon}
-                  />
-                : <Text
-                    type="BodyBigLink"
-                    style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
-                    onClick={action.onPress}
-                  >
-                    {action.label}
-                  </Text>
+            renderAction(action)
           ))}
           {this.props.rightActions && this.props.rightActions.length > MAX_RIGHT_ACTIONS && (
             <>
@@ -95,6 +76,26 @@ export class HeaderHocHeader extends React.Component<Props, State> {
   }
 }
 
+const renderAction = (action: Action): React.Node =>
+  action.custom
+    ? <Box style={styles.action}>
+      {action.custom}
+      </Box>
+    : action.icon
+      ? <Icon
+          fontSize={22}
+          onClick={action.onPress}
+          style={styles.action}
+          type={action.icon}
+        />
+      : <Text
+          type="BodyBigLink"
+          style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
+          onClick={action.onPress}
+        >
+          {action.label}
+        </Text>
+
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
     <Box style={styles.container}>
@@ -111,13 +112,19 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
 }
 
 const styles = Styles.styleSheetCreate({
-  action: {
-    opacity: 1,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  action: Styles.platformStyles({
+    common: {
+      opacity: 1,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isAndroid: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   actionPressed: {
     opacity: 0.3,
   },
@@ -145,12 +152,17 @@ const styles = Styles.styleSheetCreate({
   innerWrapper: {
     ...Styles.globalStyles.fillAbsolute,
   },
-  leftAction: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    flex: 1,
-    justifyContent: 'flex-start',
-  },
+  leftAction: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'flex-start',
+      flex: 1,
+      justifyContent: 'flex-start',
+    },
+    isIOS: {
+      paddingLeft: Styles.globalMargins.tiny,
+    },
+  }),
   rightActions: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
@@ -163,14 +175,20 @@ const styles = Styles.styleSheetCreate({
   title: {
     color: Styles.globalColors.black_75,
   },
-  titleContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flex: 1,
-    flexShrink: 1,
-    justifyContent: 'center',
-    width: '100%',
-  },
+  titleContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flex: 1,
+      flexShrink: 1,
+      justifyContent: 'center',
+      width: '100%',
+    },
+    isAndroid: {
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+    },
+  }),
   wrapper: {
     flexGrow: 1,
   },

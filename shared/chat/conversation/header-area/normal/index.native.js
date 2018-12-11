@@ -11,7 +11,7 @@ const Wrapper = (props: {
   onToggleInfoPanel: () => void,
 }) => (
   <Kb.HeaderHocHeader
-    onBack={props.onBack}
+    onLeftAction={props.onBack}
     badgeNumber={props.badgeNumber}
     children={props.children}
     rightActions={[{

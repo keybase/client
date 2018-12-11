@@ -81,12 +81,12 @@ const styleRowContainer = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: Styles.globalColors.white_90,
-  height: 48,
+  // height: 48,
   justifyContent: 'center',
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 1,
+  // position: 'absolute',
+  // right: 0,
+  // top: 0,
+  // zIndex: 1,
 }
 
 export const PeoplePageList = (props: Props) => (
