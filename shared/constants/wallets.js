@@ -596,7 +596,8 @@ const rootWalletPath = [...rootWalletTab, ...(isMobile ? [SettingsConstants.wall
 const isLookingAtWallet = (routeState: ?RouteStateNode) =>
   getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
 
-const getMobileOnlyWaitingKey = (id: Types.AccountID) => `wallets:getMobileOnly:${id}`
+const loadMobileOnlyWaitingKey = (id: Types.AccountID) => `wallets:getMobileOnly:${id}`
+const changeMobileOnlyWaitingKey = (id: Types.AccountID) => `wallets:setMobileOnly:${id}`
 const getMobileOnly = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.mobileOnlyMap.get(accountID, false)
 
@@ -675,6 +676,7 @@ export {
   updatePaymentsReceived,
   validateAccountNameWaitingKey,
   validateSecretKeyWaitingKey,
-  getMobileOnlyWaitingKey,
+  loadMobileOnlyWaitingKey,
+  changeMobileOnlyWaitingKey,
   getMobileOnly,
 }

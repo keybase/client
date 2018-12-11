@@ -42,6 +42,8 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
     dispatch(navigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
+  _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
+    dispatch(WalletsGen.createChangeMobileOnlyMode({accountID: accountID, enabled: enabled})),
   _onDelete: (accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
@@ -78,6 +80,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onEditName: () => dispatchProps._onEditName(stateProps.accountID),
+  onMobileOnlyModeChange: (enabled: boolean) =>
+    dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   refresh: () => dispatchProps._refresh(),
 })

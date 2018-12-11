@@ -345,14 +345,18 @@
       }
     },
     "loadMobileOnlyMode": {
+      "_description": "Ask the service for current mobile only mode for Stellar account.",
       "accountID": "Types.AccountID"
     },
     "loadedMobileOnlyMode": {
+      "_description": "The service has responded with mobile only mode for Stellar account.",
       "accountID": "Types.AccountID",
       "enabled": "boolean"
     },
-    "onChangeMobileOnlyMode": {
-      "accountID": "Types.AccountID"
+    "changeMobileOnlyMode": {
+      "_description": "Change mobile only mode for Stellar account.",
+      "accountID": "Types.AccountID",
+      "enabled": "boolean"
     }
   }
 }

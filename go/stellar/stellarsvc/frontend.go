@@ -963,8 +963,7 @@ func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAc
 		return false, err
 	}
 
-	//return s.remoter.IsAccountMobileOnly(ctx, arg.AccountID)
-	return true, nil
+	return s.remoter.IsAccountMobileOnly(ctx, arg.AccountID)
 }
 
 func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.SetAccountMobileOnlyLocalArg) (err error) {
@@ -977,7 +976,8 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 		return err
 	}
 
-	return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
+	return fmt.Errorf("Test error %s %t", arg.AccountID, false)
+	//return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
 }
 
 // accountExchangeRate gets the exchange rate for the logged in user's currency

@@ -299,7 +299,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadSendAssetChoices:
     case WalletsGen.openSendRequestForm:
     case WalletsGen.loadMobileOnlyMode:
-    case WalletsGen.onChangeMobileOnlyMode:
+    case WalletsGen.changeMobileOnlyMode:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

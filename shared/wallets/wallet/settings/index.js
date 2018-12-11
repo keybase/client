@@ -20,6 +20,7 @@ export type SettingsProps = {|
   onSetDefault: () => void,
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
+  onMobileOnlyModeChange: (enabled: boolean) => void,
   refresh: () => void,
   saveCurrencyWaiting: boolean,
   mobileOnlyMode: boolean,
@@ -151,7 +152,7 @@ const AccountSettings = (props: SettingsProps) => {
                   checked={props.mobileOnlyMode}
                   disabled={false}
                   label="Enable mobile-only for this account"
-                  onCheck={() => {}}
+                  onCheck={props.onMobileOnlyModeChange}
                 />
               </Kb.Box>
             </Kb.Box2>

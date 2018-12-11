@@ -680,13 +680,24 @@ const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnly
     {
       accountID: accountID,
     },
-    Constants.getMobileOnlyWaitingKey(accountID)
+    Constants.loadMobileOnlyWaitingKey(accountID)
   ).then(res =>
     WalletsGen.createLoadedMobileOnlyMode({
       accountID: accountID,
       enabled: res,
     })
   )
+}
+
+const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobileOnlyModePayload) => {
+  let accountID = action.payload.accountID
+  return RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise(
+    {
+      accountID: accountID,
+      enabled: action.payload.enabled,
+    },
+    Constants.changeMobileOnlyWaitingKey(accountID)
+  ).then(res => WalletsGen.createLoadMobileOnlyMode({accountID: accountID}))
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
@@ -805,6 +816,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 
   yield Saga.actionToPromise(WalletsGen.loadMobileOnlyMode, loadMobileOnlyMode)
+  yield Saga.actionToPromise(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
 }
 
 export default walletsSaga

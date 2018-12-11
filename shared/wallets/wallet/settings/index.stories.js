@@ -49,6 +49,7 @@ const sharedSettingsProps = {
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onDelete: Sb.action('onDelete'),
   onEditName: Sb.action('onEditName'),
+  onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
   onSetDefault: Sb.action('setDefault'),
   refresh: () => {},
   saveCurrencyWaiting: false,
