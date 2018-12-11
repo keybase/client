@@ -776,6 +776,11 @@ type LRUer interface {
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
 }
 
+type MemLRUer interface {
+	Get(key interface{}) (interface{}, bool)
+	Put(key, value interface{}) bool
+}
+
 type ClockContext interface {
 	GetClock() clockwork.Clock
 }

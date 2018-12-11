@@ -181,7 +181,6 @@ const (
 	DBFTLStorage               = 0xcd
 	DBTeamAuditor              = 0xce
 	DBAttachmentUploader       = 0xcf
-	DBImplicitTeam             = 0xd9
 	DBDiskLRUEntries           = 0xda
 	DBDiskLRUIndex             = 0xdb
 	DBImplicitTeamConflictInfo = 0xdc

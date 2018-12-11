@@ -5,37 +5,12 @@ import (
 	"sort"
 	"strings"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
-
-// Increment to invalidate the disk cache.
-const diskStorageVersionImplicitTeam = 1
-
-type implicitTeamCacheKey struct {
-	public      bool
-	displayName string
-}
-
-func (i implicitTeamCacheKey) MemKey() string {
-	prefix := "r"
-	if i.public {
-		prefix = "u"
-	}
-	return fmt.Sprintf("%s%s", prefix, i.displayName)
-}
-
-func (i implicitTeamCacheKey) DbKey() libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.ObjType(libkb.DBImplicitTeam),
-		Key: i.MemKey(),
-	}
-}
-
-var _ libkb.LRUKeyer = implicitTeamCacheKey{}
 
 type implicitTeamConflict struct {
 	// Note this TeamID is not validated by LookupImplicitTeam. Be aware of server trust.
@@ -81,20 +56,18 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
 	public bool) (res keybase1.TeamID, err error) {
-	imp, err := loadImpteamFromServer(ctx, g, displayName, public)
+	imp, err := loadImpteam(ctx, g, displayName, public)
 	if err != nil {
 		return res, err
 	}
 	return imp.TeamID, nil
 }
 
-func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
-	cacheKey := implicitTeamCacheKey{displayName: displayName, public: public}
+func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
+	cacheKey := impTeamCacheKey(displayName, public)
 	cacher := g.GetImplicitTeamCacher()
 	if cacher != nil {
-		if cv, err := cacher.Get(ctx, g, cacheKey); err != nil {
-			g.Log.CDebugf(ctx, "In fetching from cache: %v", err)
-		} else if cv != nil {
+		if cv, ok := cacher.Get(cacheKey); ok {
 			if imp, ok := cv.(implicitTeam); ok {
 				g.Log.CDebugf(ctx, "using cached iteam")
 				return imp, nil
@@ -102,7 +75,18 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 			g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
 		}
 	}
+	imp, err = loadImpteamFromServer(ctx, g, displayName, public)
+	if err != nil {
+		return imp, err
+	}
+	// If the team has any assertions just skip caching
+	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
+		cacher.Put(cacheKey, imp)
+	}
+	return imp, nil
+}
 
+func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
 	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
@@ -121,10 +105,6 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 			}
 		}
 		return imp, err
-	}
-	// If the team has any assertions just skip caching
-	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
-		cacher.Put(ctx, g, cacheKey, imp)
 	}
 	return imp, nil
 }
@@ -148,7 +128,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
-	imp, err := loadImpteamFromServer(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
+	imp, err := loadImpteam(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
@@ -340,11 +320,41 @@ func sortStringsFront(ss []string, front string) {
 	})
 }
 
-func NewImplicitTeamCache(g *libkb.GlobalContext) *lru.Cache {
-	return lru.NewLRU(g, libkb.ImplicitTeamCacheSize, diskStorageVersionImplicitTeam, implicitTeam{})
+func impTeamCacheKey(displayName string, public bool) string {
+	return fmt.Sprintf("%s-%v", displayName, public)
 }
 
+type implicitTeamCache struct {
+	cache *lru.Cache
+}
+
+func newImplicitTeamCache(g *libkb.GlobalContext) *implicitTeamCache {
+	cache, err := lru.New(libkb.ImplicitTeamCacheSize)
+	if err != nil {
+		panic(err)
+	}
+	return &implicitTeamCache{
+		cache: cache,
+	}
+}
+
+func (i *implicitTeamCache) Get(key interface{}) (interface{}, bool) {
+	return i.cache.Get(key)
+}
+
+func (i *implicitTeamCache) Put(key, value interface{}) bool {
+	return i.cache.Add(key, value)
+}
+
+func (i *implicitTeamCache) OnLogout(m libkb.MetaContext) error {
+	i.cache.Purge()
+	return nil
+}
+
+var _ libkb.MemLRUer = &implicitTeamCache{}
+
 func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
-	cache := NewImplicitTeamCache(g)
+	cache := newImplicitTeamCache(g)
 	g.SetImplicitTeamCacher(cache)
+	g.AddLogoutHook(cache)
 }
