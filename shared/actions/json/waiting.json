@@ -5,11 +5,13 @@
       "key": ["string", "Array<string>"]
     },
     "decrementWaiting": {
-      "key": ["string", "Array<string>"]
+      "key": ["string", "Array<string>"],
+      "error?": "string"
     },
     "changeWaiting": {
       "key": ["string", "Array<string>"],
-      "increment": "boolean"
+      "increment": "boolean",
+      "error?": "string"
     },
     "clearWaiting": {
       "key": ["string", "Array<string>"]

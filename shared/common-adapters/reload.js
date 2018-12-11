@@ -20,7 +20,6 @@ type Props = {|
   onReload: () => void,
   reason: string,
   reloadOnMount?: boolean,
-  waitingKeys: string | Array<string>,
 |}
 
 const Reload = props => (
