@@ -131,6 +131,11 @@ helpers.rootLinuxNode(env, {
                                 sh "make"
                             }
                             checkDiffs(['./go/', './protocol/'])
+                            // TODO: Remove
+                            dir('go') {
+                                sh "make gen-deps"
+                                checkDiffs(['./'])
+                            }
                         }
                         parallel (
                             test_linux: {
