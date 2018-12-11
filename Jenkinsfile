@@ -302,6 +302,7 @@ def testGo(prefix) {
     ]) {
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
+        println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}."
 
         println "Running golint"
         retry(5) {
@@ -339,7 +340,6 @@ def testGo(prefix) {
             }
         }
 
-        println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         def tests = [:]
         def specialTests = [:]
         def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
