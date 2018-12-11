@@ -4,7 +4,7 @@ import {TouchableOpacity} from 'react-native'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
-import WalletRow from '../../../wallet-list/wallet-row/container'
+import WalletRow from './wallet-row/container'
 
 type MenuItem = {|
   onClick?: ?(evt?: SyntheticEvent<>) => void,
