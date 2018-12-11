@@ -61,6 +61,10 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: superMsg.Valid().MessageBody.Edit().Body,
 	})
+	mvalid.AtMentions = superMsg.Valid().AtMentions
+	mvalid.AtMentionUsernames = superMsg.Valid().AtMentionUsernames
+	mvalid.ChannelMention = superMsg.Valid().ChannelMention
+	mvalid.ChannelNameMentions = superMsg.Valid().ChannelNameMentions
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }
