@@ -3,7 +3,9 @@ package teams
 import (
 	"fmt"
 	"sort"
+	"strings"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -37,7 +39,6 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 // Resolves social assertions.
 func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-
 	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public)
 	return team, teamName, impTeamName, err
 }
@@ -55,11 +56,34 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
 	public bool) (res keybase1.TeamID, err error) {
-	imp, err := loadImpteamFromServer(ctx, g, displayName, public)
+	imp, err := loadImpteam(ctx, g, displayName, public)
 	if err != nil {
 		return res, err
 	}
 	return imp.TeamID, nil
+}
+
+func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
+	cacheKey := impTeamCacheKey(displayName, public)
+	cacher := g.GetImplicitTeamCacher()
+	if cacher != nil {
+		if cv, ok := cacher.Get(cacheKey); ok {
+			if imp, ok := cv.(implicitTeam); ok {
+				g.Log.CDebugf(ctx, "using cached iteam")
+				return imp, nil
+			}
+			g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
+		}
+	}
+	imp, err = loadImpteamFromServer(ctx, g, displayName, public)
+	if err != nil {
+		return imp, err
+	}
+	// If the team has any assertions just skip caching
+	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
+		cacher.Put(cacheKey, imp)
+	}
+	return imp, nil
 }
 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
@@ -104,7 +128,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
-	imp, err := loadImpteamFromServer(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
+	imp, err := loadImpteam(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
@@ -120,7 +144,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 		if err != nil {
 			// warn, don't fail
-			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
+			g.Log.CDebugf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
 			err = nil
 			continue
 		}
@@ -270,7 +294,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	var suffix string
-	if impTeamName.ConflictInfo != nil && impTeamName.ConflictInfo.IsConflict() {
+	if impTeamName.ConflictInfo.IsConflict() {
 		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 
@@ -294,4 +318,43 @@ func sortStringsFront(ss []string, front string) {
 		}
 		return a < b
 	})
+}
+
+func impTeamCacheKey(displayName string, public bool) string {
+	return fmt.Sprintf("%s-%v", displayName, public)
+}
+
+type implicitTeamCache struct {
+	cache *lru.Cache
+}
+
+func newImplicitTeamCache(g *libkb.GlobalContext) *implicitTeamCache {
+	cache, err := lru.New(libkb.ImplicitTeamCacheSize)
+	if err != nil {
+		panic(err)
+	}
+	return &implicitTeamCache{
+		cache: cache,
+	}
+}
+
+func (i *implicitTeamCache) Get(key interface{}) (interface{}, bool) {
+	return i.cache.Get(key)
+}
+
+func (i *implicitTeamCache) Put(key, value interface{}) bool {
+	return i.cache.Add(key, value)
+}
+
+func (i *implicitTeamCache) OnLogout(m libkb.MetaContext) error {
+	i.cache.Purge()
+	return nil
+}
+
+var _ libkb.MemLRUer = &implicitTeamCache{}
+
+func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
+	cache := newImplicitTeamCache(g)
+	g.SetImplicitTeamCacher(cache)
+	g.AddLogoutHook(cache)
 }
