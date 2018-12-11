@@ -32,35 +32,47 @@ type ResilientTransport struct {
 	transport   *http.Transport
 }
 
+// Convenience method for creating a RelisientTransport with
+// optional http transport argument
+func NewResilientTransport(tr ...*http.Transport) *ResilientTransport {
+	rt := ResilientTransport{
+		Deadline: func() time.Time {
+			return time.Now().Add(5 * time.Second)
+		},
+		DialTimeout: 10 * time.Second,
+		MaxTries:    3,
+		ShouldRetry: awsRetry,
+		Wait:        ExpBackoff,
+	}
+
+	if len(tr) > 0 {
+		rt.transport = tr[0]
+	} else {
+		rt.transport = &http.Transport{
+			Dial: func(netw, addr string) (net.Conn, error) {
+				c, err := net.DialTimeout(netw, addr, rt.DialTimeout)
+				if err != nil {
+					return nil, err
+				}
+				c.SetDeadline(rt.Deadline())
+				return c, nil
+			},
+			Proxy: http.ProxyFromEnvironment,
+		}
+	}
+
+	return &rt
+}
+
 // Convenience method for creating an http client
 func NewClient(rt *ResilientTransport) *http.Client {
-	rt.transport = &http.Transport{
-		Dial: func(netw, addr string) (net.Conn, error) {
-			c, err := net.DialTimeout(netw, addr, rt.DialTimeout)
-			if err != nil {
-				return nil, err
-			}
-			c.SetDeadline(rt.Deadline())
-			return c, nil
-		},
-		Proxy: http.ProxyFromEnvironment,
-	}
-	// TODO: Would be nice is ResilientTransport allowed clients to initialize
-	// with http.Transport attributes.
 	return &http.Client{
 		Transport: rt,
 	}
 }
 
-var retryingTransport = &ResilientTransport{
-	Deadline: func() time.Time {
-		return time.Now().Add(5 * time.Second)
-	},
-	DialTimeout: 10 * time.Second,
-	MaxTries:    3,
-	ShouldRetry: awsRetry,
-	Wait:        ExpBackoff,
-}
+// internal default resilient transport
+var retryingTransport = NewResilientTransport()
 
 // Exported default client
 var RetryingClient = NewClient(retryingTransport)

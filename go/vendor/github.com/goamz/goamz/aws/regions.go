@@ -46,6 +46,29 @@ var USEast = Region{
 	"https://streams.dynamodb.us-east-1.amazonaws.com",
 }
 
+var USEast2 = Region{
+	"us-east-2",
+	"https://ec2.us-east-2.amazonaws.com",
+	"https://s3.amazonaws.com",
+	"",
+	true,
+	true,
+	"",
+	"",
+	"https://sns.us-east-2.amazonaws.com",
+	"https://sqs.us-east-2.amazonaws.com",
+	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.us-east-2.amazonaws.com",
+	"https://dynamodb.us-east-2.amazonaws.com",
+	ServiceInfo{"https://monitoring.us-east-2.amazonaws.com", V2Signature},
+	"https://autoscaling.us-east-1.amazonaws.com",
+	ServiceInfo{"https://rds.us-east-2.amazonaws.com", V2Signature},
+	"https://sts.amazonaws.com",
+	"https://cloudformation.us-east-2.amazonaws.com",
+	"https://ecs.us-east-2.amazonaws.com",
+	"https://streams.dynamodb.us-east-2.amazonaws.com",
+}
+
 var USWest = Region{
 	"us-west-1",
 	"https://ec2.us-west-1.amazonaws.com",
@@ -205,6 +228,29 @@ var APNortheast = Region{
 	"https://cloudformation.ap-northeast-1.amazonaws.com",
 	"https://ecs.ap-northeast-1.amazonaws.com",
 	"https://streams.dynamodb.ap-northeast-1.amazonaws.com",
+}
+
+var APNortheast2 = Region{
+	"ap-northeast-2",
+	"https://ec2.ap-northeast-2.amazonaws.com",
+	"https://s3-ap-northeast-2.amazonaws.com",
+	"",
+	true,
+	true,
+	"https://sdb.ap-northeast-2.amazonaws.com",
+	"",
+	"https://sns.ap-northeast-2.amazonaws.com",
+	"https://sqs.ap-northeast-2.amazonaws.com",
+	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.ap-northeast-2.amazonaws.com",
+	"https://dynamodb.ap-northeast-2.amazonaws.com",
+	ServiceInfo{"https://monitoring.ap-northeast-2.amazonaws.com", V2Signature},
+	"https://autoscaling.ap-northeast-2.amazonaws.com",
+	ServiceInfo{"https://rds.ap-northeast-2.amazonaws.com", V2Signature},
+	"https://sts.amazonaws.com",
+	"https://cloudformation.ap-northeast-2.amazonaws.com",
+	"https://ecs.ap-northeast-2.amazonaws.com",
+	"https://streams.dynamodb.ap-northeast-2.amazonaws.com",
 }
 
 var SAEast = Region{
