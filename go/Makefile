@@ -18,7 +18,7 @@ lint:
 	&& ( \
 		golint ./... \
 		| grep -v ^vendor \
-		| grep -v ^protocol \
+		| grep -v "protocol\/" \
 		| grep -v comment \
 		| grep -v KeysById \
 		| grep -v "error should be the last type" \
