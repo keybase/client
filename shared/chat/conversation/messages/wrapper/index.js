@@ -419,6 +419,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
+            <ExplodingMeta
+              conversationIDKey={this.props.conversationIDKey}
+              onClick={this.props.toggleShowingMenu}
+              ordinal={message.ordinal}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       )
     } else {
