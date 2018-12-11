@@ -43,8 +43,6 @@ const styles = Styles.styleSheetCreate({
     borderColor: Styles.globalColors.black_10,
     height: 56,
     justifyContent: 'center',
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
   },
 })
 

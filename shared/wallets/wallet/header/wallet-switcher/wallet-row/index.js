@@ -22,6 +22,7 @@ const styles = Styles.styleSheetCreate({
   },
   containerBox: {
     height: 48,
+    width: '100%',
   },
   icon: {
     alignSelf: 'center',
