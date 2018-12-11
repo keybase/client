@@ -14,7 +14,6 @@ export const typePrefix = 'route-tree:'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateTo = 'route-tree:navigateTo'
 export const navigateUp = 'route-tree:navigateUp'
-export const navigateUp2 = 'route-tree:navigateUp2'
 export const putActionIfOnPath = 'route-tree:putActionIfOnPath'
 export const refreshRouteDef = 'route-tree:refreshRouteDef'
 export const resetRoute = 'route-tree:resetRoute'
@@ -26,7 +25,6 @@ export const switchTo = 'route-tree:switchTo'
 // Payload Types
 type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
-type _NavigateUp2Payload = void
 type _NavigateUpPayload = void
 type _PutActionIfOnPathPayload = $ReadOnly<{|expectedPath: RCConstants.Path, otherAction: any, parentPath?: ?RCConstants.Path|}>
 type _RefreshRouteDefPayload = $ReadOnly<{|loginRouteTree: RCConstants.RouteDefParams, appRouteTree: RCConstants.RouteDefParams|}>
@@ -44,7 +42,6 @@ export const createSetInitialRouteDef = (payload: _SetInitialRouteDefPayload) =>
 export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
 export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
 export const createNavigateUp = (payload: _NavigateUpPayload) => ({payload, type: navigateUp})
-export const createNavigateUp2 = (payload: _NavigateUp2Payload) => ({payload, type: navigateUp2})
 export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({payload, type: putActionIfOnPath})
 export const createRefreshRouteDef = (payload: _RefreshRouteDefPayload) => ({payload, type: refreshRouteDef})
 export const createResetRoute = (payload: _ResetRoutePayload) => ({payload, type: resetRoute})
@@ -55,7 +52,6 @@ export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: sw
 // Action Payloads
 export type NavigateAppendPayload = {|+payload: _NavigateAppendPayload, +type: 'route-tree:navigateAppend'|}
 export type NavigateToPayload = {|+payload: _NavigateToPayload, +type: 'route-tree:navigateTo'|}
-export type NavigateUp2Payload = {|+payload: _NavigateUp2Payload, +type: 'route-tree:navigateUp2'|}
 export type NavigateUpPayload = {|+payload: _NavigateUpPayload, +type: 'route-tree:navigateUp'|}
 export type PutActionIfOnPathPayload = {|+payload: _PutActionIfOnPathPayload, +type: 'route-tree:putActionIfOnPath'|}
 export type RefreshRouteDefPayload = {|+payload: _RefreshRouteDefPayload, +type: 'route-tree:refreshRouteDef'|}
@@ -70,7 +66,6 @@ export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:s
 export type Actions =
   | NavigateAppendPayload
   | NavigateToPayload
-  | NavigateUp2Payload
   | NavigateUpPayload
   | PutActionIfOnPathPayload
   | RefreshRouteDefPayload

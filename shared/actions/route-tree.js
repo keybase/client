@@ -64,9 +64,6 @@ export const navigateAppend = (path: PropsPath<any>, parentPath?: Path) =>
 
 // Navigate one step up from the current path.
 export const navigateUp = () => RouteTreeGen.createNavigateUp()
-//
-// Navigate two step up from the current path.
-export const navigateUp2 = () => RouteTreeGen.createNavigateUp2()
 
 // Do a navigate action if the path is still what is expected
 export const putActionIfOnPath = (expectedPath: Path, otherAction: any, parentPath?: Path) =>
