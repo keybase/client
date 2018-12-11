@@ -1,17 +1,17 @@
 {
-  "prelude": [],
+  "prelude": ["import type {RPCError} from '../util/errors'"],
   "actions": {
     "incrementWaiting": {
       "key": ["string", "Array<string>"]
     },
     "decrementWaiting": {
       "key": ["string", "Array<string>"],
-      "error?": "string"
+      "error?": "RPCError"
     },
     "changeWaiting": {
       "key": ["string", "Array<string>"],
       "increment": "boolean",
-      "error?": "string"
+      "error?": "RPCError"
     },
     "clearWaiting": {
       "key": ["string", "Array<string>"]

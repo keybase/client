@@ -73,7 +73,7 @@ class Session {
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: ?number) {
-    return (waiting: boolean) => {
+    return (waiting: boolean, err: any) => {
       rpcLog({
         extra: {
           id: this.getId(),
@@ -86,7 +86,7 @@ class Session {
         type: 'engineInternal',
       })
       if (this._waitingKey) {
-        getEngine().dispatchWaitingAction(this._waitingKey, waiting)
+        getEngine().dispatchWaitingAction(this._waitingKey, waiting, err)
       }
 
       // Request is finished, do cleanup

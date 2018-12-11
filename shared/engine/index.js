@@ -21,6 +21,7 @@ import type {createClientType} from './index.platform'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
+import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
 type TypedActions = {type: any, error: boolean, payload: any}
@@ -64,8 +65,8 @@ class Engine {
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
 
-  dispatchWaitingAction = (key: string, waiting: boolean) => {
-    Engine._dispatch(createChangeWaiting({increment: waiting, key}))
+  dispatchWaitingAction = (key: string, waiting: boolean, error: RPCError) => {
+    Engine._dispatch(createChangeWaiting({error, increment: waiting, key}))
   }
 
   // TODO deprecate
