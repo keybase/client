@@ -21,6 +21,7 @@ const styles = Styles.styleSheetCreate({
     marginLeft: 6,
   },
   containerBox: {
+    backgroundColor: Styles.globalColors.white,
     height: 48,
     width: '100%',
   },

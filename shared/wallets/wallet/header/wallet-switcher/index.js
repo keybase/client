@@ -13,21 +13,20 @@ type MenuItem = {|
   view?: React.Node,
 |}
 
-const renderItem = (item: MenuItem, onHidden: () => void) => (
-  <TouchableOpacity
-    onPress={() => {
-      onHidden && onHidden() // auto hide after a selection
-      item.onClick && item.onClick()
-    }}
-    style={Styles.collapseStyles([styles.row, item.style])}
-  >
-    {item.view || (
+const renderItem = (item: MenuItem, onHidden: () => void) =>
+  item.view || (
+    <TouchableOpacity
+      onPress={() => {
+        onHidden && onHidden() // auto hide after a selection
+        item.onClick && item.onClick()
+      }}
+      style={Styles.collapseStyles([styles.row, item.style])}
+    >
       <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
         {item.title}
       </Kb.Text>
-    )}
-  </TouchableOpacity>
-)
+    </TouchableOpacity>
+  )
 
 const styles = Styles.styleSheetCreate({
   infoText: {
@@ -57,7 +56,11 @@ export const WalletSwitcher = (props: Props) => {
       style: styles.infoTextRow,
       title: 'What is Stellar?',
       view: (
-        <Kb.Box2 centerChildren={true} direction="horizontal">
+        <Kb.Box2
+          centerChildren={true}
+          direction="horizontal"
+          style={{backgroundColor: Styles.globalColors.white, height: 48, width: '100%'}}
+        >
           <Kb.Icon size={16} type="iconfont-info" />
           <Kb.Text style={styles.infoText} type="BodySemibold">
             What is Stellar?
