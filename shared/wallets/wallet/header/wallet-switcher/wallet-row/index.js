@@ -69,42 +69,27 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const HoverBox = Styles.isMobile
-  ? Kb.Box2
-  : Styles.styled(Kb.Box2)({
-      ':hover': {backgroundColor: Styles.globalColors.blueGrey2},
-    })
-
 const WalletRow = (props: Props) => {
   return (
-    <Kb.ClickableBox onClick={props.onSelect}>
-      <HoverBox
-        style={Styles.collapseStyles([
-          styles.containerBox,
-          props.isSelected ? {backgroundColor: Styles.globalColors.purple3} : {},
-        ])}
-        direction="horizontal"
-        fullWidth={true}
-      >
-        <Kb.Box2 direction="vertical" style={styles.rightColumn}>
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {!!props.keybaseUser && (
-              <Kb.Avatar
-                size={16}
-                style={Kb.avatarCastPlatformStyles(styles.avatar)}
-                username={props.keybaseUser}
-              />
-            )}
-            <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
-              {props.name}
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
-            {props.contents}
+    <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
+      <Kb.Box2 direction="vertical" style={styles.rightColumn}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          {!!props.keybaseUser && (
+            <Kb.Avatar
+              size={16}
+              style={Kb.avatarCastPlatformStyles(styles.avatar)}
+              username={props.keybaseUser}
+            />
+          )}
+          <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
+            {props.name}
           </Kb.Text>
         </Kb.Box2>
-        {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
-      </HoverBox>
+        <Kb.Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
+          {props.contents}
+        </Kb.Text>
+      </Kb.Box2>
+      {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
     </Kb.ClickableBox>
   )
 }
