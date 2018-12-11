@@ -517,7 +517,7 @@ type UIMessageValid struct {
 	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
 	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
 	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
-	PaymentInfo           *UIPaymentInfo         `codec:"paymentInfo,omitempty" json:"paymentInfo,omitempty"`
+	PaymentInfos          []UIPaymentInfo        `codec:"paymentInfos" json:"paymentInfos"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 }
@@ -587,13 +587,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		Etime:           o.Etime.DeepCopy(),
 		Reactions:       o.Reactions.DeepCopy(),
 		HasPairwiseMacs: o.HasPairwiseMacs,
-		PaymentInfo: (func(x *UIPaymentInfo) *UIPaymentInfo {
+		PaymentInfos: (func(x []UIPaymentInfo) []UIPaymentInfo {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.PaymentInfo),
+			ret := make([]UIPaymentInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PaymentInfos),
 		RequestInfo: (func(x *UIRequestInfo) *UIRequestInfo {
 			if x == nil {
 				return nil

@@ -1190,18 +1190,42 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 }
 
 func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
-	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) []chat1.UIPaymentInfo {
 
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
+
+	var infos []chat1.UIPaymentInfo
+
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
-		return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		info := g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		if info != nil {
+			infos = []chat1.UIPaymentInfo{*info}
+		}
+	case chat1.MessageType_TEXT:
+		body := msg.MessageBody.Text()
+		// load any payments that were in the body of the text message
+		for _, payment := range body.Payments {
+			rtyp, err := payment.Result.ResultTyp()
+			if err != nil {
+				continue
+			}
+			switch rtyp {
+			case chat1.TextPaymentResultTyp_SENT:
+				paymentID := payment.Result.Sent()
+				info := g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, paymentID)
+				if info != nil {
+					infos = append(infos, *info)
+				}
+			}
+		}
 	}
-	return nil
+
+	return infos
 }
 
 func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
@@ -1297,7 +1321,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
-			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, convID, valid.Unfurls),
 		})

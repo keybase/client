@@ -160,7 +160,7 @@ protocol chatUi {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     boolean hasPairwiseMacs;
-    union { null, UIPaymentInfo } paymentInfo;
+    array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
   }

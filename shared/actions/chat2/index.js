@@ -665,7 +665,7 @@ const setupEngineListeners = () => {
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})),
     'chat.1.NotifyChat.ChatPaymentInfo': notif => {
       const conversationIDKey = Types.conversationIDToKey(notif.convID)
-      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo(notif.info)
+      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([notif.info])
       if (!paymentInfo) {
         // This should never happen
         const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
