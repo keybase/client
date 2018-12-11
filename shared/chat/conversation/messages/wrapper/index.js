@@ -254,25 +254,23 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _cachedMenuStyles = {}
-  _menuAreaStyle = () => {
-    // $ForceType
-    const exploding = this.props.message.exploding
+  _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
-      Styles.isMobile ? 0 : 16, // reactji
-      Styles.isMobile ? 0 : 16, // ... menu
+      exploded || Styles.isMobile ? 0 : 16, // reactji
+      exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
     const padding = 8
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
 
-    const key = `${width}:${this.props.showUsername ? 1 : 0}`
+    const key = `${width}:${this.props.showUsername ? 1 : 0}:${exploded ? 1 : 0}`
 
     if (!this._cachedMenuStyles[key]) {
       this._cachedMenuStyles[key] = Styles.collapseStyles([
         styles.menuButtons,
-        {width},
+        !exploded && {width},
         !!this.props.showUsername && styles.menuButtonsWithAuthor,
       ])
     }
@@ -373,7 +371,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
             {exploding && (
               <ExplodingMeta
                 conversationIDKey={this.props.conversationIDKey}
@@ -419,7 +417,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
             <ExplodingMeta
               conversationIDKey={this.props.conversationIDKey}
               onClick={this.props.toggleShowingMenu}
