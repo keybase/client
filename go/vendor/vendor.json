@@ -98,14 +98,14 @@
 		{
 			"checksumSHA1": "zg16zjZTQ9R89+UOLmEZxHgxDtM=",
 			"path": "github.com/coreos/go-systemd/activation",
-			"revision": "9002847aa1425fb6ac49077c0a630b3b67e0fbfd",
-			"revisionTime": "2018-10-31T08:50:51Z"
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
 		},
 		{
 			"checksumSHA1": "dPUClu2Gew2ddf1Y5rmgvxUUFeU=",
 			"path": "github.com/coreos/go-systemd/daemon",
-			"revision": "9002847aa1425fb6ac49077c0a630b3b67e0fbfd",
-			"revisionTime": "2018-10-31T08:50:51Z"
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
 		},
 		{
 			"checksumSHA1": "5GD2mlKEoDM+bU1PfSlx8rAz4oc=",
