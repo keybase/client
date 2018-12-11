@@ -42,6 +42,9 @@ type BlockCacheStandard struct {
 
 	bytesLock       sync.Mutex
 	cleanTotalBytes uint64
+
+	// Covers the `prefetchStatus` field for all `blockContainer`s.
+	prefetchLock sync.RWMutex
 }
 
 // NewBlockCacheStandard constructs a new BlockCacheStandard instance
@@ -82,6 +85,8 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
 			if !ok {
 				return nil, NoPrefetch, NoCacheEntry, BadDataError{ptr.ID}
 			}
+			b.prefetchLock.RLock()
+			defer b.prefetchLock.RUnlock()
 			return bc.block, bc.prefetchStatus, TransientEntry, nil
 		}
 	}
@@ -283,6 +288,9 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		var bc interface{}
 		bc, wasInCache = b.cleanTransient.Get(ptr.ID)
 		if wasInCache {
+			b.prefetchLock.RLock()
+			defer b.prefetchLock.RUnlock()
+
 			oldPrefetchStatus := bc.(*blockContainer).prefetchStatus
 			// If the cache believes our prefetch status is greater than the
 			// passed-in status, then that is the authoritative status.
@@ -340,6 +348,8 @@ func (b *BlockCacheStandard) ClearTransientPrefetch(id kbfsblock.ID) {
 	if !ok {
 		panic(fmt.Sprintf("Unexpected block cache type: %T", tmp))
 	}
+	b.prefetchLock.Lock()
+	defer b.prefetchLock.Unlock()
 	bc.prefetchStatus = NoPrefetch
 }
 
