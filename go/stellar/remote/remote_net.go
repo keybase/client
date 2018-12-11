@@ -94,8 +94,8 @@ func (r *RemoteNet) IsAccountMobileOnly(ctx context.Context, accountID stellar1.
 	return IsAccountMobileOnly(ctx, r.G(), accountID)
 }
 
-func (r *RemoteNet) SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error {
-	return SetAccountMobileOnly(ctx, r.G(), accountID)
+func (r *RemoteNet) SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID, enabled bool) error {
+	return SetAccountMobileOnly(ctx, r.G(), accountID, enabled)
 }
 
 func (r *RemoteNet) ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error) {

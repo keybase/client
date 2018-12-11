@@ -491,8 +491,8 @@ func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.Accou
 	return r.Backend.MarkAsRead(ctx, r.Tc, acctID, mostRecentID)
 }
 
-func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) error {
-	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
+func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID, enabled bool) error {
+	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID, enabled)
 }
 
 func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) (bool, error) {
@@ -1093,8 +1093,8 @@ func (r *BackendMock) IsAccountMobileOnly(ctx context.Context, tc *TestContext, 
 	return remote.IsAccountMobileOnly(ctx, tc.G, accountID)
 }
 
-func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
-	return remote.SetAccountMobileOnly(ctx, tc.G, accountID)
+func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, enabled bool) error {
+	return remote.SetAccountMobileOnly(ctx, tc.G, accountID, enabled)
 }
 
 func (r *BackendMock) ServerTimeboundsRecommendation(ctx context.Context, tc *TestContext) (stellar1.TimeboundsRecommendation, error) {
