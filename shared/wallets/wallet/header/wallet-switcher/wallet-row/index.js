@@ -29,7 +29,9 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
-
+  rowContainer: {
+    alignItems: 'center',
+  },
   title: {
     color: Styles.globalColors.blue,
   },
@@ -56,7 +58,7 @@ const styles = Styles.styleSheetCreate({
 const WalletRow = (props: Props) => {
   return (
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {!!props.keybaseUser && (
             <Kb.Avatar
