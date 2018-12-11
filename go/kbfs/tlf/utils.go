@@ -3,7 +3,7 @@
 
 // This is all stuff copied from libkbfs.
 
-package kbfs
+package tlf
 
 import (
 	"fmt"
@@ -16,10 +16,6 @@ import (
 )
 
 const (
-	// ReaderSep is the string that separates readers from writers in a
-	// TLF name.
-	ReaderSep = "#"
-
 	// TlfHandleExtensionSep is the string that separates the folder
 	// participants from an extension suffix in the TLF name.
 	TlfHandleExtensionSep = " "

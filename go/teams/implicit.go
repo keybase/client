@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/keybase/client/go/kbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -278,7 +278,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 		return "", fmt.Errorf("invalid implicit team name: no writers")
 	}
 
-	return kbfs.NormalizeNamesInTLF(g, writerNames, readerNames, suffix)
+	return tlf.NormalizeNamesInTLF(g, writerNames, readerNames, suffix)
 }
 
 // Sort a list of strings but order `front` in front IF it appears.
