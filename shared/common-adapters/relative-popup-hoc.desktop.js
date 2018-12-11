@@ -80,6 +80,7 @@ function _computePopupStyle(
   position: Position,
   coords: ClientRect,
   popupCoords: ClientRect,
+  matchDimension: boolean,
   offset: ?number
 ): ComputedStyle {
   const style: ComputedStyle = {position: 'absolute', zIndex: 30}
@@ -93,6 +94,9 @@ function _computePopupStyle(
   } else if (includes(position, 'left')) {
     style.left = Math.round(coords.left + pageXOffset)
     style.right = 'auto'
+  } else if (matchDimension) {
+    style.left = Math.round(coords.left + pageXOffset)
+    style.right = Math.round(clientWidth - (coords.right + pageXOffset))
   } else {
     // if not left nor right, we are horizontally centering the element
     const xOffset = (coords.width - popupCoords.width) / 2
@@ -106,6 +110,9 @@ function _computePopupStyle(
   } else if (includes(position, 'bottom')) {
     style.top = Math.round(coords.bottom + pageYOffset)
     style.bottom = 'auto'
+  } else if (matchDimension) {
+    style.bottom = Math.round(clientHeight - (coords.top + pageYOffset))
+    style.top = Math.round(coords.bottom + pageYOffset)
   } else {
     // if not top nor bottom, we are vertically centering the element
     const yOffset = (coords.height + popupCoords.height) / 2
@@ -164,15 +171,16 @@ function computePopupStyle(
   position: Position,
   coords: ClientRect,
   popupCoords: ClientRect,
+  matchDimension: boolean,
   offset: ?number,
   // When specified, will only use the fallbacks regardless of visibility
   positionFallbacks?: Position[]
 ): ComputedStyle {
-  let style = _computePopupStyle(position, coords, popupCoords, offset)
+  let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
   const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
-    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, offset)
+    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, matchDimension, offset)
   }
   return style
 }
@@ -181,6 +189,7 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   positionFallbacks?: Position[],
+  matchDimension?: boolean,
   onClosePopup: () => void,
   propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
@@ -210,6 +219,7 @@ function ModalPositionRelative<PP>(
           this.props.position,
           targetRect,
           popupNode.getBoundingClientRect(),
+          !!this.props.matchDimension,
           null,
           this.props.positionFallbacks
         ),

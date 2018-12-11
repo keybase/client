@@ -11,6 +11,7 @@ const Overlay = (props: Props) => {
   return (
     <FloatingBox
       attachTo={props.attachTo}
+      matchDimension={!!props.matchDimension}
       onHidden={props.onHidden}
       position={props.position || 'top center'}
       positionFallbacks={props.positionFallbacks}
