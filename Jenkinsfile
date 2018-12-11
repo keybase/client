@@ -331,12 +331,13 @@ def testGo(prefix) {
 
         // Load list of dependencies and mark all dependent packages to test.
         def packagesToTest = new HashSet<String>()
-        def dependencyFile = new File('.go_package_deps')
+        def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+        def dependencyFile = new File(".go_package_deps_${goos}")
         def dependencyMap = new JsonSlurper().parseText(dependencyFile.text)
         diffPackageList.each { pkg ->
             // pkg changed; we need to load it from dependencyMap to see
             // which tests should be run.
-            dependencyMap[pkg].each { dep ->
+            dependencyMap[pkg].each { dep, _ ->
                 packagesToTest << dep
             }
         }
