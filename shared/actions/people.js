@@ -36,79 +36,82 @@ const getPeopleData = (
   return RPCTypes.homeHomeGetScreenRpcPromise(
     {markViewed, numFollowSuggestionsWanted},
     Constants.getPeopleDataWaitingKey
-  ).then((data: RPCTypes.HomeScreen) => {
-    const following = state.config.following
-    const followers = state.config.followers
-    const oldItems: I.List<Types.PeopleScreenItem> = (data.items || [])
-      .filter(item => !item.badged && item.data.t !== RPCTypes.homeHomeScreenItemType.todo)
-      .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
-    let newItems: I.List<Types.PeopleScreenItem> = (data.items || [])
-      .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
-      .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
+  )
+    .then((data: RPCTypes.HomeScreen) => {
+      const following = state.config.following
+      const followers = state.config.followers
+      const oldItems: I.List<Types.PeopleScreenItem> = (data.items || [])
+        .filter(item => !item.badged && item.data.t !== RPCTypes.homeHomeScreenItemType.todo)
+        .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
+      let newItems: I.List<Types.PeopleScreenItem> = (data.items || [])
+        .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
+        .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
-    // TEMP until core works
-    if (__DEV__ && flags.peopleAnnouncementsEnabled) {
-      newItems = [
-        {
-          badged: true,
-          data: {
-            announcement: {
-              appLink: 'tab:Chat',
-              badged: true,
-              confirmLabel: 'I went to chat',
-              dismissable: true,
-              text: '[mock] Chat is a thing',
-              type: 'announcement',
-              url: null,
+      // TEMP until core works
+      if (__DEV__ && flags.peopleAnnouncementsEnabled) {
+        newItems = [
+          {
+            badged: true,
+            data: {
+              announcement: {
+                appLink: 'tab:Chat',
+                badged: true,
+                confirmLabel: 'I went to chat',
+                dismissable: true,
+                text: '[mock] Chat is a thing',
+                type: 'announcement',
+                url: null,
+              },
+              t: 3,
             },
-            t: 3,
           },
-        },
-        {
-          badged: true,
-          data: {
-            announcement: {
-              appLink: null,
-              badged: false,
-              confirmLabel: null,
-              dismissable: false,
-              iconUrl: 'https://keybase.io/images/blog/exploding/cherry_sm.png',
-              text: '[mock] Go to keybase',
-              type: 'announcement',
-              url: 'keybase.io',
+          {
+            badged: true,
+            data: {
+              announcement: {
+                appLink: null,
+                badged: false,
+                confirmLabel: null,
+                dismissable: false,
+                iconUrl: 'https://keybase.io/images/blog/exploding/cherry_sm.png',
+                text: '[mock] Go to keybase',
+                type: 'announcement',
+                url: 'keybase.io',
+              },
+              t: 3,
             },
-            t: 3,
           },
+          // $FlowIssue type doesn't exist yet
+        ].reduce(Constants.reduceRPCItemToPeopleItem, newItems)
+      }
+      //
+
+      const followSuggestions: I.List<Types.FollowSuggestion> = (data.followSuggestions || []).reduce(
+        (list, suggestion) => {
+          const followsMe = followers.has(suggestion.username)
+          const iFollow = following.has(suggestion.username)
+          return list.push(
+            Constants.makeFollowSuggestion({
+              followsMe,
+              fullName: suggestion.fullName,
+              iFollow,
+              username: suggestion.username,
+            })
+          )
         },
-        // $FlowIssue type doesn't exist yet
-      ].reduce(Constants.reduceRPCItemToPeopleItem, newItems)
-    }
-    //
+        I.List()
+      )
 
-    const followSuggestions: I.List<Types.FollowSuggestion> = (data.followSuggestions || []).reduce(
-      (list, suggestion) => {
-        const followsMe = followers.has(suggestion.username)
-        const iFollow = following.has(suggestion.username)
-        return list.push(
-          Constants.makeFollowSuggestion({
-            followsMe,
-            fullName: suggestion.fullName,
-            iFollow,
-            username: suggestion.username,
-          })
-        )
-      },
-      I.List()
-    )
-
-    return PeopleGen.createPeopleDataProcessed({
-      followSuggestions,
-      lastViewed: new Date(data.lastViewed),
-      newItems,
-      oldItems,
-      version: data.version,
+      return PeopleGen.createPeopleDataProcessed({
+        followSuggestions,
+        lastViewed: new Date(data.lastViewed),
+        newItems,
+        oldItems,
+        version: data.version,
+      })
+      // never throw black bars
     })
-  })
+    .catch(e => {})
 }
 
 const markViewed = () =>

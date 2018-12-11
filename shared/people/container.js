@@ -26,11 +26,16 @@ type Props = {
 
 class LoadOnMount extends React.PureComponent<Props> {
   _onSearch = () => this.props.onSearch()
+  _onReload = () => this.props.getData(false)
   _getData = (markViewed?: boolean) => this.props.getData(markViewed)
   _onClickUser = (username: string) => this.props.onClickUser(username)
   render() {
     return (
-      <Kb.Reloadable waitingKeys={Constants.getPeopleDataWaitingKey} onReload={this._getData}>
+      <Kb.Reloadable
+        waitingKeys={Constants.getPeopleDataWaitingKey}
+        onReload={this._onReload}
+        reloadOnMount={true}
+      >
         <People
           newItems={this.props.newItems.toArray()}
           oldItems={this.props.oldItems.toArray()}

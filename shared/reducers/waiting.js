@@ -16,6 +16,10 @@ const changeHelper = (state, keys, diff, error) => {
     // going from 0 => 1, clear errors
     if (oldCount === 0 && diff === 1) {
       newErrors = newErrors.set(k, '')
+    } else {
+      if (error) {
+        newErrors = newErrors.set(k, error)
+      }
     }
     const newCount = oldCount + diff
     if (newCount === 0) {
