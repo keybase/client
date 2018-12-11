@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
 import {SmallAccountID} from '../../common'
-import WalletSwitcher from './wallet-switcher/container'
+import Name from './name'
 
 type Props = {
   accountID: Types.AccountID,
@@ -34,7 +34,7 @@ const Header = (props: Props) => (
         {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
         {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
         {props.walletName ? (
-          <WalletSwitcher walletName={props.walletName} />
+          <Name walletName={props.walletName} />
         ) : (
           <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         )}

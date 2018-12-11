@@ -1,12 +1,24 @@
 // @flow
-import {WalletSwitcher, type Props} from '.'
+import * as React from 'react'
 import * as RouteTree from '../../../../actions/route-tree'
+import * as Types from '../../../../constants/types/wallets'
 import {connect, isMobile} from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
 import openURL from '../../../../util/open-url'
+import {WalletSwitcher} from '.'
 
 type OwnProps = {|
-  walletName: string,
+  getAttachmentRef: () => ?React.Component<any>,
+  showingMenu: boolean,
+  toggleShowingMenu: () => void,
+|}
+
+export type Props = {|
+  ...$Exact<OwnProps>,
+  accountIDs: Array<Types.AccountID>,
+  onAddNew: () => void,
+  onLinkExisting: () => void,
+  onWhatIsStellar: () => void,
 |}
 
 const mapStateToProps = state => ({
@@ -32,7 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
   onWhatIsStellar: dispatchProps.onWhatIsStellar,
-  walletName: ownProps.walletName,
+  ...ownProps,
 })
 
 export default connect<OwnProps, _, _, _, _>(

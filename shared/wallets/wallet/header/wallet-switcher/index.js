@@ -2,9 +2,9 @@
 import * as React from 'react'
 import {TouchableOpacity} from 'react-native'
 import * as Kb from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
 import WalletRow from './wallet-row/container'
+import {type Props} from './container'
 
 type MenuItem = {|
   onClick?: ?(evt?: SyntheticEvent<>) => void,
@@ -48,15 +48,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export type Props = {
-  accountIDs: Array<Types.AccountID>,
-  onAddNew: () => void,
-  onLinkExisting: () => void,
-  onWhatIsStellar: () => void,
-  walletName: string,
-}
-
-const Menu = (props: Props & Kb.OverlayParentProps) => {
+export const WalletSwitcher = (props: Props) => {
   if (!props.showingMenu) {
     return null
   }
@@ -119,12 +111,3 @@ const Menu = (props: Props & Kb.OverlayParentProps) => {
     </Kb.Overlay>
   )
 }
-
-const _WalletSwitcher = (props: Props & Kb.OverlayParentProps) => (
-  <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-    <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
-    <Menu {...props} />
-  </Kb.ClickableBox>
-)
-
-export const WalletSwitcher = Kb.OverlayParentHOC(_WalletSwitcher)
