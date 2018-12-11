@@ -207,6 +207,7 @@ class Input extends React.PureComponent<InputProps> {
         dataSources={this._suggestorDatasource}
         renderers={this._suggestorRenderer}
         suggestorToMarker={suggestorToMarker}
+        suggestionOverlayStyle={{marginLeft: 15, marginRight: 15}}
         keyExtractors={suggestorKeyExtractors}
         transformers={this._suggestorTransformer}
         onKeyDown={this._onKeyDown}

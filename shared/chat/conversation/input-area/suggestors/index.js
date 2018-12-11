@@ -23,6 +23,7 @@ type AddSuggestorsProps = {
     [key: string]: (item: any, selected: boolean) => React.Node,
   },
   suggestionListStyle?: Styles.StylesCrossPlatform,
+  suggestionOverlayStyle?: Styles.StylesCrossPlatform,
   suggestorToMarker: {
     [key: string]: string,
   },
@@ -270,7 +271,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
           <Kb.Box2
             direction="vertical"
             style={Styles.collapseStyles([
-              {backgroundColor: Styles.globalColors.white, maxHeight: 224, width: 320},
+              {backgroundColor: Styles.globalColors.white, maxHeight: 224, width: '100%'},
               this.props.suggestionListStyle,
             ])}
           >
@@ -286,10 +287,13 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         ) : (
           <Kb.Overlay
             attachTo={this._getAttachmentRef}
+            matchDimension={true}
             position="top center"
+            positionFallbacks={['bottom center']}
             visible={true}
             propagateOutsideClicks={false}
             onHidden={this._setInactive}
+            style={this.props.suggestionOverlayStyle}
           >
             {content}
           </Kb.Overlay>
