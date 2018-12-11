@@ -12,21 +12,11 @@ type Props = {|
   unreadPayments: number,
 |}
 
-const rightColumnStyle = Styles.platformStyles({
-  isElectron: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-})
-
 const styles = Styles.styleSheetCreate({
   amount: {
-    ...rightColumnStyle,
     color: Styles.globalColors.black_40,
   },
   amountSelected: {
-    ...rightColumnStyle,
     color: Styles.globalColors.black_40,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
@@ -43,15 +33,11 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
 
-  rightColumn: rightColumnStyle,
-
   title: {
-    ...rightColumnStyle,
     color: Styles.globalColors.blue,
   },
   titleSelected: {
     ...Styles.globalStyles.fontSemibold,
-    ...rightColumnStyle,
     color: Styles.globalColors.black_75,
   },
   unread: {
@@ -73,7 +59,7 @@ const styles = Styles.styleSheetCreate({
 const WalletRow = (props: Props) => {
   return (
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
-      <Kb.Box2 direction="vertical" style={styles.rightColumn}>
+      <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {!!props.keybaseUser && (
             <Kb.Avatar
