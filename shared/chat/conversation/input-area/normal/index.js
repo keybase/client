@@ -184,7 +184,7 @@ class Input extends React.PureComponent<InputProps> {
           color={Styles.globalColors.blue}
           fontSize={24}
         />
-      )}{' '}
+      )}
       <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
       <Kb.Text type="BodySmall">{fullName}</Kb.Text>
     </Kb.Box2>
@@ -207,7 +207,7 @@ class Input extends React.PureComponent<InputProps> {
         dataSources={this._suggestorDatasource}
         renderers={this._suggestorRenderer}
         suggestorToMarker={suggestorToMarker}
-        suggestionOverlayStyle={{marginLeft: 15, marginRight: 15}}
+        suggestionOverlayStyle={{marginLeft: 15, marginRight: 15, marginTop: 'auto'}}
         keyExtractors={suggestorKeyExtractors}
         transformers={this._suggestorTransformer}
         onKeyDown={this._onKeyDown}

@@ -21,14 +21,19 @@ class SuggestionList extends React.Component<Props> {
 
   render() {
     return (
-      <Kb.ScrollView style={Styles.collapseStyles([styles.fullHeight, this.props.style])}>
-        <ReactList
-          ref={this._listRef}
-          itemRenderer={index => this.props.renderItem(index, this.props.items[index])}
-          length={this.props.items.length}
-          type="uniform"
-        />
-      </Kb.ScrollView>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([{borderRadius: 4, maxHeight: 224, width: '100%'}, this.props.style])}
+      >
+        <Kb.ScrollView style={styles.fullHeight}>
+          <ReactList
+            ref={this._listRef}
+            itemRenderer={index => this.props.renderItem(index, this.props.items[index])}
+            length={this.props.items.length}
+            type="uniform"
+          />
+        </Kb.ScrollView>
+      </Kb.Box2>
     )
   }
 }

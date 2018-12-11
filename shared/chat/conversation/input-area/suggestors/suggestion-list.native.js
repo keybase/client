@@ -9,7 +9,7 @@ const SuggestionList = (props: Props) => (
   <NativeFlatList
     renderItem={({index, item}) => props.renderItem(index, item)}
     data={props.items}
-    keyExtractor={item => item}
+    keyExtractor={props.keyExtractor || (item => item)}
     keyboardShouldPersistTaps="always"
     windowSize={10}
   />

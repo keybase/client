@@ -7,7 +7,7 @@ import {
   Box,
   Box2,
   Icon,
-  Input,
+  PlainInput,
   Text,
   iconCastPlatformStyles,
   OverlayParentHOC,
@@ -22,8 +22,6 @@ import {
   styleSheetCreate,
 } from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
-import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
-import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
@@ -42,11 +40,12 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends PureComponent<
+class _PlatformInput extends PureComponent<
   PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<OverlayParentProps>}>,
   State
 > {
-  _input: ?Input
+  _input: null | PlainInput
+  _lastText: ?string
   _whichMenu: menuType
 
   constructor(props: PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<OverlayParentProps>}>) {
@@ -56,9 +55,10 @@ class PlatformInput extends PureComponent<
     }
   }
 
-  _inputSetRef = (ref: ?Input) => {
+  _inputSetRef = (ref: null | PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
+    this.props.inputRef.current = ref
   }
 
   _openFilePicker = () => {
@@ -117,11 +117,12 @@ class PlatformInput extends PureComponent<
   }
 
   _getText = () => {
-    return this._input ? this._input.getValue() : ''
+    return this._lastText || ''
   }
 
   _onChangeText = (text: string) => {
     this.setState({hasText: !!text})
+    this._lastText = text
     this.props.onChangeText(text)
   }
 
@@ -176,12 +177,11 @@ class PlatformInput extends PureComponent<
               </Text>
             </Box>
           )}
-          <Input
+          <PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            autoFocus={false}
-            hideUnderline={true}
-            hintText={hintText}
+            autoFocus={true}
+            placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
@@ -189,9 +189,7 @@ class PlatformInput extends PureComponent<
             // change to match desktop.
             onChangeText={this._onChangeText}
             ref={this._inputSetRef}
-            small={true}
             style={styles.input}
-            uncontrolled={true}
             rowsMax={3}
             rowsMin={1}
           />
@@ -214,22 +212,7 @@ class PlatformInput extends PureComponent<
     )
   }
 }
-
-const MentionHud = props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-    </Box>
-  </Box>
-)
-
-const ChannelMentionHud = props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-    </Box>
-  </Box>
-)
+const PlatformInput = AddSuggestors(_PlatformInput)
 
 const Action = ({
   explodingModeSeconds,

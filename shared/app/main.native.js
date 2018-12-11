@@ -5,7 +5,7 @@ import RenderRoute from '../route-tree/render-route'
 import {connect} from '../util/container'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {GatewayDest} from 'react-gateway'
-import {NativeBackHandler} from '../common-adapters/mobile.native'
+import {NativeBackHandler, NativeKeyboardAvoidingView} from '../common-adapters/mobile.native'
 import {View} from 'react-native'
 import {globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
@@ -46,12 +46,18 @@ class Main extends React.Component<Props> {
           routeState={this.props.routeState}
           setRouteState={this.props.setRouteState}
         />
-        <GatewayDest
-          name="popup-root"
-          component={ViewForGatewayDest}
-          pointerEvents="box-none"
+        <NativeKeyboardAvoidingView
           style={globalStyles.fillAbsolute}
-        />
+          pointerEvents="box-none"
+          behavior={isAndroid ? undefined : 'padding'}
+        >
+          <GatewayDest
+            name="popup-root"
+            component={ViewForGatewayDest}
+            pointerEvents="box-none"
+            style={{height: '100%', width: '100%'}}
+          />
+        </NativeKeyboardAvoidingView>
       </React.Fragment>
     )
   }

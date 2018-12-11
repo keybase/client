@@ -269,19 +269,18 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       lg(results)
       if (results.length) {
         const content = (
-          <Kb.Box2
-            direction="vertical"
-            style={Styles.collapseStyles([
-              {borderRadius: 4, maxHeight: 224, width: '100%'},
-              this.props.suggestionListStyle,
-            ])}
-          >
-            <SuggestionList
-              items={results}
-              renderItem={this._itemRenderer}
-              selectedIndex={this.state.selected}
-            />
-          </Kb.Box2>
+          <SuggestionList
+            style={this.props.suggestionListStyle}
+            items={results}
+            keyExtractor={
+              (this.props.keyExtractors &&
+                !!this.state.active &&
+                this.props.keyExtractors[this.state.active]) ||
+              null
+            }
+            renderItem={this._itemRenderer}
+            selectedIndex={this.state.selected}
+          />
         )
         overlay = Styles.isMobile ? (
           <Kb.FloatingBox onHidden={this._setInactive}>{content}</Kb.FloatingBox>
