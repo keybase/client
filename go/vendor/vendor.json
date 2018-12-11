@@ -272,9 +272,10 @@
 			"revisionTime": "2018-10-28T04:47:46Z"
 		},
 		{
+			"checksumSHA1": "sMvq+9MMLxs/UUdbScCycbg2S9U=",
 			"path": "github.com/golang/groupcache/singleflight",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987",
-			"revisionTime": "2015-01-25T10:08:32-08:00"
+			"revision": "c65c006176ff7ff98bb916961c7abbc6b0afc0aa",
+			"revisionTime": "2018-10-24T23:09:25Z"
 		},
 		{
 			"checksumSHA1": "GaJLoEuMGnP5ofXvuweAI4wx06U=",
