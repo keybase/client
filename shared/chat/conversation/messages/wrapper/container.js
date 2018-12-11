@@ -108,9 +108,8 @@ const getFailureDescriptionAllowCancel = (message, you) => {
 const getDecorate = (message, you) => {
   switch (message.type) {
     case 'text':
-      return !message.exploded && !message.errorReason
     case 'attachment':
-      return !message.exploded && !message.errorReason
+      return !message.errorReason
     case 'requestPayment':
     case 'sendPayment':
     case 'systemAddedToTeam':

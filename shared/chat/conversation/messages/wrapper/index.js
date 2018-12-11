@@ -221,7 +221,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         className: Styles.classNames(
           {
             'WrapperMessage-author': this.props.showUsername,
-            'WrapperMessage-decorated': this.props.decorate,
+            'WrapperMessage-decorated': this.props.decorate && !this.props.exploded,
             active: this.props.showingMenu || this.state.showingPicker,
           },
           'WrapperMessage-hoverBox'
@@ -369,7 +369,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     // 1. Haven't mounted it yet
     // 2. Have mounted but its hidden w/ css
     // TODO cleaner way to do this, or speedup react button maybe
-    if (this.props.decorate && !exploded) {
+    if (this.props.decorate) {
       return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
@@ -389,7 +389,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 style={styles.revoked}
               />
             )}
-            {showMenuButton ? (
+            {showMenuButton && !exploded ? (
               <Kb.Box className="WrapperMessage-buttons">
                 <ReactButton
                   conversationIDKey={this.props.conversationIDKey}
