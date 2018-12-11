@@ -24,7 +24,6 @@ type ReferenceStorer interface {
 	Reference(plumbing.ReferenceName) (*plumbing.Reference, error)
 	IterReferences() (ReferenceIter, error)
 	RemoveReference(plumbing.ReferenceName) error
-	SetPackedRefs(refs []plumbing.Reference) error
 	CountLooseRefs() (int, error)
 	PackRefs() error
 }

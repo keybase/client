@@ -26,9 +26,9 @@ func (skey *SignerKey) Address() string {
 		vb = strkey.VersionByteHashX
 		key := skey.MustHashX()
 		copy(raw, key[:])
-	case SignerKeyTypeSignerKeyTypePreAuthTx:
+	case SignerKeyTypeSignerKeyTypeHashTx:
 		vb = strkey.VersionByteHashTx
-		key := skey.MustPreAuthTx()
+		key := skey.MustHashTx()
 		copy(raw, key[:])
 	default:
 		panic(fmt.Errorf("Unknown signer key type: %v", skey.Type))
@@ -52,9 +52,9 @@ func (skey *SignerKey) Equals(other SignerKey) bool {
 		l := skey.MustHashX()
 		r := other.MustHashX()
 		return l == r
-	case SignerKeyTypeSignerKeyTypePreAuthTx:
-		l := skey.MustPreAuthTx()
-		r := other.MustPreAuthTx()
+	case SignerKeyTypeSignerKeyTypeHashTx:
+		l := skey.MustHashTx()
+		r := other.MustHashTx()
 		return l == r
 	default:
 		panic(fmt.Errorf("Unknown signer key type: %v", skey.Type))
@@ -81,7 +81,7 @@ func (skey *SignerKey) SetAddress(address string) error {
 	case strkey.VersionByteHashX:
 		keytype = SignerKeyTypeSignerKeyTypeHashX
 	case strkey.VersionByteHashTx:
-		keytype = SignerKeyTypeSignerKeyTypePreAuthTx
+		keytype = SignerKeyTypeSignerKeyTypeHashTx
 	default:
 		return errors.Errorf("invalid version byte: %v", vb)
 	}

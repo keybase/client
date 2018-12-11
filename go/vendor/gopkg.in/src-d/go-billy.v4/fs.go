@@ -169,12 +169,9 @@ type File interface {
 	io.Seeker
 	io.Closer
 	// Lock locks the file like e.g. flock. It protects against access from
-	// other processes. The lock will be released by a call to Unlock or closing
-	// the file.
-	// Recursive locking (trying to lock the same file multiple times) or having
-	// multiple handles to a file may result in implementation specific behaviour.
+	// other processes.
 	Lock() error
-	// Unlock unlocks the file locked by Lock.
+	// Unlock unlocks the file.
 	Unlock() error
 	// Truncate the file.
 	Truncate(size int64) error

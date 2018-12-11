@@ -149,13 +149,13 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) (err error) {
 	var hashesToPush []plumbing.Hash
 	// Avoid the expensive revlist operation if we're only doing deletes.
 	if !allDelete {
-		hashesToPush, err = revlist.Objects(r.s, objects, haves, o.StatusChan)
+		hashesToPush, err = revlist.Objects(r.s, objects, haves)
 		if err != nil {
 			return err
 		}
 	}
 
-	rs, err := pushHashes(ctx, s, r.s, req, hashesToPush, o.StatusChan)
+	rs, err := pushHashes(ctx, s, r.s, req, hashesToPush, r.useRefDeltas(ar))
 	if err != nil {
 		return err
 	}
@@ -164,14 +164,11 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) (err error) {
 		return err
 	}
 
-	defer func() {
-		o.StatusChan.SendUpdate(plumbing.StatusUpdate{
-			Stage:        plumbing.StatusDone,
-			ObjectsTotal: len(hashesToPush),
-		})
-	}()
-
 	return r.updateRemoteReferenceStorage(req, rs)
+}
+
+func (r *Remote) useRefDeltas(ar *packp.AdvRefs) bool {
+	return !ar.Capabilities.Supports(capability.OFSDelta)
 }
 
 func (r *Remote) newReferenceUpdateRequest(
@@ -307,22 +304,10 @@ func (r *Remote) fetch(ctx context.Context, o *FetchOptions) (sto storer.Referen
 		}
 	}
 
-	updated := true
-	if o.PackRefs {
-		err = r.packRefs(o.RefSpecs, refs)
-	} else {
-		updated, err = r.updateLocalReferenceStorage(
-			o.RefSpecs, refs, remoteRefs, o.Tags, o.Force)
-	}
+	updated, err := r.updateLocalReferenceStorage(o.RefSpecs, refs, remoteRefs, o.Tags, o.Force)
 	if err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		o.StatusChan.SendUpdate(plumbing.StatusUpdate{
-			Stage: plumbing.StatusDone,
-		})
-	}()
 
 	if !updated {
 		return remoteRefs, NoErrAlreadyUpToDate
@@ -379,7 +364,6 @@ func (r *Remote) fetchPack(ctx context.Context, o *FetchOptions, s transport.Upl
 
 	if err = packfile.UpdateObjectStorage(r.s,
 		buildSidebandIfSupported(req.Capabilities, reader, o.Progress),
-		o.StatusChan,
 	); err != nil {
 		return err
 	}
@@ -708,9 +692,7 @@ func doCalculateRefs(
 	return err
 }
 
-func getWants(
-	localStorer storage.Storer,
-	refs memory.ReferenceStorage) ([]plumbing.Hash, error) {
+func getWants(localStorer storage.Storer, refs memory.ReferenceStorage) ([]plumbing.Hash, error) {
 	wants := map[plumbing.Hash]bool{}
 	for _, ref := range refs {
 		hash := ref.Hash()
@@ -837,38 +819,6 @@ func buildSidebandIfSupported(l *capability.List, reader io.Reader, p sideband.P
 	d.Progress = p
 
 	return d
-}
-
-func (r *Remote) packRefs(
-	specs []config.RefSpec,
-	fetchedRefs memory.ReferenceStorage,
-) error {
-	var refsToPack []plumbing.Reference
-	for _, spec := range specs {
-		for _, ref := range fetchedRefs {
-			if !spec.Match(ref.Name()) {
-				continue
-			}
-
-			if ref.Type() != plumbing.HashReference {
-				continue
-			}
-
-			localName := spec.Dst(ref.Name())
-			new := plumbing.NewHashReference(localName, ref.Hash())
-			refsToPack = append(refsToPack, *new)
-		}
-	}
-
-	for _, ref := range fetchedRefs {
-		if !ref.Name().IsTag() {
-			continue
-		}
-
-		refsToPack = append(refsToPack, *ref)
-	}
-
-	return r.s.SetPackedRefs(refsToPack)
 }
 
 func (r *Remote) updateLocalReferenceStorage(
@@ -1048,7 +998,7 @@ func pushHashes(
 	s storage.Storer,
 	req *packp.ReferenceUpdateRequest,
 	hs []plumbing.Hash,
-	statusChan plumbing.StatusChan,
+	useRefDeltas bool,
 ) (*packp.ReportStatus, error) {
 
 	rd, wr := io.Pipe()
@@ -1059,8 +1009,8 @@ func pushHashes(
 	}
 	done := make(chan error)
 	go func() {
-		e := packfile.NewEncoder(wr, s, false)
-		if _, err := e.Encode(hs, config.Pack.Window, statusChan); err != nil {
+		e := packfile.NewEncoder(wr, s, useRefDeltas)
+		if _, err := e.Encode(hs, config.Pack.Window); err != nil {
 			done <- wr.CloseWithError(err)
 			return
 		}

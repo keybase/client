@@ -22,7 +22,6 @@ func newObjectWalker(s storage.Storer) *objectWalker {
 }
 
 // walkAllRefs walks all (hash) refererences from the repo.
-// This includes both branches and tags.
 func (p *objectWalker) walkAllRefs() error {
 	// Walk over all the references in the repo.
 	it, err := p.Storer.IterReferences()
@@ -52,9 +51,6 @@ func (p *objectWalker) add(hash plumbing.Hash) {
 // walkObjectTree walks over all objects and remembers references
 // to them in the objectWalker. This is used instead of the revlist
 // walks because memory usage is tight with huge repos.
-// The code does not handle tags because tags are encountered by
-// the top-level walkAllRefs, and nothing below them should
-// link to a tag object.
 func (p *objectWalker) walkObjectTree(hash plumbing.Hash) error {
 	// Check if we have already seen, and mark this object
 	if p.isSeen(hash) {
@@ -98,11 +94,8 @@ func (p *objectWalker) walkObjectTree(hash plumbing.Hash) error {
 				return err
 			}
 		}
-	// Blobs are nops for the recursive part.
-	// They don't contain any references to more objects to look for,
-	// and the hash for the current object got added to the set of visited object
-	// in the common code above.
-	case *object.Blob:
+	case *object.Tag:
+		return p.walkObjectTree(obj.Target)
 	default:
 		// Error out on unhandled object types.
 		return fmt.Errorf("Unknown object %X %s %T\n", obj.ID(), obj.Type(), obj)

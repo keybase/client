@@ -94,7 +94,7 @@ type PackfileWriter interface {
 	//
 	// If the Storer not implements PackfileWriter the objects should be written
 	// using the Set method.
-	PackfileWriter(plumbing.StatusChan) (io.WriteCloser, error)
+	PackfileWriter() (io.WriteCloser, error)
 }
 
 // EncodedObjectIter is a generic closable interface for iterating over objects.

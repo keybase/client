@@ -1,7 +1,7 @@
 package keypair
 
 import (
-	"github.com/agl/ed25519"
+	ed25519 "github.com/keybase/stellar-agl-ed25519"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )

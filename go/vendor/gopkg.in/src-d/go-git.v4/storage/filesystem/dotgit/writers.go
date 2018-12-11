@@ -22,17 +22,16 @@ import (
 type PackWriter struct {
 	Notify func(plumbing.Hash, *idxfile.Writer)
 
-	fs         billy.Filesystem
-	fr, fw     billy.File
-	synced     *syncedReader
-	checksum   plumbing.Hash
-	parser     *packfile.Parser
-	writer     *idxfile.Writer
-	result     chan error
-	statusChan plumbing.StatusChan
+	fs       billy.Filesystem
+	fr, fw   billy.File
+	synced   *syncedReader
+	checksum plumbing.Hash
+	parser   *packfile.Parser
+	writer   *idxfile.Writer
+	result   chan error
 }
 
-func newPackWrite(fs billy.Filesystem, statusChan plumbing.StatusChan) (*PackWriter, error) {
+func newPackWrite(fs billy.Filesystem) (*PackWriter, error) {
 	fw, err := fs.TempFile(fs.Join(objectsPath, packPath), "tmp_pack_")
 	if err != nil {
 		return nil, err
@@ -44,12 +43,11 @@ func newPackWrite(fs billy.Filesystem, statusChan plumbing.StatusChan) (*PackWri
 	}
 
 	writer := &PackWriter{
-		fs:         fs,
-		fw:         fw,
-		fr:         fr,
-		synced:     newSyncedReader(fw, fr),
-		result:     make(chan error),
-		statusChan: statusChan,
+		fs:     fs,
+		fw:     fw,
+		fr:     fr,
+		synced: newSyncedReader(fw, fr),
+		result: make(chan error),
 	}
 
 	go writer.buildIndex()
@@ -60,7 +58,7 @@ func (w *PackWriter) buildIndex() {
 	s := packfile.NewScanner(w.synced)
 	w.writer = new(idxfile.Writer)
 	var err error
-	w.parser, err = packfile.NewParser(s, w.writer, packfile.NewStatusObserver(w.statusChan))
+	w.parser, err = packfile.NewParser(s, w.writer)
 	if err != nil {
 		w.result <- err
 		return
@@ -155,7 +153,7 @@ func (w *PackWriter) encodeIdx(writer io.Writer) error {
 	}
 
 	e := idxfile.NewEncoder(writer)
-	_, err = e.Encode(idx, w.statusChan)
+	_, err = e.Encode(idx)
 	return err
 }
 

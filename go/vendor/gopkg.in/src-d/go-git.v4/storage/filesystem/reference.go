@@ -35,10 +35,6 @@ func (r *ReferenceStorage) RemoveReference(n plumbing.ReferenceName) error {
 	return r.dir.RemoveRef(n)
 }
 
-func (r *ReferenceStorage) SetPackedRefs(refs []plumbing.Reference) error {
-	return r.dir.SetPackedRefs(refs)
-}
-
 func (r *ReferenceStorage) CountLooseRefs() (int, error) {
 	return r.dir.CountLooseRefs()
 }

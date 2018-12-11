@@ -90,6 +90,8 @@ func (p *Packfile) GetByOffset(o int64) (plumbing.EncodedObject, error) {
 	return p.nextObject()
 }
 
+// GetSizeByOffset retrieves the size of the encoded object from the
+// packfile with the given offset.
 func (p *Packfile) GetSizeByOffset(o int64) (size int64, err error) {
 	if _, err := p.s.SeekFromStart(o); err != nil {
 		if err == io.EOF || isInvalid(err) {
@@ -110,62 +112,6 @@ func (p *Packfile) nextObjectHeader() (*ObjectHeader, error) {
 	h, err := p.s.NextObjectHeader()
 	p.s.pendingObject = nil
 	return h, err
-}
-
-func (p *Packfile) getObjectData(
-	h *ObjectHeader,
-) (typ plumbing.ObjectType, size int64, err error) {
-	switch h.Type {
-	case plumbing.CommitObject, plumbing.TreeObject, plumbing.BlobObject, plumbing.TagObject:
-		typ = h.Type
-		size = h.Length
-	case plumbing.REFDeltaObject, plumbing.OFSDeltaObject:
-		buf := bufPool.Get().(*bytes.Buffer)
-		buf.Reset()
-		defer bufPool.Put(buf)
-
-		_, _, err = p.s.NextObject(buf)
-		if err != nil {
-			return
-		}
-
-		delta := buf.Bytes()
-		_, delta = decodeLEB128(delta) // skip src size
-		sz, _ := decodeLEB128(delta)
-		size = int64(sz)
-
-		var offset int64
-		if h.Type == plumbing.REFDeltaObject {
-			offset, err = p.FindOffset(h.Reference)
-			if err != nil {
-				return
-			}
-		} else {
-			offset = h.OffsetReference
-		}
-
-		if baseType, ok := p.offsetToType[offset]; ok {
-			typ = baseType
-		} else {
-			if _, err = p.s.SeekFromStart(offset); err != nil {
-				return
-			}
-
-			h, err = p.nextObjectHeader()
-			if err != nil {
-				return
-			}
-
-			typ, _, err = p.getObjectData(h)
-			if err != nil {
-				return
-			}
-		}
-	default:
-		err = ErrInvalidObject.AddDetails("type %q", h.Type)
-	}
-
-	return
 }
 
 func (p *Packfile) getObjectSize(h *ObjectHeader) (int64, error) {

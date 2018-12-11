@@ -5,7 +5,6 @@ import (
 	"io"
 	"sync"
 
-	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
@@ -26,12 +25,12 @@ const (
 
 // UpdateObjectStorage updates the storer with the objects in the given
 // packfile.
-func UpdateObjectStorage(s storer.Storer, packfile io.Reader, statusChan plumbing.StatusChan) error {
+func UpdateObjectStorage(s storer.Storer, packfile io.Reader) error {
 	if pw, ok := s.(storer.PackfileWriter); ok {
-		return WritePackfileToObjectStorage(pw, packfile, statusChan)
+		return WritePackfileToObjectStorage(pw, packfile)
 	}
 
-	p, err := NewParserWithStorage(NewScanner(packfile), s, NewStatusObserver(statusChan))
+	p, err := NewParserWithStorage(NewScanner(packfile), s)
 	if err != nil {
 		return err
 	}
@@ -45,9 +44,8 @@ func UpdateObjectStorage(s storer.Storer, packfile io.Reader, statusChan plumbin
 func WritePackfileToObjectStorage(
 	sw storer.PackfileWriter,
 	packfile io.Reader,
-	statusChan plumbing.StatusChan,
 ) (err error) {
-	w, err := sw.PackfileWriter(statusChan)
+	w, err := sw.PackfileWriter()
 	if err != nil {
 		return err
 	}
