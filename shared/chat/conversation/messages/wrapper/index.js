@@ -265,7 +265,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
 
-    const key = `${width}:${this.props.showUsername ? 1 : 0}:${exploded ? 1 : 0}`
+    const key = `${width}:${this.props.showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
 
     if (!this._cachedMenuStyles[key]) {
       this._cachedMenuStyles[key] = Styles.collapseStyles([
