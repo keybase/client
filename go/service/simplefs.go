@@ -12,14 +12,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-// This is actually a very generous timeout. Fast operations like Stat should
-// usually finish fairly quickly. Slow operations in SimpleFS are handled in an
-// async manner, where the RPC starts the operation but does not wait for it to
-// finish (there's SimpleFSWait). So all RPCs except for SimpleFSWait should
-// return fairly fast, and if not, there might have been an unexpected hang due
-// to bugs or networking issues. Either way we should just timeout to avoid
-// piling up RPC sessions.
-const simpleFSTimeout = 8 * time.Second
+// Fast operations like Stat usually finish fairly quickly. Slow
+// operations in SimpleFS are handled in an async manner, where the RPC starts
+// the operation but does not wait for it to finish (there's SimpleFSWait). So
+// it probably seems like this is too long a timeout since all RPCs except for
+// SimpleFSWait should return fairly fast. However, when user first navigates
+// into a TLF, it might still take much longer, especially on a slow network.
+// So just cap it at 1 minute.
+const simpleFSTimeout = 1 * time.Minute
 
 type SimpleFSHandler struct {
 	*BaseHandler

@@ -24,6 +24,7 @@ export type Props = {
   onChat: () => void,
   onEditDescription: () => void,
   onEditIcon: (image?: Response) => void,
+  onFilePickerError: (error: Error) => void,
 } & Kb.OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
@@ -49,6 +50,7 @@ const _TeamHeader = (props: Props) => (
       <NameWithIconWrapper
         canEditDescription={props.canEditDescription}
         onEditIcon={props.onEditIcon}
+        onFilePickerError={props.onFilePickerError}
         teamname={props.teamname}
         metaOne={
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>

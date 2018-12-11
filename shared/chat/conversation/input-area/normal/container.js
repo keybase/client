@@ -2,6 +2,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
@@ -87,7 +88,7 @@ const mapDispatchToProps = dispatch => ({
     conversationIDKey &&
     dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
-  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
+  onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),

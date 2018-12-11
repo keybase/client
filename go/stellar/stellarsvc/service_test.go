@@ -1440,12 +1440,14 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 type testUISource struct {
 	secretUI   libkb.SecretUI
 	identifyUI libkb.IdentifyUI
+	stellarUI  stellar1.UiInterface
 }
 
 func newTestUISource() *testUISource {
 	return &testUISource{
 		secretUI:   nullSecretUI{},
 		identifyUI: &kbtest.FakeIdentifyUI{},
+		stellarUI:  &mockStellarUI{},
 	}
 }
 
@@ -1455,6 +1457,21 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 
 func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
 	return t.identifyUI
+}
+
+func (t *testUISource) StellarUI() stellar1.UiInterface {
+	return t.stellarUI
+}
+
+type mockStellarUI struct {
+	PaymentReviewedHandler func(context.Context, stellar1.PaymentReviewedArg) error
+}
+
+func (ui *mockStellarUI) PaymentReviewed(ctx context.Context, arg stellar1.PaymentReviewedArg) error {
+	if ui.PaymentReviewedHandler != nil {
+		return ui.PaymentReviewedHandler(ctx, arg)
+	}
+	return fmt.Errorf("mockStellarUI.UiPaymentReview called with no handler")
 }
 
 func TestV2EndpointsAsV1(t *testing.T) {

@@ -13,8 +13,8 @@ const NameWithIconWrapper = (props: Props) => {
             return
           }
           if (response.error) {
-            console.error(response.error)
-            throw new Error(response.error)
+            props.onFilePickerError(new Error(response.error))
+            return
           }
           props.onEditIcon(response)
         })

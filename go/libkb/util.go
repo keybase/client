@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"unicode"
@@ -912,4 +913,58 @@ func DecodeHexFixed(dst, src []byte) error {
 
 func IsIOS() bool {
 	return isIOS
+}
+
+// AcquireWithContext attempts to acquire a lock with a context.
+// Returns nil if the lock was acquired.
+// Returns an error if it was not. The error is from ctx.Err().
+func AcquireWithContext(ctx context.Context, lock sync.Locker) (err error) {
+	if err = ctx.Err(); err != nil {
+		return err
+	}
+	acquiredCh := make(chan struct{})
+	shouldReleaseCh := make(chan bool, 1)
+	go func() {
+		lock.Lock()
+		close(acquiredCh)
+		shouldRelease := <-shouldReleaseCh
+		if shouldRelease {
+			lock.Unlock()
+		}
+	}()
+	select {
+	case <-acquiredCh:
+		err = nil
+	case <-ctx.Done():
+		err = ctx.Err()
+	}
+	shouldReleaseCh <- err != nil
+	return err
+}
+
+// AcquireWithTimeout attempts to acquire a lock with a timeout.
+// Convenience wrapper around AcquireWithContext.
+// Returns nil if the lock was acquired.
+// Returns context.DeadlineExceeded if it was not.
+func AcquireWithTimeout(lock sync.Locker, timeout time.Duration) (err error) {
+	ctx2, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return AcquireWithContext(ctx2, lock)
+}
+
+// AcquireWithContextAndTimeout attempts to acquire a lock with a context and a timeout.
+// Convenience wrapper around AcquireWithContext.
+// Returns nil if the lock was acquired.
+// Returns context.DeadlineExceeded or the error from ctx.Err() if it was not.
+func AcquireWithContextAndTimeout(ctx context.Context, lock sync.Locker, timeout time.Duration) (err error) {
+	ctx2, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return AcquireWithContext(ctx2, lock)
+}
+
+func Once(f func()) func() {
+	var once sync.Once
+	return func() {
+		once.Do(f)
+	}
 }
