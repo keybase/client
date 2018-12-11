@@ -78,7 +78,7 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
 	Block, PrefetchStatus, BlockCacheLifetime, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-			bc, ok := tmp.(blockContainer)
+			bc, ok := tmp.(*blockContainer)
 			if !ok {
 				return nil, NoPrefetch, NoCacheEntry, BadDataError{ptr.ID}
 			}
@@ -137,7 +137,7 @@ func (b *BlockCacheStandard) subtractBlockBytes(block Block) {
 }
 
 func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
-	bc, ok := value.(blockContainer)
+	bc, ok := value.(*blockContainer)
 	if !ok {
 		return
 	}
@@ -283,7 +283,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		var bc interface{}
 		bc, wasInCache = b.cleanTransient.Get(ptr.ID)
 		if wasInCache {
-			oldPrefetchStatus := bc.(blockContainer).prefetchStatus
+			oldPrefetchStatus := bc.(*blockContainer).prefetchStatus
 			// If the cache believes our prefetch status is greater than the
 			// passed-in status, then that is the authoritative status.
 			if oldPrefetchStatus > prefetchStatus {
@@ -319,10 +319,28 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if !transientCacheHasRoom {
 			return cachePutCacheFullError{ptr.ID}
 		}
-		b.cleanTransient.Add(ptr.ID, blockContainer{block, prefetchStatus})
+		b.cleanTransient.Add(ptr.ID, &blockContainer{block, prefetchStatus})
 	}
 
 	return nil
+}
+
+// ClearTransientPrefetch implements the BlockCache interface for
+// BlockCacheStandard.
+func (b *BlockCacheStandard) ClearTransientPrefetch(id kbfsblock.ID) {
+	if b.cleanTransient == nil {
+		return
+	}
+
+	tmp, ok := b.cleanTransient.Peek(id)
+	if !ok {
+		return
+	}
+	bc, ok := tmp.(*blockContainer)
+	if !ok {
+		panic(fmt.Sprintf("Unexpected block cache type: %T", tmp))
+	}
+	bc.prefetchStatus = NoPrefetch
 }
 
 // Put implements the BlockCache interface for BlockCacheStandard.
@@ -356,7 +374,7 @@ func (b *BlockCacheStandard) DeleteTransient(
 	// If the block is cached and a file block, delete the known
 	// pointer as well.
 	if tmp, ok := b.cleanTransient.Get(id); ok {
-		bc, ok := tmp.(blockContainer)
+		bc, ok := tmp.(*blockContainer)
 		if !ok {
 			return BadDataError{id}
 		}

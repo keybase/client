@@ -743,6 +743,7 @@ func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 		removalSizes[metadata.TlfID] += uint64(metadata.BlockSize)
 		sizeRemoved += int64(metadata.BlockSize)
 		numRemoved++
+		cache.config.BlockCache().ClearTransientPrefetch(entry)
 	}
 	// TODO: more gracefully handle non-atomic failures here.
 	if err := cache.metaDb.Write(metadataBatch, nil); err != nil {

@@ -1180,6 +1180,9 @@ type BlockCache interface {
 	// it has triggered or finished a prefetch.
 	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
 		lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error
+	// ClearTransientPrefetch clears the cached prefetch status of the
+	// block, if it's transiently cached.
+	ClearTransientPrefetch(id kbfsblock.ID)
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.

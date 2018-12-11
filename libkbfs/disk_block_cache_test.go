@@ -34,6 +34,7 @@ type testDiskBlockCacheConfig struct {
 	limiter DiskLimiter
 	syncedTlfGetterSetter
 	initModeGetter
+	bcache BlockCache
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
@@ -44,11 +45,16 @@ func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
 		nil,
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
+		NewBlockCacheStandard(100, 100),
 	}
 }
 
 func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
 	return c.limiter
+}
+
+func (c testDiskBlockCacheConfig) BlockCache() BlockCache {
+	return c.bcache
 }
 
 func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,

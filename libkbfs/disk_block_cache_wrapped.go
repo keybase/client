@@ -32,6 +32,7 @@ type diskBlockCacheConfig interface {
 	clockGetter
 	diskLimiterGetter
 	initModeGetter
+	blockCacher
 }
 
 type diskBlockCacheWrapped struct {

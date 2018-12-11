@@ -4804,6 +4804,18 @@ func (mr *MockBlockCacheMockRecorder) PutWithPrefetch(ptr, tlf, block, lifetime,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutWithPrefetch", reflect.TypeOf((*MockBlockCache)(nil).PutWithPrefetch), ptr, tlf, block, lifetime, prefetchStatus)
 }
 
+// ClearTransientPrefetch mocks base method
+func (m *MockBlockCache) ClearTransientPrefetch(id kbfsblock.ID) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ClearTransientPrefetch", id)
+}
+
+// ClearTransientPrefetch indicates an expected call of ClearTransientPrefetch
+func (mr *MockBlockCacheMockRecorder) ClearTransientPrefetch(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearTransientPrefetch", reflect.TypeOf((*MockBlockCache)(nil).ClearTransientPrefetch), id)
+}
+
 // SetCleanBytesCapacity mocks base method
 func (m *MockBlockCache) SetCleanBytesCapacity(capacity uint64) {
 	m.ctrl.T.Helper()
