@@ -1206,3 +1206,22 @@ func (p *pukFinder) SeedByGeneration(m libkb.MetaContext, generation keybase1.Pe
 
 	return pukring.GetSeedByGenerationOrSync(m, generation)
 }
+
+type serverTimeboundsRes struct {
+	libkb.AppStatusEmbed
+	stellar1.TimeboundsRecommendation
+}
+
+func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.TimeboundsRecommendation, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/timebounds",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{},
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	var res serverTimeboundsRes
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return ret, err
+	}
+	return res.TimeboundsRecommendation, nil
+}

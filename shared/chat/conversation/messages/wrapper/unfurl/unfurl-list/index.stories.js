@@ -28,6 +28,7 @@ const unfurls = [
           'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
         favicon: {
           height: 20,
+          isVideo: false,
           url: require('../../../../../../images/mock/wsj.jpg'),
           width: 20,
         },
@@ -53,6 +54,7 @@ const unfurls = [
         description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
         favicon: {
           height: 20,
+          isVideo: false,
           url: require('../../../../../../images/mock/github_fav.jpg'),
           width: 20,
         },

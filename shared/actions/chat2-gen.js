@@ -30,7 +30,6 @@ export const blockConversation = 'chat2:blockConversation'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
-export const filePickerError = 'chat2:filePickerError'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
@@ -125,7 +124,6 @@ type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _ConfirmScreenResponsePayload = $ReadOnly<{|accept: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
-type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _HandleSeeingExplodingMessagesPayload = void
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
@@ -242,10 +240,6 @@ export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, 
  * Response to an unfurl prompt
  */
 export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) => ({payload, type: unfurlResolvePrompt})
-/**
- * Sent whenever the mobile file picker encounters an error.
- */
-export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
@@ -405,7 +399,6 @@ export type BlockConversationPayload = {|+payload: _BlockConversationPayload, +t
 export type ConfirmScreenResponsePayload = {|+payload: _ConfirmScreenResponsePayload, +type: 'chat2:confirmScreenResponse'|}
 export type CreateConversationPayload = {|+payload: _CreateConversationPayload, +type: 'chat2:createConversation'|}
 export type DesktopNotificationPayload = {|+payload: _DesktopNotificationPayload, +type: 'chat2:desktopNotification'|}
-export type FilePickerErrorPayload = {|+payload: _FilePickerErrorPayload, +type: 'chat2:filePickerError'|}
 export type HandleSeeingExplodingMessagesPayload = {|+payload: _HandleSeeingExplodingMessagesPayload, +type: 'chat2:handleSeeingExplodingMessages'|}
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
@@ -502,7 +495,6 @@ export type Actions =
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
   | DesktopNotificationPayload
-  | FilePickerErrorPayload
   | HandleSeeingExplodingMessagesPayload
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload

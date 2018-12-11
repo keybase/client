@@ -1931,8 +1931,9 @@ SiteName: %s
 PublishTime: %s
 Description: %s
 ImageUrl: %s
+Video: %s
 FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yieldStr(g.Description),
-		yieldStr(g.ImageUrl), yieldStr(g.FaviconUrl))
+		yieldStr(g.ImageUrl), g.Video, yieldStr(g.FaviconUrl))
 }
 
 func (g UnfurlGiphyRaw) UnsafeDebugString() string {
@@ -1943,8 +1944,8 @@ ImageUrl: %s
 Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
 }
 
-func (v UnfurlGiphyVideo) String() string {
-	return fmt.Sprintf("[url: %s width: %d height: %d]", v.Url, v.Width, v.Height)
+func (v UnfurlVideo) String() string {
+	return fmt.Sprintf("[url: %s width: %d height: %d mime: %s]", v.Url, v.Width, v.Height, v.MimeType)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

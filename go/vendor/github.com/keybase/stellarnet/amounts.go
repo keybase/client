@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// StroopsPerLumen is the number of stroops in a lumen.
 	StroopsPerLumen = 10000000
 )
 

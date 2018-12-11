@@ -11,6 +11,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
 import {
+  Alert,
   NetInfo,
   Linking,
   NativeModules,
@@ -299,6 +300,10 @@ const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
+const handleFilePickerError = (state: TypedState, action: ConfigGen.FilePickerErrorPayload) => {
+  Alert.alert('Error', action.payload.error.message)
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
@@ -308,6 +313,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
+  yield Saga.actionToAction(ConfigGen.filePickerError, handleFilePickerError)
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
 
