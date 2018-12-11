@@ -22,7 +22,7 @@ const mapStateToProps = (state, {routeProps}) => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
-  const mobileOnlyMode = Constants.getMobileOnly(state, accountID)
+  const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
 
   return {
     accountID,

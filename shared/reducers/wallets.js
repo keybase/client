@@ -264,9 +264,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         acceptingDisclaimerDelay: true,
       })
     case WalletsGen.loadedMobileOnlyMode:
-      return state.withMutations(stateMutable => {
-        stateMutable.update('mobileOnlyMap', c => c.set(action.payload.accountID, action.payload.enabled))
-      })
+      return state.update('mobileOnlyMap', map => map.set(action.payload.accountID, action.payload.enabled))
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
