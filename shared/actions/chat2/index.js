@@ -1271,6 +1271,8 @@ const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) =
   )
 }
 
+let stellarConfirmPaymentModalShown = false
+
 const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
   Saga.callUntyped(function*() {
     const {conversationIDKey, text} = action.payload
@@ -1303,14 +1305,24 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         response && response.result()
       }),
     ]
-    const onShowConfirm = () => [
-      Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
-      Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: ['paymentsConfirm'],
-        })
-      ),
-    ]
+    const onShowConfirm = () => {
+      stellarConfirmPaymentModalShown = true
+      return [
+        Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
+        Saga.put(
+          RouteTreeGen.createNavigateAppend({
+            path: ['paymentsConfirm'],
+          })
+        ),
+      ]
+    }
+    const onHideConfirm = () => {
+      if (!stellarConfirmPaymentModalShown) {
+        return
+      }
+      stellarConfirmPaymentModalShown = false
+      return Saga.put(navigateUp())
+    }
     const onDataConfirm = ({summary}, response) => {
       stellarConfirmWindowResponse = response
       return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
@@ -1326,7 +1338,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
         'chat.1.chatUi.chatStellarDataError': onDataError,
       },
       incomingCallMap: {
-        'chat.1.chatUi.chatStellarDone': p => Saga.put(navigateUp()),
+        'chat.1.chatUi.chatStellarDone': onHideConfirm,
         'chat.1.chatUi.chatStellarShowConfirm': onShowConfirm,
       },
       params: {
