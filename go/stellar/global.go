@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -220,6 +221,24 @@ func (s *Stellar) RefreshWalletState(ctx context.Context) {
 	if err := s.walletState.RefreshAll(ctx); err != nil {
 		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
 	}
+}
+
+// HandleOobm will handle any out of band gregor messages for stellar.
+func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
+	if obm.System() == nil {
+		return false, errors.New("nil system in out of band message")
+	}
+
+	switch obm.System().String() {
+	case "internal.reconnect":
+		s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
+		s.RefreshWalletState(ctx)
+
+		// returning false, nil here so that others can handle this one too
+		return false, nil
+	}
+
+	return false, nil
 }
 
 type hasAcceptedDisclaimerDBEntry struct {
