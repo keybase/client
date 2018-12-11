@@ -1,9 +1,12 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
+import * as TabsConstants from '../../constants/tabs'
+import {isMobile} from '../../constants/platform'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
-import {putActionIfOnPath, navigateUp} from '../../actions/route-tree'
+import {putActionIfOnPath, navigateTo, navigateUp} from '../../actions/route-tree'
 import {namedConnect} from '../../util/container'
 import FolderHeader from './header'
 
@@ -22,7 +25,10 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
-  onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
+  onBack:
+    isMobile && path === Constants.defaultPath
+      ? () => dispatch(putActionIfOnPath(routePath, navigateTo([TabsConstants.settingsTab])))
+      : () => dispatch(putActionIfOnPath(routePath, navigateUp())),
 })
 
 const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
