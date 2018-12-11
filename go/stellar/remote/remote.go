@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -976,7 +977,9 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		Args: libkb.HTTPArgs{
 			"account_id": libkb.S{Val: string(accountID)},
 		},
-		NetContext: ctx,
+		NetContext:     ctx,
+		RetryCount:     3,
+		InitialTimeout: 1 * time.Second,
 	}
 	var apiRes accountCurrencyResult
 	err := g.API.GetDecode(apiArg, &apiRes)
