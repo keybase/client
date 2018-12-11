@@ -903,6 +903,11 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 		d.tlfUpgrader.Shutdown()
 	}
 
+	log("resetting wallet state on logout")
+	if d.walletState != nil {
+		d.walletState.Reset(m.Ctx())
+	}
+
 	return nil
 }
 

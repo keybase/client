@@ -14,6 +14,7 @@ export type Props = {
   imageURL?: string,
   imageHeight?: number,
   imageWidth?: number,
+  imageIsVideo?: boolean,
   faviconURL?: string,
   onClose?: () => void,
   showImageOnSide: boolean,
@@ -66,7 +67,8 @@ class UnfurlGeneric extends React.Component<Props> {
                 height={this.props.imageHeight}
                 width={this.props.imageWidth}
                 style={styles.bottomImage}
-                isVideo={false}
+                isVideo={this.props.imageIsVideo || false}
+                autoplayVideo={false}
               />
             )}
         </Kb.Box2>
@@ -131,7 +133,12 @@ const styles = Styles.styleSheetCreate({
   siteNameContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
+    },
+    isElectron: {
       minHeight: 16,
+    },
+    isMobile: {
+      minHeight: 21,
     },
   }),
   url: {

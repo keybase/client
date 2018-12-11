@@ -7424,7 +7424,7 @@ jest-each@^23.6.0:
     chalk "^2.0.1"
     pretty-format "^23.6.0"
 
-jest-emotion@^10.0.4:
+jest-emotion@10.0.4:
   version "10.0.4"
   resolved "https://registry.yarnpkg.com/jest-emotion/-/jest-emotion-10.0.4.tgz#86dd4c8d20d94255f2dbe3939987683990a90c7d"
   integrity sha512-ar0pPGPQGOvmvbqAxn5r/c1zitySF9MkCeLpt8U16jwIcV4Jsc2p/7Pb9DHsOcBJG4HnEhTpDWGIB98XI/vLIQ==

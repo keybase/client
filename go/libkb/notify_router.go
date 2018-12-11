@@ -82,6 +82,9 @@ type NotifyListener interface {
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
+	WalletAccountDetailsUpdate(accountID stellar1.AccountID, details stellar1.AccountDetails)
+	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentSummary)
+	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPage)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
@@ -172,11 +175,17 @@ func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.Accoun
 func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                           {}
-func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)               {}
-func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)            {}
-func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)          {}
+func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.AccountID, details stellar1.AccountDetails) {
+}
+func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentSummary) {
+}
+func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPage) {
+}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1253,6 +1262,87 @@ func (n *NotifyRouter) HandleWalletRequestStatusNotification(ctx context.Context
 		n.listener.WalletRequestStatusNotification(reqID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent wallet RequestStatusNotification")
+}
+
+func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, accountID stellar1.AccountID, details stellar1.AccountDetails) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountDetailsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.AccountDetailsUpdateArg{
+					AccountID: accountID,
+					Details:   details,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).AccountDetailsUpdate(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletAccountDetailsUpdate(accountID, details)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet AccountDetailsUpdate")
+}
+
+func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, pending []stellar1.PaymentSummary) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet PendingPaymentsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.PendingPaymentsUpdateArg{
+					AccountID: accountID,
+					Pending:   pending,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PendingPaymentsUpdate(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletPendingPaymentsUpdate(accountID, pending)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet PendingPaymentsUpdate")
+}
+
+func (n *NotifyRouter) HandleWalletRecentPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, firstPage stellar1.PaymentsPage) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet RecentPaymentsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.RecentPaymentsUpdateArg{
+					AccountID: accountID,
+					FirstPage: firstPage,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RecentPaymentsUpdate(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletRecentPaymentsUpdate(accountID, firstPage)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet RecentPaymentsUpdate")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached

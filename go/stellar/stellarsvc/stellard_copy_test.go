@@ -21,13 +21,14 @@ func unpackTx(signedTx string) (unpackedTx xdr.TransactionEnvelope, txIDPrecalc 
 }
 
 type ExtractedPayment struct {
-	Tx        xdr.Transaction
-	OpType    xdr.OperationType
-	From      stellar1.AccountID
-	To        stellar1.AccountID
-	AmountXdr xdr.Int64
-	Amount    string
-	Asset     stellar1.Asset
+	Tx         xdr.Transaction
+	OpType     xdr.OperationType
+	From       stellar1.AccountID
+	To         stellar1.AccountID
+	AmountXdr  xdr.Int64
+	Amount     string
+	Asset      stellar1.Asset
+	TimeBounds *xdr.TimeBounds
 }
 
 // Extract the balance transfer from a transaction.
@@ -49,6 +50,7 @@ func extractPaymentTx(tx xdr.Transaction) (res ExtractedPayment, err error) {
 	res.From = stellar1.AccountID(tx.SourceAccount.Address())
 	op := tx.Operations[0].Body
 	res.OpType = op.Type
+	res.TimeBounds = tx.TimeBounds
 	if op, ok := op.GetPaymentOp(); ok {
 		res.To = stellar1.AccountID(op.Destination.Address())
 		res.AmountXdr = op.Amount

@@ -4,24 +4,8 @@ import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
 import * as React from 'react'
 import moment from 'moment'
-import {
-  Avatar,
-  Box,
-  Box2,
-  ClickableBox,
-  Icon,
-  Meta,
-  PlatformIcon,
-  FloatingMenu,
-  OverlayParentHOC,
-  type OverlayParentProps,
-  Text,
-  UserBio,
-  UserProofs,
-  BackButton,
-  PopupHeaderText,
-} from '../common-adapters'
-import UserActions from './user-actions'
+import * as Kb from '../common-adapters'
+import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
@@ -41,37 +25,37 @@ type State = {
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
-  <Box style={Styles.globalStyles.flexBoxRow}>
-    <Text type="BodySmallSemibold">Teams</Text>
+  <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+    <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
     {!!isYou && (
-      <Icon
+      <Kb.Icon
         style={{marginLeft: Styles.globalMargins.xtiny}}
         type="iconfont-edit"
         onClick={onClickShowcaseOffer}
       />
     )}
-  </Box>
+  </Kb.Box>
 )
 
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
-  <ClickableBox onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
-    <Box style={styleShowcasedTeamAvatar}>
-      <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
-    </Box>
-    <Box style={styleShowcasedTeamName}>
-      <Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
+  <Kb.ClickableBox onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
+    <Kb.Box style={styleShowcasedTeamAvatar}>
+      <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
+    </Kb.Box>
+    <Kb.Box style={styleShowcasedTeamName}>
+      <Kb.Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
         Publish the teams you're in
-      </Text>
-    </Box>
-  </ClickableBox>
+      </Kb.Text>
+    </Kb.Box>
+  </Kb.ClickableBox>
 )
 
 const _ShowcasedTeamRow = (
   props: {
     team: UserTeamShowcase,
-  } & OverlayParentProps
+  } & Kb.OverlayParentProps
 ) => (
-  <ClickableBox
+  <Kb.ClickableBox
     key={props.team.fqName}
     ref={props.setAttachmentRef}
     onClick={props.toggleShowingMenu}
@@ -83,18 +67,93 @@ const _ShowcasedTeamRow = (
       team={props.team}
       visible={props.showingMenu}
     />
-    <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={props.team.fqName} size={32} />
-    </Box>
-    <Box style={styleShowcasedTeamName}>
-      <Text style={{color: Styles.globalColors.black_75}} type="BodySemiboldLink">
+    <Kb.Box style={styleShowcasedTeamAvatar}>
+      <Kb.Avatar teamname={props.team.fqName} size={32} />
+    </Kb.Box>
+    <Kb.Box style={styleShowcasedTeamName}>
+      <Kb.Text style={{color: Styles.globalColors.black_75}} type="BodySemiboldLink">
         {props.team.fqName}
-      </Text>
-      {props.team.open && <Meta style={styleMeta} backgroundColor={Styles.globalColors.green} title="open" />}
-    </Box>
-  </ClickableBox>
+      </Kb.Text>
+      {props.team.open && (
+        <Kb.Meta style={styleMeta} backgroundColor={Styles.globalColors.green} title="open" />
+      )}
+    </Kb.Box>
+  </Kb.ClickableBox>
 )
-const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
+const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
+
+class _StellarFederatedAddress extends React.PureComponent<
+  StellarFederatedAddressProps & Kb.OverlayParentProps
+> {
+  _attachmentRef = null
+  _toastRef: ?Kb._ToastContainer = null
+  _onCopyAddress = () => {
+    this._toastRef && this._toastRef.copy()
+    this.props.onCopyAddress()
+  }
+  _menuItems = makeStellarAddressMenuItems({
+    onCopyAddress: this._onCopyAddress,
+    onSendOrRequest: this.props.onSendOrRequest,
+    stellarAddress: this.props.stellarAddress,
+  })
+
+  _getAttachmentRef = () => this._attachmentRef
+
+  render() {
+    const stellarAddressNameStyle = {
+      ...styles.stellarAddressName,
+      color: this.props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
+    }
+    return (
+      <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
+        {/* $FlowIssue innerRef not typed yet */}
+        <Kb.ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <Kb.Box style={styles.iconContainer}>
+          <Kb.Icon
+            style={styles.service}
+            color={Styles.globalColors.black_75}
+            textAlign="center"
+            type={'iconfont-identity-stellar'}
+          />
+        </Kb.Box>
+        <Kb.Box style={styles.proofNameSection}>
+          <Kb.Box style={styles.proofNameLabelContainer}>
+            <Kb.Text
+              className="hover-underline-container"
+              type="Body"
+              onClick={this.props.toggleShowingMenu}
+              selectable={true}
+              style={styles.proofName}
+              ref={this.props.setAttachmentRef}
+            >
+              <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federated Address'}>
+                <Kb.Text
+                  inline={true}
+                  type="Body"
+                  className="hover-underline"
+                  style={stellarAddressNameStyle}
+                >
+                  {this.props.stellarAddress}
+                </Kb.Text>
+              </Kb.WithTooltip>
+              <Kb.FloatingMenu
+                attachTo={this.props.getAttachmentRef}
+                closeOnSelect={true}
+                containerStyle={styles.floatingStellarAddressMenu}
+                items={this._menuItems}
+                onHidden={this.props.toggleShowingMenu}
+                visible={this.props.showingMenu}
+                position="bottom center"
+              />
+            </Kb.Text>
+            <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={{marginTop: 1}} />
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.Box2>
+    )
+  }
+}
+const StellarFederatedAddress = Kb.OverlayParentHOC(_StellarFederatedAddress)
 
 class ProfileRender extends React.PureComponent<Props, State> {
   state: State = {
@@ -102,7 +161,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
     selectedProofMenuRowIndex: null,
   }
   _selectedProofMenuRowRef: ?React.Component<any>
-  _proofList: ?UserProofs = null
+  _proofList: ?Kb.UserProofs = null
   _scrollContainer: ?React.Component<any, any> = null
 
   _proofMenuContent(proof: Proof) {
@@ -115,9 +174,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
         header: {
           title: 'header',
           view: (
-            <PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
+            <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
               Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
-            </PopupHeaderText>
+            </Kb.PopupHeaderText>
           ),
         },
         items: [
@@ -142,9 +201,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
         header: {
           title: 'header',
           view: pendingMessage ? (
-            <PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+            <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
               {pendingMessage}
-            </PopupHeaderText>
+            </Kb.PopupHeaderText>
           ) : null,
         },
         items: [
@@ -160,7 +219,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
         header: {
           title: 'header',
           view: (
-            <Box
+            <Kb.Box
               onClick={() => this.props.onViewProof(proof)}
               style={{
                 ...Styles.globalStyles.flexBoxColumn,
@@ -169,19 +228,19 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 padding: Styles.globalMargins.small,
               }}
             >
-              <PlatformIcon
+              <Kb.PlatformIcon
                 platform={proof.type}
                 overlay="icon-proof-success"
                 overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Text type="BodySmall" style={{color: Styles.globalColors.black_40, textAlign: 'center'}}>
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_40, textAlign: 'center'}}>
                   Posted on
                   <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
-                </Text>
+                </Kb.Text>
               )}
-            </Box>
+            </Kb.Box>
           ),
         },
         items: [
@@ -261,9 +320,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
     const showShowcaseTeamsOffer = this.props.isYou && this.props.youAreInTeams
 
     return (
-      <Box style={styleOuterContainer}>
+      <Kb.Box style={styleOuterContainer}>
         {!!this.props.addUserToTeamsResults && (
-          <Box2
+          <Kb.Box2
             direction="horizontal"
             style={Styles.collapseStyles([
               styleScrollHeaderBg,
@@ -274,37 +333,37 @@ class ProfileRender extends React.PureComponent<Props, State> {
               },
             ])}
           >
-            <Box2 direction="vertical" style={{flexGrow: 1}}>
-              <Text
+            <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
+              <Kb.Text
                 style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
                 {this.props.addUserToTeamsResults}
-              </Text>
-            </Box2>
-            <Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
-              <Icon
+              </Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
+              <Kb.Icon
                 color={Styles.globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}
                 style={{padding: Styles.globalMargins.tiny}}
                 type="iconfont-close"
               />
-            </Box2>
-          </Box2>
+            </Kb.Box2>
+          </Kb.Box2>
         )}
-        <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
-        <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        <Box style={Styles.globalStyles.flexBoxColumn}>
+        <Kb.Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
+        <Kb.Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
+        <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
           {this.props.onBack && (
-            <BackButton
+            <Kb.BackButton
               onClick={this.props.onBack}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: Styles.globalColors.white}}
               iconColor={Styles.globalColors.white}
             />
           )}
-          <Box
+          <Kb.Box
             onClick={this.props.onSearch}
             onMouseEnter={() =>
               this.setState({
@@ -318,23 +377,23 @@ class ProfileRender extends React.PureComponent<Props, State> {
             }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Text style={styleSearchText} type="Body">
+            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
+            <Kb.Text style={styleSearchText} type="Body">
               Search people
-            </Text>
-          </Box>
-        </Box>
-        <Box
+            </Kb.Text>
+          </Kb.Box>
+        </Kb.Box>
+        <Kb.Box
           ref={c => {
             this._scrollContainer = c
           }}
           className="scroll-container"
           style={styleContainer}
         >
-          <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
-          <Box style={{...Styles.globalStyles.flexBoxRow, minHeight: 300}}>
-            <Box style={styleBioColumn}>
-              <UserBio
+          <Kb.Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
+          <Kb.Box style={{...Styles.globalStyles.flexBoxRow, minHeight: 300}}>
+            <Kb.Box style={styleBioColumn}>
+              <Kb.UserBio
                 type="Profile"
                 editFns={this.props.bioEditFns}
                 loading={loading}
@@ -365,18 +424,18 @@ class ProfileRender extends React.PureComponent<Props, State> {
                   waiting={this.props.waiting}
                 />
               )}
-            </Box>
-            <Box style={styleProofColumn}>
-              <Box style={styleProofNoticeBox}>
+            </Kb.Box>
+            <Kb.Box style={styleProofColumn}>
+              <Kb.Box style={styleProofNoticeBox}>
                 {proofNotice && (
-                  <Text type="BodySemibold" style={{color: Styles.globalColors.white}}>
+                  <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.white}}>
                     {proofNotice}
-                  </Text>
+                  </Kb.Text>
                 )}
-              </Box>
-              <Box style={styleProofs}>
+              </Kb.Box>
+              <Kb.Box style={styleProofs}>
                 {!loading && (
-                  <Box
+                  <Kb.Box
                     style={{...Styles.globalStyles.flexBoxColumn, paddingBottom: Styles.globalMargins.small}}
                   >
                     {showEdit && (
@@ -392,10 +451,10 @@ class ProfileRender extends React.PureComponent<Props, State> {
                       : showShowcaseTeamsOffer && (
                           <ShowcaseTeamsOffer onClickShowcaseOffer={this.props.onClickShowcaseOffer} />
                         )}
-                  </Box>
+                  </Kb.Box>
                 )}
                 {(loading || this.props.proofs.length > 0) && (
-                  <UserProofs
+                  <Kb.UserProofs
                     type={'proofs'}
                     ref={c => {
                       this._proofList = c
@@ -407,15 +466,23 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
+                {!!this.props.stellarAddress && !loading && (
+                  <StellarFederatedAddress
+                    currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
+                    stellarAddress={this.props.stellarAddress}
+                    onSendOrRequest={this.props.onSendOrRequestStellarAddress}
+                    onCopyAddress={this.props.onCopyStellarAddress}
+                  />
+                )}
                 {!loading && !this.props.serverActive && missingProofs.length > 0 && (
-                  <UserProofs
+                  <Kb.UserProofs
                     type={'missingProofs'}
                     username={this.props.username}
                     missingProofs={missingProofs}
                   />
                 )}
                 {proofMenuContent && (
-                  <FloatingMenu
+                  <Kb.FloatingMenu
                     closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
@@ -426,9 +493,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
                   />
                 )}
                 {!loading && <Folders profileUsername={this.props.username} />}
-              </Box>
-            </Box>
-          </Box>
+              </Kb.Box>
+            </Kb.Box>
+          </Kb.Box>
           {!loading && !!this.props.followers && !!this.props.following && (
             <Friendships
               username={this.props.username}
@@ -442,8 +509,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
               following={this.props.following}
             />
           )}
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 }
@@ -584,6 +651,66 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 240,
     minWidth: 196,
   },
+  floatingStellarAddressMenu: {
+    marginTop: 4,
+    width: 210,
+  },
+  iconContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    height: 24,
+    minHeight: 24,
+    minWidth: 24,
+    width: 24,
+  },
+  proofName: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+      display: 'inline-block',
+      flex: 1,
+      transition: '0.15s color',
+      wordBreak: 'break-all',
+    },
+  }),
+  proofNameLabelContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
+  },
+  proofNameSection: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
+    flex: 1,
+    marginTop: 2,
+  },
+  service: Styles.collapseStyles([
+    Styles.desktopStyles.clickable,
+    {
+      height: 16,
+      marginRight: Styles.globalMargins.tiny,
+      minHeight: 16,
+      minWidth: 16,
+      transition: '0.15s color',
+      width: 16,
+    },
+  ]),
+  stellarAddressName: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.green,
+      ...Styles.desktopStyles.clickable,
+    },
+  }),
+  toastText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white,
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: 10,
+      paddingRight: 10,
+      paddingTop: 5,
+    },
+  }),
 })
 
 export default ProfileRender

@@ -14,7 +14,6 @@ const defaultCacheSize = 1000
 
 type cacheItem struct {
 	data  interface{}
-	err   error
 	ctime gregor1.Time
 }
 
@@ -61,11 +60,10 @@ func (c *unfurlCache) get(key string) (res cacheItem, ok bool) {
 	return cacheItem, valid
 }
 
-func (c *unfurlCache) put(key string, data interface{}, err error) {
+func (c *unfurlCache) put(key string, data interface{}) {
 	c.Lock()
 	defer c.Unlock()
 	c.cache.Add(key, cacheItem{
-		err:   err,
 		data:  data,
 		ctime: gregor1.ToTime(c.clock.Now()),
 	})

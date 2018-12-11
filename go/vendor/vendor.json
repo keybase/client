@@ -272,9 +272,10 @@
 			"revisionTime": "2018-10-28T04:47:46Z"
 		},
 		{
+			"checksumSHA1": "sMvq+9MMLxs/UUdbScCycbg2S9U=",
 			"path": "github.com/golang/groupcache/singleflight",
-			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987",
-			"revisionTime": "2015-01-25T10:08:32-08:00"
+			"revision": "c65c006176ff7ff98bb916961c7abbc6b0afc0aa",
+			"revisionTime": "2018-10-24T23:09:25Z"
 		},
 		{
 			"checksumSHA1": "GaJLoEuMGnP5ofXvuweAI4wx06U=",
@@ -444,10 +445,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "ZnWS3xHWh1cZPRM0ICZMEG5Y4Wk=",
+			"checksumSHA1": "XUhUnRs+MARPJEG13Q85CJctOUo=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "5ec437501e8533f600cb2101e9edffead5bc8834",
-			"revisionTime": "2018-12-06T16:06:56Z"
+			"revision": "a27a4f7712dd5021fa6f4f09f2f96f905e8b7747",
+			"revisionTime": "2018-12-10T15:01:50Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -541,6 +542,12 @@
 			"revisionTime": "2018-08-06T20:08:11Z"
 		},
 		{
+			"checksumSHA1": "BPchgsOpEkhEBKK6NvSqGYTOcuA=",
+			"path": "github.com/keybase/msgpackzip",
+			"revision": "8309a3782fdb9c2d52c69d3f8080e2797883faa1",
+			"revisionTime": "2018-12-07T16:10:41Z"
+		},
+		{
 			"checksumSHA1": "o3BupHtJ9Txi4Cfns9vcvvLrQC8=",
 			"path": "github.com/keybase/pipeliner",
 			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
@@ -581,10 +588,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "X618HA40TGuF28A9zkDpXpl98so=",
+			"checksumSHA1": "QWQlyr5zlP/IYY3az5LD6MUY4hQ=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "ec308c87133d9cd9ced3648aee0559cec74e238a",
-			"revisionTime": "2018-11-06T14:21:05Z"
+			"revision": "50461156edbede46d2b329217cde6d24d55dbe76",
+			"revisionTime": "2018-12-10T17:08:49Z"
 		},
 		{
 			"path": "github.com/kr/pty",

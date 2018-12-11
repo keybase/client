@@ -126,6 +126,13 @@ func TestScraper(t *testing.T) {
 			if e.FaviconUrl != nil {
 				require.Equal(t, *e.FaviconUrl, *r.FaviconUrl)
 			}
+
+			require.True(t, (e.Video == nil && r.Video == nil) || (e.Video != nil && r.Video != nil))
+			if e.Video != nil {
+				require.Equal(t, e.Video.Url, r.Video.Url)
+				require.Equal(t, e.Video.Height, r.Video.Height)
+				require.Equal(t, e.Video.Width, r.Video.Width)
+			}
 		case chat1.UnfurlType_GIPHY:
 			e := expected.Giphy()
 			r := res.Giphy()
@@ -145,7 +152,6 @@ func TestScraper(t *testing.T) {
 		// test caching
 		cachedRes, valid := scraper.cache.get(uri)
 		require.True(t, valid)
-		require.NoError(t, cachedRes.err)
 		require.Equal(t, res, cachedRes.data.(chat1.UnfurlRaw))
 
 		clock.Advance(defaultCacheLifetime * 2)
@@ -240,10 +246,23 @@ func TestScraper(t *testing.T) {
 	testCase("giphy0", chat1.NewUnfurlRawWithGiphy(chat1.UnfurlGiphyRaw{
 		ImageUrl:   "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif",
 		FaviconUrl: strPtr("https://giphy.com/static/img/icons/apple-touch-icon-180px.png"),
-		Video: &chat1.UnfurlGiphyVideo{
+		Video: &chat1.UnfurlVideo{
 			Url:    "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy.mp4",
 			Height: 480,
 			Width:  480,
 		},
 	}), forceGiphy)
+	testCase("imgur0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "Amazing Just Cause 4 Easter egg",
+		Url:         "https://i.imgur.com/lXDyzHY.gifv",
+		SiteName:    "Imgur",
+		Description: strPtr("2433301 views and 2489 votes on Imgur"),
+		ImageUrl:    strPtr("https://i.imgur.com/lXDyzHY.jpg?play"),
+		FaviconUrl:  strPtr(fmt.Sprintf("http://%s/favicon.ico", addr)),
+		Video: &chat1.UnfurlVideo{
+			Url:    "https://i.imgur.com/lXDyzHY.mp4",
+			Height: 408,
+			Width:  728,
+		},
+	}), nil)
 }
