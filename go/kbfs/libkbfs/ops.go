@@ -953,8 +953,8 @@ func (so *syncOp) checkConflict(
 		}
 
 		return &renameUnmergedAction{
-			fromName:                 so.getFinalPath().tailName(),
-			toName:                   toName,
+			fromName: so.getFinalPath().tailName(),
+			toName:   toName,
 			unmergedParentMostRecent: so.getFinalPath().parentPath().tailPointer(),
 			mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
 				tailPointer(),

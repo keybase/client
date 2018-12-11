@@ -402,7 +402,7 @@ func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
 
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: aliceUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 		eng.testArgs = &Identify2WithUIDTestArgs{
-			cache:                  tester,
+			cache: tester,
 			allowUntrackedFastPath: true,
 		}
 		err := eng.Run(identify2MetaContext(tc, tester))
@@ -460,9 +460,9 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
-			noMe:                   true,
-			cache:                  tester,
-			tcl:                    importTrackingLink(t, tc.G),
+			noMe:  true,
+			cache: tester,
+			tcl:   importTrackingLink(t, tc.G),
 			allowUntrackedFastPath: true,
 		}
 

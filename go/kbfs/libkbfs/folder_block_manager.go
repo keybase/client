@@ -144,11 +144,11 @@ func newFolderBlockManager(
 	}
 
 	fbm := &folderBlockManager{
-		appStateUpdater:           appStateUpdater,
-		config:                    config,
-		log:                       log,
-		shutdownChan:              make(chan struct{}),
-		id:                        fb.Tlf,
+		appStateUpdater: appStateUpdater,
+		config:          config,
+		log:             log,
+		shutdownChan:    make(chan struct{}),
+		id:              fb.Tlf,
 		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
 		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
 		archivePauseChan:          make(chan (<-chan struct{})),

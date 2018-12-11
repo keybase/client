@@ -70,8 +70,8 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[Favorite]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs:                  NewFavorites(config),
-		quotaUsage:            NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
+		favs:       NewFavorites(config),
+		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
 		currentStatus: &kbfsCurrentStatus{},
