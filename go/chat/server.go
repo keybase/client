@@ -314,14 +314,14 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
 			h.G().AppState.State())
 		return chat1.MarkAsReadLocalRes{
-			Offline: h.G().Syncer.IsConnected(ctx),
+			Offline: h.G().InboxSource.IsOffline(ctx),
 		}, nil
 	}
 	if err = h.G().ConvSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
-		Offline: h.G().Syncer.IsConnected(ctx),
+		Offline: h.G().InboxSource.IsOffline(ctx),
 	}, nil
 }
 
