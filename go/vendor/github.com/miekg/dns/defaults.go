@@ -13,12 +13,9 @@ const hexDigit = "0123456789abcdef"
 // SetReply creates a reply message from a request message.
 func (dns *Msg) SetReply(request *Msg) *Msg {
 	dns.Id = request.Id
+	dns.RecursionDesired = request.RecursionDesired // Copy rd bit
 	dns.Response = true
-	dns.Opcode = request.Opcode
-	if dns.Opcode == OpcodeQuery {
-		dns.RecursionDesired = request.RecursionDesired // Copy rd bit
-		dns.CheckingDisabled = request.CheckingDisabled // Copy cd bit
-	}
+	dns.Opcode = OpcodeQuery
 	dns.Rcode = RcodeSuccess
 	if len(request.Question) > 0 {
 		dns.Question = make([]Question, 1)
@@ -166,7 +163,7 @@ func (dns *Msg) IsEdns0() *OPT {
 // label fits in 63 characters, but there is no length check for the entire
 // string s. I.e.  a domain name longer than 255 characters is considered valid.
 func IsDomainName(s string) (labels int, ok bool) {
-	_, labels, err := packDomainName(s, nil, 0, compressionMap{}, false)
+	_, labels, err := packDomainName(s, nil, 0, nil, false)
 	return labels, err == nil
 }
 
@@ -273,11 +270,8 @@ func (t Type) String() string {
 
 // String returns the string representation for the class c.
 func (c Class) String() string {
-	if s, ok := ClassToString[uint16(c)]; ok {
-		// Only emit mnemonics when they are unambiguous, specically ANY is in both.
-		if _, ok := StringToType[s]; !ok {
-			return s
-		}
+	if c1, ok := ClassToString[uint16(c)]; ok {
+		return c1
 	}
 	return "CLASS" + strconv.Itoa(int(c))
 }

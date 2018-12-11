@@ -143,15 +143,11 @@ func (s *Selection) ClosestMatcher(m Matcher) *Selection {
 // ClosestNodes gets the first element that matches one of the nodes by testing the
 // element itself and traversing up through its ancestors in the DOM tree.
 func (s *Selection) ClosestNodes(nodes ...*html.Node) *Selection {
-	set := make(map[*html.Node]bool)
-	for _, n := range nodes {
-		set[n] = true
-	}
 	return pushStack(s, mapNodes(s.Nodes, func(i int, n *html.Node) []*html.Node {
 		// For each node in the selection, test the node itself, then each parent
 		// until a match is found.
 		for ; n != nil; n = n.Parent {
-			if set[n] {
+			if isInSlice(nodes, n) {
 				return []*html.Node{n}
 			}
 		}
@@ -688,11 +684,10 @@ func getParentNodes(nodes []*html.Node) []*html.Node {
 // Returns an array of nodes mapped by calling the callback function once for
 // each node in the source nodes.
 func mapNodes(nodes []*html.Node, f func(int, *html.Node) []*html.Node) (result []*html.Node) {
-	set := make(map[*html.Node]bool)
 	for i, n := range nodes {
 		if vals := f(i, n); len(vals) > 0 {
-			result = appendWithoutDuplicates(result, vals, set)
+			result = appendWithoutDuplicates(result, vals)
 		}
 	}
-	return result
+	return
 }
