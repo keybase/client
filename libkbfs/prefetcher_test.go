@@ -233,6 +233,8 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 
 	t.Log("Wait for the prefetch to finish.")
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
+	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), ptrs[0].BlockPointer)
+	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), ptrs[1].BlockPointer)
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
@@ -291,6 +293,8 @@ func testPrefetcherIndirectDirBlockTail(
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	rootStatus := NoPrefetch
 	if withSync {
+		waitForPrefetchOrBust(t, ctx, q.Prefetcher(), ptrs[0].BlockPointer)
+		waitForPrefetchOrBust(t, ctx, q.Prefetcher(), ptrs[1].BlockPointer)
 		rootStatus = TriggeredPrefetch
 		testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
 			indBlock1, NoPrefetch, TransientEntry)
@@ -365,6 +369,8 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	continueChFileA <- context.Canceled
 	t.Log("Wait for the prefetch to finish.")
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
+	waitForPrefetchOrBust(
+		t, ctx, q.Prefetcher(), rootDir.Children["c"].BlockPointer)
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
