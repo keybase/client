@@ -28,6 +28,10 @@ lint:
 		| grep -v "redundant if ...; err != nil check, just return error instead" \
 		| grep -v "don't use ALL_CAPS in Go names; use CamelCase" \
 		| grep -v runquiet.go \
+		| grep -v mocks_test\.go \
+		| grep -v mock_codec\.go \
+		| grep -v "_test\.go.*context\.Context should be the first parameter of a function" \
+		| grep -v "use underscores in Go names" \
 		&& exit 1 \
 		|| echo "Lint-free!" \
 	)
