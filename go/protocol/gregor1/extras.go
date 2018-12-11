@@ -62,6 +62,19 @@ func (t TimeOrOffset) Before(t2 time.Time) bool {
 	return false
 }
 
+func (t TimeOrOffset) FreezeAt(at time.Time) *time.Time {
+	ret := t.Time()
+	if ret != nil {
+		return ret
+	}
+	offset := t.Offset()
+	if offset != nil {
+		ret := at.Add(*offset)
+		return &ret
+	}
+	return nil
+}
+
 func (s StateSyncMessage) Metadata() gregor.Metadata {
 	return s.Md_
 }

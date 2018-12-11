@@ -45,7 +45,7 @@ type FastTeamChainLoader struct {
 	// a device. We want to cut down on notification spam. So instead, all attempts
 	// to load a team result in a preliminary poll for freshness, which this state is enabled.
 	forceRepollMutex sync.RWMutex
-	forceRepollUntil gregor.TimeOrOffset
+	forceRepollUntil *time.Time
 }
 
 const FTLVersion = 1
@@ -1261,10 +1261,11 @@ func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.T
 }
 
 func (f *FastTeamChainLoader) ForceRepollUntil(m libkb.MetaContext, dtime gregor.TimeOrOffset) error {
-	m.CDebugf("FastTeamChainLoader#ForceRepollUntil(%+v)", dtime)
+	frozenDtime := dtime.FreezeAt(m.G().Clock().Now())
+	m.CDebugf("FastTeamChainLoader#ForceRepollUntil(%+v -> %v)", dtime, frozenDtime)
 	f.forceRepollMutex.Lock()
 	defer f.forceRepollMutex.Unlock()
-	f.forceRepollUntil = dtime
+	f.forceRepollUntil = frozenDtime
 	return nil
 }
 

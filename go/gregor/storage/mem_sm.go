@@ -227,6 +227,7 @@ func (t timeOrOffset) Before(t2 time.Time) bool {
 func (t timeOrOffset) IsZero() bool {
 	return t.IsZero()
 }
+func (t timeOrOffset) FreezeAt(time.Time) *time.Time { return nil }
 
 var _ gregor.TimeOrOffset = timeOrOffset{}
 

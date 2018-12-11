@@ -83,6 +83,7 @@ type TimeOrOffset interface {
 	Offset() *time.Duration
 	Before(t time.Time) bool
 	IsZero() bool
+	FreezeAt(time.Time) *time.Time
 }
 
 type Item interface {

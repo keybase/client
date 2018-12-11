@@ -75,7 +75,7 @@ type TeamLoader struct {
 	// a device. We want to cut down on notification spam. So instead, all attempts
 	// to load a team result in a preliminary poll for freshness, which this state is enabled.
 	forceRepollMutex sync.RWMutex
-	forceRepollUntil gregor.TimeOrOffset
+	forceRepollUntil *time.Time
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
@@ -1528,10 +1528,11 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 }
 
 func (l *TeamLoader) ForceRepollUntil(ctx context.Context, dtime gregor.TimeOrOffset) error {
-	l.G().Log.CDebugf(ctx, "TeamLoader#ForceRepollUntil(%+v)", dtime)
+	frozenDtime := dtime.FreezeAt(l.G().Clock().Now())
+	l.G().Log.CDebugf(ctx, "TeamLoader#ForceRepollUntil(%+v -> %v)", dtime, frozenDtime)
 	l.forceRepollMutex.Lock()
 	defer l.forceRepollMutex.Unlock()
-	l.forceRepollUntil = dtime
+	l.forceRepollUntil = frozenDtime
 	return nil
 }
 
