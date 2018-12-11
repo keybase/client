@@ -986,7 +986,6 @@ const rootReducer = (
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
-    case Chat2Gen.filePickerError:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:
     case Chat2Gen.prepareFulfillRequestForm:

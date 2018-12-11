@@ -47,7 +47,8 @@ func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generi
 	}
 }
 
-func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, generic *scoredGenericRaw, e *colly.HTMLElement) {
+func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, generic *scoredGenericRaw,
+	e *colly.HTMLElement) {
 	ranker, ok := attrRankMap[attr]
 	if !ok { // invalid attribute, ignore
 		return
@@ -77,6 +78,8 @@ func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, ge
 			s.setAndParsePubTime(ctx, content, generic, score)
 		case setDescription:
 			generic.setDescription(&content, score)
+		case setVideo:
+			generic.setVideo(content, score)
 		}
 	}
 }

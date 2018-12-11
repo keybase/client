@@ -277,7 +277,7 @@ protocol local {
     string publicMemo    // Public stellar memo field.
   );
   record BuildPaymentResLocal {
-    boolean readyToSend;
+    boolean readyToReview;
 
     // Optional. Set if a valid account ID to send from was found.
     AccountID from;
@@ -336,15 +336,22 @@ protocol local {
     // Set if this banner means the user's proofs have changed and that is blocking the payment.
     // `message` may be blank in this case.
     boolean proofsChanged;
-    // Set if this banner should be hidden on the confirm screen
-    boolean hideOnConfirm;
   }
+
+  // Called when Send is tapped from the build form.
+  // Sends uiPaymentReview notifications while it is open.
+  void reviewPaymentLocal(
+    int sessionID,
+    // Should be the latest ID that went through buildPaymentLocal and returned readyToReview.
+    BuildPaymentID bid
+  );
 
   // Send a payment
   SendPaymentResLocal sendPaymentLocal(
     int sessionID,
     BuildPaymentID bid,
-    boolean bypassBid,
+    boolean bypassBid, // implies bypassReview
+    boolean bypassReview,
     AccountID from,
     string to,                             // Username, acctID, or assertion. Examples: "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     boolean toIsAccountID,

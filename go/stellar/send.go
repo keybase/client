@@ -12,6 +12,32 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 	if arg.Bid.IsNil() && !arg.BypassBid {
 		return res, fmt.Errorf("missing payment ID")
 	}
+
+	if !arg.Bid.IsNil() {
+		// Finalize the payment way up here so that it's predicatble
+		// that when an error is returned the payment has been canceled.
+		data, err := getGlobal(mctx.G()).finalizeBuildPayment(mctx, arg.Bid)
+		if err != nil {
+			return res, err
+		}
+		if data == nil {
+			// Not expected.
+			return res, fmt.Errorf("the payment to send was not found")
+		}
+		mctx.CDebugf("got state readyToReview:%v readyToSend:%v set:%v",
+			data.ReadyToReview, data.ReadyToSend, data.Frozen != nil)
+		if arg.BypassReview {
+			// Pretend that a review occurred and succeeded.
+			// Mutating this without the DataLock is not great, but nothing
+			// should access this `data` ever again, so should be safe.
+			data.ReadyToSend = data.ReadyToSend || data.ReadyToReview
+		}
+		err = data.CheckReadyToSend(arg)
+		if err != nil {
+			return res, err
+		}
+	}
+
 	if len(arg.From) == 0 {
 		return res, fmt.Errorf("missing from account ID parameter")
 	}
@@ -40,17 +66,6 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		displayBalance = DisplayBalance{
 			Amount:   arg.WorthAmount,
 			Currency: arg.WorthCurrency.String(),
-		}
-	}
-
-	if !arg.Bid.IsNil() {
-		state := getGlobal(mctx.G()).stopBuildPayment(mctx, arg.Bid)
-		if state == nil {
-			return res, fmt.Errorf("the payment to send was not found")
-		}
-		err = state.CheckReady(arg)
-		if err != nil {
-			return res, err
 		}
 	}
 
