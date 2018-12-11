@@ -7,6 +7,7 @@ package libgit
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
-func TestBrowser(t *testing.T) {
+func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
 	defer os.RemoveAll(tempdir)
@@ -47,7 +48,7 @@ func TestBrowser(t *testing.T) {
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
 
 	t.Log("Browse the repo and verify the data.")
-	b, err := NewBrowser(dotgitFS, config.Clock(), "")
+	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
 	require.NoError(t, err)
 	fis, err := b.ReadDir("")
 	require.NoError(t, err)
@@ -58,6 +59,17 @@ func TestBrowser(t *testing.T) {
 	data, err := ioutil.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
+
+	if sharedCache != (noopSharedInBrowserCache{}) {
+		t.Log("Make sure cache is populated")
+		fi, ok := sharedCache.getFileInfo(b.commitHash, path.Join(b.root, "foo"))
+		require.True(t, ok)
+		require.Equal(t, "foo", fi.Name())
+		childrenPaths, ok := sharedCache.getChildrenFileInfos(b.commitHash, path.Join(b.root, ""))
+		require.True(t, ok)
+		require.Len(t, childrenPaths, 1)
+		require.Equal(t, "foo", childrenPaths[0].Name())
+	}
 
 	t.Log("Use ReadAt with a small buffer.")
 	bf, ok := f.(*browserFile)
@@ -84,7 +96,7 @@ func TestBrowser(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		b, err = NewBrowser(dotgitFS, config.Clock(), "")
+		b, err = NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
 		require.NoError(t, err)
 		fi, err := b.Lstat(link)
 		require.NoError(t, err)
@@ -109,4 +121,14 @@ func TestBrowser(t *testing.T) {
 	err = worktreeFS.MkdirAll("dir", 0700)
 	require.NoError(t, err)
 	addSymlink("../symfoo", "dir/symfoo")
+}
+
+func TestBrowserNoCache(t *testing.T) {
+	testBrowser(t, noopSharedInBrowserCache{})
+}
+
+func TestBrowserWithCache(t *testing.T) {
+	cache, err := newLRUSharedInBrowserCache()
+	require.NoError(t, err)
+	testBrowser(t, cache)
 }

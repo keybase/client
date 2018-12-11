@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/keybase/kbfs/libfs"
@@ -37,15 +36,12 @@ func translateGitError(err *error) {
 // Browser presents the contents of a git repo as a read-only file
 // system, using only the dotgit directory of the repo.
 type Browser struct {
-	tree  *object.Tree
-	root  string
-	mtime time.Time
+	tree       *object.Tree
+	root       string
+	mtime      time.Time
+	commitHash plumbing.Hash
 
-	lock sync.RWMutex
-	// Caches ReadDir results. Since the *Browser object gets blown away when
-	// HEAD changes, we don't need to worry about invalidation -- unless memory
-	// footprint becomes a problem.
-	dirChildrenCache map[string][]os.FileInfo
+	sharedCache sharedInBrowserCache
 }
 
 var _ billy.Filesystem = (*Browser)(nil)
@@ -57,7 +53,8 @@ var _ billy.Filesystem = (*Browser)(nil)
 // it.
 func NewBrowser(
 	repoFS *libfs.FS, clock libkbfs.Clock,
-	gitBranchName plumbing.ReferenceName) (*Browser, error) {
+	gitBranchName plumbing.ReferenceName,
+	sharedCache sharedInBrowserCache) (*Browser, error) {
 	var storage storage.Storer
 	storage, err := NewGitConfigWithoutRemotesStorer(repoFS)
 	if err != nil {
@@ -101,10 +98,11 @@ func NewBrowser(
 	}
 
 	return &Browser{
-		tree:             tree,
-		root:             string(gitBranchName),
-		mtime:            c.Author.When,
-		dirChildrenCache: make(map[string][]os.FileInfo),
+		tree:        tree,
+		root:        string(gitBranchName),
+		mtime:       c.Author.When,
+		commitHash:  c.Hash,
+		sharedCache: sharedCache,
 	}, nil
 }
 
@@ -205,7 +203,11 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 
 	// Git doesn't keep track of the mtime of individual files
 	// anywhere, so just use the timestamp from the commit.
-	return &browserFileInfo{entry, size, b.mtime}, nil
+	fi = &browserFileInfo{entry, size, b.mtime}
+
+	b.sharedCache.setFileInfo(b.commitHash, path.Join(b.root, filename), fi)
+
+	return fi, nil
 }
 
 // Stat implements the billy.Filesystem interface for Browser.
@@ -234,25 +236,18 @@ func (b *Browser) Join(elem ...string) string {
 	return path.Clean(path.Join(elem...))
 }
 
-func (b *Browser) getCachedDirChildren(p string) (fis []os.FileInfo, ok bool) {
-	b.lock.RLock()
-	defer b.lock.RUnlock()
-	fis, ok = b.dirChildrenCache[p]
-	return fis, ok
-}
-
 // ReadDir implements the billy.Filesystem interface for Browser.
 func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 	if p == "" {
 		p = "."
 	}
 
-	if fis, ok := b.getCachedDirChildren(p); ok {
+	cachePath := path.Join(b.root, p)
+
+	if fis, ok := b.sharedCache.getChildrenFileInfos(
+		b.commitHash, cachePath); ok {
 		return fis, nil
 	}
-
-	b.lock.Lock()
-	defer b.lock.Unlock()
 
 	defer translateGitError(&err)
 	var dirTree *object.Tree
@@ -265,14 +260,17 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 		}
 	}
 
+	childrenPathsToCache := []string(nil)
 	for _, e := range dirTree.Entries {
 		fi, err := b.Lstat(e.Name)
 		if err != nil {
 			return nil, err
 		}
 		fis = append(fis, fi)
+		childrenPathsToCache = append(childrenPathsToCache, path.Join(b.root, e.Name))
 	}
-	b.dirChildrenCache[p] = fis
+	b.sharedCache.setChildrenPaths(
+		b.commitHash, cachePath, childrenPathsToCache)
 
 	return fis, nil
 }
@@ -300,10 +298,11 @@ func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
 		return nil, err
 	}
 	return &Browser{
-		tree:             newTree,
-		root:             b.Join(b.root, p),
-		mtime:            b.mtime,
-		dirChildrenCache: make(map[string][]os.FileInfo),
+		tree:        newTree,
+		root:        b.Join(b.root, p),
+		mtime:       b.mtime,
+		commitHash:  b.commitHash,
+		sharedCache: b.sharedCache,
 	}, nil
 }
 
