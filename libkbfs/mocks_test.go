@@ -4732,17 +4732,17 @@ func (mr *MockBlockCacheMockRecorder) CheckForKnownPtr(tlf, block interface{}) *
 }
 
 // DeleteTransient mocks base method
-func (m *MockBlockCache) DeleteTransient(ptr BlockPointer, tlf tlf.ID) error {
+func (m *MockBlockCache) DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteTransient", ptr, tlf)
+	ret := m.ctrl.Call(m, "DeleteTransient", id, tlf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteTransient indicates an expected call of DeleteTransient
-func (mr *MockBlockCacheMockRecorder) DeleteTransient(ptr, tlf interface{}) *gomock.Call {
+func (mr *MockBlockCacheMockRecorder) DeleteTransient(id, tlf interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransient", reflect.TypeOf((*MockBlockCache)(nil).DeleteTransient), ptr, tlf)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransient", reflect.TypeOf((*MockBlockCache)(nil).DeleteTransient), id, tlf)
 }
 
 // DeletePermanent mocks base method

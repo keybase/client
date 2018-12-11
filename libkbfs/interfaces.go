@@ -1162,9 +1162,9 @@ type BlockCache interface {
 	// a nil error.
 	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
 	// DeleteTransient removes the transient entry for the given
-	// pointer from the cache, as well as any cached IDs so the block
+	// ID from the cache, as well as any cached IDs so the block
 	// won't be reused.
-	DeleteTransient(ptr BlockPointer, tlf tlf.ID) error
+	DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error
 	// Delete removes the permanent entry for the non-dirty block
 	// associated with the given block ID from the cache.  No
 	// error is returned if no block exists for the given ID.

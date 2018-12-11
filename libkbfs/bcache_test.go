@@ -155,7 +155,7 @@ func TestBlockCacheDeleteTransient(t *testing.T) {
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	require.NoError(t, err)
 
-	err = bcache.DeleteTransient(ptr, tlf)
+	err = bcache.DeleteTransient(ptr.ID, tlf)
 	require.NoError(t, err)
 
 	// Make sure the pointer is gone from the hash cache too.

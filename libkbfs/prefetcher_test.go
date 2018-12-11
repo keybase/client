@@ -469,7 +469,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 		FinishedPrefetch, TransientEntry)
 
 	t.Log("Remove the prefetched file block from the cache.")
-	cache.DeleteTransient(dirA.Children["b"].BlockPointer, kmd.TlfID())
+	cache.DeleteTransient(dirA.Children["b"].BlockPointer.ID, kmd.TlfID())
 	_, err = cache.Get(dirA.Children["b"].BlockPointer)
 	require.EqualError(t, err,
 		NoSuchBlockError{dirA.Children["b"].BlockPointer.ID}.Error())
@@ -531,7 +531,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 		t, config.BlockCache(), ptrA, fileA, FinishedPrefetch, TransientEntry)
 
 	t.Log("Remove the prefetched block from the cache.")
-	cache.DeleteTransient(ptrA, kmd.TlfID())
+	cache.DeleteTransient(ptrA.ID, kmd.TlfID())
 	_, err = cache.Get(ptrA)
 	require.EqualError(t, err, NoSuchBlockError{ptrA.ID}.Error())
 
@@ -1475,7 +1475,7 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
-	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	err = bcache.DeleteTransient(rootPtr.ID, kmd.TlfID())
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root again.")
@@ -1582,7 +1582,7 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
-	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	err = bcache.DeleteTransient(rootPtr.ID, kmd.TlfID())
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root again.")
@@ -1699,7 +1699,7 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
-	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	err = bcache.DeleteTransient(rootPtr.ID, kmd.TlfID())
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root again.")

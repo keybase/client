@@ -348,17 +348,17 @@ func (b *BlockCacheStandard) DeletePermanent(id kbfsblock.ID) error {
 
 // DeleteTransient implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) DeleteTransient(
-	ptr BlockPointer, tlf tlf.ID) error {
+	id kbfsblock.ID, tlf tlf.ID) error {
 	if b.cleanTransient == nil {
 		return nil
 	}
 
 	// If the block is cached and a file block, delete the known
 	// pointer as well.
-	if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
+	if tmp, ok := b.cleanTransient.Get(id); ok {
 		bc, ok := tmp.(blockContainer)
 		if !ok {
-			return BadDataError{ptr.ID}
+			return BadDataError{id}
 		}
 		block := bc.block
 
@@ -370,7 +370,7 @@ func (b *BlockCacheStandard) DeleteTransient(
 			b.ids.Remove(key)
 		}
 
-		b.cleanTransient.Remove(ptr.ID)
+		b.cleanTransient.Remove(id)
 	}
 	return nil
 }

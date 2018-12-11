@@ -5651,7 +5651,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		idsToDelete := make([]kbfsblock.ID, 0, len(realOp.Unrefs()))
 		for _, ptr := range realOp.Unrefs() {
 			idsToDelete = append(idsToDelete, ptr.ID)
-			if err := bcache.DeleteTransient(ptr, fbo.id()); err != nil {
+			if err := bcache.DeleteTransient(ptr.ID, fbo.id()); err != nil {
 				fbo.log.CDebugf(ctx,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
 			}
