@@ -37,7 +37,7 @@ const emojiRenderer = (item, selected: boolean) => (
     gap="small"
   >
     <Kb.Emoji emojiName={item.colons} size={40} />
-    <Kb.Text type="Body">{item.colons}</Kb.Text>
+    <Kb.Text type="BodySemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
 const emojiTransformer = input => input

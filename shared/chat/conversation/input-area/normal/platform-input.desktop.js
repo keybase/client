@@ -252,18 +252,20 @@ class _PlatformInput extends React.Component<
             onChange={this._pickFile}
             multiple={true}
           />
-          <Kb.PlainInput
-            className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-            autoFocus={false}
-            style={styles.input}
-            ref={this._inputSetRef}
-            placeholder={hintText}
-            onChangeText={this._onChangeText}
-            multiline={true}
-            rowsMin={1}
-            rowsMax={10}
-            onKeyDown={this._onKeyDown}
-          />
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
+            <Kb.PlainInput
+              className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+              autoFocus={false}
+              ref={this._inputSetRef}
+              placeholder={hintText}
+              style={styles.input}
+              onChangeText={this._onChangeText}
+              multiline={true}
+              rowsMin={1}
+              rowsMax={10}
+              onKeyDown={this._onKeyDown}
+            />
+          </Kb.Box2>
           {flags.explodingMessagesEnabled &&
             this.props.isExploding &&
             !this.props.isEditing &&
@@ -466,6 +468,10 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   input: {
+    height: 21,
+    minHeight: 21,
+  },
+  inputBox: {
     flex: 1,
     paddingBottom: Styles.globalMargins.xxtiny,
     paddingLeft: 6,
