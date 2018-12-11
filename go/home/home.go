@@ -211,6 +211,21 @@ func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 	return err
 }
 
+func (h *Home) DismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) (err error) {
+	defer h.G().CTraceTimed(ctx, "Home#DismissAnnouncement", func() error { return err })()
+
+	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+		Endpoint:    "home/todo/skip",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"announcement": libkb.I{Val: int(id)},
+		},
+		NetContext: ctx,
+	}))
+
+	return err
+}
+
 func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 	h.G().Log.CDebugf(ctx, "Home#bustCache")
 	h.Lock()
@@ -334,7 +349,7 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
 		return err
 	}
-	h.G().Log.Debug("home.update unmarshaled: %+v", msg)
+	h.G().Log.CDebugf(ctx, "home.update unmarshaled: %+v", msg)
 
 	h.Lock()
 	defer h.Unlock()

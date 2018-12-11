@@ -7,7 +7,8 @@ protocol home {
 
   enum HomeScreenItemType {
     TODO_1,
-    PEOPLE_2
+    PEOPLE_2,
+    ANNOUNCEMENT_3
   }
 
   variant HomeScreenItemData switch (HomeScreenItemType t) {
@@ -27,9 +28,15 @@ protocol home {
     SETTINGS_7
   }
 
+  @typedef("int")
+  record HomeScreenAnnouncementID {}
+
+  @typedef("int")
+  record HomeScreenAnnouncementVersion {}
+
   record HomeScreenAnnouncement {
-    int id;
-    int version;
+    HomeScreenAnnouncementID id;
+    HomeScreenAnnouncementVersion version;
     AppLinkType appLink;
     string confirmLabel;
     boolean dismissable;
@@ -51,8 +58,7 @@ protocol home {
     GIT_REPO_9,
     TEAM_SHOWCASE_10,
     AVATAR_USER_11,
-    AVATAR_TEAM_12,
-    ANNOUNCEMENT_10000,
+    AVATAR_TEAM_12
   }
 
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
@@ -123,6 +129,7 @@ protocol home {
   HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted);
 
   void homeSkipTodoType(HomeScreenTodoType t);
+  void homeDismissAnnouncement(HomeScreenAnnouncementID i);
   void homeActionTaken();
   void homeMarkViewed();
 
