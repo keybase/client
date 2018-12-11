@@ -108,7 +108,7 @@ const PaymentsConfirm = (props: Props) => (
             </Kb.Box2>
           ))}
         </Kb.ScrollView>
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
           <Kb.Button
             type="Secondary"
             small={Styles.isMobile}
@@ -138,6 +138,12 @@ const PaymentsConfirm = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  buttonBar: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
   buttonContainer: Styles.platformStyles({
     common: {
       justifyContent: 'space-between',
@@ -202,9 +208,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   submitButton: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
     isElectron: {
       height: Styles.globalMargins.large,
-      minWidth: 225,
     },
   }),
   submitIcon: Styles.platformStyles({
