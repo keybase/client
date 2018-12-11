@@ -146,12 +146,19 @@ const AccountSettings = (props: SettingsProps) => {
               >
                 <Kb.Checkbox
                   checked={props.mobileOnlyMode}
-                  disabled={false}
+                  disabled={!Styles.isMobile}
                   label="Mobile only"
                   onCheck={props.onMobileOnlyModeChange}
                 />
               </Kb.Box>
-              <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
+              {!Styles.isMobile && (
+                <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
+              )}
+              {Styles.isMobile && (
+                <Kb.Text type="BodySmall">
+                  Prevents sending from this account, when on a desktop or laptop.
+                </Kb.Text>
+              )}
             </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && <Kb.Divider />}
