@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/groupcache/singleflight"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
-	"go4.org/syncutil/singleflight"
 )
 
 // ErrAccountNotFound is returned when the account is not in
