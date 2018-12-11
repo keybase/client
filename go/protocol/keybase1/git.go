@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"errors"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -224,8 +225,8 @@ type GitServerMetadata struct {
 
 func (o GitServerMetadata) DeepCopy() GitServerMetadata {
 	return GitServerMetadata{
-		Ctime:                   o.Ctime.DeepCopy(),
-		Mtime:                   o.Mtime.DeepCopy(),
+		Ctime: o.Ctime.DeepCopy(),
+		Mtime: o.Mtime.DeepCopy(),
 		LastModifyingUsername:   o.LastModifyingUsername,
 		LastModifyingDeviceID:   o.LastModifyingDeviceID.DeepCopy(),
 		LastModifyingDeviceName: o.LastModifyingDeviceName,

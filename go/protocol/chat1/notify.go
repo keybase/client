@@ -5,6 +5,7 @@ package chat1
 
 import (
 	"errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -106,8 +107,8 @@ type IncomingMessage struct {
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
 	return IncomingMessage{
-		Message:                    o.Message.DeepCopy(),
-		ConvID:                     o.ConvID.DeepCopy(),
+		Message: o.Message.DeepCopy(),
+		ConvID:  o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
 		DesktopNotificationSnippet: o.DesktopNotificationSnippet,
 		Conv: (func(x *InboxUIItem) *InboxUIItem {

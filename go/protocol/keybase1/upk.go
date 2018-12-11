@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"errors"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -127,8 +128,8 @@ func (o SignatureMetadata) DeepCopy() SignatureMetadata {
 		SigningKID:              o.SigningKID.DeepCopy(),
 		PrevMerkleRootSigned:    o.PrevMerkleRootSigned.DeepCopy(),
 		FirstAppearedUnverified: o.FirstAppearedUnverified.DeepCopy(),
-		Time:                    o.Time.DeepCopy(),
-		SigChainLocation:        o.SigChainLocation.DeepCopy(),
+		Time:             o.Time.DeepCopy(),
+		SigChainLocation: o.SigChainLocation.DeepCopy(),
 	}
 }
 
