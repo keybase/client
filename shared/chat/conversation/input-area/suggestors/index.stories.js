@@ -5,29 +5,33 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import AddSuggestors, * as Suggestors from '.'
 
-const _TestArea = (props: Suggestors.PropsWithSuggestor<{somethingElse: 'this'}>) => (
-  <Kb.Box2 direction="vertical" gap="tiny" style={{padding: 10}}>
-    <Kb.Text type="BodySmall" selectable={true}>
-      Available triggers: {availableTriggers.toLocaleString()}
-    </Kb.Text>
-    <Kb.PlainInput
-      onBlur={props.onBlur}
-      onFocus={props.onFocus}
-      onChangeText={props.onChangeText}
-      onKeyDown={props.onKeyDown}
-      onSelectionChange={props.onSelectionChange}
-      multiline={true}
-      rowsMax={3}
-      ref={props.inputRef}
-      style={{
-        borderColor: 'black',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        width: 200,
-      }}
-    />
-  </Kb.Box2>
-)
+class _TestArea extends React.Component<Suggestors.PropsWithSuggestor<{somethingElse: 'this'}>> {
+  render() {
+    return (
+      <Kb.Box2 direction="vertical" gap="tiny" style={{padding: 10}}>
+        <Kb.Text type="BodySmall" selectable={true}>
+          Available triggers: {availableTriggers.toLocaleString()}
+        </Kb.Text>
+        <Kb.PlainInput
+          onBlur={this.props.onBlur}
+          onFocus={this.props.onFocus}
+          onChangeText={this.props.onChangeText}
+          onKeyDown={this.props.onKeyDown}
+          onSelectionChange={this.props.onSelectionChange}
+          multiline={true}
+          rowsMax={3}
+          ref={this.props.inputRef}
+          style={{
+            borderColor: 'black',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            width: 200,
+          }}
+        />
+      </Kb.Box2>
+    )
+  }
+}
 const TestArea = AddSuggestors(_TestArea)
 
 // prettier-ignore

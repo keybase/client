@@ -5,7 +5,10 @@ import * as Styles from '../../../../styles'
 import {invert} from 'lodash-es'
 import SuggestionList from './suggestion-list'
 
-const lg = (...args) => console.log('DANNYDEBUG', ...args)
+// Adds suggestors (list of autocomplete options) to an input
+// Only class components allowed
+
+const lg = (...args) => {}
 
 // For better performance, try not to recreate these objects on every render
 // i.e. don't instantiate the objects inline (like dataSources={{...}})
@@ -61,20 +64,22 @@ export type PropsWithSuggestor<P> = {|
   ...$Exact<SuggestorHooks>,
 |}
 
-const AddSuggestors = <WrappedOwnProps: {}>(
-  WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
-): React.ComponentType<PropsWithSuggestorOuter<WrappedOwnProps>> => {
+const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
+  WrappedComponent: Class<React.Component<PropsWithSuggestor<WrappedOwnProps>, WrappedState>>
+): Class<React.Component<PropsWithSuggestorOuter<WrappedOwnProps>, AddSuggestorsState>> => {
   class SuggestorsComponent extends React.Component<
     PropsWithSuggestorOuter<WrappedOwnProps>,
     AddSuggestorsState
   > {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
+    _attachmentRef = React.createRef()
     _lastText = null
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[key: string]: string} = invert(this.props.suggestorToMarker)
 
     _getInputRef = () => this._inputRef.current
+    _getAttachmentRef = () => this._attachmentRef.current
 
     _setInactive = () => this.setState(s => (s.active ? {active: null, filter: '', selected: 0} : null))
 
@@ -280,7 +285,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
           <Kb.FloatingBox onHidden={this._setInactive}>{content}</Kb.FloatingBox>
         ) : (
           <Kb.Overlay
-            attachTo={this._getInputRef}
+            attachTo={this._getAttachmentRef}
             position="top center"
             visible={true}
             propagateOutsideClicks={false}
@@ -305,6 +310,7 @@ const AddSuggestors = <WrappedOwnProps: {}>(
           {overlay}
           <WrappedComponent
             {...wrappedOP}
+            ref={this._attachmentRef}
             inputRef={this._inputRef}
             onBlur={this._onBlur}
             onFocus={this._onFocus}
