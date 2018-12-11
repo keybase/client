@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/client/go/kbfs/kbfscrypto"
-	"github.com/keybase/client/go/kbfs/kbfsmd"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

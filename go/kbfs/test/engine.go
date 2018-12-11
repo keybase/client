@@ -7,11 +7,11 @@ package test
 import (
 	"time"
 
-	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // User is an implementation-defined object which acts as a handle to a particular user.

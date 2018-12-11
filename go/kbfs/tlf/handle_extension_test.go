@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/go-codec/codec"
 )
 
 func TestHandleExtension(t *testing.T) {

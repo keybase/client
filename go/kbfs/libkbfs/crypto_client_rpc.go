@@ -7,11 +7,11 @@ package libkbfs
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 

@@ -6,9 +6,9 @@ package libkbfs
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 

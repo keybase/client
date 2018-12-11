@@ -14,8 +14,8 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/kardianos/osext"
-	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	kbname "github.com/keybase/client/go/kbun"
 	"golang.org/x/net/context"
 )
 

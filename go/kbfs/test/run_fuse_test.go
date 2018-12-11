@@ -13,9 +13,9 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/kbfs/libfuse"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 

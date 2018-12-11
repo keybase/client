@@ -10,11 +10,11 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )

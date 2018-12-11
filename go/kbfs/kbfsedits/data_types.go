@@ -7,11 +7,11 @@ package kbfsedits
 import (
 	"time"
 
-	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // NotificationVersion is the numeric version of the edit notification

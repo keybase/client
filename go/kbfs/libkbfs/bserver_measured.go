@@ -5,10 +5,10 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )

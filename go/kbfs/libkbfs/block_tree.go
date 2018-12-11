@@ -11,10 +11,10 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // maxBlockFetchWorkers specifies the number of parallel goroutines allowed

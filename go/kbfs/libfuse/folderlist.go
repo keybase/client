@@ -14,10 +14,10 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

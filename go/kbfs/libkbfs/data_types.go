@@ -13,16 +13,16 @@ import (
 	"strings"
 	"time"
 
-	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
 )
 

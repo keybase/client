@@ -7,9 +7,9 @@ package libkbfs
 import (
 	"testing"
 
-	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	kbname "github.com/keybase/client/go/kbun"
 )
 
 // Test that Put/Get works for TLF crypt key server halves.

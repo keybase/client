@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
-	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

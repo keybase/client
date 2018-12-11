@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/fsrpc"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 

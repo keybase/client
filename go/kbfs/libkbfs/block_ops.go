@@ -5,9 +5,9 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -41,7 +41,7 @@ func NewBlockOpsStandard(config blockOpsConfig,
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
-		bg: bg,
+		bg:                          bg,
 	}
 	q := newBlockRetrievalQueue(queueSize, prefetchQueueSize, qConfig)
 	bops := &BlockOpsStandard{

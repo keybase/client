@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v4"
 	gogit "gopkg.in/src-d/go-git.v4"

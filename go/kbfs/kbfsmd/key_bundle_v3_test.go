@@ -7,10 +7,10 @@ package kbfsmd
 import (
 	"testing"
 
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
 

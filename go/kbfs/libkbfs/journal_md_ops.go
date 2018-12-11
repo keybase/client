@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 
 	"github.com/keybase/client/go/kbfs/tlf"

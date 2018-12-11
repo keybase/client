@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/opt"

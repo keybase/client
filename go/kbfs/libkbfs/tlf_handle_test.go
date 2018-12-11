@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/kbfs/kbfscodec"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

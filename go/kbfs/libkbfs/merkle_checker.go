@@ -8,9 +8,9 @@ import (
 	"bytes"
 	"context"
 
-	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/pkg/errors"
 )
 

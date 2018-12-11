@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -144,11 +144,11 @@ func newFolderBlockManager(
 	}
 
 	fbm := &folderBlockManager{
-		appStateUpdater: appStateUpdater,
-		config:          config,
-		log:             log,
-		shutdownChan:    make(chan struct{}),
-		id:              fb.Tlf,
+		appStateUpdater:           appStateUpdater,
+		config:                    config,
+		log:                       log,
+		shutdownChan:              make(chan struct{}),
+		id:                        fb.Tlf,
 		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
 		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
 		archivePauseChan:          make(chan (<-chan struct{})),

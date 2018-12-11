@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )

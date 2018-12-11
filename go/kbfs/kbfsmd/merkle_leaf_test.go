@@ -7,8 +7,8 @@ package kbfsmd
 import (
 	"testing"
 
-	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/stretchr/testify/require"
 )
 

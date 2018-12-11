@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"

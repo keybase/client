@@ -7,11 +7,11 @@ package libkbfs
 import (
 	"time"
 
-	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )

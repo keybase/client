@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/kbfs/cache"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfshash"
+	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"

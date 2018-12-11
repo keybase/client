@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
 

@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 func makeFakeBlockContext(t *testing.T) kbfsblock.Context {

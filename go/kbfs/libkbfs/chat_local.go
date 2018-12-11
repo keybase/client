@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/pkg/errors"
 )
 

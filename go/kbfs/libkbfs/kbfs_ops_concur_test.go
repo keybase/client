@@ -14,13 +14,13 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/client/go/kbfs/kbfsblock"
-	"github.com/keybase/client/go/kbfs/kbfscrypto"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 

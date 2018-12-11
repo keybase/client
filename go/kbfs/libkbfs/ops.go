@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
 )
 
@@ -953,8 +953,8 @@ func (so *syncOp) checkConflict(
 		}
 
 		return &renameUnmergedAction{
-			fromName: so.getFinalPath().tailName(),
-			toName:   toName,
+			fromName:                 so.getFinalPath().tailName(),
+			toName:                   toName,
 			unmergedParentMostRecent: so.getFinalPath().parentPath().tailPointer(),
 			mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
 				tailPointer(),

@@ -16,11 +16,6 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
-	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -28,6 +23,11 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

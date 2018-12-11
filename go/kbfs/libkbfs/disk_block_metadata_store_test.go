@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"

@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"

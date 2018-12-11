@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/stretchr/testify/require"
 )
 

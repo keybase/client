@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )

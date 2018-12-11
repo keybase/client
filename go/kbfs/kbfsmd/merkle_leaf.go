@@ -5,9 +5,9 @@
 package kbfsmd
 
 import (
-	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	merkle "github.com/keybase/go-merkle-tree"
 	"golang.org/x/crypto/nacl/box"
 )
 

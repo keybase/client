@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/kbfsedits"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/client/go/kbfs/kbfsedits"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 

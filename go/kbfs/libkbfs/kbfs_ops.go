@@ -9,15 +9,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -70,8 +70,8 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[Favorite]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs:       NewFavorites(config),
-		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
+		favs:                  NewFavorites(config),
+		quotaUsage:            NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
 		currentStatus: &kbfsCurrentStatus{},

@@ -7,9 +7,9 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/go-codec/codec"
 )
 
 type mdIDJournalEntryFuture struct {

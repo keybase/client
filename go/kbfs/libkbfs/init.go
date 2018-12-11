@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/client/go/kbfs/kbfscrypto"
-	"github.com/keybase/client/go/kbfs/kbfsmd"
 )
 
 const (
@@ -211,7 +211,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 

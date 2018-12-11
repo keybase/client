@@ -6,12 +6,12 @@ import (
 	"net"
 	"sync"
 
+	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
 )
 
 // KBFSErrorUnwrapper unwraps errors from the KBFS service.

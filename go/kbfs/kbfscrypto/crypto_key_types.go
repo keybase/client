@@ -11,9 +11,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
+	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 )

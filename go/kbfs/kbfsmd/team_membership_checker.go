@@ -7,8 +7,8 @@ package kbfsmd
 import (
 	"context"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // TeamMembershipChecker is an interface for objects that can check

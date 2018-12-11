@@ -5,8 +5,8 @@
 package libkbfs
 
 import (
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/go-codec/codec"
 )
 
 // PrevRevisionAndCount track the MD version of a previous revision of

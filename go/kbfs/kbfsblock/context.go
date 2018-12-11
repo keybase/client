@@ -8,8 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // RefNonce is a 64-bit unique sequence of bytes for identifying this

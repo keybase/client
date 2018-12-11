@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libdokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 

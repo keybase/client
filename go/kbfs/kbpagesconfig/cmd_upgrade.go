@@ -10,8 +10,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keybase/client/go/minterm"
 	"github.com/keybase/client/go/kbfs/libpages/config"
+	"github.com/keybase/client/go/minterm"
 	"github.com/urfave/cli"
 )
 
