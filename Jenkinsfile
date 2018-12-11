@@ -1,5 +1,7 @@
 #!groovy
 
+import groovy.json.JsonSlurper
+
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
 helpers.rootLinuxNode(env, {
@@ -319,7 +321,7 @@ def testGo(prefix) {
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
 
-        println "Running lint and vet"
+        println "Running golint"
         retry(5) {
             sh 'go get -u golang.org/x/lint/golint'
         }
@@ -330,24 +332,37 @@ def testGo(prefix) {
         }
         if (isUnix()) {
             // Windows `gofmt` pukes on CRLF, so only run on *nix.
+            println "Check that files are formatted correctly"
             sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
         }
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
+
+        println "Running go vet"
         sh 'go list ./... | grep -v github.com/keybase/client/go/bind | xargs go vet'
 
+        // Load list of packages that changed.
+        def diffPackageList = sh(returnStdout: true, script: 'git --no-pager diff --name-only origin/master 2>/dev/null -- . | sed \'s/^\\(.*\\)\\/[^\\/]*$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq').trim()
+        println "Go packages changed:\n${diffPackageList}"
+
+        // Load list of dependencies and mark all dependent packages to test.
+        def packagesToTest = new HashSet<String>()
+        def dependencyFile = new File('.go_package_deps')
+        def dependencyMap = new JsonSlurper().parseText(dependencyFile.text)
+        diffPackageList.each { pkg ->
+            // pkg changed; we need to load it from dependencyMap to see
+            // which tests should be run.
+            dependencyMap[pkg].each { dep ->
+                packagesToTest << dep
+            }
+        }
+
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
-        def parallelTests = []
         def tests = [:]
         def specialTests = [:]
         def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
-        for (def i=0; i<dirs.size(); i++) {
-            if (tests.size() == 4) {
-                parallelTests << tests
-                tests = [:]
-            }
-            def d = dirs[i]
-            def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
+        packagesToTest.each { pkg ->
+            def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
             dir(dirPath) {
                 sh "go test -i"
@@ -371,13 +386,24 @@ def testGo(prefix) {
                 }
             }
         }
-        if (tests.size() > 0) {
-            parallelTests << tests
+
+        // Schedule the tests
+        def parallelTests = []
+        def testBatch = [:]
+        tests.each { name, closure ->
+            if (testBatch.size() == 4) {
+                parallelTests << testBatch
+                testBatch = [:]
+            }
+            testBatch[name] = closure
+        }
+        if (testBatch.size() > 0) {
+            parallelTests << testBatch
         }
         parallelTests << specialTests
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        for (def i=0; i<parallelTests.size(); i++) {
-            parallel(parallelTests[i])
+        parallelTests.each { batch ->
+            parallel(batch)
         }
     }}
 }
