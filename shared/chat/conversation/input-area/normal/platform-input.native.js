@@ -31,7 +31,6 @@ import {
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
-import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 

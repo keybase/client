@@ -1,6 +1,5 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,

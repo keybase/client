@@ -15,7 +15,6 @@ import {
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen'
 import * as ConfigGen from '../actions/config-gen'
-import flags from '../util/feature-flags'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 type URLType = any

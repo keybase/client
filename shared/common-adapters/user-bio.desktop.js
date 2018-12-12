@@ -1,12 +1,11 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
+import {Avatar, Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
-import flags from '../util/feature-flags'
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
@@ -202,14 +201,6 @@ class BioRender extends Component<Props> {
   }
 }
 
-const stylesEditAvatarIcon = avatarSize => ({
-  // Hack to make the hover and onclick register over the avatar
-  bottom: 0,
-  paddingLeft: avatarSize,
-  paddingTop: avatarSize,
-  position: 'absolute',
-  right: 0,
-})
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',

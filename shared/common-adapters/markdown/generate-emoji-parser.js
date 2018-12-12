@@ -3,6 +3,31 @@ import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource'
 import {escapeRegExp} from 'lodash'
+import tlds from 'tlds'
+
+const commonTlds = [
+  'com',
+  'org',
+  'edu',
+  'gov',
+  'uk',
+  'net',
+  'ca',
+  'de',
+  'jp',
+  'fr',
+  'au',
+  'us',
+  'ru',
+  'ch',
+  'it',
+  'nl',
+  'se',
+  'no',
+  'es',
+  'io',
+  'tv',
+]
 
 /**
  * Note on above: importing a non-transpiled module that uses modern JS features
@@ -73,12 +98,17 @@ function genEmojiData() {
 }
 
 function buildEmojiFile() {
-  const p = path.join(__dirname, '..', 'markdown', 'emoji.js')
+  const p = path.join(__dirname, 'emoji-gen.js')
   const {emojiLiterals, emojiIndexByName} = genEmojiData()
   const data = `// @noflow
+/* eslint-disable */
 export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
     .map(escapeRegExp)
-    .join('|')})/`
+    .join('|')})/
+export const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
+export const tldExp = new RegExp(/.(${tlds.join('|')})\\b/)
+export const commonTlds = ${JSON.stringify(commonTlds)}
+`
   fs.writeFileSync(p, data, {encoding: 'utf8'})
 }
 
