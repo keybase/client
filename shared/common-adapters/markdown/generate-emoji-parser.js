@@ -49,7 +49,6 @@ function genEmojiData() {
   const emojiIndexByChar = {}
   const emojiIndexByName = {}
   const emojiLiterals = []
-  const emojiCharacters = new Set()
   function addEmojiLiteral(unified, name, skinTone) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
@@ -66,7 +65,6 @@ function genEmojiData() {
       emojiIndexByName[fullName] = char
     }
     emojiLiterals.push(literals)
-    chars.forEach(c => emojiCharacters.add(c))
   }
 
   emojiData.forEach(emoji => {
@@ -94,18 +92,19 @@ function genEmojiData() {
 
   emojiLiterals.sort((a, b) => b.length - a.length)
 
-  return {emojiCharacters, emojiIndexByChar, emojiIndexByName, emojiLiterals}
+  return {emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
 function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.js')
-  const {emojiLiterals, emojiIndexByName} = genEmojiData()
+  const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
   const data = `// @noflow
 /* eslint-disable */
 export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
     .map(escapeRegExp)
     .join('|')})/
 export const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
+export const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
 export const tldExp = new RegExp(/.(${tlds.join('|')})\\b/)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
