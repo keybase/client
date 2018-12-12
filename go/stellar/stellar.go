@@ -1606,7 +1606,7 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 
 const DefaultCurrencySetting = "USD"
 
-// GetAccountDisplayCurrency gets currency setting from the server, and if
+// GetAccountDisplayCurrency gets currency setting from the server, and it
 // returned currency is empty (NULL in database), then default "USD" is used.
 // When creating a wallet, client always sets default currency setting. Also
 // when a new account in existing wallet is created, it will inherit currency
@@ -1614,15 +1614,6 @@ const DefaultCurrencySetting = "USD"
 // settings should only happen in very old accounts or when wallet generation
 // was interrupted in precise moment.
 func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.AccountID) (res string, err error) {
-	cache := mctx.G().GetStellar().GetAccountCurrencyCache()
-	cachedResult, _ := cache.Get(accountID.String())
-	if cachedResult != nil {
-		res, ok := cachedResult.(string)
-		if ok {
-			mctx.CDebugf("returning cached result for account display currency %s: %s", accountID, res)
-			return res, nil
-		}
-	}
 	codeStr, err := remote.GetAccountDisplayCurrency(mctx.Ctx(), mctx.G(), accountID)
 	if err != nil {
 		return res, err
@@ -1631,7 +1622,6 @@ func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.Accoun
 		codeStr = DefaultCurrencySetting
 		mctx.CDebugf("Using default display currency %s for account %s", codeStr, accountID)
 	}
-	_ = cache.Set(accountID.String(), codeStr)
 	return codeStr, nil
 }
 
