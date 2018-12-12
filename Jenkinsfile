@@ -366,6 +366,7 @@ def testGo(prefix) {
                     } else {
                         tests[prefix + testName] = test
                     }
+                    println "Will run tests for $dirPath"
                 } else {
                     println "Skipping tests for $dirPath because no test binary was produced."
                 }
