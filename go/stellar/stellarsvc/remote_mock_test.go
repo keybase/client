@@ -265,8 +265,9 @@ func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamI
 }
 
 func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
-
 		typ, err := tx.Summary.Typ()
 		require.NoError(t.T, err)
 		switch typ {
@@ -291,6 +292,8 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 }
 
 func (t *txlogger) FindFirstUnclaimedFor(uv keybase1.UserVersion) (*stellar1.PaymentDetails, error) {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
 		typ, err := tx.Summary.Typ()
 		if err != nil {
