@@ -21,54 +21,80 @@ export class HeaderHocHeader extends React.Component<Props, State> {
   _showFloatingMenu = () => this.setState({floatingMenuVisible: true})
   render() {
     return (
-      <Box style={Styles.collapseStyles([styles.header, this.props.theme === 'dark' ? styles.headerDark : styles.headerLight, this.props.headerStyle])}>
+      <Box
+        style={Styles.collapseStyles([
+          styles.header,
+          this.props.theme === 'dark' ? styles.headerDark : styles.headerLight,
+          this.props.headerStyle,
+        ])}
+      >
         {this.props.customComponent}
         <Box style={styles.leftAction}>
-          {this.props.onLeftAction && (
-            this.props.leftAction === 'cancel' ? (
+          {this.props.onLeftAction &&
+            (this.props.leftAction === 'cancel' ? (
               <Text type="BodyBigLink" style={styles.action} onClick={this.props.onLeftAction}>
                 {this.props.leftActionText || 'Cancel'}
               </Text>
             ) : (
               <BackButton
                 hideBackLabel={this.props.hideBackLabel}
-                iconColor={this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
+                iconColor={
+                  this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40
+                }
                 style={styles.action}
                 onClick={this.props.onLeftAction}
               />
-            )
-          )}
+            ))}
         </Box>
         <Box style={styles.titleContainer}>
-          {!!this.props.title && !this.props.children && (
-              <Text type="BodySemibold" style={styles.title} lineClamp={1}>!{this.props.title}</Text>
-          )}
+          {!!this.props.title &&
+            !this.props.children && (
+              <Text type="BodySemibold" style={styles.title} lineClamp={1}>
+                !{this.props.title}
+              </Text>
+            )}
           {this.props.children}
         </Box>
-        <Box style={Styles.collapseStyles([styles.rightActions, this.props.rightActions && Styles.isIOS && styles.rightActionsPadding])}>
-          {this.props.rightActions && this.props.rightActions.filter(Boolean).slice(0, this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1).map((action, item) => (
-            renderAction(action)
-          ))}
-          {this.props.rightActions && this.props.rightActions.length > MAX_RIGHT_ACTIONS && (
-            <>
-              <Icon
-                fontSize={22}
-                onClick={this._showFloatingMenu}
-                style={styles.action}
-                type="iconfont-ellipsis"
-              />
-              <FloatingMenu
-                visible={this.state.floatingMenuVisible}
-                items={this.props.rightActions.filter(Boolean).slice(MAX_RIGHT_ACTIONS - 1).map((action, item) => ({
-                  onClick: action.onPress,
-                  title: action.label,
-                }))}
-                onHidden={this._onHidden}
-                position="bottom left"
-                closeOnSelect={true}
-              />
-            </>
-          )}
+        <Box
+          style={Styles.collapseStyles([
+            styles.rightActions,
+            this.props.rightActions && Styles.isIOS && styles.rightActionsPadding,
+          ])}
+        >
+          {this.props.rightActions &&
+            this.props.rightActions
+              .filter(Boolean)
+              .slice(
+                0,
+                this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS
+                  ? MAX_RIGHT_ACTIONS
+                  : MAX_RIGHT_ACTIONS - 1
+              )
+              .map((action, item) => renderAction(action))}
+          {this.props.rightActions &&
+            this.props.rightActions.length > MAX_RIGHT_ACTIONS && (
+              <>
+                <Icon
+                  fontSize={22}
+                  onClick={this._showFloatingMenu}
+                  style={styles.action}
+                  type="iconfont-ellipsis"
+                />
+                <FloatingMenu
+                  visible={this.state.floatingMenuVisible}
+                  items={this.props.rightActions
+                    .filter(Boolean)
+                    .slice(MAX_RIGHT_ACTIONS - 1)
+                    .map((action, item) => ({
+                      onClick: action.onPress,
+                      title: action.label,
+                    }))}
+                  onHidden={this._onHidden}
+                  position="bottom left"
+                  closeOnSelect={true}
+                />
+              </>
+            )}
         </Box>
       </Box>
     )
@@ -76,24 +102,19 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 }
 
 const renderAction = (action: Action): React.Node =>
-  action.custom
-    ? <Box style={styles.action}>
-      {action.custom}
-      </Box>
-    : action.icon
-      ? <Icon
-          fontSize={22}
-          onClick={action.onPress}
-          style={styles.action}
-          type={action.icon}
-        />
-      : <Text
-          type="BodyBigLink"
-          style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
-          onClick={action.onPress}
-        >
-          {action.label}
-        </Text>
+  action.custom ? (
+    <Box style={styles.action}>{action.custom}</Box>
+  ) : action.icon ? (
+    <Icon fontSize={22} onClick={action.onPress} style={styles.action} type={action.icon} />
+  ) : (
+    <Text
+      type="BodyBigLink"
+      style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
+      onClick={action.onPress}
+    >
+      {action.label}
+    </Text>
+  )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
