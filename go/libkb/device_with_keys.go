@@ -113,8 +113,7 @@ func (d *DeviceWithKeys) Populate(m MetaContext) (uid keybase1.UID, err error) {
 		NetContext:  m.Ctx(),
 	}
 	var res ownerDeviceReply
-	err = m.G().API.GetDecode(arg, &res)
-	if err != nil {
+	if err = m.G().API.GetDecode(arg, &res); err != nil {
 		return uid, err
 	}
 	d.deviceID = res.DeviceID
