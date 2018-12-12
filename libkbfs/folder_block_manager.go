@@ -114,11 +114,11 @@ type folderBlockManager struct {
 	// merged revision for this TLF.
 	latestMergedChan chan struct{}
 
-	// cleanSyncCacheGroup tracks the outstanding sync-cache cleanings.
-	cleanSyncCacheGroup kbfssync.RepeatedWaitGroup
+	// cleanDiskCachesGroup tracks the outstanding disk-cache cleanings.
+	cleanDiskCachesGroup kbfssync.RepeatedWaitGroup
 
-	cleanSyncCacheCancelLock sync.Mutex
-	cleanSyncCacheCancel     context.CancelFunc
+	cleanDiskCacheCancelLock sync.Mutex
+	cleanDiskCacheCancel     context.CancelFunc
 
 	helper fbmHelper
 
@@ -167,7 +167,7 @@ func newFolderBlockManager(
 	go fbm.deleteBlocksInBackground()
 	if qrEnabled {
 		go fbm.reclaimQuotaInBackground()
-		go fbm.cleanSyncCacheInBackground()
+		go fbm.cleanDiskCachesInBackground()
 	}
 	return fbm
 }
@@ -229,23 +229,23 @@ func (fbm *folderBlockManager) cancelReclamation() {
 	}
 }
 
-func (fbm *folderBlockManager) setCleanSyncCacheCancel(
+func (fbm *folderBlockManager) setCleanDiskCacheCancel(
 	cancel context.CancelFunc) {
-	fbm.cleanSyncCacheCancelLock.Lock()
-	defer fbm.cleanSyncCacheCancelLock.Unlock()
-	fbm.cleanSyncCacheCancel = cancel
+	fbm.cleanDiskCacheCancelLock.Lock()
+	defer fbm.cleanDiskCacheCancelLock.Unlock()
+	fbm.cleanDiskCacheCancel = cancel
 }
 
-func (fbm *folderBlockManager) cancelCleanSyncCache() {
-	cleanSyncCacheCancel := func() context.CancelFunc {
-		fbm.cleanSyncCacheCancelLock.Lock()
-		defer fbm.cleanSyncCacheCancelLock.Unlock()
-		cleanSyncCacheCancel := fbm.cleanSyncCacheCancel
-		fbm.cleanSyncCacheCancel = nil
-		return cleanSyncCacheCancel
+func (fbm *folderBlockManager) cancelCleanDiskCache() {
+	cleanDiskCacheCancel := func() context.CancelFunc {
+		fbm.cleanDiskCacheCancelLock.Lock()
+		defer fbm.cleanDiskCacheCancelLock.Unlock()
+		cleanDiskCacheCancel := fbm.cleanDiskCacheCancel
+		fbm.cleanDiskCacheCancel = nil
+		return cleanDiskCacheCancel
 	}()
-	if cleanSyncCacheCancel != nil {
-		cleanSyncCacheCancel()
+	if cleanDiskCacheCancel != nil {
+		cleanDiskCacheCancel()
 	}
 }
 
@@ -254,7 +254,7 @@ func (fbm *folderBlockManager) shutdown() {
 	fbm.cancelArchive()
 	fbm.cancelBlocksToDelete()
 	fbm.cancelReclamation()
-	fbm.cancelCleanSyncCache()
+	fbm.cancelCleanDiskCache()
 }
 
 // cleanUpBlockState cleans up any blocks that may have been orphaned
@@ -433,9 +433,9 @@ func (fbm *folderBlockManager) waitForQuotaReclamations(
 	return fbm.reclamationGroup.Wait(ctx)
 }
 
-func (fbm *folderBlockManager) waitForSyncCacheCleans(
+func (fbm *folderBlockManager) waitForDiskCacheCleans(
 	ctx context.Context) error {
-	return fbm.cleanSyncCacheGroup.Wait(ctx)
+	return fbm.cleanDiskCachesGroup.Wait(ctx)
 }
 
 func (fbm *folderBlockManager) forceQuotaReclamation() {
@@ -1306,25 +1306,21 @@ func (fbm *folderBlockManager) clearLastQRData() {
 	fbm.lastReclamationTime = time.Time{}
 }
 
-func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
-	defer fbm.cleanSyncCacheGroup.Done()
-	syncConfig := fbm.config.GetTlfSyncState(fbm.id)
-	if syncConfig.Mode == keybase1.FolderSyncMode_DISABLED {
-		return nil
-	}
+func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
+	err error) {
 	dbc := fbm.config.DiskBlockCache()
 	if dbc == nil {
 		return nil
 	}
 
 	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
-	fbm.setCleanSyncCacheCancel(cancel)
-	defer fbm.cancelCleanSyncCache()
+	fbm.setCleanDiskCacheCancel(cancel)
+	defer fbm.cancelCleanDiskCache()
 
 	lState := makeFBOLockState()
 	recentRev := fbm.helper.getLatestMergedRevision(lState)
 
-	lastRev, err := dbc.GetLastUnrefRev(ctx, fbm.id, DiskBlockSyncCache)
+	lastRev, err := dbc.GetLastUnrefRev(ctx, fbm.id, cacheType)
 	if err != nil {
 		return err
 	}
@@ -1341,12 +1337,13 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 			// monitoring the TLF for syncing, in which case it
 			// shouldn't have any cached blocks that were unref'd in
 			// earlier revisions.
-			fbm.log.CDebugf(ctx, "Starting to clean at revision %d", recentRev)
+			fbm.log.CDebugf(ctx, "Starting to clean %s at revision %d",
+				cacheType, recentRev)
 			lastRev = recentRev - 1
 		} else {
 			// No revisions to clean yet.
 			return dbc.PutLastUnrefRev(
-				ctx, fbm.id, recentRev, DiskBlockSyncCache)
+				ctx, fbm.id, recentRev, cacheType)
 		}
 	}
 
@@ -1355,10 +1352,10 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 		return nil
 	}
 
-	fbm.log.CDebugf(ctx, "Cleaning sync cache for revisions after %d, "+
-		"up to %d", lastRev, recentRev)
+	fbm.log.CDebugf(ctx, "Cleaning %s revisions after %d, "+
+		"up to %d", cacheType, lastRev, recentRev)
 	defer func() {
-		fbm.log.CDebugf(ctx, "Done cleaning sync cache: %+v", err)
+		fbm.log.CDebugf(ctx, "Done cleaning %s: %+v", cacheType, err)
 	}()
 	for nextRev := lastRev + 1; nextRev <= recentRev; nextRev++ {
 		rmd, err := getSingleMD(
@@ -1378,7 +1375,7 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 			return err
 		}
 
-		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev, DiskBlockSyncCache)
+		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev, cacheType)
 		if err != nil {
 			return err
 		}
@@ -1387,7 +1384,23 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 	return nil
 }
 
-func (fbm *folderBlockManager) cleanSyncCacheInBackground() {
+func (fbm *folderBlockManager) doCleanDiskCaches() (err error) {
+	defer fbm.cleanDiskCachesGroup.Done()
+
+	// Clean out sync cache only if it is enabled
+	syncConfig := fbm.config.GetTlfSyncState(fbm.id)
+	if syncConfig.Mode != keybase1.FolderSyncMode_DISABLED {
+		err = fbm.doCleanDiskCache(DiskBlockSyncCache)
+		if err != nil {
+			return err
+		}
+	}
+	return fbm.doCleanDiskCache(DiskBlockWorkingSetCache)
+}
+
+func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
+	// While in the foreground, clean the disk caches every time we learn about
+	// a newer latest merged revision for this TLF.
 	for {
 		state := keybase1.AppState_FOREGROUND
 		select {
@@ -1406,7 +1419,7 @@ func (fbm *folderBlockManager) cleanSyncCacheInBackground() {
 			continue
 		}
 
-		_ = fbm.doCleanSyncCache()
+		_ = fbm.doCleanDiskCaches()
 	}
 }
 
@@ -1415,10 +1428,10 @@ func (fbm *folderBlockManager) signalLatestMergedRevision() {
 		return
 	}
 
-	fbm.cleanSyncCacheGroup.Add(1)
+	fbm.cleanDiskCachesGroup.Add(1)
 	select {
 	case fbm.latestMergedChan <- struct{}{}:
 	default:
-		fbm.cleanSyncCacheGroup.Done()
+		fbm.cleanDiskCachesGroup.Done()
 	}
 }
