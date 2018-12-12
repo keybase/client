@@ -1,6 +1,6 @@
 #!groovy
 
-import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
@@ -333,7 +333,7 @@ def testGo(prefix) {
         def packagesToTest = [:]
         def goos = sh(returnStdout: true, script: "go env GOOS").trim()
         def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
-        def dependencyMap = new JsonSlurper().parseText(dependencyFile)
+        def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
         diffPackageList.each { pkg ->
             // pkg changed; we need to load it from dependencyMap to see
             // which tests should be run.
