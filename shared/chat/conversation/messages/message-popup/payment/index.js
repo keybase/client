@@ -147,6 +147,7 @@ const PaymentPopup = (props: Props) => {
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       header={header}
       items={items}
       visible={props.visible}

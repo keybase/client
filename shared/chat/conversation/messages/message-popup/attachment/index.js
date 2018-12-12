@@ -77,6 +77,7 @@ const AttachmentPopupMenu = (props: Props) => {
       onHidden={props.onHidden}
       closeOnSelect={true}
       position={props.position}
+      positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
     />
