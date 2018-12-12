@@ -326,13 +326,13 @@ def testGo(prefix) {
         // sh 'go list ./... | grep -v github.com/keybase/client/go/bind | xargs go vet'
 
         // Load list of packages that changed.
-        def diffPackageList = sh(returnStdout: true, script: 'git --no-pager diff --name-only origin/master 2>/dev/null -- . | sed \'s/^\\(.*\\)\\/[^\\/]*$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq').trim().split()
+        def diffPackageList = sh(returnStdout: true, script: 'git --no-pager diff --name-only origin/master -- . | sed \'s/^\\(.*\\)\\/[^\\/]*$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq').trim().split()
         println "Go packages changed:\n${diffPackageList}"
 
         // Load list of dependencies and mark all dependent packages to test.
         def packagesToTest = [:]
         def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-        def dependencyFile = new File(".go_package_deps_${goos}")
+        def dependencyFile = new File("./.go_package_deps_${goos}")
         def dependencyMap = new JsonSlurper().parseText(dependencyFile.text)
         diffPackageList.each { pkg ->
             // pkg changed; we need to load it from dependencyMap to see
