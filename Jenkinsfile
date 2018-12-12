@@ -323,8 +323,7 @@ def testGo(prefix) {
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
         println "Running go vet"
-        // FIXME: disable for now
-        // sh 'go list ./... | grep -v github.com/keybase/client/go/bind | xargs go vet'
+        sh 'go list ./... | grep -v github.com/keybase/client/go/bind | xargs go vet'
 
         // Load list of packages that changed.
         def diffPackageList = sh(returnStdout: true, script: 'git --no-pager diff --name-only origin/master -- . | sed \'s/^\\(.*\\)\\/[^\\/]*$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq').trim().split()
