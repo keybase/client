@@ -157,17 +157,18 @@ helpers.rootLinuxNode(env, {
                                             testGo("test_linux_go_")
                                         }
                                     }},
-                                    test_linux_js: { withEnv([
-                                        "PATH=${env.HOME}/.node/bin:${env.PATH}",
-                                        "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                        "NODE_OPTIONS=--max-old-space-size=4096",
-                                    ]) {
-                                        dir("shared") {
-                                            stage("JS Tests") {
-                                                sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                            }
-                                        }
-                                    }},
+                                    // FIXME: re-enable
+                                    //test_linux_js: { withEnv([
+                                    //    "PATH=${env.HOME}/.node/bin:${env.PATH}",
+                                    //    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                    //    "NODE_OPTIONS=--max-old-space-size=4096",
+                                    //]) {
+                                    //    dir("shared") {
+                                    //        stage("JS Tests") {
+                                    //            sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                    //        }
+                                    //    }
+                                    //}},
                                 )
                             },
                         )
@@ -341,6 +342,7 @@ def testGo(prefix) {
                 packagesToTest[dep] = 1
             }
         }
+        println "Go packages to test:\n${packagesToTest.keySet().join('\n')}"
 
         def tests = [:]
         def specialTests = [:]
