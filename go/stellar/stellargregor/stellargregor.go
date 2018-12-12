@@ -28,13 +28,13 @@ func New(g *libkb.GlobalContext, walletState *stellar.WalletState) *Handler {
 func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("WGR")
 	switch category {
-	case "stellar.autoclaim":
+	case stellar1.PushAutoClaim:
 		return true, h.autoClaim(mctx, cli, category, item)
-	case "stellar.payment_status":
+	case stellar1.PushPaymentStatus:
 		return true, h.paymentStatus(mctx, cli, category, item)
-	case "stellar.payment_notification":
+	case stellar1.PushPaymentNotification:
 		return true, h.paymentNotification(mctx, cli, category, item)
-	case "stellar.request_status":
+	case stellar1.PushRequestStatus:
 		return true, h.requestStatus(mctx, cli, category, item)
 	default:
 		if strings.HasPrefix(category, "stellar.") {
