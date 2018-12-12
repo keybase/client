@@ -17,8 +17,7 @@ if (process.argv.length !== 4) {
 const convertLine = line => {
   const e = reg.exec(line)
   if (!e) {
-    // TODO put back
-    // console.log('Skipping unparsed line:', line)
+    console.log('Skipping unparsed line:', line)
     return
   }
   const [, time, coreOrKbfs, file, fileline, counter, _typeAndMethod, _tags] = e
@@ -119,36 +118,31 @@ lines.forEach(line => {
     case '+':
       if (data[dataKey]) {
         output.collision.push(info)
-        // console.log('COLLISION: ', '\n', info, '\n', data[dataKey])
       }
-      // console.log('INJECT!', dataKey)
       data[dataKey] = info
       break
     case '-':
       if (data[dataKey]) {
-        // console.log('FOUND!', dataKey)
         output.good = output.good.concat(buildGood(data[dataKey], info))
         data[dataKey] = undefined
       } else {
-        // console.log('Unmatched -:', info)
         output.unmatched.push(info)
       }
       break
     default:
-    // TODO put back
     // console.log('Unknown line type:', info.type, ':', line)
   }
 })
 
-// if (output.unmatched.length) {
-// console.log('Unmatched lines:')
-// output.unmatched.forEach(u => console.log(u.line))
-// }
+if (output.unmatched.length) {
+  console.log('Unmatched lines:')
+  output.unmatched.forEach(u => console.log(u.line))
+}
 
-// if (output.collision.length) {
-// console.log('Lines with collisions:')
-// output.collision.forEach(c => console.log(c.line))
-// }
+if (output.collision.length) {
+  console.log('Lines with collisions:')
+  output.collision.forEach(c => console.log(c.line))
+}
 
 const format = {
   displaytimeUnit: 'ms',
