@@ -5,6 +5,8 @@ package client
 
 import (
 	"fmt"
+	"path"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -34,6 +36,23 @@ func NewCmdSimpleFSSyncEnable(
 	}
 }
 
+func toTlfPath(p keybase1.Path) (keybase1.Path, error) {
+	split := strings.SplitN(p.String(), "/", 4)
+	if len(split) < 4 {
+		return p, nil
+	}
+	return makeSimpleFSPath(
+		path.Join(append([]string{mountDir}, split[0:3]...)...))
+}
+
+func pathMinusTlf(p keybase1.Path) string {
+	split := strings.SplitN(p.String(), "/", 4)
+	if len(split) < 4 {
+		return ""
+	}
+	return split[3]
+}
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSSyncEnable) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
@@ -48,6 +67,33 @@ func (c *CmdSimpleFSSyncEnable) Run() error {
 		},
 		Path: c.path,
 	}
+
+	subpath := pathMinusTlf(c.path)
+	if subpath != "" {
+		arg.Path, err = toTlfPath(c.path)
+		if err != nil {
+			return err
+		}
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, arg.Path)
+		if err != nil {
+			return err
+		}
+
+		if res.Config.Mode == keybase1.FolderSyncMode_ENABLED {
+			return fmt.Errorf("Must disable full syncing on %s first", arg.Path)
+		}
+
+		for _, p := range res.Config.Paths {
+			if p == subpath {
+				// Already enabled.
+				return nil
+			}
+		}
+
+		arg.Config.Mode = keybase1.FolderSyncMode_PARTIAL
+		arg.Config.Paths = append(res.Config.Paths, subpath)
+	}
+
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
 }
 

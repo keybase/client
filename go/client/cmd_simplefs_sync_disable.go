@@ -48,6 +48,41 @@ func (c *CmdSimpleFSSyncDisable) Run() error {
 		},
 		Path: c.path,
 	}
+
+	subpath := pathMinusTlf(c.path)
+	if subpath != "" {
+		arg.Path, err = toTlfPath(c.path)
+		if err != nil {
+			return err
+		}
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, arg.Path)
+		if err != nil {
+			return err
+		}
+
+		if res.Config.Mode == keybase1.FolderSyncMode_DISABLED {
+			return fmt.Errorf("No syncing enabled on %s", arg.Path)
+		} else if res.Config.Mode == keybase1.FolderSyncMode_ENABLED {
+			return fmt.Errorf(
+				"Cannot disable single path on fully-synced TLF %s", arg.Path)
+		}
+
+		found := false
+		for _, p := range res.Config.Paths {
+			if p == subpath {
+				found = true
+			} else {
+				arg.Config.Paths = append(arg.Config.Paths, p)
+			}
+		}
+
+		if !found {
+			return nil
+		}
+
+		arg.Config.Mode = keybase1.FolderSyncMode_PARTIAL
+	}
+
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
 }
 
