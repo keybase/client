@@ -6,6 +6,27 @@ import * as Styles from '../../../../styles'
 import WalletRow from './wallet-row/container'
 import {type Props} from './container'
 
+type RowProps = {|
+  children: React.Node,
+  onClick: () => void,
+  onHidden: () => void,
+  style?: Styles.StylesCrossPlatform,
+|}
+
+const Row = (props: RowProps) => (
+  <Kb.Box2 direction="vertical" style={styles.rowContainer}>
+    <TouchableOpacity
+      onPress={() => {
+        props.onHidden() // auto hide after a selection
+        props.onClick()
+      }}
+      style={Styles.collapseStyles([styles.row, props.style])}
+    >
+      {props.children}
+    </TouchableOpacity>
+  </Kb.Box2>
+)
+
 type MenuItem = {|
   onClick?: ?(evt?: SyntheticEvent<>) => void,
   style?: Styles.StylesCrossPlatform,
@@ -15,19 +36,11 @@ type MenuItem = {|
 
 const renderItem = (item: MenuItem, onHidden: () => void) =>
   item.view || (
-    <Kb.Box2 direction="vertical" style={styles.rowContainer}>
-      <TouchableOpacity
-        onPress={() => {
-          onHidden && onHidden() // auto hide after a selection
-          item.onClick && item.onClick()
-        }}
-        style={Styles.collapseStyles([styles.row, item.style])}
-      >
-        <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
-          {item.title}
-        </Kb.Text>
-      </TouchableOpacity>
-    </Kb.Box2>
+    <Row onClick={item.onClick || (() => {})} onHidden={onHidden} style={item.style}>
+      <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+        {item.title}
+      </Kb.Text>
+    </Row>
   )
 
 const styles = Styles.styleSheetCreate({
