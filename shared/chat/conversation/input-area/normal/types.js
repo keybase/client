@@ -47,6 +47,7 @@ type PlatformInputProps = {|
   inputSetRef: (r: null | PlainInput) => void,
   onChangeText: (newText: string) => void,
   onKeyDown: (evt: SyntheticKeyboardEvent<>) => void,
+  setHeight: (inputHeight: number) => void, // used on mobile to position suggestion HUD
 |}
 
 export type {InputProps, PlatformInputProps}

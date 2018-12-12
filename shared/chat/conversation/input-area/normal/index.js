@@ -46,7 +46,11 @@ const emojiTransformer = (emoji: {colons: string}, {position: {end, start}, text
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
-class Input extends React.PureComponent<InputProps> {
+type InputState = {
+  inputHeight: number,
+}
+
+class Input extends React.Component<InputProps, InputState> {
   _lastQuote: number
   _input: ?Kb.PlainInput
   _lastText: ?string
@@ -56,6 +60,7 @@ class Input extends React.PureComponent<InputProps> {
 
   constructor(props: InputProps) {
     super(props)
+    this.state = {inputHeight: 0}
     this._lastQuote = 0
     this._suggestorDatasource = {emoji: emojiDatasource, users: this._getUserSuggestions}
     this._suggestorRenderer = {emoji: emojiRenderer, users: this._renderUserSuggestion}
@@ -102,6 +107,9 @@ class Input extends React.PureComponent<InputProps> {
     }
     throttled(this.props.sendTyping, text)
   }
+
+  _setHeight = (inputHeight: number) =>
+    this.setState(s => (s.inputHeight === inputHeight ? null : {inputHeight}))
 
   componentDidMount = () => {
     // Set lastQuote so we only inject quoted text after we mount.
@@ -207,12 +215,16 @@ class Input extends React.PureComponent<InputProps> {
         dataSources={this._suggestorDatasource}
         renderers={this._suggestorRenderer}
         suggestorToMarker={suggestorToMarker}
-        suggestionListStyle={styles.suggestionList}
+        suggestionListStyle={Styles.collapseStyles([
+          styles.suggestionList,
+          !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
+        ])}
         suggestionOverlayStyle={styles.suggestionOverlay}
         keyExtractors={suggestorKeyExtractors}
         transformers={this._suggestorTransformer}
         onKeyDown={this._onKeyDown}
         onSubmit={this._onSubmit}
+        setHeight={this._setHeight}
         inputSetRef={this._inputSetRef}
         onChangeText={this._onChangeText}
       />
@@ -228,6 +240,7 @@ const styles = Styles.styleSheetCreate({
       borderStyle: 'solid',
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
+      maxHeight: '50%',
     },
   }),
   suggestionOverlay: Styles.platformStyles({

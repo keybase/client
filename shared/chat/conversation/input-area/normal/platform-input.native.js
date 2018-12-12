@@ -141,6 +141,12 @@ class _PlatformInput extends PureComponent<
     this.props.toggleShowingMenu()
   }
 
+  _onLayout = ({
+    nativeEvent: {
+      layout: {x, y, width, height},
+    },
+  }) => this.props.setHeight(height)
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
@@ -152,7 +158,7 @@ class _PlatformInput extends PureComponent<
     }
 
     return (
-      <Box>
+      <Box onLayout={this._onLayout}>
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
