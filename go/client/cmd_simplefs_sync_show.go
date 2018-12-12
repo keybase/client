@@ -63,6 +63,11 @@ func printPrefetchStatus(
 	}
 }
 
+func appendToTlfPath(tlfPath keybase1.Path, p string) (keybase1.Path, error) {
+	return makeSimpleFSPath(
+		path.Join([]string{mountDir, tlfPath.String(), p}...))
+}
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSSyncShow) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
@@ -89,13 +94,19 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 		ui.Printf("%s (%.2f%%) of the local disk available for caching.\n",
 			humanizeBytes(a, false), float64(a)/float64(t)*100)
 	case keybase1.FolderSyncMode_PARTIAL:
+		// Show all the paths for the TLF, even if a more specific
+		// path was passed in.
+		tlfPath, err := toTlfPath(c.path)
+		if err != nil {
+			return err
+		}
 		paths := "these subpaths"
 		if len(res.Config.Paths) == 1 {
 			paths = "this subpath"
 		}
 		ui.Printf("Syncing configured for %s:\n", paths)
 		for _, p := range res.Config.Paths {
-			fullPath, err := makeSimpleFSPath(path.Join(c.path.String(), p))
+			fullPath, err := appendToTlfPath(tlfPath, p)
 			e, err := cli.SimpleFSStat(
 				ctx, keybase1.SimpleFSStatArg{Path: fullPath})
 			if err != nil {
