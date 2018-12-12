@@ -1,17 +1,12 @@
 // @flow
 import * as React from 'react'
-import {TouchableOpacity} from 'react-native'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import WalletRow from './wallet-row/container'
+import * as Types from '../../../../constants/types/wallets'
+import * as Kb from '../../../../common-adapters'
+import * as Flow from '../../../../util/flow'
+import * as Styles from '../../../../styles'
+import {TouchableOpacity} from 'react-native'
 import {type Props} from './container'
-
-type RowProps = {|
-  children: React.Node,
-  onClick: () => void,
-  onHidden: () => void,
-  style?: Styles.StylesCrossPlatform,
-|}
 
 const Row = (props: RowProps) => (
   <Kb.Box2 direction="vertical" style={styles.rowContainer}>
@@ -27,21 +22,67 @@ const Row = (props: RowProps) => (
   </Kb.Box2>
 )
 
-type MenuItem = {|
-  onClick?: ?(evt?: SyntheticEvent<>) => void,
+type MenuItem =
+  | {|
+      key: 'whatIsStellar',
+      onClick: () => void,
+      type: 'whatIsStellar',
+    |}
+  | {|
+      key: string,
+      onClick: () => void,
+      title: string,
+      type: 'item',
+    |}
+  | {|
+      key: Types.AccountID,
+      accountID: Types.AccountID,
+      type: 'wallet',
+    |}
+
+type RowProps = {|
+  children: React.Node,
+  onClick: () => void,
+  onHidden: () => void,
   style?: Styles.StylesCrossPlatform,
-  title: string,
-  view?: React.Node,
 |}
 
-const renderItem = (item: MenuItem, onHidden: () => void) =>
-  item.view || (
-    <Row onClick={item.onClick || (() => {})} onHidden={onHidden} style={item.style}>
-      <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
-        {item.title}
-      </Kb.Text>
-    </Row>
-  )
+const renderItem = (item: MenuItem, onHidden: () => void) => {
+  switch (item.type) {
+    case 'whatIsStellar':
+      return (
+        <Row onClick={item.onClick} onHidden={onHidden} style={styles.infoTextRow}>
+          <Kb.Box2
+            centerChildren={true}
+            direction="horizontal"
+            style={{backgroundColor: Styles.globalColors.white, height: 48, width: '100%'}}
+          >
+            <Kb.Icon size={16} type="iconfont-info" />
+            <Kb.Text style={styles.infoText} type="BodySemibold">
+              What is Stellar?
+            </Kb.Text>
+          </Kb.Box2>
+        </Row>
+      )
+    case 'item':
+      return (
+        <Row onClick={item.onClick} onHidden={onHidden}>
+          <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+            {item.title}
+          </Kb.Text>
+        </Row>
+      )
+    case 'wallet':
+      return (
+        <Row onClick={() => {}} onHidden={onHidden}>
+          <WalletRow accountID={item.accountID} onSelect={onHidden} />
+        </Row>
+      )
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item.type)
+      throw new Error(`Invalid type ${item.type} passed to renderItem`)
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   infoText: {
@@ -73,48 +114,36 @@ export const WalletSwitcher = (props: Props) => {
 
   const menuItems = [
     {
+      key: 'whatIsStellar',
       onClick: props.onWhatIsStellar,
-      style: styles.infoTextRow,
-      title: 'What is Stellar?',
-      view: (
-        <Kb.Box2
-          centerChildren={true}
-          direction="horizontal"
-          style={{backgroundColor: Styles.globalColors.white, height: 48, width: '100%'}}
-        >
-          <Kb.Icon size={16} type="iconfont-info" />
-          <Kb.Text style={styles.infoText} type="BodySemibold">
-            What is Stellar?
-          </Kb.Text>
-        </Kb.Box2>
-      ),
+      type: 'whatIsStellar',
     },
     {
+      key: 'newAccount',
       onClick: props.onAddNew,
       title: 'Create a new account',
+      type: 'item',
     },
     {
+      key: 'linkAccount',
       onClick: props.onLinkExisting,
       title: 'Link an existing Stellar account',
+      type: 'item',
     },
   ]
     .concat(
       props.accountIDs.map(accountID => ({
-        title: accountID,
-        view: <WalletRow accountID={accountID} onSelect={props.toggleShowingMenu} />,
+        accountID,
+        key: accountID,
+        type: 'wallet',
       }))
     )
     .concat([
       {
+        key: 'cancel',
+        onClick: () => {},
         title: 'Cancel',
-        view: renderItem(
-          {
-            onClick: props.toggleShowingMenu,
-            title: 'Cancel',
-          },
-          // pass in nothing to onHidden so it doesn't trigger it twice
-          () => {}
-        ),
+        type: 'item',
       },
     ])
 
@@ -125,11 +154,7 @@ export const WalletSwitcher = (props: Props) => {
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <Kb.List
-        items={menuItems}
-        keyProperty="title"
-        renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)}
-      />
+      <Kb.List items={menuItems} renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)} />
     </Kb.Overlay>
   )
 }
