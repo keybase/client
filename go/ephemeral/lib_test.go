@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -224,6 +225,9 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	// create a new teamEK
 	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1, nil)
 	require.Error(t, err)
+	ekErr, ok := err.(EphemeralKeyError)
+	require.True(t, ok)
+	require.Equal(t, defaultHumanErr, ekErr.HumanError())
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
@@ -247,6 +251,9 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	teamEK, err = ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen, nil)
 	require.Error(t, err)
+	ekErr, ok = err.(EphemeralKeyError)
+	require.True(t, ok)
+	require.Equal(t, defaultHumanErr, ekErr.HumanError())
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 
 	expectedDeviceEKGen++
@@ -319,6 +326,8 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 
 	deviceEK, err := s.Get(context.Background(), 0)
 	require.Error(t, err)
+	_, ok := err.(erasablekv.UnboxError)
+	require.True(t, ok)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	err = ekLib.CleanupStaleUserAndDeviceEKs(context.Background())
@@ -348,6 +357,8 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	ekLib.setBackgroundDeleteTestCh(ch)
 	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
+	_, ok := err.(EphemeralKeyError)
+	require.False(t, ok)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 
 	// Even though we return an error, we charge through on the deletion
@@ -356,10 +367,14 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	case <-ch:
 		deviceEK, err := s.Get(context.Background(), 0)
 		require.Error(t, err)
+		_, ok = err.(erasablekv.UnboxError)
+		require.True(t, ok)
 		require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 	}
 	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
+	_, ok = err.(erasablekv.UnboxError)
+	require.False(t, ok)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 }
 
@@ -403,6 +418,8 @@ func TestLoginOneshotNoEphemeral(t *testing.T) {
 	// Make sure we can't access or create any ephemeral keys
 	teamEK, err = ekLib2.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.Error(t, err)
+	_, ok := err.(EphemeralKeyError)
+	require.False(t, ok)
 	require.Equal(t, keybase1.TeamEk{}, teamEK)
 
 	deks := tc2.G.GetDeviceEKStorage()

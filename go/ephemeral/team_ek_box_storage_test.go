@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -42,11 +43,16 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
+	ekErr, ok := err.(EphemeralKeyError)
+	require.True(t, ok)
+	require.Equal(t, defaultHumanErr, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEk{}, nonexistent)
 
 	// Test invalid teamID
 	nonexistent2, err := s.Get(context.Background(), invalidID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
+	_, ok = err.(EphemeralKeyError)
+	require.False(t, ok)
 	require.Equal(t, keybase1.TeamEk{}, nonexistent2)
 
 	// Test get valid & unbox
@@ -73,7 +79,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(teamEKs))
 
-	teamEK, ok := teamEKs[teamEKMetadata.Generation]
+	teamEK, ok = teamEKs[teamEKMetadata.Generation]
 	require.True(t, ok)
 
 	verifyTeamEK(t, teamEKMetadata, teamEK)
@@ -102,10 +108,15 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	deviceEKStorage.ClearCache()
 	deviceEK, err := deviceEKStorage.Get(context.Background(), deviceEKMaxGen)
 	require.Error(t, err)
+	_, ok = err.(erasablekv.UnboxError)
+	require.True(t, ok)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	bad, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation, nil)
 	require.Error(t, err)
+	ekErr, ok = err.(EphemeralKeyError)
+	require.True(t, ok)
+	require.Equal(t, defaultHumanErr, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEk{}, bad)
 
 	// test delete
