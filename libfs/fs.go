@@ -613,7 +613,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	}()
 
 	if fs.empty && (filename == "" || filename == ".") {
-		// Always use FileInfoFast here for this no matter fast mode is enabled
+		// Always use FileInfoFast here for this whether fast mode is enabled
 		// or not.
 		return &FileInfoFast{
 			name: filename,

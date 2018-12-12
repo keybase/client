@@ -15,39 +15,39 @@ type browserCacheEntryType int
 
 const (
 	_ browserCacheEntryType = iota
-	fileInfoBowserCacheEntry
-	childrenPathsBowserCacheEntry
+	fileInfoBrowserCacheEntry
+	childrenPathsBrowserCacheEntry
 )
 
 type sharedInBrowserCache interface {
 	setFileInfo(
-		commitHash plumbing.Hash,
-		entryPathRelativeToRepoRoot string,
-		fi os.FileInfo,
-	)
+		commitHash plumbing.Hash, entryPathRelativeToRepoRoot string,
+		fi os.FileInfo)
 	setChildrenPaths(
-		commitHash plumbing.Hash,
-		entryPathRelativeToRepoRoot string,
-		childrenPathsRelativeToRepoRoot []string,
-	)
+		commitHash plumbing.Hash, entryPathRelativeToRepoRoot string,
+		childrenPathsRelativeToRepoRoot []string)
 	getFileInfo(
-		commitHash plumbing.Hash,
-		entryPathRelativeToRepoRoot string,
-	) (fi os.FileInfo, ok bool)
+		commitHash plumbing.Hash, entryPathRelativeToRepoRoot string) (
+		fi os.FileInfo, ok bool)
 	getChildrenFileInfos(
-		commitHash plumbing.Hash,
-		entryPathRelativeToRepoRoot string,
-	) (fis []os.FileInfo, ok bool)
+		commitHash plumbing.Hash, entryPathRelativeToRepoRoot string) (
+		fis []os.FileInfo, ok bool)
 }
 
 type noopSharedInBrowserCache struct{}
 
-func (noopSharedInBrowserCache) setFileInfo(plumbing.Hash, string, os.FileInfo)   {}
-func (noopSharedInBrowserCache) setChildrenPaths(plumbing.Hash, string, []string) {}
-func (noopSharedInBrowserCache) getFileInfo(plumbing.Hash, string) (os.FileInfo, bool) {
+func (noopSharedInBrowserCache) setFileInfo(
+	plumbing.Hash, string, os.FileInfo) {
+}
+func (noopSharedInBrowserCache) setChildrenPaths(
+	plumbing.Hash, string, []string) {
+}
+func (noopSharedInBrowserCache) getFileInfo(
+	plumbing.Hash, string) (os.FileInfo, bool) {
 	return nil, false
 }
-func (noopSharedInBrowserCache) getChildrenFileInfos(plumbing.Hash, string) ([]os.FileInfo, bool) {
+func (noopSharedInBrowserCache) getChildrenFileInfos(
+	plumbing.Hash, string) ([]os.FileInfo, bool) {
 	return nil, false
 }
 
@@ -72,44 +72,39 @@ func newLRUSharedInBrowserCache() (lruSharedInBrowserCache, error) {
 }
 
 func (c lruSharedInBrowserCache) setFileInfo(
-	commitHash plumbing.Hash,
-	entryPathRelativeToRepoRoot string,
-	fi os.FileInfo,
-) {
+	commitHash plumbing.Hash, entryPathRelativeToRepoRoot string,
+	fi os.FileInfo) {
 	c.cache.Add(
 		gitBrowserCacheKey{
 			commitHash:   commitHash,
 			relativePath: entryPathRelativeToRepoRoot,
-			entryType:    fileInfoBowserCacheEntry,
+			entryType:    fileInfoBrowserCacheEntry,
 		},
 		fi,
 	)
 }
 
 func (c lruSharedInBrowserCache) setChildrenPaths(
-	commitHash plumbing.Hash,
-	entryPathRelativeToRepoRoot string,
-	childrenPathsRelativeToRepoRoot []string,
-) {
+	commitHash plumbing.Hash, entryPathRelativeToRepoRoot string,
+	childrenPathsRelativeToRepoRoot []string) {
 	c.cache.Add(
 		gitBrowserCacheKey{
 			commitHash:   commitHash,
 			relativePath: entryPathRelativeToRepoRoot,
-			entryType:    childrenPathsBowserCacheEntry,
+			entryType:    childrenPathsBrowserCacheEntry,
 		},
 		childrenPathsRelativeToRepoRoot,
 	)
 }
 
 func (c lruSharedInBrowserCache) getFileInfo(
-	commitHash plumbing.Hash,
-	entryPathRelativeToRepoRoot string,
-) (fi os.FileInfo, ok bool) {
+	commitHash plumbing.Hash, entryPathRelativeToRepoRoot string) (
+	fi os.FileInfo, ok bool) {
 	entry, ok := c.cache.Get(
 		gitBrowserCacheKey{
 			commitHash:   commitHash,
 			relativePath: entryPathRelativeToRepoRoot,
-			entryType:    fileInfoBowserCacheEntry,
+			entryType:    fileInfoBrowserCacheEntry,
 		},
 	)
 	if !ok {
@@ -122,14 +117,13 @@ func (c lruSharedInBrowserCache) getFileInfo(
 }
 
 func (c lruSharedInBrowserCache) getChildrenFileInfos(
-	commitHash plumbing.Hash,
-	entryPathRelativeToRepoRoot string,
-) (fis []os.FileInfo, ok bool) {
+	commitHash plumbing.Hash, entryPathRelativeToRepoRoot string) (
+	fis []os.FileInfo, ok bool) {
 	entry, ok := c.cache.Get(
 		gitBrowserCacheKey{
 			commitHash:   commitHash,
 			relativePath: entryPathRelativeToRepoRoot,
-			entryType:    childrenPathsBowserCacheEntry,
+			entryType:    childrenPathsBrowserCacheEntry,
 		},
 	)
 	if !ok {

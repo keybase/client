@@ -190,6 +190,10 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 
 // Lstat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
+	cachePath := path.Join(b.root, filename)
+	if fi, ok := b.sharedCache.getFileInfo(b.commitHash, cachePath); ok {
+		return fi, nil
+	}
 	defer translateGitError(&err)
 	entry, err := b.tree.FindEntry(filename)
 	if err != nil {
@@ -205,7 +209,7 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 	// anywhere, so just use the timestamp from the commit.
 	fi = &browserFileInfo{entry, size, b.mtime}
 
-	b.sharedCache.setFileInfo(b.commitHash, path.Join(b.root, filename), fi)
+	b.sharedCache.setFileInfo(b.commitHash, cachePath, fi)
 
 	return fi, nil
 }
@@ -260,14 +264,14 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 		}
 	}
 
-	childrenPathsToCache := []string(nil)
+	childrenPathsToCache := make([]string, 0, len(dirTree.Entries))
 	for _, e := range dirTree.Entries {
-		fi, err := b.Lstat(e.Name)
+		fi, err := b.Lstat(path.Join(p, e.Name))
 		if err != nil {
 			return nil, err
 		}
 		fis = append(fis, fi)
-		childrenPathsToCache = append(childrenPathsToCache, path.Join(b.root, e.Name))
+		childrenPathsToCache = append(childrenPathsToCache, path.Join(b.root, p, e.Name))
 	}
 	b.sharedCache.setChildrenPaths(
 		b.commitHash, cachePath, childrenPathsToCache)

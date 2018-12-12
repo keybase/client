@@ -46,13 +46,32 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	addFileToWorktreeAndCommit(
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
+	addFileToWorktreeAndCommit(
+		t, ctx, config, h, repo, worktreeFS, "dir/foo", "olleh")
 
 	t.Log("Browse the repo and verify the data.")
 	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
 	require.NoError(t, err)
-	fis, err := b.ReadDir("")
+
+	if sharedCache != (noopSharedInBrowserCache{}) {
+		t.Log("Before anything, cache should be empty")
+		_, ok := sharedCache.getFileInfo(b.commitHash, path.Join(b.root, "foo"))
+		require.False(t, ok)
+	}
+
+	fi, err := b.Stat("foo")
 	require.NoError(t, err)
-	require.Len(t, fis, 1)
+	require.Equal(t, "foo", fi.Name())
+
+	if sharedCache != (noopSharedInBrowserCache{}) {
+		t.Log("After a Stat call, make sure cache is populated for foo")
+		fi, ok := sharedCache.getFileInfo(
+			b.commitHash, path.Join(b.root, "foo"))
+		require.True(t, ok)
+		require.Equal(t, "foo", fi.Name())
+	}
+
+	t.Log("Verify the data in foo.")
 	f, err := b.Open("foo")
 	require.NoError(t, err)
 	defer f.Close()
@@ -60,15 +79,22 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 
+	fis, err := b.ReadDir("dir")
+	require.NoError(t, err)
+	require.Len(t, fis, 1)
+
 	if sharedCache != (noopSharedInBrowserCache{}) {
-		t.Log("Make sure cache is populated")
-		fi, ok := sharedCache.getFileInfo(b.commitHash, path.Join(b.root, "foo"))
-		require.True(t, ok)
-		require.Equal(t, "foo", fi.Name())
-		childrenPaths, ok := sharedCache.getChildrenFileInfos(b.commitHash, path.Join(b.root, ""))
+		t.Logf("After a ReadDir, " +
+			"make sure cache is populated for dir and dir/foo")
+		childrenPaths, ok := sharedCache.getChildrenFileInfos(
+			b.commitHash, path.Join(b.root, "dir"))
 		require.True(t, ok)
 		require.Len(t, childrenPaths, 1)
 		require.Equal(t, "foo", childrenPaths[0].Name())
+		fi, ok := sharedCache.getFileInfo(
+			b.commitHash, path.Join(b.root, "dir", "foo"))
+		require.True(t, ok)
+		require.Equal(t, "foo", fi.Name())
 	}
 
 	t.Log("Use ReadAt with a small buffer.")
