@@ -16,7 +16,6 @@ import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles, t
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
-import {isAndroid} from '../../../../../constants/platform'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -75,19 +74,13 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   render() {
     const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
-    // Android overflow doesn't work
-    const stopWatchVerticalOffset = isMobile ? (isAndroid ? 10 : -30) : -20
     return (
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + stopWatchVerticalOffset}}
-      >
+      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
         <Icon
-          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: stopWatchVerticalOffset}}
-          type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
+          style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+          type={isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
         />
-        <Box2 direction="vertical" gap="tiny" gapStart={true} gapEnd={true}>
+        <Box2 direction="vertical">
           <Text type="BodySmall" style={{color: globalColors.black_75}}>
             EXPLODING MESSAGE
           </Text>
