@@ -454,6 +454,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 	g.StellarSender = wallet.NewSender(g)
+	g.StellarPushHandler = g.ExternalG().GetStellar()
 
 	convStorage := chat.NewDevConversationBackedStorage(g, ri)
 
