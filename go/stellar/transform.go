@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
 )
 
@@ -402,4 +403,75 @@ func newPaymentLocal(mctx libkb.MetaContext,
 	}
 
 	return loc, nil
+}
+
+func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID, remotePage stellar1.PaymentsPage) (page stellar1.PaymentsPageLocal, err error) {
+	exchRate, err := AccountExchangeRate(mctx, remoter, accountID)
+	if err != nil {
+		return page, err
+	}
+
+	oc := NewOwnAccountLookupCache(mctx.Ctx(), mctx.G())
+	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(remotePage.Payments))
+	for i, p := range remotePage.Payments {
+		page.Payments[i].Payment, err = TransformPaymentSummaryAccount(mctx, p, oc, accountID, &exchRate)
+		if err != nil {
+			mctx.CDebugf("RemoteRecentPaymentsToPage error transforming payment %v: %v", i, err)
+			s := err.Error()
+			page.Payments[i].Err = &s
+			page.Payments[i].Payment = nil // just to make sure
+		}
+	}
+	page.Cursor = remotePage.Cursor
+
+	if remotePage.OldestUnread != nil {
+		oldestUnread := stellar1.NewPaymentID(*remotePage.OldestUnread)
+		page.OldestUnread = &oldestUnread
+	}
+
+	return page, nil
+
+}
+
+func AccountDetailsToWalletAccountLocal(details stellar1.AccountDetails) (stellar1.WalletAccountLocal, error) {
+
+	var empty stellar1.WalletAccountLocal
+	balance, err := balanceList(details.Balances).balanceDescription()
+	if err != nil {
+		return empty, err
+	}
+
+	acct := stellar1.WalletAccountLocal{
+		AccountID:          entry.AccountID,
+		IsDefault:          entry.IsPrimary,
+		Name:               entry.Name,
+		BalanceDescription: balance,
+		Seqno:              details.Seqno,
+	}
+
+	return acct, nil
+}
+
+type balanceList []stellar1.Balance
+
+// Example: "56.0227002 XLM + more"
+func (a balanceList) balanceDescription() (res string, err error) {
+	var more bool
+	for _, b := range a {
+		if b.Asset.IsNativeXLM() {
+			res, err = FormatAmountDescriptionXLM(b.Amount)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			more = true
+		}
+	}
+	if res == "" {
+		res = "0 XLM"
+	}
+	if more {
+		res += " + more"
+	}
+	return res, nil
 }

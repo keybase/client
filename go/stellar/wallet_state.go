@@ -423,7 +423,11 @@ func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, rout
 		a.Unlock()
 
 		if notify && router != nil {
-			router.HandleWalletRecentPaymentsUpdate(ctx, a.accountID, recent)
+			mctx := libkb.NewMetaContext(ctx, g)
+			localPage, err := RemoteRecentPaymentsToPage(mctx, a.remoter, a.accountID, recent)
+			if err == nil {
+				router.HandleWalletRecentPaymentsUpdate(ctx, a.accountID, localPage)
+			}
 		}
 	}
 
