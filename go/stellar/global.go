@@ -217,13 +217,6 @@ func (s *Stellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.
 	return SpecMiniChatPayments(mctx, s.walletState, payments)
 }
 
-// RefreshWalletState refreshes the WalletState.
-func (s *Stellar) RefreshWalletState(ctx context.Context) {
-	if err := s.walletState.RefreshAll(ctx); err != nil {
-		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
-	}
-}
-
 // HandleOobm will handle any out of band gregor messages for stellar.
 func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
@@ -249,7 +242,9 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 func (s *Stellar) handleReconnect(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
 	s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
-	s.RefreshWalletState(ctx)
+	if err := s.walletState.RefreshAll(ctx); err != nil {
+		s.G().Log.CDebugf(ctx, "Stellar.handleReconnect RefreshAll error: %s", err)
+	}
 }
 
 func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
