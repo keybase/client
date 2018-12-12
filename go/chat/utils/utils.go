@@ -582,6 +582,26 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	return res
 }
 
+func GetTextAtMentionedUIDs(ctx context.Context, msg chat1.MessageText, upak libkb.UPAKLoader,
+	debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
+	atRes, chanRes = ParseAtMentionedUIDs(ctx, msg.Body, upak, debug)
+	atRes = append(atRes, GetPaymentAtMentions(ctx, upak, msg.Payments, debug)...)
+	return atRes, chanRes
+}
+
+func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments []chat1.TextPayment,
+	l *DebugLabeler) (atMentions []gregor1.UID) {
+	for _, p := range payments {
+		uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(p.Username))
+		if err != nil {
+			l.Debug(ctx, "GetPaymentAtMentions: error loading uid: username: %s err: %s", p.Username, err)
+			continue
+		}
+		atMentions = append(atMentions, uid.ToBytes())
+	}
+	return atMentions
+}
+
 func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 	return parseRegexpNames(ctx, body, atMentionRegExp)
 }

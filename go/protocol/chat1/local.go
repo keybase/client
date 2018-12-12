@@ -121,12 +121,14 @@ func (o TextPaymentResult) DeepCopy() TextPaymentResult {
 }
 
 type TextPayment struct {
+	Username    string            `codec:"username" json:"username"`
 	PaymentText string            `codec:"paymentText" json:"paymentText"`
 	Result      TextPaymentResult `codec:"result" json:"result"`
 }
 
 func (o TextPayment) DeepCopy() TextPayment {
 	return TextPayment{
+		Username:    o.Username,
 		PaymentText: o.PaymentText,
 		Result:      o.Result.DeepCopy(),
 	}
