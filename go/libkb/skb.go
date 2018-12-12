@@ -93,7 +93,7 @@ func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen Pass
 	}
 	if tsec != nil {
 		ret.Priv.Data, err = tsec.Encrypt(sk.Bytes())
-		ret.Priv.Encryption = int(ClientTriplesecVersion) // Version 3 is the current TripleSec version
+		ret.Priv.Encryption = int(ClientTriplesecVersion)
 		if err != nil {
 			return
 		}
