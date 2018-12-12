@@ -223,7 +223,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
             name="keyboard-avoiding-root"
             component={ViewForGatewayDest}
             pointerEvents="box-none"
-            style={{height: '100%', position: 'absolute', top: 0, width: '100%'}}
+            style={styles.gatewayDest}
           />
         </Kb.NativeKeyboardAvoidingView>
       </Kb.NativeView>
@@ -395,6 +395,7 @@ const styles = Styles.styleSheetCreate({
   card: {backgroundColor: Styles.globalColors.fastBlank},
   container: {flexGrow: 1, position: 'relative'},
   content: {...Styles.globalStyles.flexGrow},
+  gatewayDest: {height: '100%', position: 'absolute', top: 0, width: '100%'},
   hiddenTransitioner: {
     height: '100%',
     left: -9999,
