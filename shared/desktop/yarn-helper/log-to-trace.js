@@ -59,47 +59,38 @@ const convertLine = line => {
 
 const tags = {}
 const output = {
+  // injecting a start and overwriting an unmatched one
   collision: [],
+  // valid start-end
   good: [],
+  // treat unmatched/collision as a one shot event
+  single: [],
+  // an end w/o a start
   unmatched: [],
 }
 
+const buildEvent = (info, ph) => ({
+  args: {
+    counter: info.counter,
+    file: info.file,
+    line: info.fileline,
+  },
+  id: `${info.tags}:${info.method}`,
+  name: info.method,
+  ph,
+  pid: 0,
+  tid: info.coreOrKbfs,
+  ts: moment(info.time).valueOf() * 1000,
+})
+
 const buildGood = (old, info) => {
-  const id = `${info.tags}:${info.method}`
-  const startTs = moment(old.time).valueOf() * 1000
-  const endTs = moment(info.time).valueOf() * 1000
-  if (endTs < startTs) {
-    console.log('bad start/end')
+  const s = buildEvent(old, 'B')
+  const e = buildEvent(info, 'E')
+  if (s.ts > e.ts) {
+    console.log('no time travelers allowed')
     return []
   }
-  return [
-    {
-      args: {
-        counter: old.counter,
-        file: old.file,
-        line: old.fileline,
-      },
-      id,
-      name: old.method,
-      ph: 'B',
-      pid: 0,
-      tid: info.coreOrKbfs, // old.tags,
-      ts: startTs,
-    },
-    {
-      args: {
-        counter: info.counter,
-        file: info.file,
-        line: info.fileline,
-      },
-      id,
-      name: info.method,
-      ph: 'E',
-      pid: 0,
-      tid: info.coreOrKbfs, // info.tags,
-      ts: endTs,
-    },
-  ]
+  return [s, e]
 }
 
 lines.forEach(line => {
@@ -117,6 +108,7 @@ lines.forEach(line => {
   switch (info.type) {
     case '+':
       if (data[dataKey]) {
+        output.single = output.single.concat(buildEvent(data[dataKey], 'i'))
         output.collision.push(info)
       }
       data[dataKey] = info
@@ -126,6 +118,7 @@ lines.forEach(line => {
         output.good = output.good.concat(buildGood(data[dataKey], info))
         data[dataKey] = undefined
       } else {
+        output.single = output.single.concat(buildEvent(info, 'i'))
         output.unmatched.push(info)
       }
       break
@@ -146,7 +139,7 @@ if (output.collision.length) {
 
 const format = {
   displaytimeUnit: 'ms',
-  traceEvents: output.good,
+  traceEvents: [...output.good, ...output.single],
 }
 const out = JSON.stringify(format, null, 2)
 fs.writeFileSync(process.argv[3], out, 'utf8')
