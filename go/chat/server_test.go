@@ -290,18 +290,14 @@ func (c *chatTestContext) advanceFakeClock(d time.Duration) {
 
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
 	var ctx context.Context
-	if user == nil {
-		t.Fatalf("user is nil")
-	}
+	require.NotNil(t, user)
 
 	if tuc, ok := c.userContextCache[user.Username]; ok {
 		return tuc
 	}
 
 	tc, ok := c.world.Tcs[user.Username]
-	if !ok {
-		t.Fatalf("user %s is not found", user.Username)
-	}
+	require.True(t, ok)
 	g := globals.NewContext(tc.G, tc.ChatG)
 	h := NewServer(g, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
@@ -317,9 +313,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
-		if err != nil {
-			t.Fatalf(err.Error())
-		}
+		require.NoError(t, err)
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
@@ -5011,10 +5005,6 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 
 func TestChatSrvUserResetAndDeleted(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 4)
-		defer ctc.cleanup()
-		users := ctc.users()
-
 		// Only run this test for teams
 		switch mt {
 		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -5022,6 +5012,10 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		default:
 			return
 		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvUserResetAndDeleted", 4)
+		defer ctc.cleanup()
+		users := ctc.users()
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
