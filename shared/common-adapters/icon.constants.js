@@ -236,10 +236,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-computer-mobile-226-96.png'),
   },
-  'icon-fancy-revoked-phone-150-72': {
+  'icon-fancy-revoked-phone-desktop-150-72': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-fancy-revoked-phone-150-72.png'),
+    require: require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png'),
   },
   'icon-fancy-revoked-phone-mobile-226-96': {
     isFont: false,
