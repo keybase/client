@@ -1446,10 +1446,19 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "setAccountAllDevicesLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         },
         {
-          "name": "enabled",
-          "type": "boolean"
+          "name": "accountID",
+          "type": "AccountID"
         }
       ],
       "response": null

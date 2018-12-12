@@ -688,9 +688,11 @@ const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnly
 
 const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobileOnlyModePayload) => {
   let accountID = action.payload.accountID
-  return RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise({
+  let f = action.payload.enabled
+    ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
+    : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
+  return f({
     accountID: accountID,
-    enabled: action.payload.enabled,
   }).then(res => WalletsGen.createLoadMobileOnlyMode({accountID: accountID}))
 }
 

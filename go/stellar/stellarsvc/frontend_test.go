@@ -2263,7 +2263,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, mobileOnly)
 
-	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID, Enabled: true})
+	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
 
 	mobileOnly, err = tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})

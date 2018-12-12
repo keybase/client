@@ -208,5 +208,6 @@
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
   "stellar.1.local.validateSecretKeyLocal": {"promise": true},
   "stellar.1.local.isAccountMobileOnlyLocal": {"promise": true},
-  "stellar.1.local.setAccountMobileOnlyLocal": {"promise": true}
+  "stellar.1.local.setAccountMobileOnlyLocal": {"promise": true},
+  "stellar.1.local.setAccountAllDevicesLocal": {"promise": true}
 }

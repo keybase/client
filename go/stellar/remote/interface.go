@@ -30,6 +30,7 @@ type Remoter interface {
 	CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) error
 	MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error
 	IsAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) (bool, error)
-	SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID, enabled bool) error
+	SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error
+	MakeAccountAllDevices(ctx context.Context, accountID stellar1.AccountID) error
 	ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error)
 }

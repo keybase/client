@@ -457,7 +457,8 @@ protocol local {
   KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset,
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 
-  void setAccountMobileOnlyLocal(int sessionID, AccountID accountID, boolean enabled);
+  void setAccountMobileOnlyLocal(int sessionID, AccountID accountID);
+  void setAccountAllDevicesLocal(int sessionID, AccountID accountID); // opposite of mobile-only
   boolean isAccountMobileOnlyLocal(int sessionID, AccountID accountID);
 
   RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);

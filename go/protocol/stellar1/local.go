@@ -934,7 +934,11 @@ type MakeRequestLocalArg struct {
 type SetAccountMobileOnlyLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	AccountID AccountID `codec:"accountID" json:"accountID"`
-	Enabled   bool      `codec:"enabled" json:"enabled"`
+}
+
+type SetAccountAllDevicesLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
 type IsAccountMobileOnlyLocalArg struct {
@@ -1062,6 +1066,7 @@ type LocalInterface interface {
 	CancelRequestLocal(context.Context, CancelRequestLocalArg) error
 	MakeRequestLocal(context.Context, MakeRequestLocalArg) (KeybaseRequestID, error)
 	SetAccountMobileOnlyLocal(context.Context, SetAccountMobileOnlyLocalArg) error
+	SetAccountAllDevicesLocal(context.Context, SetAccountAllDevicesLocalArg) error
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
 	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
@@ -1582,6 +1587,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setAccountAllDevicesLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SetAccountAllDevicesLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetAccountAllDevicesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetAccountAllDevicesLocalArg)(nil), args)
+						return
+					}
+					err = i.SetAccountAllDevicesLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"isAccountMobileOnlyLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]IsAccountMobileOnlyLocalArg
@@ -2022,6 +2042,11 @@ func (c LocalClient) MakeRequestLocal(ctx context.Context, __arg MakeRequestLoca
 
 func (c LocalClient) SetAccountMobileOnlyLocal(ctx context.Context, __arg SetAccountMobileOnlyLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.setAccountMobileOnlyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetAccountAllDevicesLocal(ctx context.Context, __arg SetAccountAllDevicesLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setAccountAllDevicesLocal", []interface{}{__arg}, nil)
 	return
 }
 

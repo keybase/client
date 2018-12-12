@@ -123,8 +123,12 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|bid: BuildPaymentID, bypassBid: Boolean, bypassReview: Boolean, from: AccountID, to: String, toIsAccountID: Boolean, amount: String, asset: Asset, worthAmount: String, worthCurrency?: ?OutsideCurrencyCode, secretNote: String, publicMemo: String, quickReturn: Boolean|}>,
     outParam: SendPaymentResLocal,
   |},
+  'stellar.1.local.setAccountAllDevicesLocal': {|
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
+    outParam: void,
+  |},
   'stellar.1.local.setAccountMobileOnlyLocal': {|
-    inParam: $ReadOnly<{|accountID: AccountID, enabled: Boolean|}>,
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
     outParam: void,
   |},
   'stellar.1.local.setWalletAccountAsDefaultLocal': {|
@@ -444,6 +448,7 @@ declare export function localLinkNewWalletAccountLocalRpcPromise(params: $Proper
 declare export function localMakeRequestLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.makeRequestLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.makeRequestLocal'>, 'outParam'>>
 declare export function localMarkAsReadLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.markAsReadLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.markAsReadLocal'>, 'outParam'>>
 declare export function localSendPaymentLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.sendPaymentLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.sendPaymentLocal'>, 'outParam'>>
+declare export function localSetAccountAllDevicesLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.setAccountAllDevicesLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.setAccountAllDevicesLocal'>, 'outParam'>>
 declare export function localSetAccountMobileOnlyLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.setAccountMobileOnlyLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.setAccountMobileOnlyLocal'>, 'outParam'>>
 declare export function localSetWalletAccountAsDefaultLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.setWalletAccountAsDefaultLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.setWalletAccountAsDefaultLocal'>, 'outParam'>>
 declare export function localValidateAccountNameLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.validateAccountNameLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.validateAccountNameLocal'>, 'outParam'>>
