@@ -25,9 +25,6 @@ lint:
 		| grep -v stutters \
 		| grep -v "error strings should not be capitalized" \
 		| grep -v prot.go \
-		| grep -v "redundant if ...; err != nil check, just return error instead" \
-		| grep -v "don't use ALL_CAPS in Go names; use CamelCase" \
-		| grep -v runquiet.go \
 		&& exit 1 \
 		|| echo "Lint-free!" \
 	)
