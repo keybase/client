@@ -12,7 +12,7 @@ type candidateTestCase struct {
 }
 
 func makeRes(proto ChatTxCandidate, pos []int) []ChatTxCandidate {
-
+	return nil
 }
 
 func TestFindCandidates(t *testing.T) {

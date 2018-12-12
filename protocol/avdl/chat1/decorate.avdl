@@ -1,8 +1,0 @@
-@namespace("chat.1") protocol decorate {
-  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
-
-  record DecorationPayment {
-    stellar1.PaymentID paymentID;
-  }
-
-}

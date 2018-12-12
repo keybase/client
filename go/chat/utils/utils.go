@@ -1732,13 +1732,15 @@ func IsPermanentErr(err error) bool {
 	return err != nil
 }
 
-func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int, err error) {
+func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int) {
 	out, err := json.Marshal(decoration)
 	if err != nil {
-		return res, added, err
+		return res, 0
 	}
+	begin := "$>kb$"
+	end := "$<kb$"
 	strDecoration := string(out)
 	added = len(strDecoration) - length
-	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
-	return res, added, nil
+	res = fmt.Sprintf("%s%s%s%s%s", begin, body[:offset], strDecoration, body[offset+length:], end)
+	return res, added
 }

@@ -38,7 +38,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	matches := make([]ChatTxCandidate, 0, len(allRawIndices))
 	for _, rawIndices := range allRawIndices {
 		amount := xs[rawIndices[2]:rawIndices[3]]
-		currencyCode := xs[rawIndices[4]:rawIndices[5]]
+		currencyCode := strings.ToUpper(xs[rawIndices[4]:rawIndices[5]])
 		var username, atSign string
 		endIndex := rawIndices[5]
 		if rawIndices[6] >= 0 {
@@ -57,7 +57,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 			matches = append(matches, ChatTxCandidate{
 				Full:         full,
 				Amount:       amount,
-				CurrencyCode: strings.ToUpper(currencyCode),
+				CurrencyCode: currencyCode,
 				Username:     txUsername,
 				Position:     []int{rawIndices[0], endIndex},
 			})
