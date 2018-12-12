@@ -271,7 +271,7 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 			return nil, err
 		}
 		fis = append(fis, fi)
-		childrenPathsToCache = append(childrenPathsToCache, path.Join(b.root, p, e.Name))
+		childrenPathsToCache = append(childrenPathsToCache, path.Join(cachePath, e.Name))
 	}
 	b.sharedCache.setChildrenPaths(
 		b.commitHash, cachePath, childrenPathsToCache)
