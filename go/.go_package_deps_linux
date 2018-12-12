@@ -10321,8 +10321,10 @@
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
       "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/redirector" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
-      "github.com/keybase/client/go/kbfs/test" : 1
+      "github.com/keybase/client/go/kbfs/test" : 1,
+      "github.com/keybase/client/go/mounter" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding" : {
       "github.com/keybase/client/go/chat" : 1,
