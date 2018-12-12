@@ -4,6 +4,7 @@ import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
@@ -22,7 +23,7 @@ type Props = {
   onViewProfile: null | (() => void),
   position: Position,
   showDivider: boolean,
-  style?: Object,
+  style?: StylesCrossPlatform,
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,

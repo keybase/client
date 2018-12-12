@@ -11,6 +11,7 @@ import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 
 export type OwnProps = {
@@ -18,6 +19,7 @@ export type OwnProps = {
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
@@ -148,6 +150,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     items,
     onHidden: ownProps.onHidden,
     position: ownProps.position,
+    style: ownProps.style,
     timestamp: stateProps.timestamp,
     visible: ownProps.visible,
     yourMessage: stateProps.yourMessage,
