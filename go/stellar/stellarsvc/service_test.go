@@ -1372,7 +1372,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 	require.True(t, len(settings) > 0, "must create at least 1 tc")
 	var tcs []*TestContext
 	bem := NewBackendMock(t)
-	for _, setting := range settings {
+	for i, setting := range settings {
 		tc := SetupTest(t, "wall", 1)
 		switch setting {
 		case usettingFull:
@@ -1394,6 +1394,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 			// All TCs in a test share the same backend.
 			Backend: bem,
 		}
+		t.Logf("setup user %v %v", i, tc2.Fu.Username)
 		rcm := NewRemoteClientMock(tc2, bem)
 		ws := stellar.NewWalletState(tc.G, rcm)
 		tc2.Srv = New(tc.G, newTestUISource(), ws)

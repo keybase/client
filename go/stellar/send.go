@@ -1,7 +1,9 @@
 package stellar
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -69,6 +71,10 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		}
 	}
 
+	var cancel func()
+	mctx, cancel = mctx.WithTimeout(30 * time.Second)
+	defer cancel()
+
 	sendRes, err := SendPaymentGUI(mctx, getGlobal(mctx.G()).walletState, SendPaymentArg{
 		From:           arg.From,
 		To:             stellarcommon.RecipientInput(to),
@@ -80,10 +86,26 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		QuickReturn:    arg.QuickReturn,
 	})
 	if err != nil {
+		if isTimeoutError(err) {
+			return res, fmt.Errorf("Timed out while sending payment. Look at your payment history and maybe try again.")
+		}
 		return res, err
 	}
 	return stellar1.SendPaymentResLocal{
 		KbTxID:  sendRes.KbTxID,
 		Pending: sendRes.Pending,
 	}, nil
+}
+
+func isTimeoutError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if err == context.DeadlineExceeded {
+		return true
+	}
+	if err, ok := err.(libkb.APINetError); ok && err.Err == context.DeadlineExceeded {
+		return true
+	}
+	return false
 }

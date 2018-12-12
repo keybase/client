@@ -515,6 +515,10 @@ func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendP
 func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
+	if err = m.Ctx().Err(); err != nil {
+		return res, err
+	}
+
 	// look up sender account
 	senderEntry, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), sendArg.From)
 	if err != nil {
@@ -1224,6 +1228,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool) (maybeUsername string, err error) {
 	defer m.CTraceTimed(fmt.Sprintf("Stellar.lookupRecipientAssertion(isCLI:%v, %v)", isCLI, assertion), func() error { return err })()
 	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
+
 	// GUI is a verified lookup modeled after func ResolveAndCheck.
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         assertion,
