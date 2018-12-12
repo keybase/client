@@ -4,9 +4,10 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Constants from '../constants/waiting'
 import {Box2} from './box'
+import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
-import {connect} from '../util/container'
+import {namedConnect} from '../util/container'
 import {isArray} from 'lodash-es'
 
 type OwnProps = {|
@@ -30,14 +31,18 @@ class Reload extends React.PureComponent<{onReload: () => void, reason: string},
   render() {
     return (
       <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="tiny">
-        <Text type="Header">Oops... We're having a hard time loading this page. Try again?</Text>
+        <Text type="Header" style={styles.text}>
+          Oops... We're having a hard time loading this page. Try again?
+        </Text>
         <Text type="Body" onClick={this._toggle}>
           {this.state.expanded ? `I'm not exactly sure why I did that` : `I'm curious...`}
         </Text>
         {this.state.expanded && (
-          <Text type="Terminal" style={styles.details}>
-            {this.props.reason}
-          </Text>
+          <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
+            <Text type="Terminal" style={styles.details}>
+              {this.props.reason}
+            </Text>
+          </ScrollView>
         )}
         <Button type="Primary" label="🙏 Retry" onClick={this.props.onReload} />
       </Box2>
@@ -60,8 +65,35 @@ class Reloadable extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  details: {backgroundColor: Styles.globalColors.darkBlue3, maxWidth: '75%', padding: 60},
-  reload: {flexGrow: 1},
+  details: Styles.platformStyles({
+    common: {
+      flexGrow: 1,
+    },
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
+  reload: {
+    flexGrow: 1,
+    maxHeight: '100%',
+    maxWidth: '100%',
+    padding: Styles.globalMargins.small,
+  },
+  scroll: {
+    backgroundColor: Styles.globalColors.darkBlue3,
+    borderRadius: Styles.borderRadius,
+    padding: 60,
+    width: '75%',
+  },
+  scrollInside: {
+    height: '100%',
+    maxHeight: '100%',
+    maxWidth: '100%',
+    width: '100%',
+  },
+  text: {
+    textAlign: 'center',
+  },
 })
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -81,8 +113,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   reloadOnMount: ownProps.reloadOnMount,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  mergeProps,
+  'Reloadable'
 )(Reloadable)
