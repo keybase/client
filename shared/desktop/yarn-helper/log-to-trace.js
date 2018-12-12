@@ -1,12 +1,18 @@
 // @flow
 const fs = require('fs')
 const data = fs.readFileSync(process.argv[2], 'utf8')
+const moment = require('moment')
 const lines = data.split('\n')
 const reg = /([^ ]+) ▶ \[DEBU (?:keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(\[tags:([^\]]+)])?/
 const tagsReg = /\[tags:([^\]]+)]/
 const methodPrefixReg = /^(\+\+Chat: )?/
 const methodResultReg = / -> .*$/
 const typeAndMethodReg = /^(\W*)/
+
+if (process.argv.length !== 4) {
+  console.log('Usage: node log-to-trace logfile outfile')
+  process.exit(1)
+}
 
 const convertLine = line => {
   const e = reg.exec(line)
@@ -60,6 +66,43 @@ const convertLine = line => {
 }
 
 const tags = {}
+const output = {
+  collision: [],
+  good: [],
+  unmatched: [],
+}
+
+const buildGood = (old, info) => {
+  const id = `${info.tags}:${info.method}`
+  return [
+    {
+      args: {
+        counter: old.counter,
+        file: old.file,
+        line: old.fileline,
+      },
+      id,
+      name: old.method,
+      ph: 'B',
+      pid: 0,
+      tid: old.tags,
+      ts: moment(old.time).valueOf() * 1000,
+    },
+    {
+      args: {
+        counter: info.counter,
+        file: info.file,
+        line: info.fileline,
+      },
+      id,
+      name: info.method,
+      ph: 'E',
+      pid: 0,
+      tid: info.tags,
+      ts: moment(info.time).valueOf() * 1000,
+    },
+  ]
+}
 
 lines.forEach(line => {
   const info = convertLine(line)
@@ -70,6 +113,7 @@ lines.forEach(line => {
   if (!tags[info.tags]) {
     tags[info.tags] = {}
   }
+
   const data = tags[info.tags]
   const dataKey = info.method
   // const dataKey = `${info.file}:${info.method}`
@@ -84,17 +128,20 @@ lines.forEach(line => {
   switch (info.type) {
     case '+':
       if (data[dataKey]) {
-        console.log('COLLISION: ', '\n', info, '\n', data[dataKey])
+        output.collision.push(info)
+        // console.log('COLLISION: ', '\n', info, '\n', data[dataKey])
       }
-      console.log('INJECT!', dataKey)
+      // console.log('INJECT!', dataKey)
       data[dataKey] = info
       break
     case '-':
       if (data[dataKey]) {
-        console.log('FOUND!', dataKey)
+        // console.log('FOUND!', dataKey)
+        output.good = output.good.concat(buildGood(data[dataKey], info))
         data[dataKey] = undefined
       } else {
-        console.log('Unmatched -:', info)
+        // console.log('Unmatched -:', info)
+        output.unmatched.push(info)
       }
       break
     default:
@@ -102,3 +149,20 @@ lines.forEach(line => {
     // console.log('Unknown line type:', info.type, ':', line)
   }
 })
+
+// if (output.unmatched.length) {
+// console.log('Unmatched lines:')
+// output.unmatched.forEach(u => console.log(u.line))
+// }
+
+// if (output.collision.length) {
+// console.log('Lines with collisions:')
+// output.collision.forEach(c => console.log(c.line))
+// }
+
+const format = {
+  displaytimeUnit: 'ms',
+  traceEvents: output.good,
+}
+const out = JSON.stringify(format, null, 2)
+fs.writeFileSync(process.argv[3], out, 'utf8')
