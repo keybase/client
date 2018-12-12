@@ -207,7 +207,8 @@ class Input extends React.PureComponent<InputProps> {
         dataSources={this._suggestorDatasource}
         renderers={this._suggestorRenderer}
         suggestorToMarker={suggestorToMarker}
-        suggestionOverlayStyle={{marginLeft: 15, marginRight: 15, marginTop: 'auto'}}
+        suggestionListStyle={styles.suggestionList}
+        suggestionOverlayStyle={styles.suggestionOverlay}
         keyExtractors={suggestorKeyExtractors}
         transformers={this._suggestorTransformer}
         onKeyDown={this._onKeyDown}
@@ -218,6 +219,21 @@ class Input extends React.PureComponent<InputProps> {
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  suggestionList: Styles.platformStyles({
+    isMobile: {
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_10,
+      borderStyle: 'solid',
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+    },
+  }),
+  suggestionOverlay: Styles.platformStyles({
+    isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+  }),
+})
 
 export type {InputProps as Props}
 

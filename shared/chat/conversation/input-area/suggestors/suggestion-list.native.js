@@ -7,6 +7,7 @@ import type {Props} from './suggestion-list'
 
 const SuggestionList = (props: Props) => (
   <NativeFlatList
+    style={Styles.collapseStyles([styles.list, props.style])}
     renderItem={({index, item}) => props.renderItem(index, item)}
     data={props.items}
     keyExtractor={props.keyExtractor || (item => item)}
@@ -14,5 +15,9 @@ const SuggestionList = (props: Props) => (
     windowSize={10}
   />
 )
+
+const styles = Styles.styleSheetCreate({
+  list: {flexGrow: 0, marginTop: 'auto'},
+})
 
 export default SuggestionList

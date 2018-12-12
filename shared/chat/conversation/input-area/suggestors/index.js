@@ -283,7 +283,13 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
           />
         )
         overlay = Styles.isMobile ? (
-          <Kb.FloatingBox onHidden={this._setInactive}>{content}</Kb.FloatingBox>
+          <Kb.FloatingBox
+            containerStyle={this.props.suggestionOverlayStyle}
+            dest="keyboard-avoiding-root"
+            onHidden={this._setInactive}
+          >
+            {content}
+          </Kb.FloatingBox>
         ) : (
           <Kb.Overlay
             attachTo={this._getAttachmentRef}
