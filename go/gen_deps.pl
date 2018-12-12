@@ -14,7 +14,7 @@ my $total_packages = 0;
 $ENV{'GOARCH'} = 'amd64';
 foreach my $os (@oses) {
     $ENV{'GOOS'} = $os;
-    my @packages = split /\n/, `go list ./...`;
+    my @packages = split /\n/, `go list ./... | grep -v github.com\\/keybase\\/client\\/go\\/bind`;
     $os_packages->{$os} = \@packages;
     $total_packages += scalar @packages;
 }

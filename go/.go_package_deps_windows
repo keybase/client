@@ -1,7 +1,6 @@
 {
    "github.com/keybase/client/go/auth" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -53,7 +52,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/avatars" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
@@ -70,7 +68,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/badges" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -79,13 +76,11 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/chat" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/chat/attachments" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
@@ -95,7 +90,6 @@
    },
    "github.com/keybase/client/go/chat/globals" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -126,7 +120,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/chat/msgchecker" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -134,7 +127,6 @@
    },
    "github.com/keybase/client/go/chat/pager" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -163,7 +155,6 @@
    },
    "github.com/keybase/client/go/chat/s3" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -197,13 +188,11 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/chat/search" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/chat/signencrypt" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -213,7 +202,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/chat/storage" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -224,7 +212,6 @@
    },
    "github.com/keybase/client/go/chat/types" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -256,7 +243,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/chat/unfurl" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -264,7 +250,6 @@
    },
    "github.com/keybase/client/go/chat/unfurl/display" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -293,7 +278,6 @@
    },
    "github.com/keybase/client/go/chat/utils" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -319,19 +303,16 @@
       "github.com/keybase/client/go/tlfupgrade" : 1
    },
    "github.com/keybase/client/go/chat/wallet" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/emails" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/encrypteddb" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -354,7 +335,6 @@
    },
    "github.com/keybase/client/go/engine" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -382,14 +362,12 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/ephemeral" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/erasablekv" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -398,7 +376,6 @@
    },
    "github.com/keybase/client/go/externals" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -473,7 +450,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/git" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -482,7 +458,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -573,7 +548,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/gregor/client" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -584,19 +558,16 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/gregor/storage" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/home" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/install" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -605,7 +576,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -683,7 +653,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -761,7 +730,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -839,7 +807,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -915,7 +882,6 @@
    },
    "github.com/keybase/client/go/kbfs/cache" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -975,7 +941,6 @@
       "github.com/keybase/client/go/kbfs/libdokan" : 1
    },
    "github.com/keybase/client/go/kbfs/env" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -994,7 +959,6 @@
    },
    "github.com/keybase/client/go/kbfs/ioutil" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -1048,7 +1012,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/kbfs/kbfsblock" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -1067,7 +1030,6 @@
    },
    "github.com/keybase/client/go/kbfs/kbfscodec" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -1120,7 +1082,6 @@
    },
    "github.com/keybase/client/go/kbfs/kbfscrypto" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -1171,7 +1132,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/kbfs/kbfsedits" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -1190,7 +1150,6 @@
    },
    "github.com/keybase/client/go/kbfs/kbfshash" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -1242,7 +1201,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/kbfs/kbfsmd" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -1261,7 +1219,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/kbfs/kbfssync" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -1279,7 +1236,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/kbfs/libfs" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -1298,7 +1254,6 @@
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1
    },
    "github.com/keybase/client/go/kbfs/libhttpserver" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
@@ -1306,7 +1261,6 @@
       "github.com/keybase/client/go/kbfs/libfuse" : 1
    },
    "github.com/keybase/client/go/kbfs/libkbfs" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -1322,7 +1276,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/kbfs/libmime" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
@@ -1334,7 +1287,6 @@
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1
    },
    "github.com/keybase/client/go/kbfs/metricsutil" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -1350,7 +1302,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -1376,7 +1327,6 @@
    },
    "github.com/keybase/client/go/kbfs/tlf" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -1427,7 +1377,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -1508,7 +1457,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -1586,7 +1534,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -1661,14 +1608,12 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/libcmdline" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/libkb" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -1732,7 +1677,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -1809,7 +1753,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/lru" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
@@ -1828,7 +1771,6 @@
    },
    "github.com/keybase/client/go/merklestore" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -1887,7 +1829,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/phonenumbers" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -1900,7 +1841,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -1978,7 +1918,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2056,7 +1995,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2149,7 +2087,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2237,7 +2174,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2317,7 +2253,6 @@
    },
    "github.com/keybase/client/go/pvl" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -2375,7 +2310,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/saltpackkeys" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -2385,7 +2319,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/slotctx" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2398,14 +2331,12 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/acctbundle" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2415,7 +2346,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/bundle" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2426,7 +2356,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/relays" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2435,7 +2364,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/remote" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2444,7 +2372,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/stellarcommon" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2454,13 +2381,11 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/stellargregor" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/stellarsvc" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -2469,7 +2394,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2544,7 +2468,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/teams" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -2559,14 +2482,12 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/tlfupgrade" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/uidmap" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -2609,7 +2530,6 @@
       "github.com/keybase/client/go/kbfs/redirector" : 1
    },
    "github.com/keybase/client/go/vendor/camlistore.org/pkg/buildinfo" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -2620,7 +2540,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/camlistore.org/pkg/images" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -2630,7 +2549,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/camlistore.org/pkg/images/fastjpeg" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -2641,7 +2559,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/camlistore.org/pkg/images/resize" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -2652,7 +2569,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/BurntSushi/toml" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2665,7 +2581,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2740,7 +2655,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/StackExchange/wmi" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -2771,7 +2685,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2847,7 +2760,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/antchfx/htmlquery" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -2857,7 +2769,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/antchfx/xmlquery" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -2867,7 +2778,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/antchfx/xpath" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -2877,7 +2787,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/araddon/dateparse" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -2895,7 +2804,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/asaskevich/govalidator" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2908,7 +2816,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -2986,7 +2893,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -3064,7 +2970,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -3143,7 +3048,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -3230,7 +3134,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/deckarep/golang-set" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -3242,7 +3145,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/eapache/channels" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -3260,7 +3162,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/eapache/queue" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -3279,7 +3180,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/emirpasic/gods/containers" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3292,7 +3192,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/emirpasic/gods/lists" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3305,7 +3204,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/emirpasic/gods/lists/arraylist" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3318,7 +3216,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/emirpasic/gods/trees" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3331,7 +3228,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/emirpasic/gods/trees/binaryheap" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3344,7 +3240,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/emirpasic/gods/utils" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3357,7 +3252,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gammazero/deque" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -3376,7 +3270,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gammazero/workerpool" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -3394,7 +3287,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/go-errors/errors" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -3423,7 +3315,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/go-ole/go-ole" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -3442,7 +3333,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/go-ole/go-ole/oleutil" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -3461,7 +3351,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3471,7 +3360,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/compiler" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3481,7 +3369,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/match" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3491,7 +3378,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/syntax" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3501,7 +3387,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/syntax/ast" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3511,7 +3396,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/syntax/lexer" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3521,7 +3405,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/util/runes" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3531,7 +3414,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gobwas/glob/util/strings" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3541,7 +3423,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gocolly/colly" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
@@ -3550,7 +3431,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gocolly/colly/debug" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3560,7 +3440,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gocolly/colly/storage" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3571,7 +3450,6 @@
    },
    "github.com/keybase/client/go/vendor/github.com/golang/groupcache/lru" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -3625,7 +3503,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/golang/groupcache/singleflight" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -3635,7 +3512,6 @@
    },
    "github.com/keybase/client/go/vendor/github.com/golang/mock/gomock" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -3689,7 +3565,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/golang/protobuf/proto" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3702,7 +3577,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -3778,7 +3652,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/gonutz/w32" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -3788,7 +3661,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -3863,7 +3735,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/jbenet/go-context/io" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3879,7 +3750,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -3954,7 +3824,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/kennygrant/sanitize" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -3964,7 +3833,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/kevinburke/ssh_config" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -3980,7 +3848,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4073,7 +3940,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/cli" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -4083,7 +3949,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4178,7 +4043,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4277,7 +4141,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4356,7 +4219,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4435,7 +4297,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4514,7 +4375,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4593,7 +4453,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4674,7 +4533,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4752,7 +4610,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4831,7 +4688,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4909,7 +4765,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -4988,7 +4843,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5067,7 +4921,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5146,7 +4999,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5225,7 +5077,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5304,7 +5155,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5389,7 +5239,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5483,7 +5332,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5579,7 +5427,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5672,7 +5519,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5754,7 +5600,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-merkle-tree" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
@@ -5774,7 +5619,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-porterstemmer" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -5782,7 +5626,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-ps" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -5793,7 +5636,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5871,7 +5713,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -5948,7 +5789,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-updater/process" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -5962,7 +5802,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6037,7 +5876,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/golang-ico" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -6050,7 +5888,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6143,7 +5980,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/pipeliner" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
@@ -6163,7 +5999,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6241,7 +6076,6 @@
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/saltpack/basic" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -6273,7 +6107,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6354,7 +6187,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6433,7 +6265,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6509,7 +6340,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/stellarnet" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -6527,7 +6357,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6606,7 +6435,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6682,7 +6510,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/manucorporat/sse" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -6697,7 +6524,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6780,7 +6606,6 @@
    },
    "github.com/keybase/client/go/vendor/github.com/miekg/dns" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -6835,7 +6660,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/mitchellh/go-homedir" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -6848,7 +6672,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/mvdan/xurls" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
@@ -6857,7 +6680,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/nf/cr2" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -6868,7 +6690,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/nfnt/resize" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -6881,7 +6702,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -6957,7 +6777,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/pelletier/go-buffruneio" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -6973,7 +6792,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7055,7 +6873,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7142,7 +6959,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/rcrowley/go-metrics" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -7160,7 +6976,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/rwcarlsen/goexif/exif" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -7171,7 +6986,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/rwcarlsen/goexif/tiff" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -7182,7 +6996,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/saintfish/chardet" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -7192,7 +7005,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/sergi/go-diff/diffmatchpatch" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -7205,7 +7017,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/shirou/gopsutil/internal/common" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -7224,7 +7035,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/shirou/gopsutil/mem" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -7242,7 +7052,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/src-d/gcfg" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -7255,7 +7064,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/src-d/gcfg/scanner" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -7268,7 +7076,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/src-d/gcfg/token" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -7281,7 +7088,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/src-d/gcfg/types" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -7297,7 +7103,6 @@
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/address" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7307,7 +7112,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/amount" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7319,7 +7123,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/build" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7331,7 +7134,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/clients/federation" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7340,7 +7142,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/clients/horizon" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7352,7 +7153,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/clients/stellartoml" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7365,7 +7165,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7441,7 +7240,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/hash" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7456,7 +7254,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7531,7 +7328,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/network" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7543,7 +7339,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/price" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7555,7 +7350,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/protocols/federation" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7568,7 +7362,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7647,7 +7440,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7723,7 +7515,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/support/render/problem" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7738,7 +7529,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7817,7 +7607,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7907,7 +7696,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -7986,7 +7774,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8064,7 +7851,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8143,7 +7929,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8222,7 +8007,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8301,7 +8085,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8380,7 +8163,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8459,7 +8241,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8538,7 +8319,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8617,7 +8397,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8696,7 +8475,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8775,7 +8553,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8854,7 +8631,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -8930,7 +8706,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/temoto/robotstxt" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -8940,7 +8715,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/vividcortex/ewma" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -8958,7 +8732,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/xanzy/ssh-agent" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9002,7 +8775,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/go4.org/readerutil" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -9031,7 +8803,6 @@
       "github.com/keybase/client/go/kbfs/libpages/config" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/cast5" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9047,7 +8818,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9127,7 +8897,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9208,7 +8977,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9286,7 +9054,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/internal/chacha20" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9299,7 +9066,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/internal/subtle" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9315,7 +9081,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9395,7 +9160,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9473,7 +9237,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/openpgp" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9486,7 +9249,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/openpgp/armor" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9499,7 +9261,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/openpgp/elgamal" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9512,7 +9273,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/openpgp/errors" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9525,7 +9285,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/openpgp/packet" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9538,7 +9297,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/openpgp/s2k" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -9554,7 +9312,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9634,7 +9391,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9716,7 +9472,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9794,7 +9549,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9874,7 +9628,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -9956,7 +9709,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10033,7 +9785,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/ssh" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -10046,7 +9797,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/ssh/agent" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -10059,7 +9809,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/ssh/knownhosts" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -10075,7 +9824,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10152,7 +9900,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/image/bmp" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -10163,7 +9910,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/image/draw" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -10174,7 +9920,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/image/math/f64" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -10185,7 +9930,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/image/tiff" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -10196,7 +9940,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/image/tiff/lzw" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -10210,7 +9953,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10307,7 +10049,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10385,7 +10126,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10464,7 +10204,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10540,7 +10279,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/net/html/charset" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10550,7 +10288,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/net/internal/timeseries" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -10569,7 +10306,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/net/publicsuffix" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
@@ -10578,7 +10314,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/net/trace" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -10599,7 +10334,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10677,7 +10411,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10764,7 +10497,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -10841,7 +10573,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10852,7 +10583,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/charmap" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10862,7 +10592,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/htmlindex" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10872,7 +10601,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/internal" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10883,7 +10611,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/internal/identifier" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10894,7 +10621,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/japanese" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10904,7 +10630,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/korean" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10914,7 +10639,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/simplifiedchinese" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10924,7 +10648,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/traditionalchinese" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10934,7 +10657,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding/unicode" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10944,7 +10666,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/internal/language" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10954,7 +10675,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/internal/language/compact" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10964,7 +10684,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/internal/tag" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10974,7 +10693,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/internal/utf8internal" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10985,7 +10703,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/language" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -10995,7 +10712,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/runes" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11006,7 +10722,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/transform" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11027,7 +10742,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/unicode/norm" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11040,7 +10754,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/time/rate" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -11059,7 +10772,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/internal" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11069,7 +10781,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/internal/base" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11079,7 +10790,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/internal/datastore" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11089,7 +10799,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/internal/log" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11099,7 +10808,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/internal/remote_api" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11109,7 +10817,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/internal/urlfetch" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11119,7 +10826,6 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/google.golang.org/appengine/urlfetch" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
@@ -11130,7 +10836,6 @@
    },
    "github.com/keybase/client/go/vendor/gopkg.in/kyokomi/emoji.v1" : {
       "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
@@ -11158,7 +10863,6 @@
       "github.com/keybase/client/go/tlfupgrade" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -11177,7 +10881,6 @@
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/helper/chroot" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11192,7 +10895,6 @@
       "github.com/keybase/client/go/kbfs/simplefs" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/helper/polyfill" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11207,7 +10909,6 @@
       "github.com/keybase/client/go/kbfs/simplefs" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/osfs" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11220,7 +10921,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/util" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11234,7 +10934,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11246,7 +10945,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/config" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11259,7 +10957,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/internal/revision" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11272,7 +10969,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11285,7 +10981,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/cache" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11298,7 +10993,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/filemode" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11311,7 +11005,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/config" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11324,7 +11017,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/diff" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11337,7 +11029,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/gitignore" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11350,7 +11041,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/idxfile" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11363,7 +11053,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/index" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11376,7 +11065,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/objfile" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11389,7 +11077,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/packfile" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11402,7 +11089,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/format/pktline" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11415,7 +11101,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/object" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11428,7 +11113,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/protocol/packp" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11441,7 +11125,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11454,7 +11137,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11467,7 +11149,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/revlist" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11480,7 +11161,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/storer" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11493,7 +11173,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11506,7 +11185,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/client" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11519,7 +11197,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/file" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11532,7 +11209,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/git" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11545,7 +11221,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/http" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11558,7 +11233,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/internal/common" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11571,7 +11245,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/server" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11584,7 +11257,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing/transport/ssh" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11597,7 +11269,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/storage" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11610,7 +11281,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/storage/filesystem" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11623,7 +11293,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/storage/filesystem/dotgit" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11636,7 +11305,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/storage/memory" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11649,7 +11317,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/binary" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11662,7 +11329,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/diff" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11675,7 +11341,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/ioutil" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11688,7 +11353,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/merkletrie" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11701,7 +11365,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/merkletrie/filesystem" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11714,7 +11377,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/merkletrie/index" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11727,7 +11389,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/merkletrie/internal/frame" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11740,7 +11401,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/utils/merkletrie/noder" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11753,7 +11413,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/warnings.v0" : {
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -11769,7 +11428,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -11864,7 +11522,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -11942,7 +11599,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12046,7 +11702,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12150,7 +11805,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12254,7 +11908,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12358,7 +12011,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12462,7 +12114,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12566,7 +12217,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12670,7 +12320,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12774,7 +12423,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12878,7 +12526,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -12982,7 +12629,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -13086,7 +12732,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -13190,7 +12835,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
@@ -13294,7 +12938,6 @@
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/bind" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
