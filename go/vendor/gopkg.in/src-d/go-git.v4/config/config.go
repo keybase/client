@@ -40,9 +40,6 @@ type Config struct {
 		IsBare bool
 		// Worktree is the path to the root of the working tree.
 		Worktree string
-		// CommentChar is the character indicating the start of a
-		// comment for commands like commit and tag
-		CommentChar string
 	}
 
 	Pack struct {
@@ -116,7 +113,6 @@ const (
 	urlKey           = "url"
 	bareKey          = "bare"
 	worktreeKey      = "worktree"
-	commentCharKey   = "commentChar"
 	windowKey        = "window"
 	mergeKey         = "merge"
 
@@ -155,7 +151,6 @@ func (c *Config) unmarshalCore() {
 	}
 
 	c.Core.Worktree = s.Options.Get(worktreeKey)
-	c.Core.CommentChar = s.Options.Get(commentCharKey)
 }
 
 func (c *Config) unmarshalPack() error {

@@ -1,4 +1,4 @@
-// +build darwin freebsd netbsd
+// +build darwin freebsd netbsd openbsd
 
 package git
 

@@ -5,6 +5,7 @@ import (
 	"hash"
 	"io"
 
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/utils/binary"
 )
 
@@ -22,8 +23,8 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 // Encode encodes an MemoryIndex to the encoder writer.
-func (e *Encoder) Encode(idx *MemoryIndex) (int, error) {
-	flow := []func(*MemoryIndex) (int, error){
+func (e *Encoder) Encode(idx *MemoryIndex, statusChan plumbing.StatusChan) (int, error) {
+	flow := []func(*MemoryIndex, plumbing.StatusChan) (int, error){
 		e.encodeHeader,
 		e.encodeFanout,
 		e.encodeHashes,
@@ -34,7 +35,7 @@ func (e *Encoder) Encode(idx *MemoryIndex) (int, error) {
 
 	sz := 0
 	for _, f := range flow {
-		i, err := f(idx)
+		i, err := f(idx, statusChan)
 		sz += i
 
 		if err != nil {
@@ -45,7 +46,7 @@ func (e *Encoder) Encode(idx *MemoryIndex) (int, error) {
 	return sz, nil
 }
 
-func (e *Encoder) encodeHeader(idx *MemoryIndex) (int, error) {
+func (e *Encoder) encodeHeader(idx *MemoryIndex, _ plumbing.StatusChan) (int, error) {
 	c, err := e.Write(idxHeader)
 	if err != nil {
 		return c, err
@@ -54,7 +55,7 @@ func (e *Encoder) encodeHeader(idx *MemoryIndex) (int, error) {
 	return c + 4, binary.WriteUint32(e, idx.Version)
 }
 
-func (e *Encoder) encodeFanout(idx *MemoryIndex) (int, error) {
+func (e *Encoder) encodeFanout(idx *MemoryIndex, _ plumbing.StatusChan) (int, error) {
 	for _, c := range idx.Fanout {
 		if err := binary.WriteUint32(e, c); err != nil {
 			return 0, err
@@ -64,24 +65,37 @@ func (e *Encoder) encodeFanout(idx *MemoryIndex) (int, error) {
 	return fanout * 4, nil
 }
 
-func (e *Encoder) encodeHashes(idx *MemoryIndex) (int, error) {
+func (e *Encoder) encodeHashes(idx *MemoryIndex, statusChan plumbing.StatusChan) (int, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusIndexHash,
+		ObjectsTotal: idx.count(),
+	}
+	statusChan.SendUpdate(update)
+
 	var size int
 	for k := 0; k < fanout; k++ {
 		pos := idx.FanoutMapping[k]
 		if pos == noMapping {
 			continue
 		}
-
 		n, err := e.Write(idx.Names[pos])
 		if err != nil {
 			return size, err
 		}
 		size += n
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 	return size, nil
 }
 
-func (e *Encoder) encodeCRC32(idx *MemoryIndex) (int, error) {
+func (e *Encoder) encodeCRC32(idx *MemoryIndex, statusChan plumbing.StatusChan) (int, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusIndexCRC,
+		ObjectsTotal: idx.count(),
+	}
+	statusChan.SendUpdate(update)
+
 	var size int
 	for k := 0; k < fanout; k++ {
 		pos := idx.FanoutMapping[k]
@@ -95,12 +109,20 @@ func (e *Encoder) encodeCRC32(idx *MemoryIndex) (int, error) {
 		}
 
 		size += n
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return size, nil
 }
 
-func (e *Encoder) encodeOffsets(idx *MemoryIndex) (int, error) {
+func (e *Encoder) encodeOffsets(idx *MemoryIndex, statusChan plumbing.StatusChan) (int, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusIndexOffset,
+		ObjectsTotal: idx.count(),
+	}
+	statusChan.SendUpdate(update)
+
 	var size int
 	for k := 0; k < fanout; k++ {
 		pos := idx.FanoutMapping[k]
@@ -114,6 +136,8 @@ func (e *Encoder) encodeOffsets(idx *MemoryIndex) (int, error) {
 		}
 
 		size += n
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	if len(idx.Offset64) > 0 {
@@ -128,7 +152,7 @@ func (e *Encoder) encodeOffsets(idx *MemoryIndex) (int, error) {
 	return size, nil
 }
 
-func (e *Encoder) encodeChecksums(idx *MemoryIndex) (int, error) {
+func (e *Encoder) encodeChecksums(idx *MemoryIndex, _ plumbing.StatusChan) (int, error) {
 	if _, err := e.Write(idx.PackfileChecksum[:]); err != nil {
 		return 0, err
 	}
