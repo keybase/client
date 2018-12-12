@@ -12,6 +12,7 @@ protocol local {
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
     string seqno;               // the stellar sequence number for this account
+    CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -83,7 +84,7 @@ protocol local {
     string currentWorth;            // "$379.12 USD" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
 
@@ -148,7 +149,7 @@ protocol local {
     string currentWorth;            // "$379.12 CAD" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
 
