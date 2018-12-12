@@ -26,6 +26,10 @@ type AddSuggestorsProps = {
   suggestionListStyle?: Styles.StylesCrossPlatform,
   suggestionOverlayStyle?: Styles.StylesCrossPlatform,
   suggestorToMarker: {
+    // Note: if iOS decides it can autocorrect your text after this marker, it will do so.
+    // Avoid this by either:
+    // 1. Having a marker that disables iOS's autocorrect
+    // 2. Making sure your replacement text doesn't start with the filter
     [key: string]: string,
   },
   transformers: {

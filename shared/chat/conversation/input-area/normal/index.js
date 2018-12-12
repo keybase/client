@@ -40,9 +40,10 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (emoji: {colons: string}, {position: {end, start}, text}) => {
-  const newText = `${text.substring(0, start)}${emoji.colons} ${text.substring(end)}`
-  const newSelection = start + emoji.colons.length + 1
+const emojiTransformer = (emoji: {colons: string, native: string}, {position: {end, start}, text}) => {
+  const toInsert = Styles.isMobile ? emoji.native : emoji.colons
+  const newText = `${text.substring(0, start)}${toInsert} ${text.substring(end)}`
+  const newSelection = start + toInsert.length + 1
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
