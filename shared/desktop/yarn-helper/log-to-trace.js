@@ -74,6 +74,12 @@ const output = {
 
 const buildGood = (old, info) => {
   const id = `${info.tags}:${info.method}`
+  const startTs = moment(old.time).valueOf() * 1000
+  const endTs = moment(info.time).valueOf() * 1000
+  if (endTs < startTs) {
+    console.log('bad start/end')
+    return []
+  }
   return [
     {
       args: {
@@ -86,7 +92,7 @@ const buildGood = (old, info) => {
       ph: 'B',
       pid: 0,
       tid: old.tags,
-      ts: moment(old.time).valueOf() * 1000,
+      ts: startTs,
     },
     {
       args: {
@@ -99,7 +105,7 @@ const buildGood = (old, info) => {
       ph: 'E',
       pid: 0,
       tid: info.tags,
-      ts: moment(info.time).valueOf() * 1000,
+      ts: endTs,
     },
   ]
 }
