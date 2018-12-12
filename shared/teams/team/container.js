@@ -31,7 +31,7 @@ const mapStateToProps = (state, {routeProps, routeState}: OwnProps) => {
 const mapDispatchToProps = (dispatch, {navigateUp, setRouteState, routeProps}: OwnProps) => {
   return {
     _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
-    onBack: () => dispatch(navigateUp()),
+    onLeftAction: () => dispatch(navigateUp()),
     setSelectedTab: (selectedTab: string) => setRouteState({selectedTab}),
   }
 }
@@ -57,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     _loadTeam: dispatchProps._loadTeam,
     customComponent,
-    onBack: dispatchProps.onBack,
+    onLeftAction: dispatchProps.onLeftAction,
     rows,
     selectedTab: stateProps.selectedTab,
     setSelectedTab: dispatchProps.setSelectedTab,

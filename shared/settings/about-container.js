@@ -8,7 +8,7 @@ type OwnProps = Container.RouteProps<{}, {}>
 
 const mapStateToProps = () => ({version})
 const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
   onShowPrivacyPolicy: () =>
     dispatch(
       navigateAppend([

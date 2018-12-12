@@ -194,7 +194,7 @@ const mapStateToProps = (state, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
   title: 'Feedback',
 })
 

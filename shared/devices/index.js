@@ -20,7 +20,7 @@ type Props = {|
   addNewPhone: () => void,
   items: Array<Item>,
   loadDevices: () => void,
-  onBack: () => void,
+  onLeftAction: () => void,
   revokedItems: Array<Item>,
   hasNewlyRevoked: boolean,
   waiting: boolean,

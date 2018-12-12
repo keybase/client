@@ -37,7 +37,7 @@ const mapStateToProps = (state, {routeState}) => {
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState, navigateUp}) => ({
   _loadGit: () => dispatch(GitGen.createLoadGit()),
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}]))

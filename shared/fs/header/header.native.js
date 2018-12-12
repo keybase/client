@@ -6,7 +6,7 @@ import AddNew from './add-new-container'
 
 const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
   <Kb.HeaderHocHeader
-    onBack={onBack}
+    onLeftAction={onBack}
     rightActions={[
       onChat ? {
         icon: 'iconfont-chat',

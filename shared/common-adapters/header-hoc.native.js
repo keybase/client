@@ -3,7 +3,6 @@ import * as React from 'react'
 import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
-import Badge from './badge'
 import Box from './box'
 import FloatingMenu from './floating-menu'
 import Icon from './icon'
@@ -25,20 +24,20 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       <Box style={Styles.collapseStyles([styles.header, this.props.theme === 'dark' ? styles.headerDark : styles.headerLight, this.props.headerStyle])}>
         {this.props.customComponent}
         <Box style={styles.leftAction}>
-          {this.props.leftAction
-            ? this.props.leftAction === 'back' && (
+          {this.props.onLeftAction && (
+            this.props.leftAction === 'cancel' ? (
+              <Text type="BodyBigLink" style={styles.action} onClick={this.props.onLeftAction}>
+                {this.props.leftActionText || 'Cancel'}
+              </Text>
+            ) : (
               <BackButton
                 hideBackLabel={this.props.hideBackLabel}
                 iconColor={this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
                 style={styles.action}
                 onClick={this.props.onLeftAction}
               />
-          ) : this.props.leftAction === 'cancel' && (
-            <Text type="BodyBigLink" style={styles.action} onClick={this.props.onLeftAction}>
-              {this.props.leftActionText || 'Cancel'}
-            </Text>
+            )
           )}
-          {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
         </Box>
         <Box style={styles.titleContainer}>
           {!!this.props.title && !this.props.children && (
@@ -180,7 +179,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       flex: 1,
-      flexShrink: 1,
       justifyContent: 'center',
       width: '100%',
     },

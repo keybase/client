@@ -10,12 +10,7 @@ const People = (props: Props) => (
     {props.waiting && (
       <ProgressIndicator style={{height: 32, left: 96, position: 'absolute', top: 8, width: 32, zIndex: 2}} />
     )}
-    <PeoplePageSearchBar
-      {...props}
-      styleRowContainer={{left: 80}}
-      styleSearchContainer={{minHeight: 24, width: 240}}
-      styleSearchText={{fontSize: 13}}
-    />
+    <PeoplePageSearchBar {...props} />
     <PeoplePageList {...props} />
   </ScrollView>
 )

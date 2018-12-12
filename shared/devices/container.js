@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
   addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onBack: () => dispatch(RouteTree.navigateUp()),
+  onLeftAction: () => dispatch(RouteTree.navigateUp()),
 })
 
 const sortDevices = (a, b) => {
@@ -52,7 +52,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
-    onBack: dispatchProps.onBack,
+    onLeftAction: dispatchProps.onLeftAction,
     revokedItems: revokedItems,
     title: 'Devices',
     waiting: stateProps.waiting,
@@ -61,7 +61,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
 
 const Connected = compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
-  safeSubmitPerMount(['onBack'])
+  safeSubmitPerMount(['onLeftAction'])
 )(Devices)
 
 export default Connected

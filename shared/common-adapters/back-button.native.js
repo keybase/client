@@ -39,7 +39,6 @@ const styles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    marginRight: 8,
     padding: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small - 4,
     paddingRight: Styles.globalMargins.small,

@@ -7,6 +7,19 @@ import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
 const People = (props: Props) => (
+<>
+  <Kb.HeaderHocHeader
+    rightActions={[{
+      custom: <Kb.Avatar
+                username={props.myUsername}
+                onClick={() => props.onClickUser(props.myUsername)}
+                size={32}
+              />,
+      label: 'Avatar',
+    }]}
+  >
+    <PeoplePageSearchBar {...props} />
+  </Kb.HeaderHocHeader>
   <Kb.ScrollView
     style={styles.scrollView}
     refreshControl={
@@ -15,35 +28,14 @@ const People = (props: Props) => (
       <Kb.NativeRefreshControl refreshing={isIOS ? false : props.waiting} onRefresh={() => props.getData()} />
     }
   >
-    <Kb.HeaderHocHeader
-      rightActions={[{
-        custom: <Kb.Avatar
-                  username={props.myUsername}
-                  onClick={() => props.onClickUser(props.myUsername)}
-                  size={32}
-                />,
-        label: 'Avatar',
-      }]}
-    >
-      <PeoplePageSearchBar
-        {...props}
-        styleRowContainer={styles.searchRow}
-        styleSearchText={styles.searchText}
-      />
-    </Kb.HeaderHocHeader>
     <PeoplePageList {...props} />
   </Kb.ScrollView>
+</>
 )
 
 const styles = styleSheetCreate({
   scrollView: {
     ...globalStyles.fullHeight,
-  },
-  searchRow: {
-    left: 0,
-  },
-  searchText: {
-    fontSize: 16,
   },
 })
 

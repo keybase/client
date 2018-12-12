@@ -52,69 +52,69 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
   return null
 }
 
-export const PeoplePageSearchBar = (
-  props: Props & {
-    styleRowContainer?: any,
-    styleSearchContainer?: any,
-    styleSearch?: any,
-    styleSearchText?: any,
-  }
-) => (
-  <Kb.Box style={Styles.collapseStyles([styleRowContainer, props.styleRowContainer])}>
-    <Kb.ClickableBox
-      onClick={props.onSearch}
-      style={Styles.collapseStyles([styleSearchContainer, props.styleSearchContainer])}
-    >
-      <Kb.Icon
-        style={Styles.collapseStyles([styleSearch, props.styleSearch])}
-        type="iconfont-search"
-        color={Styles.globalColors.black_20}
-      />
-      <Kb.Text style={Styles.collapseStyles([styleSearchText, props.styleSearchText])} type="Body">
-        Search people
-      </Kb.Text>
-    </Kb.ClickableBox>
-  </Kb.Box>
+export const PeoplePageSearchBar = (props: Props) => (
+  <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
+    <Kb.Icon
+      style={styles.search}
+      type="iconfont-search"
+      color={Styles.globalColors.black_20}
+    />
+    <Kb.Text style={styles.searchText} type="Body">
+      Search people
+    </Kb.Text>
+  </Kb.ClickableBox>
 )
 
-const styleRowContainer = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.white_90,
-  // height: 48,
-  justifyContent: 'center',
-  // position: 'absolute',
-  // right: 0,
-  // top: 0,
-  // zIndex: 1,
-}
-
 export const PeoplePageList = (props: Props) => (
-  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginTop: 48, position: 'relative', width: '100%'}}>
+  <Kb.Box style={styles.list}>
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Kb.Box>
 )
 
-const styleSearchContainer = {
-  ...Styles.globalStyles.flexBoxRow,
-  ...Styles.desktopStyles.clickable,
-  alignItems: 'center',
-  alignSelf: 'center',
-  backgroundColor: Styles.globalColors.black_10,
-  borderRadius: Styles.borderRadius,
-  justifyContent: 'center',
-  zIndex: 20,
-}
-
-const styleSearch = {
-  padding: Styles.globalMargins.xtiny,
-}
-
-const styleSearchText = {
-  ...styleSearch,
-  color: Styles.globalColors.black_40,
-  position: 'relative',
-  top: -1,
-}
+const styles = Styles.styleSheetCreate({
+  list: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      position: 'relative',
+      width: '100%',
+    },
+    isElectron: {
+      marginTop: 48,
+    },
+  }),
+  search: {
+    padding: Styles.globalMargins.xtiny,
+  },
+  searchContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      // alignSelf: 'center',
+      backgroundColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      justifyContent: 'center',
+      width: '100%',
+    },
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+      minHeight: 24,
+      width: 240,
+    },
+  }),
+  searchText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_40,
+      padding: Styles.globalMargins.xtiny,
+      position: 'relative',
+      top: -1,
+    },
+    isElectron: {
+      fontSize: 13,
+    },
+    isMobile: {
+      fontSize: 16,
+    },
+  }),
+})
