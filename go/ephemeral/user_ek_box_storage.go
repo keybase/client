@@ -154,7 +154,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	}
 
 	if result.Result == nil {
-		err = newEKMissingBoxErr(UserEKStr, generation)
+		err = newEKMissingBoxErr(ctx, s.G(), UserEKStr, generation)
 		if perr := s.put(ctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
 			s.G().Log.CDebugf(ctx, "unable to store: %v", perr)
 		}
@@ -177,7 +177,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata
 	if generation != userEKMetadata.Generation {
 		// sanity check that we go the right generation
-		return userEK, newEKCorruptedErr(UserEKStr, generation, userEKMetadata.Generation)
+		return userEK, newEKCorruptedErr(ctx, s.G(), UserEKStr, generation, userEKMetadata.Generation)
 	}
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
@@ -223,7 +223,7 @@ func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGenera
 
 	// sanity check that we got the right generation
 	if userEKBoxed.Metadata.Generation != generation && ekErr == nil {
-		return newEKCorruptedErr(UserEKStr, generation, userEKBoxed.Metadata.Generation)
+		return newEKCorruptedErr(ctx, s.G(), UserEKStr, generation, userEKBoxed.Metadata.Generation)
 	}
 
 	key, err := s.dbKey(ctx)
@@ -248,7 +248,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 		s.G().Log.CDebugf(ctx, "unable to get from deviceEKStorage %v", err)
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr,
+			return userEK, newEKUnboxErr(ctx, s.G(), UserEKStr, userEKGeneration, DeviceEKStr,
 				userEKBoxed.DeviceEkGeneration, contentCtime)
 		}
 		return userEK, err
@@ -260,7 +260,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "unable to decrypt userEKBoxed %v", err)
-		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr,
+		return userEK, newEKUnboxErr(ctx, s.G(), UserEKStr, userEKGeneration, DeviceEKStr,
 			userEKBoxed.DeviceEkGeneration, contentCtime)
 	}
 

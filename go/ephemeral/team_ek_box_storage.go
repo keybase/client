@@ -166,7 +166,7 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	}
 
 	if result.Result == nil {
-		err = newEKMissingBoxErr(TeamEKStr, generation)
+		err = newEKMissingBoxErr(ctx, s.G(), TeamEKStr, generation)
 		if perr := s.put(ctx, teamID, generation, keybase1.TeamEkBoxed{}, err); perr != nil {
 			s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
 		}
@@ -189,7 +189,7 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	teamEKMetadata := teamEKStatement.CurrentTeamEkMetadata
 	if generation != teamEKMetadata.Generation {
 		// sanity check that we go the right generation
-		return teamEK, newEKCorruptedErr(TeamEKStr, generation, teamEKMetadata.Generation)
+		return teamEK, newEKCorruptedErr(ctx, s.G(), TeamEKStr, generation, teamEKMetadata.Generation)
 	}
 	teamEKBoxed := keybase1.TeamEkBoxed{
 		Box:              result.Result.Box,
@@ -232,7 +232,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 		s.G().Log.CDebugf(ctx, "unable to get from userEKStorage %v", err)
 		switch err.(type) {
 		case EphemeralKeyError:
-			return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr,
+			return teamEK, newEKUnboxErr(ctx, s.G(), TeamEKStr, teamEKGeneration, UserEKStr,
 				teamEKBoxed.UserEkGeneration, contentCtime)
 		}
 		return teamEK, err
@@ -244,7 +244,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "unable to decrypt teamEKBoxed %v", err)
-		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr,
+		return teamEK, newEKUnboxErr(ctx, s.G(), TeamEKStr, teamEKGeneration, UserEKStr,
 			teamEKBoxed.UserEkGeneration, contentCtime)
 	}
 
@@ -272,7 +272,7 @@ func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID,
 
 	// sanity check that we got the right generation
 	if teamEKBoxed.Metadata.Generation != generation && ekErr == nil {
-		return newEKCorruptedErr(TeamEKStr, generation, teamEKBoxed.Metadata.Generation)
+		return newEKCorruptedErr(ctx, s.G(), TeamEKStr, generation, teamEKBoxed.Metadata.Generation)
 	}
 
 	key, err := s.dbKey(ctx, teamID)
