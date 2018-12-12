@@ -228,7 +228,9 @@ func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes 
 			return true
 		}
 		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_REMOVED:
+		case chat1.ConversationMemberStatus_LEFT,
+			chat1.ConversationMemberStatus_REMOVED,
+			chat1.ConversationMemberStatus_NEVER_JOINED:
 			s.Debug(ctx, "shouldDoFullReloadFromIncremental: join or leave conv")
 			return true
 		}
