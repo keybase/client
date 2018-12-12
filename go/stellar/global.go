@@ -247,21 +247,23 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 }
 
 func (s *Stellar) handleReconnect(ctx context.Context) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
 	s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
 	s.RefreshWalletState(ctx)
 
 	// XXX refresh loader for any incomplete payments???
 }
 
-func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) error {
+func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentStatus", func() error { return err })()
 	var msg stellar1.PaymentStatusMsg
-	if err := json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
 		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentStatusMsg: %s", err)
 		return err
 	}
 
 	paymentID := stellar1.NewPaymentID(msg.TxID)
-	if err := s.refreshPaymentFromNotification(ctx, msg.AccountID, paymentID); err != nil {
+	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, paymentID); err != nil {
 		return err
 	}
 	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, paymentID)
@@ -269,14 +271,15 @@ func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandM
 	return nil
 }
 
-func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutOfBandMessage) error {
+func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentNotification", func() error { return err })()
 	var msg stellar1.PaymentNotificationMsg
-	if err := json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
 		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentNotificationMsg: %s", err)
 		return err
 	}
 
-	if err := s.refreshPaymentFromNotification(ctx, msg.AccountID, msg.PaymentID); err != nil {
+	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, msg.PaymentID); err != nil {
 		return err
 	}
 	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, msg.PaymentID)
@@ -292,9 +295,10 @@ func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID 
 	return nil
 }
 
-func (s *Stellar) handleRequestStatus(ctx context.Context, obm gregor.OutOfBandMessage) error {
+func (s *Stellar) handleRequestStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handleRequestStatus", func() error { return err })()
 	var msg stellar1.RequestStatusMsg
-	if err := json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
 		s.G().Log.CDebugf(ctx, "error unmarshaling obm RequestStatusMsg: %s", err)
 		return err
 	}
