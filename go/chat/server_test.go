@@ -213,16 +213,10 @@ func teamKey(users []*kbtest.FakeUser) (res string) {
 var useRemoteMock = true
 
 func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembersType)) {
-	useRemoteMock = true
-	start := time.Now()
-	t.Logf("KBFS Stage Begin")
-	f(chat1.ConversationMembersType_KBFS)
-	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
-
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	t.Logf("Team Stage Begin")
-	start = time.Now()
+	start := time.Now()
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
@@ -5393,6 +5387,8 @@ func TestChatSrvStellarUI(t *testing.T) {
 
 	delay := 2 * time.Second
 	//uid := users[0].User.GetUID().ToBytes()
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 	tc := ctc.world.Tcs[users[0].Username]
 	ui := kbtest.NewChatUI()
 	declineUI := &xlmDeclineChatUI{ChatUI: ui}
@@ -5420,11 +5416,12 @@ func TestChatSrvStellarUI(t *testing.T) {
 	}
 	successCase := func(expectError bool) {
 		mst.specFn = specSuccess
-		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
-			ConversationID: conv.Id,
-			TlfName:        conv.TlfName,
-			Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
-		})
+		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx,
+			chat1.PostTextNonblockArg{
+				ConversationID: conv.Id,
+				TlfName:        conv.TlfName,
+				Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
+			})
 		if expectError {
 			require.Error(t, err)
 		} else {
@@ -5456,6 +5453,20 @@ func TestChatSrvStellarUI(t *testing.T) {
 			case <-ui.PostReadyToSend:
 			case <-time.After(delay):
 				require.Fail(t, "no ready to send")
+			}
+			select {
+			case msg := <-listener.newMessageLocal:
+				require.True(t, msg.Message.IsValid())
+				require.Equal(t, 2, len(msg.Message.Valid().AtMentions))
+			case <-time.After(delay):
+				require.Fail(t, "no local msg")
+			}
+			select {
+			case msg := <-listener.newMessageRemote:
+				require.True(t, msg.Message.IsValid())
+				require.Equal(t, 2, len(msg.Message.Valid().AtMentions))
+			case <-time.After(delay):
+				require.Fail(t, "no remote msg")
 			}
 		}
 	}
