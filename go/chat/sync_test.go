@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -315,6 +316,101 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 		require.Fail(t, "no inbox stale")
 	default:
 	}
+}
+
+func TestSyncerNeverJoined(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "SyncerNeverJoined", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ctc1 := ctc.as(t, users[0])
+		ctc2 := ctc.as(t, users[1])
+		ctx1 := ctc1.startCtx
+		uid1 := gregor1.UID(users[0].GetUID().ToBytes())
+		uid2 := gregor1.UID(users[1].GetUID().ToBytes())
+		g1 := ctc1.h.G()
+		g2 := ctc2.h.G()
+
+		syncer1 := NewSyncer(g1)
+		syncer1.isConnected = true
+		syncer2 := NewSyncer(g2)
+		syncer2.isConnected = true
+
+		listener1 := newServerChatListener()
+		g1.NotifyRouter.SetListener(listener1)
+		listener2 := newServerChatListener()
+		g2.NotifyRouter.SetListener(listener2)
+		t.Logf("u0: %s, u1: %s", users[0].GetUID(), users[1].GetUID())
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		convID := conv.Id
+
+		// create a channel, ensure user1 gets an inbox bump but does not see
+		// the conversation since it's in the NEVER_JOINED state.
+		topicName := "chan1"
+		channel, err := ctc1.chatLocalHandler().NewConversationLocal(ctx1,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		chanID := channel.Conv.GetConvID()
+		t.Logf("conv: %s chan: %s", conv.Id, chanID)
+
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeTeamType(t, listener1)
+		consumeTeamType(t, listener2)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
+
+		doAuthedSync := func(g *libkb.GlobalContext, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
+			nist, err := g.ActiveDevice.NIST(context.TODO())
+			require.NoError(t, err)
+			sessionToken := gregor1.SessionToken(nist.Token().String())
+			res, err := ri.SyncAll(context.TODO(), chat1.SyncAllArg{
+				Uid:     uid,
+				Session: sessionToken,
+			})
+			require.NoError(t, err)
+			require.NoError(t, syncer.Sync(context.TODO(), ri, uid, &res.Chat))
+		}
+
+		doAuthedSync(g1.ExternalG(), syncer1, ctc1.ri, uid1)
+		select {
+		case sres := <-listener1.inboxSynced:
+			typ, err := sres.SyncType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+			require.Len(t, sres.Incremental().Items, 2)
+			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+			require.Equal(t, chanID.String(), sres.Incremental().Items[1].Conv.ConvID)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no inbox synced received")
+		}
+
+		doAuthedSync(g2.ExternalG(), syncer2, ctc2.ri, uid2)
+		select {
+		case sres := <-listener2.inboxSynced:
+			typ, err := sres.SyncType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+			require.Len(t, sres.Incremental().Items, 1)
+			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no inbox synced received")
+		}
+	})
 }
 
 func TestSyncerMembersTypeChanged(t *testing.T) {
