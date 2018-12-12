@@ -2213,10 +2213,11 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
-		//		gomock.Any(), gomock.Any(), data, int64(2)).
 		gomock.Any(), gomock.Any(), []byte{1, 2, 3}, int64(2)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-			block.Contents = append(block1.Contents[0:2], data[0:3]...)
+			block.Contents = make([]byte, 5)
+			copy(block.Contents, block1.Contents[0:2])
+			copy(block.Contents[2:], data[0:3])
 		}).Return(int64(3))
 
 	// update block 2
