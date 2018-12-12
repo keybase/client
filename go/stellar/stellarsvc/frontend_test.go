@@ -1026,6 +1026,9 @@ func TestSendToSelf(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	tcs[0].Srv.walletState.Refresh(context.Background(), accountID1)
+	tcs[0].Srv.walletState.Refresh(context.Background(), accountID2)
+
 	page, err := tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountID1})
 	require.NoError(t, err)
 	t.Logf("%v", spew.Sdump(page))

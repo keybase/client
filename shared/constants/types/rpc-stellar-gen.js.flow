@@ -345,7 +345,7 @@ export type PaymentNotificationMsg = $ReadOnly<{accountID: AccountID, paymentID:
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
 export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean}>
-export type PaymentResult = $ReadOnly<{keybaseID: KeybaseTransactionID, stellarID: TransactionID, pending: Boolean}>
+export type PaymentResult = $ReadOnly<{senderAccountID: AccountID, keybaseID: KeybaseTransactionID, stellarID: TransactionID, pending: Boolean}>
 export type PaymentStatus =
   | 0 // NONE_0
   | 1 // PENDING_1

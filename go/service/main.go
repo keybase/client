@@ -329,7 +329,6 @@ func (d *Service) setupTeams() error {
 
 func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
-	go d.walletState.RefreshAll(context.Background())
 	return nil
 }
 

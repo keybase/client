@@ -223,24 +223,6 @@ func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.Acc
 	return a.RecentPayments(ctx)
 }
 
-// SubmitPayment is an override of remoter's SubmitPayment.
-func (w *WalletState) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
-	result, err := w.Remoter.SubmitPayment(ctx, post)
-	if err == nil {
-		w.RefreshAll(ctx)
-	}
-	return result, err
-}
-
-// SubmitRelayPayment is an override of remoter's SubmitRelayPayment.
-func (w *WalletState) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
-	result, err := w.Remoter.SubmitRelayPayment(ctx, post)
-	if err == nil {
-		w.RefreshAll(ctx)
-	}
-	return result, err
-}
-
 // SubmitRelayClaim is an override of remoter's SubmitRelayClaim.
 func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
