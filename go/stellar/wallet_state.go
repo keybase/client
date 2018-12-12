@@ -83,7 +83,7 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 	}
 
 	a = newAccountState(accountID, w.Remoter)
-	if err := a.Refresh(ctx, w.G().NotifyRouter); err != nil {
+	if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
 		w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", accountID, err)
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (w *WalletState) refreshAll(ctx context.Context) error {
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
 		w.G().Log.CDebugf(ctx, "Refresh %s", account.AccountID)
-		if err := a.Refresh(ctx, w.G().NotifyRouter); err != nil {
+		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
 		}
@@ -135,7 +135,7 @@ func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID)
 	if !ok {
 		return ErrAccountNotFound
 	}
-	return a.Refresh(ctx, w.G().NotifyRouter)
+	return a.Refresh(ctx, w.G(), w.G().NotifyRouter)
 }
 
 // AccountSeqno is an override of remoter's AccountSeqno that uses
@@ -337,15 +337,15 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountSta
 }
 
 // Refresh updates all the data for this account from the server.
-func (a *AccountState) Refresh(ctx context.Context, router *libkb.NotifyRouter) error {
+func (a *AccountState) Refresh(ctx context.Context, g *libkb.GlobalContext, router *libkb.NotifyRouter) error {
 	_, err := a.refreshGroup.Do("Refresh", func() (interface{}, error) {
-		doErr := a.refresh(ctx, router)
+		doErr := a.refresh(ctx, g, router)
 		return nil, doErr
 	})
 	return err
 }
 
-func (a *AccountState) refresh(ctx context.Context, router *libkb.NotifyRouter) error {
+func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, router *libkb.NotifyRouter) error {
 	seqno, err := a.remoter.AccountSeqno(ctx, a.accountID)
 	if err == nil {
 		a.Lock()
@@ -371,6 +371,9 @@ func (a *AccountState) refresh(ctx context.Context, router *libkb.NotifyRouter) 
 
 		if notify && router != nil {
 			router.HandleWalletAccountDetailsUpdate(ctx, a.accountID, details)
+		}
+		if notify {
+			getGlobal(g).UpdateUnreadCount(ctx, a.accountID, a.details.UnreadPayments)
 		}
 	}
 

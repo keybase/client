@@ -250,8 +250,6 @@ func (s *Stellar) handleReconnect(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
 	s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
 	s.RefreshWalletState(ctx)
-
-	// XXX RefreshUnreadCount(s.G(), accountID) for all accounts???
 }
 
 func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
@@ -288,7 +286,6 @@ func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutO
 }
 
 func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	RefreshUnreadCount(s.G(), accountID)
 	s.walletState.Refresh(ctx, accountID)
 	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
 
