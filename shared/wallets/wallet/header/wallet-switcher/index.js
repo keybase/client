@@ -9,13 +9,13 @@ import {TouchableOpacity} from 'react-native'
 import {type Props} from './container'
 
 const Row = (props: RowProps) => (
-  <Kb.Box2 direction="vertical" style={styles.rowContainer}>
+  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.style])}>
     <TouchableOpacity
       onPress={() => {
         props.onHidden() // auto hide after a selection
         props.onClick()
       }}
-      style={Styles.collapseStyles([styles.row, props.style])}
+      style={styles.row}
     >
       {props.children}
     </TouchableOpacity>
@@ -52,11 +52,7 @@ const renderItem = (item: MenuItem, onHidden: () => void) => {
     case 'whatIsStellar':
       return (
         <Row onClick={item.onClick} onHidden={onHidden} style={styles.infoTextRow}>
-          <Kb.Box2
-            centerChildren={true}
-            direction="horizontal"
-            style={{backgroundColor: Styles.globalColors.white, height: 48, width: '100%'}}
-          >
+          <Kb.Box2 centerChildren={true} direction="horizontal">
             <Kb.Icon size={16} type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
               What is Stellar?
@@ -94,7 +90,6 @@ const styles = Styles.styleSheetCreate({
   row: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
     height: 48,
     justifyContent: 'center',
