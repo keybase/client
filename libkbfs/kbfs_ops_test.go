@@ -132,9 +132,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		newTestSyncedTlfGetterSetter(), testInitModeGetter{InitDefault}}
 	brq := newBlockRetrievalQueue(0, 0, brc)
 	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
-	// Ignore Prefetcher calls
-	pre := newBlockPrefetcher(brq, brc, nil)
-	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(pre)
+	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(brq.prefetcher)
 
 	// Ignore favorites
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
@@ -181,6 +179,7 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 	if err := CleanupCancellationDelayer(ctx); err != nil {
 		panic(err)
 	}
+	<-config.mockBops.Prefetcher().Shutdown()
 	mockCtrl.Finish()
 }
 
