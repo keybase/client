@@ -18,20 +18,23 @@ func (o HomeScreenItemID) DeepCopy() HomeScreenItemID {
 type HomeScreenItemType int
 
 const (
-	HomeScreenItemType_TODO   HomeScreenItemType = 1
-	HomeScreenItemType_PEOPLE HomeScreenItemType = 2
+	HomeScreenItemType_TODO         HomeScreenItemType = 1
+	HomeScreenItemType_PEOPLE       HomeScreenItemType = 2
+	HomeScreenItemType_ANNOUNCEMENT HomeScreenItemType = 3
 )
 
 func (o HomeScreenItemType) DeepCopy() HomeScreenItemType { return o }
 
 var HomeScreenItemTypeMap = map[string]HomeScreenItemType{
-	"TODO":   1,
-	"PEOPLE": 2,
+	"TODO":         1,
+	"PEOPLE":       2,
+	"ANNOUNCEMENT": 3,
 }
 
 var HomeScreenItemTypeRevMap = map[HomeScreenItemType]string{
 	1: "TODO",
 	2: "PEOPLE",
+	3: "ANNOUNCEMENT",
 }
 
 func (e HomeScreenItemType) String() string {
@@ -42,9 +45,10 @@ func (e HomeScreenItemType) String() string {
 }
 
 type HomeScreenItemData struct {
-	T__      HomeScreenItemType            `codec:"t" json:"t"`
-	Todo__   *HomeScreenTodo               `codec:"todo,omitempty" json:"todo,omitempty"`
-	People__ *HomeScreenPeopleNotification `codec:"people,omitempty" json:"people,omitempty"`
+	T__            HomeScreenItemType            `codec:"t" json:"t"`
+	Todo__         *HomeScreenTodo               `codec:"todo,omitempty" json:"todo,omitempty"`
+	People__       *HomeScreenPeopleNotification `codec:"people,omitempty" json:"people,omitempty"`
+	Announcement__ *HomeScreenAnnouncement       `codec:"announcement,omitempty" json:"announcement,omitempty"`
 }
 
 func (o *HomeScreenItemData) T() (ret HomeScreenItemType, err error) {
@@ -57,6 +61,11 @@ func (o *HomeScreenItemData) T() (ret HomeScreenItemType, err error) {
 	case HomeScreenItemType_PEOPLE:
 		if o.People__ == nil {
 			err = errors.New("unexpected nil value for People__")
+			return ret, err
+		}
+	case HomeScreenItemType_ANNOUNCEMENT:
+		if o.Announcement__ == nil {
+			err = errors.New("unexpected nil value for Announcement__")
 			return ret, err
 		}
 	}
@@ -83,6 +92,16 @@ func (o HomeScreenItemData) People() (res HomeScreenPeopleNotification) {
 	return *o.People__
 }
 
+func (o HomeScreenItemData) Announcement() (res HomeScreenAnnouncement) {
+	if o.T__ != HomeScreenItemType_ANNOUNCEMENT {
+		panic("wrong case accessed")
+	}
+	if o.Announcement__ == nil {
+		return
+	}
+	return *o.Announcement__
+}
+
 func NewHomeScreenItemDataWithTodo(v HomeScreenTodo) HomeScreenItemData {
 	return HomeScreenItemData{
 		T__:    HomeScreenItemType_TODO,
@@ -94,6 +113,19 @@ func NewHomeScreenItemDataWithPeople(v HomeScreenPeopleNotification) HomeScreenI
 	return HomeScreenItemData{
 		T__:      HomeScreenItemType_PEOPLE,
 		People__: &v,
+	}
+}
+
+func NewHomeScreenItemDataWithAnnouncement(v HomeScreenAnnouncement) HomeScreenItemData {
+	return HomeScreenItemData{
+		T__:            HomeScreenItemType_ANNOUNCEMENT,
+		Announcement__: &v,
+	}
+}
+
+func NewHomeScreenItemDataDefault(t HomeScreenItemType) HomeScreenItemData {
+	return HomeScreenItemData{
+		T__: t,
 	}
 }
 
@@ -114,6 +146,93 @@ func (o HomeScreenItemData) DeepCopy() HomeScreenItemData {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.People__),
+		Announcement__: (func(x *HomeScreenAnnouncement) *HomeScreenAnnouncement {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Announcement__),
+	}
+}
+
+type AppLinkType int
+
+const (
+	AppLinkType_NONE     AppLinkType = 0
+	AppLinkType_PEOPLE   AppLinkType = 1
+	AppLinkType_CHAT     AppLinkType = 2
+	AppLinkType_FILES    AppLinkType = 3
+	AppLinkType_WALLET   AppLinkType = 4
+	AppLinkType_GIT      AppLinkType = 5
+	AppLinkType_DEVICES  AppLinkType = 6
+	AppLinkType_SETTINGS AppLinkType = 7
+)
+
+func (o AppLinkType) DeepCopy() AppLinkType { return o }
+
+var AppLinkTypeMap = map[string]AppLinkType{
+	"NONE":     0,
+	"PEOPLE":   1,
+	"CHAT":     2,
+	"FILES":    3,
+	"WALLET":   4,
+	"GIT":      5,
+	"DEVICES":  6,
+	"SETTINGS": 7,
+}
+
+var AppLinkTypeRevMap = map[AppLinkType]string{
+	0: "NONE",
+	1: "PEOPLE",
+	2: "CHAT",
+	3: "FILES",
+	4: "WALLET",
+	5: "GIT",
+	6: "DEVICES",
+	7: "SETTINGS",
+}
+
+func (e AppLinkType) String() string {
+	if v, ok := AppLinkTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type HomeScreenAnnouncementID int
+
+func (o HomeScreenAnnouncementID) DeepCopy() HomeScreenAnnouncementID {
+	return o
+}
+
+type HomeScreenAnnouncementVersion int
+
+func (o HomeScreenAnnouncementVersion) DeepCopy() HomeScreenAnnouncementVersion {
+	return o
+}
+
+type HomeScreenAnnouncement struct {
+	Id           HomeScreenAnnouncementID      `codec:"id" json:"id"`
+	Version      HomeScreenAnnouncementVersion `codec:"version" json:"version"`
+	AppLink      AppLinkType                   `codec:"appLink" json:"appLink"`
+	ConfirmLabel string                        `codec:"confirmLabel" json:"confirmLabel"`
+	Dismissable  bool                          `codec:"dismissable" json:"dismissable"`
+	IconUrl      string                        `codec:"iconUrl" json:"iconUrl"`
+	Text         string                        `codec:"text" json:"text"`
+	Url          string                        `codec:"url" json:"url"`
+}
+
+func (o HomeScreenAnnouncement) DeepCopy() HomeScreenAnnouncement {
+	return HomeScreenAnnouncement{
+		Id:           o.Id.DeepCopy(),
+		Version:      o.Version.DeepCopy(),
+		AppLink:      o.AppLink.DeepCopy(),
+		ConfirmLabel: o.ConfirmLabel,
+		Dismissable:  o.Dismissable,
+		IconUrl:      o.IconUrl,
+		Text:         o.Text,
+		Url:          o.Url,
 	}
 }
 
@@ -433,6 +552,10 @@ type HomeSkipTodoTypeArg struct {
 	T HomeScreenTodoType `codec:"t" json:"t"`
 }
 
+type HomeDismissAnnouncementArg struct {
+	I HomeScreenAnnouncementID `codec:"i" json:"i"`
+}
+
 type HomeActionTakenArg struct {
 }
 
@@ -449,6 +572,7 @@ type HomeInterface interface {
 	// specify.
 	HomeGetScreen(context.Context, HomeGetScreenArg) (HomeScreen, error)
 	HomeSkipTodoType(context.Context, HomeScreenTodoType) error
+	HomeDismissAnnouncement(context.Context, HomeScreenAnnouncementID) error
 	HomeActionTaken(context.Context) error
 	HomeMarkViewed(context.Context) error
 }
@@ -484,6 +608,21 @@ func HomeProtocol(i HomeInterface) rpc.Protocol {
 						return
 					}
 					err = i.HomeSkipTodoType(ctx, typedArgs[0].T)
+					return
+				},
+			},
+			"homeDismissAnnouncement": {
+				MakeArg: func() interface{} {
+					var ret [1]HomeDismissAnnouncementArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]HomeDismissAnnouncementArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]HomeDismissAnnouncementArg)(nil), args)
+						return
+					}
+					err = i.HomeDismissAnnouncement(ctx, typedArgs[0].I)
 					return
 				},
 			},
@@ -530,6 +669,12 @@ func (c HomeClient) HomeGetScreen(ctx context.Context, __arg HomeGetScreenArg) (
 func (c HomeClient) HomeSkipTodoType(ctx context.Context, t HomeScreenTodoType) (err error) {
 	__arg := HomeSkipTodoTypeArg{T: t}
 	err = c.Cli.Call(ctx, "keybase.1.home.homeSkipTodoType", []interface{}{__arg}, nil)
+	return
+}
+
+func (c HomeClient) HomeDismissAnnouncement(ctx context.Context, i HomeScreenAnnouncementID) (err error) {
+	__arg := HomeDismissAnnouncementArg{I: i}
+	err = c.Cli.Call(ctx, "keybase.1.home.homeDismissAnnouncement", []interface{}{__arg}, nil)
 	return
 }
 
