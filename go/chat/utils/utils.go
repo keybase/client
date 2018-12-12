@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -1729,4 +1730,15 @@ func IsPermanentErr(err error) bool {
 		return uberr.IsPermanent()
 	}
 	return err != nil
+}
+
+func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int, err error) {
+	out, err := json.Marshal(decoration)
+	if err != nil {
+		return res, added, err
+	}
+	strDecoration := string(out)
+	added = len(strDecoration) - length
+	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
+	return res, added, nil
 }

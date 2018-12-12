@@ -11,6 +11,10 @@ type candidateTestCase struct {
 	out []ChatTxCandidate
 }
 
+func makeRes(proto ChatTxCandidate, pos []int) []ChatTxCandidate {
+
+}
+
 func TestFindCandidates(t *testing.T) {
 	alfa := "alfa"
 	bravo := "bravo"

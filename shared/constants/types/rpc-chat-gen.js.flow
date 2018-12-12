@@ -786,6 +786,7 @@ export type ConversationStatus =
   | 5 // REPORTED_5
 
 export type ConversationVers = Uint64
+export type DecorationPayment = $ReadOnly<{paymentID: Stellar1.PaymentID}>
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
