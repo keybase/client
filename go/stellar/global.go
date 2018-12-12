@@ -251,9 +251,7 @@ func (s *Stellar) handleReconnect(ctx context.Context) {
 	s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
 	s.RefreshWalletState(ctx)
 
-	// XXX refresh loader for any incomplete payments???
-	// XXX refresh loader for all requests????
-	// RefreshUnreadCount(s.G(), accountID) for all accounts???
+	// XXX RefreshUnreadCount(s.G(), accountID) for all accounts???
 }
 
 func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
