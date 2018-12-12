@@ -27,19 +27,25 @@ type WalletState struct {
 	accounts     map[stellar1.AccountID]*AccountState
 	rates        map[string]rateEntry
 	refreshGroup *singleflight.Group
+	refreshReqs  chan stellar1.AccountID
 	sync.Mutex
 }
 
 // NewWalletState creates a wallet state with a remoter that will be
 // used for any network calls.
 func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
-	return &WalletState{
+	ws := &WalletState{
 		Contextified: libkb.NewContextified(g),
 		Remoter:      r,
 		accounts:     make(map[stellar1.AccountID]*AccountState),
 		rates:        make(map[string]rateEntry),
 		refreshGroup: &singleflight.Group{},
+		refreshReqs:  make(chan stellar1.AccountID, 100),
 	}
+
+	go ws.backgroundRefresh()
+
+	return ws
 }
 
 // accountState returns the AccountState object for an accountID.
@@ -64,7 +70,7 @@ func (w *WalletState) accountStateBuild(accountID stellar1.AccountID) (account *
 		return a, false
 	}
 
-	a = newAccountState(accountID, w.Remoter)
+	a = newAccountState(accountID, w.Remoter, w.refreshReqs)
 	w.accounts[accountID] = a
 
 	return a, true
@@ -82,7 +88,7 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 		return a, nil
 	}
 
-	a = newAccountState(accountID, w.Remoter)
+	a = newAccountState(accountID, w.Remoter, w.refreshReqs)
 	if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
 		w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", accountID, err)
 		return nil, err
@@ -136,6 +142,30 @@ func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID)
 		return ErrAccountNotFound
 	}
 	return a.Refresh(ctx, w.G(), w.G().NotifyRouter)
+}
+
+// backgroundRefresh gets any refresh requests and will refresh
+// the account state if sufficient time has passed since the
+// last refresh.
+func (w *WalletState) backgroundRefresh() {
+	for accountID := range w.refreshReqs {
+		a, ok := w.accountState(accountID)
+		if !ok {
+			continue
+		}
+		a.RLock()
+		rt := a.rtime
+		a.RUnlock()
+
+		if time.Since(rt) < 1*time.Second {
+			continue
+		}
+
+		ctx := context.Background()
+		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
+			w.G().Log.CDebugf(ctx, "WalletState.backgroundRefresh error for %s: %s", accountID, err)
+		}
+	}
 }
 
 // AccountSeqno is an override of remoter's AccountSeqno that uses
@@ -301,6 +331,7 @@ type AccountState struct {
 	accountID    stellar1.AccountID
 	remoter      remote.Remoter
 	refreshGroup *singleflight.Group
+	refreshReqs  chan stellar1.AccountID
 
 	sync.RWMutex // protects everything that follows
 	seqno        uint64
@@ -308,13 +339,15 @@ type AccountState struct {
 	details      *stellar1.AccountDetails
 	pending      []stellar1.PaymentSummary
 	recent       *stellar1.PaymentsPage
+	rtime        time.Time // time of last refresh
 }
 
-func newAccountState(accountID stellar1.AccountID, r remote.Remoter) *AccountState {
+func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan stellar1.AccountID) *AccountState {
 	return &AccountState{
 		accountID:    accountID,
 		remoter:      r,
 		refreshGroup: &singleflight.Group{},
+		refreshReqs:  reqsCh,
 	}
 }
 
@@ -383,6 +416,10 @@ func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, rout
 		}
 	}
 
+	a.Lock()
+	a.rtime = time.Now()
+	a.Unlock()
+
 	return err
 }
 
@@ -409,6 +446,7 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error) {
 	a.RLock()
 	defer a.RUnlock()
+	a.refreshReqs <- a.accountID
 	return a.balances, nil
 }
 
@@ -416,6 +454,7 @@ func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error)
 func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, error) {
 	a.RLock()
 	defer a.RUnlock()
+	a.refreshReqs <- a.accountID
 	if a.details == nil {
 		return stellar1.AccountDetails{}, nil
 	}
@@ -427,6 +466,7 @@ func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, er
 func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stellar1.PaymentSummary, error) {
 	a.RLock()
 	defer a.RUnlock()
+	a.refreshReqs <- a.accountID
 	if limit > 0 && limit < len(a.pending) {
 		return a.pending[:limit], nil
 	}
@@ -438,6 +478,7 @@ func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stella
 func (a *AccountState) RecentPayments(ctx context.Context) (stellar1.PaymentsPage, error) {
 	a.RLock()
 	defer a.RUnlock()
+	a.refreshReqs <- a.accountID
 	if a.recent == nil {
 		return stellar1.PaymentsPage{}, nil
 	}
