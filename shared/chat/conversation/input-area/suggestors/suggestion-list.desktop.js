@@ -23,7 +23,10 @@ class SuggestionList extends React.Component<Props> {
     return (
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([{borderRadius: 4, maxHeight: 224, width: '100%'}, this.props.style])}
+        style={Styles.collapseStyles([
+          {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224, width: '100%'},
+          this.props.style,
+        ])}
       >
         <Kb.ScrollView style={styles.fullHeight}>
           <ReactList

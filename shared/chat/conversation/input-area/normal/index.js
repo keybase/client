@@ -36,8 +36,8 @@ const emojiRenderer = (item, selected: boolean) => (
     }}
     gap="small"
   >
-    <Kb.Emoji emojiName={item.colons} size={40} />
-    <Kb.Text type="BodySemibold">{item.colons}</Kb.Text>
+    <Kb.Emoji emojiName={item.colons} size={24} />
+    <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
 const emojiTransformer = (emoji: {colons: string, native: string}, {position: {end, start}, text}) => {
@@ -175,6 +175,7 @@ class Input extends React.Component<InputProps, InputState> {
       style={{
         alignItems: 'center',
         backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        height: 40,
         paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
