@@ -79,7 +79,7 @@ func (w *WalletState) accountStateBuild(accountID stellar1.AccountID) (account *
 // accountStateRefresh returns the AccountState object for an accountID.
 // If it doesn't exist in `accounts`, it will make an empty one, add
 // it to `accounts`, and refresh the data in it before returning.
-func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar1.AccountID) (*AccountState, error) {
+func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar1.AccountID, reason string) (*AccountState, error) {
 	w.Lock()
 	defer w.Unlock()
 
@@ -88,8 +88,9 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 		return a, nil
 	}
 
+	reason = "accountStateRefresh: " + reason
 	a = newAccountState(accountID, w.Remoter, w.refreshReqs)
-	if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
+	if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter, reason); err != nil {
 		w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", accountID, err)
 		return nil, err
 	}
@@ -99,15 +100,16 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 }
 
 // RefreshAll refreshes all the accounts.
-func (w *WalletState) RefreshAll(ctx context.Context) error {
+func (w *WalletState) RefreshAll(ctx context.Context, reason string) error {
 	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {
-		doErr := w.refreshAll(ctx)
+		doErr := w.refreshAll(ctx, reason)
 		return nil, doErr
 	})
 	return err
 }
 
-func (w *WalletState) refreshAll(ctx context.Context) error {
+func (w *WalletState) refreshAll(ctx context.Context, reason string) (err error) {
+	defer w.G().CTraceTimed(ctx, fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
 	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, w.G())
 	if err != nil {
 		return err
@@ -116,8 +118,7 @@ func (w *WalletState) refreshAll(ctx context.Context) error {
 	var lastErr error
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
-		w.G().Log.CDebugf(ctx, "Refresh %s", account.AccountID)
-		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
+		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter, reason); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
 		}
@@ -134,14 +135,12 @@ func (w *WalletState) refreshAll(ctx context.Context) error {
 }
 
 // Refresh gets all the data from the server for an account.
-func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID) error {
-	defer w.DumpToLog(ctx)
-	w.G().Log.CDebugf(ctx, "WalletState.Refresh: %s", accountID)
+func (w *WalletState) Refresh(ctx context.Context, accountID stellar1.AccountID, reason string) error {
 	a, ok := w.accountState(accountID)
 	if !ok {
 		return ErrAccountNotFound
 	}
-	return a.Refresh(ctx, w.G(), w.G().NotifyRouter)
+	return a.Refresh(ctx, w.G(), w.G().NotifyRouter, reason)
 }
 
 // backgroundRefresh gets any refresh requests and will refresh
@@ -162,7 +161,7 @@ func (w *WalletState) backgroundRefresh() {
 		}
 
 		ctx := context.Background()
-		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter); err != nil {
+		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter, "background"); err != nil {
 			w.G().Log.CDebugf(ctx, "WalletState.backgroundRefresh error for %s: %s", accountID, err)
 		}
 	}
@@ -171,7 +170,7 @@ func (w *WalletState) backgroundRefresh() {
 // AccountSeqno is an override of remoter's AccountSeqno that uses
 // the stored value.
 func (w *WalletState) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
-	a, err := w.accountStateRefresh(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID, "AccountSeqno")
 	if err != nil {
 		return 0, err
 	}
@@ -182,7 +181,7 @@ func (w *WalletState) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 // AccountSeqnoAndBump gets the current seqno for an account and increments
 // the stored value.
 func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
-	a, err := w.accountStateRefresh(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID, "AccountSeqnoAndBump")
 	if err != nil {
 		return 0, err
 	}
@@ -206,7 +205,7 @@ func (w *WalletState) Balances(ctx context.Context, accountID stellar1.AccountID
 
 // Details is an override of remoter's Details that uses stored data.
 func (w *WalletState) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
-	a, err := w.accountStateRefresh(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID, "Details")
 	if err != nil {
 		return stellar1.AccountDetails{}, err
 	}
@@ -215,7 +214,7 @@ func (w *WalletState) Details(ctx context.Context, accountID stellar1.AccountID)
 
 // PendingPayments is an override of remoter's PendingPayments that uses stored data.
 func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
-	a, err := w.accountStateRefresh(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID, "PendingPayments")
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +244,7 @@ func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.Acc
 		return w.Remoter.RecentPayments(ctx, accountID, cursor, limit, skipPending)
 	}
 
-	a, err := w.accountStateRefresh(ctx, accountID)
+	a, err := w.accountStateRefresh(ctx, accountID, "RecentPayments")
 	if err != nil {
 		return stellar1.PaymentsPage{}, err
 	}
@@ -257,7 +256,7 @@ func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.Acc
 func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
 	if err == nil {
-		w.RefreshAll(ctx)
+		w.RefreshAll(ctx, "SubmitRelayClaim")
 	}
 	return result, err
 
@@ -266,7 +265,7 @@ func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayC
 // MarkAsRead is an override of remoter's MarkAsRead.
 func (w *WalletState) MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	err := w.Remoter.MarkAsRead(ctx, accountID, mostRecentID)
-	w.Refresh(ctx, accountID)
+	w.Refresh(ctx, accountID, "MarkAsRead")
 	return err
 }
 
@@ -352,15 +351,17 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 }
 
 // Refresh updates all the data for this account from the server.
-func (a *AccountState) Refresh(ctx context.Context, g *libkb.GlobalContext, router *libkb.NotifyRouter) error {
+func (a *AccountState) Refresh(ctx context.Context, g *libkb.GlobalContext, router *libkb.NotifyRouter, reason string) error {
 	_, err := a.refreshGroup.Do("Refresh", func() (interface{}, error) {
-		doErr := a.refresh(ctx, g, router)
+		doErr := a.refresh(ctx, g, router, reason)
 		return nil, doErr
 	})
 	return err
 }
 
-func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, router *libkb.NotifyRouter) error {
+func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, router *libkb.NotifyRouter, reason string) (err error) {
+	defer g.CTraceTimed(ctx, fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), func() error { return err })()
+
 	seqno, err := a.remoter.AccountSeqno(ctx, a.accountID)
 	if err == nil {
 		a.Lock()

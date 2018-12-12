@@ -679,7 +679,7 @@ func (d *Service) minuteChecks() {
 		return nil
 	})
 	go func() {
-		d.walletState.RefreshAll(m.Ctx())
+		d.walletState.RefreshAll(m.Ctx(), "service bg loop")
 		for {
 			<-ticker.C
 			m.CDebugf("+ minute check loop")
@@ -689,7 +689,7 @@ func (d *Service) minuteChecks() {
 			// policy.  The gregor payment notifications should
 			// keep the WalletState refreshed properly.
 			m.CDebugf("| refreshing wallet state")
-			if err := d.walletState.RefreshAll(m.Ctx()); err != nil {
+			if err := d.walletState.RefreshAll(m.Ctx(), "service bg loop"); err != nil {
 				m.CDebugf("service walletState.RefreshAll error: %s", err)
 			}
 

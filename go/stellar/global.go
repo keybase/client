@@ -242,7 +242,7 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 func (s *Stellar) handleReconnect(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
 	s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
-	if err := s.walletState.RefreshAll(ctx); err != nil {
+	if err := s.walletState.RefreshAll(ctx, "reconnect"); err != nil {
 		s.G().Log.CDebugf(ctx, "Stellar.handleReconnect RefreshAll error: %s", err)
 	}
 }
@@ -281,7 +281,7 @@ func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutO
 }
 
 func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	s.walletState.Refresh(ctx, accountID)
+	s.walletState.Refresh(ctx, accountID, "notification received")
 	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
 
 	return nil
