@@ -30,7 +30,7 @@ class SearchResultsList extends Component<Props> {
   _setRef = r => (this._list = r)
 
   render() {
-    const {showSearchSuggestions, style, items} = this.props
+    const {showSearchSuggestions, style, items, minSize} = this.props
     if (items == null) {
       return <Box style={{height: 240, ...style}} />
     } else if (!items.length) {
@@ -52,6 +52,7 @@ class SearchResultsList extends Component<Props> {
           ref={this._setRef}
           length={items.length}
           type="uniform"
+          minSize={minSize}
         />
       </Box>
     )

@@ -7,12 +7,13 @@ import * as SearchGen from '../../actions/search-gen'
 import {globalMargins} from '../../styles'
 
 export type OwnProps = {|
-  keyboardDismissMode?: 'none' | 'on-drag',
-  searchKey: string,
-  onShowTracker?: (id: string) => void,
-  onClick?: (id: string) => void,
   disableListBuilding?: boolean,
   disableIfInTeamName?: ?string,
+  keyboardDismissMode?: 'none' | 'on-drag',
+  minSize?: number,
+  onShowTracker?: (id: string) => void,
+  onClick?: (id: string) => void,
+  searchKey: string,
   style?: any,
 |}
 

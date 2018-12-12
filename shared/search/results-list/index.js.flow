@@ -14,6 +14,7 @@ export type Props = {
   selectedId: ?SearchResultId,
   showSearchSuggestions: boolean,
   disableIfInTeamName: ?string,
+  minSize?: number,
 }
 
 export default class ResultsList extends Component<Props> {}

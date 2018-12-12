@@ -123,6 +123,7 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
                   onShowTracker={this.props.onShowTracker}
                   disableListBuilding={true}
                   style={styles.list}
+                  minSize={12}
                 />
               </Kb.Box2>
             </Kb.Box2>
