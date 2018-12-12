@@ -5827,7 +5827,6 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		return errors.WithStack(NoUpdatesWhileDirtyError{})
 	}
 
-	appliedRevs := make([]ImmutableRootMetadata, 0, len(rmds))
 	for i, rmd := range rmds {
 		// check that we're applying the expected MD revision
 		if rmd.Revision() <= fbo.getCurrMDRevisionLocked(lState) {
@@ -5873,7 +5872,6 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		} else {
 			fbo.rekeyFSM.Event(NewRekeyNotNeededEvent())
 		}
-		appliedRevs = append(appliedRevs, rmd)
 	}
 	return nil
 }
