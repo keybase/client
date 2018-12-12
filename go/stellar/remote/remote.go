@@ -32,6 +32,7 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 		g.Log.CDebugf(ctx, "Stellar.ShouldCreate: (res:%+v, err:%v)", res, err != nil)
 	}()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/shouldcreate")
+	arg.RetryCount = 3
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes shouldCreateRes
 	err = g.API.GetDecode(arg, &apiRes)
@@ -490,10 +491,12 @@ func FetchV2BundleForAccount(ctx context.Context, g *libkb.GlobalContext, accoun
 		fetchArgs = libkb.HTTPArgs{"account_id": libkb.S{Val: string(*accountID)}}
 	}
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/acctbundle",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        fetchArgs,
-		NetContext:  ctx,
+		Endpoint:       "stellar/acctbundle",
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		Args:           fetchArgs,
+		NetContext:     ctx,
+		RetryCount:     3,
+		InitialTimeout: 1 * time.Second,
 	}
 	var apiRes fetchAcctRes
 	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
@@ -689,10 +692,13 @@ type seqnoResult struct {
 
 func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (uint64, error) {
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/accountseqno",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:  ctx,
+		Endpoint:        "stellar/accountseqno",
+		SessionType:     libkb.APISessionTypeREQUIRED,
+		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 
 	var res seqnoResult
@@ -719,10 +725,13 @@ func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
 
 func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/balances",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:  ctx,
+		Endpoint:        "stellar/balances",
+		SessionType:     libkb.APISessionTypeREQUIRED,
+		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 
 	var res balancesResult
@@ -744,10 +753,13 @@ func (b *detailsResult) GetAppStatus() *libkb.AppStatus {
 
 func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/details",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:  ctx,
+		Endpoint:        "stellar/details",
+		SessionType:     libkb.APISessionTypeREQUIRED,
+		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 
 	var res detailsResult
@@ -880,7 +892,10 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 			"limit":        libkb.I{Val: limit},
 			"skip_pending": libkb.B{Val: skipPending},
 		},
-		NetContext: ctx,
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 
 	if cursor != nil {
@@ -907,7 +922,10 @@ func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stel
 			"account_id": libkb.S{Val: accountID.String()},
 			"limit":      libkb.I{Val: limit},
 		},
-		NetContext: ctx,
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 
 	var apiRes pendingPaymentsResult
@@ -927,7 +945,10 @@ func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (r
 		Args: libkb.HTTPArgs{
 			"txID": libkb.S{Val: txID},
 		},
-		NetContext: ctx,
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 	var apiRes paymentDetailResult
 	err = g.API.GetDecode(apiArg, &apiRes)
@@ -950,7 +971,10 @@ func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) 
 		Args: libkb.HTTPArgs{
 			"currency": libkb.S{Val: currency},
 		},
-		NetContext: ctx,
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 	var apiRes tickerResult
 	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
@@ -1008,9 +1032,11 @@ type disclaimerResult struct {
 
 func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret bool, err error) {
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/disclaimer",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
+		Endpoint:       "stellar/disclaimer",
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		NetContext:     ctx,
+		RetryCount:     3,
+		InitialTimeout: 1 * time.Second,
 	}
 	var apiRes disclaimerResult
 	err = g.API.GetDecode(apiArg, &apiRes)
@@ -1063,7 +1089,10 @@ func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stell
 		Args: libkb.HTTPArgs{
 			"id": libkb.S{Val: requestID.String()},
 		},
-		NetContext: ctx,
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  2 * time.Second,
 	}
 	var res requestDetailsResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
@@ -1186,7 +1215,9 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 		Args: libkb.HTTPArgs{
 			"account_id": libkb.S{Val: accountID.String()},
 		},
-		MetaContext: libkb.NewMetaContext(ctx, g),
+		MetaContext:    libkb.NewMetaContext(ctx, g),
+		RetryCount:     3,
+		InitialTimeout: 1 * time.Second,
 	}
 	var res lookupUnverifiedResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
@@ -1221,6 +1252,7 @@ func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext)
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
 		MetaContext: libkb.NewMetaContext(ctx, g),
+		RetryCount:  3,
 	}
 	var res serverTimeboundsRes
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
