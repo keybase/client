@@ -272,6 +272,8 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 }
 
 func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	defer t.G().CTrace(ctx, "Team.ImplicitTeamDisplayName", func() error { return err })()
+
 	impName := keybase1.ImplicitTeamDisplayName{
 		IsPublic:     t.IsPublic(),
 		ConflictInfo: nil, // TODO should we know this here?

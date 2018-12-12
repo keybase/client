@@ -667,6 +667,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 	if err != nil {
 		return res, err
 	}
+	t.Debug(ctx, "LookupName: got name: %s", impTeamName.String())
 	idFailures, err := t.identify(ctx, tlfID, impTeamName)
 	if err != nil {
 		return res, err
