@@ -129,7 +129,7 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		tlfFS, err := libfs.NewReadonlyFS(
+		tlfFS, err := libfs.NewFS(
 			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch, "", "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
@@ -155,7 +155,7 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		autogitTLFFS, err := libfs.NewReadonlyFS(
+		autogitTLFFS, err := libfs.NewFS(
 			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch,
 			libgit.AutogitRoot, "", keybase1.MDPriorityNormal)
 		if err != nil {
