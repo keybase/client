@@ -15,17 +15,19 @@ type MenuItem = {|
 
 const renderItem = (item: MenuItem, onHidden: () => void) =>
   item.view || (
-    <TouchableOpacity
-      onPress={() => {
-        onHidden && onHidden() // auto hide after a selection
-        item.onClick && item.onClick()
-      }}
-      style={Styles.collapseStyles([styles.row, item.style])}
-    >
-      <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
-        {item.title}
-      </Kb.Text>
-    </TouchableOpacity>
+    <Kb.Box2 direction="vertical" style={styles.rowContainer}>
+      <TouchableOpacity
+        onPress={() => {
+          onHidden && onHidden() // auto hide after a selection
+          item.onClick && item.onClick()
+        }}
+        style={Styles.collapseStyles([styles.row, item.style])}
+      >
+        <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+          {item.title}
+        </Kb.Text>
+      </TouchableOpacity>
+    </Kb.Box2>
   )
 
 const styles = Styles.styleSheetCreate({
@@ -37,11 +39,17 @@ const styles = Styles.styleSheetCreate({
   },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
     height: 56,
     justifyContent: 'center',
+  },
+  rowContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.white,
+    width: '100%',
   },
 })
 
