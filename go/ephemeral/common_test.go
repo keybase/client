@@ -39,3 +39,34 @@ func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.Te
 	keypair := seed.DeriveDHKey()
 	require.Equal(t, metadata.Kid, keypair.GetKID())
 }
+
+func TestEphemeralCloneError(t *testing.T) {
+	tc, _ := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+
+	g := tc.G
+	m := libkb.NewMetaContextForTest(tc)
+	ctx := m.Ctx()
+	teamID := createTeam(tc)
+
+	ekLib := g.GetEKLib()
+	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
+	require.NoError(t, err)
+
+	// delete all our deviceEKs and make sure the error comes back as a cloning
+	// error since we simulate the cloned state.
+	libkb.CreateClonedDevice(tc, m)
+	deviceEKStorage := g.GetDeviceEKStorage()
+	s := deviceEKStorage.(*DeviceEKStorage)
+	allDevicEKs, err := s.GetAll(ctx)
+	require.NoError(t, err)
+	for _, dek := range allDevicEKs {
+		err = s.Delete(ctx, dek.Metadata.Generation)
+		require.NoError(t, err)
+	}
+	_, err = g.GetTeamEKBoxStorage().Get(ctx, teamID, teamEK1.Metadata.Generation, nil)
+	require.Error(t, err)
+	ekErr, ok := err.(EphemeralKeyError)
+	require.True(t, ok)
+	require.Equal(t, deviceCloneErrMsg, ekErr.HumanError())
+}
