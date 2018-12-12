@@ -239,9 +239,9 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderColor: Styles.globalColors.black_10,
       borderStyle: 'solid',
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
+      borderTopWidth: 3,
       maxHeight: '50%',
+      overflow: 'hidden',
     },
   }),
   suggestionOverlay: Styles.platformStyles({

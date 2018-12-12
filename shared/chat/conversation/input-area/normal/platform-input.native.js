@@ -147,6 +147,16 @@ class _PlatformInput extends PureComponent<
     },
   }) => this.props.setHeight(height)
 
+  _insertMentionMarker = () => {
+    if (this._input) {
+      this._input.transformText(({selection: {end, start}, text}) => {
+        const newText = text.substring(0, start) + '@' + text.substring(end)
+        const newPos = start + 1
+        return {selection: {end: newPos, start: newPos}, text: newText}
+      }, true)
+    }
+  }
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
@@ -207,7 +217,7 @@ class _PlatformInput extends PureComponent<
             isEditing={this.props.isEditing}
             openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
-            insertMentionMarker={this.props.insertMentionMarker}
+            insertMentionMarker={this._insertMentionMarker}
             isExploding={this.props.isExploding}
             isExplodingNew={this.props.isExplodingNew}
             showWalletsIcon={this.props.showWalletsIcon}

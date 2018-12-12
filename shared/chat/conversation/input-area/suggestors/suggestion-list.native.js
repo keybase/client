@@ -7,6 +7,7 @@ import type {Props} from './suggestion-list'
 
 const SuggestionList = (props: Props) => (
   <NativeFlatList
+    alwaysBounceVertical={false}
     style={Styles.collapseStyles([styles.list, props.style])}
     renderItem={({index, item}) => props.renderItem(index, item)}
     data={props.items}
