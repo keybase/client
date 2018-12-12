@@ -8275,6 +8275,11 @@ func (fbo *folderBranchOps) SetSyncConfig(
 			return nil, errors.New(
 				"Unexpected sync config; mark-and-sweep already started")
 		}
+		if oldConfig.Mode == keybase1.FolderSyncMode_ENABLED {
+			return nil, errors.New(
+				"Cannot enable partial syncing while fully-synced")
+		}
+
 		fbo.log.CDebugf(ctx, "Entering partial mode, starting mark-and-sweep")
 		// `kickOffPartialSync` call above will start the mark and sweep.
 	} else if oldPartial && newPartial {
