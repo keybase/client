@@ -3,7 +3,7 @@ const fs = require('fs')
 const data = fs.readFileSync(process.argv[2], 'utf8')
 const moment = require('moment')
 const lines = data.split('\n')
-const reg = /([^ ]+) ▶ \[DEBU (?:keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(\[tags:([^\]]+)])?/
+const reg = /([^ ]+) ▶ \[DEBU (keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(\[tags:([^\]]+)])?/
 const tagsReg = /\[tags:([^\]]+)]/
 const methodPrefixReg = /^(\+\+Chat: )?/
 const methodResultReg = / -> .*$/
@@ -21,7 +21,7 @@ const convertLine = line => {
     // console.log('Skipping unparsed line:', line)
     return
   }
-  const [, time, file, fileline, counter, _typeAndMethod, _tags] = e
+  const [, time, coreOrKbfs, file, fileline, counter, _typeAndMethod, _tags] = e
   let tags = 'NO_TAG'
   if (_tags) {
     const match = tagsReg.exec(_tags)
@@ -33,12 +33,6 @@ const convertLine = line => {
     }
   }
 
-  // if (tags === 'NO_TAG') {
-  // if (line.indexOf('[tag]') !== -1) {
-  // console.log('missing tag?', line)
-  // }
-  // }
-
   const typeAndMethod = _typeAndMethod
     .replace(methodResultReg, '')
     .replace(methodPrefixReg, '')
@@ -48,16 +42,15 @@ const convertLine = line => {
   const _type = typeAndMethodReg.exec(typeAndMethod)
   if (_type && _type[1]) {
     type = _type[1].trim()
-  } else {
-    // console.log(_type)
   }
 
   const method = typeAndMethod.replace(typeAndMethodReg, '').trim()
   return {
+    coreOrKbfs,
     counter,
     file,
     fileline,
-    line, // TODO remove
+    line,
     method,
     tags,
     time,
@@ -91,7 +84,7 @@ const buildGood = (old, info) => {
       name: old.method,
       ph: 'B',
       pid: 0,
-      tid: old.tags,
+      tid: info.coreOrKbfs, // old.tags,
       ts: startTs,
     },
     {
@@ -104,7 +97,7 @@ const buildGood = (old, info) => {
       name: info.method,
       ph: 'E',
       pid: 0,
-      tid: info.tags,
+      tid: info.coreOrKbfs, // info.tags,
       ts: endTs,
     },
   ]
@@ -112,7 +105,6 @@ const buildGood = (old, info) => {
 
 lines.forEach(line => {
   const info = convertLine(line)
-  // console.log(info.type, '**', info.method, '**', info.tags)
   if (!info) return
 
   // ensure good
@@ -122,14 +114,6 @@ lines.forEach(line => {
 
   const data = tags[info.tags]
   const dataKey = info.method
-  // const dataKey = `${info.file}:${info.method}`
-
-  // if (info.counter === '06c') {
-  // console.log(info)
-  // console.log(tags)
-  // process.exit()
-  // } else {
-  // }
 
   switch (info.type) {
     case '+':
