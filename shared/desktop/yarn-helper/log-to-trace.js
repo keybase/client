@@ -1,5 +1,7 @@
 // @flow
+// A utility to convert our log sends to something consumable by chrome://tracing
 const [, , guiOrCore, logfile, outfile] = process.argv
+// Good params?
 if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
   console.log('Usage: node log-to-trace (gui|core) logfile outfile')
   process.exit(1)
@@ -7,6 +9,7 @@ if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
 const isGUI = guiOrCore === 'gui'
 const fs = require('fs')
 const moment = require('moment')
+
 // core regs
 const reg = /([^ ]+) ▶ \[DEBU (keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(\[tags:([^\]]+)])?/
 const tagsReg = /\[tags:([^\]]+)]/
@@ -18,6 +21,7 @@ const guiCountTypeTimeReg = /\["(Info|Warn|Action)","([^"]+)","(.*)"]/
 const actionReg = /type: ([^ ]+) (.*)/
 const actionPayloadReg = /\\"/g
 
+// Handle a single line from a gui log
 const convertGuiLine = line => {
   const e = guiCountTypeTimeReg.exec(line)
   if (!e) {
@@ -68,6 +72,7 @@ const convertGuiLine = line => {
   }
 }
 
+// Handle a single line from a core log
 const convertCoreLine = line => {
   const e = reg.exec(line)
   if (!e) {
@@ -116,8 +121,6 @@ const convertCoreLine = line => {
   }
 }
 
-const convertLine = isGUI ? convertGuiLine : convertCoreLine
-
 const output = {
   // injecting a start and overwriting an unmatched one
   collision: [],
@@ -149,6 +152,7 @@ const buildGood = (old, info) => {
   return [s, e]
 }
 
+const convertLine = isGUI ? convertGuiLine : convertCoreLine
 const lines = fs.readFileSync(logfile, 'utf8').split('\n')
 let lastGuiLine = null
 const knownIDs = {}
@@ -156,8 +160,10 @@ lines.forEach(line => {
   const info = convertLine(line)
   if (!info) return
 
+  // Core has start/end marked with +/-. Ui doesn't have any timing like this so we treat them like they're contiguous
   switch (info.type) {
     case '+':
+      // If we overwrite an event, bookkeep that
       if (knownIDs[info.id]) {
         output.single = output.single.concat(buildEvent(knownIDs[info.id], 'i'))
         output.collision.push(info)
@@ -169,6 +175,7 @@ lines.forEach(line => {
         output.good = output.good.concat(buildGood(knownIDs[info.id], info))
         knownIDs[info.id] = undefined
       } else {
+        // If we didn't find a corresponding event, bookkeep that
         output.single = output.single.concat(buildEvent(info, 'i'))
         output.unmatched.push(info)
       }
@@ -181,10 +188,11 @@ lines.forEach(line => {
       lastGuiLine = info
       break
     default:
-    // console.log('Unknown line type:', info.type, ':', line)
+      console.log('Unknown line type:', info.type, ':', line)
   }
 })
 
+// Some of these are intended and others are due to parsing errors (etc)
 if (output.unmatched.length) {
   console.log('Unmatched lines:')
   output.unmatched.forEach(u => console.log(u.line))
