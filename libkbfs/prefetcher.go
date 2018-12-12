@@ -798,16 +798,10 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				continue
 			}
 
-			// Bail out early if we know the sync cache is already
-			// full, to avoid enqueuing the child blocks when they
-			// aren't able to be cached.
+			// Bail out early if we know the cache is already full, to
+			// avoid enqueuing the child blocks when they aren't able
+			// to be cached.
 			if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
-				// This is inefficient since it'd be better to know if
-				// the `subtreeBlockCount` below is 0, or if `isTail`
-				// below is true before needlessly rescheduling this.
-				// But currently that requires some complexity to
-				// figure out, so for now just do this early and
-				// revisit if it becomes a problem.
 				if doCancel && isPrefetchWaiting {
 					p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
 				}
