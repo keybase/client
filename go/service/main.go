@@ -671,7 +671,7 @@ func (d *Service) chatOutboxPurgeCheck() {
 }
 
 func (d *Service) minuteChecks() {
-	ticker := libkb.NewBgTicker(1 * time.Minute)
+	ticker := libkb.NewBgTicker(5 * time.Minute)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
 	d.G().PushShutdownHook(func() error {
 		m.CDebugf("stopping minuteChecks loop")
@@ -679,10 +679,9 @@ func (d *Service) minuteChecks() {
 		return nil
 	})
 	go func() {
-		d.walletState.RefreshAll(m.Ctx(), "service bg loop")
 		for {
 			<-ticker.C
-			m.CDebugf("+ minute check loop")
+			m.CDebugf("+ 5 minute check loop")
 
 			// In theory, this periodic refresh shouldn't be necessary,
 			// but as the WalletState code is new, this is a nice insurance
@@ -693,7 +692,7 @@ func (d *Service) minuteChecks() {
 				m.CDebugf("service walletState.RefreshAll error: %s", err)
 			}
 
-			m.CDebugf("- minute check loop")
+			m.CDebugf("- 5 minute check loop")
 		}
 	}()
 }

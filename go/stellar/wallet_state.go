@@ -28,6 +28,7 @@ type WalletState struct {
 	rates        map[string]rateEntry
 	refreshGroup *singleflight.Group
 	refreshReqs  chan stellar1.AccountID
+	refreshCount int
 	sync.Mutex
 }
 
@@ -99,6 +100,13 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 	return a, nil
 }
 
+// Primed returns true if the WalletState has been refreshed.
+func (w *WalletState) Primed() bool {
+	w.Lock()
+	defer w.Unlock()
+	return w.refreshCount > 0
+}
+
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(ctx context.Context, reason string) error {
 	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {
@@ -128,8 +136,9 @@ func (w *WalletState) refreshAll(ctx context.Context, reason string) (err error)
 		return lastErr
 	}
 
-	w.G().Log.CDebugf(ctx, "RefreshAll success")
-	w.DumpToLog(ctx)
+	w.Lock()
+	w.refreshCount++
+	w.Unlock()
 
 	return nil
 }
@@ -156,11 +165,12 @@ func (w *WalletState) backgroundRefresh() {
 		rt := a.rtime
 		a.RUnlock()
 
+		ctx := context.Background()
 		if time.Since(rt) < 1*time.Second {
+			w.G().Log.CDebugf(ctx, "WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
 			continue
 		}
 
-		ctx := context.Background()
 		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter, "background"); err != nil {
 			w.G().Log.CDebugf(ctx, "WalletState.backgroundRefresh error for %s: %s", accountID, err)
 		}
