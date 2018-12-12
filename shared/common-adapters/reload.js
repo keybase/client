@@ -79,12 +79,20 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     padding: Styles.globalMargins.small,
   },
-  scroll: {
-    backgroundColor: Styles.globalColors.darkBlue3,
-    borderRadius: Styles.borderRadius,
-    padding: 60,
-    width: '75%',
-  },
+  scroll: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.darkBlue3,
+      borderRadius: Styles.borderRadius,
+    },
+    isElectron: {
+      padding: Styles.globalMargins.large,
+      width: '75%',
+    },
+    isMobile: {
+      padding: Styles.globalMargins.small,
+      width: '100%',
+    },
+  }),
   scrollInside: {
     height: '100%',
     maxHeight: '100%',
