@@ -3,24 +3,31 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
-import {isAndroid} from '../../../../constants/platform'
 import type {DeviceType} from '../../../../constants/types/devices'
 
 const iconNameForDeviceType = Styles.isMobile
   ? (deviceType: string, isRevoked: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
-          return isRevoked ? 'icon-fancy-revoked-phone-183-x-96' : 'icon-fancy-encrypted-phone-183-x-96'
+          return isRevoked
+            ? 'icon-fancy-revoked-phone-mobile-226-96'
+            : 'icon-fancy-encrypted-phone-mobile-226-96'
         default:
-          return isRevoked ? 'icon-fancy-revoked-computer-226-x-96' : 'icon-fancy-encrypted-computer-226-x-96'
+          return isRevoked
+            ? 'icon-fancy-revoked-computer-mobile-226-96'
+            : 'icon-fancy-encrypted-computer-mobile-226-96'
       }
     }
   : (deviceType: string, isRevoked: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
-          return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
+          return isRevoked
+            ? 'icon-fancy-revoked-phone-desktop-150-72'
+            : 'icon-fancy-encrypted-phone-desktop-150-72'
         default:
-          return isRevoked ? 'icon-fancy-revoked-computer-150-x-64' : 'icon-fancy-encrypted-computer-150-x-64'
+          return isRevoked
+            ? 'icon-fancy-revoked-computer-desktop-150-72'
+            : 'icon-fancy-encrypted-computer-desktop-150-72'
       }
     }
 
@@ -93,8 +100,6 @@ const MessagePopupHeader = (props: {
   )
 }
 
-// The mobile special casing below is because RN doesn't support overflow on Android
-const iconSpacing = Styles.isMobile ? 96 - (isAndroid ? 16 : 30) : 64
 const styles = Styles.styleSheetCreate({
   alignItemsCenter: {alignItems: 'center'},
   colorBlack40: {color: Styles.globalColors.black_40},
@@ -106,11 +111,10 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       maxWidth: 240,
-      paddingTop: iconSpacing,
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium + iconSpacing,
+      paddingTop: Styles.globalMargins.medium,
     },
   }),
   headerDetailsContainer: {
@@ -120,16 +124,12 @@ const styles = Styles.styleSheetCreate({
   },
   headerIcon: Styles.platformStyles({
     common: {
-      marginBottom: Styles.globalMargins.tiny,
-      position: 'absolute',
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
     },
-    isAndroid: {
-      top: 0,
-    },
-    isElectron: {marginTop: Styles.globalMargins.small, top: -25},
-    isIOS: {top: -15},
+    isElectron: {marginTop: Styles.globalMargins.tiny},
     isMobile: {
-      marginTop: 0,
+      marginTop: Styles.globalMargins.small,
     },
   }),
   revokedAtContainerLast: {
