@@ -146,7 +146,7 @@ class Profile extends Component<Props, State> {
   }
 
   _onClickAvatar = () =>
-    this.props.isYou && flags.avatarUploadsEnabled
+    this.props.isYou
       ? showImagePicker({mediaType: 'photo'}, (response: Response) => {
           if (response.didCancel) {
             return

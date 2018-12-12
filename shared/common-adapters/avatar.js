@@ -179,10 +179,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       isMobile || desktopDest === 'profile'
         ? dispatch(createShowUserProfile({username}))
         : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-    onClick:
-      flags.avatarUploadsEnabled && ownProps.onEditAvatarClick
-        ? ownProps.onEditAvatarClick
-        : ownProps.onClick,
+    onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
   }
 }
 
@@ -259,7 +256,7 @@ class AvatarConnector extends React.PureComponent<Props> {
         skipBackground={this.props.skipBackground}
         borderColor={this.props.borderColor}
         children={this.props.children}
-        editable={flags.avatarUploadsEnabled && this.props.editable}
+        editable={this.props.editable}
         followIconSize={this.props.followIconSize}
         followIconStyle={this.props.followIconStyle}
         followIconType={this.props.followIconType}

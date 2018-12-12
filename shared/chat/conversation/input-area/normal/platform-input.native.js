@@ -265,7 +265,7 @@ const Action = ({
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled && isExploding && !isEditing && (
+      {isExploding && !isEditing && (
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
@@ -279,17 +279,15 @@ const Action = ({
     </Box2>
   ) : (
     <Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      {flags.explodingMessagesEnabled && (
-        <>
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-          {smallGap}
-        </>
-      )}
+      <>
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+        {smallGap}
+      </>
       {showWalletsIcon && (
         <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}

@@ -91,7 +91,7 @@ class BioRender extends Component<Props> {
             }}
           >
             <Avatar
-              editable={!!editFns && flags.avatarUploadsEnabled}
+              editable={!!editFns}
               onClick={editFns ? () => editFns.onEditAvatarClick() : onClickAvatar}
               onEditAvatarClick={editFns ? () => editFns.onEditAvatarClick() : undefined}
               style={
@@ -101,15 +101,6 @@ class BioRender extends Component<Props> {
               size={avatarSize}
               showFollowingStatus={true}
             />
-            {editFns && !flags.avatarUploadsEnabled && (
-              <Box style={{height: 16, width: 0}}>
-                <Icon
-                  type="iconfont-edit"
-                  onClick={() => editFns.onEditAvatarClick()}
-                  style={stylesEditAvatarIcon(avatarSize)}
-                />
-              </Box>
-            )}
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text

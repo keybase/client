@@ -27,7 +27,7 @@ export type MarkdownMeta = {
   mentionsAt?: MentionsAt,
   mentionsChannelName?: MentionsChannelName,
   mentionsChannel?: MentionsChannel,
-  onOpenInFilesTab?: (Path)=>void,
+  onOpenInFilesTab?: Path => void,
 }
 
 export type Props = {
@@ -41,8 +41,6 @@ export type Props = {
   // You can also use this to style previews which has a single top level wrapper, but it's
   // preferred to use the props.styleOverride.preview flag for this
   //
-  // TODO(mm) when we kill the old markdown rmmove this style prop
-  style?: any,
   allowFontScaling?: boolean,
   meta?: ?MarkdownMeta,
   simple?: boolean,
