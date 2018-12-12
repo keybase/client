@@ -114,11 +114,11 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         },
       }
     case SettingsGen.loadedSettings: {
-      const {emailState} = action.payload
       return {
         ...state,
         email: {
-          ...emailState,
+          ...state.email,
+          emails: action.payload.emails || [],
         },
       }
     }
