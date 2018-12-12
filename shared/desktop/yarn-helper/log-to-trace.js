@@ -11,7 +11,7 @@ const convertLine = line => {
     console.log('Skipping unparsed line:', line)
     return
   }
-  const [, time, file, fileline, counter, plusMinus, method, _tags] = e
+  const [, time, file, fileline, counter, type, method, _tags] = e
   let tags = _tags && tagsReg.exec(_tags)
   tags =
     tags &&
@@ -24,9 +24,9 @@ const convertLine = line => {
     file,
     fileline,
     method,
-    plusMinus,
     tags,
     time,
+    type,
   }
 }
 
@@ -34,4 +34,16 @@ const started = {}
 
 lines.forEach(line => {
   const info = convertLine(line)
+  if (!info) return
+
+  switch (info.type) {
+    case '+':
+      console.log('START', info.method)
+      break
+    case '-':
+      console.log('END', info.method)
+      break
+    default:
+      console.log('Unknown line type:', info.type, ':', line)
+  }
 })
