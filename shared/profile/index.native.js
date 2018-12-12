@@ -333,24 +333,25 @@ class Profile extends Component<Props, State> {
             doneLoadingComponent={this._makeUserBio(false)}
           />
         </Kb.Box>
-        {!this.props.isYou && !this.props.loading && (
-          <UserActions
-            style={styleActions}
-            trackerState={this.props.trackerState}
-            currentlyFollowing={this.props.currentlyFollowing}
-            onAddToTeam={this.props.onAddToTeam}
-            onBrowsePublicFolder={this.props.onBrowsePublicFolder}
-            onChat={this.props.onChat}
-            onFollow={this.props.onFollow}
-            onOpenPrivateFolder={this.props.onOpenPrivateFolder}
-            onRefresh={this.props.refresh}
-            onUnfollow={this.props.onUnfollow}
-            onSendLumens={this.props.onSendLumens}
-            onRequestLumens={this.props.onRequestLumens}
-            onAcceptProofs={this.props.onAcceptProofs}
-            waiting={this.props.waiting}
-          />
-        )}
+        {!this.props.isYou &&
+          !this.props.loading && (
+            <UserActions
+              style={styleActions}
+              trackerState={this.props.trackerState}
+              currentlyFollowing={this.props.currentlyFollowing}
+              onAddToTeam={this.props.onAddToTeam}
+              onBrowsePublicFolder={this.props.onBrowsePublicFolder}
+              onChat={this.props.onChat}
+              onFollow={this.props.onFollow}
+              onOpenPrivateFolder={this.props.onOpenPrivateFolder}
+              onRefresh={this.props.refresh}
+              onUnfollow={this.props.onUnfollow}
+              onSendLumens={this.props.onSendLumens}
+              onRequestLumens={this.props.onRequestLumens}
+              onAcceptProofs={this.props.onAcceptProofs}
+              waiting={this.props.waiting}
+            />
+          )}
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
@@ -381,14 +382,15 @@ class Profile extends Component<Props, State> {
             loadingComponent={this._makeUserProofs(true)}
             doneLoadingComponent={this._makeUserProofs(false)}
           />
-          {!!this.props.stellarAddress && !this.props.loading && (
-            <StellarFederatedAddress
-              currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
-              stellarAddress={this.props.stellarAddress}
-              onSendOrRequest={this.props.onSendOrRequestStellarAddress}
-              onCopyAddress={this.props.onCopyStellarAddress}
-            />
-          )}
+          {!!this.props.stellarAddress &&
+            !this.props.loading && (
+              <StellarFederatedAddress
+                currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
+                stellarAddress={this.props.stellarAddress}
+                onSendOrRequest={this.props.onSendOrRequestStellarAddress}
+                onCopyAddress={this.props.onCopyStellarAddress}
+              />
+            )}
           {!this.props.loading && (
             <Kb.UserProofs
               type={'missingProofs'}
@@ -405,14 +407,15 @@ class Profile extends Component<Props, State> {
   _renderFriends = ({item}) => {
     return (
       <Kb.Box style={styles.friendRow}>
-        {item.map(user =>
-          user.dummy ? (
-            <Kb.Text key={user.dummy} type="BodySmall" style={{padding: 40}}>
-              {user.dummy}
-            </Kb.Text>
-          ) : (
-            <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
-          )
+        {item.map(
+          user =>
+            user.dummy ? (
+              <Kb.Text key={user.dummy} type="BodySmall" style={{padding: 40}}>
+                {user.dummy}
+              </Kb.Text>
+            ) : (
+              <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+            )
         )}
       </Kb.Box>
     )
@@ -422,31 +425,27 @@ class Profile extends Component<Props, State> {
     if (section.title === 'profile') {
       const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
       return (
-        <Kb.Box
+        <Kb.HeaderHocHeader
+          borderless={true}
+          onLeftAction={this.props.onBack}
           style={{
-            ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
-            paddingLeft: Styles.globalMargins.tiny,
-            paddingRight: Styles.globalMargins.tiny,
-            paddingTop: Styles.globalMargins.tiny,
           }}
+          theme="dark"
         >
-          {this.props.onBack && (
-            <Kb.BackButton
-              title={null}
-              onClick={this.props.onBack}
-              style={styleBack}
-              iconColor={Styles.globalColors.white}
-            />
-          )}
           <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Kb.Text style={styleSearchText} type="Body">
+            <Kb.Icon
+              color={Styles.globalColors.white_75}
+              fontSize={20}
+              style={styleSearchIcon}
+              type="iconfont-search"
+            />
+            <Kb.Text style={styleSearchText} type="BodySemibold">
               Search people
             </Kb.Text>
           </Kb.ClickableBox>
-        </Kb.Box>
+        </Kb.HeaderHocHeader>
       )
     } else {
       return (
@@ -696,17 +695,6 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const styleBack = {
-  left: 0,
-  position: 'absolute',
-}
-
-const styleHeader = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-
 const styleProofNotice = {
   ...Styles.globalStyles.flexBoxRow,
   justifyContent: 'center',
@@ -737,21 +725,19 @@ const styleSearchContainer = {
   alignItems: 'center',
   backgroundColor: Styles.globalColors.black_10,
   borderRadius: Styles.borderRadius,
+  height: 32,
   justifyContent: 'center',
-  minHeight: 32,
-  minWidth: 200,
+  width: '100%',
 }
 
-const styleSearch = {
-  padding: Styles.globalMargins.xtiny,
+const styleSearchIcon = {
+  position: 'relative',
+  top: 1,
 }
 
 const styleSearchText = {
-  ...styleSearch,
   color: Styles.globalColors.white_75,
-  fontSize: 16,
-  position: 'relative',
-  top: -1,
+  padding: Styles.globalMargins.xtiny,
 }
 
 const styleShowcasedTeamContainer = {

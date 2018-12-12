@@ -55,11 +55,12 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
 export const PeoplePageSearchBar = (props: Props) => (
   <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
     <Kb.Icon
-      style={styles.search}
-      type="iconfont-search"
       color={Styles.globalColors.black_20}
+      fontSize={20}
+      style={styles.searchIcon}
+      type="iconfont-search"
     />
-    <Kb.Text style={styles.searchText} type="Body">
+    <Kb.Text style={styles.searchText} type="BodySemibold">
       Search people
     </Kb.Text>
   </Kb.ClickableBox>
@@ -84,14 +85,10 @@ const styles = Styles.styleSheetCreate({
       marginTop: 48,
     },
   }),
-  search: {
-    padding: Styles.globalMargins.xtiny,
-  },
   searchContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      // alignSelf: 'center',
       backgroundColor: Styles.globalColors.black_10,
       borderRadius: Styles.borderRadius,
       justifyContent: 'center',
@@ -102,19 +99,16 @@ const styles = Styles.styleSheetCreate({
       minHeight: 24,
       width: 240,
     },
-  }),
-  searchText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_40,
-      padding: Styles.globalMargins.xtiny,
-      position: 'relative',
-      top: -1,
-    },
-    isElectron: {
-      fontSize: 13,
-    },
     isMobile: {
-      fontSize: 16,
+      height: 32,
     },
   }),
+  searchIcon: {
+    position: 'relative',
+    top: 1,
+  },
+  searchText: {
+    color: Styles.globalColors.black_40,
+    padding: Styles.globalMargins.xtiny,
+  },
 })

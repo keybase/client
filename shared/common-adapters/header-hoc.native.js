@@ -24,8 +24,8 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       <Box
         style={Styles.collapseStyles([
           styles.header,
-          this.props.theme === 'dark' ? styles.headerDark : styles.headerLight,
-          this.props.headerStyle,
+          this.props.borderless && styles.borderless,
+          this.props.style,
         ])}
       >
         {this.props.customComponent}
@@ -37,6 +37,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
               </Text>
             ) : (
               <BackButton
+                badgeNumber={this.props.badgeNumber}
                 hideBackLabel={this.props.hideBackLabel}
                 iconColor={
                   this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40
@@ -46,7 +47,12 @@ export class HeaderHocHeader extends React.Component<Props, State> {
               />
             ))}
         </Box>
-        <Box style={styles.titleContainer}>
+        <Box
+          style={Styles.collapseStyles([
+            styles.titleContainer,
+            !this.props.rightActions && styles.titlePadding,
+          ])}
+        >
           {!!this.props.title &&
             !this.props.children && (
               <Text type="BodySemibold" style={styles.title} lineClamp={1}>
@@ -148,6 +154,9 @@ const styles = Styles.styleSheetCreate({
   actionPressed: {
     opacity: 0.3,
   },
+  borderless: {
+    borderBottomWidth: 0,
+  },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     height: '100%',
@@ -163,12 +172,6 @@ const styles = Styles.styleSheetCreate({
     minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
     width: '100%',
   },
-  headerDark: {
-    backgroundColor: Styles.globalColors.darkBlue3,
-  },
-  headerLight: {
-    backgroundColor: Styles.globalColors.white,
-  },
   innerWrapper: {
     ...Styles.globalStyles.fillAbsolute,
   },
@@ -176,7 +179,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'flex-start',
-      flex: 1,
+      // flex: 1, // still thinking about this
       justifyContent: 'flex-start',
     },
     isIOS: {
@@ -186,7 +189,7 @@ const styles = Styles.styleSheetCreate({
   rightActions: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
-    flex: 1,
+    // flex: 1, // still thinking about this
     justifyContent: 'flex-end',
   },
   rightActionsPadding: {
@@ -206,6 +209,15 @@ const styles = Styles.styleSheetCreate({
     isAndroid: {
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
+  titlePadding: Styles.platformStyles({
+    isMobile: {
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   wrapper: {

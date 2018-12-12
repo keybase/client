@@ -8,7 +8,7 @@ import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles
 import type {Props} from './header-hoc.types'
 
 export const HeaderHocHeader = ({
-  headerStyle,
+  style,
   customComponent,
   hideBackLabel,
   title,
@@ -16,7 +16,7 @@ export const HeaderHocHeader = ({
   onBack,
   theme = 'light',
 }: Props) => (
-  <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], style])}>
     {customComponent}
     {onBack && (
       <BackButton
