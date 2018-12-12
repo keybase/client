@@ -47,7 +47,12 @@ export const serialize: any = {
   loggedIn: v => v,
   outOfDate: v => v,
   totalSyncingBytes: v => v,
-  userInfo: v => v,
+  // Just send broken over, if its the same send null
+  userInfo: (v, o) => {
+    const toSend = v.filter(u => u.broken)
+    const old = o && o.filter(u => u.broken)
+    return toSend.equals(old) ? null : toSend
+  },
   username: v => v,
   windowComponent: v => v,
   windowOpts: v => v,
@@ -82,6 +87,9 @@ export const deserialize = (state: any = initialState, props: any) => {
     ...props.conversationMap,
   }
 
+  // if we send null keep the old value
+  const userInfo = props.userInfo || state.userInfo
+
   const newState = {
     ...state,
     ...props,
@@ -90,6 +98,7 @@ export const deserialize = (state: any = initialState, props: any) => {
     conversationMap,
     conversations: (props.conversationIDs || state.conversationIDs).map(id => conversationMap[id]),
     fileRows: props.fileRows || state.fileRows,
+    userInfo,
   }
   return Avatar.deserialize(newState, props)
 }
