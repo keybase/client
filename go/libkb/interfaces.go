@@ -394,8 +394,10 @@ type ChatUI interface {
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatStellarShowConfirm(context.Context) error
-	ChatStellarDataConfirm(context.Context, chat1.UIMiniChatPaymentSummary) (bool, error)
-	ChatStellarDataError(context.Context, string) error
+	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
+	ChatStellarDataError(context.Context, string) (bool, error)
+	ChatStellarDone(context.Context) error
+	ChatPostReadyToSend(context.Context) error
 }
 
 type PromptDefault int
@@ -774,6 +776,11 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+}
+
+type MemLRUer interface {
+	Get(key interface{}) (interface{}, bool)
+	Put(key, value interface{}) bool
 }
 
 type ClockContext interface {

@@ -6,6 +6,7 @@ import * as MessageTypes from '../types/chat2/message'
 import * as Flow from '../../util/flow'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCStellarTypes from '../types/rpc-stellar-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
@@ -208,6 +209,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   amount: '',
   amountDescription: '',
   asset: 'native',
+  canceled: false,
   currencyCode: '',
   type: 'requestInfo',
 })
@@ -349,16 +351,18 @@ export const uiRequestInfoToChatRequestInfo = (
     amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
+    canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
   })
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  p: ?RPCChatTypes.UIPaymentInfo
+  ps: ?Array<RPCChatTypes.UIPaymentInfo>
 ): ?MessageTypes.ChatPaymentInfo => {
-  if (!p) {
+  if (!ps || ps.length !== 1) {
     return null
   }
+  const p = ps[0]
   const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
@@ -481,6 +485,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         inviteType,
         invitee,
         inviter,
+        reactions,
         team,
       })
     }
@@ -488,12 +493,14 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
       const {team = ''} = body.complexteam || {}
       return makeMessageSystemSimpleToComplex({
         ...minimum,
+        reactions,
         team,
       })
     }
     case RPCChatTypes.localMessageSystemType.createteam: {
       const {team = '???', creator = '????'} = body.createteam || {}
       return makeMessageSystemText({
+        reactions,
         text: new HiddenString(`${creator} created a new team ${team}.`),
         ...minimum,
       })
@@ -505,6 +512,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         ...minimum,
         pushType,
         pusher,
+        reactions,
         refs: refs || [],
         repo,
         repoID,
@@ -514,6 +522,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
     case RPCChatTypes.localMessageSystemType.changeavatar: {
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
+        reactions,
         text: new HiddenString(`${user} changed team avatar`),
         ...minimum,
       })
@@ -578,13 +587,15 @@ const validUIMessagetoMessage = (
     ordinal: Types.numberToOrdinal(m.messageID),
     timestamp: m.ctime,
   }
+
+  const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
-    reactions: reactionMapToReactions(m.reactions),
+    reactions,
   }
   const explodable = {
     exploded: m.isEphemeralExpired,
@@ -678,9 +689,9 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.commonMessageType.join:
-      return makeMessageSystemJoined(minimum)
+      return makeMessageSystemJoined({...minimum, reactions})
     case RPCChatTypes.commonMessageType.leave:
-      return makeMessageSystemLeft(minimum)
+      return makeMessageSystemLeft({...minimum, reactions})
     case RPCChatTypes.commonMessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions)
@@ -690,17 +701,22 @@ const validUIMessagetoMessage = (
         ? makeMessageSetDescription({
             ...minimum,
             newDescription: new HiddenString(m.messageBody.headline.headline),
+            reactions,
           })
         : null
     case RPCChatTypes.commonMessageType.metadata:
       return m.messageBody.metadata
-        ? makeMessageSetChannelname({...minimum, newChannelname: m.messageBody.metadata.conversationTitle})
+        ? makeMessageSetChannelname({
+            ...minimum,
+            newChannelname: m.messageBody.metadata.conversationTitle,
+            reactions,
+          })
         : null
     case RPCChatTypes.commonMessageType.sendpayment:
       return m.messageBody.sendpayment
         ? makeMessageSendPayment({
             ...common,
-            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfo),
+            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos),
           })
         : null
     case RPCChatTypes.commonMessageType.requestpayment:

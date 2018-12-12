@@ -23,6 +23,7 @@ export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
+export const filePickerError = 'config:filePickerError'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
@@ -62,6 +63,7 @@ type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean, version: number|}>
 type _DaemonHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, increment: boolean, failedReason?: ?string, failedFatal?: true|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
+type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
@@ -92,6 +94,10 @@ type _UpdateNowPayload = void
 type __avatarQueuePayload = void
 
 // Action Creators
+/**
+ * Sent whenever the mobile file picker encounters an error.
+ */
+export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -175,6 +181,7 @@ export type DaemonHandshakeDonePayload = {|+payload: _DaemonHandshakeDonePayload
 export type DaemonHandshakePayload = {|+payload: _DaemonHandshakePayload, +type: 'config:daemonHandshake'|}
 export type DaemonHandshakeWaitPayload = {|+payload: _DaemonHandshakeWaitPayload, +type: 'config:daemonHandshakeWait'|}
 export type DumpLogsPayload = {|+payload: _DumpLogsPayload, +type: 'config:dumpLogs'|}
+export type FilePickerErrorPayload = {|+payload: _FilePickerErrorPayload, +type: 'config:filePickerError'|}
 export type GlobalErrorPayload = {|+payload: _GlobalErrorPayload, +type: 'config:globalError'|}
 export type InstallerRanPayload = {|+payload: _InstallerRanPayload, +type: 'config:installerRan'|}
 export type LinkPayload = {|+payload: _LinkPayload, +type: 'config:link'|}
@@ -217,6 +224,7 @@ export type Actions =
   | DaemonHandshakePayload
   | DaemonHandshakeWaitPayload
   | DumpLogsPayload
+  | FilePickerErrorPayload
   | GlobalErrorPayload
   | InstallerRanPayload
   | LinkPayload

@@ -38,6 +38,7 @@ class UnfurlGiphy extends React.Component<Props> {
             height={this.props.imageHeight}
             width={this.props.imageWidth}
             isVideo={this.props.isVideo}
+            autoplayVideo={true}
           />
         </Kb.Box2>
       </Kb.Box2>

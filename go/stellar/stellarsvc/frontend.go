@@ -294,6 +294,9 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 	if !crg.HasWallet {
 		return fmt.Errorf("user wallet not created")
 	}
+
+	s.walletState.RefreshAll(ctx)
+
 	return nil
 }
 
@@ -317,6 +320,8 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 	if err != nil {
 		return "", err
 	}
+
+	s.walletState.RefreshAll(ctx)
 
 	return accountID, nil
 }
@@ -814,6 +819,19 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		return res, err
 	}
 	return stellar.BuildPaymentLocal(s.mctx(ctx), arg)
+}
+
+func (s *Server) ReviewPaymentLocal(ctx context.Context, arg stellar1.ReviewPaymentLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "ReviewPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.ReviewPaymentLocal(s.mctx(ctx), s.uiSource.StellarUI(), arg)
 }
 
 func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {

@@ -617,6 +617,22 @@
           "name": "status"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TimeboundsRecommendation",
+      "fields": [
+        {
+          "type": "keybase1.UnixTime",
+          "name": "timeNow",
+          "jsonkey": "time_now"
+        },
+        {
+          "type": "int64",
+          "name": "timeout",
+          "jsonkey": "timeout"
+        }
+      ]
     }
   ],
   "messages": {

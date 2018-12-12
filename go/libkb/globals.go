@@ -80,6 +80,7 @@ type GlobalContext struct {
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
 	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
+	iteamCacher      MemLRUer         // In memory cacher for implicit teams
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
@@ -601,6 +602,18 @@ func (g *GlobalContext) SetImplicitTeamConflictInfoCacher(l LRUer) {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	g.itciCacher = l
+}
+
+func (g *GlobalContext) GetImplicitTeamCacher() MemLRUer {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.iteamCacher
+}
+
+func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	g.iteamCacher = l
 }
 
 func (g *GlobalContext) GetFullSelfer() FullSelfer {

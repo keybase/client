@@ -45,8 +45,9 @@ func (t MethodType) String() string {
 type CompressionType int
 
 const (
-	CompressionNone CompressionType = 0
-	CompressionGzip CompressionType = 1
+	CompressionNone       CompressionType = 0
+	CompressionGzip       CompressionType = 1
+	CompressionMsgpackzip CompressionType = 2
 )
 
 func (t CompressionType) String() string {
@@ -55,6 +56,8 @@ func (t CompressionType) String() string {
 		return "none"
 	case CompressionGzip:
 		return "gzip"
+	case CompressionMsgpackzip:
+		return "msgpackzip"
 	default:
 		return fmt.Sprintf("Compression(%d)", t)
 	}
@@ -64,6 +67,8 @@ func (t CompressionType) NewCompressor() compressor {
 	switch t {
 	case CompressionGzip:
 		return newGzipCompressor()
+	case CompressionMsgpackzip:
+		return newMsgpackzipCompressor()
 	default:
 		return nil
 	}

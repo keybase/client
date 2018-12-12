@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -50,7 +51,7 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 	key := conflictID{name.IsPublic, id}
 	cv, err := g.GetImplicitTeamConflictInfoCacher().Get(ctx, g, key)
 	if err != nil {
-		g.Log.CWarningf(ctx, "In fetching from cache: %s", err.Error())
+		g.Log.CDebugf(ctx, "In fetching from cache: %s", err.Error())
 	}
 	if cv != nil {
 		if p, ok := cv.(*keybase1.ImplicitTeamConflictInfo); ok {
@@ -59,7 +60,7 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 			}
 			return ret, nil
 		}
-		g.Log.CWarningf(ctx, "Bad element of wrong type from cache: %T", cv)
+		g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
 	}
 
 	displayName, err := FormatImplicitTeamDisplayName(ctx, g, name)
@@ -85,15 +86,6 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 	ci := raw.ConflictInfo
 	ret.ConflictInfo = ci
 
-	// The server will return an empty conflict info if there is no conflict info
-	// for this teamID/displayName. But we still want to cache a value in the DB
-	// even if there is no conflict. So by convention, cache the "trivial" conflict
-	// which is a generation of 0.
-	if ci == nil {
-		// Note that now, ci.IsConflict() is false!
-		ci = &keybase1.ImplicitTeamConflictInfo{}
-	}
-
 	// If the team is not fully resolved, and there isn't a conflict, there might
 	// still become a conflict in the future, so we decide not to cache it.
 	// Otherwise, the answer stays true indefinitely, so we can cache the value
@@ -101,7 +93,7 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 	if isFullyResolved || ci.IsConflict() {
 		tmpErr := g.GetImplicitTeamConflictInfoCacher().Put(ctx, g, key, ci)
 		if tmpErr != nil {
-			g.Log.CWarningf(ctx, "Failed to cached implicit team conflict info: %s", tmpErr.Error())
+			g.Log.CDebugf(ctx, "Failed to cached implicit team conflict info: %s", tmpErr.Error())
 		}
 	}
 

@@ -31,6 +31,10 @@
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
+    "filePickerError": {
+      "_description": "Sent whenever the mobile file picker encounters an error.",
+      "error": "Error"
+    },
     "logout": {
       "_description": "someone wants to log out"
     },

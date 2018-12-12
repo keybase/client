@@ -219,4 +219,11 @@ protocol remote {
   void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
 
   string ping();
+
+  record TimeboundsRecommendation {
+    @jsonkey("time_now")
+    keybase1.UnixTime timeNow; // server's time right now
+    @jsonkey("timeout")
+    int64 timeout; // tx timeout recommended by the server
+  }
 }

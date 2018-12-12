@@ -115,6 +115,7 @@ const (
 	UPAKCacheSize                     = 2000
 	UIDMapFullNameCacheSize           = 100000
 	ImplicitTeamConflictInfoCacheSize = 10000
+	ImplicitTeamCacheSize             = 10000
 
 	PayloadCacheSize = 1000
 

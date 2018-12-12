@@ -643,11 +643,11 @@
           "name": "hasPairwiseMacs"
         },
         {
-          "type": [
-            null,
-            "UIPaymentInfo"
-          ],
-          "name": "paymentInfo"
+          "type": {
+            "type": "array",
+            "items": "UIPaymentInfo"
+          },
+          "name": "paymentInfos"
         },
         {
           "type": [
@@ -779,16 +779,8 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "UIMiniChatPaymentSpecTyp",
-      "symbols": [
-        "SUCCESS_0",
-        "ERROR_1"
-      ]
-    },
-    {
       "type": "record",
-      "name": "UIMiniChatPaymentSpecSuccess",
+      "name": "UIChatPayment",
       "fields": [
         {
           "type": "string",
@@ -796,7 +788,18 @@
         },
         {
           "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
           "name": "xlmAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
         },
         {
           "type": [
@@ -808,32 +811,8 @@
       ]
     },
     {
-      "type": "variant",
-      "name": "UIMiniChatPaymentSpec",
-      "switch": {
-        "type": "UIMiniChatPaymentSpecTyp",
-        "name": "typ"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "SUCCESS",
-            "def": false
-          },
-          "body": "UIMiniChatPaymentSpecSuccess"
-        },
-        {
-          "label": {
-            "name": "ERROR",
-            "def": false
-          },
-          "body": "string"
-        }
-      ]
-    },
-    {
       "type": "record",
-      "name": "UIMiniChatPaymentSummary",
+      "name": "UIChatPaymentSummary",
       "fields": [
         {
           "type": "string",
@@ -846,7 +825,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UIMiniChatPaymentSpec"
+            "items": "UIChatPayment"
           },
           "name": "payments"
         }
@@ -1042,6 +1021,15 @@
       ],
       "response": "boolean"
     },
+    "chatPostReadyToSend": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "chatStellarShowConfirm": {
       "request": [
         {
@@ -1059,7 +1047,7 @@
         },
         {
           "name": "summary",
-          "type": "UIMiniChatPaymentSummary"
+          "type": "UIChatPaymentSummary"
         }
       ],
       "response": "boolean"
@@ -1073,6 +1061,15 @@
         {
           "name": "message",
           "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": null

@@ -29,10 +29,9 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "exclude",
 				Usage: fmt.Sprintf("Stop all except excluded components, comma separated. Specify %v.", availableCtlComponents),
 			},
-			// TODO(gabriel): Remove this un-used option
 			cli.BoolFlag{
-				Name:  "no-wait",
-				Usage: "Deprecated",
+				Name:  "shutdown",
+				Usage: "tell the service to shutdown, and do nothing else",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -47,6 +46,7 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 type CmdCtlStop struct {
 	libkb.Contextified
 	components map[string]bool
+	shutdown   bool
 }
 
 func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
@@ -56,6 +56,7 @@ func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
 }
 
 func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
+	s.shutdown = ctx.Bool("shutdown")
 	s.components = ctlParseArgv(ctx)
 	return nil
 }
@@ -95,6 +96,10 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 }
 
 func (s *CmdCtlStop) Run() error {
+	// For this flag, just stop the service, and don't do anything else.
+	if s.shutdown {
+		return CtlServiceStop(s.G())
+	}
 	return ctlStop(s.G(), s.components)
 }
 

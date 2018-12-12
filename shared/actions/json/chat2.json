@@ -456,10 +456,6 @@
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
     },
-    "filePickerError": {
-      "_description": "Sent whenever the mobile file picker encounters an error.",
-      "error": "Error"
-    },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -513,6 +509,20 @@
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "clearPaymentConfirmInfo": {
+      "_description": "Clear data for payment confirm modal"
+    },
+    "setPaymentConfirmInfo": {
+      "_description": "Set the payment confirm modal payment data",
+      "summary": "RPCChatTypes.UIChatPaymentSummary",
+      "canError": {
+        "error": "string"
+      }
+    },
+    "confirmScreenResponse": {
+      "_description": "User responded to the chat Stellar confirm screen",
+      "accept": "boolean"
     }
   }
 }
