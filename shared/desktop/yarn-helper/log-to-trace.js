@@ -2,13 +2,8 @@
 const fs = require('fs')
 const data = fs.readFileSync(process.argv[2], 'utf8')
 const lines = data.split('\n')
-// const reg = /([^ ]+) ▶ \[DEBU keybase ([^:]+):(\d+)] ([0-9a-f]+) ([+-|]) ?([^[]+)(\[tags:([^\]]+)])?/
-// const reg = /([^ ]+) ▶ \[DEBU keybase ([^:]+):(\d+)] ([0-9a-f]+) ([+-|])\ ?([^ ]+)[^[]*(\[tags:([^\]]+)])?/
-// const reg = /([^ ]+) ▶ \[DEBU keybase ([^:]+):(\d+)] ([0-9a-f]+) ([+-|]) ?([^-[]+)[^[]*(\[tags:([^]]+)])?/
-// const reg = /([^ ]+) ▶ \[DEBU (?:keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([+-|])\ ?([^[]+)(\[tags:([^\]]+)])?/
 const reg = /([^ ]+) ▶ \[DEBU (?:keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(\[tags:([^\]]+)])?/
 const tagsReg = /\[tags:([^\]]+)]/
-// const methodPrefix = /^\W*/
 const methodPrefixReg = /^(\+\+Chat: )?/
 const methodResultReg = / -> .*$/
 const typeAndMethodReg = /^(\W*)/
