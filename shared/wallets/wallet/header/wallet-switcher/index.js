@@ -42,7 +42,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
-    height: 56,
+    height: 48,
     justifyContent: 'center',
   },
   rowContainer: {
