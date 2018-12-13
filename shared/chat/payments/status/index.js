@@ -2,17 +2,18 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as WalletTypes from '../../../constants/types/wallets'
+
+type Status = 'error' | 'pending' | 'completed'
 
 type Props = {
   allowFontScaling?: ?boolean,
-  status: WalletTypes.StatusSimplified,
+  status: Status,
   text: string,
 }
 
 const getIcon = status => {
   switch (status) {
-    case 'success':
+    case 'completed':
       return 'iconfont-success'
     case 'pending':
       return 'iconfont-time'
@@ -24,7 +25,7 @@ const getIcon = status => {
 }
 
 const PaymentStatus = (props: Props) => (
-  <Kb.Text type="BodyExtrabold" allowFontScaling={props.allowFontScaling} style={styles[props.status]}>
+  <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
     {props.text}{' '}
     <Kb.Icon
       type={getIcon(props.status)}
@@ -36,6 +37,14 @@ const PaymentStatus = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  completed: {
+    backgroundColor: Styles.globalColors.purple2_10,
+    borderRadius: Styles.globalMargins.xxtiny,
+    color: Styles.globalColors.purple2,
+  },
+  completedIcon: {
+    color: Styles.globalColors.purple2,
+  },
   error: {
     backgroundColor: Styles.globalColors.red_10,
     borderRadius: Styles.globalMargins.xxtiny,
@@ -55,14 +64,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_40,
   },
   pendingIcon: {},
-  success: {
-    backgroundColor: Styles.globalColors.purple2_10,
-    borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.purple2,
-  },
-  successIcon: {
-    color: Styles.globalColors.purple2,
-  },
 })
 
 export default PaymentStatus

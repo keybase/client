@@ -616,7 +616,7 @@ const validUIMessagetoMessage = (
       return makeMessageText({
         ...common,
         ...explodable,
-        decoratedText: new HiddenString(m.decoratedTextBody),
+        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         hasBeenEdited: m.superseded,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),

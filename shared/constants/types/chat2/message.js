@@ -205,6 +205,8 @@ export type _ChatPaymentInfo = {
   worth: string,
 }
 
+export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
+
 export type _MessageSendPayment = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,

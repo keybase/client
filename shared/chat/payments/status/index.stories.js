@@ -6,7 +6,7 @@ import * as Sb from '../../../stories/storybook'
 import PaymentStatus from '.'
 
 const successProps = {
-  status: 'success',
+  status: 'completed',
   text: '+1XLM@patrick',
 }
 
