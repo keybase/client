@@ -11,9 +11,9 @@ import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
-import {createChangeWaiting} from '../actions/waiting-gen'
+import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
-import {isArray} from 'lodash-es'
+import {isArray, throttle} from 'lodash-es'
 import {sagaMiddleware} from '../store/configure-store'
 import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
@@ -65,9 +65,17 @@ class Engine {
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
 
+  _queuedChanges = []
   dispatchWaitingAction = (key: string, waiting: boolean, error: RPCError) => {
-    Engine._dispatch(createChangeWaiting({error, increment: waiting, key}))
+    this._queuedChanges.push({error, increment: waiting, key})
+    this._throttledDispatchWaitingAction()
   }
+
+  _throttledDispatchWaitingAction = throttle(() => {
+    const changes = this._queuedChanges
+    this._queuedChanges = []
+    Engine._dispatch(createBatchChangeWaiting({changes}))
+  }, 500)
 
   // TODO deprecate
   deprecatedGetDispatch = () => {
