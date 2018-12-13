@@ -213,16 +213,10 @@ func teamKey(users []*kbtest.FakeUser) (res string) {
 var useRemoteMock = true
 
 func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembersType)) {
-	useRemoteMock = true
-	start := time.Now()
-	t.Logf("KBFS Stage Begin")
-	f(chat1.ConversationMembersType_KBFS)
-	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
-
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	t.Logf("Team Stage Begin")
-	start = time.Now()
+	start := time.Now()
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
@@ -290,18 +284,14 @@ func (c *chatTestContext) advanceFakeClock(d time.Duration) {
 
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
 	var ctx context.Context
-	if user == nil {
-		t.Fatalf("user is nil")
-	}
+	require.NotNil(t, user)
 
 	if tuc, ok := c.userContextCache[user.Username]; ok {
 		return tuc
 	}
 
 	tc, ok := c.world.Tcs[user.Username]
-	if !ok {
-		t.Fatalf("user %s is not found", user.Username)
-	}
+	require.True(t, ok)
 	g := globals.NewContext(tc.G, tc.ChatG)
 	h := NewServer(g, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
@@ -317,9 +307,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	} else {
 		ctx = newTestContext(tc)
 		nist, err := tc.G.ActiveDevice.NIST(context.TODO())
-		if err != nil {
-			t.Fatalf(err.Error())
-		}
+		require.NoError(t, err)
 		sessionToken := nist.Token().String()
 		gh := newGregorTestConnection(tc.Context(), uid, sessionToken)
 		require.NoError(t, gh.Connect(ctx))
@@ -5011,10 +4999,6 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 
 func TestChatSrvUserResetAndDeleted(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 4)
-		defer ctc.cleanup()
-		users := ctc.users()
-
 		// Only run this test for teams
 		switch mt {
 		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -5022,6 +5006,10 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		default:
 			return
 		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvUserResetAndDeleted", 4)
+		defer ctc.cleanup()
+		users := ctc.users()
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
@@ -5393,6 +5381,8 @@ func TestChatSrvStellarUI(t *testing.T) {
 
 	delay := 2 * time.Second
 	//uid := users[0].User.GetUID().ToBytes()
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 	tc := ctc.world.Tcs[users[0].Username]
 	ui := kbtest.NewChatUI()
 	declineUI := &xlmDeclineChatUI{ChatUI: ui}
@@ -5420,11 +5410,12 @@ func TestChatSrvStellarUI(t *testing.T) {
 	}
 	successCase := func(expectError bool) {
 		mst.specFn = specSuccess
-		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx, chat1.PostTextNonblockArg{
-			ConversationID: conv.Id,
-			TlfName:        conv.TlfName,
-			Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
-		})
+		_, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx,
+			chat1.PostTextNonblockArg{
+				ConversationID: conv.Id,
+				TlfName:        conv.TlfName,
+				Body:           fmt.Sprintf("+1xlm@%s +5xlm@%s", users[1].Username, users[2].Username),
+			})
 		if expectError {
 			require.Error(t, err)
 		} else {
@@ -5456,6 +5447,20 @@ func TestChatSrvStellarUI(t *testing.T) {
 			case <-ui.PostReadyToSend:
 			case <-time.After(delay):
 				require.Fail(t, "no ready to send")
+			}
+			select {
+			case msg := <-listener.newMessageLocal:
+				require.True(t, msg.Message.IsValid())
+				require.Equal(t, 2, len(msg.Message.Valid().AtMentions))
+			case <-time.After(delay):
+				require.Fail(t, "no local msg")
+			}
+			select {
+			case msg := <-listener.newMessageRemote:
+				require.True(t, msg.Message.IsValid())
+				require.Equal(t, 2, len(msg.Message.Valid().AtMentions))
+			case <-time.After(delay):
+				require.Fail(t, "no remote msg")
 			}
 		}
 	}

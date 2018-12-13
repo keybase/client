@@ -19,15 +19,27 @@ type OwnProps = {|
   navigateAppend: (...Array<any>) => any,
 |}
 
-const mapStateToProps = state => ({
-  _metaMap: state.chat2.metaMap,
-  _selectedConversationIDKey: Constants.getSelectedConversation(state),
-  _smallTeamsExpanded: state.chat2.smallTeamsExpanded,
-  _username: state.config.username,
-  filter: state.chat2.inboxFilter,
-  isLoading: Constants.anyChatWaitingKeys(state),
-  neverLoaded: !state.chat2.inboxHasLoaded,
-})
+const mapStateToProps = state => {
+  const metaMap = state.chat2.metaMap
+  const filter = state.chat2.inboxFilter
+  const username = state.config.username
+  const inboxVersion = state.chat2.inboxVersion
+  const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
+    ? filteredRowData(metaMap, filter, username)
+    : normalRowData(metaMap, state.chat2.smallTeamsExpanded, inboxVersion)
+  const neverLoaded = !state.chat2.inboxHasLoaded
+  const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
+
+  return {
+    _canRefreshOnMount,
+    _selectedConversationIDKey: Constants.getSelectedConversation(state),
+    allowShowFloatingButton,
+    filter,
+    neverLoaded,
+    rows,
+    smallTeamsExpanded,
+  }
+}
 
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
@@ -66,21 +78,19 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {allowShowFloatingButton, rows, smallTeamsExpanded} = stateProps.filter
-    ? filteredRowData(stateProps._metaMap, stateProps.filter, stateProps._username)
-    : normalRowData(stateProps._metaMap, stateProps._smallTeamsExpanded)
   return {
-    _isLoading: stateProps.isLoading,
+    _canRefreshOnMount: stateProps._canRefreshOnMount,
     _refreshInbox: dispatchProps._refreshInbox,
-    allowShowFloatingButton,
+    allowShowFloatingButton: stateProps.allowShowFloatingButton,
     filter: stateProps.filter,
     neverLoaded: stateProps.neverLoaded,
     onNewChat: dispatchProps.onNewChat,
-    onSelectDown: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, 1),
-    onSelectUp: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, -1),
+    onSelectDown: () =>
+      dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
+    onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-    rows,
-    smallTeamsExpanded,
+    rows: stateProps.rows,
+    smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
   }
 }
@@ -89,7 +99,7 @@ type Props = $Diff<
   {|
     ..._Props,
     _refreshInbox: () => void,
-    _isLoading: boolean,
+    _canRefreshOnMount: boolean,
   |},
   {
     filterFocusCount: number,
@@ -112,7 +122,7 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   _onSelectDown = () => this.props.onSelectDown()
 
   componentDidMount() {
-    if (this.props.neverLoaded && !this.props._isLoading) {
+    if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
     }
   }
@@ -141,7 +151,7 @@ class InboxWrapper extends React.PureComponent<Props, State> {
 
   render() {
     const Component = Inbox.default
-    const {_refreshInbox, _isLoading, ...rest} = this.props
+    const {_refreshInbox, _canRefreshOnMount, ...rest} = this.props
     return (
       <Component
         {...rest}

@@ -259,6 +259,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderRadius: 4,
       boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
+      marginRight: Styles.globalMargins.small,
     },
   }),
   emojiIconWrapper: Styles.platformStyles({

@@ -15,8 +15,6 @@ import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressPr
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
-import flags from '../util/feature-flags'
-
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
@@ -146,7 +144,7 @@ class Profile extends Component<Props, State> {
   }
 
   _onClickAvatar = () =>
-    this.props.isYou && flags.avatarUploadsEnabled
+    this.props.isYou
       ? showImagePicker({mediaType: 'photo'}, (response: Response) => {
           if (response.didCancel) {
             return

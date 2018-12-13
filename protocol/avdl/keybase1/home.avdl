@@ -7,12 +7,43 @@ protocol home {
 
   enum HomeScreenItemType {
     TODO_1,
-    PEOPLE_2
+    PEOPLE_2,
+    ANNOUNCEMENT_3
   }
 
   variant HomeScreenItemData switch (HomeScreenItemType t) {
     case TODO: HomeScreenTodo;
     case PEOPLE: HomeScreenPeopleNotification;
+    case ANNOUNCEMENT: HomeScreenAnnouncement;
+    default: void; // Note, if badged, we should urge an upgrade here.
+  }
+
+  enum AppLinkType {
+    NONE_0,
+    PEOPLE_1,
+    CHAT_2,
+    FILES_3,
+    WALLET_4,
+    GIT_5,
+    DEVICES_6,
+    SETTINGS_7
+  }
+
+  @typedef("int")
+  record HomeScreenAnnouncementID {}
+
+  @typedef("int")
+  record HomeScreenAnnouncementVersion {}
+
+  record HomeScreenAnnouncement {
+    HomeScreenAnnouncementID id;
+    HomeScreenAnnouncementVersion version;
+    AppLinkType appLink;
+    string confirmLabel;
+    boolean dismissable;
+    string iconUrl;
+    string text;
+    string url;
   }
 
   enum HomeScreenTodoType {
@@ -99,6 +130,7 @@ protocol home {
   HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted);
 
   void homeSkipTodoType(HomeScreenTodoType t);
+  void homeDismissAnnouncement(HomeScreenAnnouncementID i);
   void homeActionTaken();
   void homeMarkViewed();
 

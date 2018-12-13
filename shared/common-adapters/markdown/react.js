@@ -10,7 +10,7 @@ import Channel from '../channel-container'
 import Mention from '../mention-container'
 import Box from '../box'
 import Emoji from '../emoji'
-import {emojiIndexByName} from '../../markdown/parser'
+import {emojiIndexByName} from './emoji-gen'
 import type {Props as EmojiProps} from '../emoji'
 
 const wrapStyle = Styles.platformStyles({

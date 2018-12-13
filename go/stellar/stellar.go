@@ -623,6 +623,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	if err != nil {
 		return res, err
 	}
+	m.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
 	walletState.Refresh(m.Ctx(), senderEntry.AccountID)
 
@@ -921,6 +922,7 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 	if err != nil {
 		return res, err
 	}
+	m.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
 	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error

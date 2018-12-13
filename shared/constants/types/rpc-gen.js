@@ -342,9 +342,21 @@ export const gregorUIPushReason = {
   newData: 2,
 }
 
+export const homeAppLinkType = {
+  none: 0,
+  people: 1,
+  chat: 2,
+  files: 3,
+  wallet: 4,
+  git: 5,
+  devices: 6,
+  settings: 7,
+}
+
 export const homeHomeScreenItemType = {
   todo: 1,
   people: 2,
+  announcement: 3,
 }
 
 export const homeHomeScreenPeopleNotificationType = {

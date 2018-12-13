@@ -364,6 +364,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
+	d.runHomePoller(ctx)
 	go d.identifySelf()
 }
 
@@ -453,6 +454,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 	g.StellarSender = wallet.NewSender(g)
+	g.StellarPushHandler = g.ExternalG().GetStellar()
 
 	convStorage := chat.NewDevConversationBackedStorage(g, ri)
 
@@ -532,6 +534,11 @@ func (d *Service) runTLFUpgrade() {
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
 	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
+	return
+}
+
+func (d *Service) runHomePoller(ctx context.Context) {
+	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
 	return
 }
 

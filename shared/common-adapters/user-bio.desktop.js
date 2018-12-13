@@ -1,12 +1,11 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
+import {Avatar, Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
-import flags from '../util/feature-flags'
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
@@ -91,7 +90,7 @@ class BioRender extends Component<Props> {
             }}
           >
             <Avatar
-              editable={!!editFns && flags.avatarUploadsEnabled}
+              editable={!!editFns}
               onClick={editFns ? () => editFns.onEditAvatarClick() : onClickAvatar}
               onEditAvatarClick={editFns ? () => editFns.onEditAvatarClick() : undefined}
               style={
@@ -101,15 +100,6 @@ class BioRender extends Component<Props> {
               size={avatarSize}
               showFollowingStatus={true}
             />
-            {editFns && !flags.avatarUploadsEnabled && (
-              <Box style={{height: 16, width: 0}}>
-                <Icon
-                  type="iconfont-edit"
-                  onClick={() => editFns.onEditAvatarClick()}
-                  style={stylesEditAvatarIcon(avatarSize)}
-                />
-              </Box>
-            )}
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
@@ -211,14 +201,6 @@ class BioRender extends Component<Props> {
   }
 }
 
-const stylesEditAvatarIcon = avatarSize => ({
-  // Hack to make the hover and onclick register over the avatar
-  bottom: 0,
-  paddingLeft: avatarSize,
-  paddingTop: avatarSize,
-  position: 'absolute',
-  right: 0,
-})
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',

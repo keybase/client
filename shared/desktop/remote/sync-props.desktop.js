@@ -4,6 +4,7 @@
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import {measureStart, measureStop} from '../../util/user-timings'
 
 // set this to true to see details of the serialization process
 const debugSerializer = __DEV__ && false
@@ -31,6 +32,7 @@ function SyncPropsFactory(serializer: Serializer) {
       _sendProps = () => {
         if (this.props.remoteWindow) {
           try {
+            measureStart('remoteProps')
             const props = this._getPropsToSend()
             // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
             // the data a lot
@@ -39,6 +41,8 @@ function SyncPropsFactory(serializer: Serializer) {
             }
           } catch (e) {
             console.error(e)
+          } finally {
+            measureStop('remoteProps')
           }
         }
       }

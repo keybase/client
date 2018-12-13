@@ -51,3 +51,7 @@ func (n *nullStellar) SpecMiniChatPayments(mctx MetaContext, payments []MiniChat
 }
 
 func (n *nullStellar) RefreshWalletState(ctx context.Context) {}
+
+func (n *nullStellar) HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error) {
+	return false, errors.New("nullStellar HandleOobm")
+}

@@ -228,14 +228,18 @@ type ConvLoader interface {
 	Queue(ctx context.Context, job ConvLoaderJob) error
 }
 
+type OobmHandler interface {
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+}
+
 type PushHandler interface {
 	TlfFinalize(context.Context, gregor.OutOfBandMessage) error
 	TlfResolve(context.Context, gregor.OutOfBandMessage) error
 	Activity(context.Context, gregor.OutOfBandMessage) error
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
-	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) error
+	OobmHandler
 }
 
 type AppState interface {

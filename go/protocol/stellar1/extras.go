@@ -17,6 +17,13 @@ const (
 	KeybaseRequestIDSuffixHex = "31"
 )
 
+const (
+	PushAutoClaim           = "stellar.autoclaim"
+	PushPaymentStatus       = "stellar.payment_status"
+	PushPaymentNotification = "stellar.payment_notification"
+	PushRequestStatus       = "stellar.request_status"
+)
+
 func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 	if len(s) != hex.EncodedLen(KeybaseTransactionIDLen) {
 		return "", fmt.Errorf("bad KeybaseTransactionID %q: must be %d bytes long", s, KeybaseTransactionIDLen)

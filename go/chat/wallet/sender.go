@@ -195,6 +195,7 @@ func (s *Sender) SendPayments(ctx context.Context, payments []types.ParsedStella
 	}
 	for _, p := range paymentRes {
 		tp := chat1.TextPayment{
+			Username:    p.Username.String(),
 			PaymentText: usernameToFull[p.Username.String()],
 		}
 		if p.Error != nil {

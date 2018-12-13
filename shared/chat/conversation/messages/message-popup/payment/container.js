@@ -10,6 +10,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 // This file has two connectors and a wrapper. One connector is for sendPayment
 // and the other for requestPayment. The wrapper decides which to use.
@@ -19,6 +20,7 @@ type OwnProps = {|
   message: Types.MessageRequestPayment | Types.MessageSendPayment,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 |}
 
@@ -113,6 +115,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
       paymentInfo.worth ? ' Lumens worth' : ''
@@ -191,6 +194,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine,
     txVerb: 'requested',
