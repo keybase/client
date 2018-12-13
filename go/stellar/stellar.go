@@ -515,10 +515,6 @@ func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendP
 func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
-	if err = m.Ctx().Err(); err != nil {
-		return res, err
-	}
-
 	// look up sender account
 	senderEntry, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), sendArg.From)
 	if err != nil {
