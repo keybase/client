@@ -244,6 +244,8 @@ export type _SendLinkToChat = {
   // teams, this is the conversation. For big teams, this is the selected
   // channel.
   convID: ChatTypes.ConversationIDKey,
+  // populated for teams only
+  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 

@@ -63,6 +63,7 @@ export const saveMedia = 'fs:saveMedia'
 export const setFlags = 'fs:setFlags'
 export const setMoveOrCopyDestinationParentPath = 'fs:setMoveOrCopyDestinationParentPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
+export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
 export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const shareNative = 'fs:shareNative'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
@@ -129,6 +130,7 @@ type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _SetFlagsPayload = $ReadOnly<{|kbfsOpening?: boolean, kbfsInstalling?: boolean, fuseInstalling?: boolean, kextPermissionError?: boolean, securityPrefsPrompted?: boolean, showBanner?: boolean|}>
 type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
+type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
 type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
@@ -195,6 +197,7 @@ export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: 
 export const createSetFlags = (payload: _SetFlagsPayload) => ({payload, type: setFlags})
 export const createSetMoveOrCopyDestinationParentPath = (payload: _SetMoveOrCopyDestinationParentPathPayload) => ({payload, type: setMoveOrCopyDestinationParentPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
+export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
 export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
@@ -261,6 +264,7 @@ export type SaveMediaPayload = {|+payload: _SaveMediaPayload, +type: 'fs:saveMed
 export type SetFlagsPayload = {|+payload: _SetFlagsPayload, +type: 'fs:setFlags'|}
 export type SetMoveOrCopyDestinationParentPathPayload = {|+payload: _SetMoveOrCopyDestinationParentPathPayload, +type: 'fs:setMoveOrCopyDestinationParentPath'|}
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
+export type SetSendLinkToChatChannelsPayload = {|+payload: _SetSendLinkToChatChannelsPayload, +type: 'fs:setSendLinkToChatChannels'|}
 export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvIDPayload, +type: 'fs:setSendLinkToChatConvID'|}
 export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
 export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
@@ -329,6 +333,7 @@ export type Actions =
   | SetFlagsPayload
   | SetMoveOrCopyDestinationParentPathPayload
   | SetMoveOrCopySourcePayload
+  | SetSendLinkToChatChannelsPayload
   | SetSendLinkToChatConvIDPayload
   | ShareNativePayload
   | ShowMoveOrCopyPayload

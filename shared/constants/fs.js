@@ -181,6 +181,7 @@ export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
 })
 
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
+  channels: I.Map(),
   convID: ChatConstants.noConversationIDKey,
   path: Types.stringToPath('/keybase'),
 })

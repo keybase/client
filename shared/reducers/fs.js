@@ -305,6 +305,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSendLinkToChatConvID:
       // $FlowIssue
       return state.setIn(['sendLinkToChat', 'convID'], action.payload.convID)
+    case FsGen.setSendLinkToChatChannels:
+      // $FlowIssue
+      return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:

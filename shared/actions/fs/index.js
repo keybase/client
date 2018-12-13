@@ -2,8 +2,6 @@
 import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
-import * as TeamsGen from '../teams-gen'
-import * as TeamsConstants from '../../constants/teams'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -829,35 +827,42 @@ const showSendLinkToChat = (state, action) => {
     )
   } else {
     // It's a real team, but we don't know if it's a small team or big team. So
-    // fire TeamsGen.getChannels to find out. We'll listen for
-    // TeamsGen.setTeamChannels and see if we should automatically set convID.
-    // We might already have that, but just refresh anyway to get latest info.
-    actions.push(Saga.put(TeamsGen.createGetChannels({teamname: elems[2]})))
+    // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
+    // channels. We could have used the Teams store, but then we are doing
+    // cross-store stuff and are depending on the Teams store. If this turns
+    // out to feel slow, we can probably cahce the results.
+    actions.push(
+      Saga.callUntyped(function*() {
+        const result = yield Saga.callPromise(RPCChatTypes.localGetTLFConversationsLocalRpcPromise, {
+          membersType: RPCChatTypes.commonConversationMembersType.team,
+          tlfName: elems[2],
+          topicType: RPCChatTypes.commonTopicType.chat,
+        })
+
+        if (!result.convs || !result.convs.length) {
+          // TODO: error?
+          return
+        }
+
+        yield Saga.put(
+          FsGen.createSetSendLinkToChatChannels({
+            channels: I.Map(result.convs.map(conv => [conv.convID, conv.channel])),
+          })
+        )
+
+        if (result.convs.length === 1) {
+          // Auto-select channel if it's the only one.
+          yield Saga.put(
+            FsGen.createSetSendLinkToChatConvID({
+              convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
+            })
+          )
+        }
+      })
+    )
   }
 
   return Saga.all(actions)
-}
-
-const setSendLinkToChatConvIDForTeamIfPossible = (state, action) => {
-  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
-  if (elems.length < 3 || elems[1] !== 'team') {
-    // sendLinkToChat is not dealing with a team link, so no need to set
-    // convID here.
-    return
-  }
-  const channelInfos = TeamsConstants.getTeamChannelInfos(state, elems[2])
-  if (channelInfos.size !== 1) {
-    // Either we haven't got channel info for this team yet (size === 0), which
-    // likely means the action that triggered this was for a different team, or
-    // it has more than 1 channel. Either case, we don't need to set the
-    // convID.
-    return
-  }
-  return Saga.put(
-    FsGen.createSetSendLinkToChatConvID({
-      convID: channelInfos.keySeq().first(),
-    })
-  )
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -883,10 +888,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
   yield Saga.actionToAction(FsGen.showSendLinkToChat, showSendLinkToChat)
-  yield Saga.actionToAction(
-    [TeamsGen.setTeamChannels, FsGen.showSendLinkToChat],
-    setSendLinkToChatConvIDForTeamIfPossible
-  )
 
   yield Saga.spawn(platformSpecificSaga)
 }

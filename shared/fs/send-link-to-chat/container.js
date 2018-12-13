@@ -4,8 +4,6 @@ import {namedConnect} from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
-import * as TeamsTypes from '../../constants/types/teams'
-import * as TeamsConstants from '../../constants/teams'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as ChatGen from '../../actions/chat2-gen'
@@ -17,18 +15,9 @@ type OwnProps = {
   routePath: I.List<string>,
 }
 
-const _getChannelInfosOrEmptyMap = (state): I.Map<ChatTypes.ConversationIDKey, TeamsTypes.ChannelInfo> => {
-  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
-  if (elems.length < 3 || elems[1] !== 'team') {
-    return I.Map()
-  }
-  return TeamsConstants.getTeamChannelInfos(state, elems[2])
-}
-
 const mapStateToProps = state => ({
-  _channelInfos: _getChannelInfosOrEmptyMap(state),
+  _sendLinkToChat: state.fs.sendLinkToChat,
   _username: state.config.username,
-  sendLinkToChat: state.fs.sendLinkToChat,
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -49,9 +38,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => {
-  const pathTextToCopy = `${Constants.escapePath(stateProps.sendLinkToChat.path)} ` // append space
+  const pathTextToCopy = `${Constants.escapePath(stateProps._sendLinkToChat.path)} ` // append space
 
-  const elems = Types.getPathElements(stateProps.sendLinkToChat.path)
+  const elems = Types.getPathElements(stateProps._sendLinkToChat.path)
   if (elems.length < 3) {
     // Not inside a TLF.
     return {
@@ -62,8 +51,8 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
     }
   }
 
-  const send = ChatConstants.isValidConversationIDKey(stateProps.sendLinkToChat.convID)
-    ? () => _send(stateProps.sendLinkToChat.convID, pathTextToCopy)
+  const send = ChatConstants.isValidConversationIDKey(stateProps._sendLinkToChat.convID)
+    ? () => _send(stateProps._sendLinkToChat.convID, pathTextToCopy)
     : null
 
   if (elems[1] !== 'team') {
@@ -89,7 +78,7 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
     }
   }
 
-  if (stateProps._channelInfos.size < 2) {
+  if (stateProps._sendLinkToChat.channels.size < 2) {
     // small team
     return {
       conversation: {
@@ -104,8 +93,8 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
 
   // big team
 
-  const channels = stateProps._channelInfos.reduce(
-    (channels, {channelname}, convID) => [
+  const channels = stateProps._sendLinkToChat.channels.reduce(
+    (channels, channelname, convID) => [
       ...channels,
       {
         channelname,
@@ -120,7 +109,7 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
       name: elems[2],
       selectChannel: convID => _selectChannel(convID),
       selectedChannelname: (
-        channels.find(({convID}) => convID === stateProps.sendLinkToChat.convID) || {channelname: null}
+        channels.find(({convID}) => convID === stateProps._sendLinkToChat.convID) || {channelname: null}
       ).channelname,
       type: 'big-team',
     },

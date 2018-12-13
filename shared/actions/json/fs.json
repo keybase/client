@@ -213,6 +213,9 @@
     "setSendLinkToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
     },
+    "setSendLinkToChatChannels": {
+      "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
+    },
 
     "placeholderAction": {}
   }
