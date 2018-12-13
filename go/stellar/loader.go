@@ -86,6 +86,11 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		return nil
 	}
 
+	if len(paymentID) == 0 {
+		m.CDebugf("LoadPayment called with empty paymentID for %s/%s", convID, msgID)
+		return nil
+	}
+
 	msg, ok := p.pmessages[paymentID]
 	// store the msg info if necessary
 	if !ok {
