@@ -96,10 +96,10 @@ type homeStateBody struct {
 // and doesn't count those badges toward the badge count. Note that the shape
 // of this map is two-deep in the case of home todo items, e.g.:
 //
-//   { 1 : { 2 : 3, 5 : 6 }, 3 : 4 }
+//   { 1 : { 2 : 3, 4 : 5 }, 3 : 7 }
 //
-// Implies that are 3 badges on TODO type CHAT, 5 badges on TODO type PAPERKEY,
-// and 4 badges on ANNOUNCEMENTs.
+// Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
+// and 7 badges on ANNOUNCEMENTs.
 //
 func countKnownBadges(m homeItemMap) int {
 	var ret int
