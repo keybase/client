@@ -2,7 +2,6 @@ package wallet
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -21,7 +20,6 @@ func DecorateWithPayments(ctx context.Context, body string, payments []chat1.Tex
 		if !ok {
 			continue
 		}
-		fmt.Printf("POS: %v\n", p.Position)
 		body, added = utils.DecorateBody(ctx, body, p.Position[0]+offset, p.Position[1]-p.Position[0],
 			payment)
 		offset += added

@@ -1739,8 +1739,8 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	}
 	begin := "$>kb$"
 	end := "$<kb$"
-	strDecoration := string(out)
+	strDecoration := fmt.Sprintf("%s%s%s", begin, string(out), end)
 	added = len(strDecoration) - length
-	res = fmt.Sprintf("%s%s%s%s%s", body[:offset], begin, strDecoration, end, body[offset+length:])
+	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
 	return res, added
 }
