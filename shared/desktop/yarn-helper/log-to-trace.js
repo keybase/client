@@ -1,11 +1,13 @@
 // @flow
 // A utility to convert our log sends to something consumable by chrome://tracing
-const [, , guiOrCore, logfile, outfile] = process.argv
+const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?
 if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
   console.log('Usage: node log-to-trace (gui|core) logfile outfile')
   process.exit(1)
 }
+
+const swimlanesReg = (_swimlanes || []).map(swim => new RegExp(swim))
 const isGUI = guiOrCore === 'gui'
 const fs = require('fs')
 const moment = require('moment')
@@ -20,6 +22,11 @@ const typeAndMethodReg = /^(\W*)/
 const guiCountTypeTimeReg = /\["(Info|Warn|Action)","([^"]+)","(.*)"]/
 const actionReg = /type: ([^ ]+) (.*)/
 const actionPayloadReg = /\\"/g
+
+const getSwimlane = line => {
+  const matched = swimlanesReg.find(s => s.exec(line) && s.toString())
+  return matched && matched.toString()
+}
 
 // Handle a single line from a gui log
 const convertGuiLine = line => {
@@ -59,7 +66,7 @@ const convertGuiLine = line => {
       console.log('Unknown inner type', type)
       return
   }
-  const app = 'gui'
+  const app = getSwimlane(line)
 
   return {
     app,
@@ -79,7 +86,7 @@ const convertCoreLine = line => {
     console.log('Skipping unparsed line:', line)
     return
   }
-  const [, time, app, file, fileline, counter, _typeAndMethod, _tags] = e
+  const [, time, _app, file, fileline, counter, _typeAndMethod, _tags] = e
   let tags = 'NO_TAG'
   if (_tags) {
     const match = tagsReg.exec(_tags)
@@ -110,6 +117,8 @@ const convertCoreLine = line => {
   }
   const id = `${tags}:${method}`
   const name = method
+  const app = getSwimlane(line) || _app
+
   return {
     app,
     args,
