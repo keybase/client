@@ -5,7 +5,6 @@ use 5.010;
 
 use Data::Dumper qw(Dumper);
 use JSON::PP qw(encode_json);
-use List::MoreUtils qw(uniq);
 
 my $dep_packages = {};
 my @oses = ('linux', 'darwin', 'windows');
@@ -37,7 +36,7 @@ foreach my $os (@oses) {
         my @indirect_deps = split /\n/, `go list -f '{{ join .Deps "\\n" }}' $deps 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
         push(@deps, @indirect_deps);
 
-        foreach my $dep (uniq @deps) {
+        foreach my $dep (do { my %deps; grep { !$deps{$_}++ } @deps}) {
             $dep_packages->{$os}->{$dep}->{$package} = 1;
         }
     }
