@@ -26,7 +26,7 @@ func NewCmdSimpleFSSyncEnable(
 	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "enable",
-		ArgumentHelp: "[path-to-folder]",
+		ArgumentHelp: "[path-to-sync]",
 		Usage:        "syncs the given folder to local storage, for offline access",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSyncEnable{
@@ -36,9 +36,20 @@ func NewCmdSimpleFSSyncEnable(
 	}
 }
 
+const minNumKeybasePathElems = 4
+
+func splitKeybasePath(p keybase1.Path) []string {
+	toSplit := p.String()
+	// Just in case the path isn't absolute.
+	if !strings.HasPrefix(toSplit, "/") {
+		toSplit = "/" + toSplit
+	}
+	return strings.SplitN(toSplit, "/", minNumKeybasePathElems)
+}
+
 func toTlfPath(p keybase1.Path) (keybase1.Path, error) {
-	split := strings.SplitN(p.String(), "/", 4)
-	if len(split) < 4 {
+	split := splitKeybasePath(p)
+	if len(split) < minNumKeybasePathElems {
 		return p, nil
 	}
 	return makeSimpleFSPath(
@@ -46,8 +57,8 @@ func toTlfPath(p keybase1.Path) (keybase1.Path, error) {
 }
 
 func pathMinusTlf(p keybase1.Path) string {
-	split := strings.SplitN(p.String(), "/", 4)
-	if len(split) < 4 {
+	split := splitKeybasePath(p)
+	if len(split) < minNumKeybasePathElems {
 		return ""
 	}
 	return split[3]
