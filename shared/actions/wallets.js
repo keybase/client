@@ -98,6 +98,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
           WalletsGen.createSetBuildingCurrency({
             currency:
               action.payload.currency ||
+              (state.wallets.lastSentXLM && 'XLM') ||
               (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
               'XLM',
           }),
