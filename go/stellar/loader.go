@@ -209,7 +209,7 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	defer cancel()
 
 	m := libkb.NewMetaContext(ctx, p.G())
-	defer m.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })
+	defer m.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
 
 	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
@@ -237,7 +237,7 @@ func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
 	defer cancel()
 
 	m := libkb.NewMetaContext(ctx, p.G())
-	defer m.CTraceTimed(fmt.Sprintf("loadRequest(%s)", id), func() error { return nil })
+	defer m.CTraceTimed(fmt.Sprintf("loadRequest(%s)", id), func() error { return nil })()
 
 	s := getGlobal(p.G())
 	details, err := s.remoter.RequestDetails(ctx, id)
