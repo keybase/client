@@ -1,4 +1,5 @@
-{ "prelude": ["import type {RPCError} from '../util/errors'"],
+{
+  "prelude": ["import type {RPCError} from '../util/errors'"],
   "actions": {
     "incrementWaiting": {
       "key": ["string", "Array<string>"]
@@ -9,11 +10,6 @@
     },
     "batchChangeWaiting": {
       "changes": "Array<{key: string | Array<string>, increment: boolean, error?: RPCError}>"
-    },
-    "changeWaiting": {
-      "key": ["string", "Array<string>"],
-      "increment": "boolean",
-      "error?": "RPCError"
     },
     "clearWaiting": {
       "key": ["string", "Array<string>"]

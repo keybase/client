@@ -25,6 +25,7 @@ import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
 type TypedActions = {type: any, error: boolean, payload: any}
+type WaitingKey = string | Array<string>
 
 type IncomingActionCreator = (
   param: Object,
@@ -66,8 +67,13 @@ class Engine {
   static _getState: () => TypedState
 
   _queuedChanges = []
-  dispatchWaitingAction = (key: string, waiting: boolean, error: RPCError) => {
-    this._queuedChanges.push({error, increment: waiting, key})
+  dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
+    let keys = key
+    if (!isArray(keys)) {
+      keys = [key]
+    }
+
+    keys.forEach(key => this._queuedChanges.push({error, increment: waiting, key}))
     this._throttledDispatchWaitingAction()
   }
 
@@ -304,7 +310,7 @@ class Engine {
     callback: (...args: Array<any>) => void,
     incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
     customResponseIncomingCallMap?: any,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }) {
     // Make a new session and start the request
     const session = this.createSession({
@@ -325,7 +331,7 @@ class Engine {
     customResponseIncomingCallMap?: ?CustomResponseIncomingCallMapType,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
