@@ -39,24 +39,24 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
 	t.Logf("note to self")
-	encB64, err := stellar.NoteEncryptB64(context.Background(), alice.getPrimaryGlobalContext(), sampleNote(), nil)
+	encB64, err := stellar.NoteEncryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), sampleNote(), nil)
 	require.NoError(t, err)
-	note, err := stellar.NoteDecryptB64(context.Background(), alice.getPrimaryGlobalContext(), encB64)
+	note, err := stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
 	require.NoError(t, err)
 	require.Equal(t, sampleNote(), note)
 
 	t.Logf("note to both users")
 	other := bob.userVersion()
-	encB64, err = stellar.NoteEncryptB64(context.Background(), alice.getPrimaryGlobalContext(), sampleNote(), &other)
+	encB64, err = stellar.NoteEncryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), sampleNote(), &other)
 	require.NoError(t, err)
 
 	t.Logf("decrypt as self")
-	note, err = stellar.NoteDecryptB64(context.Background(), alice.getPrimaryGlobalContext(), encB64)
+	note, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
 	require.NoError(t, err)
 	require.Equal(t, sampleNote(), note)
 
 	t.Logf("decrypt as other")
-	note, err = stellar.NoteDecryptB64(context.Background(), bob.getPrimaryGlobalContext(), encB64)
+	note, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(bob.getPrimaryGlobalContext()), encB64)
 	require.NoError(t, err)
 	require.Equal(t, sampleNote(), note)
 
@@ -67,12 +67,12 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 	divDebug(ctx, "Bob logged in after reset")
 
 	t.Logf("fail to decrypt as post-reset self")
-	note, err = stellar.NoteDecryptB64(context.Background(), alice.getPrimaryGlobalContext(), encB64)
+	note, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(alice.getPrimaryGlobalContext()), encB64)
 	require.Error(t, err)
 	require.Equal(t, "note not encrypted for logged-in user", err.Error())
 
 	t.Logf("decrypt as other")
-	note, err = stellar.NoteDecryptB64(context.Background(), bob.getPrimaryGlobalContext(), encB64)
+	note, err = stellar.NoteDecryptB64(libkb.NewMetaContextBackground(bob.getPrimaryGlobalContext()), encB64)
 	require.NoError(t, err)
 	require.Equal(t, sampleNote(), note)
 }
