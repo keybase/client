@@ -285,7 +285,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
 	fillOwnAccounts(mctx, loc, oc)
 
-	relaySecrets, err := relays.DecryptB64(mctx.Ctx(), mctx.G(), p.TeamID, p.BoxB64)
+	relaySecrets, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err == nil {
 		loc.Note = relaySecrets.Note
 	} else {
@@ -356,7 +356,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 		return "", ""
 	}
 
-	decrypted, err := NoteDecryptB64(mctx.Ctx(), mctx.G(), note)
+	decrypted, err := NoteDecryptB64(mctx, note)
 	if err != nil {
 		return "", fmt.Sprintf("failed to decrypt payment note: %s", err)
 	}

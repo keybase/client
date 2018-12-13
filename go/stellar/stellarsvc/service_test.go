@@ -543,7 +543,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	relaySecrets, err := relays.DecryptB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
+	relaySecrets, err := relays.DecryptB64(tcs[0].MetaContext(), teamID, out.EncryptedB64)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)

@@ -67,8 +67,8 @@ func noteSymmetricKey(mctx libkb.MetaContext, other *keybase1.UserVersion) (res 
 	}, nil
 }
 
-func noteSymmetricKeyForDecryption(ctx context.Context, g *libkb.GlobalContext, encNote stellar1.EncryptedNote) (res libkb.NaclSecretBoxKey, err error) {
-	meUV, err := g.GetMeUV(ctx)
+func noteSymmetricKeyForDecryption(mctx libkb.MetaContext, encNote stellar1.EncryptedNote) (res libkb.NaclSecretBoxKey, err error) {
+	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return res, err
 	}
@@ -85,11 +85,10 @@ func noteSymmetricKeyForDecryption(ctx context.Context, g *libkb.GlobalContext, 
 	if mePukGen == 0 {
 		return res, fmt.Errorf("note not encrypted for logged-in user")
 	}
-	pukring, err := g.GetPerUserKeyring(ctx)
+	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return res, err
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	pukSeed, err := pukring.GetSeedByGenerationOrSync(mctx, mePukGen)
 	if err != nil {
 		return res, err
@@ -202,7 +201,7 @@ func noteEncryptHelper(ctx context.Context, note stellar1.NoteContents, symmetri
 	}, nil
 }
 
-func NoteDecryptB64(ctx context.Context, g *libkb.GlobalContext, noteB64 string) (res stellar1.NoteContents, err error) {
+func NoteDecryptB64(mctx libkb.MetaContext, noteB64 string) (res stellar1.NoteContents, err error) {
 	pack, err := base64.StdEncoding.DecodeString(noteB64)
 	if err != nil {
 		return res, err
@@ -212,18 +211,18 @@ func NoteDecryptB64(ctx context.Context, g *libkb.GlobalContext, noteB64 string)
 	if err != nil {
 		return res, err
 	}
-	return noteDecrypt(ctx, g, obj)
+	return noteDecrypt(mctx, obj)
 }
 
-func noteDecrypt(ctx context.Context, g *libkb.GlobalContext, encNote stellar1.EncryptedNote) (res stellar1.NoteContents, err error) {
+func noteDecrypt(mctx libkb.MetaContext, encNote stellar1.EncryptedNote) (res stellar1.NoteContents, err error) {
 	if encNote.V != 1 {
 		return res, fmt.Errorf("unsupported note version: %v", encNote.V)
 	}
-	symmetricKey, err := noteSymmetricKeyForDecryption(ctx, g, encNote)
+	symmetricKey, err := noteSymmetricKeyForDecryption(mctx, encNote)
 	if err != nil {
 		return res, err
 	}
-	return noteDecryptHelper(ctx, encNote, symmetricKey)
+	return noteDecryptHelper(mctx.Ctx(), encNote, symmetricKey)
 }
 
 func noteDecryptHelper(ctx context.Context, encNote stellar1.EncryptedNote, symmetricKey libkb.NaclSecretBoxKey) (res stellar1.NoteContents, err error) {
