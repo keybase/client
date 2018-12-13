@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -68,12 +69,26 @@ func (c *CmdSimpleFSSyncDisable) Run() error {
 		}
 
 		found := false
+		parentFound := ""
 		for _, p := range res.Config.Paths {
 			if p == subpath {
 				found = true
 			} else {
+				toCheck := p
+				if !strings.HasSuffix(p, "/") {
+					toCheck = p + "/"
+				}
+				if strings.HasPrefix(subpath, toCheck) {
+					parentFound = p
+				}
 				arg.Config.Paths = append(arg.Config.Paths, p)
 			}
+		}
+
+		if parentFound != "" {
+			ui := c.G().UI.GetTerminalUI()
+			ui.Printf("%s will remain synced because its parent path (%s) "+
+				"is still synced\n", subpath, parentFound)
 		}
 
 		if !found {
