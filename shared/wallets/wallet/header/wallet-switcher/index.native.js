@@ -84,35 +84,6 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  infoText: {
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  infoTextRow: {
-    backgroundColor: Styles.globalColors.lightGrey,
-  },
-  row: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    borderColor: Styles.globalColors.black_10,
-    height: 48,
-    justifyContent: 'center',
-  },
-  rowContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
-    width: '100%',
-  },
-})
-
-// TODO: Replace with a real list, but figure out how to make it
-// bottom-aligned instead of top-aligned.
-const FakeList = ({items, renderItem}) => {
-  const children = items.map((item, index) => renderItem(index, item))
-  return <React.Fragment>{children}</React.Fragment>
-}
-
 export const WalletSwitcher = (props: Props) => {
   if (!props.showingMenu) {
     return null
@@ -136,22 +107,12 @@ export const WalletSwitcher = (props: Props) => {
       title: 'Link an existing Stellar account',
       type: 'item',
     },
+    ...props.accountIDs.map(accountID => ({
+      accountID,
+      key: accountID,
+      type: 'wallet',
+    })),
   ]
-    .concat(
-      props.accountIDs.map(accountID => ({
-        accountID,
-        key: accountID,
-        type: 'wallet',
-      }))
-    )
-    .concat([
-      {
-        key: 'cancel',
-        onPress: () => {},
-        title: 'Cancel',
-        type: 'item',
-      },
-    ])
 
   return (
     <Kb.Overlay
@@ -160,7 +121,52 @@ export const WalletSwitcher = (props: Props) => {
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <FakeList items={menuItems} renderItem={(index, item) => renderItem(item, props.hideMenu)} />
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.container, {height: 48 * menuItems.length}])}
+        fullWidth={true}
+      >
+        <Kb.List
+          items={menuItems}
+          renderItem={(index, item) => renderItem(item, props.hideMenu)}
+          bounces={false}
+        />
+        {renderItem(
+          {
+            key: 'cancel',
+            onPress: () => {},
+            title: 'Cancel',
+            type: 'item',
+          },
+          props.hideMenu
+        )}
+      </Kb.Box2>
     </Kb.Overlay>
   )
 }
+
+const styles = Styles.styleSheetCreate({
+  container: {
+    justifyContent: 'flex-end',
+    maxHeight: '50%',
+  },
+  infoText: {
+    paddingLeft: Styles.globalMargins.tiny,
+  },
+  infoTextRow: {
+    backgroundColor: Styles.globalColors.lightGrey,
+  },
+  row: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    borderColor: Styles.globalColors.black_10,
+    height: 48,
+    justifyContent: 'center',
+  },
+  rowContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.white,
+    width: '100%',
+  },
+})
