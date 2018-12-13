@@ -2,6 +2,8 @@ package stellar
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -215,11 +217,97 @@ func (s *Stellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.
 	return SpecMiniChatPayments(mctx, s.walletState, payments)
 }
 
-// RefreshWalletState refreshes the WalletState.
-func (s *Stellar) RefreshWalletState(ctx context.Context) {
-	if err := s.walletState.RefreshAll(ctx); err != nil {
-		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
+// HandleOobm will handle any out of band gregor messages for stellar.
+func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
+	if obm.System() == nil {
+		return false, errors.New("nil system in out of band message")
 	}
+
+	switch obm.System().String() {
+	case "internal.reconnect":
+		s.handleReconnect(ctx)
+		// returning false, nil here so that others can handle this one too
+		return false, nil
+	case stellar1.PushPaymentStatus:
+		return true, s.handlePaymentStatus(ctx, obm)
+	case stellar1.PushPaymentNotification:
+		return true, s.handlePaymentNotification(ctx, obm)
+	case stellar1.PushRequestStatus:
+		return true, s.handleRequestStatus(ctx, obm)
+	}
+
+	return false, nil
+}
+
+func (s *Stellar) handleReconnect(ctx context.Context) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
+	go func() {
+		ctx := context.Background()
+		if s.walletState.Primed() {
+			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing delayed wallet refresh")
+			time.Sleep(4 * time.Second)
+			s.G().Log.CDebugf(ctx, "stellar reconnect msg delay complete, refreshing wallet state")
+		} else {
+			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing wallet refresh on unprimed wallet")
+		}
+		if err := s.walletState.RefreshAll(ctx, "reconnect"); err != nil {
+			s.G().Log.CDebugf(ctx, "Stellar.handleReconnect RefreshAll error: %s", err)
+		}
+	}()
+}
+
+func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentStatus", func() error { return err })()
+	var msg stellar1.PaymentStatusMsg
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentStatusMsg: %s", err)
+		return err
+	}
+
+	paymentID := stellar1.NewPaymentID(msg.TxID)
+	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, paymentID); err != nil {
+		return err
+	}
+	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, paymentID)
+
+	return nil
+}
+
+func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentNotification", func() error { return err })()
+	var msg stellar1.PaymentNotificationMsg
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentNotificationMsg: %s", err)
+		return err
+	}
+
+	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, msg.PaymentID); err != nil {
+		return err
+	}
+	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, msg.PaymentID)
+
+	return nil
+}
+
+func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
+	s.walletState.Refresh(ctx, accountID, "notification received")
+	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
+
+	return nil
+}
+
+func (s *Stellar) handleRequestStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handleRequestStatus", func() error { return err })()
+	var msg stellar1.RequestStatusMsg
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+		s.G().Log.CDebugf(ctx, "error unmarshaling obm RequestStatusMsg: %s", err)
+		return err
+	}
+
+	s.G().NotifyRouter.HandleWalletRequestStatusNotification(ctx, msg.ReqID)
+	DefaultLoader(s.G()).UpdateRequest(ctx, msg.ReqID)
+
+	return nil
 }
 
 type hasAcceptedDisclaimerDBEntry struct {

@@ -701,7 +701,7 @@ type Stellar interface {
 	GetMigrationLock() *sync.Mutex
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
-	RefreshWalletState(ctx context.Context)
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 }
 
 type DeviceEKStorage interface {

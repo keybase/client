@@ -1026,6 +1026,9 @@ func TestSendToSelf(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	tcs[0].Srv.walletState.Refresh(context.Background(), accountID1, "test")
+	tcs[0].Srv.walletState.Refresh(context.Background(), accountID2, "test")
+
 	page, err := tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountID1})
 	require.NoError(t, err)
 	t.Logf("%v", spew.Sdump(page))
@@ -1377,8 +1380,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "20")
 	tcs[0].Backend.Gift(senderSecondaryAccountID, "30")
-	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID)
-	tcs[0].Srv.walletState.Refresh(context.Background(), senderSecondaryAccountID)
+	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID, "test")
+	tcs[0].Srv.walletState.Refresh(context.Background(), senderSecondaryAccountID, "test")
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From:   senderAccountID,
@@ -1546,7 +1549,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	tcs[0].Backend.Gift(senderAccountID, "30")
-	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID)
+	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID, "test")
 
 	t.Logf("sending in amount composed in USD")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1714,7 +1717,7 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID)
+	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID, "test")
 
 	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
 	require.NoError(t, err)
@@ -1847,7 +1850,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID)
+	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID, "test")
 
 	send := func(bid stellar1.BuildPaymentID, amount string) (errorString string) {
 		_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
@@ -2073,7 +2076,7 @@ func TestGetSendAssetChoices(t *testing.T) {
 	fakeAccts[0].AdjustAssetBalance(0, keys)
 	fakeAccts[0].AdjustAssetBalance(0, astro)
 
-	tcs[0].Srv.walletState.Refresh(context.Background(), fakeAccts[0].accountID)
+	tcs[0].Srv.walletState.Refresh(context.Background(), fakeAccts[0].accountID, "test")
 
 	// New asset choices should be visible
 	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
@@ -2110,7 +2113,7 @@ func TestGetSendAssetChoices(t *testing.T) {
 	// Open AstroDollars for tcs[1]
 	fakeAccts2[0].AdjustAssetBalance(0, astro)
 
-	tcs[0].Srv.walletState.Refresh(context.Background(), fakeAccts[0].accountID)
+	tcs[0].Srv.walletState.Refresh(context.Background(), fakeAccts[0].accountID, "test")
 
 	choices2, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
 		From: fakeAccts[0].accountID,

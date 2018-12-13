@@ -21,7 +21,7 @@
     "unused-assets": "yarn run _helper unused-assets",
     "build-treeshake": "yarn run _helper build-treeshake",
     "build-dev": "yarn run _helper build-dev",
-    "build-pegjs": "yarn run _node markdown/generate-emoji-parser.js markdown/parser.pegjs",
+    "build-emoji": "yarn run _node common-adapters/markdown/generate-emoji-parser.js",
     "build-prod": "yarn run _helper build-prod",
     "build-actions": "yarn run _node desktop/yarn-helper/action-creator-creator",
     "build-flow-stubs": "flow-typed create-stub",
@@ -50,7 +50,8 @@
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "coverage-report": "flow-coverage-report --exclude-non-flow -o ./coverage -t text -t html",
-    "coverage": "flow coverage --color "
+    "coverage": "flow coverage --color ",
+    "log-to-trace": "node desktop/yarn-helper/log-to-trace.js"
   },
   "flow-coverage-report": {
     "concurrentFiles": 50,

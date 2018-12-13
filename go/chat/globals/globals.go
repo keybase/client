@@ -25,7 +25,8 @@ type ChatContext struct {
 	NativeVideoHelper   types.NativeVideoHelper   // connection to native for doing things with video
 	StellarLoader       types.StellarLoader       // stellar payment/request loader
 	StellarSender       types.StellarSender       // stellar in-chat payment sender
-	Unfurler            types.Unfurler            // unfurl messages with URLs
+	StellarPushHandler  types.OobmHandler
+	Unfurler            types.Unfurler // unfurl messages with URLs
 }
 
 type Context struct {

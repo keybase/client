@@ -360,8 +360,10 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
   ])
 }
 
-const _loadSettings = () => Saga.callUntyped(RPCTypes.userLoadMySettingsRpcPromise)
-const _loadSettingsSuccess = emailState => Saga.put(SettingsGen.createLoadedSettings({emailState}))
+const loadSettings = () =>
+  RPCTypes.userLoadMySettingsRpcPromise().then(settings =>
+    SettingsGen.createLoadedSettings({emails: settings.emails})
+  )
 
 const _getRememberPassphrase = () => Saga.callUntyped(RPCTypes.configGetRememberPassphraseRpcPromise)
 const _getRememberPassphraseSuccess = (remember: boolean) =>
@@ -457,7 +459,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
   yield Saga.safeTakeEveryPure(SettingsGen.dbNuke, _dbNukeSaga)
   yield Saga.safeTakeEveryPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
-  yield Saga.safeTakeEveryPure(SettingsGen.loadSettings, _loadSettings, _loadSettingsSuccess)
+  yield Saga.actionToPromise(SettingsGen.loadSettings, loadSettings)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
