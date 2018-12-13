@@ -12,13 +12,10 @@ const getBadgeCount = memoize3(
     metaMap
       .filter(meta => meta.teamType === 'big')
       .reduce((total, map, id) => total + badgeMap.get(id, 0), 0),
-  (a, b) => {
-    // only update if inboxVersion changes
-    if (typeof a === 'number') {
-      return a === b
-    }
-    return true
-  }
+  (oldVersion, newVersion) => oldVersion === newVersion,
+  // only update if inboxVersion changes
+  (oldMMap, newMMap) => true,
+  (oldBMap, newBMap) => true
 )
 
 const mapStateToProps = state => ({

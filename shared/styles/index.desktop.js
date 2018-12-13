@@ -139,7 +139,6 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {
-      // $ForceType
       return s
     }
   }
