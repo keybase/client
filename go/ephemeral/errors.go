@@ -23,9 +23,9 @@ type EphemeralKeyError struct {
 }
 
 const (
-	defaultHumanErr                             = "This exploding message is not available to you."
-	deviceProvisionedAfterContentCreationErrMsg = "This exploding message is not available to you, this device was created after the message was sent."
-	deviceCloneErrMsg                           = "This exploding message is not available to you, cloned devices do not support exploding messages."
+	defaultHumanErr                             = "This exploding message is not available to you"
+	deviceProvisionedAfterContentCreationErrMsg = "This exploding message is not available to you, this device was created after the message was sent"
+	deviceCloneErrMsg                           = "This exploding message is not available to you, cloned devices do not support exploding messages"
 )
 
 func newEKUnboxErr(ctx context.Context, g *libkb.GlobalContext, boxType EKType, boxGeneration keybase1.EkGeneration,
