@@ -424,6 +424,17 @@ func (c *ChatRPC) GetGroupedInbox(
 		return nil, err
 	}
 
+	favorites, err := c.config.KBFSOps().GetFavorites(ctx)
+	if err != nil {
+		c.log.CWarningf(ctx,
+			"Unable to fetch favorites while making GroupedInbox: %v",
+			err)
+	}
+	favMap := make(map[Favorite]bool)
+	for _, fav := range favorites {
+		favMap[fav] = true
+	}
+
 	// Return the first unique `maxChats` chats.  Eventually the
 	// service will support grouping these by TLF ID and we won't
 	// have to check for uniques.  For now, we might falsely return
@@ -435,13 +446,16 @@ func (c *ChatRPC) GetGroupedInbox(
 			continue
 		}
 
-		// TODO: ignore TLFs that aren't in your favorites list.
-
 		tlfType := tlf.Private
 		if info.Visibility == keybase1.TLFVisibility_PUBLIC {
 			tlfType = tlf.Public
 		} else if info.MembersType == chat1.ConversationMembersType_TEAM {
 			tlfType = tlf.SingleTeam
+		}
+
+		tlfIsFavorite := favMap[Favorite{Name: info.TlfName, Type: tlfType}]
+		if !tlfIsFavorite {
+			continue
 		}
 
 		h, err := GetHandleFromFolderNameAndType(
@@ -594,6 +608,24 @@ func (c *ChatRPC) newNotificationChannel(
 	} else if conv.MembersType == chat1.ConversationMembersType_TEAM {
 		tlfType = tlf.SingleTeam
 	}
+
+	favorites, err := c.config.KBFSOps().GetFavorites(ctx)
+	if err != nil {
+		c.log.CWarningf(ctx,
+			"Unable to fetch favorites while making edit notifications: %v",
+			err)
+	}
+	tlfIsFavorite := false
+	for _, fav := range favorites {
+		if fav.Name == conv.Name && fav.Type == tlfType {
+			tlfIsFavorite = true
+			break
+		}
+	}
+	if !tlfIsFavorite {
+		return nil
+	}
+
 	tlfHandle, err := GetHandleFromFolderNameAndType(
 		ctx, c.config.KBPKI(), c.config.MDOps(), conv.Name, tlfType)
 	if err != nil {
