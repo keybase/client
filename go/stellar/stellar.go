@@ -625,7 +625,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}
 	m.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
-	walletState.Refresh(m.Ctx(), senderEntry.AccountID, "SubmitPayment")
+	walletState.Refresh(m, senderEntry.AccountID, "SubmitPayment")
 
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {

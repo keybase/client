@@ -290,7 +290,8 @@ func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutO
 }
 
 func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	s.walletState.Refresh(ctx, accountID, "notification received")
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	s.walletState.Refresh(mctx, accountID, "notification received")
 	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
 
 	return nil
