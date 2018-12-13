@@ -677,10 +677,10 @@ const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
 const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnlyModePayload) => {
   let accountID = action.payload.accountID
   return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
-    accountID: accountID,
+    accountID,
   }).then(res =>
     WalletsGen.createLoadedMobileOnlyMode({
-      accountID: accountID,
+      accountID,
       enabled: res,
     })
   )
@@ -691,9 +691,7 @@ const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobile
   let f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
-  return f({
-    accountID: accountID,
-  }).then(res => WalletsGen.createLoadMobileOnlyMode({accountID: accountID}))
+  return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {

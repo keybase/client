@@ -43,7 +43,7 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
   _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
-    dispatch(WalletsGen.createChangeMobileOnlyMode({accountID: accountID, enabled: enabled})),
+    dispatch(WalletsGen.createChangeMobileOnlyMode({accountID, enabled})),
   _onDelete: (accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
