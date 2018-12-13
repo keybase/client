@@ -97,12 +97,13 @@ const getRowsAndMetadata = memoize3(
     }
   },
   // ignore changes to metaMap if inboxVersion is the same
-  (a, b) => {
-    if (typeof a === 'number') {
+  (a, b, idx) => {
+    // smallTeamsExpanded
+    if (idx === 1) {
       return a === b
     }
-    // smallTeamsExpanded
-    if (typeof a === 'boolean') {
+    // inbox version
+    if (idx === 2) {
       return a === b
     }
     // else treat everything else as equal

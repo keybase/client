@@ -52,9 +52,9 @@ const valuesCached = memoize3(
 // given the same inbox version give back the same metaMap
 const inboxVersionToMetaMap = memoize2(
   (inboxVersion, metaMap) => metaMap,
-  (a, b) => {
+  (a, b, idx) => {
     // custom equality, if inboxVersion is the same, treat it as the same
-    if (typeof a === 'number') {
+    if (idx === 0) {
       return a === b
     }
     // ignore metaMap changes

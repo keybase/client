@@ -12,9 +12,9 @@ const getBadgeCount = memoize3(
     metaMap
       .filter(meta => meta.teamType === 'big')
       .reduce((total, map, id) => total + badgeMap.get(id, 0), 0),
-  (a, b) => {
+  (a, b, idx) => {
     // only update if inboxVersion changes
-    if (typeof a === 'number') {
+    if (idx === 0) {
       return a === b
     }
     return true
