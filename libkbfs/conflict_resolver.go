@@ -644,7 +644,7 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		// stay the same, so we can still match the unmerged path
 		// correctly.
 		err := unmergedChains.changeOriginal(unmergedOriginal, mergedOriginal)
-		if _, notFound := err.(NoChainFoundError); notFound {
+		if _, notFound := errors.Cause(err).(NoChainFoundError); notFound {
 			unmergedChains.toUnrefPointers[unmergedOriginal] = true
 			continue
 		} else if err != nil {
@@ -901,7 +901,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 				cr.log.CDebugf(ctx, "Couldn't find chain for original "+
 					"old parent: %v", ri.originalOldParent)
 				return path{}, BlockPointer{}, nil,
-					NoChainFoundError{ri.originalOldParent}
+					errors.WithStack(NoChainFoundError{ri.originalOldParent})
 			}
 			for _, op := range oldParent.ops {
 				ro, ok := op.(*rmOp)
@@ -921,7 +921,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 				cr.log.CDebugf(ctx, "Couldn't find chain for original new "+
 					"parent: %v", ri.originalNewParent)
 				return path{}, BlockPointer{}, nil,
-					NoChainFoundError{ri.originalNewParent}
+					errors.WithStack(NoChainFoundError{ri.originalNewParent})
 			}
 			for i, op := range newParent.ops {
 				oldCo, ok := op.(*createOp)
