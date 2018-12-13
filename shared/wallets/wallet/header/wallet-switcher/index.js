@@ -51,7 +51,7 @@ const renderItem = (item: MenuItem, onHidden: () => void) => {
   switch (item.type) {
     case 'whatIsStellar':
       return (
-        <Row onClick={item.onClick} onHidden={onHidden} style={styles.infoTextRow}>
+        <Row key={item.key} onClick={item.onClick} onHidden={onHidden} style={styles.infoTextRow}>
           <Kb.Box2 centerChildren={true} direction="horizontal">
             <Kb.Icon size={16} type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
@@ -62,7 +62,7 @@ const renderItem = (item: MenuItem, onHidden: () => void) => {
       )
     case 'item':
       return (
-        <Row onClick={item.onClick} onHidden={onHidden}>
+        <Row key={item.key} onClick={item.onClick} onHidden={onHidden}>
           <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
             {item.title}
           </Kb.Text>
@@ -70,7 +70,7 @@ const renderItem = (item: MenuItem, onHidden: () => void) => {
       )
     case 'wallet':
       return (
-        <Row onClick={() => {}} onHidden={onHidden}>
+        <Row key={item.key} onClick={() => {}} onHidden={onHidden}>
           <WalletRow accountID={item.accountID} onSelect={onHidden} />
         </Row>
       )
@@ -101,6 +101,11 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
 })
+
+const FakeList = ({items, renderItem}) => {
+  const children = items.map((item, index) => renderItem(index, item))
+  return <React.Fragment>{children}</React.Fragment>
+}
 
 export const WalletSwitcher = (props: Props) => {
   if (!props.showingMenu) {
@@ -149,7 +154,7 @@ export const WalletSwitcher = (props: Props) => {
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <Kb.List items={menuItems} renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)} />
+      <FakeList items={menuItems} renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)} />
     </Kb.Overlay>
   )
 }
