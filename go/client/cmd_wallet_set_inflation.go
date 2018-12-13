@@ -35,10 +35,14 @@ func newCmdWalletSetInflation(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 
    * "lumenaut" - Sets account's inflation destination to Lumenaut Pool. Read more
      on https://pool.lumenaut.net/
-   * "none" - Removes inflation destination from account.
 
-   To remove inflation destination from Stellar account, use:
-      keybase wallet set-inflation <account id> none
+   * "self" - Sets inflation destination to the source account ID.
+
+   Inflation destination cannot be removed or cleared from the account right
+   now, but if you want to stop contributing to currently set destination, use
+   "self" option.
+
+     keybase wallet set-inflation <account id> self
 `,
 	}
 }
@@ -60,19 +64,18 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 		return err
 	}
 
-	var destination *stellar1.AccountID
+	var destination stellar1.InflationDestination
 	switch c.destination {
-	case "none":
-		destination = nil
+	case "self":
+		destination = stellar1.NewInflationDestinationWithSelf()
 	case "lumenaut":
-		acc := stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")
-		destination = &acc
+		destination = stellar1.NewInflationDestinationWithLumenaut()
 	default:
 		acc, err := libkb.ParseStellarAccountID(c.accountID)
 		if err != nil {
 			return err
 		}
-		destination = &acc
+		destination = stellar1.NewInflationDestinationWithAccountid(acc)
 	}
 
 	cli, err := GetWalletClient(c.G())
@@ -81,10 +84,10 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 	}
 
 	err = cli.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
-		AccountID:     accountID,
-		DestinationID: &c.destination,
+		AccountID:   accountID,
+		Destination: destination,
 	})
-	return nil
+	return err
 }
 
 func (c *cmdWalletSetInflation) GetUsage() libkb.Usage {

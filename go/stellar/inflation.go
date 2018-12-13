@@ -6,6 +6,8 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
+const lumenautPoolAccountID = "GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"
+
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
 	defer mctx.CTraceTimed("Stellar.SetInflationDestinationLocal", func() error { return err })()
 
@@ -28,13 +30,26 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 		return err
 	}
 
-	toAddrStr, err := stellarnet.NewAddressStr(arg.DestinationID.String())
+	inflationType, err := arg.Destination.Typ()
 	if err != nil {
 		return err
 	}
 
+	var destinationAddrStr stellarnet.AddressStr
+	switch inflationType {
+	case stellar1.InflationDestinationType_SELF:
+		destinationAddrStr = stellarnet.AddressStr(senderEntry.AccountID)
+	case stellar1.InflationDestinationType_LUMENAUT:
+		destinationAddrStr = stellarnet.AddressStr(lumenautPoolAccountID)
+	case stellar1.InflationDestinationType_ACCOUNTID:
+		destinationAddrStr, err = stellarnet.NewAddressStr(arg.Destination.Accountid().String())
+		if err != nil {
+			return err
+		}
+	}
+
 	_ = tb // TODO: Timebounds
-	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, toAddrStr, sp)
+	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp)
 	if err != nil {
 		return err
 	}

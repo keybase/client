@@ -464,7 +464,17 @@ protocol local {
 
   RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);
 
-  void setInflationDestinationLocal(int sessionID, AccountID accountID, union { null, AccountID } destinationID);
+  enum InflationDestinationType {
+    SELF_1,
+    ACCOUNTID_2,
+    LUMENAUT_3
+  }
+  variant InflationDestination switch (InflationDestinationType typ) {
+    case SELF: void;
+    case ACCOUNTID: AccountID;
+    case LUMENAUT: void;
+  }
+  void setInflationDestinationLocal(int sessionID, AccountID accountID, InflationDestination destination);
 
   // -------------------------------------------------------
   // CLI protocol

@@ -680,6 +680,46 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "InflationDestinationType",
+      "symbols": [
+        "SELF_1",
+        "ACCOUNTID_2",
+        "LUMENAUT_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "InflationDestination",
+      "switch": {
+        "type": "InflationDestinationType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SELF",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "ACCOUNTID",
+            "def": false
+          },
+          "body": "AccountID"
+        },
+        {
+          "label": {
+            "name": "LUMENAUT",
+            "def": false
+          },
+          "body": null
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
@@ -1504,11 +1544,8 @@
           "type": "AccountID"
         },
         {
-          "name": "destinationID",
-          "type": [
-            null,
-            "AccountID"
-          ]
+          "name": "destination",
+          "type": "InflationDestination"
         }
       ],
       "response": null
