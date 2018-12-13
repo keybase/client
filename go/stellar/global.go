@@ -217,13 +217,6 @@ func (s *Stellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.
 	return SpecMiniChatPayments(mctx, s.walletState, payments)
 }
 
-// RefreshWalletState refreshes the WalletState.
-func (s *Stellar) RefreshWalletState(ctx context.Context) {
-	if err := s.walletState.RefreshAll(ctx); err != nil {
-		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
-	}
-}
-
 // HandleOobm will handle any out of band gregor messages for stellar.
 func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
@@ -248,8 +241,19 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 
 func (s *Stellar) handleReconnect(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
-	s.G().Log.CDebugf(ctx, "stellar received reconnect msg, refreshing wallet state")
-	s.RefreshWalletState(ctx)
+	go func() {
+		ctx := context.Background()
+		if s.walletState.Primed() {
+			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing delayed wallet refresh")
+			time.Sleep(4 * time.Second)
+			s.G().Log.CDebugf(ctx, "stellar reconnect msg delay complete, refreshing wallet state")
+		} else {
+			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing wallet refresh on unprimed wallet")
+		}
+		if err := s.walletState.RefreshAll(ctx, "reconnect"); err != nil {
+			s.G().Log.CDebugf(ctx, "Stellar.handleReconnect RefreshAll error: %s", err)
+		}
+	}()
 }
 
 func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
@@ -286,7 +290,7 @@ func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutO
 }
 
 func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	s.walletState.Refresh(ctx, accountID)
+	s.walletState.Refresh(ctx, accountID, "notification received")
 	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
 
 	return nil

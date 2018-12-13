@@ -606,7 +606,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.NoError(t, err)
 	}
 
-	tcs[claimant].Srv.walletState.RefreshAll(context.Background())
+	tcs[claimant].Srv.walletState.RefreshAll(context.Background(), "test")
 
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
@@ -694,7 +694,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.Equal(t, "Canceled", history[0].Payment.Status)
 	}
 
-	tcs[0].Srv.walletState.RefreshAll(context.Background())
+	tcs[0].Srv.walletState.RefreshAll(context.Background(), "test")
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -764,7 +764,7 @@ func testRelayReset(t *testing.T, yank bool) {
 		claimant = 0
 	}
 
-	tcs[claimant].Srv.walletState.RefreshAll(context.Background())
+	tcs[claimant].Srv.walletState.RefreshAll(context.Background(), "test")
 	tcs[claimant].Srv.walletState.DumpToLog(context.Background())
 
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)

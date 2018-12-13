@@ -979,7 +979,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	}
 	r.Unlock()
 
-	tc.Srv.walletState.RefreshAll(context.Background())
+	tc.Srv.walletState.RefreshAll(context.Background(), "test")
 
 	return res
 }
