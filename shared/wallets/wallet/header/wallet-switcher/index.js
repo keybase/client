@@ -102,6 +102,8 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
+// TODO: Replace with a real list, but figure out how to make it
+// bottom-aligned instead of top-aligned.
 const FakeList = ({items, renderItem}) => {
   const children = items.map((item, index) => renderItem(index, item))
   return <React.Fragment>{children}</React.Fragment>
