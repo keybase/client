@@ -469,6 +469,15 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 	}
 	section.PerTeamKey = perTeamKeySection
 
+	if !secretBoxes.boxPublicSummary.IsEmpty() {
+		tmp, err := secretBoxes.boxPublicSummary.HashHexEncoded()
+		if err != nil {
+			return err
+		}
+		bsh := SCTeamBoxSummaryHash(tmp)
+		section.BoxSummaryHash = &bsh
+	}
+
 	// post the change to the server
 	payloadArgs := sigPayloadArgs{
 		secretBoxes:   secretBoxes,
