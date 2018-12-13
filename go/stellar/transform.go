@@ -433,7 +433,32 @@ func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, 
 
 }
 
-func AccountDetailsToWalletAccountLocal(details stellar1.AccountDetails) (stellar1.WalletAccountLocal, error) {
+func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID, pending []stellar1.PaymentSummary) (payments []stellar1.PaymentOrErrorLocal, err error) {
+	exchRate, err := AccountExchangeRate(mctx, remoter, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	oc := NewOwnAccountLookupCache(mctx.Ctx(), mctx.G())
+
+	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
+	for i, p := range pending {
+		payment, err := TransformPaymentSummaryAccount(mctx, p, oc, accountID, &exchRate)
+		if err != nil {
+			s := err.Error()
+			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
+
+		} else {
+			payments[i].Payment = payment
+			payments[i].Err = nil
+		}
+	}
+
+	return payments, nil
+}
+
+func AccountDetailsToWalletAccountLocal(details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription()
@@ -442,9 +467,9 @@ func AccountDetailsToWalletAccountLocal(details stellar1.AccountDetails) (stella
 	}
 
 	acct := stellar1.WalletAccountLocal{
-		AccountID:          entry.AccountID,
-		IsDefault:          entry.IsPrimary,
-		Name:               entry.Name,
+		AccountID:          details.AccountID,
+		IsDefault:          isPrimary,
+		Name:               accountName,
 		BalanceDescription: balance,
 		Seqno:              details.Seqno,
 	}

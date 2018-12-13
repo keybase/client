@@ -126,6 +126,7 @@ func (w *WalletState) refreshAll(ctx context.Context, reason string) (err error)
 	var lastErr error
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
+		a.updateEntry(account)
 		if err := a.Refresh(ctx, w.G(), w.G().NotifyRouter, reason); err != nil {
 			w.G().Log.CDebugf(ctx, "error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
@@ -344,6 +345,8 @@ type AccountState struct {
 
 	sync.RWMutex // protects everything that follows
 	seqno        uint64
+	isPrimary    bool
+	name         string
 	balances     []stellar1.Balance
 	details      *stellar1.AccountDetails
 	pending      []stellar1.PaymentSummary
@@ -393,13 +396,19 @@ func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, rout
 		a.Lock()
 		notify := detailsChanged(a.details, &details)
 		a.details = &details
+		// get these while locked
+		isPrimary := a.isPrimary
+		name := a.name
 		a.Unlock()
 
 		if notify && router != nil {
-			router.HandleWalletAccountDetailsUpdate(ctx, a.accountID, details)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(details, isPrimary, name)
+			if err == nil {
+				router.HandleWalletAccountDetailsUpdate(ctx, a.accountID, accountLocal)
+			}
 		}
 		if notify {
-			getGlobal(g).UpdateUnreadCount(ctx, a.accountID, a.details.UnreadPayments)
+			getGlobal(g).UpdateUnreadCount(ctx, a.accountID, details.UnreadPayments)
 		}
 	}
 
@@ -411,7 +420,11 @@ func (a *AccountState) refresh(ctx context.Context, g *libkb.GlobalContext, rout
 		a.Unlock()
 
 		if notify && router != nil {
-			router.HandleWalletPendingPaymentsUpdate(ctx, a.accountID, pending)
+			mctx := libkb.NewMetaContext(ctx, g)
+			local, err := RemotePendingToLocal(mctx, a.remoter, a.accountID, pending)
+			if err == nil {
+				router.HandleWalletPendingPaymentsUpdate(ctx, a.accountID, local)
+			}
 		}
 	}
 
@@ -509,6 +522,14 @@ func (a *AccountState) String() string {
 		return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: %d)", a.accountID, a.seqno, len(a.balances), len(a.pending), len(a.recent.Payments))
 	}
 	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: nil)", a.accountID, a.seqno, len(a.balances), len(a.pending))
+}
+
+func (a *AccountState) updateEntry(entry stellar1.BundleEntryRestricted) {
+	a.Lock()
+	defer a.Unlock()
+
+	a.isPrimary = entry.IsPrimary
+	a.name = entry.Name
 }
 
 func detailsChanged(a, b *stellar1.AccountDetails) bool {
