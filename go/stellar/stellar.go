@@ -512,41 +512,41 @@ func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendP
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
-	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
+func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
+	defer mctx.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), sendArg.From)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx.Ctx(), mctx.G(), sendArg.From)
 	if err != nil {
 		return res, err
 	}
 	senderSeed := senderAccountBundle.Signers[0]
 
 	// look up recipient
-	recipient, err := LookupRecipient(m, sendArg.To, isCLI)
+	recipient, err := LookupRecipient(mctx, sendArg.To, isCLI)
 	if err != nil {
 		return res, err
 	}
 
-	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
+	mctx.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
 	if recipient.AccountID == nil || sendArg.ForceRelay {
-		return sendRelayPayment(m, walletState,
+		return sendRelayPayment(mctx, walletState,
 			senderSeed, recipient, sendArg.Amount, sendArg.DisplayBalance,
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, _, err := OwnAccount(m.Ctx(), m.G(),
+	ownRecipient, _, err := OwnAccount(mctx.Ctx(), mctx.G(),
 		stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
-		m.CDebugf("error determining if user own's recipient: %v", err)
+		mctx.CDebugf("error determining if user own's recipient: %v", err)
 		return res, err
 	}
 	if ownRecipient {
 		// When sending to an account that we own, act as though sending to a user as opposed to just an account ID.
-		uv, un := m.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
+		uv, un := mctx.G().ActiveDevice.GetUsernameAndUserVersionIfValid(mctx)
 		if uv.IsNil() || un.IsNil() {
-			m.CDebugf("error finding self: uv:%v un:%v", uv, un)
+			mctx.CDebugf("error finding self: uv:%v un:%v", uv, un)
 			return res, fmt.Errorf("error getting logged-in user")
 		}
 		recipient.User = &stellarcommon.User{
@@ -561,7 +561,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}
 
 	post := stellar1.PaymentDirectPost{
-		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
+		FromDeviceID:    mctx.G().ActiveDevice.DeviceID(),
 		DisplayAmount:   sendArg.DisplayBalance.Amount,
 		DisplayCurrency: sendArg.DisplayBalance.Currency,
 		QuickReturn:     sendArg.QuickReturn,
@@ -570,16 +570,16 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		post.To = &recipient.User.UV
 	}
 
-	sp := NewSeqnoProvider(m, walletState)
+	sp := NewSeqnoProvider(mctx, walletState)
 
-	tb, err := getTimeboundsForSending(m, walletState)
+	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err
 	}
 
 	// check if recipient account exists
 	var txID string
-	funded, err := isAccountFunded(m.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
+	funded, err := isAccountFunded(mctx.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		return res, fmt.Errorf("error checking destination account balance: %v", err)
 	}
@@ -612,20 +612,20 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		if recipient.User != nil {
 			recipientUv = &recipient.User.UV
 		}
-		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
+		post.NoteB64, err = NoteEncryptB64(mctx.Ctx(), mctx.G(), noteClear, recipientUv)
 		if err != nil {
 			return res, fmt.Errorf("error encrypting note: %v", err)
 		}
 	}
 
 	// submit the transaction
-	rres, err := walletState.SubmitPayment(m.Ctx(), post)
+	rres, err := walletState.SubmitPayment(mctx.Ctx(), post)
 	if err != nil {
 		return res, err
 	}
-	m.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
+	mctx.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
-	walletState.Refresh(m.Ctx(), senderEntry.AccountID, "SubmitPayment")
+	walletState.Refresh(mctx, senderEntry.AccountID, "SubmitPayment")
 
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {
@@ -635,12 +635,12 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 			}
 		}
 		if sendArg.QuickReturn {
-			go sendChat(m.WithCtx(context.Background()))
+			go sendChat(mctx.WithCtx(context.Background()))
 		} else {
-			sendChat(m)
+			sendChat(mctx)
 		}
 	} else {
-		m.CDebugf("not sending chat message: sending from non-primary account")
+		mctx.CDebugf("not sending chat message: sending from non-primary account")
 	}
 
 	return SendPaymentResult{
