@@ -68,12 +68,7 @@ class Engine {
 
   _queuedChanges = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
-    let keys = key
-    if (!isArray(keys)) {
-      keys = [key]
-    }
-
-    keys.forEach(key => this._queuedChanges.push({error, increment: waiting, key}))
+    this._queuedChanges.push({error, increment: waiting, key})
     this._throttledDispatchWaitingAction()
   }
 
