@@ -113,7 +113,7 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if _, err := g.API.Post(arg); err != nil {
 		return err
 	}
-	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
 }
 

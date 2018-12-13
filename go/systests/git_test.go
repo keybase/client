@@ -78,7 +78,7 @@ func TestGitTeamer(t *testing.T) {
 			FolderType: folderType,
 		})
 		require.NoError(t, err)
-		expectedTeam, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, frag, public)
+		expectedTeam, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, frag, public, teams.ImplicitTeamOptions{})
 		require.NoError(t, err)
 		require.Equal(t, public, expectedTeam.ID.IsPublic())
 		require.Equal(t, expectedTeam.ID, res.TeamID,
@@ -129,7 +129,7 @@ func TestGitTeamer(t *testing.T) {
 		})
 
 		t.Logf("find out the conflict suffix")
-		_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.Background(), alice.tc.G, iTeamNameCreate1, public)
+		_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.Background(), alice.tc.G, iTeamNameCreate1, public, teams.ImplicitTeamOptions{})
 		require.NoError(t, err)
 		require.Len(t, conflicts, 1)
 		t.Logf("check")
