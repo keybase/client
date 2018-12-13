@@ -108,9 +108,9 @@ func (w *WalletState) Primed() bool {
 }
 
 // RefreshAll refreshes all the accounts.
-func (w *WalletState) RefreshAll(ctx context.Context, reason string) error {
+func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {
-		doErr := w.refreshAll(ctx, reason)
+		doErr := w.refreshAll(mctx.Ctx(), reason)
 		return nil, doErr
 	})
 	return err
@@ -267,7 +267,8 @@ func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.Acc
 func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
 	if err == nil {
-		w.RefreshAll(ctx, "SubmitRelayClaim")
+		mctx := libkb.NewMetaContext(ctx, w.G())
+		w.RefreshAll(mctx, "SubmitRelayClaim")
 	}
 	return result, err
 
