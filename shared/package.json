@@ -50,7 +50,8 @@
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "coverage-report": "flow-coverage-report --exclude-non-flow -o ./coverage -t text -t html",
-    "coverage": "flow coverage --color "
+    "coverage": "flow coverage --color ",
+    "log-to-trace": "node desktop/yarn-helper/log-to-trace.js"
   },
   "flow-coverage-report": {
     "concurrentFiles": 50,
