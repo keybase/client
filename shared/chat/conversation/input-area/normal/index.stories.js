@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
-import {Set} from 'immutable'
+import {List, Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
 import Input, {type Props as InputProps} from '.'
@@ -110,6 +110,13 @@ const InputContainer = (props: Props) => {
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
     showWalletsIcon: !props.isEditing && props.typing.size <= 1,
+    suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
+    suggestUsers: List([
+      {fullName: 'Danny Ayoub', username: 'ayoubd'},
+      {fullName: 'Chris Nojima', username: 'chrisnojima'},
+      {fullName: 'Mike Maxim', username: 'mikem'},
+      {fullName: 'Alex Gessner', username: 'xgess'},
+    ]),
     typing: props.typing,
   }
 

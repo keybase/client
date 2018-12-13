@@ -39,7 +39,7 @@ type CommonProps = {|
 type InputProps = {|
   ...CommonProps,
   suggestUsers: I.List<{username: string, fullName: string}>,
-  suggestChannels: Array<string>,
+  suggestChannels: I.List<string>,
 |}
 
 type PlatformInputProps = {|

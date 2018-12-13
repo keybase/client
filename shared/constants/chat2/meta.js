@@ -318,6 +318,14 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   return suggestions
 }
 
+export const getChannelSuggestions = (state: TypedState, teamname: string) =>
+  teamname
+    ? state.chat2.metaMap
+        .filter(v => v.teamname === teamname)
+        .map(v => v.channelname)
+        .toList()
+    : I.List()
+
 const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (meta: Types.ConversationMeta, yourUsername: string) =>

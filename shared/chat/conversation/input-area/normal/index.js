@@ -12,6 +12,7 @@ import {throttle} from 'lodash-es'
 const throttled = throttle((f, param) => f(param), 2000)
 
 const suggestorToMarker = {
+  channels: '#',
   emoji: ':',
   users: '@',
 }
@@ -63,9 +64,21 @@ class Input extends React.Component<InputProps, InputState> {
     super(props)
     this.state = {inputHeight: 0}
     this._lastQuote = 0
-    this._suggestorDatasource = {emoji: emojiDatasource, users: this._getUserSuggestions}
-    this._suggestorRenderer = {emoji: emojiRenderer, users: this._renderUserSuggestion}
-    this._suggestorTransformer = {emoji: emojiTransformer, users: this._transformUserSuggestion}
+    this._suggestorDatasource = {
+      channels: this._getChannelSuggestions,
+      emoji: emojiDatasource,
+      users: this._getUserSuggestions,
+    }
+    this._suggestorRenderer = {
+      channels: this._renderChannelSuggestion,
+      emoji: emojiRenderer,
+      users: this._renderUserSuggestion,
+    }
+    this._suggestorTransformer = {
+      channels: this._transformChannelSuggestion,
+      emoji: emojiTransformer,
+      users: this._transformUserSuggestion,
+    }
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -206,6 +219,32 @@ class Input extends React.Component<InputProps, InputState> {
   ) => {
     const newText = `${text.substring(0, start)}@${input.username} ${text.substring(end)}`
     const newSelection = start + input.username.length + 2
+    return {selection: {end: newSelection, start: newSelection}, text: newText}
+  }
+
+  _getChannelSuggestions = filter => this.props.suggestChannels.filter(ch => ch.includes(filter)).toArray()
+
+  _renderChannelSuggestion = (channelname: string, selected) => (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={{
+        alignItems: 'center',
+        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        height: 40,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      }}
+    >
+      <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
+    </Kb.Box2>
+  )
+
+  _transformChannelSuggestion = (channelname: string, {position: {end, start}, text}) => {
+    const newText = `${text.substring(0, start)}#${channelname}  ${text.substring(end)}`
+    const newSelection = start + channelname.length + 2
     return {selection: {end: newSelection, start: newSelection}, text: newText}
   }
 

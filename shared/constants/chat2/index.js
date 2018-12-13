@@ -233,6 +233,7 @@ const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
 export {
+  getChannelSuggestions,
   getConversationIDKeyMetasToLoad,
   getMeta,
   getParticipantSuggestions,
