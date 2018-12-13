@@ -55,6 +55,17 @@ func TestStellarDecorate(t *testing.T) {
 			},
 			result: "HIHIH ```+5xlm@patrick``` $>kb${\"username\":\"patrick\",\"paymentText\":\"+5XLM@patrick\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$ `+1xlm` $>kb${\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$ other test",
 		},
+		decorateTest{
+			body: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `+124.005XLM@mikem``    ",
+			payments: []chat1.TextPayment{
+				chat1.TextPayment{
+					Username:    "mikem",
+					PaymentText: "+124.005XLM@mikem",
+					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
+				},
+			},
+			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb${\"username\":\"mikem\",\"paymentText\":\"+124.005XLM@mikem\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$``    ",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithPayments(context.TODO(), c.body, c.payments)
