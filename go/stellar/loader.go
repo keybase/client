@@ -3,6 +3,7 @@ package stellar
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -42,10 +43,10 @@ func NewLoader(g *libkb.GlobalContext) *Loader {
 		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
 		pmessages:    make(map[stellar1.PaymentID]chatMsg),
-		pqueue:       make(chan stellar1.PaymentID, 50),
+		pqueue:       make(chan stellar1.PaymentID, 100),
 		requests:     make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal),
 		rmessages:    make(map[stellar1.KeybaseRequestID]chatMsg),
-		rqueue:       make(chan stellar1.KeybaseRequestID, 50),
+		rqueue:       make(chan stellar1.KeybaseRequestID, 100),
 	}
 
 	go p.runPayments()
@@ -201,7 +202,9 @@ func (p *Loader) runRequests() {
 }
 
 func (p *Loader) loadPayment(id stellar1.PaymentID) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
@@ -225,7 +228,9 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 }
 
 func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	m := libkb.NewMetaContext(ctx, p.G())
 	s := getGlobal(p.G())
 	details, err := s.remoter.RequestDetails(ctx, id)
