@@ -99,7 +99,7 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   }
   // $ForceType
   if (message.explodingUnreadable) {
-    failureDescription = 'This exploding message is not available to you.'
+    failureDescription = 'This exploding message is not available to you'
   }
 
   return {allowCancelRetry, failureDescription}
