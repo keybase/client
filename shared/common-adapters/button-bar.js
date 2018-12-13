@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, isMobile, collapseStyles} from '../styles'
+import * as Styles from '../styles'
 
 type Props = {
-  direction: 'row' | 'column',
-  align?: 'flex-start' | 'flex-end' | 'center', // ignored by column
+  align?: 'flex-start' | 'flex-end' | 'center' | 'space-between', // ignored by column
+  bottomBorder?: boolean,
   children: React.Node,
+  direction: 'row' | 'column',
   fullWidth?: boolean,
   small?: boolean, // ignored by column
   style?: any,
@@ -21,7 +22,7 @@ class ButtonBar extends React.PureComponent<Props> {
   }
 
   _spacing = () => {
-    if (this.props.direction === 'row' && this.props.small && !isMobile) {
+    if (this.props.direction === 'row' && this.props.small && !Styles.isMobile) {
       return SmallSpacer
     }
 
@@ -48,17 +49,23 @@ class ButtonBar extends React.PureComponent<Props> {
     }, [])
 
     const minHeight = {
-      minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
+      minHeight: Styles.isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
     }
 
-    const style = collapseStyles([
+    const style = Styles.collapseStyles([
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
         width: '100%',
+        ...(this.props.bottomBorder
+          ? {
+              borderBottomColor: Styles.globalColors.black_10,
+              borderBottomWidth: Styles.hairlineWidth,
+            }
+          : {}),
         ...(this.props.direction === 'column'
-          ? {...globalStyles.flexBoxColumn}
+          ? {...Styles.globalStyles.flexBoxColumn}
           : {
-              ...globalStyles.flexBoxRow,
+              ...Styles.globalStyles.flexBoxRow,
               justifyContent: this.props.align,
               ...minHeight,
             }),
@@ -78,8 +85,8 @@ const bigSpacerStyle = {
 }
 const SmallSpacer = () => <Box style={smallSpacerStyle} />
 const smallSpacerStyle = {
-  height: isMobile ? 8 : 4,
-  width: isMobile ? 8 : 4,
+  height: Styles.isMobile ? 8 : 4,
+  width: Styles.isMobile ? 8 : 4,
 }
 
 export default ButtonBar
