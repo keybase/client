@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -45,11 +46,13 @@ const who = (props: Props) => {
     case 'group':
       return 'your group'
     case 'small-team':
+      return 'team members'
     case 'big-team':
       return 'team members'
     case 'none':
       return ''
     default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conversation.type)
       return 'this should not happen'
   }
 }
