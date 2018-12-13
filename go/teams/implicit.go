@@ -35,33 +35,27 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-type forceRepollToggle bool
+type ImplicitTeamOptions struct {
+	NoForceRepoll bool
+}
 
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public, forceRepollToggle(true))
+	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public, opts)
 	return team, teamName, impTeamName, err
 }
 
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
-func LookupImplicitTeamNoForceRepoll(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
-	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public, forceRepollToggle(false))
-	return team, teamName, impTeamName, err
-}
-
-// Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
-// Resolves social assertions.
-func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, forceRepoll forceRepollToggle) (
+func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 	impName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
-	return lookupImplicitTeamAndConflicts(ctx, g, displayName, impName, forceRepoll)
+	return lookupImplicitTeamAndConflicts(ctx, g, displayName, impName, opts)
 }
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
@@ -123,10 +117,10 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 // Does not resolve social assertions.
 // preResolveDisplayName is used for logging and errors
 func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
-	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName, forceRepoll forceRepollToggle) (
+	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 
-	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,forceRepoll=%v)", preResolveDisplayName, forceRepoll), func() error { return err })()
+	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,opts=%+v)", preResolveDisplayName, opts), func() error { return err })()
 
 	impTeamName = impTeamNameInput
 
@@ -186,7 +180,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	team, err = Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      impTeamName.IsPublic,
-		ForceRepoll: bool(forceRepoll),
+		ForceRepoll: !opts.NoForceRepoll,
 	})
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
@@ -235,7 +229,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 		return res, teamName, impTeamName, err
 	}
 
-	res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName, lookupName, forceRepollToggle(true))
+	res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName, lookupName, ImplicitTeamOptions{})
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			if lookupName.ConflictInfo != nil {
@@ -251,7 +245,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 				if isDupImplicitTeamError(ctx, err) {
 					g.Log.CDebugf(ctx, "LookupOrCreateImplicitTeam: duplicate team, trying to lookup again: err: %s", err)
 					res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName,
-						lookupName, forceRepollToggle(true))
+						lookupName, ImplicitTeamOptions{})
 				}
 				return res, teamName, impTeamName, err
 			}
