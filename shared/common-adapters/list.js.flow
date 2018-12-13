@@ -3,6 +3,7 @@ import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 
 export type Props<Item> = {
+  bounces?: boolean, // mobile only
   indexAsKey?: boolean,
   items: Array<Item>,
   style?: StylesCrossPlatform,
