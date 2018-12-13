@@ -910,7 +910,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("resetting wallet state on logout")
 	if d.walletState != nil {
-		d.walletState.Reset(m.Ctx())
+		d.walletState.Reset(m)
 	}
 
 	return nil
