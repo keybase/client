@@ -3,7 +3,7 @@
 const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?
 if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
-  console.log('Usage: node log-to-trace (gui|core) logfile outfile')
+  console.log('Usage: node log-to-trace (gui|core) logfile outfile [filter1] [filter2]')
   process.exit(1)
 }
 
