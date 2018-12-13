@@ -15,7 +15,7 @@ const ServiceDecoration = (props: Props) => {
   const parsed = JSON.parse(props.json)
   switch (parsed.typ) {
     case RPCChatTypes.chatUiUITextDecorationTyp.payment:
-      return <PaymentStatus status="success" text="+1XLM@mikem" />
+      return <PaymentStatus status="success" text="+1XLM@mikem" allowFontScaling={props.allowFontScaling} />
     default:
       return null
   }

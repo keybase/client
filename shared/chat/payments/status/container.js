@@ -6,14 +6,15 @@ import {namedConnect} from '../../../util/container'
 import PaymentStatus from '.'
 
 type OwnProps = {|
-  message: Types.Message,
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: Types.MessageID,
   paymentID: WalletTypes.PaymentID,
   text: string,
 |}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const {message, paymentID, text} = ownProps
-  const paymentInfo = state.chat2.paymentStatusMap.getIn([message.conversationIDKey, message.id, paymentID])
+  const {conversationIDKey, messageID, paymentID, text} = ownProps
+  const paymentInfo = state.chat2.paymentStatusMap.getIn([conversationIDKey, messageID, paymentID])
   return {
     status: paymentInfo.status,
     text,

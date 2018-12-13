@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as WalletTypes from '../../../constants/types/wallets'
 
 type Props = {
+  allowFontScaling?: ?boolean,
   status: WalletTypes.StatusSimplified,
   text: string,
 }
@@ -23,7 +24,7 @@ const getIcon = status => {
 }
 
 const PaymentStatus = (props: Props) => (
-  <Kb.Text type="BodyExtrabold" style={styles[props.status]}>
+  <Kb.Text type="BodyExtrabold" allowFontScaling={props.allowFontScaling} style={styles[props.status]}>
     {props.text}{' '}
     <Kb.Icon
       type={getIcon(props.status)}
