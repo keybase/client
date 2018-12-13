@@ -107,10 +107,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
-  onEditAvatar: (image?: Response) =>
-    flags.avatarUploadsEnabled
-      ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
-      : dispatch(navigateAppend(['editAvatarPlaceholder'])),
+  onEditAvatar: (image?: Response) => dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onFolderClick: folder =>

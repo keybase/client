@@ -1,6 +1,5 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
@@ -160,7 +159,7 @@ const styles = styleSheetCreate({
       lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
-      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
+      paddingRight: 10,
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       width: '100%',
@@ -170,7 +169,7 @@ const styles = styleSheetCreate({
       color: globalColors.black_40,
       flex: 1,
       fontSize: 14,
-      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
+      paddingRight: 40,
     },
   }),
   contentBox: {
