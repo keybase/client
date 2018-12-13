@@ -1,0 +1,5 @@
+// @flow
+import * as React from 'react'
+import {type Props} from './container'
+
+declare export function WalletSwitcher(props: Props): React.Component<Props>
