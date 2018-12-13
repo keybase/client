@@ -244,11 +244,11 @@ func (s *Stellar) handleReconnect(ctx context.Context) {
 	go func() {
 		ctx := context.Background()
 		if s.walletState.Primed() {
-			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing wallet refresh on unprimed wallet")
-		} else {
 			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing delayed wallet refresh")
 			time.Sleep(4 * time.Second)
 			s.G().Log.CDebugf(ctx, "stellar reconnect msg delay complete, refreshing wallet state")
+		} else {
+			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing wallet refresh on unprimed wallet")
 		}
 		if err := s.walletState.RefreshAll(ctx, "reconnect"); err != nil {
 			s.G().Log.CDebugf(ctx, "Stellar.handleReconnect RefreshAll error: %s", err)
