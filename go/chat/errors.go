@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -138,14 +139,14 @@ func (e EphemeralAlreadyExpiredError) InternalError() string {
 
 //=============================================================================
 
-type EphemeralUnboxingError struct{ inner error }
+type EphemeralUnboxingError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
-	return "Device is missing required ephemeral keys"
+	return e.inner.HumanError()
 }
 
 func (e EphemeralUnboxingError) InternalError() string {
