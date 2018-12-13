@@ -72,7 +72,7 @@ func (e EphemeralKeyError) Error() string {
 
 func deviceProvisionedAfterContentCreation(ctx context.Context, g *libkb.GlobalContext, contentCtime *gregor1.Time) bool {
 	// some callers may not specify a creation time if they aren't trying to
-	// access a message when decrypting the key
+	// decrypt a specific piece of content.
 	if contentCtime == nil {
 		return false
 	}
