@@ -269,9 +269,9 @@ func (e MissingFeatureFlagMigrationError) Error() string {
 	return fmt.Sprintf("need FeatureStellarAcctBundles to migrate")
 }
 
-func preMigrationChecks(m libkb.MetaContext) error {
+func preMigrationChecks(mctx libkb.MetaContext) error {
 	// verify that the feature flag is enabled
-	if !acctBundlesEnabled(m) {
+	if !acctBundlesEnabled(mctx) {
 		return MissingFeatureFlagMigrationError{}
 	}
 
@@ -279,7 +279,7 @@ func preMigrationChecks(m libkb.MetaContext) error {
 	// because there is a bundle to fetch but it has not been migrated
 	// this is what we're expecting for an account that has not yet
 	// been migrated
-	existingBundle, _, _, err := FetchV2BundleForAccount(m.Ctx(), m.G(), nil)
+	existingBundle, _, _, err := FetchV2BundleForAccount(mctx, nil)
 	expectedErrorStatus := keybase1.StatusCode_SCStellarIncompatibleVersion
 	if err == nil {
 		return AlreadyMigratedError{}
@@ -299,13 +299,13 @@ func preMigrationChecks(m libkb.MetaContext) error {
 	return nil
 }
 
-func postMigrationChecks(m libkb.MetaContext, preMigrationBundle stellar1.Bundle) (err error) {
-	defer m.CTrace(fmt.Sprintf("Stellar postMigrationChecks"), func() error { return err })()
+func postMigrationChecks(mctx libkb.MetaContext, preMigrationBundle stellar1.Bundle) (err error) {
+	defer mctx.CTrace(fmt.Sprintf("Stellar postMigrationChecks"), func() error { return err })()
 
 	// verify that the post-migration account bundle matches the
 	// pre-migration bundle for each account
 	for _, preMigrationAcct := range preMigrationBundle.Accounts {
-		acctBundle, _, _, err := FetchAccountBundle(m.Ctx(), m.G(), preMigrationAcct.AccountID)
+		acctBundle, _, _, err := FetchAccountBundle(mctx, preMigrationAcct.AccountID)
 		if err != nil {
 			return err
 		}
@@ -317,50 +317,50 @@ func postMigrationChecks(m libkb.MetaContext, preMigrationBundle stellar1.Bundle
 		}
 		if postMigrationAcct.AccountID != preMigrationAcct.AccountID {
 			err = fmt.Errorf("account_id mismatch. pre (%v) isnt post (%v)", preMigrationAcct.AccountID, postMigrationAcct.AccountID)
-			m.CErrorf("post migration check:", err)
+			mctx.CErrorf("post migration check:", err)
 			return err
 		}
 		if postMigrationAcct.Mode != preMigrationAcct.Mode {
 			err = fmt.Errorf("mode mismatch for %v. pre (%v) isnt post (%v)", preMigrationAcct.AccountID, preMigrationAcct.Mode, postMigrationAcct.Mode)
-			m.CErrorf("post migration check:", err)
+			mctx.CErrorf("post migration check:", err)
 			return err
 		}
 		if postMigrationAcct.Name != preMigrationAcct.Name {
 			err = fmt.Errorf("name mismatch for %v. pre (%v) isnt post (%v)", preMigrationAcct.AccountID, preMigrationAcct.Name, postMigrationAcct.Name)
-			m.CErrorf("post migration check:", err)
+			mctx.CErrorf("post migration check:", err)
 			return err
 		}
 		postMigrationSigners := acctBundle.AccountBundles[postMigrationAcct.AccountID].Signers
 		if len(postMigrationSigners) != len(preMigrationAcct.Signers) {
 			err = fmt.Errorf("signers mismatch for %v", preMigrationAcct.AccountID)
-			m.CErrorf("post migration check:", err)
+			mctx.CErrorf("post migration check:", err)
 			return err
 		}
 		for i, s := range postMigrationSigners {
 			if preMigrationAcct.Signers[i] != s {
 				err = fmt.Errorf("signers mismatch for %v", preMigrationAcct.AccountID)
-				m.CErrorf("post migration check:", err)
+				mctx.CErrorf("post migration check:", err)
 				return err
 			}
 		}
 	}
 
 	// verify that fetching a v1 bundle raises an incompatibility error
-	_, _, _, err = FetchV1Bundle(m.Ctx(), m.G())
+	_, _, _, err = FetchV1Bundle(mctx)
 	expectedErrorStatus := keybase1.StatusCode_SCStellarIncompatibleVersion
 	if err == nil {
 		err = fmt.Errorf("expected v1 endpoints to be inaccessible")
-		m.CErrorf("post migration check:", err)
+		mctx.CErrorf("post migration check:", err)
 		return err
 	}
 	if appStatusError, ok := err.(libkb.AppStatusError); ok {
 		actualErrorStatus := keybase1.StatusCode(appStatusError.Code)
 		if actualErrorStatus != expectedErrorStatus {
-			m.CErrorf("post migration check fetching the v1 bundle:", err)
+			mctx.CErrorf("post migration check fetching the v1 bundle:", err)
 			return err
 		}
 	} else {
-		m.CErrorf("post migration check fetching the v1 bundle:", err)
+		mctx.CErrorf("post migration check fetching the v1 bundle:", err)
 		return err
 	}
 	return nil
@@ -368,31 +368,31 @@ func postMigrationChecks(m libkb.MetaContext, preMigrationBundle stellar1.Bundle
 
 // MigrateBundleToAccountBundles migrates the existing stellar bundle that
 // contains all secrets to separate account bundles for each account.
-func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
-	defer m.CTrace(fmt.Sprintf("Stellar MigrateBundleToAccountBundles"), func() error { return err })()
+func MigrateBundleToAccountBundles(mctx libkb.MetaContext) (err error) {
+	defer mctx.CTrace(fmt.Sprintf("Stellar MigrateBundleToAccountBundles"), func() error { return err })()
 
-	defer m.G().GetStellar().GetMigrationLock().Unlock()
-	m.G().GetStellar().GetMigrationLock().Lock()
-	m.CDebugf("| Acquired Stellar Bundle Migration mutex")
+	defer mctx.G().GetStellar().GetMigrationLock().Unlock()
+	mctx.G().GetStellar().GetMigrationLock().Lock()
+	mctx.CDebugf("| Acquired Stellar Bundle Migration mutex")
 
-	if err = preMigrationChecks(m); err != nil {
-		m.CErrorf("MIGRATION FAILED: failed premigration checks: %v\n", err)
+	if err = preMigrationChecks(mctx); err != nil {
+		mctx.CErrorf("MIGRATION FAILED: failed premigration checks: %v\n", err)
 		return err
 	}
 	// fetch the v1 bundle
-	v1Bundle, _, _, err := FetchV1Bundle(m.Ctx(), m.G())
+	v1Bundle, _, _, err := FetchV1Bundle(mctx)
 	if err != nil {
-		m.CErrorf("MIGRATION FAILED: failed to fetch v1Bundle", err)
+		mctx.CErrorf("MIGRATION FAILED: failed to fetch v1Bundle", err)
 		return err
 	}
-	m.CDebugf("fetched v1 bundle with %v accounts", len(v1Bundle.Accounts))
+	mctx.CDebugf("fetched v1 bundle with %v accounts", len(v1Bundle.Accounts))
 
 	err = v1Bundle.CheckInvariants()
 	if err != nil {
-		m.CErrorf("MIGRATION FAILED: v1Bundle failed invariant checks", err)
+		mctx.CErrorf("MIGRATION FAILED: v1Bundle failed invariant checks", err)
 		return err
 	}
-	m.CDebugf("v1 bundle passed basic invariant check")
+	mctx.CDebugf("v1 bundle passed basic invariant check")
 
 	// convert it to a v2 bundle
 	// since this is an initial conversion, all of the accounts
@@ -401,26 +401,26 @@ func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	m.CDebugf("v1 bundle mutated into v2 bundle with %v accounts", len(v2BundlePrev.Accounts))
+	mctx.CDebugf("v1 bundle mutated into v2 bundle with %v accounts", len(v2BundlePrev.Accounts))
 	err = v2BundlePrev.CheckInvariants()
 	if err != nil {
-		m.CErrorf("MIGRATION FAILED: v2BundlePrev failed invariant checks", err)
+		mctx.CErrorf("MIGRATION FAILED: v2BundlePrev failed invariant checks", err)
 		return err
 	}
-	m.CDebugf("v2 bundle passed basic invariant check")
+	mctx.CDebugf("v2 bundle passed basic invariant check")
 
 	// verify that all of the signers are part of this migratable bundle
 	for _, acct := range v2BundlePrev.Accounts {
 		accBundle, ok := v2BundlePrev.AccountBundles[acct.AccountID]
 		if !ok {
 			err = fmt.Errorf("in local conversion to a v2 bundle, account %v not found in account bundle map", acct.AccountID)
-			m.CErrorf("MIGRATION FAILED: %v\n", err)
+			mctx.CErrorf("MIGRATION FAILED: %v\n", err)
 			return err
 		}
 		secretKey := accBundle.Signers[0]
 		if len(secretKey) == 0 {
 			err = fmt.Errorf("in local conversion to a v2 bundle, account %v missing signers", acct.AccountID)
-			m.CErrorf("MIGRATION FAILED: %v\n", err)
+			mctx.CErrorf("MIGRATION FAILED: %v\n", err)
 			return err
 		}
 	}
@@ -480,8 +480,8 @@ func postV2Bundle(mctx libkb.MetaContext, bundle *stellar1.BundleRestricted) (er
 	return err
 }
 
-func FetchV2BundleForAccount(ctx context.Context, g *libkb.GlobalContext, accountID *stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.FetchV2BundleForAccount", func() error { return err })()
+func FetchV2BundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer mctx.CTraceTimed("Stellar.FetchV2BundleForAccount", func() error { return err })()
 
 	fetchArgs := libkb.HTTPArgs{}
 	if accountID != nil {
@@ -557,8 +557,8 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 // to get the signers for each of them and build a single, full bundle with all
 // of the information. This will error from any device that does not have access
 // to all of the accounts (e.g. a desktop after mobile-only)
-func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.FetchWholeBundle", func() error { return err })()
+func FetchWholeBundle(mctx libkb.MetaContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer mctx.CTraceTimed("Stellar.FetchWholeBundle", func() error { return err })()
 
 	bundle, version, pukGen, err := FetchSecretlessBundle(ctx, g)
 	if err != nil {
@@ -566,7 +566,7 @@ func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *
 	}
 	newAccBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
 	for _, acct := range bundle.Accounts {
-		singleBundle, _, _, err := FetchAccountBundle(ctx, g, acct.AccountID)
+		singleBundle, _, _, err := FetchAccountBundle(mctx, acct.AccountID)
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -626,20 +626,20 @@ type fetchAcctRes struct {
 	acctbundle.BundleEncoded
 }
 
-func FetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
+func FetchV1Bundle(mctx libkb.MetaContext) (res stellar1.Bundle, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	arg := libkb.NewAPIArgWithNetContext(mctx.Ctx(), "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes fetchRes
-	if g.API == nil {
+	if mctx.G().API == nil {
 		return res, 0, 0, errors.New("global API not configured yet")
 	}
-	err = g.API.GetDecode(arg, &apiRes)
+	err = mctx.G().API.GetDecode(arg, &apiRes)
 	switch err := err.(type) {
 	case nil:
 	case libkb.AppStatusError:
 		switch keybase1.StatusCode(err.Code) {
 		case keybase1.StatusCode_SCNotFound:
-			g.Log.CDebugf(ctx, "replacing error: %v", err)
+			mctx.CDebugf("replacing error: %v", err)
 			return res, 0, 0, UserHasNoAccountsError{}
 		default:
 			return res, 0, 0, err
@@ -651,24 +651,23 @@ func FetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bu
 	if err != nil {
 		return res, 0, 0, err
 	}
-	pukring, err := g.GetPerUserKeyring(ctx)
+	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return res, 0, 0, err
 	}
-	m := libkb.NewMetaContext(ctx, g)
-	puk, err := pukring.GetSeedByGenerationOrSync(m, decodeRes.Enc.Gen)
+	puk, err := pukring.GetSeedByGenerationOrSync(mctx, decodeRes.Enc.Gen)
 	if err != nil {
 		return res, 0, 0, err
 	}
-	v1Bundle, version, err := bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
+	v1Bundle, version, err := bundle.Unbox(mctx.G(), decodeRes, apiRes.VisibleB64, puk)
 	if err != nil {
 		return res, 0, 0, err
 	}
 	return v1Bundle, version, decodeRes.Enc.Gen, err
 }
 
-func fetchV1BundleAsV2Bundle(ctx context.Context, g *libkb.GlobalContext) (res *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	v1Bundle, version, pukGen, err := FetchV1Bundle(ctx, g)
+func fetchV1BundleAsV2Bundle(mctx libkb.MetaContext) (res *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	v1Bundle, version, pukGen, err := FetchV1Bundle(mctx)
 	if err != nil {
 		return res, 0, 0, err
 	}
@@ -1130,8 +1129,8 @@ func SetAccountMobileOnly(mctx libkb.MetaContext, accountID stellar1.AccountID) 
 		return err
 	}
 	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
-	if err := postV2Bundle(mctx, g, &nextBundle); err != nil {
-		g.Log.CDebugf(ctx, "SetAccountMobileOnly postV2Bundle error: %s", err)
+	if err := postV2Bundle(mctx, &nextBundle); err != nil {
+		mctx.CDebugf("SetAccountMobileOnly postV2Bundle error: %s", err)
 		return err
 	}
 
@@ -1141,8 +1140,8 @@ func SetAccountMobileOnly(mctx libkb.MetaContext, accountID stellar1.AccountID) 
 // MakeAccountAllDevices will fetch the account bundle and flip the mobile-only switch to off
 // (so that any device can get the account secret keys) then send the new account bundle
 // to the server.
-func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	bundle, version, _, err := FetchAccountBundle(ctx, g, accountID)
+func MakeAccountAllDevices(mctx libkb.MetaContext, accountID stellar1.AccountID) error {
+	bundle, version, _, err := FetchAccountBundle(mctx, accountID)
 	if err != nil {
 		return err
 	}
@@ -1151,15 +1150,15 @@ func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountI
 	}
 	err = acctbundle.MakeAllDevices(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
-		g.Log.CDebugf(ctx, "MakeAccountAllDevices account %s is already in all-device mode", accountID)
+		mctx.CDebugf("MakeAccountAllDevices account %s is already in all-device mode", accountID)
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
-	if err := postV2Bundle(ctx, g, &nextBundle); err != nil {
-		g.Log.CDebugf(ctx, "MakeAccountAllDevices postV2Bundle error: %s", err)
+	if err := postV2Bundle(mctx, &nextBundle); err != nil {
+		mctx.CDebugf("MakeAccountAllDevices postV2Bundle error: %s", err)
 		return err
 	}
 
