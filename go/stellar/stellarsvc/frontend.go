@@ -937,7 +937,17 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 }
 
 func (s *Server) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {
-	return fmt.Errorf("Not implemented here")
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "SetInflationDestinationLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return stellar.SetInflationDestinationLocal(s.mctx(ctx), arg)
 }
 
 // accountExchangeRate gets the exchange rate for the logged in user's currency
