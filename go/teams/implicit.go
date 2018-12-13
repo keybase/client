@@ -176,7 +176,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	team, err = Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      impTeamName.IsPublic,
-		ForceRepoll: true,
+		ForceRepoll: false, // it's important to hit the cache here, since we call this once per chat send!
 	})
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err

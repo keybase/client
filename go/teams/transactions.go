@@ -836,7 +836,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
-	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true})
+	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno)
 
 	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
 	return nil
