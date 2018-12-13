@@ -345,7 +345,7 @@ def testGo(prefix) {
 
         def tests = [:]
         def specialTests = [:]
-        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests']
         packagesToTest.each { pkg, _ ->
             def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
