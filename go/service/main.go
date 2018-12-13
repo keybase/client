@@ -329,7 +329,6 @@ func (d *Service) setupTeams() error {
 
 func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
-	go d.walletState.RefreshAll(context.Background())
 	return nil
 }
 
@@ -672,29 +671,28 @@ func (d *Service) chatOutboxPurgeCheck() {
 }
 
 func (d *Service) minuteChecks() {
-	ticker := libkb.NewBgTicker(1 * time.Minute)
-	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
+	ticker := libkb.NewBgTicker(5 * time.Minute)
+	mctx := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
 	d.G().PushShutdownHook(func() error {
-		m.CDebugf("stopping minuteChecks loop")
+		mctx.CDebugf("stopping minuteChecks loop")
 		ticker.Stop()
 		return nil
 	})
 	go func() {
-		d.walletState.RefreshAll(m.Ctx())
 		for {
 			<-ticker.C
-			m.CDebugf("+ minute check loop")
+			mctx.CDebugf("+ 5 minute check loop")
 
 			// In theory, this periodic refresh shouldn't be necessary,
 			// but as the WalletState code is new, this is a nice insurance
 			// policy.  The gregor payment notifications should
 			// keep the WalletState refreshed properly.
-			m.CDebugf("| refreshing wallet state")
-			if err := d.walletState.RefreshAll(m.Ctx()); err != nil {
-				m.CDebugf("service walletState.RefreshAll error: %s", err)
+			mctx.CDebugf("| refreshing wallet state")
+			if err := d.walletState.RefreshAll(mctx, "service bg loop"); err != nil {
+				mctx.CDebugf("service walletState.RefreshAll error: %s", err)
 			}
 
-			m.CDebugf("- minute check loop")
+			mctx.CDebugf("- 5 minute check loop")
 		}
 	}()
 }
@@ -912,7 +910,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("resetting wallet state on logout")
 	if d.walletState != nil {
-		d.walletState.Reset(m.Ctx())
+		d.walletState.Reset(m)
 	}
 
 	return nil

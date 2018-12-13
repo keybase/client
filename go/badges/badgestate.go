@@ -82,10 +82,39 @@ type memberOutBody struct {
 	} `json:"reset_user"`
 }
 
+type homeTodoMap map[keybase1.HomeScreenTodoType]int
+type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
+
 type homeStateBody struct {
 	Version        int           `json:"version"`
-	BadgeCount     int           `json:"badge_count"`
+	BadgeCountMap  homeItemMap   `json:"badge_count_map"`
 	LastViewedTime keybase1.Time `json:"last_viewed_time"`
+}
+
+// countKnownBadges looks at the map sent down by gregor and considers only those
+// types that are known to the client. The rest, it assumes it cannot display,
+// and doesn't count those badges toward the badge count. Note that the shape
+// of this map is two-deep in the case of home todo items, e.g.:
+//
+//   { 1 : { 2 : 3, 4 : 5 }, 3 : 7 }
+//
+// Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
+// and 7 badges on ANNOUNCEMENTs.
+//
+func countKnownBadges(m homeItemMap) int {
+	var ret int
+	for itemType, todoMap := range m {
+		if _, found := keybase1.HomeScreenItemTypeRevMap[itemType]; !found {
+			continue
+		}
+		for todoType, v := range todoMap {
+			if _, found := keybase1.HomeScreenTodoTypeRevMap[todoType]; !found {
+				continue
+			}
+			ret += v
+		}
+	}
+	return ret
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -130,7 +159,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			sentUp := false
 			if hsb == nil || hsb.Version < tmp.Version || (hsb.Version == tmp.Version && hsb.LastViewedTime < tmp.LastViewedTime) {
 				hsb = &tmp
-				b.state.HomeTodoItems = hsb.BadgeCount
+				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
 			}
 			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)

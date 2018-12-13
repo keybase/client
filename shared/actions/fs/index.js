@@ -4,6 +4,8 @@ import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as SettingsConstants from '../../constants/settings'
@@ -783,6 +785,86 @@ const cancelMoveOrCopy = isMobile
   ? (state, action) => Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
   : (state, action) => Saga.put(navigateUp())
 
+const showSendLinkToChat = (state, action) => {
+  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
+  const routeChange = Saga.put(
+    action.payload.routePath
+      ? putActionIfOnPath(action.payload.routePath, navigateAppend(['sendLinkToChat']))
+      : navigateAppend(['sendLinkToChat'])
+  )
+  if (elems.length < 3) {
+    // Not a TLF; so just show the modal and let user copy the path.
+    return routeChange
+  }
+
+  const actions = [routeChange]
+
+  if (elems[1] !== 'team') {
+    // It's an impl team conversation. So resolve to a convID directly.
+    actions.push(
+      Saga.callUntyped(function*() {
+        const result = yield Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+          oneChatPerTLF: false,
+          tlfName: elems[2],
+          topicName: '',
+          topicType: RPCChatTypes.commonTopicType.chat,
+          visibility: RPCTypes.commonTLFVisibility.private,
+        })
+
+        if (!result.conversations || !result.conversations.length) {
+          // TODO: error?
+          return
+        }
+
+        yield Saga.put(
+          FsGen.createSetSendLinkToChatConvID({
+            convID: ChatTypes.conversationIDToKey(result.conversations[0].info.id),
+          })
+        )
+      })
+    )
+  } else {
+    // It's a real team, but we don't know if it's a small team or big team. So
+    // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
+    // channels. We could have used the Teams store, but then we are doing
+    // cross-store stuff and are depending on the Teams store. If this turns
+    // out to feel slow, we can probably cahce the results.
+    actions.push(
+      Saga.callUntyped(function*() {
+        const result = yield Saga.callPromise(RPCChatTypes.localGetTLFConversationsLocalRpcPromise, {
+          membersType: RPCChatTypes.commonConversationMembersType.team,
+          tlfName: elems[2],
+          topicType: RPCChatTypes.commonTopicType.chat,
+        })
+
+        if (!result.convs || !result.convs.length) {
+          // TODO: error?
+          return
+        }
+
+        yield Saga.put(
+          FsGen.createSetSendLinkToChatChannels({
+            channels: I.Map(result.convs.map(conv => [conv.convID, conv.channel])),
+          })
+        )
+
+        if (result.convs.length === 1) {
+          // Auto-select channel if it's the only one.
+          yield Saga.put(
+            FsGen.createSetSendLinkToChatConvID({
+              convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
+            })
+          )
+        }
+      })
+    )
+  }
+
+  return Saga.all(actions)
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -805,6 +887,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.moveOrCopyOpen, isMobile ? moveOrCopyOpenMobile : moveOrCopyOpenDesktop)
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
+  yield Saga.actionToAction(FsGen.showSendLinkToChat, showSendLinkToChat)
 
   yield Saga.spawn(platformSpecificSaga)
 }

@@ -1325,6 +1325,7 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  annoncementPlaceholder: 10000,
 }
 
 export const identifyCommonIdentifyReasonType = {
@@ -2093,6 +2094,7 @@ export type HomeScreenTodoType =
   | 10 // TEAM_SHOWCASE_10
   | 11 // AVATAR_USER_11
   | 12 // AVATAR_TEAM_12
+  | 10000 // ANNONCEMENT_PLACEHOLDER_10000
 
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>
@@ -3010,7 +3012,7 @@ declare export function loginLogoutRpcPromise(params: $PropertyType<$PropertyTyp
 declare export function loginPaperKeyRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKey'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void, () => void, Array<void>>
 declare export function loginPaperKeySubmitRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKeySubmit'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKeySubmit'>, 'outParam'>>
 declare export function notifyCtlSetNotificationsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.notifyCtl.setNotifications'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.notifyCtl.setNotifications'>, 'outParam'>>
-declare export function pgpPgpKeyGenDefaultRpcChannelMap(configKeys: Array<string>, request: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgp.pgpKeyGenDefault'>, 'inParam'>): void /* not void but this is deprecated */
+declare export function pgpPgpKeyGenDefaultRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgp.pgpKeyGenDefault'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void, () => void, Array<void>>
 declare export function pgpPgpStorageDismissRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgp.pgpStorageDismiss'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgp.pgpStorageDismiss'>, 'outParam'>>
 declare export function pprofLogProcessorProfileRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pprof.logProcessorProfile'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pprof.logProcessorProfile'>, 'outParam'>>
 declare export function pprofLogTraceRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pprof.logTrace'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pprof.logTrace'>, 'outParam'>>

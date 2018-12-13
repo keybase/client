@@ -59,7 +59,8 @@ protocol home {
     GIT_REPO_9,
     TEAM_SHOWCASE_10,
     AVATAR_USER_11,
-    AVATAR_TEAM_12
+    AVATAR_TEAM_12,
+    ANNONCEMENT_PLACEHOLDER_10000
   }
 
   variant HomeScreenTodo switch (HomeScreenTodoType t) {

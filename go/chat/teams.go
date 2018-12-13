@@ -615,7 +615,8 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 		return t.lookupInternalName(ctx, name, public)
 	}
 
-	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
+	// This is on the critical path of sends, so don't force a repoll.
+	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public, teams.ImplicitTeamOptions{NoForceRepoll: true})
 	if err != nil {
 		return res, t.transformTeamDoesNotExist(ctx, err, name)
 	}

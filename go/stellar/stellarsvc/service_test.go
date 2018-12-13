@@ -606,7 +606,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.NoError(t, err)
 	}
 
-	tcs[claimant].Srv.walletState.RefreshAll(context.Background())
+	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
 
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
@@ -694,7 +694,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.Equal(t, "Canceled", history[0].Payment.Status)
 	}
 
-	tcs[0].Srv.walletState.RefreshAll(context.Background())
+	tcs[0].Srv.walletState.RefreshAll(tcs[0].MetaContext(), "test")
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -764,8 +764,8 @@ func testRelayReset(t *testing.T, yank bool) {
 		claimant = 0
 	}
 
-	tcs[claimant].Srv.walletState.RefreshAll(context.Background())
-	tcs[claimant].Srv.walletState.DumpToLog(context.Background())
+	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	tcs[claimant].Srv.walletState.DumpToLog(tcs[claimant].MetaContext())
 
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
@@ -1139,7 +1139,9 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
 	// try to make it accessible on all devices, which shouldn't work
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+		AccountID: a1,
+	})
 	aerr, ok = err.(libkb.AppStatusError)
 	if !ok {
 		t.Fatalf("invalid error type %T", err)
@@ -1231,7 +1233,9 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// make it accessible on all devices
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)

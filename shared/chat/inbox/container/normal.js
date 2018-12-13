@@ -26,29 +26,28 @@ const splitMetas = memoize1((metaMap: Types.MetaMap) => {
   return {bigMetas, smallMetas}
 })
 
-const smallMetasEqual = (la, lb) => {
-  if (typeof la === 'boolean') return la === lb
-  return (
-    la.length === lb.length &&
-    la.every((a, idx) => {
-      const b = lb[idx]
-      return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
-    })
-  )
-}
 const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
-const getSmallRows = memoize2((smallMetas, showAllSmallRows) => {
-  let metas
-  if (showAllSmallRows) {
-    metas = smallMetas.sort(sortByTimestamp)
-  } else {
-    metas = I.Seq(smallMetas)
-      .sort(sortByTimestamp)
-      .take(smallTeamsCollapsedMaxShown)
-      .toArray()
-  }
-  return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
-}, smallMetasEqual)
+const getSmallRows = memoize2(
+  (smallMetas, showAllSmallRows) => {
+    let metas
+    if (showAllSmallRows) {
+      metas = smallMetas.sort(sortByTimestamp)
+    } else {
+      metas = I.Seq(smallMetas)
+        .sort(sortByTimestamp)
+        .take(smallTeamsCollapsedMaxShown)
+        .toArray()
+    }
+    return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
+  },
+  (newMetas, oldMetas) =>
+    newMetas.length === oldMetas.length &&
+    newMetas.every((a, idx) => {
+      const b = oldMetas[idx]
+      return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
+    }),
+  undefined
+)
 
 const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
@@ -74,12 +73,12 @@ const getBigRows = memoize1(
       return arr
     }, [])
   },
-  (a, b) => shallowEqual(a, b)
+  (newMetas, oldMetas) => shallowEqual(newMetas, oldMetas)
 )
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize3(
+const getRowsAndMetadata = memoize3<Types.MetaMap, boolean, number, _>(
   (metaMap: Types.MetaMap, smallTeamsExpanded: boolean, inboxVersion: number) => {
     const {bigMetas, smallMetas} = splitMetas(metaMap)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
@@ -97,17 +96,9 @@ const getRowsAndMetadata = memoize3(
     }
   },
   // ignore changes to metaMap if inboxVersion is the same
-  (a, b) => {
-    if (typeof a === 'number') {
-      return a === b
-    }
-    // smallTeamsExpanded
-    if (typeof a === 'boolean') {
-      return a === b
-    }
-    // else treat everything else as equal
-    return true
-  }
+  (newMetaMap, oldMetaMap) => true,
+  (newExpanded, oldExpanded) => newExpanded === oldExpanded,
+  (newVersion, oldVersion) => newVersion === oldVersion
 )
 
 export default getRowsAndMetadata

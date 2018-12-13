@@ -52,14 +52,9 @@ const valuesCached = memoize3(
 // given the same inbox version give back the same metaMap
 const inboxVersionToMetaMap = memoize2(
   (inboxVersion, metaMap) => metaMap,
-  (a, b) => {
-    // custom equality, if inboxVersion is the same, treat it as the same
-    if (typeof a === 'number') {
-      return a === b
-    }
-    // ignore metaMap changes
-    return true
-  }
+  (oldVersion, newVersion) => oldVersion === newVersion,
+  // custom equality, if inboxVersion is the same, treat it as the same
+  (newMap, oldMap) => true
 )
 
 // A hack to store the username to avoid plumbing.

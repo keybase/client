@@ -23,18 +23,18 @@ type RequestStatusNotificationArg struct {
 }
 
 type AccountDetailsUpdateArg struct {
-	AccountID AccountID      `codec:"accountID" json:"accountID"`
-	Details   AccountDetails `codec:"details" json:"details"`
+	AccountID AccountID          `codec:"accountID" json:"accountID"`
+	Account   WalletAccountLocal `codec:"account" json:"account"`
 }
 
 type PendingPaymentsUpdateArg struct {
-	AccountID AccountID        `codec:"accountID" json:"accountID"`
-	Pending   []PaymentSummary `codec:"pending" json:"pending"`
+	AccountID AccountID             `codec:"accountID" json:"accountID"`
+	Pending   []PaymentOrErrorLocal `codec:"pending" json:"pending"`
 }
 
 type RecentPaymentsUpdateArg struct {
-	AccountID AccountID    `codec:"accountID" json:"accountID"`
-	FirstPage PaymentsPage `codec:"firstPage" json:"firstPage"`
+	AccountID AccountID         `codec:"accountID" json:"accountID"`
+	FirstPage PaymentsPageLocal `codec:"firstPage" json:"firstPage"`
 }
 
 type NotifyInterface interface {

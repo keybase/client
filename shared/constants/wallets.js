@@ -97,6 +97,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   lastSentXLM: false,
   linkExistingAccountError: '',
+  mobileOnlyMap: I.Map(),
   newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),

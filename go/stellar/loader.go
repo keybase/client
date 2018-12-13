@@ -3,6 +3,7 @@ package stellar
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -42,10 +43,10 @@ func NewLoader(g *libkb.GlobalContext) *Loader {
 		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
 		pmessages:    make(map[stellar1.PaymentID]chatMsg),
-		pqueue:       make(chan stellar1.PaymentID, 50),
+		pqueue:       make(chan stellar1.PaymentID, 100),
 		requests:     make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal),
 		rmessages:    make(map[stellar1.KeybaseRequestID]chatMsg),
-		rqueue:       make(chan stellar1.KeybaseRequestID, 50),
+		rqueue:       make(chan stellar1.KeybaseRequestID, 100),
 	}
 
 	go p.runPayments()
@@ -85,6 +86,11 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		return nil
 	}
 
+	if len(paymentID) == 0 {
+		m.CDebugf("LoadPayment called with empty paymentID for %s/%s", convID, msgID)
+		return nil
+	}
+
 	msg, ok := p.pmessages[paymentID]
 	// store the msg info if necessary
 	if !ok {
@@ -104,14 +110,14 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
-			p.pqueue <- paymentID
+			p.enqueuePayment(paymentID)
 		}
 
 		return info
 	}
 
 	// not found, need to load payment in background
-	p.pqueue <- paymentID
+	p.enqueuePayment(paymentID)
 
 	return nil
 }
@@ -128,8 +134,6 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 		m.CDebugf("loader shutdown, not loading request %s", requestID)
 		return nil
 	}
-
-	m.CDebugf("*************** loading %s", requestID)
 
 	msg, ok := p.rmessages[requestID]
 	// store the msg info if necessary
@@ -151,7 +155,7 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 	}
 
 	// always load request in background (even if found) to make sure stored value is up-to-date.
-	p.rqueue <- requestID
+	p.enqueueRequest(requestID)
 
 	return info
 }
@@ -163,7 +167,7 @@ func (p *Loader) UpdatePayment(ctx context.Context, paymentID stellar1.PaymentID
 		return
 	}
 
-	p.pqueue <- paymentID
+	p.enqueuePayment(paymentID)
 }
 
 // UpdateRequest schedules a load for requestID. Gregor status notification handlers
@@ -173,7 +177,7 @@ func (p *Loader) UpdateRequest(ctx context.Context, requestID stellar1.KeybaseRe
 		return
 	}
 
-	p.rqueue <- requestID
+	p.enqueueRequest(requestID)
 }
 
 func (p *Loader) Shutdown() error {
@@ -201,7 +205,12 @@ func (p *Loader) runRequests() {
 }
 
 func (p *Loader) loadPayment(id stellar1.PaymentID) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	m := libkb.NewMetaContext(ctx, p.G())
+	defer m.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
+
 	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
@@ -209,7 +218,6 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 		return
 	}
 
-	m := libkb.NewMetaContext(ctx, p.G())
 	oc := NewOwnAccountLookupCache(ctx, m.G())
 	summary, err := TransformPaymentSummaryGeneric(m, details.Summary, oc)
 	if err != nil {
@@ -225,8 +233,12 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 }
 
 func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	m := libkb.NewMetaContext(ctx, p.G())
+	defer m.CTraceTimed(fmt.Sprintf("loadRequest(%s)", id), func() error { return nil })()
+
 	s := getGlobal(p.G())
 	details, err := s.remoter.RequestDetails(ctx, id)
 	if err != nil {
@@ -328,4 +340,20 @@ func (p *Loader) sendRequestNotification(m libkb.MetaContext, id stellar1.Keybas
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiRequestInfo(m, details, msg)
 	p.G().NotifyRouter.HandleChatRequestInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
+}
+
+func (p *Loader) enqueuePayment(paymentID stellar1.PaymentID) {
+	select {
+	case p.pqueue <- paymentID:
+	default:
+		p.G().Log.Debug("stellar.Loader payment queue full")
+	}
+}
+
+func (p *Loader) enqueueRequest(requestID stellar1.KeybaseRequestID) {
+	select {
+	case p.rqueue <- requestID:
+	default:
+		p.G().Log.Debug("stellar.Loader request queue full")
+	}
 }

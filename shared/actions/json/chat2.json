@@ -19,6 +19,7 @@
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'extension'", // from a notification from iOS share extension
+        "'files'", // from the Files tab
         "'findNewestConversation'", // find a new chat to select
         "'inboxBig'", // inbox row
         "'inboxFilterArrow'", // arrow keys in inbox filter
