@@ -19,6 +19,7 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -62,13 +63,16 @@
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/badges" : {
+      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -76,10 +80,12 @@
    "github.com/keybase/client/go/chat" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/chat/attachments" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -96,6 +102,7 @@
       "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
       "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/emails" : 1,
@@ -118,6 +125,7 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/chat/msgchecker" : {
+      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -133,6 +141,7 @@
       "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
       "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/emails" : 1,
@@ -152,6 +161,71 @@
       "github.com/keybase/client/go/tlfupgrade" : 1
    },
    "github.com/keybase/client/go/chat/s3" : {
+      "github.com/keybase/client/go/avatars" : 1,
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/globals" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
+      "github.com/keybase/client/go/chat/signencrypt" : 1,
+      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
+      "github.com/keybase/client/go/chat/storage" : 1,
+      "github.com/keybase/client/go/chat/types" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
+      "github.com/keybase/client/go/chat/unfurl/display" : 1,
+      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
+      "github.com/keybase/client/go/chat/wallet" : 1,
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/emails" : 1,
+      "github.com/keybase/client/go/ephemeral" : 1,
+      "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/kbtest" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/saltpackkeys" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/relays" : 1,
+      "github.com/keybase/client/go/stellar/stellargregor" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
+      "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/teamchain" : 1
+   },
+   "github.com/keybase/client/go/chat/search" : {
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/chat/signencrypt" : {
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
+      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/chat/storage" : {
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
+      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/wallet" : 1,
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/chat/types" : {
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
@@ -185,62 +259,9 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
-   "github.com/keybase/client/go/chat/search" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/chat/signencrypt" : {
-      "github.com/keybase/client/go/chat" : 1,
-      "github.com/keybase/client/go/chat/unfurl" : 1,
-      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/chat/storage" : {
-      "github.com/keybase/client/go/chat" : 1,
-      "github.com/keybase/client/go/chat/unfurl" : 1,
-      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/chat/types" : {
-      "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/chat" : 1,
-      "github.com/keybase/client/go/chat/attachments" : 1,
-      "github.com/keybase/client/go/chat/search" : 1,
-      "github.com/keybase/client/go/chat/signencrypt" : 1,
-      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
-      "github.com/keybase/client/go/chat/storage" : 1,
-      "github.com/keybase/client/go/chat/unfurl" : 1,
-      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
-      "github.com/keybase/client/go/chat/utils" : 1,
-      "github.com/keybase/client/go/chat/wallet" : 1,
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/emails" : 1,
-      "github.com/keybase/client/go/ephemeral" : 1,
-      "github.com/keybase/client/go/erasablekv" : 1,
-      "github.com/keybase/client/go/git" : 1,
-      "github.com/keybase/client/go/home" : 1,
-      "github.com/keybase/client/go/kbtest" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/phonenumbers" : 1,
-      "github.com/keybase/client/go/saltpackkeys" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1,
-      "github.com/keybase/client/go/teams" : 1,
-      "github.com/keybase/client/go/tlfupgrade" : 1,
-      "github.com/keybase/client/go/tools/teamchain" : 1
-   },
    "github.com/keybase/client/go/chat/unfurl" : {
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -256,6 +277,7 @@
       "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
       "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/emails" : 1,
@@ -279,6 +301,7 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
+      "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
       "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
@@ -290,6 +313,7 @@
       "github.com/keybase/client/go/erasablekv" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
@@ -301,19 +325,28 @@
       "github.com/keybase/client/go/tlfupgrade" : 1
    },
    "github.com/keybase/client/go/chat/wallet" : {
+      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/client" : {
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/emails" : {
+      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/encrypteddb" : {
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
+      "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/chat/wallet" : 1,
@@ -328,6 +361,7 @@
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
@@ -346,6 +380,7 @@
       "github.com/keybase/client/go/erasablekv" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
@@ -360,6 +395,7 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/ephemeral" : {
+      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -368,6 +404,7 @@
    "github.com/keybase/client/go/erasablekv" : {
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/ephemeral" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -389,6 +426,7 @@
       "github.com/keybase/client/go/engine" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
       "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/externalstest" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
@@ -408,6 +446,7 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
+      "github.com/keybase/client/go/kbfs/tlf" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -426,12 +465,17 @@
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/storage" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
+      "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/emails" : 1,
+      "github.com/keybase/client/go/engine" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
       "github.com/keybase/client/go/erasablekv" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -442,12 +486,14 @@
       "github.com/keybase/client/go/tlfupgrade" : 1
    },
    "github.com/keybase/client/go/flexibletable" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/git" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/gregor" : {
@@ -520,6 +566,7 @@
       "github.com/keybase/client/go/pinentry" : 1,
       "github.com/keybase/client/go/profiling" : 1,
       "github.com/keybase/client/go/protocol/chat1" : 1,
+      "github.com/keybase/client/go/protocol/gregor1" : 1,
       "github.com/keybase/client/go/protocol/keybase1" : 1,
       "github.com/keybase/client/go/protocol/stellar1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
@@ -542,6 +589,7 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/gregor/client" : {
+      "github.com/keybase/client/go/badges" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -554,16 +602,19 @@
    "github.com/keybase/client/go/gregor/storage" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/home" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/install" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/jsonhelpers" : {
@@ -619,6 +670,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -694,6 +746,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -769,6 +822,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -844,6 +898,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -867,79 +922,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/kbfs/cache" : {
-      "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/chat" : 1,
-      "github.com/keybase/client/go/chat/attachments" : 1,
-      "github.com/keybase/client/go/chat/search" : 1,
-      "github.com/keybase/client/go/chat/signencrypt" : 1,
-      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
-      "github.com/keybase/client/go/chat/storage" : 1,
-      "github.com/keybase/client/go/chat/unfurl" : 1,
-      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
-      "github.com/keybase/client/go/chat/utils" : 1,
-      "github.com/keybase/client/go/chat/wallet" : 1,
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/emails" : 1,
-      "github.com/keybase/client/go/ephemeral" : 1,
-      "github.com/keybase/client/go/erasablekv" : 1,
-      "github.com/keybase/client/go/git" : 1,
-      "github.com/keybase/client/go/home" : 1,
-      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
-      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
-      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
-      "github.com/keybase/client/go/kbfs/libdokan" : 1,
-      "github.com/keybase/client/go/kbfs/libfs" : 1,
-      "github.com/keybase/client/go/kbfs/libgit" : 1,
-      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
-      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
-      "github.com/keybase/client/go/kbfs/libpages" : 1,
-      "github.com/keybase/client/go/kbfs/simplefs" : 1,
-      "github.com/keybase/client/go/kbfs/test" : 1,
-      "github.com/keybase/client/go/kbfs/tlf" : 1,
-      "github.com/keybase/client/go/kbtest" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/phonenumbers" : 1,
-      "github.com/keybase/client/go/saltpackkeys" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1,
-      "github.com/keybase/client/go/teams" : 1,
-      "github.com/keybase/client/go/tlfupgrade" : 1,
-      "github.com/keybase/client/go/tools/teamchain" : 1
-   },
-   "github.com/keybase/client/go/kbfs/dokan" : {
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1
-   },
-   "github.com/keybase/client/go/kbfs/dokan/winacl" : {
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/libdokan" : 1
-   },
-   "github.com/keybase/client/go/kbfs/env" : {
-      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
-      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
-      "github.com/keybase/client/go/kbfs/libdokan" : 1,
-      "github.com/keybase/client/go/kbfs/libfs" : 1,
-      "github.com/keybase/client/go/kbfs/libgit" : 1,
-      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
-      "github.com/keybase/client/go/kbfs/libpages" : 1,
-      "github.com/keybase/client/go/kbfs/simplefs" : 1,
-      "github.com/keybase/client/go/kbfs/test" : 1
-   },
-   "github.com/keybase/client/go/kbfs/ioutil" : {
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
@@ -991,6 +973,88 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
+   "github.com/keybase/client/go/kbfs/dokan" : {
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1
+   },
+   "github.com/keybase/client/go/kbfs/dokan/winacl" : {
+      "github.com/keybase/client/go/kbfs/dokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1
+   },
+   "github.com/keybase/client/go/kbfs/env" : {
+      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfs" : 1,
+      "github.com/keybase/client/go/kbfs/libgit" : 1,
+      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/simplefs" : 1,
+      "github.com/keybase/client/go/kbfs/test" : 1
+   },
+   "github.com/keybase/client/go/kbfs/fsrpc" : {
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1
+   },
+   "github.com/keybase/client/go/kbfs/ioutil" : {
+      "github.com/keybase/client/go/avatars" : 1,
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
+      "github.com/keybase/client/go/chat/signencrypt" : 1,
+      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
+      "github.com/keybase/client/go/chat/storage" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
+      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
+      "github.com/keybase/client/go/chat/wallet" : 1,
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/emails" : 1,
+      "github.com/keybase/client/go/ephemeral" : 1,
+      "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/kbfs/dokan" : 1,
+      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscodec" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfshash" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfs" : 1,
+      "github.com/keybase/client/go/kbfs/libgit" : 1,
+      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/simplefs" : 1,
+      "github.com/keybase/client/go/kbfs/test" : 1,
+      "github.com/keybase/client/go/kbfs/tlf" : 1,
+      "github.com/keybase/client/go/kbtest" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/saltpackkeys" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/relays" : 1,
+      "github.com/keybase/client/go/stellar/stellargregor" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
+      "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/teamchain" : 1
+   },
    "github.com/keybase/client/go/kbfs/kbfsblock" : {
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -1002,6 +1066,7 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
@@ -1026,10 +1091,12 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfshash" : 1,
       "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
@@ -1091,6 +1158,7 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
+      "github.com/keybase/client/go/kbfs/tlf" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1116,9 +1184,13 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
+   },
+   "github.com/keybase/client/go/kbfs/kbfsgit" : {
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1
    },
    "github.com/keybase/client/go/kbfs/kbfshash" : {
       "github.com/keybase/client/go/avatars" : 1,
@@ -1140,6 +1212,7 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -1173,6 +1246,7 @@
    "github.com/keybase/client/go/kbfs/kbfsmd" : {
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
@@ -1197,31 +1271,15 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
    },
+   "github.com/keybase/client/go/kbfs/libdokan" : {
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1
+   },
    "github.com/keybase/client/go/kbfs/libfs" : {
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
-      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
-      "github.com/keybase/client/go/kbfs/libdokan" : 1,
-      "github.com/keybase/client/go/kbfs/libpages" : 1,
-      "github.com/keybase/client/go/kbfs/simplefs" : 1
-   },
-   "github.com/keybase/client/go/kbfs/libgit" : {
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1
-   },
-   "github.com/keybase/client/go/kbfs/libhttpserver" : {
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
-      "github.com/keybase/client/go/kbfs/libdokan" : 1
-   },
-   "github.com/keybase/client/go/kbfs/libkbfs" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
@@ -1234,14 +1292,51 @@
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
    },
-   "github.com/keybase/client/go/kbfs/libmime" : {
+   "github.com/keybase/client/go/kbfs/libgit" : {
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1
+   },
+   "github.com/keybase/client/go/kbfs/libhttpserver" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1
    },
-   "github.com/keybase/client/go/kbfs/libpages/config" : {
+   "github.com/keybase/client/go/kbfs/libkbfs" : {
+      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfs" : 1,
+      "github.com/keybase/client/go/kbfs/libgit" : 1,
+      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/simplefs" : 1,
+      "github.com/keybase/client/go/kbfs/test" : 1
+   },
+   "github.com/keybase/client/go/kbfs/libmime" : {
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/simplefs" : 1
+   },
+   "github.com/keybase/client/go/kbfs/libpages" : {
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1
+   },
+   "github.com/keybase/client/go/kbfs/libpages/config" : {
+      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/kbfs/metricsutil" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -1250,6 +1345,7 @@
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
@@ -1267,12 +1363,19 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
    },
    "github.com/keybase/client/go/kbfs/simplefs" : {
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1
+   },
+   "github.com/keybase/client/go/kbfs/stderrutils" : {
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1
    },
    "github.com/keybase/client/go/kbfs/tlf" : {
       "github.com/keybase/client/go/avatars" : 1,
@@ -1284,6 +1387,7 @@
       "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
       "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/emails" : 1,
@@ -1292,10 +1396,12 @@
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
@@ -1373,6 +1479,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1396,7 +1503,30 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/kbnm/hostmanifest" : {
+      "github.com/keybase/client/go/kbnm" : 1,
+      "github.com/keybase/client/go/kbnm/installer" : 1
+   },
+   "github.com/keybase/client/go/kbnm/installer" : {
       "github.com/keybase/client/go/kbnm" : 1
+   },
+   "github.com/keybase/client/go/kbtest" : {
+      "github.com/keybase/client/go/avatars" : 1,
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/storage" : 1,
+      "github.com/keybase/client/go/emails" : 1,
+      "github.com/keybase/client/go/ephemeral" : 1,
+      "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/saltpackkeys" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
+      "github.com/keybase/client/go/tlfupgrade" : 1
    },
    "github.com/keybase/client/go/kbun" : {
       "github.com/keybase/client/go/auth" : 1,
@@ -1451,6 +1581,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1526,6 +1657,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1551,68 +1683,10 @@
    "github.com/keybase/client/go/libcmdline" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/libkb" : {
-      "github.com/keybase/client/go/avatars" : 1,
-      "github.com/keybase/client/go/chat" : 1,
-      "github.com/keybase/client/go/chat/attachments" : 1,
-      "github.com/keybase/client/go/chat/globals" : 1,
-      "github.com/keybase/client/go/chat/search" : 1,
-      "github.com/keybase/client/go/chat/signencrypt" : 1,
-      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
-      "github.com/keybase/client/go/chat/storage" : 1,
-      "github.com/keybase/client/go/chat/unfurl" : 1,
-      "github.com/keybase/client/go/chat/unfurl/display" : 1,
-      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
-      "github.com/keybase/client/go/chat/utils" : 1,
-      "github.com/keybase/client/go/chat/wallet" : 1,
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/emails" : 1,
-      "github.com/keybase/client/go/engine" : 1,
-      "github.com/keybase/client/go/ephemeral" : 1,
-      "github.com/keybase/client/go/erasablekv" : 1,
-      "github.com/keybase/client/go/externals" : 1,
-      "github.com/keybase/client/go/externalstest" : 1,
-      "github.com/keybase/client/go/git" : 1,
-      "github.com/keybase/client/go/home" : 1,
-      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
-      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
-      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
-      "github.com/keybase/client/go/kbfs/libdokan" : 1,
-      "github.com/keybase/client/go/kbfs/libfs" : 1,
-      "github.com/keybase/client/go/kbfs/libgit" : 1,
-      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
-      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
-      "github.com/keybase/client/go/kbfs/libpages" : 1,
-      "github.com/keybase/client/go/kbfs/simplefs" : 1,
-      "github.com/keybase/client/go/kbfs/test" : 1,
-      "github.com/keybase/client/go/kbfs/tlf" : 1,
-      "github.com/keybase/client/go/kbtest" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/phonenumbers" : 1,
-      "github.com/keybase/client/go/pvl" : 1,
-      "github.com/keybase/client/go/saltpackkeys" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/acctbundle" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/remote" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1,
-      "github.com/keybase/client/go/teams" : 1,
-      "github.com/keybase/client/go/tlfupgrade" : 1,
-      "github.com/keybase/client/go/tools/teamchain" : 1
-   },
-   "github.com/keybase/client/go/logger" : {
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/badges" : 1,
@@ -1652,7 +1726,6 @@
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
-      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
       "github.com/keybase/client/go/kbfs/libfs" : 1,
@@ -1666,7 +1739,6 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
-      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1689,7 +1761,90 @@
       "github.com/keybase/client/go/tools/winresource" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
+   "github.com/keybase/client/go/logger" : {
+      "github.com/keybase/client/go/auth" : 1,
+      "github.com/keybase/client/go/avatars" : 1,
+      "github.com/keybase/client/go/badges" : 1,
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
+      "github.com/keybase/client/go/chat/globals" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
+      "github.com/keybase/client/go/chat/signencrypt" : 1,
+      "github.com/keybase/client/go/chat/signencrypt/example" : 1,
+      "github.com/keybase/client/go/chat/storage" : 1,
+      "github.com/keybase/client/go/chat/types" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
+      "github.com/keybase/client/go/chat/unfurl/display" : 1,
+      "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
+      "github.com/keybase/client/go/chat/wallet" : 1,
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/emails" : 1,
+      "github.com/keybase/client/go/encrypteddb" : 1,
+      "github.com/keybase/client/go/engine" : 1,
+      "github.com/keybase/client/go/ephemeral" : 1,
+      "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/externals" : 1,
+      "github.com/keybase/client/go/externalstest" : 1,
+      "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/gregor/client" : 1,
+      "github.com/keybase/client/go/gregor/storage" : 1,
+      "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/install" : 1,
+      "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/kbfs/env" : 1,
+      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfs" : 1,
+      "github.com/keybase/client/go/kbfs/libgit" : 1,
+      "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/simplefs" : 1,
+      "github.com/keybase/client/go/kbfs/test" : 1,
+      "github.com/keybase/client/go/kbfs/tlf" : 1,
+      "github.com/keybase/client/go/kbhttp" : 1,
+      "github.com/keybase/client/go/kbtest" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
+      "github.com/keybase/client/go/lru" : 1,
+      "github.com/keybase/client/go/merklestore" : 1,
+      "github.com/keybase/client/go/minterm" : 1,
+      "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/pinentry" : 1,
+      "github.com/keybase/client/go/profiling" : 1,
+      "github.com/keybase/client/go/pvl" : 1,
+      "github.com/keybase/client/go/saltpackkeys" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/acctbundle" : 1,
+      "github.com/keybase/client/go/stellar/bundle" : 1,
+      "github.com/keybase/client/go/stellar/relays" : 1,
+      "github.com/keybase/client/go/stellar/remote" : 1,
+      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
+      "github.com/keybase/client/go/stellar/stellargregor" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
+      "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/sigchain" : 1,
+      "github.com/keybase/client/go/tools/teamchain" : 1,
+      "github.com/keybase/client/go/tools/winresource" : 1,
+      "github.com/keybase/client/go/uidmap" : 1
+   },
    "github.com/keybase/client/go/lru" : {
+      "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
@@ -1748,6 +1903,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
@@ -1760,15 +1916,20 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/minterm" : {
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/phonenumbers" : {
+      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/pinentry" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
@@ -1825,6 +1986,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1854,6 +2016,8 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/globals" : 1,
+      "github.com/keybase/client/go/chat/msgchecker" : 1,
+      "github.com/keybase/client/go/chat/pager" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -1873,6 +2037,7 @@
       "github.com/keybase/client/go/externals" : 1,
       "github.com/keybase/client/go/externalstest" : 1,
       "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/gregor/client" : 1,
       "github.com/keybase/client/go/gregor/storage" : 1,
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
@@ -1900,6 +2065,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -1992,6 +2158,7 @@
       "github.com/keybase/client/go/pinentry" : 1,
       "github.com/keybase/client/go/profiling" : 1,
       "github.com/keybase/client/go/protocol/chat1" : 1,
+      "github.com/keybase/client/go/protocol/keybase1" : 1,
       "github.com/keybase/client/go/protocol/stellar1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
@@ -2045,6 +2212,8 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/jsonhelpers" : 1,
+      "github.com/keybase/client/go/kbcrypto" : 1,
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
@@ -2068,9 +2237,11 @@
       "github.com/keybase/client/go/kbfs/tlf" : 1,
       "github.com/keybase/client/go/kbhttp" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
+      "github.com/keybase/client/go/kex2" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/libkb" : 1,
+      "github.com/keybase/client/go/logger" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/minterm" : 1,
@@ -2078,6 +2249,7 @@
       "github.com/keybase/client/go/pinentry" : 1,
       "github.com/keybase/client/go/profiling" : 1,
       "github.com/keybase/client/go/protocol/chat1" : 1,
+      "github.com/keybase/client/go/protocol/stellar1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2157,6 +2329,7 @@
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/protocol/chat1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2193,6 +2366,7 @@
       "github.com/keybase/client/go/engine" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
       "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/externals" : 1,
       "github.com/keybase/client/go/externalstest" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
@@ -2229,37 +2403,26 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/qrcode" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/saltpackkeys" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+   "github.com/keybase/client/go/saltpackkeystest" : {
+      "github.com/keybase/client/go/engine" : 1,
+      "github.com/keybase/client/go/libkb" : 1
+   },
    "github.com/keybase/client/go/service" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/slotctx" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/spotty" : {
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/stellar" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/stellar/acctbundle" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2268,7 +2431,20 @@
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
-   "github.com/keybase/client/go/stellar/bundle" : {
+   "github.com/keybase/client/go/spotty" : {
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/stellar" : {
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar/stellargregor" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/stellar/acctbundle" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -2278,10 +2454,22 @@
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+   "github.com/keybase/client/go/stellar/bundle" : {
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/acctbundle" : 1,
+      "github.com/keybase/client/go/stellar/remote" : 1,
+      "github.com/keybase/client/go/stellar/stellargregor" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1
+   },
    "github.com/keybase/client/go/stellar/relays" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -2290,6 +2478,7 @@
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -2299,6 +2488,7 @@
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/relays" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -2306,11 +2496,13 @@
    "github.com/keybase/client/go/stellar/stellargregor" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/stellar/stellarsvc" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/systemd" : {
@@ -2366,6 +2558,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -2391,20 +2584,28 @@
    "github.com/keybase/client/go/teams" : {
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/ephemeral" : 1,
+      "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
+      "github.com/keybase/client/go/stellar/relays" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/terminalescaper" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/tlfupgrade" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/uidmap" : {
@@ -2420,6 +2621,7 @@
       "github.com/keybase/client/go/engine" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
       "github.com/keybase/client/go/erasablekv" : 1,
+      "github.com/keybase/client/go/externalstest" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
@@ -2448,6 +2650,7 @@
    },
    "github.com/keybase/client/go/vendor/camlistore.org/pkg/images" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
@@ -2537,6 +2740,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -2688,12 +2892,14 @@
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/araddon/dateparse" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
@@ -2764,6 +2970,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -2839,6 +3046,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -2891,6 +3099,7 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/jsonparserw" : 1,
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
@@ -3026,12 +3235,17 @@
    },
    "github.com/keybase/client/go/vendor/github.com/deckarep/golang-set" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+   "github.com/keybase/client/go/vendor/github.com/docopt/docopt-go" : {
+      "github.com/keybase/client/go/chat/signencrypt/example" : 1
+   },
    "github.com/keybase/client/go/vendor/github.com/dustin/go-humanize" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
@@ -3046,6 +3260,7 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
@@ -3153,6 +3368,7 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
@@ -3164,6 +3380,7 @@
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
@@ -3289,6 +3506,7 @@
    },
    "github.com/keybase/client/go/vendor/github.com/gocolly/colly" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -3331,6 +3549,7 @@
       "github.com/keybase/client/go/erasablekv" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
+      "github.com/keybase/client/go/kbfs/cache" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
       "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
@@ -3369,6 +3588,7 @@
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -3393,6 +3613,7 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscodec" : 1,
       "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
@@ -3512,6 +3733,7 @@
    },
    "github.com/keybase/client/go/vendor/github.com/gonutz/w32" : {
       "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -3569,6 +3791,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -3600,6 +3823,9 @@
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1
+   },
+   "github.com/keybase/client/go/vendor/github.com/josephspurrier/goversioninfo" : {
+      "github.com/keybase/client/go/tools/winresource" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/kardianos/osext" : {
       "github.com/keybase/client/go/auth" : 1,
@@ -3651,9 +3877,11 @@
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
+      "github.com/keybase/client/go/kbnm" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -3791,6 +4019,7 @@
    "github.com/keybase/client/go/vendor/github.com/keybase/cli" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
@@ -3822,6 +4051,7 @@
       "github.com/keybase/client/go/externals" : 1,
       "github.com/keybase/client/go/externalstest" : 1,
       "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/gregor" : 1,
       "github.com/keybase/client/go/gregor/client" : 1,
       "github.com/keybase/client/go/gregor/storage" : 1,
       "github.com/keybase/client/go/home" : 1,
@@ -3924,6 +4154,7 @@
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscodec" : 1,
       "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
@@ -4240,6 +4471,7 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/kbcrypto" : 1,
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
@@ -4281,6 +4513,7 @@
       "github.com/keybase/client/go/systests" : 1,
       "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/naclkey" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/tools/winresource" : 1,
@@ -4417,6 +4650,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -4568,6 +4802,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -5050,6 +5285,7 @@
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/minterm" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-framed-msgpack-rpc/rpc" : {
@@ -5105,6 +5341,7 @@
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
       "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
@@ -5122,6 +5359,7 @@
       "github.com/keybase/client/go/pinentry" : 1,
       "github.com/keybase/client/go/profiling" : 1,
       "github.com/keybase/client/go/protocol/chat1" : 1,
+      "github.com/keybase/client/go/protocol/gregor1" : 1,
       "github.com/keybase/client/go/protocol/keybase1" : 1,
       "github.com/keybase/client/go/protocol/stellar1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
@@ -5306,6 +5544,7 @@
       "github.com/keybase/client/go/pinentry" : 1,
       "github.com/keybase/client/go/profiling" : 1,
       "github.com/keybase/client/go/protocol/chat1" : 1,
+      "github.com/keybase/client/go/protocol/keybase1" : 1,
       "github.com/keybase/client/go/protocol/stellar1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
@@ -5383,6 +5622,7 @@
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/libkb" : 1,
+      "github.com/keybase/client/go/logger" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/minterm" : 1,
@@ -5414,6 +5654,7 @@
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
@@ -5427,6 +5668,7 @@
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-porterstemmer" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -5492,6 +5734,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -5510,9 +5753,20 @@
       "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
+      "github.com/keybase/client/go/tools/ssss" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/tools/winresource" : 1,
       "github.com/keybase/client/go/uidmap" : 1
+   },
+   "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec-insecure" : {
+      "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/storage" : 1,
+      "github.com/keybase/client/go/engine" : 1,
+      "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/saltpackkeys" : 1,
+      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec/sha3" : {
       "github.com/keybase/client/go/auth" : 1,
@@ -5593,11 +5847,13 @@
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-updater/process" : {
       "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-updater/watchdog" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
@@ -5654,6 +5910,8 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
+      "github.com/keybase/client/go/libkb/testfixtures/kb_pipetest_server" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -5671,6 +5929,7 @@
       "github.com/keybase/client/go/systests" : 1,
       "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/runquiet" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/tools/winresource" : 1,
@@ -5678,12 +5937,16 @@
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/golang-ico" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
+   },
+   "github.com/keybase/client/go/vendor/github.com/keybase/keybase-test-vectors/go" : {
+      "github.com/keybase/client/go/libkb" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/msgpackzip" : {
       "github.com/keybase/client/go/auth" : 1,
@@ -5791,6 +6054,7 @@
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
@@ -5853,6 +6117,7 @@
       "github.com/keybase/client/go/phonenumbers" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
+      "github.com/keybase/client/go/saltpackkeystest" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/acctbundle" : 1,
@@ -5882,12 +6147,14 @@
       "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/emails" : 1,
+      "github.com/keybase/client/go/engine" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
       "github.com/keybase/client/go/erasablekv" : 1,
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -5898,6 +6165,7 @@
       "github.com/keybase/client/go/systests" : 1,
       "github.com/keybase/client/go/teams" : 1,
       "github.com/keybase/client/go/tlfupgrade" : 1,
+      "github.com/keybase/client/go/tools/ssss" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/saltpack/encoding/basex" : {
@@ -6136,11 +6404,13 @@
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/relays" : 1,
+      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/kr/text" : {
+      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
@@ -6364,6 +6634,7 @@
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/libkb" : 1,
+      "github.com/keybase/client/go/logger" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/minterm" : 1,
@@ -6431,6 +6702,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
@@ -6454,6 +6726,7 @@
    },
    "github.com/keybase/client/go/vendor/github.com/mvdan/xurls" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -6472,6 +6745,7 @@
    },
    "github.com/keybase/client/go/vendor/github.com/nfnt/resize" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
@@ -6595,9 +6869,11 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/jsonparserw" : 1,
       "github.com/keybase/client/go/kbfs/dokan" : 1,
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
+      "github.com/keybase/client/go/kbfs/ioutil" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
       "github.com/keybase/client/go/kbfs/kbfscodec" : 1,
       "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
@@ -6607,6 +6883,7 @@
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfshash" : 1,
       "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
+      "github.com/keybase/client/go/kbfs/kbfssync" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
@@ -6731,6 +7008,9 @@
       "github.com/keybase/client/go/tools/winresource" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
+   "github.com/keybase/client/go/vendor/github.com/qrtz/nativemessaging" : {
+      "github.com/keybase/client/go/kbnm" : 1
+   },
    "github.com/keybase/client/go/vendor/github.com/rcrowley/go-metrics" : {
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -6742,7 +7022,9 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/metricsutil" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
    },
@@ -6780,6 +7062,7 @@
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
@@ -6812,6 +7095,7 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
@@ -6857,7 +7141,8 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stathat/go" : {
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/address" : {
       "github.com/keybase/client/go/client" : 1,
@@ -6894,6 +7179,7 @@
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/stellar" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -7058,6 +7344,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -7467,9 +7754,13 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/jsonhelpers" : 1,
+      "github.com/keybase/client/go/jsonparserw" : 1,
+      "github.com/keybase/client/go/kbcrypto" : 1,
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
+      "github.com/keybase/client/go/kbfs/kbfscodec" : 1,
       "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsedits" : 1,
@@ -7477,7 +7768,9 @@
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfshash" : 1,
       "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
+      "github.com/keybase/client/go/kbfs/kbfssync" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
       "github.com/keybase/client/go/kbfs/libfs" : 1,
@@ -7485,15 +7778,20 @@
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
       "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/libpages/config" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
+      "github.com/keybase/client/go/kbhttp" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
+      "github.com/keybase/client/go/logger" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/protocol/keybase1" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -7566,6 +7864,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -8433,6 +8732,9 @@
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+   "github.com/keybase/client/go/vendor/github.com/urfave/cli" : {
+      "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1
+   },
    "github.com/keybase/client/go/vendor/github.com/vividcortex/ewma" : {
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -8444,6 +8746,7 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
@@ -8467,7 +8770,8 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/go.uber.org/zap" : {
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/go.uber.org/zap/buffer" : {
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
@@ -8504,12 +8808,14 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/acme/autocert" : {
-      "github.com/keybase/client/go/kbfs/kbpagesd" : 1
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/bcrypt" : {
       "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
-      "github.com/keybase/client/go/kbfs/libpages" : 1
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/libpages/config" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/blowfish" : {
       "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
@@ -8908,6 +9214,7 @@
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
+      "github.com/keybase/client/go/kex2" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/libkb" : 1,
@@ -9204,6 +9511,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -9625,6 +9933,7 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
+      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -9644,6 +9953,7 @@
       "github.com/keybase/client/go/externals" : 1,
       "github.com/keybase/client/go/externalstest" : 1,
       "github.com/keybase/client/go/git" : 1,
+      "github.com/keybase/client/go/gregor" : 1,
       "github.com/keybase/client/go/gregor/client" : 1,
       "github.com/keybase/client/go/gregor/storage" : 1,
       "github.com/keybase/client/go/home" : 1,
@@ -9660,6 +9970,7 @@
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
       "github.com/keybase/client/go/kbfs/kbfsmd" : 1,
+      "github.com/keybase/client/go/kbfs/kbfssync" : 1,
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
@@ -9762,6 +10073,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -9963,6 +10275,7 @@
    },
    "github.com/keybase/client/go/vendor/golang.org/x/net/publicsuffix" : {
       "github.com/keybase/client/go/chat" : 1,
+      "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
@@ -9980,6 +10293,7 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
@@ -10037,6 +10351,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -10090,6 +10405,7 @@
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/kbfs/dokan" : 1,
       "github.com/keybase/client/go/kbfs/env" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
@@ -10109,6 +10425,7 @@
       "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
+      "github.com/keybase/client/go/kbfs/stderrutils" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
       "github.com/keybase/client/go/kbhttp" : 1,
@@ -10117,6 +10434,7 @@
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/libkb/testfixtures/kb_pipetest_server" : 1,
+      "github.com/keybase/client/go/logger" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/minterm" : 1,
@@ -10194,13 +10512,16 @@
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
       "github.com/keybase/client/go/kbnm" : 1,
+      "github.com/keybase/client/go/kbnm/hostmanifest" : 1,
       "github.com/keybase/client/go/kbnm/installer" : 1,
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
+      "github.com/keybase/client/go/pinentry" : 1,
       "github.com/keybase/client/go/pvl" : 1,
       "github.com/keybase/client/go/saltpackkeys" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -10309,6 +10630,7 @@
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
       "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -10409,7 +10731,9 @@
       "github.com/keybase/client/go/kbfs/libfs" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libhttpserver" : 1,
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/libpages/config" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
    },
@@ -10486,6 +10810,7 @@
       "github.com/keybase/client/go/chat/storage" : 1,
       "github.com/keybase/client/go/chat/unfurl" : 1,
       "github.com/keybase/client/go/chat/unfurl/scraper" : 1,
+      "github.com/keybase/client/go/chat/utils" : 1,
       "github.com/keybase/client/go/chat/wallet" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/emails" : 1,
@@ -10544,6 +10869,9 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1
    },
+   "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/memfs" : {
+      "github.com/keybase/client/go/kbfs/libkbfs" : 1
+   },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/osfs" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
@@ -10552,7 +10880,8 @@
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
-      "github.com/keybase/client/go/kbfs/libpages" : 1
+      "github.com/keybase/client/go/kbfs/libpages" : 1,
+      "github.com/keybase/client/go/kbfs/simplefs" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-billy.v4/util" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -10572,6 +10901,7 @@
       "github.com/keybase/client/go/kbfs/kbfstool" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
       "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/config" : {
@@ -11027,6 +11357,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -11052,6 +11383,7 @@
    "github.com/keybase/client/go/vendor/rsc.io/qr" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/qrcode" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/rsc.io/qr/coding" : {
@@ -11119,6 +11451,7 @@
       "github.com/keybase/client/go/kbtest" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
+      "github.com/keybase/client/go/libkb" : 1,
       "github.com/keybase/client/go/lru" : 1,
       "github.com/keybase/client/go/merklestore" : 1,
       "github.com/keybase/client/go/phonenumbers" : 1,
@@ -11150,7 +11483,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11251,7 +11583,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11352,7 +11683,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11453,7 +11783,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11554,7 +11883,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11655,7 +11983,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11756,7 +12083,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11857,7 +12183,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -11958,7 +12283,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -12059,7 +12383,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -12160,7 +12483,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -12261,7 +12583,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -12362,7 +12683,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,
@@ -12463,7 +12783,6 @@
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
-      "github.com/keybase/client/go/chat/s3" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
       "github.com/keybase/client/go/chat/signencrypt/example" : 1,

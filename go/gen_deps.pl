@@ -5,6 +5,7 @@ use 5.010;
 
 use Data::Dumper qw(Dumper);
 use JSON::PP qw(encode_json);
+use List::MoreUtils qw(uniq);
 
 my $dep_packages = {};
 my @oses = ('linux', 'darwin', 'windows');
@@ -31,16 +32,15 @@ foreach my $os (@oses) {
         printf STDERR ("%d of %d complete (%.0f%%)", $i, $total_packages, $percent_complete);
 
         # This should include vendored dependencies.
-        my @deps = split /\n/, `go list -f '{{ print (join .TestImports "\\n") "\\n" (join .Imports "\\n") }}' "$package" 2>/dev/null | xargs go list -f '{{ join .Deps "\\n" }}' 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
+        my @deps = split /\n/, `go list -f '{{ print (join .TestImports "\\n") "\\n" (join .Imports "\\n") }}' "$package" 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
+        my $deps = join(' ', @deps);
+        my @indirect_deps = split /\n/, `go list -f '{{ join .Deps "\\n" }}' $deps 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
+        push(@deps, @indirect_deps);
 
-        foreach my $dep (@deps) {
+        foreach my $dep (uniq @deps) {
             $dep_packages->{$os}->{$dep}->{$package} = 1;
         }
     }
-}
-say STDERR "";
-
-foreach my $os (@oses) {
     my $json_output = JSON::PP->new->utf8->pretty->canonical()->encode($dep_packages->{$os});
     open(my $fh, '>', ".go_package_deps_$os");
     print $fh "$json_output";
