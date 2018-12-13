@@ -110,10 +110,13 @@ class Input extends React.Component<InputProps, InputState> {
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
     if (this._input) {
-      this._input.transformText(() => ({
-        selection: {end: text.length, start: text.length},
-        text,
-      }))
+      this._input.transformText(
+        () => ({
+          selection: {end: text.length, start: text.length},
+          text,
+        }),
+        true
+      )
     }
 
     if (!skipUnsentSaving) {

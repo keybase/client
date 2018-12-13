@@ -196,7 +196,6 @@ class _PlatformInput extends PureComponent<
           <PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            autoFocus={true}
             placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
