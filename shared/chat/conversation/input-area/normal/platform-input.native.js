@@ -204,6 +204,7 @@ class _PlatformInput extends PureComponent<
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
             onChangeText={this._onChangeText}
+            onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
             style={styles.input}
             rowsMax={3}

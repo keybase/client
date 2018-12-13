@@ -176,10 +176,14 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _getUserSuggestions = filter =>
-    this.props.suggestUsers
-      .filter(user => user.username.includes(filter) || user.fullName.includes(filter))
+  _getUserSuggestions = filter => {
+    const fil = filter.toLowerCase()
+    return this.props.suggestUsers
+      .filter(
+        user => user.username.toLowerCase().includes(fil) || user.fullName.toLowerCase().includes(filter)
+      )
       .toArray()
+  }
 
   _renderUserSuggestion = ({username, fullName}: {username: string, fullName: string}, selected: boolean) => (
     <Kb.Box2
@@ -222,7 +226,10 @@ class Input extends React.Component<InputProps, InputState> {
     return {selection: {end: newSelection, start: newSelection}, text: newText}
   }
 
-  _getChannelSuggestions = filter => this.props.suggestChannels.filter(ch => ch.includes(filter)).toArray()
+  _getChannelSuggestions = filter => {
+    const fil = filter.toLowerCase()
+    return this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).toArray()
+  }
 
   _renderChannelSuggestion = (channelname: string, selected) => (
     <Kb.Box2
