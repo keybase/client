@@ -23,7 +23,7 @@ type FSNotifications struct {
 	// take no value and have no return value).
 	notifications channels.Channel
 
-	// notificationGroup can be used by tests to know when libfuse is
+	// notificationGroup can be used by tests to know when libfs is
 	// done processing asynchronous notifications.
 	notificationGroup sync.WaitGroup
 
@@ -89,7 +89,7 @@ func (f *FSNotifications) LaunchProcessor(ctx context.Context) {
 	f.log.CDebugf(ctx, "Launching notifications channel")
 	// The notifications channel needs to have "infinite" capacity,
 	// because otherwise we risk a deadlock between libkbfs and
-	// libfuse.  The notification processor sends invalidates to the
+	// libfs.  The notification processor sends invalidates to the
 	// kernel.  In osxfuse 3.X, the kernel can call back into userland
 	// during an invalidate (a GetAttr()) call, which in turn takes
 	// locks within libkbfs.  So if libkbfs ever gets blocked while
