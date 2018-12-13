@@ -27,14 +27,12 @@ const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={{
-      alignItems: 'center',
-      backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.xtiny,
-    }}
+    style={Styles.collapseStyles([
+      styles.suggestionBase,
+      {
+        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+      },
+    ])}
     gap="small"
   >
     <Kb.Emoji emojiName={item.colons} size={24} />
@@ -192,15 +190,13 @@ class Input extends React.Component<InputProps, InputState> {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={{
-        alignItems: 'center',
-        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
-        height: 40,
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.xtiny,
-      }}
+      style={Styles.collapseStyles([
+        styles.suggestionBase,
+        styles.fixSuggestionHeight,
+        {
+          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        },
+      ])}
       gap="small"
     >
       {!Constants.isSpecialMention(username) ? (
@@ -208,9 +204,7 @@ class Input extends React.Component<InputProps, InputState> {
       ) : (
         <Kb.Icon
           type="iconfont-people"
-          style={{
-            padding: Styles.globalMargins.xtiny,
-          }}
+          style={styles.paddingXTiny}
           color={Styles.globalColors.blue}
           fontSize={24}
         />
@@ -238,15 +232,13 @@ class Input extends React.Component<InputProps, InputState> {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={{
-        alignItems: 'center',
-        backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
-        height: 40,
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.xtiny,
-      }}
+      style={Styles.collapseStyles([
+        styles.suggestionBase,
+        styles.fixSuggestionHeight,
+        {
+          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        },
+      ])}
     >
       <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
     </Kb.Box2>
@@ -284,6 +276,17 @@ class Input extends React.Component<InputProps, InputState> {
 }
 
 const styles = Styles.styleSheetCreate({
+  fixSuggestionHeight: {height: 40},
+  paddingXTiny: {
+    padding: Styles.globalMargins.xtiny,
+  },
+  suggestionBase: {
+    alignItems: 'center',
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
   suggestionList: Styles.platformStyles({
     isMobile: {
       backgroundColor: Styles.globalColors.white,
