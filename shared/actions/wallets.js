@@ -607,23 +607,35 @@ const maybeNavigateToConversation = (state: TypedState, action: WalletsGen.Reque
 
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
-    'stellar.1.notify.paymentNotification': refreshPayments,
-    'stellar.1.notify.paymentStatusNotification': refreshPayments,
+    'stellar.1.notify.accountDetailsUpdate': ({accountID, account}) => [
+      Saga.put(
+        WalletsGen.createAccountsReceived({
+          accounts: [Constants.accountResultToAccount(account)],
+        })
+      ),
+      Saga.put(WalletsGen.createLoadAssets({accountID: Types.stringToAccountID(accountID)})),
+    ],
+    'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
+      if (!_pending) {
+        logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
+        return
+      }
+      const accountID = Types.stringToAccountID(_accountID)
+      const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
+      return Saga.put(WalletsGen.createPendingPaymentsReceived({accountID, pending}))
+    },
+    'stellar.1.notify.recentPaymentsUpdate': ({accountID, firstPage: {payments, cursor, oldestUnread}}) =>
+      Saga.put(
+        WalletsGen.createRecentPaymentsReceived({
+          accountID: Types.stringToAccountID(accountID),
+          oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
+          paymentCursor: cursor,
+          payments: (payments || [])
+            .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
+            .filter(Boolean),
+        })
+      ),
   })
-}
-
-const refreshPayments = response => {
-  const accountID = Types.stringToAccountID(response.accountID)
-  const paymentID = Types.rpcPaymentIDToPaymentID(response.paymentID)
-  return Saga.all([
-    Saga.put(
-      WalletsGen.createRefreshPayments({
-        accountID,
-        paymentID,
-      })
-    ),
-    Saga.put(WalletsGen.createAddNewPayment({accountID, paymentID})),
-  ])
 }
 
 const maybeClearErrors = (state: TypedState) => {
