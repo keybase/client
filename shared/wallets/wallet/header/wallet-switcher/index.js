@@ -8,15 +8,15 @@ import * as Styles from '../../../../styles'
 import {TouchableOpacity} from 'react-native'
 import {type Props} from './container'
 
+type RowProps = {|
+  children: React.Node,
+  onPress?: () => void,
+  style?: Styles.StylesCrossPlatform,
+|}
+
 const Row = (props: RowProps) => (
   <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.style])}>
-    <TouchableOpacity
-      onPress={() => {
-        props.hideMenu() // auto hide after a selection
-        props.onClick()
-      }}
-      style={styles.row}
-    >
+    <TouchableOpacity onPress={props.onPress} style={styles.row}>
       {props.children}
     </TouchableOpacity>
   </Kb.Box2>
@@ -25,12 +25,12 @@ const Row = (props: RowProps) => (
 type MenuItem =
   | {|
       key: 'whatIsStellar',
-      onClick: () => void,
+      onPress: () => void,
       type: 'whatIsStellar',
     |}
   | {|
       key: string,
-      onClick: () => void,
+      onPress: () => void,
       title: string,
       type: 'item',
     |}
@@ -40,18 +40,15 @@ type MenuItem =
       type: 'wallet',
     |}
 
-type RowProps = {|
-  children: React.Node,
-  onClick: () => void,
-  hideMenu: () => void,
-  style?: Styles.StylesCrossPlatform,
-|}
-
 const renderItem = (item: MenuItem, hideMenu: () => void) => {
   switch (item.type) {
-    case 'whatIsStellar':
+    case 'whatIsStellar': {
+      const onPress = () => {
+        hideMenu()
+        item.onPress()
+      }
       return (
-        <Row key={item.key} onClick={item.onClick} hideMenu={hideMenu} style={styles.infoTextRow}>
+        <Row key={item.key} onPress={onPress} style={styles.infoTextRow}>
           <Kb.Box2 centerChildren={true} direction="horizontal">
             <Kb.Icon size={16} type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
@@ -60,18 +57,25 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
           </Kb.Box2>
         </Row>
       )
-    case 'item':
+    }
+    case 'item': {
+      const onPress = () => {
+        hideMenu()
+        item.onPress()
+      }
       return (
-        <Row key={item.key} onClick={item.onClick} hideMenu={hideMenu}>
+        <Row key={item.key} onPress={onPress}>
           <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
             {item.title}
           </Kb.Text>
         </Row>
       )
+    }
     case 'wallet':
+      // No need to pass down onPress.
       return (
-        <Row key={item.key} onClick={() => {}} hideMenu={hideMenu}>
-          <WalletRow accountID={item.accountID} onSelect={hideMenu} />
+        <Row key={item.key}>
+          <WalletRow accountID={item.accountID} hideMenu={hideMenu} />
         </Row>
       )
     default:
@@ -117,18 +121,18 @@ export const WalletSwitcher = (props: Props) => {
   const menuItems = [
     {
       key: 'whatIsStellar',
-      onClick: props.onWhatIsStellar,
+      onPress: props.onWhatIsStellar,
       type: 'whatIsStellar',
     },
     {
       key: 'newAccount',
-      onClick: props.onAddNew,
+      onPress: props.onAddNew,
       title: 'Create a new account',
       type: 'item',
     },
     {
       key: 'linkAccount',
-      onClick: props.onLinkExisting,
+      onPress: props.onLinkExisting,
       title: 'Link an existing Stellar account',
       type: 'item',
     },
@@ -143,7 +147,7 @@ export const WalletSwitcher = (props: Props) => {
     .concat([
       {
         key: 'cancel',
-        onClick: () => {},
+        onPress: () => {},
         title: 'Cancel',
         type: 'item',
       },
