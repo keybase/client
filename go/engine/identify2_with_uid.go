@@ -230,11 +230,12 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 type Identify2WithUID struct {
 	libkb.Contextified
 
-	arg           *keybase1.Identify2Arg
-	testArgs      *Identify2WithUIDTestArgs
-	trackToken    keybase1.TrackToken
-	confirmResult keybase1.ConfirmResult
-	cachedRes     *keybase1.Identify2ResUPK2
+	arg            *keybase1.Identify2Arg
+	testArgs       *Identify2WithUIDTestArgs
+	idBehaviorOpts keybase1.TLFIdentifyBehaviorOptions
+	trackToken     keybase1.TrackToken
+	confirmResult  keybase1.ConfirmResult
+	cachedRes      *keybase1.Identify2ResUPK2
 
 	metaContext libkb.MetaContext
 
@@ -311,7 +312,7 @@ func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr 
 		return inErr
 	}
 
-	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
+	if e.idBehaviorOpts.WarningInsteadOfErrorOnBrokenTracks {
 		m.CDebugf("| Reset err from %v -> nil since caller is '%s' %d", inErr, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
 		return nil
 	}
@@ -330,6 +331,11 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 
 	if e.arg.Uid.IsNil() {
 		return libkb.NoUIDError{}
+	}
+
+	e.idBehaviorOpts, err = keybase1.GetTLFIdentifyBehaviorOptions(e.arg.IdentifyBehavior)
+	if err != nil {
+		return err
 	}
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
@@ -382,7 +388,7 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 
 	defer m.CTraceOK("Identify2WithUID#untrackedFastPath", func() bool { return ret })()
 
-	if !e.arg.IdentifyBehavior.CanUseUntrackedFastPath() {
+	if !e.idBehaviorOpts.CanUseUntrackedFastPath {
 		m.CDebugf("| Can't use untracked fast path due to identify behavior %v", e.arg.IdentifyBehavior)
 		return false
 	}
@@ -473,7 +479,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	// If we are rekeying or reclaiming quota from KBFS, then let's
 	// skip the external checks.
-	if e.arg.IdentifyBehavior.SkipExternalChecks() {
+	if e.idBehaviorOpts.SkipExternalChecks {
 		m.CDebugf("| skip external checks specified, short-circuiting")
 		return nil
 	}
@@ -581,7 +587,7 @@ func (e *Identify2WithUID) exportToResult(m libkb.MetaContext) (*keybase1.Identi
 func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 
 	isOK := e.state.Result().IsOK()
-	canCacheFailures := e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks()
+	canCacheFailures := e.idBehaviorOpts.WarningInsteadOfErrorOnBrokenTracks
 
 	m.CDebugf("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
 	defer m.CDebugf("- maybeCacheResult")
@@ -719,7 +725,7 @@ func (e *Identify2WithUID) useAnyAssertions() bool {
 }
 
 func (e *Identify2WithUID) allowCaching() bool {
-	return e.arg.IdentifyBehavior.AllowCaching()
+	return e.idBehaviorOpts.AllowCaching
 }
 
 func (e *Identify2WithUID) useLocalAssertions() bool {
@@ -760,14 +766,14 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan error {
 	// Skip showing the userCard if we are allowing deleted users since this
 	// will error out.
-	if e.arg.IdentifyBehavior.SkipUserCard() || e.G().Env.GetReadDeletedSigChain() {
+	if e.idBehaviorOpts.SkipUserCard || e.G().Env.GetReadDeletedSigChain() {
 		return nil
 	}
 	return displayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
 }
 
 func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContext {
-	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
+	if e.idBehaviorOpts.ShouldSuppressTrackerPopups {
 		m.CDebugf("| using the loopback identify UI")
 		iui := NewLoopbackIdentifyUI(m.G(), &e.trackBreaks)
 		m = m.WithIdentifyUI(iui)
@@ -819,7 +825,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	}
 
 	itm := libkb.IdentifyTableModeActive
-	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
+	if e.idBehaviorOpts.ShouldSuppressTrackerPopups {
 		itm = libkb.IdentifyTableModePassive
 	}
 
@@ -913,7 +919,8 @@ func (e *Identify2WithUID) createIdentifyState(m libkb.MetaContext) (err error) 
 // RequiredUIs returns the required UIs.
 func (e *Identify2WithUID) RequiredUIs() []libkb.UIKind {
 	ret := []libkb.UIKind{}
-	if e.arg == nil || !e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
+	idBehaviorOpts, err := keybase1.GetTLFIdentifyBehaviorOptions(e.arg.IdentifyBehavior)
+	if err != nil || e.arg == nil || !idBehaviorOpts.ShouldSuppressTrackerPopups {
 		ret = append(ret, libkb.IdentifyUIKind)
 	}
 	return ret
@@ -966,7 +973,7 @@ func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
 		return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
 	}
 	err = libkb.UserErrorFromStatus(e.them.GetStatus())
-	if _, ok := err.(libkb.UserDeletedError); ok && e.arg.IdentifyBehavior.AllowDeletedUsers() || e.G().Env.GetReadDeletedSigChain() {
+	if _, ok := err.(libkb.UserDeletedError); ok && e.idBehaviorOpts.AllowDeletedUsers || e.G().Env.GetReadDeletedSigChain() {
 		e.them.isDeleted = true
 		return nil
 	}
@@ -1025,7 +1032,7 @@ func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 	dfn := func(u keybase1.Identify2ResUPK2) time.Duration {
 		return libkb.Identify2CacheShortTimeout
 	}
-	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
+	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.idBehaviorOpts.WarningInsteadOfErrorOnBrokenTracks)
 
 	if err != nil {
 		m.CDebugf("| fast cache error for %s: %s", e.arg.Uid, err)
@@ -1132,7 +1139,7 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 		}
 		return libkb.Identify2CacheLongTimeout
 	}
-	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
+	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.idBehaviorOpts.WarningInsteadOfErrorOnBrokenTracks)
 
 	trackBrokenError := false
 	if err != nil {

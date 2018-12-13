@@ -1222,106 +1222,6 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
-func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
-	switch b {
-	case TLFIdentifyBehavior_CHAT_CLI,
-		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_KBFS_CHAT:
-		return true
-	default:
-		return false
-	}
-}
-
-func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
-	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
-		return true
-	default:
-		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
-		// doesn't have any other UI to report errors with.
-		return false
-	}
-}
-
-func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
-	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI:
-		// The chat GUI is specifically exempted from broken
-		// track errors, because people need to be able to use it to ask each other
-		// about the fact that proofs are broken.
-		return true
-	default:
-		return false
-	}
-}
-
-func (b TLFIdentifyBehavior) SkipUserCard() bool {
-	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
-		// We don't need to bother loading a user card in these cases.
-		return true
-	default:
-		return false
-	}
-}
-
-func (b TLFIdentifyBehavior) AllowCaching() bool {
-	switch b {
-	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
-		// We Don't want to use any internal ID2 caching for ResolveAndCheck.
-		return false
-	default:
-		return true
-	}
-}
-
-func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
-	switch b {
-	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
-		// ResolveAndCheck is OK with deleted users
-		return true
-	default:
-		return false
-	}
-}
-
-// All of the chat modes want to prevent tracker popups.
-func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
-	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_CLI,
-		TLFIdentifyBehavior_KBFS_REKEY,
-		TLFIdentifyBehavior_KBFS_QR,
-		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_RESOLVE_AND_CHECK,
-		TLFIdentifyBehavior_KBFS_CHAT:
-		// These are identifies that either happen without user interaction at
-		// all, or happen while you're staring at some Keybase UI that can
-		// report errors on its own. No popups needed.
-		return true
-	default:
-		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
-		// doesn't have any other UI to report errors with.
-		return false
-	}
-}
-
-// SkipExternalChecks indicates we do not want to run any external proof checkers in
-// identify modes that yield true.
-func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
-	switch b {
-	case TLFIdentifyBehavior_KBFS_QR,
-		TLFIdentifyBehavior_KBFS_REKEY:
-		return true
-	default:
-		return false
-	}
-}
-
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
 	if c.CanonicalName != r.CanonicalName {
 		return false
@@ -2649,4 +2549,173 @@ func (d FastTeamData) ID() TeamID {
 
 func (d FastTeamData) IsPublic() bool {
 	return d.Chain.Public
+}
+
+type TLFIdentifyBehaviorOptions struct {
+	AlwaysRunIdentify                   bool
+	CanUseUntrackedFastPath             bool
+	WarningInsteadOfErrorOnBrokenTracks bool
+	SkipUserCard                        bool
+	AllowCaching                        bool
+	AllowDeletedUsers                   bool
+
+	// All of the chat modes want to prevent tracker popups.
+	// These are identifies that either happen without user interaction at
+	// all, or happen while you're staring at some Keybase UI that can
+	// report errors on its own. No popups needed.
+	ShouldSuppressTrackerPopups bool
+
+	// SkipExternalChecks indicates we do not want to run any external proof checkers in
+	// identify modes that yield true.
+	SkipExternalChecks bool
+}
+
+func GetTLFIdentifyBehaviorOptions(b TLFIdentifyBehavior) (res TLFIdentifyBehaviorOptions, err error) {
+	switch b {
+	case TLFIdentifyBehavior_UNSET:
+		res.AllowCaching = true
+		return res, nil
+	case TLFIdentifyBehavior_CHAT_CLI:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   true,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         true,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_CHAT_GUI:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:       true,
+			CanUseUntrackedFastPath: true,
+
+			// The chat GUI is specifically exempted from broken
+			// track errors, because people need to be able to use it to ask each other
+			// about the fact that proofs are broken.
+			WarningInsteadOfErrorOnBrokenTracks: true,
+
+			// We don't need to bother loading a user card.
+			SkipUserCard: true,
+
+			AllowCaching:                true,
+			AllowDeletedUsers:           false,
+			ShouldSuppressTrackerPopups: true,
+			SkipExternalChecks:          false,
+		}, nil
+	case TLFIdentifyBehavior_REMOVED_AND_UNUSED:
+		return res, fmt.Errorf("disabled TLIdentifyBehavior %v", b)
+	case TLFIdentifyBehavior_KBFS_REKEY:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         true,
+			SkipExternalChecks:                  true,
+		}, nil
+	case TLFIdentifyBehavior_KBFS_QR:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         true,
+			SkipExternalChecks:                  true,
+		}, nil
+	case TLFIdentifyBehavior_CHAT_SKIP:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         false,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_SALTPACK:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   true,
+			CanUseUntrackedFastPath:             true,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         true,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_CLI:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         false,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_GUI:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         false,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_DEFAULT_KBFS:
+		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
+		// doesn't have any other UI to report errors with.
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         false,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_KBFS_CHAT:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   true,
+			CanUseUntrackedFastPath:             false,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+			SkipUserCard:                        false,
+			AllowCaching:                        true,
+			AllowDeletedUsers:                   false,
+			ShouldSuppressTrackerPopups:         true,
+			SkipExternalChecks:                  false,
+		}, nil
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		return TLFIdentifyBehaviorOptions{
+			AlwaysRunIdentify:                   false,
+			CanUseUntrackedFastPath:             true,
+			WarningInsteadOfErrorOnBrokenTracks: false,
+
+			// We don't need to bother loading a user card.
+			SkipUserCard: true,
+
+			// We don't want to use any internal ID2 caching for ResolveAndCheck.
+			AllowCaching: false,
+
+			// ResolveAndCheck is OK with deleted users
+			AllowDeletedUsers: true,
+
+			ShouldSuppressTrackerPopups: true,
+			SkipExternalChecks:          false,
+		}, nil
+	default:
+		res.AllowCaching = true
+		return res, fmt.Errorf("unknown TLFIdentifyBehavior %v", b)
+	}
 }

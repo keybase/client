@@ -1039,10 +1039,12 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 			noMe: false,
 		}
 		var waiter func()
-		if !identifyBehavior.ShouldSuppressTrackerPopups() {
+		idb, err := keybase1.GetTLFIdentifyBehaviorOptions(identifyBehavior)
+		require.NoError(t, err)
+		if !idb.ShouldSuppressTrackerPopups {
 			waiter = launchWaiter(t, i.finishCh)
 		}
-		err := eng.Run(identify2MetaContext(tc, i))
+		err = eng.Run(identify2MetaContext(tc, i))
 		require.NoError(t, err)
 		require.Equal(t, checked, shouldCheck)
 		if waiter != nil {
