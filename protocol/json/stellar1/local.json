@@ -1450,6 +1450,19 @@
       ],
       "response": null
     },
+    "setAccountAllDevicesLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
     "isAccountMobileOnlyLocal": {
       "request": [
         {

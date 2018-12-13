@@ -927,6 +927,19 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 	return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
 }
 
+func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "SetAccountAllDevicesLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.MakeAccountAllDevices(ctx, arg.AccountID)
+}
+
 // accountExchangeRate gets the exchange rate for the logged in user's currency
 // preference for accountID.  If any errors occur, it logs them and returns a
 // nil result.

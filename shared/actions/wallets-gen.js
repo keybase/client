@@ -25,6 +25,7 @@ export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
+export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
 export const checkDisclaimer = 'wallets:checkDisclaimer'
 export const clearBuilding = 'wallets:clearBuilding'
@@ -46,12 +47,14 @@ export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
+export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const loadRequestDetail = 'wallets:loadRequestDetail'
 export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
 export const loadWalletDisclaimer = 'wallets:loadWalletDisclaimer'
+export const loadedMobileOnlyMode = 'wallets:loadedMobileOnlyMode'
 export const markAsRead = 'wallets:markAsRead'
 export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
@@ -99,6 +102,7 @@ type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types
 type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
+type _ChangeMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _ChangedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
 type _CheckDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
@@ -123,12 +127,14 @@ type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
+type _LoadMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _LoadSendAssetChoicesPayload = $ReadOnly<{|from: Types.AccountID, to: string|}>
 type _LoadWalletDisclaimerPayload = void
+type _LoadedMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: Types.PaymentID|}>
 type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
@@ -187,6 +193,10 @@ export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload) => ({p
  */
 export const createCreateNewAccount = (payload: _CreateNewAccountPayload) => ({payload, type: createNewAccount})
 /**
+ * Ask the service for current mobile only mode for Stellar account.
+ */
+export const createLoadMobileOnlyMode = (payload: _LoadMobileOnlyModePayload) => ({payload, type: loadMobileOnlyMode})
+/**
  * Ask the service to validate an account name.
  */
 export const createValidateAccountName = (payload: _ValidateAccountNamePayload) => ({payload, type: validateAccountName})
@@ -206,6 +216,10 @@ export const createCancelRequest = (payload: _CancelRequestPayload) => ({payload
  * Change display currency for an account
  */
 export const createChangeDisplayCurrency = (payload: _ChangeDisplayCurrencyPayload) => ({payload, type: changeDisplayCurrency})
+/**
+ * Change mobile only mode for Stellar account.
+ */
+export const createChangeMobileOnlyMode = (payload: _ChangeMobileOnlyModePayload) => ({payload, type: changeMobileOnlyMode})
 /**
  * Change the default account
  */
@@ -395,6 +409,10 @@ export const createRequestedPayment = (payload: _RequestedPaymentPayload) => ({p
  */
 export const createSentPayment = (payload: _SentPaymentPayload) => ({payload, type: sentPayment})
 /**
+ * The service has responded with mobile only mode for Stellar account.
+ */
+export const createLoadedMobileOnlyMode = (payload: _LoadedMobileOnlyModePayload) => ({payload, type: loadedMobileOnlyMode})
+/**
  * The service responded with an error or that the account name is valid.
  */
 export const createValidatedAccountName = (payload: _ValidatedAccountNamePayload) => ({payload, type: validatedAccountName})
@@ -473,6 +491,7 @@ export type CancelPaymentPayload = {|+payload: _CancelPaymentPayload, +type: 'wa
 export type CancelRequestPayload = {|+payload: _CancelRequestPayload, +type: 'wallets:cancelRequest'|}
 export type ChangeAccountNamePayload = {|+payload: _ChangeAccountNamePayload, +type: 'wallets:changeAccountName'|}
 export type ChangeDisplayCurrencyPayload = {|+payload: _ChangeDisplayCurrencyPayload, +type: 'wallets:changeDisplayCurrency'|}
+export type ChangeMobileOnlyModePayload = {|+payload: _ChangeMobileOnlyModePayload, +type: 'wallets:changeMobileOnlyMode'|}
 export type ChangedAccountNamePayload = {|+payload: _ChangedAccountNamePayload, +type: 'wallets:changedAccountName'|}
 export type ChangedAccountNamePayloadError = {|+error: true, +payload: _ChangedAccountNamePayloadError, +type: 'wallets:changedAccountName'|}
 export type CheckDisclaimerPayload = {|+payload: _CheckDisclaimerPayload, +type: 'wallets:checkDisclaimer'|}
@@ -497,12 +516,14 @@ export type LoadAccountsPayload = {|+payload: _LoadAccountsPayload, +type: 'wall
 export type LoadAssetsPayload = {|+payload: _LoadAssetsPayload, +type: 'wallets:loadAssets'|}
 export type LoadDisplayCurrenciesPayload = {|+payload: _LoadDisplayCurrenciesPayload, +type: 'wallets:loadDisplayCurrencies'|}
 export type LoadDisplayCurrencyPayload = {|+payload: _LoadDisplayCurrencyPayload, +type: 'wallets:loadDisplayCurrency'|}
+export type LoadMobileOnlyModePayload = {|+payload: _LoadMobileOnlyModePayload, +type: 'wallets:loadMobileOnlyMode'|}
 export type LoadMorePaymentsPayload = {|+payload: _LoadMorePaymentsPayload, +type: 'wallets:loadMorePayments'|}
 export type LoadPaymentDetailPayload = {|+payload: _LoadPaymentDetailPayload, +type: 'wallets:loadPaymentDetail'|}
 export type LoadPaymentsPayload = {|+payload: _LoadPaymentsPayload, +type: 'wallets:loadPayments'|}
 export type LoadRequestDetailPayload = {|+payload: _LoadRequestDetailPayload, +type: 'wallets:loadRequestDetail'|}
 export type LoadSendAssetChoicesPayload = {|+payload: _LoadSendAssetChoicesPayload, +type: 'wallets:loadSendAssetChoices'|}
 export type LoadWalletDisclaimerPayload = {|+payload: _LoadWalletDisclaimerPayload, +type: 'wallets:loadWalletDisclaimer'|}
+export type LoadedMobileOnlyModePayload = {|+payload: _LoadedMobileOnlyModePayload, +type: 'wallets:loadedMobileOnlyMode'|}
 export type MarkAsReadPayload = {|+payload: _MarkAsReadPayload, +type: 'wallets:markAsRead'|}
 export type OpenSendRequestFormPayload = {|+payload: _OpenSendRequestFormPayload, +type: 'wallets:openSendRequestForm'|}
 export type PaymentDetailReceivedPayload = {|+payload: _PaymentDetailReceivedPayload, +type: 'wallets:paymentDetailReceived'|}
@@ -554,6 +575,7 @@ export type Actions =
   | CancelRequestPayload
   | ChangeAccountNamePayload
   | ChangeDisplayCurrencyPayload
+  | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
   | CheckDisclaimerPayload
@@ -578,12 +600,14 @@ export type Actions =
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
+  | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
   | LoadRequestDetailPayload
   | LoadSendAssetChoicesPayload
   | LoadWalletDisclaimerPayload
+  | LoadedMobileOnlyModePayload
   | MarkAsReadPayload
   | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
