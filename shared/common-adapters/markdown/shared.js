@@ -43,6 +43,12 @@ function createKbfsPathRegex(): ?RegExp {
 
 const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
 
+function createServiceDecorationRegex(): ?RegExp {
+  return new RegExp(`\\$\\>kb\\$(.*)\\$\\<kb\\$`)
+}
+
+const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(createServiceDecorationRegex())
+
 function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
   return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
 }
@@ -253,6 +259,16 @@ const rules = {
     parse: capture => ({
       content: capture[1],
       type: 'kbfsPath',
+    }),
+  },
+  serviceDecoration: {
+    match: (source, state, lookBehind) => {
+      return serviceDecorationMatcher(source, state, lookBehind)
+    }, // high
+    order: SimpleMarkdown.defaultRules.autolink.order + 1,
+    parse: capture => ({
+      content: capture[1],
+      type: 'serviceDecoration',
     }),
   },
   link: {

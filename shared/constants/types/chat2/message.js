@@ -88,6 +88,7 @@ export type MessageDeleted = I.RecordOf<_MessageDeleted>
 export type _MessageText = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
+  decoratedText: ?HiddenString,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
@@ -203,7 +204,6 @@ export type _ChatPaymentInfo = {
   type: 'paymentInfo',
   worth: string,
 }
-export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {
   author: string,

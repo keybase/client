@@ -1287,6 +1287,19 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.Conver
 	return res
 }
 
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msgBody chat1.MessageBody) *string {
+	typ, err := msgBody.MessageType()
+	if err != nil || typ != chat1.MessageType_TEXT {
+		return nil
+	}
+	body := msgBody.Text().Body
+	payments := msgBody.Text().Payments
+
+	// Payment decorations
+	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+	return &body
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1327,6 +1340,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid.MessageBody),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,

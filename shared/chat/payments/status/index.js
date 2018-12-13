@@ -4,8 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as WalletTypes from '../../../constants/types/wallets'
 
-type Status = 'error' | 'pending' | 'success'
-
 type Props = {
   status: WalletTypes.StatusSimplified,
   text: string,

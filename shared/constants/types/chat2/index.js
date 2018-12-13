@@ -72,9 +72,9 @@ export type _State = {
   pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
-  paymentStatuaMap: I.Map<
+  paymentStatusMap: I.Map<
     Common.ConversationIDKey,
-    I.Map<Message.MessageID, I.Map<WalletTypes.PaymentID, Message.ChatPaymentInfo>>
+    I.Map<Message.MessageID, I.Map<WalletTypes.PaymentID, RPCChatTypes.TextPayment>>
   >,
 } & TeamBuildingTypes.TeamBuildingSubState
 
