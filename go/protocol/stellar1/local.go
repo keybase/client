@@ -953,6 +953,12 @@ type CancelPaymentLocalArg struct {
 	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
 }
 
+type SetInflationDestinationLocalArg struct {
+	SessionID     int        `codec:"sessionID" json:"sessionID"`
+	AccountID     AccountID  `codec:"accountID" json:"accountID"`
+	DestinationID *AccountID `codec:"destinationID,omitempty" json:"destinationID,omitempty"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -1071,6 +1077,7 @@ type LocalInterface interface {
 	SetAccountAllDevicesLocal(context.Context, SetAccountAllDevicesLocalArg) error
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
 	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
+	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1634,6 +1641,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setInflationDestinationLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SetInflationDestinationLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetInflationDestinationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetInflationDestinationLocalArg)(nil), args)
+						return
+					}
+					err = i.SetInflationDestinationLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -2059,6 +2081,11 @@ func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccou
 
 func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg SetInflationDestinationLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setInflationDestinationLocal", []interface{}{__arg}, nil)
 	return
 }
 

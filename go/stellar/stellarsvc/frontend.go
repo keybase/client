@@ -936,6 +936,10 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 	return s.remoter.MakeAccountAllDevices(ctx, arg.AccountID)
 }
 
+func (s *Server) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {
+	return fmt.Errorf("Not implemented here")
+}
+
 // accountExchangeRate gets the exchange rate for the logged in user's currency
 // preference for accountID.  If any errors occur, it logs them and returns a
 // nil result.

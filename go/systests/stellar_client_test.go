@@ -553,3 +553,13 @@ func (s *stellarRetryClient) SetAccountAllDevicesLocal(ctx context.Context, arg 
 	}
 	return err
 }
+
+func (s *stellarRetryClient) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetInflationDestinationLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}

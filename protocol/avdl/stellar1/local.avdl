@@ -464,6 +464,8 @@ protocol local {
 
   RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);
 
+  void setInflationDestinationLocal(int sessionID, AccountID accountID, union { null, AccountID } destinationID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
