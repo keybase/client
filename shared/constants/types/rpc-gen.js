@@ -378,6 +378,7 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  annoncementPlaceholder: 10000,
 }
 
 export const identifyCommonIdentifyReasonType = {
