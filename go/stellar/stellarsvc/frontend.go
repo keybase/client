@@ -282,7 +282,8 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return fmt.Errorf("user wallet not created")
 	}
 
-	s.walletState.RefreshAll(ctx, "AcceptDisclaimer")
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
 
 	return nil
 }
@@ -308,7 +309,8 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
-	s.walletState.RefreshAll(ctx, "LinkNewWalletAccount")
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
 
 	return accountID, nil
 }
