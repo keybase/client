@@ -303,7 +303,7 @@ def testGo(prefix) {
     ]) {
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
-        println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}."
+        println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}. Merging to branch ${env.CHANGE_TARGET}."
 
         println "Running golint"
         retry(5) {
