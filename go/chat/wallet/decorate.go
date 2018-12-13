@@ -21,7 +21,7 @@ func DecorateWithPayments(ctx context.Context, body string, payments []chat1.Tex
 			continue
 		}
 		body, added = utils.DecorateBody(ctx, body, p.Position[0]+offset, p.Position[1]-p.Position[0],
-			payment)
+			chat1.NewUITextDecorationWithPayment(payment))
 		offset += added
 	}
 	return body

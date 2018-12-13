@@ -26,7 +26,7 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "$>kb${\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$ other test",
+			result: "$>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ other test",
 		},
 		decorateTest{
 			body: "`+1xlm` +1xlm other test",
@@ -37,7 +37,7 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "`+1xlm` $>kb${\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$ other test",
+			result: "`+1xlm` $>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ other test",
 		},
 		decorateTest{
 			body: "HIHIH ```+5xlm@patrick``` +5xlm@patrick `+1xlm` +1xlm other test",
@@ -53,7 +53,7 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "HIHIH ```+5xlm@patrick``` $>kb${\"username\":\"patrick\",\"paymentText\":\"+5XLM@patrick\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$ `+1xlm` $>kb${\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$ other test",
+			result: "HIHIH ```+5xlm@patrick``` $>kb${\"typ\":0,\"payment\":{\"username\":\"patrick\",\"paymentText\":\"+5XLM@patrick\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ `+1xlm` $>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ other test",
 		},
 		decorateTest{
 			body: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `+124.005XLM@mikem``    ",
@@ -64,7 +64,7 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb${\"username\":\"mikem\",\"paymentText\":\"+124.005XLM@mikem\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}$<kb$``    ",
+			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+124.005XLM@mikem\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$``    ",
 		},
 	}
 	for _, c := range cases {
