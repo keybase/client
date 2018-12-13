@@ -53,8 +53,8 @@
           "type": "AccountID"
         },
         {
-          "name": "details",
-          "type": "AccountDetails"
+          "name": "account",
+          "type": "WalletAccountLocal"
         }
       ],
       "response": null,
@@ -70,7 +70,7 @@
           "name": "pending",
           "type": {
             "type": "array",
-            "items": "PaymentSummary"
+            "items": "PaymentOrErrorLocal"
           }
         }
       ],
@@ -85,7 +85,7 @@
         },
         {
           "name": "firstPage",
-          "type": "PaymentsPage"
+          "type": "PaymentsPageLocal"
         }
       ],
       "response": null,

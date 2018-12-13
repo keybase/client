@@ -132,7 +132,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'stellar.1.notify.accountDetailsUpdate': {|
-    inParam: $ReadOnly<{|accountID: AccountID, details: AccountDetails|}>,
+    inParam: $ReadOnly<{|accountID: AccountID, account: WalletAccountLocal|}>,
     outParam: void,
   |},
   'stellar.1.notify.paymentNotification': {|
@@ -144,11 +144,11 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'stellar.1.notify.pendingPaymentsUpdate': {|
-    inParam: $ReadOnly<{|accountID: AccountID, pending?: ?Array<PaymentSummary>|}>,
+    inParam: $ReadOnly<{|accountID: AccountID, pending?: ?Array<PaymentOrErrorLocal>|}>,
     outParam: void,
   |},
   'stellar.1.notify.recentPaymentsUpdate': {|
-    inParam: $ReadOnly<{|accountID: AccountID, firstPage: PaymentsPage|}>,
+    inParam: $ReadOnly<{|accountID: AccountID, firstPage: PaymentsPageLocal|}>,
     outParam: void,
   |},
   'stellar.1.notify.requestStatusNotification': {|

@@ -82,9 +82,9 @@ type NotifyListener interface {
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
-	WalletAccountDetailsUpdate(accountID stellar1.AccountID, details stellar1.AccountDetails)
-	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentSummary)
-	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPage)
+	WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal)
+	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
+	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
@@ -175,11 +175,11 @@ func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.Accoun
 func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
-func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.AccountID, details stellar1.AccountDetails) {
+func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
 }
-func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentSummary) {
+func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
 }
-func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPage) {
+func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
 func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
@@ -1264,7 +1264,7 @@ func (n *NotifyRouter) HandleWalletRequestStatusNotification(ctx context.Context
 	n.G().Log.CDebugf(ctx, "- Sent wallet RequestStatusNotification")
 }
 
-func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, accountID stellar1.AccountID, details stellar1.AccountDetails) {
+func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
 	if n == nil {
 		return
 	}
@@ -1276,7 +1276,7 @@ func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, acc
 			go func() {
 				arg := stellar1.AccountDetailsUpdateArg{
 					AccountID: accountID,
-					Details:   details,
+					Account:   account,
 				}
 				(stellar1.NotifyClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
@@ -1286,12 +1286,12 @@ func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, acc
 		return true
 	})
 	if n.listener != nil {
-		n.listener.WalletAccountDetailsUpdate(accountID, details)
+		n.listener.WalletAccountDetailsUpdate(accountID, account)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent wallet AccountDetailsUpdate")
 }
 
-func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, pending []stellar1.PaymentSummary) {
+func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
 	if n == nil {
 		return
 	}
@@ -1318,7 +1318,7 @@ func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, ac
 	n.G().Log.CDebugf(ctx, "- Sent wallet PendingPaymentsUpdate")
 }
 
-func (n *NotifyRouter) HandleWalletRecentPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, firstPage stellar1.PaymentsPage) {
+func (n *NotifyRouter) HandleWalletRecentPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 	if n == nil {
 		return
 	}
