@@ -10,7 +10,7 @@ import {WalletSwitcher} from '.'
 type OwnProps = {|
   getAttachmentRef: () => ?React.Component<any>,
   showingMenu: boolean,
-  toggleShowingMenu: () => void,
+  hideMenu: () => void,
 |}
 
 export type Props = {|

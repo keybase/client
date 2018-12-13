@@ -12,7 +12,7 @@ const Row = (props: RowProps) => (
   <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.style])}>
     <TouchableOpacity
       onPress={() => {
-        props.onHidden() // auto hide after a selection
+        props.hideMenu() // auto hide after a selection
         props.onClick()
       }}
       style={styles.row}
@@ -43,15 +43,15 @@ type MenuItem =
 type RowProps = {|
   children: React.Node,
   onClick: () => void,
-  onHidden: () => void,
+  hideMenu: () => void,
   style?: Styles.StylesCrossPlatform,
 |}
 
-const renderItem = (item: MenuItem, onHidden: () => void) => {
+const renderItem = (item: MenuItem, hideMenu: () => void) => {
   switch (item.type) {
     case 'whatIsStellar':
       return (
-        <Row key={item.key} onClick={item.onClick} onHidden={onHidden} style={styles.infoTextRow}>
+        <Row key={item.key} onClick={item.onClick} hideMenu={hideMenu} style={styles.infoTextRow}>
           <Kb.Box2 centerChildren={true} direction="horizontal">
             <Kb.Icon size={16} type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
@@ -62,7 +62,7 @@ const renderItem = (item: MenuItem, onHidden: () => void) => {
       )
     case 'item':
       return (
-        <Row key={item.key} onClick={item.onClick} onHidden={onHidden}>
+        <Row key={item.key} onClick={item.onClick} hideMenu={hideMenu}>
           <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
             {item.title}
           </Kb.Text>
@@ -70,8 +70,8 @@ const renderItem = (item: MenuItem, onHidden: () => void) => {
       )
     case 'wallet':
       return (
-        <Row key={item.key} onClick={() => {}} onHidden={onHidden}>
-          <WalletRow accountID={item.accountID} onSelect={onHidden} />
+        <Row key={item.key} onClick={() => {}} hideMenu={hideMenu}>
+          <WalletRow accountID={item.accountID} onSelect={hideMenu} />
         </Row>
       )
     default:
@@ -152,11 +152,11 @@ export const WalletSwitcher = (props: Props) => {
   return (
     <Kb.Overlay
       position="bottom center"
-      onHidden={props.toggleShowingMenu}
+      onHidden={props.hideMenu}
       visible={props.showingMenu}
       attachTo={props.getAttachmentRef}
     >
-      <FakeList items={menuItems} renderItem={(index, item) => renderItem(item, props.toggleShowingMenu)} />
+      <FakeList items={menuItems} renderItem={(index, item) => renderItem(item, props.hideMenu)} />
     </Kb.Overlay>
   )
 }

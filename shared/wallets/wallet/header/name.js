@@ -15,8 +15,8 @@ const _NameWithSwitcher = (props: Props & Kb.OverlayParentProps) => (
     <PlainName walletName={props.walletName} />
     <WalletSwitcher
       getAttachmentRef={props.getAttachmentRef}
+      hideMenu={() => props.setShowingMenu(false)}
       showingMenu={props.showingMenu}
-      toggleShowingMenu={props.toggleShowingMenu}
     />
   </Kb.ClickableBox>
 )
