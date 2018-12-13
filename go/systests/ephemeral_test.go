@@ -58,7 +58,7 @@ func TestEphemeralAddMemberNoTeamEK(t *testing.T) {
 }
 
 func getTeamEK(g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
-	return g.GetTeamEKBoxStorage().Get(context.Background(), teamID, generation)
+	return g.GetTeamEKBoxStorage().Get(context.Background(), teamID, generation, nil)
 }
 
 func runAddMember(t *testing.T, createTeamEK bool) {
@@ -219,7 +219,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
 
 	storage := annG.GetTeamEKBoxStorage()
-	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration)
+	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration, nil)
 	if createTeamEK {
 		require.NoError(t, err)
 	} else {
@@ -265,7 +265,7 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	teamEKBoxStorage.ClearCache()
 	_, err = annG.LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	teamEKPostRoll, err := teamEKBoxStorage.Get(context.Background(), teamID, teamEKPreRoll.Metadata.Generation)
+	teamEKPostRoll, err := teamEKBoxStorage.Get(context.Background(), teamID, teamEKPreRoll.Metadata.Generation, nil)
 	require.NoError(t, err)
 	require.Equal(t, teamEKPreRoll, teamEKPostRoll)
 
@@ -298,7 +298,7 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	userEKBoxStorage := annG.GetUserEKBoxStorage()
 	gen, err := userEKBoxStorage.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	userEKPreRevoke, err := userEKBoxStorage.Get(context.Background(), gen)
+	userEKPreRevoke, err := userEKBoxStorage.Get(context.Background(), gen, nil)
 	require.NoError(t, err)
 
 	// Provision a new device that we can revoke.
@@ -325,7 +325,7 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	userEKBoxStorage.ClearCache()
 	_, err = annG.LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	userEKPostRevoke, err := userEKBoxStorage.Get(context.Background(), userEKPreRevoke.Metadata.Generation)
+	userEKPostRevoke, err := userEKBoxStorage.Get(context.Background(), userEKPreRevoke.Metadata.Generation, nil)
 	require.NoError(t, err)
 	require.Equal(t, userEKPreRevoke, userEKPostRevoke)
 
@@ -374,7 +374,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	}
 
 	// After leaving user2 won't have access to the current teamEK
-	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, currentGen)
+	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, currentGen, nil)
 	require.Error(t, err)
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
@@ -382,10 +382,10 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 
 	// Test that user1 and user2 both have access to the currentTeamEK
 	// (whether we recreated or reboxed)
-	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
+	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen, nil)
 	require.NoError(t, err)
 
-	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
+	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen, nil)
 	require.NoError(t, err)
 
 	require.Equal(t, teamEK2U1, teamEK2U2)
