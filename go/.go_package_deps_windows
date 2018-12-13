@@ -2474,15 +2474,13 @@
       "github.com/keybase/client/go/tools/teamchain" : 1
    },
    "github.com/keybase/client/go/vendor/bazil.org/fuse" : {
-      "github.com/keybase/client/go/kbfs/libfuse" : 1,
-      "github.com/keybase/client/go/kbfs/redirector" : 1
+      "github.com/keybase/client/go/kbfs/libfuse" : 1
    },
    "github.com/keybase/client/go/vendor/bazil.org/fuse/fs" : {
       "github.com/keybase/client/go/kbfs/libfuse" : 1
    },
    "github.com/keybase/client/go/vendor/bazil.org/fuse/fuseutil" : {
-      "github.com/keybase/client/go/kbfs/libfuse" : 1,
-      "github.com/keybase/client/go/kbfs/redirector" : 1
+      "github.com/keybase/client/go/kbfs/libfuse" : 1
    },
    "github.com/keybase/client/go/vendor/camlistore.org/pkg/buildinfo" : {
       "github.com/keybase/client/go/chat" : 1,
@@ -9839,7 +9837,6 @@
       "github.com/keybase/client/go/kbfs/libkbfs" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1" : 1,
-      "github.com/keybase/client/go/kbfs/redirector" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
       "github.com/keybase/client/go/kbfs/tlf" : 1,
