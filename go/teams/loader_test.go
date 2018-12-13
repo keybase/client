@@ -205,7 +205,10 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 		ID: team.ID,
 	})
 	require.NoError(t, err)
-	require.Zero(t, len(team.KBFSCryptKeys(context.TODO(), keybase1.TeamApplication_CHAT)))
+
+	// See TODO below, CORE-9677. This test previously relied on buggy behavior, which now is fixed.
+	//require.Zero(t, len(team.KBFSCryptKeys(context.TODO(), keybase1.TeamApplication_CHAT)))
+
 	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
 		ID: team.ID,
 		Refreshers: keybase1.TeamRefreshers{
