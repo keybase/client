@@ -9,6 +9,8 @@ import SuggestionList from './suggestion-list'
 // Only class components allowed. Rendered suggestions must
 // have a fixed height.
 
+// Note: transformation doesn't work with controlled inputs! TODO
+
 const lg = (...args) => {}
 
 // For better performance, try not to recreate these objects on every render

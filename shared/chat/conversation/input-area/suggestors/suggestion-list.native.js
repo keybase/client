@@ -6,19 +6,26 @@ import * as Styles from '../../../../styles'
 import type {Props} from './suggestion-list'
 
 const SuggestionList = (props: Props) => (
-  <NativeFlatList
-    alwaysBounceVertical={false}
-    style={Styles.collapseStyles([styles.list, props.style])}
-    renderItem={({index, item}) => props.renderItem(index, item)}
-    data={props.items}
-    keyExtractor={props.keyExtractor || (item => item)}
-    keyboardShouldPersistTaps="always"
-    windowSize={10}
-  />
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.listContainer, props.style])}
+  >
+    <NativeFlatList
+      alwaysBounceVertical={false}
+      renderItem={({index, item}) => props.renderItem(index, item)}
+      style={styles.noGrow}
+      data={props.items}
+      keyExtractor={props.keyExtractor || (item => item)}
+      keyboardShouldPersistTaps="always"
+      windowSize={10}
+    />
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  list: {flexGrow: 0, marginTop: 'auto'},
+  listContainer: {flexGrow: 0, marginTop: 'auto'},
+  noGrow: {flexGrow: 0},
 })
 
 export default SuggestionList
