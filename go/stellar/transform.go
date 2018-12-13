@@ -411,7 +411,7 @@ func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, 
 		return page, err
 	}
 
-	oc := NewOwnAccountLookupCache(mctx.Ctx(), mctx.G())
+	oc := NewOwnAccountLookupCache(mctx)
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(remotePage.Payments))
 	for i, p := range remotePage.Payments {
 		page.Payments[i].Payment, err = TransformPaymentSummaryAccount(mctx, p, oc, accountID, &exchRate)
@@ -439,7 +439,7 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 		return nil, err
 	}
 
-	oc := NewOwnAccountLookupCache(mctx.Ctx(), mctx.G())
+	oc := NewOwnAccountLookupCache(mctx)
 
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {

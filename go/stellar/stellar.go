@@ -612,7 +612,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		if recipient.User != nil {
 			recipientUv = &recipient.User.UV
 		}
-		post.NoteB64, err = NoteEncryptB64(mctx.Ctx(), mctx.G(), noteClear, recipientUv)
+		post.NoteB64, err = NoteEncryptB64(mctx, noteClear, recipientUv)
 		if err != nil {
 			return res, fmt.Errorf("error encrypting note: %v", err)
 		}
