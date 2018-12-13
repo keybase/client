@@ -282,7 +282,8 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return fmt.Errorf("user wallet not created")
 	}
 
-	s.walletState.RefreshAll(ctx, "AcceptDisclaimer")
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
 
 	return nil
 }
@@ -308,7 +309,8 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
-	s.walletState.RefreshAll(ctx, "LinkNewWalletAccount")
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
 
 	return accountID, nil
 }
@@ -925,6 +927,19 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 	}
 
 	return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
+}
+
+func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "SetAccountAllDevicesLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.MakeAccountAllDevices(ctx, arg.AccountID)
 }
 
 // accountExchangeRate gets the exchange rate for the logged in user's currency

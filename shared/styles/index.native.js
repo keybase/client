@@ -53,7 +53,6 @@ export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 export const collapseStyles = (
   styles: $ReadOnlyArray<CollapsibleStyle>
 ): $ReadOnlyArray<Object | null | false | void> => {
-  // $ForceType RN handles this directly
   return styles
 }
 export const transition = (...properties: Array<string>) => ({})

@@ -482,7 +482,7 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
 	var team *teams.Team
 	team, res.Name, res.DisplayName, err =
-		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public, teams.ImplicitTeamOptions{})
 	if err == nil {
 		res.TeamID = team.ID
 		res.TlfID = team.LatestKBFSTLFID()

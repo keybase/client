@@ -20,4 +20,7 @@ declare export class Rnd {
   generateString(regex: RegExp): string;
 }
 
+// Used to pass extra props to a component in a story without flow typing
+declare export function propOverridesForStory(p: any): {}
+
 export {PropProviders}

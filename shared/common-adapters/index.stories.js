@@ -23,6 +23,7 @@ import newInput from './new-input.stories'
 import plainInput from './plain-input.stories'
 import popupDialog from './popup-dialog.stories'
 import radiobutton from './radio-button.stories'
+import reload from './reload.stories'
 import saveIndicator from './save-indicator.stories'
 import standardScreen from './standard-screen.stories'
 import text from './text.stories'
@@ -54,6 +55,7 @@ const load = () => {
     plainInput,
     popupDialog,
     radiobutton,
+    reload,
     saveIndicator,
     standardScreen,
     text,

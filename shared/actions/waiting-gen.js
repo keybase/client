@@ -4,6 +4,7 @@
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer. NEVER dispatch this
@@ -14,9 +15,9 @@ export const decrementWaiting = 'waiting:decrementWaiting'
 export const incrementWaiting = 'waiting:incrementWaiting'
 
 // Payload Types
-type _ChangeWaitingPayload = $ReadOnly<{|key: string | Array<string>, increment: boolean|}>
+type _ChangeWaitingPayload = $ReadOnly<{|key: string | Array<string>, increment: boolean, error?: RPCError|}>
 type _ClearWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
-type _DecrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
+type _DecrementWaitingPayload = $ReadOnly<{|key: string | Array<string>, error?: RPCError|}>
 type _IncrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 
 // Action Creators
