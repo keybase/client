@@ -31,22 +31,22 @@ const AccountNameMaxRunes = 24
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe (but wasteful) to call even if the user has a bundle already.
-func CreateWallet(ctx context.Context, g *libkb.GlobalContext, v2Link bool) (created bool, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
-	loggedInUsername := g.ActiveDevice.Username(libkb.NewMetaContext(ctx, g))
+func CreateWallet(mctx libkb.MetaContext, v2Link bool) (created bool, err error) {
+	defer mctx.CTraceTimed("Stellar.CreateWallet", func() error { return err })()
+	loggedInUsername := mctx.ActiveDevice().Username(mctx)
 	if !loggedInUsername.IsValid() {
 		return false, fmt.Errorf("could not get logged-in username")
 	}
-	perUserKeyUpgradeSoft(ctx, g, "create-wallet")
+	perUserKeyUpgradeSoft(mctx, "create-wallet")
 	clearBundle, err := acctbundle.NewInitial(fmt.Sprintf("%v's account", loggedInUsername))
 	if err != nil {
 		return false, err
 	}
-	meUV, err := g.GetMeUV(ctx)
+	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return false, err
 	}
-	err = remote.PostWithChainlink(ctx, g, *clearBundle, v2Link)
+	err = remote.PostWithChainlink(mctx, *clearBundle, v2Link)
 	switch e := err.(type) {
 	case nil:
 		// ok
@@ -55,15 +55,15 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext, v2Link bool) (cre
 		case keybase1.StatusCode_SCStellarWrongRevision:
 			// Assume this happened because a bundle already existed.
 			// And suppress the error.
-			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			mctx.CDebugf("suppressing error: %v", err)
 			return false, nil
 		}
 		return false, err
 	default:
 		return false, err
 	}
-	getGlobal(g).InformHasWallet(ctx, meUV)
-	go getGlobal(g).KickAutoClaimRunner(libkb.NewMetaContext(ctx, g), gregor1.MsgID{})
+	getGlobal(mctx.G()).InformHasWallet(ctx, meUV)
+	go getGlobal(mctx.G()).KickAutoClaimRunner(mctx, gregor1.MsgID{})
 	return true, nil
 }
 
@@ -1883,13 +1883,12 @@ func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
 
 // Get a per-user key.
 // Wait for attempt but only warn on error.
-func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {
-	m := libkb.NewMetaContext(ctx, g)
+func perUserKeyUpgradeSoft(mctx libkb.MetaContext, reason string) {
 	arg := &engine.PerUserKeyUpgradeArgs{}
-	eng := engine.NewPerUserKeyUpgrade(g, arg)
-	err := engine.RunEngine2(m, eng)
+	eng := engine.NewPerUserKeyUpgrade(mctx.G(), arg)
+	err := engine.RunEngine2(mctx, eng)
 	if err != nil {
-		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
+		mctx.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
 	}
 }
 

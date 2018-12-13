@@ -150,17 +150,16 @@ func buildV1ChainLinkPayload(m libkb.MetaContext, bundleRestricted stellar1.Bund
 }
 
 // Post a bundle to the server with a chainlink.
-func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted, v2Link bool) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
+func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.BundleRestricted, v2Link bool) (err error) {
+	defer mctx.CTraceTimed("Stellar.PostWithChainlink", func() error { return err })()
 
-	m := libkb.NewMetaContext(ctx, g)
-	uid := m.G().ActiveDevice.UID()
+	uid := mctx.ActiveDevice().UID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
-	m.CDebugf("Stellar.PostWithChainLink: load self")
-	loadMeArg := libkb.NewLoadUserArg(g).
-		WithNetContext(ctx).
+	mctx.CDebugf("Stellar.PostWithChainLink: load self")
+	loadMeArg := libkb.NewLoadUserArg(mctx.G()).
+		WithNetContext(mctx.Ctx()).
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
@@ -169,45 +168,45 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 		return err
 	}
 
-	deviceSigKey, err := g.ActiveDevice.SigningKey()
+	deviceSigKey, err := mctx.G().ActiveDevice.SigningKey()
 	if err != nil {
 		return fmt.Errorf("signing key not found: (%v)", err)
 	}
-	pukGen, pukSeed, err := getLatestPuk(ctx, g)
+	pukGen, pukSeed, err := getLatestPuk(mctx)
 	if err != nil {
 		return err
 	}
 
 	var payload *libkb.JSONPayload
 	if v2Link {
-		payload, err = buildV2ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, deviceSigKey)
+		payload, err = buildV2ChainLinkPayload(mctx, clearBundle, me, pukGen, pukSeed, deviceSigKey)
 		if err != nil {
 			return err
 		}
 	} else {
-		payload, err = buildV1ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, deviceSigKey)
+		payload, err = buildV1ChainLinkPayload(mctx, clearBundle, me, pukGen, pukSeed, deviceSigKey)
 		if err != nil {
 			return err
 		}
 	}
 
-	m.CDebugf("Stellar.PostWithChainLink: post")
-	_, err = m.G().API.PostJSON(libkb.APIArg{
+	mctx.CDebugf("Stellar.PostWithChainLink: post")
+	_, err = mctx.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: *payload,
-		MetaContext: m,
+		MetaContext: mctx,
 	})
 	if err != nil {
 		return err
 	}
 
-	m.G().UserChanged(uid)
+	mctx.G().UserChanged(uid)
 	return nil
 }
 
-func PostV1Bundle(ctx context.Context, g *libkb.GlobalContext, v1Bundle stellar1.Bundle) (err error) {
-	pukGen, pukSeed, err := getLatestPuk(ctx, g)
+func PostV1Bundle(mctx libkb.MetaContext, v1Bundle stellar1.Bundle) (err error) {
+	pukGen, pukSeed, err := getLatestPuk(mctx)
 	if err != nil {
 		return err
 	}
@@ -215,7 +214,7 @@ func PostV1Bundle(ctx context.Context, g *libkb.GlobalContext, v1Bundle stellar1
 	if err != nil {
 		return err
 	}
-	g.Log.CDebugf(ctx, "Stellar.Post: revision:%v", v1Bundle.Revision)
+	mctx.CDebugf("Stellar.Post: revision:%v", v1Bundle.Revision)
 	boxed, err := bundle.Box(v1Bundle, pukGen, pukSeed)
 	if err != nil {
 		return err
@@ -228,8 +227,8 @@ func PostV1Bundle(ctx context.Context, g *libkb.GlobalContext, v1Bundle stellar1
 	section["miniversion"] = 2
 	payload["stellar"] = section
 
-	g.Log.CDebugf(ctx, "Stellar.Post: post")
-	_, err = g.API.PostJSON(libkb.APIArg{
+	mctx.CDebugf("Stellar.Post: post")
+	_, err = mctx.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "stellar/bundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
@@ -238,16 +237,16 @@ func PostV1Bundle(ctx context.Context, g *libkb.GlobalContext, v1Bundle stellar1
 }
 
 // Post a bundle to the server.
-func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted, version stellar1.BundleVersion) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Post", func() error { return err })()
+func Post(mctx libkb.MetaContext, clearBundle stellar1.BundleRestricted, version stellar1.BundleVersion) (err error) {
+	defer mctx.CTraceTimed("Stellar.Post", func() error { return err })()
 	if version == stellar1.BundleVersion_V1 {
 		v1Bundle, err := acctbundle.BundleFromBundleRestricted(clearBundle)
 		if err != nil {
 			return err
 		}
-		return PostV1Bundle(ctx, g, *v1Bundle)
+		return PostV1Bundle(mctx, *v1Bundle)
 	}
-	return postV2Bundle(ctx, g, &clearBundle)
+	return postV2Bundle(mctx, &clearBundle)
 }
 
 type AlreadyMigratedError struct{}
@@ -435,7 +434,7 @@ func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 	}
 	m.CInfof("Passed all premigration checks. Posting the migrated bundle...")
 
-	err = postV2Bundle(m.Ctx(), m.G(), &v2Bundle)
+	err = postV2Bundle(m, &v2Bundle)
 	if err != nil {
 		m.CErrorf("MIGRATION FAILED: posting v2 bundle %v\n", err)
 		return err
@@ -453,10 +452,10 @@ func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 }
 
 // postV2Bundle encrypts and uploads a restricted bundle to the server.
-func postV2Bundle(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.BundleRestricted) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.postV2Bundle", func() error { return err })()
+func postV2Bundle(mctx libkb.MetaContext, bundle *stellar1.BundleRestricted) (err error) {
+	defer mctx.CTraceTimed("Stellar.postV2Bundle", func() error { return err })()
 
-	pukGen, pukSeed, err := getLatestPuk(ctx, g)
+	pukGen, pukSeed, err := getLatestPuk(mctx)
 	if err != nil {
 		return err
 	}
@@ -473,7 +472,7 @@ func postV2Bundle(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.
 	section["version_parent"] = boxed.FormatVersionParent
 	section["account_bundles"] = boxed.AcctBundles
 	payload["stellar"] = section
-	_, err = g.API.PostJSON(libkb.APIArg{
+	_, err = mctx.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
@@ -582,13 +581,13 @@ func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *
 // this method will bubble up an error if it's called by a Desktop device for
 // an account that is mobile only. If you don't need the secrets, use
 // FetchSecretlessBundle instead.
-func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
+func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer mctx.CTraceTimed("Stellar.FetchAccountBundle", func() error { return err })()
 
-	acctBundle, version, pukGen, err = FetchV2BundleForAccount(ctx, g, &accountID)
+	acctBundle, version, pukGen, err = FetchV2BundleForAccount(mctx, &accountID)
 	if err != nil && incompatibleVersionError(err) {
-		g.Log.CDebugf(ctx, "requested v2 account bundle but not migrated yet. replacing with v1.")
-		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(ctx, g)
+		mctx.CDebugf("requested v2 account bundle but not migrated yet. replacing with v1.")
+		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(mctx)
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -596,18 +595,17 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 	return acctBundle, version, pukGen, err
 }
 
-func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
-	pukring, err := g.GetPerUserKeyring(ctx)
+func getLatestPuk(mctx libkb.MetaContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
+	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
-	m := libkb.NewMetaContext(ctx, g)
-	err = pukring.Sync(m)
+	err = pukring.Sync(mctx)
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
 	pukGen = pukring.CurrentGeneration()
-	pukSeed, err = pukring.GetSeedByGeneration(m, pukGen)
+	pukSeed, err = pukring.GetSeedByGeneration(mctx, pukGen)
 	return pukGen, pukSeed, err
 }
 
@@ -1115,8 +1113,8 @@ func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID 
 
 // SetAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
 // then send the new account bundle revision to the server.
-func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	bundle, version, _, err := FetchAccountBundle(ctx, g, accountID)
+func SetAccountMobileOnly(mctx libkb.MetaContext, accountID stellar1.AccountID) error {
+	bundle, version, _, err := FetchAccountBundle(mctx, accountID)
 	if err != nil {
 		return err
 	}
@@ -1125,14 +1123,14 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	}
 	err = acctbundle.MakeMobileOnly(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
-		g.Log.CDebugf(ctx, "SetAccountMobileOnly account %s is already mobile-only", accountID)
+		mctx.CDebugf("SetAccountMobileOnly account %s is already mobile-only", accountID)
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 	nextBundle := acctbundle.AdvanceAccounts(*bundle, []stellar1.AccountID{accountID})
-	if err := postV2Bundle(ctx, g, &nextBundle); err != nil {
+	if err := postV2Bundle(mctx, g, &nextBundle); err != nil {
 		g.Log.CDebugf(ctx, "SetAccountMobileOnly postV2Bundle error: %s", err)
 		return err
 	}
