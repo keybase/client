@@ -5144,9 +5144,9 @@ func (mr *MockDiskBlockCacheMockRecorder) Put(ctx, tlfID, blockID, buf, serverHa
 }
 
 // Delete mocks base method
-func (m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID) (int, int64, error) {
+func (m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID, cacheType DiskBlockCacheType) (int, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, blockIDs)
+	ret := m.ctrl.Call(m, "Delete", ctx, blockIDs, cacheType)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -5154,9 +5154,9 @@ func (m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockDiskBlockCacheMockRecorder) Delete(ctx, blockIDs interface{}) *gomock.Call {
+func (mr *MockDiskBlockCacheMockRecorder) Delete(ctx, blockIDs, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDiskBlockCache)(nil).Delete), ctx, blockIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDiskBlockCache)(nil).Delete), ctx, blockIDs, cacheType)
 }
 
 // UpdateMetadata mocks base method

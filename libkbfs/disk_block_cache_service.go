@@ -119,7 +119,7 @@ func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
 		}
 		blocks = append(blocks, blockID)
 	}
-	numRemoved, sizeRemoved, err := dbc.Delete(ctx, blocks)
+	numRemoved, sizeRemoved, err := dbc.Delete(ctx, blocks, DiskBlockAnyCache)
 	if err != nil {
 		return kbgitkbfs.DeleteBlocksRes{}, newDiskBlockCacheError(err)
 	}

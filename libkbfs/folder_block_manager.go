@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type fbmHelper interface {
@@ -881,9 +882,10 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 	return mostRecentOldEnoughRev, lastGCRev, nil
 }
 
-func getUnrefPointersFromMD(rmd ImmutableRootMetadata) (ptrs []BlockPointer) {
+func getUnrefPointersFromMD(
+	rmd ImmutableRootMetadata, includeGC bool) (ptrs []BlockPointer) {
 	for _, op := range rmd.data.Changes.Ops {
-		if _, ok := op.(*GCOp); ok {
+		if _, ok := op.(*GCOp); !includeGC && ok {
 			continue
 		}
 		for _, ptr := range op.Unrefs() {
@@ -957,7 +959,7 @@ outer:
 			}
 			// Save the latest revision starting at this position:
 			revStartPositions[rmd.Revision()] = len(ptrs)
-			newPtrs := getUnrefPointersFromMD(rmd)
+			newPtrs := getUnrefPointersFromMD(rmd, false)
 			ptrs = append(ptrs, newPtrs...)
 			// TODO: when can we clean up the MD's unembedded block
 			// changes pointer?  It's not safe until we know for sure
@@ -1304,6 +1306,74 @@ func (fbm *folderBlockManager) clearLastQRData() {
 	fbm.lastReclamationTime = time.Time{}
 }
 
+func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
+	ctx context.Context, ptrs []BlockPointer) (
+	nonLiveBlocks []kbfsblock.ID, err error) {
+	fbm.log.CDebugf(ctx, "Get live count for %d pointers", len(ptrs))
+	bops := fbm.config.BlockOps()
+
+	// Round up to find the number of chunks.
+	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
+		numPointersToDowngradePerChunk
+	numWorkers := numChunks
+	if numWorkers > maxParallelBlockPuts {
+		numWorkers = maxParallelBlockPuts
+	}
+	chunks := make(chan []BlockPointer, numChunks)
+
+	eg, groupCtx := errgroup.WithContext(ctx)
+	chunkResults := make(chan []kbfsblock.ID, numChunks)
+	for i := 0; i < numWorkers; i++ {
+		eg.Go(func() error {
+			for chunk := range chunks {
+				fbm.log.CDebugf(groupCtx,
+					"Getting live count for chunk of %d pointers", len(chunk))
+				liveCounts, err := bops.GetLiveCount(ctx, fbm.id, chunk)
+				if err != nil {
+					return err
+				}
+				ids := make([]kbfsblock.ID, 0, len(liveCounts))
+				for id, count := range liveCounts {
+					if count == 0 {
+						ids = append(ids, id)
+					} else {
+						fbm.log.CDebugf(groupCtx,
+							"Ignoring live block %s with %d refs", id, count)
+					}
+				}
+				chunkResults <- ids
+				select {
+				// return early if the context has been canceled
+				case <-groupCtx.Done():
+					return groupCtx.Err()
+				default:
+				}
+			}
+			return nil
+		})
+	}
+
+	for start := 0; start < len(ptrs); start += numPointersToDowngradePerChunk {
+		end := start + numPointersToDowngradePerChunk
+		if end > len(ptrs) {
+			end = len(ptrs)
+		}
+		chunks <- ptrs[start:end]
+	}
+	close(chunks)
+
+	err = eg.Wait()
+	if err != nil {
+		return nil, err
+	}
+	close(chunkResults)
+
+	for result := range chunkResults {
+		nonLiveBlocks = append(nonLiveBlocks, result...)
+	}
+	return nonLiveBlocks, nil
+}
+
 func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 	err error) {
 	dbc := fbm.config.DiskBlockCache()
@@ -1363,33 +1433,40 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 			return err
 		}
 
-		ptrs := getUnrefPointersFromMD(rmd)
+		// Include unrefs from `gcOp`s here, as a double-check against
+		// archive races (see comment below).
+		ptrs := getUnrefPointersFromMD(rmd, true)
 
-		ids := make([]kbfsblock.ID, 0, len(ptrs))
+		var ids []kbfsblock.ID
 		if cacheType == DiskBlockSyncCache {
-			// For sync caches, we need to make sure that all of the
-			// references to this block are really gone.
-			liveCounts, err := fbm.config.BlockOps().GetLiveCount(
-				ctx, fbm.id, ptrs)
+			// Wait for our own archives to complete, to make sure the
+			// bserver already knows this block isn't live yet when we
+			// make the call below.  However, when dealing with MDs
+			// written by other clients, there could be a race here
+			// where we see the ID is live before the other client
+			// gets to archive the block, leading to a leak.  Once the
+			// revision is GC'd though, we should run through this
+			// code again with the `gcOp`, and we'll delete the block
+			// then.  (Note there's always a chance for a race here,
+			// since the client could crash before archiving the
+			// blocks.  But the GC should always catch it eventually.)
+			err := fbm.waitForArchives(ctx)
 			if err != nil {
 				return err
 			}
 
-			for id, count := range liveCounts {
-				if count == 0 {
-					ids = append(ids, id)
-				} else {
-					fbm.log.CDebugf(ctx,
-						"Skipping deletion of %s; still has %d live references",
-						id, count)
-				}
+			ids, err = fbm.doChunkedGetNonLiveBlocks(ctx, ptrs)
+			if err != nil {
+				return err
 			}
 		} else {
+			ids = make([]kbfsblock.ID, 0, len(ptrs))
 			for _, ptr := range ptrs {
 				ids = append(ids, ptr.ID)
 			}
 		}
-		_, _, err = dbc.Delete(ctx, ids)
+		fbm.log.CDebugf(ctx, "Deleting %v", ids)
+		_, _, err = dbc.Delete(ctx, ids, cacheType)
 		if err != nil {
 			return err
 		}
