@@ -10,7 +10,7 @@ import teamBuildingReducer from './team-building'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
-import {partition} from 'lodash-es'
+import {partition} from 'lodash'
 import {actionHasError} from '../util/container'
 import * as Flow from '../util/flow'
 

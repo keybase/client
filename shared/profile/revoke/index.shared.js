@@ -1,5 +1,5 @@
 // @flow
-import {capitalize} from 'lodash-es'
+import {capitalize} from 'lodash'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 
 function formatMessage(platform: PlatformsExpandedType) {

@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
-import {invert} from 'lodash-es'
+import {invert} from 'lodash'
 import type {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import flags from '../util/feature-flags'

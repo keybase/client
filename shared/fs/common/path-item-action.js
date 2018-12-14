@@ -18,7 +18,7 @@ import {
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 import StaticBreadcrumb from '../common/static-breadcrumb'
-import {memoize} from 'lodash-es'
+import {memoize} from 'lodash'
 import DownloadTrackingHoc from './download-tracking-hoc'
 import CommaSeparatedName from './comma-separated-name'
 

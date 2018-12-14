@@ -1,7 +1,7 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import NewTeamDialog from './'
-import {upperFirst} from 'lodash-es'
+import {upperFirst} from 'lodash'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
 import {

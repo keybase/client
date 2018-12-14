@@ -1,7 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {capitalize} from 'lodash-es'
+import {capitalize} from 'lodash'
 import {errors as transportErrors} from 'framed-msgpack-rpc'
 
 export class RPCError {

@@ -5,7 +5,7 @@ import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, Button, Text} from '../../common-adapters'
 import {PathItemInfo, PathItemIcon} from '../common'
-import {memoize} from 'lodash-es'
+import {memoize} from 'lodash'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
 type DefaultViewProps = {

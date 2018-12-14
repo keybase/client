@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/fs'
-import {memoize} from 'lodash-es'
+import {memoize} from 'lodash'
 
 export type SortableTlfTypeRowItem = Types.TlfTypeRowItem & {
   type: 'folder',

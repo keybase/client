@@ -1,5 +1,5 @@
 // @flow
-import {without, uniq, difference} from 'lodash-es'
+import {without, uniq, difference} from 'lodash'
 import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms'
 import {PlatformsExpanded} from '../constants/types/more'

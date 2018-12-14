@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-import {throttle} from 'lodash-es'
+import {throttle} from 'lodash'
 import type {Props} from './index.types'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 

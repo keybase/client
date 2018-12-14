@@ -1,5 +1,5 @@
 // @flow
-import {isEqual} from 'lodash-es'
+import {isEqual} from 'lodash'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'

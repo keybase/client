@@ -2,7 +2,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
 import Render from './avatar.render'
-import {throttle} from 'lodash-es'
+import {throttle} from 'lodash'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
 import {namedConnect} from '../util/container'
 import {

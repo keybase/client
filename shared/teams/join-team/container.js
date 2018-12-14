@@ -1,7 +1,7 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
-import {upperFirst} from 'lodash-es'
+import {upperFirst} from 'lodash'
 import {connect, compose, lifecycle, withStateHandlers, withHandlers} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 

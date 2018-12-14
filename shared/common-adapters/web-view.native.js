@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {WebView} from 'react-native'
 import type {WebViewInjections, WebViewProps} from './web-view'
-import {memoize} from 'lodash-es'
+import {memoize} from 'lodash'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
 

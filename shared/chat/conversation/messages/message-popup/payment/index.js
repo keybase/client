@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {toUpper, upperFirst} from 'lodash-es'
+import {toUpper, upperFirst} from 'lodash'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'

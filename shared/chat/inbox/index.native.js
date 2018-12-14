@@ -8,7 +8,7 @@ import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {virtualListMarks} from '../../local-debug'
-import {debounce} from 'lodash-es'
+import {debounce} from 'lodash'
 import {Owl} from './owl'
 import * as RowSizes from './row/sizes'
 

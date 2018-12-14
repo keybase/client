@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {PanResponder as NativePanResponder} from 'react-native'
 import Box from './box'
-import {clamp} from 'lodash-es'
+import {clamp} from 'lodash'
 import type {Props} from './zoomable-box'
 
 type Touch = {

@@ -25,6 +25,7 @@ module.exports = function(api /*: Api */) {
     console.error('KB babel.config.js for Electron')
     return {
       plugins: [
+        'lodash',
         '@babel/plugin-proposal-optional-catch-binding',
         '@babel/plugin-proposal-nullish-coalescing-operator',
         '@babel/plugin-proposal-optional-chaining',
@@ -37,6 +38,7 @@ module.exports = function(api /*: Api */) {
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')
     return {
+      plugins: ['lodash'],
       presets: ['module:metro-react-native-babel-preset'],
     }
   }

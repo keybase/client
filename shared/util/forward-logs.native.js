@@ -1,5 +1,5 @@
 // @flow
-import {noop} from 'lodash-es'
+import {noop} from 'lodash'
 import RNFetchBlob from 'rn-fetch-blob'
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {writeStream, exists} from './file'

@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
-import {uniq} from 'lodash-es'
+import {uniq} from 'lodash'
 import {runMode} from './platform'
 
 export const maxHandshakeTries = 3

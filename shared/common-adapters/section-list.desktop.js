@@ -5,7 +5,7 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
 import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
-import {throttle} from 'lodash-es'
+import {throttle} from 'lodash'
 
 // NOTE: this ReactList is of type `simple` (by default)
 // setting it to `variable` or something more complex

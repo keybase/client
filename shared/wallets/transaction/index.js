@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
-import {capitalize} from 'lodash-es'
+import {capitalize} from 'lodash'
 import {
   Avatar,
   Box2,

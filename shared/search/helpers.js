@@ -2,7 +2,7 @@
 import {compose, withHandlers, withPropsOnChange} from 'recompose'
 import * as Types from '../constants/types/search'
 import {isMobile} from '../constants/platform'
-import {debounce} from 'lodash-es'
+import {debounce} from 'lodash'
 
 const debounceTimeout = 1e3
 

@@ -1,5 +1,5 @@
 // @flow
-import {debounce} from 'lodash-es'
+import {debounce} from 'lodash'
 import logger from '../logger'
 
 const rateLimit: {[key: string]: () => void} = {}

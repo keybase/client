@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {capitalize} from 'lodash-es'
+import {capitalize} from 'lodash'
 import {type TeamRoleType} from '../../constants/types/teams'
 import type {DesktopProps as Props} from '.'
 

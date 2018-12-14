@@ -1,6 +1,6 @@
 // @noflow
 import * as React from 'react'
-import {clamp} from 'lodash-es'
+import {clamp} from 'lodash'
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }

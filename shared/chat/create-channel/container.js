@@ -10,7 +10,7 @@ import {
   type RouteProps,
 } from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
-import {upperFirst} from 'lodash-es'
+import {upperFirst} from 'lodash'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 

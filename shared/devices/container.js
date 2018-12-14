@@ -6,7 +6,7 @@ import * as RouteTree from '../actions/route-tree'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
 import {compose, namedConnect, safeSubmitPerMount} from '../util/container'
-import {partition} from 'lodash-es'
+import {partition} from 'lodash'
 
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,

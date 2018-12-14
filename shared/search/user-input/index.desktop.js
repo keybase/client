@@ -1,5 +1,5 @@
 // @flow
-import {trim, last} from 'lodash-es'
+import {trim, last} from 'lodash'
 import React, {Component} from 'react'
 import {Box, Text, Icon} from '../../common-adapters'
 import AutosizeInput from './autosize-input.desktop'

@@ -1,6 +1,6 @@
 // @flow
 import {jsonDebugFileName, serverConfigFileName} from './constants/platform.desktop'
-import {noop} from 'lodash-es'
+import {noop} from 'lodash'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
 let PERF = false

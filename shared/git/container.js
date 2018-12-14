@@ -5,7 +5,7 @@ import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
 import {anyWaiting} from '../constants/waiting'
 import {compose, lifecycle, connect, type RouteProps} from '../util/container'
-import {sortBy, partition} from 'lodash-es'
+import {sortBy, partition} from 'lodash'
 
 type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
 

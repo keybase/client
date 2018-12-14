@@ -4,7 +4,7 @@ import {categories, emojiIndex, emojiNameMap, type EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {isAndroid} from '../../../../../constants/platform'
-import {chunk} from 'lodash-es'
+import {chunk} from 'lodash'
 
 // SectionList data is mostly static, map categories here
 // and chunk data within component

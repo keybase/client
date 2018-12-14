@@ -3,7 +3,7 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 import {NativeModules, YellowBox} from 'react-native'
-import {noop} from 'lodash-es'
+import {noop} from 'lodash'
 // import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
