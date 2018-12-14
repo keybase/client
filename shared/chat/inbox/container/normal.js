@@ -5,7 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
-import {memoize1, memoize2, memoize3} from '../../../util/memoize'
+import {memoize1, memoize2} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const smallTeamsCollapsedMaxShown = 5
