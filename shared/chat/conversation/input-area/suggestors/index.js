@@ -37,7 +37,8 @@ type AddSuggestorsProps = {
   transformers: {
     [key: string]: (
       item: any,
-      {text: string, position: {start: number, end: number}}
+      {text: string, position: {start: number, end: number}},
+      preview: boolean
     ) => {
       text: string,
       selection: {start: number, end: number},
@@ -108,6 +109,13 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       return null
     }
 
+    _stabilizeSelection = () => {
+      const results = this._getResults()
+      if (this.state.selected > results.length - 1) {
+        this.setState({selected: 0})
+      }
+    }
+
     _checkTrigger = text => {
       setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
@@ -124,7 +132,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
             // not active anymore
             this._setInactive()
           } else {
-            this.setState({filter: word.substring(activeMarker.length)})
+            this.setState({filter: word.substring(activeMarker.length)}, this._stabilizeSelection)
             return
           }
         }
@@ -154,15 +162,19 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       }
     }
 
-    _move = (up: boolean) =>
-      this.setState(s => {
-        if (!s.active) {
-          return null
-        }
-        const length = this._getResults().length
-        const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
-        return selected === s.selected ? null : {selected}
-      })
+    _move = (up: boolean) => {
+      this.setState(
+        s => {
+          if (!s.active) {
+            return null
+          }
+          const length = this._getResults().length
+          const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
+          return selected === s.selected ? null : {selected}
+        },
+        () => this._triggerTransform(this._getSelected(), false)
+      )
+    }
 
     _onChangeText = text => {
       lg('changetext', text)
@@ -188,7 +200,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
 
       let shouldCallParentCallback = true
 
-      // check up or down
+      // check trigger keys (up, down, enter, tab)
       if (evt.key === 'ArrowDown') {
         evt.preventDefault()
         this._move(false)
@@ -200,6 +212,14 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
         this._triggerTransform(this._getResults()[this.state.selected])
+        shouldCallParentCallback = false
+      } else if (evt.key === 'Tab') {
+        evt.preventDefault()
+        if (this.state.filter.length) {
+          this._triggerTransform(this._getSelected())
+        } else {
+          this._move(false)
+        }
         shouldCallParentCallback = false
       }
 
@@ -227,7 +247,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       this._checkTrigger(this._lastText || '')
     }
 
-    _triggerTransform = value => {
+    _triggerTransform = (value, final = true) => {
       lg('triggerTransform', value)
       if (this._inputRef.current && this.state.active) {
         const input = this._inputRef.current
@@ -236,11 +256,16 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         if (!cursorInfo) {
           return
         }
-        const transformedText = this.props.transformers[active](value, {
-          position: cursorInfo.position,
-          text: this._lastText || '',
-        })
-        input.transformText(textInfo => transformedText, true)
+        const transformedText = this.props.transformers[active](
+          value,
+          {
+            position: cursorInfo.position,
+            text: this._lastText || '',
+          },
+          !final
+        )
+        this._lastText = transformedText.text
+        input.transformText(textInfo => transformedText, final)
       }
     }
 
@@ -265,6 +290,8 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
 
     _getResults = () =>
       this.state.active ? this.props.dataSources[this.state.active](this.state.filter) : []
+
+    _getSelected = () => (this.state.active ? this._getResults()[this.state.selected] : null)
 
     render() {
       let overlay = null

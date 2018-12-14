@@ -78,18 +78,6 @@ class _PlatformInput extends React.Component<
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
 
-  _onEnterKeyDown = (e?: SyntheticKeyboardEvent<>) => {
-    if (!e) {
-      return
-    }
-    e.preventDefault()
-    const text = this._getText()
-    if (text) {
-      this.props.onSubmit(text)
-      this.setState({hasText: false})
-    }
-  }
-
   _onChangeText = (text: string) => {
     this.setState({hasText: !!text})
     this._lastText = text

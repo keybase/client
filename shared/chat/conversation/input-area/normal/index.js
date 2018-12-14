@@ -39,10 +39,14 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (emoji: {colons: string, native: string}, {position: {end, start}, text}) => {
+const emojiTransformer = (
+  emoji: {colons: string, native: string},
+  {position: {end, start}, text},
+  preview
+) => {
   const toInsert = Styles.isMobile ? emoji.native : emoji.colons
-  const newText = `${text.substring(0, start)}${toInsert} ${text.substring(end)}`
-  const newSelection = start + toInsert.length + 1
+  const newText = `${text.substring(0, start)}${toInsert}${preview ? '' : ' '}${text.substring(end)}`
+  const newSelection = start + toInsert.length + (preview ? 0 : 1)
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
@@ -216,10 +220,11 @@ class Input extends React.Component<InputProps, InputState> {
 
   _transformUserSuggestion = (
     input: {fullName: string, username: string},
-    {position: {end, start}, text}: {position: {end: number, start: number}, text: string}
+    {position: {end, start}, text}: {position: {end: number, start: number}, text: string},
+    preview: boolean
   ) => {
-    const newText = `${text.substring(0, start)}@${input.username} ${text.substring(end)}`
-    const newSelection = start + input.username.length + 2
+    const newText = `${text.substring(0, start)}@${input.username}${preview ? '' : ' '}${text.substring(end)}`
+    const newSelection = start + input.username.length + (preview ? 1 : 2)
     return {selection: {end: newSelection, start: newSelection}, text: newText}
   }
 
@@ -244,9 +249,9 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformChannelSuggestion = (channelname: string, {position: {end, start}, text}) => {
-    const newText = `${text.substring(0, start)}#${channelname}  ${text.substring(end)}`
-    const newSelection = start + channelname.length + 2
+  _transformChannelSuggestion = (channelname: string, {position: {end, start}, text}, preview) => {
+    const newText = `${text.substring(0, start)}#${channelname}${preview ? '' : ' '}${text.substring(end)}`
+    const newSelection = start + channelname.length + (preview ? 1 : 2)
     return {selection: {end: newSelection, start: newSelection}, text: newText}
   }
 
