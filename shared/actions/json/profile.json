@@ -32,14 +32,6 @@
       "username": "string",
       "openWebsite?": "?boolean"
     },
-    "onClickFollowers": {
-      "username": "string",
-      "openWebsite?": "?boolean"
-    },
-    "onClickFollowing": {
-      "username": "string",
-      "openWebsite?": "?boolean"
-    },
     "outputInstructionsActionLink": {},
     "showUserProfile": { "username": "string" },
     "submitZcashAddress": {},

@@ -114,8 +114,6 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.finishedWithKeyGen:
     case ProfileGen.generatePgp:
     case ProfileGen.onClickAvatar:
-    case ProfileGen.onClickFollowers:
-    case ProfileGen.onClickFollowing:
     case ProfileGen.outputInstructionsActionLink:
     case ProfileGen.showUserProfile:
     case ProfileGen.submitRevokeProof:

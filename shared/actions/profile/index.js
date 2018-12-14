@@ -61,21 +61,6 @@ const onClickAvatar = (_, action: ProfileGen.OnClickAvatarPayload) => {
   }
 }
 
-const openProfileOrWebsite = (
-  _,
-  action: ProfileGen.OnClickFollowersPayload | ProfileGen.OnClickFollowingPayload
-) => {
-  if (!action.payload.username) {
-    return
-  }
-
-  if (!action.payload.openWebsite) {
-    return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
-  } else {
-    return Saga.callUntyped(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
-  }
-}
-
 const submitRevokeProof = (_, action: ProfileGen.SubmitRevokeProofPayload) =>
   RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
     .then(() => ProfileGen.createFinishRevoking())
@@ -133,7 +118,6 @@ function* _profileSaga() {
   yield Saga.actionToPromise(ProfileGen.uploadAvatar, uploadAvatar)
   yield Saga.actionToAction(ProfileGen.finishRevoking, finishRevoking)
   yield Saga.actionToAction(ProfileGen.onClickAvatar, onClickAvatar)
-  yield Saga.actionToAction([ProfileGen.onClickFollowers, ProfileGen.onClickFollowing], openProfileOrWebsite)
   yield Saga.actionToAction(ProfileGen.outputInstructionsActionLink, outputInstructionsActionLink)
   yield Saga.actionToPromise(ProfileGen.showUserProfile, showUserProfile)
 }

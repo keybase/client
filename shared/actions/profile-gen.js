@@ -22,8 +22,6 @@ export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
 export const generatePgp = 'profile:generatePgp'
 export const onClickAvatar = 'profile:onClickAvatar'
-export const onClickFollowers = 'profile:onClickFollowers'
-export const onClickFollowing = 'profile:onClickFollowing'
 export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
 export const revokeFinish = 'profile:revokeFinish'
 export const showUserProfile = 'profile:showUserProfile'
@@ -54,8 +52,6 @@ type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = $ReadOnly<{|shouldStoreKeyOnServer: boolean|}>
 type _GeneratePgpPayload = void
 type _OnClickAvatarPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
-type _OnClickFollowersPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
-type _OnClickFollowingPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
 type _OutputInstructionsActionLinkPayload = void
 type _RevokeFinishPayload = void
 type _RevokeFinishPayloadError = $ReadOnly<{|error: string|}>
@@ -93,8 +89,6 @@ export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({paylo
 export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({payload, type: finishedWithKeyGen})
 export const createGeneratePgp = (payload: _GeneratePgpPayload) => ({payload, type: generatePgp})
 export const createOnClickAvatar = (payload: _OnClickAvatarPayload) => ({payload, type: onClickAvatar})
-export const createOnClickFollowers = (payload: _OnClickFollowersPayload) => ({payload, type: onClickFollowers})
-export const createOnClickFollowing = (payload: _OnClickFollowingPayload) => ({payload, type: onClickFollowing})
 export const createOutputInstructionsActionLink = (payload: _OutputInstructionsActionLinkPayload) => ({payload, type: outputInstructionsActionLink})
 export const createRevokeFinish = (payload: _RevokeFinishPayload) => ({payload, type: revokeFinish})
 export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({error: true, payload, type: revokeFinish})
@@ -125,8 +119,6 @@ export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: '
 export type FinishedWithKeyGenPayload = {|+payload: _FinishedWithKeyGenPayload, +type: 'profile:finishedWithKeyGen'|}
 export type GeneratePgpPayload = {|+payload: _GeneratePgpPayload, +type: 'profile:generatePgp'|}
 export type OnClickAvatarPayload = {|+payload: _OnClickAvatarPayload, +type: 'profile:onClickAvatar'|}
-export type OnClickFollowersPayload = {|+payload: _OnClickFollowersPayload, +type: 'profile:onClickFollowers'|}
-export type OnClickFollowingPayload = {|+payload: _OnClickFollowingPayload, +type: 'profile:onClickFollowing'|}
 export type OutputInstructionsActionLinkPayload = {|+payload: _OutputInstructionsActionLinkPayload, +type: 'profile:outputInstructionsActionLink'|}
 export type RevokeFinishPayload = {|+payload: _RevokeFinishPayload, +type: 'profile:revokeFinish'|}
 export type RevokeFinishPayloadError = {|+error: true, +payload: _RevokeFinishPayloadError, +type: 'profile:revokeFinish'|}
@@ -161,8 +153,6 @@ export type Actions =
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
   | OnClickAvatarPayload
-  | OnClickFollowersPayload
-  | OnClickFollowingPayload
   | OutputInstructionsActionLinkPayload
   | RevokeFinishPayload
   | RevokeFinishPayloadError
