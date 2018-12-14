@@ -10,15 +10,10 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type ChatConversationID []byte
+type ChatConversationID string
 
 func (o ChatConversationID) DeepCopy() ChatConversationID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
+	return o
 }
 
 type PaymentDirectPost struct {
