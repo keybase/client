@@ -386,7 +386,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
-		action := defaultBlockRequestAction(fbo.config.Mode())
+		action := fbo.config.Mode().DefaultBlockRequestAction()
 		if fbo.config.IsSyncedTlf(fbo.id()) {
 			action = action.AddSync()
 		}
@@ -3366,7 +3366,7 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 		// No need to cache because it's already cached.
 		_ = fbo.config.BlockOps().BlockRetriever().Request(
 			ctx, updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
-			lifetime, defaultBlockRequestAction(fbo.config.Mode()))
+			lifetime, fbo.config.Mode().DefaultBlockRequestAction())
 	}
 	// Cancel any prefetches for the old pointer from the prefetcher.
 	fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr)

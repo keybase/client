@@ -1099,10 +1099,3 @@ func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
 	}
 	return DiskBlockAnyCache
 }
-
-func defaultBlockRequestAction(mode InitMode) BlockRequestAction {
-	if mode.DoPrefetches() {
-		return BlockRequestWithPrefetch
-	}
-	return BlockRequestSolo
-}

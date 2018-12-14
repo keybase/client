@@ -8219,18 +8219,18 @@ func (mr *MockInitModeMockRecorder) PrefetchWorkers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrefetchWorkers", reflect.TypeOf((*MockInitMode)(nil).PrefetchWorkers))
 }
 
-// DoPrefetches mocks base method
-func (m *MockInitMode) DoPrefetches() bool {
+// DefaultBlockRequestAction mocks base method
+func (m *MockInitMode) DefaultBlockRequestAction() BlockRequestAction {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DoPrefetches")
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "DefaultBlockRequestAction")
+	ret0, _ := ret[0].(BlockRequestAction)
 	return ret0
 }
 
-// DoPrefetches indicates an expected call of DoPrefetches
-func (mr *MockInitModeMockRecorder) DoPrefetches() *gomock.Call {
+// DefaultBlockRequestAction indicates an expected call of DefaultBlockRequestAction
+func (mr *MockInitModeMockRecorder) DefaultBlockRequestAction() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoPrefetches", reflect.TypeOf((*MockInitMode)(nil).DoPrefetches))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DefaultBlockRequestAction", reflect.TypeOf((*MockInitMode)(nil).DefaultBlockRequestAction))
 }
 
 // RekeyWorkers mocks base method
