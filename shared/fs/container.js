@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import {namedConnect, type RouteProps} from '../util/container'
-import {putActionIfOnPath, navigateAppend} from '../actions/route-tree'
+import {navigateAppend, navigateUp} from '../actions/route-tree'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
@@ -15,8 +15,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
-  _emitBarePreview: (path: Types.Path) =>
-    dispatch(putActionIfOnPath(routePath, navigateAppend([{props: {path}, selected: 'barePreview'}]))),
+  _emitBarePreview: (path: Types.Path) => {
+    dispatch(navigateUp()) // pop this route node before appending barePreview
+    dispatch(navigateAppend([{props: {path}, selected: 'barePreview'}]))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
@@ -42,10 +44,10 @@ type ChooseComponentProps = {
 
 const useBare = isMobile
   ? (mimeType: ?Types.Mime) => {
-      return false
+      return Constants.viewTypeFromMimeType(mimeType) === 'image'
     }
   : (mimeType: ?Types.Mime) => {
-      return Constants.viewTypeFromMimeType(mimeType) === 'image'
+      return false
     }
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
