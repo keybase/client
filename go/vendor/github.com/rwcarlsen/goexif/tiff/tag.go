@@ -25,6 +25,8 @@ const (
 	OtherVal
 )
 
+var ErrShortReadTagValue = errors.New("tiff: short read of tag value")
+
 var formatNames = map[Format]string{
 	IntVal:    "int",
 	FloatVal:  "float",
@@ -152,7 +154,7 @@ func DecodeTag(r ReadAtReader, order binary.ByteOrder) (*Tag, error) {
 		if err != nil {
 			return t, errors.New("tiff: tag value read failed: " + err.Error())
 		} else if n != int64(valLen) {
-			return t, errors.New("tiff: short read of tag value")
+			return t, ErrShortReadTagValue
 		}
 		t.Val = buff.Bytes()
 

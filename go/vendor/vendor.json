@@ -908,16 +908,16 @@
 			"revisionTime": "2016-11-28T21:05:44Z"
 		},
 		{
-			"checksumSHA1": "l6EC85ae4bAo+LT6GlejMwFms1I=",
+			"checksumSHA1": "jFB5vxLu4zA5qTKxAGTBnxyTMKA=",
 			"path": "github.com/rwcarlsen/goexif/exif",
-			"revision": "41dad3aa083329f3f672b7095a9ea8a0c384bbe8",
-			"revisionTime": "2014-12-22T21:16:34Z"
+			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
+			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
-			"checksumSHA1": "bBmKkRYPKiGH8ZbLZH8LOY6xmxQ=",
+			"checksumSHA1": "0+tTLlssYWyGuq+vQs4IiPIXJW4=",
 			"path": "github.com/rwcarlsen/goexif/tiff",
-			"revision": "41dad3aa083329f3f672b7095a9ea8a0c384bbe8",
-			"revisionTime": "2014-12-22T21:16:34Z"
+			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
+			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
 			"checksumSHA1": "EEXppdradk5G/UaQUQ95BQ9n7uw=",
