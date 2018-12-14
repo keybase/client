@@ -3,28 +3,11 @@ import logger from '../logger'
 import * as React from 'react'
 import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
-import ReactDOM, {findDOMNode} from 'react-dom'
+import ReactDOM from 'react-dom'
 import EscapeHandler from '../util/escape-handler.desktop'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 import type {Position} from './relative-popup-hoc.types'
 
-class DOMNodeFinder extends React.Component<{
-  setNode: (node: HTMLElement) => void,
-  children: React.Element<any>,
-}> {
-  componentDidMount() {
-    const {setNode} = this.props
-    const node = findDOMNode(this)
-    if (node instanceof HTMLElement) {
-      setNode && setNode(node)
-    }
-  }
-
-  render() {
-    const {children} = this.props
-    return React.Children.only(children)
-  }
-}
 const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<any>}> {
   el: HTMLElement
@@ -368,5 +351,4 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
-export {DOMNodeFinder, ModalPositionRelative}
-export type {Position} from './relative-popup-hoc.types'
+export {ModalPositionRelative}
