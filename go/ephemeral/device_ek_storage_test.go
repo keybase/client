@@ -85,17 +85,16 @@ func TestDeviceEKStorage(t *testing.T) {
 	ek.Metadata.Generation = 100
 	err = s.Put(context.Background(), corruptedGeneration, ek)
 	require.Error(t, err)
-	ekErr, ok := err.(EphemeralKeyError)
-	require.True(t, ok)
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr := err.(EphemeralKeyError)
 	expectedErr := newEKCorruptedErr(context.TODO(), tc.G, DeviceEKStr, corruptedGeneration, 100)
 	require.Equal(t, expectedErr.Error(), ekErr.Error())
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), keybase1.EkGeneration(len(testKeys)+1))
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
-	require.True(t, ok)
+	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	s.ClearCache()
@@ -115,8 +114,7 @@ func TestDeviceEKStorage(t *testing.T) {
 
 	deviceEK, err := s.Get(context.Background(), 2)
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
-	require.True(t, ok)
+	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	// Test MaxGeneration
@@ -164,16 +162,14 @@ func TestDeviceEKStorage(t *testing.T) {
 	var badEldestSeqnoDeviceEK keybase1.DeviceEk
 	err = erasableStorage.Get(context.Background(), badEldestSeqnoKey, &badEldestSeqnoDeviceEK)
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
-	require.True(t, ok)
+	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, badEldestSeqnoDeviceEK, keybase1.DeviceEk{})
 
 	// Verify we store failures in the cache
 	t.Logf("cache failures")
 	nonexistent, err = s.Get(context.Background(), maxGeneration+1)
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
-	require.True(t, ok)
+	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	cache, err := s.getCache(context.Background())
@@ -183,8 +179,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	cacheItem, ok := cache[maxGeneration+1]
 	require.True(t, ok)
 	require.Error(t, cacheItem.Err)
-	_, ok = cacheItem.Err.(erasablekv.UnboxError)
-	require.True(t, ok)
+	require.IsType(t, erasablekv.UnboxError{}, cacheItem.Err)
 }
 
 // If we change the key format intentionally, we have to introduce some form of

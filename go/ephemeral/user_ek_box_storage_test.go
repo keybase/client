@@ -38,9 +38,9 @@ func TestUserEKBoxStorage(t *testing.T) {
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), userEKMetadata.Generation+1, nil)
 	require.Error(t, err)
-	ekErr, ok := err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr := err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
 	// Test get valid & unbox
@@ -63,7 +63,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, maxGeneration, len(userEKs))
 
-	userEK, ok = userEKs[userEKMetadata.Generation]
+	userEK, ok := userEKs[userEKMetadata.Generation]
 	require.True(t, ok)
 
 	verifyUserEK(t, userEKMetadata, userEK)
@@ -76,15 +76,14 @@ func TestUserEKBoxStorage(t *testing.T) {
 	deviceEKStorage.ClearCache()
 	deviceEK, err := deviceEKStorage.Get(context.Background(), deviceEKMaxGen)
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
-	require.True(t, ok)
+	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
 	bad, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
 	require.Error(t, err)
-	ekErr, ok = err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr = err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, bad)
 
 	// test delete
@@ -93,9 +92,9 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	userEK, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation, nil)
 	require.Error(t, err)
-	ekErr, ok = err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr = err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 
 	s.ClearCache()
 
@@ -112,9 +111,9 @@ func TestUserEKBoxStorage(t *testing.T) {
 	t.Logf("cache failures")
 	nonexistent, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation+1, nil)
 	require.Error(t, err)
-	ekErr, ok = err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr = err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
 	cache, err := rawUserEKBoxStorage.getCache(context.Background())

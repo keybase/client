@@ -32,7 +32,7 @@ const (
 func newEKUnboxErr(ctx context.Context, g *libkb.GlobalContext, boxType EKType, boxGeneration keybase1.EkGeneration,
 	missingType EKType, missingGeneration keybase1.EkGeneration, contentCtime *gregor1.Time) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", boxType, boxGeneration, missingType, missingGeneration)
-	humanMsg := ""
+	var humanMsg string
 	if deviceProvisionedAfterContentCreation(ctx, g, contentCtime) {
 		humanMsg = deviceProvisionedAfterContentCreationErrMsg
 	} else if deviceIsCloned(ctx, g) {
@@ -79,12 +79,12 @@ func errFromAppStatus(e error) error {
 	}
 	switch e := e.(type) {
 	case libkb.AppStatusError:
-		switch keybase1.StatusCode(e.Code) {
-		case SCEphemeralDeviceAfterEK,
-			SCEphemeralMemberAfterEK,
-			SCEphemeralDeviceStale,
-			SCEphemeralUserStale:
-			return newEphemeralKeyError(res.AppStatus.Desc, res.AppStatus.Desc)
+		switch e.Code {
+		case libkb.SCEphemeralDeviceAfterEK,
+			libkb.SCEphemeralMemberAfterEK,
+			libkb.SCEphemeralDeviceStale,
+			libkb.SCEphemeralUserStale:
+			return newEphemeralKeyError(e.Desc, e.Desc)
 		}
 	}
 	return e

@@ -43,15 +43,15 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
-	ekErr, ok := err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr := err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEk{}, nonexistent)
 
 	// Test invalid teamID
 	nonexistent2, err := s.Get(context.Background(), invalidID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
-	_, ok = err.(EphemeralKeyError)
+	_, ok := err.(EphemeralKeyError)
 	require.False(t, ok)
 	require.Equal(t, keybase1.TeamEk{}, nonexistent2)
 
@@ -114,9 +114,9 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	bad, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation, nil)
 	require.Error(t, err)
-	ekErr, ok = err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr = err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEk{}, bad)
 
 	// test delete

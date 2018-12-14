@@ -225,9 +225,9 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	// create a new teamEK
 	teamEK, err := ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen-1, nil)
 	require.Error(t, err)
-	ekErr, ok := err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr := err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /* teamEKCreationInProgress */)
 
@@ -251,9 +251,9 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	teamEK, err = ekLib.GetTeamEK(context.Background(), teamID, expectedTeamEKGen, nil)
 	require.Error(t, err)
-	ekErr, ok = err.(EphemeralKeyError)
-	require.True(t, ok)
-	require.Equal(t, defaultHumanErr, ekErr.HumanError())
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr = err.(EphemeralKeyError)
+	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 
 	expectedDeviceEKGen++
