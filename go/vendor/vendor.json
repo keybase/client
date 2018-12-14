@@ -1010,6 +1010,13 @@
 			"revisionTime": "2018-12-14T17:34:17Z"
 		},
 		{
+			"checksumSHA1": "nZkWZ3Glzc60inL76xJEsxe7Zn0=",
+			"origin": "github.com/keybase/stellar-org/build",
+			"path": "github.com/stellar/go/build",
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
+		},
+		{
 			"checksumSHA1": "KuREGVBawvFfIMsUmx67D7gGxjw=",
 			"path": "github.com/stellar/go/build",
 			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
