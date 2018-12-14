@@ -207,3 +207,7 @@ func (s *Sender) SendPayments(ctx context.Context, payments []types.ParsedStella
 	}
 	return res, nil
 }
+
+func (s *Sender) DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string {
+	return DecorateWithPayments(ctx, body, payments)
+}

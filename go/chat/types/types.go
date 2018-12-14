@@ -375,3 +375,8 @@ func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UI
 func (d DummyStellarSender) SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
 	return nil, nil
 }
+
+func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
+	payments []chat1.TextPayment) string {
+	return body
+}

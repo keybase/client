@@ -170,6 +170,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
   ...makeMessageExplodable,
+  decoratedText: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -615,6 +616,7 @@ const validUIMessagetoMessage = (
       return makeMessageText({
         ...common,
         ...explodable,
+        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         hasBeenEdited: m.superseded,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),

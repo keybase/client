@@ -25,7 +25,7 @@ import ConfirmForm from '../wallets/confirm-form/container'
 import SendForm from '../wallets/send-form/container'
 import ChooseAsset from '../wallets/send-form/choose-asset/container'
 import QRScan from '../wallets/qr-scan/container'
-import PaymentsConfirm from './confirm-payment/container'
+import PaymentsConfirm from './payments/confirm/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {

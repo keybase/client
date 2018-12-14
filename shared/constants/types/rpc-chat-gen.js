@@ -13,6 +13,10 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUITextDecorationTyp = {
+  payment: 0,
+}
+
 export const commonAssetMetadataType = {
   none: 0,
   image: 1,

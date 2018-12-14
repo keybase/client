@@ -144,6 +144,7 @@ protocol chatUi {
     gregor1.Time ctime;
     union { null, string } outboxID;
     MessageBody messageBody;
+    union { null, string } decoratedTextBody;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
@@ -196,6 +197,14 @@ protocol chatUi {
   record UIMessages {
     array<UIMessage> messages;
     union { null, UIPagination } pagination;
+  }
+
+  enum UITextDecorationTyp {
+    PAYMENT_0
+  }
+
+  variant UITextDecoration switch (UITextDecorationTyp typ) {
+    case PAYMENT: TextPayment;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

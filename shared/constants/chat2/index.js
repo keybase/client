@@ -38,6 +38,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   paymentConfirmInfo: null,
+  paymentStatusMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   pendingStatus: 'none',
