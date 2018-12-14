@@ -259,9 +259,6 @@ const reactComponentsForMarkdownType = {
   kbfsPath: (node, output, state) => {
     return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
-  serviceDecoration: (node, output, state) => {
-    return <ServiceDecoration json={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
-  },
   link: (node, output, state) => {
     let url = node.content
 
@@ -335,6 +332,9 @@ const reactComponentsForMarkdownType = {
         {output(node.content, {...state, inParagraph: true})}
       </Text>
     )
+  },
+  serviceDecoration: (node, output, state) => {
+    return <ServiceDecoration json={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
   strong: (node, output, state) => {
     return (
