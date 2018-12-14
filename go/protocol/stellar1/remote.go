@@ -10,14 +10,26 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type ChatConversationID []byte
+
+func (o ChatConversationID) DeepCopy() ChatConversationID {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type PaymentDirectPost struct {
-	FromDeviceID      keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
-	To                *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
-	DisplayAmount     string                `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency   string                `codec:"displayCurrency" json:"displayCurrency"`
-	NoteB64           string                `codec:"noteB64" json:"noteB64"`
-	SignedTransaction string                `codec:"signedTransaction" json:"signedTransaction"`
-	QuickReturn       bool                  `codec:"quickReturn" json:"quickReturn"`
+	FromDeviceID       keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To                 *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	DisplayAmount      string                `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency    string                `codec:"displayCurrency" json:"displayCurrency"`
+	NoteB64            string                `codec:"noteB64" json:"noteB64"`
+	SignedTransaction  string                `codec:"signedTransaction" json:"signedTransaction"`
+	QuickReturn        bool                  `codec:"quickReturn" json:"quickReturn"`
+	ChatConversationID *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
 }
 
 func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
@@ -35,6 +47,13 @@ func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 		NoteB64:           o.NoteB64,
 		SignedTransaction: o.SignedTransaction,
 		QuickReturn:       o.QuickReturn,
+		ChatConversationID: (func(x *ChatConversationID) *ChatConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatConversationID),
 	}
 }
 

@@ -186,7 +186,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 
-		results, err := t.G().GetStellar().SendMiniChatPayments(m, minis)
+		results, err := t.G().GetStellar().SendMiniChatPayments(m, nil, minis)
 		if err != nil {
 			return "", err
 		}

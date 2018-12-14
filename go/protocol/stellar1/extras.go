@@ -381,3 +381,10 @@ func (b BuildPaymentID) IsNil() bool {
 func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
 	return b == other
 }
+
+func NewChatConversationID(b []byte) *ChatConversationID {
+	c := make([]byte, len(b))
+	copy(c, b)
+	cid := ChatConversationID(c)
+	return &cid
+}

@@ -755,7 +755,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
 	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
@@ -777,7 +777,7 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payment
 
 	for _, payment := range payments {
 		go func(p libkb.MiniChatPayment) {
-			prepared <- prepareMiniChatPayment(m, walletState, sp, tb, senderSeed, p)
+			prepared <- prepareMiniChatPayment(m, walletState, sp, tb, senderSeed, convID, p)
 		}(payment)
 	}
 
@@ -818,7 +818,7 @@ type miniPrepared struct {
 	Error    error
 }
 
-func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *miniPrepared {
 	result := &miniPrepared{Username: payment.Username}
 
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
@@ -842,6 +842,9 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 		FromDeviceID: m.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
 		QuickReturn:  true,
+	}
+	if convID != nil {
+		result.Post.ChatConversationID = stellar1.NewChatConversationID(convID)
 	}
 
 	xlmAmount := payment.Amount
@@ -1743,7 +1746,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		}
 		_, ok := conf.GetCurrencyLocal(*arg.Currency)
 		if !ok {
-			return ret, fmt.Errorf("unrecognized currency code %q", arg.Currency)
+			return ret, fmt.Errorf("unrecognized currency code %q", *arg.Currency)
 		}
 	}
 
