@@ -113,6 +113,7 @@ func (s *Stellar) deleteDisclaimer() {
 }
 
 func (s *Stellar) clearBids() {
+	s.buildPaymentSlot.Stop()
 	s.bidLock.Lock()
 	defer s.bidLock.Unlock()
 	for _, bid := range s.bids {
