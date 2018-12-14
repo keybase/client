@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../../../constants/types/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
 import {namedConnect} from '../../../util/container'
 import PaymentStatus from '.'
@@ -6,6 +7,7 @@ import PaymentStatus from '.'
 type OwnProps = {|
   allowFontScaling?: ?boolean,
   error?: ?string,
+  message: Types.Message,
   paymentID?: ?WalletTypes.PaymentID,
   text: string,
 |}
@@ -28,13 +30,15 @@ const reduceStatus = status => {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const {error, paymentID, text} = ownProps
+  const {error, paymentID, message, text} = ownProps
   const status =
     paymentID && !error
       ? state.chat2.getIn(['paymentStatusMap', paymentID], null)?.status || 'pending'
       : 'error'
   return {
     allowFontScaling: ownProps.allowFontScaling,
+    message,
+    paymentID,
     status: reduceStatus(status),
     text,
   }

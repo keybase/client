@@ -18,6 +18,7 @@ import type {StylesCrossPlatform} from '../../../../../styles/css'
 type OwnProps = {|
   attachTo: () => ?React.Component<any>,
   message: Types.MessageRequestPayment | Types.MessageSendPayment,
+  paymentID?: WalletTypes.PaymentID,
   onHidden: () => void,
   position: Position,
   style?: StylesCrossPlatform,
@@ -53,10 +54,15 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
-  _you: state.config.username,
-  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
-})
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => {
+  const paymentInfo = ownProps.paymentID
+    ? state.chat2.getIn(['paymentStatusMap', ownProps.paymentID], null)
+    : null
+  return {
+    _you: state.config.username,
+    paymentInfo: paymentInfo ? paymentInfo : Constants.getPaymentMessageInfo(state, ownProps.message),
+  }
+}
 
 const sendMapDispatchToProps = dispatch => ({
   onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
@@ -81,7 +87,7 @@ const sendMapDispatchToProps = dispatch => ({
 })
 
 const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
-  if (ownProps.message.type !== 'sendPayment') {
+  if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
   }
   const {paymentInfo} = stateProps
@@ -125,7 +131,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   }
 }
 
-const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
+export const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
   sendMapStateToProps,
   sendMapDispatchToProps,
   sendMergeProps
