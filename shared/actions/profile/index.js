@@ -90,13 +90,14 @@ function _openProfileOrWebsite(
 
 function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.SagaGenerator<any, any> {
   try {
-    yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield * Saga.callPromise(RPCTypes.revokeRevokeSigsRpcPromise, {sigIDQueries: [action.payload.proofId]})
-    yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
+    yield* Saga.callPromise(
+      RPCTypes.revokeRevokeSigsRpcPromise,
+      {sigIDQueries: [action.payload.proofId]},
+      Constants.waitingKey
+    )
     yield Saga.put(ProfileGen.createFinishRevoking())
   } catch (error) {
     logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-    yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
     yield Saga.put(
       ProfileGen.createRevokeFinishError({
         error: 'There was an error revoking your proof. You can click the button to try again.',
@@ -146,7 +147,7 @@ function _backToProfile() {
   ])
 }
 
-function* _profileSaga(): Saga.SagaGenerator<any, any> {
+function* _profileSaga() {
   yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
   yield Saga.safeTakeEveryPure(ProfileGen.backToProfile, _backToProfile)
   yield Saga.safeTakeEveryPure(ProfileGen.editProfile, _editProfile)

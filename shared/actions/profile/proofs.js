@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -24,17 +25,19 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
     return
   }
 
-  yield Saga.put(ProfileGen.createUpdateErrorText({}))
+  yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: null, errorText: ''}))
 
   try {
-    yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-    const {found, status} = yield* Saga.callPromise(RPCTypes.proveCheckProofRpcPromise, {sigID})
-    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
-
+    const {found, status} = yield* Saga.callPromise(
+      RPCTypes.proveCheckProofRpcPromise,
+      {sigID},
+      Constants.waitingKey
+    )
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
     if (!found && status >= RPCTypes.proveCommonProofStatus.baseHardError) {
       yield Saga.put(
         ProfileGen.createUpdateErrorText({
+          errorCode: null,
           errorText: "We couldn't find your proof. Please retry!",
         })
       )
@@ -43,7 +46,6 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
       yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}))
     }
   } catch (error) {
-    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     logger.warn('Error getting proof update')
     yield Saga.put(
       ProfileGen.createUpdateErrorText({
@@ -57,7 +59,12 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
 function _addProof(action: ProfileGen.AddProofPayload) {
   const actions = [
     Saga.put(ProfileGen.createUpdatePlatform({platform: action.payload.platform})),
-    Saga.put(ProfileGen.createUpdateErrorText({})),
+    Saga.put(
+      ProfileGen.createUpdateErrorText({
+        errorCode: null,
+        errorText: '',
+      })
+    ),
   ]
 
   // Special cases
@@ -125,7 +132,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
       },
     })
 
-    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
+    // yield Saga.put(ProfileGen.createWaiting({waiting: false}))
 
     if (incoming.cancel) {
       proveStartProofChanMap.close()
@@ -140,23 +147,28 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
         getEngine().cancelRPC(_outputInstructionsResponse, InputCancelError)
         _outputInstructionsResponse = null
       }
-      yield Saga.put(ProfileGen.createWaiting({waiting: false}))
+      // yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     } else if (incoming.submitUsername) {
       yield Saga.put(ProfileGen.createCleanupUsername())
       if (_promptUsernameResponse) {
-        yield Saga.put(ProfileGen.createUpdateErrorText({}))
+        yield Saga.put(
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
+          })
+        )
         const state = yield* Saga.selectState()
         const username = state.profile.username
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
 
-        yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
       }
     } else if (incoming.checkProof) {
       if (!incoming.checkProof.sigID && _outputInstructionsResponse) {
         _outputInstructionsResponse.result()
         _outputInstructionsResponse = null
-        yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
       }
     } else if (incoming['keybase.1.proveUi.promptUsername']) {
       _promptUsernameResponse = incoming['keybase.1.proveUi.promptUsername'].response
@@ -208,26 +220,32 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
       break
     } else if (incoming['keybase.1.proveUi.promptOverwrite']) {
       incoming['keybase.1.proveUi.promptOverwrite'].response.result(true)
-      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+      // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     } else if (incoming['keybase.1.proveUi.outputPrechecks']) {
       incoming['keybase.1.proveUi.outputPrechecks'].response.result()
-      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+      // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     } else if (incoming['keybase.1.proveUi.preProofWarning']) {
       incoming['keybase.1.proveUi.preProofWarning'].response.result(true)
-      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+      // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     } else if (incoming['keybase.1.proveUi.okToCheck']) {
       incoming['keybase.1.proveUi.okToCheck'].response.result(true)
-      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+      // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     } else if (incoming['keybase.1.proveUi.displayRecheckWarning']) {
       incoming['keybase.1.proveUi.displayRecheckWarning'].response.result()
-      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+      // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     }
   }
 }
 
+// TODO have the reducere clear these errors
 function _cancelAddProof(_, state: TypedState) {
   return Saga.sequentially([
-    Saga.put(ProfileGen.createUpdateErrorText({})),
+    Saga.put(
+      ProfileGen.createUpdateErrorText({
+        errorCode: null,
+        errorText: '',
+      })
+    ),
     Saga.put(ProfileGen.createShowUserProfile({username: state.config.username || ''})),
   ])
 }
@@ -252,21 +270,22 @@ function* _submitCryptoAddress(
   }
 
   try {
-    yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-    yield* Saga.callPromise(RPCTypes.cryptocurrencyRegisterAddressRpcPromise, {
-      address,
-      force: true,
-      wantedFamily,
-    })
+    yield* Saga.callPromise(
+      RPCTypes.cryptocurrencyRegisterAddressRpcPromise,
+      {
+        address,
+        force: true,
+        wantedFamily,
+      },
+      Constants.waitingKey
+    )
 
-    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     yield Saga.put(
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok})
     )
     yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}))
   } catch (error) {
     logger.warn('Error making proof')
-    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
   }
 }

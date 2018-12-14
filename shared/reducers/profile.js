@@ -3,111 +3,93 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/profile'
 import * as Flow from '../util/flow'
+import * as Validators from '../util/simple-validators'
 
-export default function(
-  state: Types.State = Constants.initialState,
-  action: ProfileGen.Actions
-): Types.State {
+// A simple check, the server does a fuller check
+function checkBTC(address: string): boolean {
+  return !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+}
+
+// A simple check, the server does a fuller check
+function checkZcash(address: string): boolean {
+  return true // !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+}
+
+function checkUsernameValid(platform: ?string, username: string): boolean {
+  if (platform === 'btc') {
+    return checkBTC(username)
+  } else if (platform === 'zcash') {
+    return checkZcash(username)
+  } else {
+    return true
+  }
+}
+
+function cleanupUsername(platform: ?string, username: string): string {
+  if (['http', 'https'].includes(platform)) {
+    // Ensure that only the hostname is getting returned, with no
+    // protocol, port, or path information
+    return (
+      username &&
+      username
+        .replace(/^.*?:\/\//, '') // Remove protocol information (if present)
+        .replace(/:.*/, '') // Remove port information (if present)
+        .replace(/\/.*/, '')
+    ) // Remove path information (if present)
+  }
+  return username
+}
+
+const initialState = Constants.makeInitialState()
+
+export default function(state: Types.State = initialState, action: ProfileGen.Actions): Types.State {
   switch (action.type) {
     case ProfileGen.resetStore:
-      return {...Constants.initialState}
-    case ProfileGen.waiting:
-      const {waiting} = action.payload
-      return {
-        ...state,
-        waiting,
-      }
+      return initialState
     case ProfileGen.updatePlatform: {
       const {platform} = action.payload
-      const usernameValid = Constants.checkUsernameValid(platform, state.username)
-      return {
-        ...state,
+      const usernameValid = checkUsernameValid(platform, state.username)
+      return state.merge({
         platform,
         usernameValid,
-      }
+      })
     }
-
     case ProfileGen.updateUsername: {
       const {username} = action.payload
-      const usernameValid = Constants.checkUsernameValid(state.platform, username)
-      return {
-        ...state,
-        username,
-        usernameValid,
-      }
+      const usernameValid = checkUsernameValid(state.platform, username)
+      return state.merge({usernameValid})
     }
-    case ProfileGen.cleanupUsername: {
-      const username = Constants.cleanupUsername(state.platform, state.username)
-      return {
-        ...state,
-        username,
-      }
-    }
-    case ProfileGen.revokeWaiting: {
-      const {waiting} = action.payload
-      return {
-        ...state,
-        revoke: {
-          ...state.revoke,
-          waiting,
-        },
-      }
-    }
+    case ProfileGen.cleanupUsername:
+      return state.merge({username: cleanupUsername(state.platform, state.username)})
     case ProfileGen.revokeFinish:
-      return {
-        ...state,
-        revoke: {
-          ...state.revoke,
-          error: action.error ? action.payload.error : null,
-          waiting: false,
-        },
-      }
+      return state.merge({revokeError: action.error ? action.payload.error : ''})
     case ProfileGen.updateProofText:
-      const {proof: proofText} = action.payload
-      return {
-        ...state,
-        proofText,
-      }
+      return state.merge({proofText: action.payload.proof})
     case ProfileGen.updateProofStatus:
-      const {found: proofFound, status: proofStatus} = action.payload
-      return {
-        ...state,
-        proofFound,
-        proofStatus,
-      }
+      return state.merge({
+        proofFound: action.payload.found,
+        proofStatus: action.payload.status,
+      })
     case ProfileGen.updateErrorText:
       const {errorCode, errorText} = action.payload
-      return {
-        ...state,
-        errorCode,
-        errorText,
-      }
+      return state.merge({errorCode, errorText})
     case ProfileGen.updateSigID:
-      const {sigID} = action.payload
-      return {
-        ...state,
-        sigID,
-      }
+      return state.merge({sigID: action.payload.sigID})
     case ProfileGen.updatePgpInfo:
       if (action.error) {
-        // TODO
-        return state
+        const valid1 = Validators.isValidEmail(state.pgpEmail1)
+        const valid2 = Validators.isValidEmail(state.pgpEmail2)
+        const valid3 = Validators.isValidEmail(state.pgpEmail3)
+        return state.merge({
+          pgpErrorEmail1: !!valid1,
+          pgpErrorEmail2: !!valid2,
+          pgpErrorEmail3: !!valid3,
+          pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
+        })
       }
-
-      const {info} = action.payload
-      return {
-        ...state,
-        pgpInfo: {
-          ...state.pgpInfo,
-          ...info,
-        },
-      }
+      return state.merge(action.payload)
     case ProfileGen.updatePgpPublicKey:
-      const {publicKey: pgpPublicKey} = action.payload
-      return {
-        ...state,
-        pgpPublicKey,
-      }
+      return state.merge({pgpPublicKey: action.payload.publicKey})
     // Saga only actions
     case ProfileGen.addProof:
     case ProfileGen.backToProfile:
