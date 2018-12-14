@@ -13,12 +13,13 @@ type Props = {
   sendTime: number,
   isYou: boolean,
   visible: boolean,
+  delta: 'none' | 'increase' | 'decrease',
 }
 
 const PaymentStatusDetailsHeader = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.worthContainer}>
         <Kb.Icon
           type={
             Styles.isMobile
@@ -27,17 +28,29 @@ const PaymentStatusDetailsHeader = (props: Props) => {
           }
           style={styles.icon}
         />
-        <Kb.Text type="Body">YOU SENT LUMENS WORTH</Kb.Text>
-        <Kb.Text type="HeaderBigExtrabold">{props.worthDescription}</Kb.Text>
+        <Kb.Text type="Body" style={styles.worthText}>
+          YOU SENT LUMENS WORTH
+        </Kb.Text>
+        <Kb.Text type="HeaderBigExtrabold" style={styles.worthText}>
+          {props.worthDescription}
+        </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical">
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="BodySmall">
-            Sent by <Kb.NameWithIcon horizontal={true} username={props.sender} />
-          </Kb.Text>
+      <Kb.Box2 direction="vertical" gap="xsmall" style={styles.bottomContainer}>
+        <Kb.Box2 direction="vertical" gap="xtiny" style={styles.senderContainer}>
+          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.nameContainer}>
+            <Kb.Text type="BodySmall">Sent by</Kb.Text>
+            <Kb.NameWithIcon
+              avatarSize={16}
+              style={styles.sender}
+              horizontal={true}
+              username={props.sender}
+            />
+          </Kb.Box2>
           <Kb.Text type="BodySmall">{formatTimeForMessages(props.sendTime)}</Kb.Text>
         </Kb.Box2>
-        <Kb.Text type="BodyExtrabold">{props.amountDescription}</Kb.Text>
+        <Kb.Text type="BodyExtrabold" style={styles[props.delta + 'Amount']}>
+          {props.amountDescription}
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -65,12 +78,43 @@ const PaymentStatusDetails = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  noneAmount: {
+    color: Styles.globalColors.black,
+  },
+  increaseAmount: {
+    color: Styles.globalColors.green,
+  },
+  decreaseAmount: {
+    color: Styles.globalColors.red,
+  },
+  bottomContainer: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      paddingTop: Styles.globalMargins.small,
+      paddingBottom: Styles.globalMargins.small,
+    },
+  }),
   icon: Styles.platformStyles({
     isElectron: {
       marginBottom: Styles.globalMargins.small,
-      marginTop: 35,
     },
   }),
+  nameContainer: {
+    alignItems: 'center',
+  },
+  senderContainer: {
+    alignItems: 'center',
+  },
+  worthContainer: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.purple,
+      paddingBottom: Styles.globalMargins.tiny,
+    },
+  }),
+  worthText: {
+    color: Styles.globalColors.white,
+  },
 })
 
 export default PaymentStatusDetails

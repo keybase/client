@@ -29,6 +29,8 @@ const detailsProps = {
   amountDescription: '-4.4811371 XLM',
   isYou: true,
   visible: true,
+  delta: 'decrease',
+  sendTime: 1544818272347,
 }
 
 const load = () => {
