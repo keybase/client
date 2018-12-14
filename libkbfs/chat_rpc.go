@@ -132,8 +132,8 @@ var _ Chat = (*ChatRPC)(nil)
 //
 // When sending:
 //   * chat1.NewConversationLocal
-//   * chat1.PostTestNonblock
-//     * ClientPrev can be 0.  Can outbox ID be nil?
+//   * chat1.PostLocalNonblock
+//     * ClientPrev can be 0.  Can outbox ID be nil? mikem: yes
 
 // Gathering recent notifications:
 //   * chat1.GetInboxAndUnboxLocal (pagination not needed)
@@ -272,14 +272,21 @@ func (c *ChatRPC) SendTextMessage(
 		return nil
 	}
 
-	arg := chat1.PostTextNonblockArg{
-		ConversationID:   convID,
-		TlfName:          string(tlfName),
-		TlfPublic:        tlfType == tlf.Public,
-		Body:             body,
+	arg := chat1.PostLocalNonblockArg{
+		ConversationID: convID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     string(tlfName),
+				TlfPublic:   tlfType == tlf.Public,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: body,
+			}),
+		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
-	_, err := c.client.PostTextNonblock(ctx, arg)
+	_, err := c.client.PostLocalNonblock(ctx, arg)
 	if err != nil {
 		return err
 	}
@@ -322,14 +329,21 @@ func (c *ChatRPC) SendTextMessage(
 		return err
 	}
 
-	arg = chat1.PostTextNonblockArg{
-		ConversationID:   selfConvID,
-		TlfName:          string(session.Name),
-		TlfPublic:        false,
-		Body:             selfWriteBody,
+	arg = chat1.PostLocalNonblockArg{
+		ConversationID: selfConvID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     string(session.Name),
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: selfWriteBody,
+			}),
+		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_KBFS_CHAT,
 	}
-	_, err = c.client.PostTextNonblock(ctx, arg)
+	_, err = c.client.PostLocalNonblock(ctx, arg)
 	if err != nil {
 		return err
 	}
