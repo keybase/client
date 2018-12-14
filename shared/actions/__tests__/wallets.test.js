@@ -112,7 +112,7 @@ it('disclaimer', () => {
       dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
       expect(getState().wallets.building.to).toEqual('fake recipient')
       expect(getRoute(getState)).toEqual(
-        I.List([Tabs.walletsTab, 'wallet', Constants.sendReceiveFormRouteKey])
+        I.List([Tabs.walletsTab, 'wallet', Constants.sendRequestFormRouteKey])
       )
       return Testing.flushPromises({buildRPC, getCurrenciesRPC, getCurrencyRPC})
     })

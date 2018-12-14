@@ -121,7 +121,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
           }),
           WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
           RouteTreeGen.createNavigateAppend({
-            path: [Constants.sendReceiveFormRouteKey],
+            path: [Constants.sendRequestFormRouteKey],
           }),
         ].map(a => Saga.put(a))
       )
@@ -617,13 +617,13 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState
   const path = getPath(routeState)
   const lastNode = path.last()
-  if (Constants.sendReceiveFormRoutes.includes(lastNode)) {
+  if (Constants.sendRequestFormRoutes.includes(lastNode)) {
     if (path.first() === Tabs.walletsTab) {
       // User is on send form in wallets tab, navigate back to root of tab
       return Saga.put(Route.navigateTo([{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]))
     }
     // User is somewhere else, send them to most recent parent that isn't a form route
-    const firstFormIndex = path.findIndex(node => Constants.sendReceiveFormRoutes.includes(node))
+    const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
     const pathAboveForm = path.slice(0, firstFormIndex)
     return Saga.put(Route.navigateTo(pathAboveForm))
   }

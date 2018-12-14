@@ -21,11 +21,8 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
-import ConfirmForm from '../wallets/confirm-form/container'
-import SendForm from '../wallets/send-form/container'
-import ChooseAsset from '../wallets/send-form/choose-asset/container'
-import QRScan from '../wallets/qr-scan/container'
 import PaymentsConfirm from './payments/confirm/container'
+import {sendRequestFormRoute} from '../wallets/routes'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -109,26 +106,7 @@ const chatChildren = {
     component: NewTeamDialogFromChat,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
-  [WalletConstants.sendReceiveFormRouteKey]: {
-    children: {
-      [WalletConstants.confirmFormRouteKey]: {
-        children: {},
-        component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
-      },
-      [WalletConstants.chooseAssetFormRouteKey]: {
-        children: {},
-        component: ChooseAsset,
-        tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
-      },
-      qrScan: {
-        component: QRScan,
-        tags: makeLeafTags({layerOnTop: true, underNotch: true}),
-      },
-    },
-    component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
-  },
+  [WalletConstants.sendRequestFormRouteKey]: sendRequestFormRoute,
 }
 
 const conversationRoute = makeRouteDefNode({

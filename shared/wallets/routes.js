@@ -34,6 +34,37 @@ const linkExisting = {
   tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
+const sendRequestFormRoute = {
+  children: {
+    [Constants.confirmFormRouteKey]: {
+      children: {},
+      component: ConfirmForm,
+      tags: makeLeafTags({
+        layerOnTop: !isMobile,
+        renderTopmostOnly: true,
+        underNotch: true,
+      }),
+    },
+    createNewAccount,
+    linkExisting,
+    [Constants.chooseAssetFormRouteKey]: {
+      children: {},
+      component: ChooseAsset,
+      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+    },
+    qrScan: {
+      component: QRScan,
+      tags: makeLeafTags({layerOnTop: true, underNotch: true}),
+    },
+  },
+  component: SendForm,
+  tags: makeLeafTags({
+    layerOnTop: !isMobile,
+    renderTopmostOnly: true,
+    underNotch: true,
+  }),
+}
+
 const walletChildren = {
   createNewAccount,
   exportSecretKey: {
@@ -47,36 +78,7 @@ const walletChildren = {
     component: ReceiveModal,
     tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
-  [Constants.sendReceiveFormRouteKey]: {
-    children: {
-      [Constants.confirmFormRouteKey]: {
-        children: {},
-        component: ConfirmForm,
-        tags: makeLeafTags({
-          layerOnTop: !isMobile,
-          renderTopmostOnly: true,
-          underNotch: true,
-        }),
-      },
-      createNewAccount,
-      linkExisting,
-      [Constants.chooseAssetFormRouteKey]: {
-        children: {},
-        component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-      },
-      qrScan: {
-        component: QRScan,
-        tags: makeLeafTags({layerOnTop: true, underNotch: true}),
-      },
-    },
-    component: SendForm,
-    tags: makeLeafTags({
-      layerOnTop: !isMobile,
-      renderTopmostOnly: true,
-      underNotch: true,
-    }),
-  },
+  [Constants.sendRequestFormRouteKey]: sendRequestFormRoute,
   settings: {
     children: {
       createNewAccount,
@@ -138,4 +140,5 @@ const routeTree = isMobile
       defaultSelected: 'wallet',
     })
 
+export {sendRequestFormRoute}
 export default routeTree
