@@ -721,7 +721,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			}
 
 			// If the request is finished (i.e., if it's marked as
-			// finished or if it has no children block to fetch), then
+			// finished or if it has no child blocks to fetch), then
 			// complete the prefetch.
 			if req.prefetchStatus == FinishedPrefetch || b.IsTail() {
 				// First we handle finished prefetches.
