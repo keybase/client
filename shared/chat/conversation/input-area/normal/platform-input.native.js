@@ -343,6 +343,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.xtiny,
   },
   input: {
+    flex: 1,
     marginLeft: globalMargins.tiny,
     marginRight: globalMargins.tiny,
     ...(isIOS
