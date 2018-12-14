@@ -702,6 +702,12 @@ func (f failingRemote) FailSharePost(ctx context.Context, _ chat1.FailSharePostA
 	return nil
 }
 
+func (f failingRemote) BroadcastGregorMessageToConv(ctx context.Context,
+	arg chat1.BroadcastGregorMessageToConvArg) error {
+	require.Fail(f.t, "BroadcastGregorMessageToConv")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
