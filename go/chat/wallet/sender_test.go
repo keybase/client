@@ -48,7 +48,7 @@ type mockStellar struct {
 	miniFn func([]libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error)
 }
 
-func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	return m.miniFn(payments)
 }
 
@@ -130,7 +130,7 @@ func TestStellarSender(t *testing.T) {
 		mi.partsFn = partsFn
 		ms.miniFn = miniFn
 		parsedPayments := sender.ParsePayments(context.TODO(), senderUID, convID, body)
-		res, err := sender.SendPayments(context.TODO(), parsedPayments)
+		res, err := sender.SendPayments(context.TODO(), convID, parsedPayments)
 		require.NoError(t, err)
 		require.Equal(t, len(expected), len(res))
 		for index, r := range expected {
