@@ -1023,10 +1023,11 @@
 			"revisionTime": "2018-12-14T17:34:17Z"
 		},
 		{
-			"checksumSHA1": "Dqtqa121D0oWMyIekFiKa8MN5AE=",
+			"checksumSHA1": "w2iePIoeVYrSC+290DbhfsiVnV8=",
+			"origin": "github.com/keybase/stellar-org/clients/horizon",
 			"path": "github.com/stellar/go/clients/horizon",
-			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
-			"revisionTime": "2018-12-14T17:34:17Z"
+			"revision": "d7b62d43ecad5ba5cd8eb0d704f175c160300030",
+			"revisionTime": "2018-03-28T20:45:36Z"
 		},
 		{
 			"checksumSHA1": "qqjtlFApV9GJLrb04Iwirvf9UzY=",
