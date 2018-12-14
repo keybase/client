@@ -439,6 +439,12 @@
 			"revisionTime": "2018-10-31T13:54:47Z"
 		},
 		{
+			"checksumSHA1": "i26gImRP+UQnxz5sxUupcrh+KNY=",
+			"path": "github.com/keybase/go-crypto/sha3",
+			"revision": "255a5089e85a475b944ad3c159af0de73fbe66b1",
+			"revisionTime": "2018-11-27T16:02:27Z"
+		},
+		{
 			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
 			"path": "github.com/keybase/go-crypto/ssh/terminal",
 			"revision": "13107bbcdf2f5e2862f7b1b005335f8afca30a24",
