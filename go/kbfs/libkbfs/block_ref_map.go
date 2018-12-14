@@ -73,6 +73,15 @@ func (refs blockRefMap) hasNonArchivedRef() bool {
 	return false
 }
 
+func (refs blockRefMap) getLiveCount() (count int) {
+	for _, refEntry := range refs {
+		if refEntry.Status == liveBlockRef {
+			count++
+		}
+	}
+	return count
+}
+
 func (refs blockRefMap) checkExists(context kbfsblock.Context) (
 	bool, blockRefStatus, error) {
 	refEntry, ok := refs[context.GetRefNonce()]
