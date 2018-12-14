@@ -1,6 +1,7 @@
 // @flow
 // React-native tooling assumes this file is here, so we just require our real entry point
 import './app/globals.native'
+import './util/android-perf-helper.js'
 
 // Load storybook or the app
 if (__STORYBOOK__) {

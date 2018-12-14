@@ -173,4 +173,4 @@ global.setTimeout(() => {
     body: JSON.stringify(getTrace()),
   })
   console.log('---- Uploaded Performance Metrics ----')
-}, 20000)
+}, 10000)

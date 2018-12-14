@@ -26,6 +26,7 @@ import java.security.cert.CertificateException;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.PerfLogger;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
@@ -57,6 +58,8 @@ public class MainActivity extends ReactActivity {
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        new PerfLogger(getReactNativeHost()).initialize();
         try {
             Keybase.setGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
@@ -67,7 +70,6 @@ public class MainActivity extends ReactActivity {
         initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
                 new DNSNSFetcher(), new VideoHelper());
 
-        super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
         if (intent != null) {
