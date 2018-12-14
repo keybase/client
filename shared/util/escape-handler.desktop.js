@@ -10,13 +10,14 @@ type Props = {
   children: ?React.Node,
 }
 
-// eslint-disable-next-line func-call-spacing
-const EscapeContext = React.createContext<{
+type HandlerProps = {
   // eslint-disable-next-line no-use-before-define
   add: (receiver: EscapeHandler) => void,
   // eslint-disable-next-line no-use-before-define
   remove: (receiver: EscapeHandler) => void,
-}>({
+}
+
+const EscapeContext = React.createContext<HandlerProps>({
   add: (receiver: EscapeHandler) => {},
   remove: (receiver: EscapeHandler) => {},
 })
@@ -31,7 +32,7 @@ class EscapeHandlerWrapper extends React.Component<Props> {
   }
 }
 
-class EscapeHandler extends React.Component<Props & {add: any => void, remove: any => void}> {
+class EscapeHandler extends React.Component<Props & HandlerProps> {
   componentDidMount() {
     this.props.add(this)
   }
