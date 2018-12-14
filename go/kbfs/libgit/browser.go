@@ -36,9 +36,12 @@ func translateGitError(err *error) {
 // Browser presents the contents of a git repo as a read-only file
 // system, using only the dotgit directory of the repo.
 type Browser struct {
-	tree  *object.Tree
-	root  string
-	mtime time.Time
+	tree       *object.Tree
+	root       string
+	mtime      time.Time
+	commitHash plumbing.Hash
+
+	sharedCache sharedInBrowserCache
 }
 
 var _ billy.Filesystem = (*Browser)(nil)
@@ -50,7 +53,8 @@ var _ billy.Filesystem = (*Browser)(nil)
 // it.
 func NewBrowser(
 	repoFS *libfs.FS, clock libkbfs.Clock,
-	gitBranchName plumbing.ReferenceName) (*Browser, error) {
+	gitBranchName plumbing.ReferenceName,
+	sharedCache sharedInBrowserCache) (*Browser, error) {
 	var storage storage.Storer
 	storage, err := NewGitConfigWithoutRemotesStorer(repoFS)
 	if err != nil {
@@ -94,9 +98,11 @@ func NewBrowser(
 	}
 
 	return &Browser{
-		tree:  tree,
-		root:  string(gitBranchName),
-		mtime: c.Author.When,
+		tree:        tree,
+		root:        string(gitBranchName),
+		mtime:       c.Author.When,
+		commitHash:  c.Hash,
+		sharedCache: sharedCache,
 	}, nil
 }
 
@@ -184,6 +190,10 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 
 // Lstat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
+	cachePath := path.Join(b.root, filename)
+	if fi, ok := b.sharedCache.getFileInfo(b.commitHash, cachePath); ok {
+		return fi, nil
+	}
 	defer translateGitError(&err)
 	entry, err := b.tree.FindEntry(filename)
 	if err != nil {
@@ -197,7 +207,11 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 
 	// Git doesn't keep track of the mtime of individual files
 	// anywhere, so just use the timestamp from the commit.
-	return &browserFileInfo{entry, size, b.mtime}, nil
+	fi = &browserFileInfo{entry, size, b.mtime}
+
+	b.sharedCache.setFileInfo(b.commitHash, cachePath, fi)
+
+	return fi, nil
 }
 
 // Stat implements the billy.Filesystem interface for Browser.
@@ -228,9 +242,20 @@ func (b *Browser) Join(elem ...string) string {
 
 // ReadDir implements the billy.Filesystem interface for Browser.
 func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
+	if p == "" {
+		p = "."
+	}
+
+	cachePath := path.Join(b.root, p)
+
+	if fis, ok := b.sharedCache.getChildrenFileInfos(
+		b.commitHash, cachePath); ok {
+		return fis, nil
+	}
+
 	defer translateGitError(&err)
 	var dirTree *object.Tree
-	if p == "" || p == "." {
+	if p == "." {
 		dirTree = b.tree
 	} else {
 		dirTree, err = b.tree.Tree(p)
@@ -239,13 +264,18 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 		}
 	}
 
+	childrenPathsToCache := make([]string, 0, len(dirTree.Entries))
 	for _, e := range dirTree.Entries {
-		fi, err := b.Lstat(e.Name)
+		fi, err := b.Lstat(path.Join(p, e.Name))
 		if err != nil {
 			return nil, err
 		}
 		fis = append(fis, fi)
+		childrenPathsToCache = append(childrenPathsToCache, path.Join(cachePath, e.Name))
 	}
+	b.sharedCache.setChildrenPaths(
+		b.commitHash, cachePath, childrenPathsToCache)
+
 	return fis, nil
 }
 
@@ -272,9 +302,11 @@ func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
 		return nil, err
 	}
 	return &Browser{
-		tree:  newTree,
-		root:  b.Join(b.root, p),
-		mtime: b.mtime,
+		tree:        newTree,
+		root:        b.Join(b.root, p),
+		mtime:       b.mtime,
+		commitHash:  b.commitHash,
+		sharedCache: b.sharedCache,
 	}, nil
 }
 

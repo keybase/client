@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -174,6 +175,33 @@ func TestList(t *testing.T) {
 	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 	require.Equal(t, listResult.Entries[0].Name, "jdoe")
 
+	t.Log("List directory before it's created")
+	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: path1,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 0,
+		"Expected 0 directory entries in listing")
+
+	t.Log("Shouldn't have created the TLF")
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "jdoe", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	require.Nil(t, rootNode)
+
 	clock.Add(1 * time.Minute)
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
@@ -181,7 +209,6 @@ func TestList(t *testing.T) {
 	clock.Add(1 * time.Minute)
 
 	// make a temp remote directory + files we will clean up later
-	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe") // Make a revision.
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
@@ -349,8 +376,26 @@ func TestListRecursive(t *testing.T) {
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
-	// make a temp remote directory + files we will clean up later
+	t.Log("List directory before it's created")
 	pathJDoe := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
+		OpID: opid,
+		Path: pathJDoe,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE, pathJDoe,
+		keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 0,
+		"Expected 0 directory entries in listing")
+
+	// make a temp remote directory + files we will clean up later
 	writeRemoteDir(ctx, t, sfs, pathAppend(pathJDoe, `a`))
 	patha := keybase1.NewPathWithKbfs(`/private/jdoe/a`)
 	writeRemoteDir(ctx, t, sfs, pathAppend(patha, `aa`))
@@ -363,7 +408,7 @@ func TestListRecursive(t *testing.T) {
 	writeRemoteFile(ctx, t, sfs, pathAppend(pathab, `test2.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(patha, `.testfile`), []byte(`foo`))
 
-	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 	err = sfs.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
 		OpID: opid,
@@ -373,7 +418,7 @@ func TestListRecursive(t *testing.T) {
 	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST_RECURSIVE, pathJDoe, keybase1.Path{}, true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
-	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 	expected := []string{
 		"a",
@@ -475,38 +520,58 @@ func TestCopyRecursive(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 
-	// Make local starting directory.
-	err = os.Mkdir(filepath.Join(tempdir, "testdir"), 0700)
+	// First try copying from a TLF that doesn't exist yet, which
+	// shouldn't do anything.
+	testdir := filepath.Join(tempdir, "testdir")
+	pathLocal := keybase1.NewPathWithLocal(filepath.ToSlash(testdir))
+	pathKbfsEmpty := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
+	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
+		OpID: opid,
+		Src:  pathKbfsEmpty,
+		Dest: pathLocal,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_COPY, pathKbfsEmpty, pathLocal,
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	d, err := os.Open(testdir)
+	require.NoError(t, err)
+	fis, err := d.Readdir(0)
+	require.NoError(t, err)
+	require.Len(t, fis, 0)
+
+	// Populate local starting directory.
 	err = ioutil.WriteFile(
 		filepath.Join(tempdir, "testdir", "test1.txt"), []byte("foo"), 0600)
 	require.NoError(t, err)
 	err = ioutil.WriteFile(
 		filepath.Join(tempdir, "testdir", "test2.txt"), []byte("bar"), 0600)
 	require.NoError(t, err)
-	path1 := keybase1.NewPathWithLocal(
-		filepath.ToSlash(filepath.Join(tempdir, "testdir")))
-	path2 := keybase1.NewPathWithKbfs(`/private/jdoe/testdir`)
 
-	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
 	// Copy it into KBFS.
+	pathKbfs := keybase1.NewPathWithKbfs(`/private/jdoe/testdir`)
 	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
 		OpID: opid,
-		Src:  path1,
-		Dest: path2,
+		Src:  pathLocal,
+		Dest: pathKbfs,
 	})
 	require.NoError(t, err)
 	checkPendingOp(
-		ctx, t, sfs, opid, keybase1.AsyncOps_COPY, path1, path2, true)
+		ctx, t, sfs, opid, keybase1.AsyncOps_COPY, pathLocal, pathKbfs, true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 
 	require.Equal(t, "foo",
-		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test1.txt"))))
+		string(readRemoteFile(ctx, t, sfs, pathAppend(pathKbfs, "test1.txt"))))
 	require.Equal(t, "bar",
-		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test2.txt"))))
+		string(readRemoteFile(ctx, t, sfs, pathAppend(pathKbfs, "test2.txt"))))
 
 	// Copy it back.
 	tempdir2, err := ioutil.TempDir("", "simpleFstest")
@@ -518,12 +583,12 @@ func TestCopyRecursive(t *testing.T) {
 	require.NoError(t, err)
 	err = sfs.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
 		OpID: opid2,
-		Src:  path2,
+		Src:  pathKbfs,
 		Dest: path3,
 	})
 	require.NoError(t, err)
 	checkPendingOp(
-		ctx, t, sfs, opid2, keybase1.AsyncOps_COPY, path2, path3, true)
+		ctx, t, sfs, opid2, keybase1.AsyncOps_COPY, pathKbfs, path3, true)
 	err = sfs.SimpleFSWait(ctx, opid2)
 	require.NoError(t, err)
 	dataFoo, err := ioutil.ReadFile(
@@ -537,33 +602,36 @@ func TestCopyRecursive(t *testing.T) {
 
 	// Get current revision number for the KBFS files.
 	syncFS(ctx, t, sfs, "/private/jdoe")
-	fb, _, err := sfs.getFolderBranchFromPath(ctx, path2)
+	fb, _, err := sfs.getFolderBranchFromPath(ctx, pathKbfs)
 	require.NoError(t, err)
 	status, _, err := sfs.config.KBFSOps().FolderStatus(ctx, fb)
 	require.NoError(t, err)
 	rev := status.Revision
-	path2Archived := keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
-		Path: `/private/jdoe/testdir`,
-		ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
-			keybase1.KBFSRevision(rev)),
-	})
+	pathKbfsArchived := keybase1.NewPathWithKbfsArchived(
+		keybase1.KBFSArchivedPath{
+			Path: `/private/jdoe/testdir`,
+			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
+				keybase1.KBFSRevision(rev)),
+		})
 
 	// Overwrite the files in KBFS.
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test1.txt`), []byte(`foo2`))
-	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`bar2`))
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathKbfs, `test1.txt`), []byte(`foo2`))
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathKbfs, `test2.txt`), []byte(`bar2`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
 	require.Equal(t, "foo2",
-		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test1.txt"))))
+		string(readRemoteFile(ctx, t, sfs, pathAppend(pathKbfs, "test1.txt"))))
 	require.Equal(t, "bar2",
-		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test2.txt"))))
+		string(readRemoteFile(ctx, t, sfs, pathAppend(pathKbfs, "test2.txt"))))
 
 	// Read old data from archived path.
 	require.Equal(t, "foo",
 		string(readRemoteFile(
-			ctx, t, sfs, pathAppend(path2Archived, "test1.txt"))))
+			ctx, t, sfs, pathAppend(pathKbfsArchived, "test1.txt"))))
 	require.Equal(t, "bar",
 		string(readRemoteFile(
-			ctx, t, sfs, pathAppend(path2Archived, "test2.txt"))))
+			ctx, t, sfs, pathAppend(pathKbfsArchived, "test2.txt"))))
 }
 
 func TestCopyToRemote(t *testing.T) {
@@ -727,9 +795,13 @@ type fsBlockerMaker struct {
 
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string) (
-	billy.Filesystem, error) {
-	fs, err := libfs.NewFS(
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	create bool) (billy.Filesystem, error) {
+	fsMaker := libfs.NewFS
+	if !create {
+		fsMaker = libfs.NewFSIfExists
+	}
+	fs, err := fsMaker(
 		ctx, config, tlfHandle, branch, subdir, "", keybase1.MDPriorityNormal)
 	if err != nil {
 		return nil, err

@@ -117,6 +117,7 @@ type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
 	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
+	GetAllSyncedTlfs() []tlf.ID
 }
 
 type blockRetrieverGetter interface {
@@ -1273,6 +1274,19 @@ const (
 	DiskBlockSyncCache
 )
 
+func (dbct DiskBlockCacheType) String() string {
+	switch dbct {
+	case DiskBlockSyncCache:
+		return "DiskBlockSyncCache"
+	case DiskBlockWorkingSetCache:
+		return "DiskBlockWorkingSetCache"
+	case DiskBlockAnyCache:
+		return "DiskBlockAnyCache"
+	default:
+		return "unknown DiskBlockCacheType"
+	}
+}
+
 // DiskBlockCache caches blocks to the disk.
 type DiskBlockCache interface {
 	// Get gets a block from the disk cache.  If a specific preferred
@@ -1298,20 +1312,24 @@ type DiskBlockCache interface {
 	// ClearAllTlfBlocks deletes all the synced blocks corresponding
 	// to the given TLF ID from the cache.  It doesn't affect
 	// transient blocks for unsynced TLFs.
-	ClearAllTlfBlocks(ctx context.Context, tlfID tlf.ID) error
+	ClearAllTlfBlocks(
+		ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) error
 	// GetLastUnrefRev returns the last revision that has been marked
 	// unref'd for the given TLF.
-	GetLastUnrefRev(ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error)
+	GetLastUnrefRev(
+		ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+		kbfsmd.Revision, error)
 	// PutLastUnrefRev saves the given revision as the last unref'd
 	// revision for the given TLF.
 	PutLastUnrefRev(
-		ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
+		ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+		cacheType DiskBlockCacheType) error
 	// Status returns the current status of the disk cache.
 	Status(ctx context.Context) map[string]DiskBlockCacheStatus
-	// DoesSyncCacheHaveSpace returns whether the sync cache has
-	// space.  If this cache doesn't contain a sync cache, always returns
-	// true.
-	DoesSyncCacheHaveSpace(ctx context.Context) bool
+	// DoesCacheHaveSpace returns whether the given cache has
+	// space.
+	DoesCacheHaveSpace(
+		ctx context.Context, cacheType DiskBlockCacheType) (bool, error)
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
@@ -1641,7 +1659,7 @@ type Prefetcher interface {
 		<-chan struct{}, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
-	CancelPrefetch(kbfsblock.ID)
+	CancelPrefetch(BlockPointer)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -2218,6 +2236,9 @@ type InitMode interface {
 	// ClientType indicates the type we should advertise to the
 	// Keybase service.
 	ClientType() keybase1.ClientType
+	// LocalHTTPServerEnabled represents whether we should launch an HTTP
+	// server.
+	LocalHTTPServerEnabled() bool
 	// MaxCleanBlockCacheCapacity is the maximum number of bytes to be taken up
 	// by the clean block cache.
 	MaxCleanBlockCacheCapacity() uint64

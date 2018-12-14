@@ -62,6 +62,8 @@ type AutogitManager struct {
 	deleteCancels          map[string]context.CancelFunc
 	shutdown               bool
 
+	sharedInBrowserCache sharedInBrowserCache
+
 	browserLock  sync.Mutex
 	browserCache *lru.Cache
 
@@ -76,6 +78,10 @@ func NewAutogitManager(
 	if err != nil {
 		panic(err.Error())
 	}
+	sharedCache, err := newLRUSharedInBrowserCache()
+	if err != nil {
+		panic(err.Error())
+	}
 
 	return &AutogitManager{
 		config:                 config,
@@ -85,6 +91,7 @@ func NewAutogitManager(
 		repoNodesForWatchedIDs: make(map[libkbfs.NodeID]*repoDirNode),
 		deleteCancels:          make(map[string]context.CancelFunc),
 		browserCache:           browserCache,
+		sharedInBrowserCache:   sharedCache,
 	}
 }
 
@@ -333,7 +340,8 @@ func (am *AutogitManager) getBrowserForRepoLocked(
 		return nil, nil, err
 	}
 	repoFS := billyFS.(*libfs.FS)
-	browser, err := NewBrowser(repoFS, am.config.Clock(), branch)
+	browser, err := NewBrowser(
+		repoFS, am.config.Clock(), branch, am.sharedInBrowserCache)
 	if err != nil {
 		return nil, nil, err
 	}
