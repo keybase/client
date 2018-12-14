@@ -11,10 +11,6 @@ type candidateTestCase struct {
 	out []ChatTxCandidate
 }
 
-func makeRes(proto ChatTxCandidate, pos []int) []ChatTxCandidate {
-	return nil
-}
-
 func TestFindCandidates(t *testing.T) {
 	alfa := "alfa"
 	bravo := "bravo"
@@ -22,7 +18,7 @@ func TestFindCandidates(t *testing.T) {
 	alfaTx := ChatTxCandidate{Amount: "124.005", CurrencyCode: "XLM", Username: &alfa, Full: "+124.005XLM@alfa"}
 	bravoTx := ChatTxCandidate{Amount: ".005", CurrencyCode: "USD", Username: &bravo, Full: "+.005USD@bravo"}
 	charlieTx := ChatTxCandidate{Amount: "5.", CurrencyCode: "HKD", Username: &charlie, Full: "+5.HKD@charlie"}
-	anonTx := ChatTxCandidate{Amount: "25", CurrencyCode: "EUR", Username: nil, Full: "+25eur"}
+	anonTx := ChatTxCandidate{Amount: "25", CurrencyCode: "EUR", Username: nil, Full: "+25EUR"}
 	testCases := []candidateTestCase{
 		candidateTestCase{"+124.005XLM@alfa", []ChatTxCandidate{alfaTx}},
 		candidateTestCase{"   +124.005XLM@alfa   ", []ChatTxCandidate{alfaTx}},
@@ -60,7 +56,7 @@ func TestFindCandidates(t *testing.T) {
 		// some extra checks
 		candidateTestCase{"+0.05XLM", []ChatTxCandidate{{Amount: "0.05", CurrencyCode: "XLM", Username: nil, Full: "+0.05XLM"}}},
 		candidateTestCase{"+.05XLM", []ChatTxCandidate{{Amount: ".05", CurrencyCode: "XLM", Username: nil, Full: "+.05XLM"}}},
-		candidateTestCase{"+0.5xlm", []ChatTxCandidate{{Amount: "0.5", CurrencyCode: "XLM", Username: nil, Full: "+0.5xlm"}}},
+		candidateTestCase{"+0.5xlm", []ChatTxCandidate{{Amount: "0.5", CurrencyCode: "XLM", Username: nil, Full: "+0.5XLM"}}},
 		candidateTestCase{"hello `in my code +0.5XLM blah` ok?", []ChatTxCandidate{}},
 		candidateTestCase{"hello ```in my code +0.5XLM blah``` ok?", []ChatTxCandidate{}},
 		candidateTestCase{"> quoted pay me +0.5XLM ok?", []ChatTxCandidate{}},
@@ -68,7 +64,13 @@ func TestFindCandidates(t *testing.T) {
 
 	for _, testCase := range testCases {
 		ret := FindChatTxCandidates(testCase.in)
-		require.Equal(t, testCase.out, ret, testCase.in)
+		// blow away positions, we test them in decorate tests
+		filtered := []ChatTxCandidate{}
+		for _, r := range ret {
+			r.Position = nil
+			filtered = append(filtered, r)
+		}
+		require.Equal(t, testCase.out, filtered, testCase.in)
 	}
 
 	require.True(t, true)
