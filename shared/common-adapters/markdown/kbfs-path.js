@@ -10,6 +10,9 @@ export type Props = {
   allowFontScaling?: ?boolean,
 }
 
+// Checking the feature flag outside the component to avoid doing that during
+// the rendering. Probably not a huge deal though as this doesn't happen much
+// yet.
 export default (features.kbfsChatIntegration
   ? (props: Props) => (
       <Text type="BodyPrimaryLink" onClick={props.onClick} allowFontScaling={!!props.allowFontScaling}>
