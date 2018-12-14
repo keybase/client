@@ -13,7 +13,7 @@ func (e CorruptionError) Error() string {
 }
 
 type VersionError struct {
-	v Version
+	v uint32
 }
 
 func (e VersionError) Error() string {
