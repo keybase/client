@@ -15,7 +15,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return initialState
     case WalletsGen.accountsReceived:
       const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
-      return state.update('accountMap', m => m.merge(accountMap))
+      return state.merge({accountMap: accountMap})
+    case WalletsGen.accountUpdateReceived:
+      // accept the updated account if we've loaded it already
+      // this is because we get the sort order from the full accounts load,
+      // and can't figure it out from these notifications alone.
+      if (state.accountMap.get(action.payload.account.accountID)) {
+        return state.update('accountMap', am =>
+          am.update(action.payload.account.accountID, acc => acc.merge(action.payload.account))
+        )
+      }
+      return state
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.buildPayment:

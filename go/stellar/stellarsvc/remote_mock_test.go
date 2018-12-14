@@ -885,6 +885,11 @@ func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID 
 	return *p, nil
 }
 
+type accountCurrencyResult struct {
+	libkb.AppStatusEmbed
+	CurrencyDisplayPreference string `json:"currency_display_preference"`
+}
+
 func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
 	defer tc.G.CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
 	r.Lock()
@@ -905,12 +910,29 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	if a.balance.Amount != "" {
 		balances = []stellar1.Balance{a.balance}
 	}
+
+	// fetch the currency display preference for this account
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountcurrency",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+		},
+		NetContext: ctx,
+	}
+	var apiRes accountCurrencyResult
+	err = tc.G.API.GetDecode(apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+
 	return stellar1.AccountDetails{
-		AccountID:     accountID,
-		Seqno:         strconv.FormatUint(r.seqnos[accountID], 10),
-		Balances:      balances,
-		SubentryCount: a.subentries,
-		Available:     a.availableBalance(),
+		AccountID:       accountID,
+		Seqno:           strconv.FormatUint(r.seqnos[accountID], 10),
+		Balances:        balances,
+		SubentryCount:   a.subentries,
+		Available:       a.availableBalance(),
+		DisplayCurrency: apiRes.CurrencyDisplayPreference,
 	}, nil
 }
 

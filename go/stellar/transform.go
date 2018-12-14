@@ -458,10 +458,14 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 	return payments, nil
 }
 
-func AccountDetailsToWalletAccountLocal(details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
+func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription()
+	if err != nil {
+		return empty, err
+	}
+	currencyLocal, err := GetCurrencySetting(mctx, details.AccountID)
 	if err != nil {
 		return empty, err
 	}
@@ -472,6 +476,7 @@ func AccountDetailsToWalletAccountLocal(details stellar1.AccountDetails, isPrima
 		Name:               accountName,
 		BalanceDescription: balance,
 		Seqno:              details.Seqno,
+		CurrencyLocal:      currencyLocal,
 	}
 
 	return acct, nil

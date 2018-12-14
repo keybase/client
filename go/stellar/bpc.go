@@ -122,6 +122,6 @@ func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
 
 func (c *buildPaymentCache) GetOutsideCurrencyPreference(mctx libkb.MetaContext,
 	accountID stellar1.AccountID) (stellar1.OutsideCurrencyCode, error) {
-	cr, err := GetCurrencySetting(mctx, c.remoter, accountID)
+	cr, err := GetCurrencySetting(mctx, accountID)
 	return cr.Code, err
 }
