@@ -1,6 +1,8 @@
 package stellar
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stellar/go/xdr"
@@ -11,6 +13,7 @@ import (
 type SeqnoProvider struct {
 	mctx        libkb.MetaContext
 	walletState *WalletState
+	refresh     sync.Once
 }
 
 // NewSeqnoProvider creates a SeqnoProvider.
@@ -23,6 +26,9 @@ func NewSeqnoProvider(mctx libkb.MetaContext, walletState *WalletState) *SeqnoPr
 
 // SequenceForAccount implements build.SequenceProvider.
 func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
+	s.refresh.Do(func() {
+		s.walletState.ForceSeqnoRefresh(s.mctx, stellar1.AccountID(aid))
+	})
 	seqno, err := s.walletState.AccountSeqnoAndBump(s.mctx.Ctx(), stellar1.AccountID(aid))
 	if err != nil {
 		return 0, err

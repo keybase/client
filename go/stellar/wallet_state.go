@@ -154,6 +154,15 @@ func (w *WalletState) Refresh(mctx libkb.MetaContext, accountID stellar1.Account
 	return a.Refresh(mctx, w.G().NotifyRouter, reason)
 }
 
+// ForceSeqnoRefresh refreshes the seqno for an account.
+func (w *WalletState) ForceSeqnoRefresh(mctx libkb.MetaContext, accountID stellar1.AccountID) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return ErrAccountNotFound
+	}
+	return a.ForceSeqnoRefresh(mctx)
+}
+
 // backgroundRefresh gets any refresh requests and will refresh
 // the account state if sufficient time has passed since the
 // last refresh.
@@ -449,6 +458,22 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 	a.rtime = time.Now()
 	a.Unlock()
 
+	return err
+}
+
+// ForceSeqnoRefresh refreshes the seqno for an account.
+func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
+	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
+	if err == nil {
+		a.Lock()
+		if seqno > a.seqno {
+			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+			a.seqno = seqno
+		} else {
+			mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
+		}
+		a.Unlock()
+	}
 	return err
 }
 

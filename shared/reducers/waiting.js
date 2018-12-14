@@ -51,16 +51,18 @@ function reducer(state: Types.State = initialState, action: Waiting.Actions): Ty
       const {key} = action.payload
       return changeHelper(state, typeof key === 'string' ? [key] : key, 1, '')
     }
-    case Waiting.changeWaiting: {
-      const {key, increment, error} = action.payload
-      return changeHelper(state, typeof key === 'string' ? [key] : key, increment ? 1 : -1, error)
-    }
     case Waiting.clearWaiting: {
       const {key} = action.payload
       return state.merge({
         counts: state.counts.deleteAll(typeof key === 'string' ? [key] : key),
         errors: state.errors.deleteAll(typeof key === 'string' ? [key] : key),
       })
+    }
+    case Waiting.batchChangeWaiting: {
+      const {changes} = action.payload
+      return changes.reduce((state, {key, increment, error}) => {
+        return changeHelper(state, typeof key === 'string' ? [key] : key, increment ? 1 : -1, error)
+      }, state)
     }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

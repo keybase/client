@@ -51,7 +51,7 @@ type NameInfoSource interface {
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
 	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 }

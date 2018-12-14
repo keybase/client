@@ -320,8 +320,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		var ephemeralSeed *keybase1.TeamEk
 		if boxed.IsEphemeral() {
 			ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
-				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
-				boxed.EphemeralMetadata().Generation)
+				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
+				boxed.ClientHeader.TlfPublic, boxed.EphemeralMetadata().Generation,
+				&boxed.ServerHeader.Ctime)
 			if err != nil {
 				b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
 				uberr = b.detectPermanentError(err, tlfName)
