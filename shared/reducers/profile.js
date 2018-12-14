@@ -90,12 +90,24 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       return state.merge(action.payload)
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
-    // Saga only actions
     case ProfileGen.addProof:
-    case ProfileGen.backToProfile:
-    case ProfileGen.cancelAddProof:
-    case ProfileGen.cancelPgpGen:
+      const {platform} = action.payload
+      const usernameValid = checkUsernameValid(platform, state.username)
+      return state.merge({
+        errorCode: null,
+        errorText: '',
+        platform,
+        usernameValid,
+      })
+    case ProfileGen.cancelAddProof: // fallthrough
     case ProfileGen.checkProof:
+      return state.merge({errorCode: null, errorText: ''})
+    case ProfileGen.submitBTCAddress:
+    case ProfileGen.submitZcashAddress:
+      return state.merge({username: cleanupUsername(state.platform, state.username)})
+    // Saga only actions
+    case ProfileGen.backToProfile:
+    case ProfileGen.cancelPgpGen:
     case ProfileGen.dropPgp:
     case ProfileGen.editProfile:
     case ProfileGen.finishRevoking:
@@ -106,10 +118,8 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.onClickFollowing:
     case ProfileGen.outputInstructionsActionLink:
     case ProfileGen.showUserProfile:
-    case ProfileGen.submitBTCAddress:
     case ProfileGen.submitRevokeProof:
     case ProfileGen.submitUsername:
-    case ProfileGen.submitZcashAddress:
     case ProfileGen.uploadAvatar:
       return state
     default:
