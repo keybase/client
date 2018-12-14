@@ -91,7 +91,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
     this.props.onChangeText(text)
   }
 
-  _globalKeyDownHandler = (ev: KeyboardEvent) => {
+  _globalKeyDownPressHandler = (ev: KeyboardEvent) => {
     const target = ev.target
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return
@@ -180,7 +180,10 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
     }
 
     return (
-      <KeyEventHandler onKeyDown={this._globalKeyDownHandler} onKeyPress={this._globalKeyDownHandler}>
+      <KeyEventHandler
+        onKeyDown={this._globalKeyDownPressHandler}
+        onKeyPress={this._globalKeyDownPressHandler}
+      >
         <Kb.Box style={styles.container}>
           {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
           {this.props.mentionPopupOpen && (
