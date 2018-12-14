@@ -921,6 +921,11 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	return msg
 }
 
+func (m *ChatRemoteMock) BroadcastGregorMessageToConv(ctx context.Context,
+	arg chat1.BroadcastGregorMessageToConvArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
 	return chat1.S3Params{}, errors.New("GetS3Params not mocked")
 }
