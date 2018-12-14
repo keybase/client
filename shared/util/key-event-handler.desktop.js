@@ -30,31 +30,31 @@ const KeyEventHandlerWrapper = (props: Props) => (
 )
 
 class KeyEventHandler extends React.Component<Props & HandlerProps> {
-  componentDidMount() {
+  componentDidMount = () => {
     this.props.add(this)
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     this.props.remove(this)
   }
 
-  onKeyDown(ev) {
+  onKeyDown = ev => {
     this.props.onKeyDown && this.props.onKeyDown(ev)
   }
 
-  onKeyPress(ev) {
+  onKeyPress = ev => {
     this.props.onKeyPress && this.props.onKeyPress(ev)
   }
 
-  render() {
-    return this.props.children || null
+  render = () => {
+    return this.props.children
   }
 }
 
 class GlobalKeyEventHandler extends React.Component<GlobalProps> {
   _stack: Array<KeyEventHandler> = []
 
-  componentDidMount() {
+  componentDidMount = () => {
     const body = document.body
     if (!body) {
       return
@@ -63,7 +63,7 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
     body.addEventListener('keypress', this._handleKeyPress)
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     const body = document.body
     if (!body) {
       return
@@ -72,20 +72,21 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
     body.removeEventListener('keypress', this._handleKeyPress)
   }
 
-  _handleKeyDown = (ev: KeyboardEvent) => {
+  _topHandler = () => {
     if (this._stack.length === 0) {
-      return
+      return null
     }
-    const top = this._stack[this._stack.length - 1]
-    top.onKeyDown(ev)
+    return this._stack[this._stack.length - 1]
+  }
+
+  _handleKeyDown = (ev: KeyboardEvent) => {
+    const top = this._topHandler()
+    top && top.onKeyDown(ev)
   }
 
   _handleKeyPress = (ev: KeyboardEvent) => {
-    if (this._stack.length === 0) {
-      return
-    }
-    const top = this._stack[this._stack.length - 1]
-    top.onKeyPress(ev)
+    const top = this._topHandler()
+    top && top.onKeyPress(ev)
   }
 
   add = (receiver: KeyEventHandler) => {
@@ -99,13 +100,11 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
     }
   }
 
-  render() {
-    return (
-      <KeyEventContext.Provider value={{add: this.add, remove: this.remove}}>
-        {this.props.children}
-      </KeyEventContext.Provider>
-    )
-  }
+  render = () => (
+    <KeyEventContext.Provider value={{add: this.add, remove: this.remove}}>
+      {this.props.children}
+    </KeyEventContext.Provider>
+  )
 }
 
 export {GlobalKeyEventHandler}
