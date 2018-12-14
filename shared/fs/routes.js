@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import Files from './container'
+import Files from './folder/container'
 import {isMobile} from '../constants/platform'
 import {BarePreview, NormalPreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'

@@ -1,14 +1,14 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import * as Types from '../constants/types/fs'
-import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
-import FolderHeader from './header/container'
-import Footer from './footer/footer'
-import {isMobile} from '../constants/platform'
-import ConnectedResetBanner from './banner/reset-banner/container'
-import Rows from './row/rows-container'
+import * as Types from '../../constants/types/fs'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
+import FolderHeader from '../header/container'
+import Footer from '../footer/footer'
+import {isMobile} from '../../constants/platform'
+import ConnectedResetBanner from '../banner/reset-banner/container'
+import Rows from '../row/rows-container'
 
 type FolderProps = {
   isUserReset: boolean,
