@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
 import EscapeHandler from '../util/escape-handler.desktop'
-import KeyDownHandler from '../util/keydown-handler.desktop'
+import KeyEventHandler from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 
 import type {Props} from './popup-dialog'
@@ -27,7 +27,7 @@ export function PopupDialog({
 }: Props) {
   return (
     <EscapeHandler onESC={onClose}>
-      <KeyDownHandler onKeyDown={() => {}}>
+      <KeyEventHandler onKeyEvent={() => {}}>
         <Box
           style={Styles.collapseStyles([styles.cover, styleCover])}
           onClick={onClose}
@@ -53,7 +53,7 @@ export function PopupDialog({
             </Box>
           </Box>
         </Box>
-      </KeyDownHandler>
+      </KeyEventHandler>
     </EscapeHandler>
   )
 }

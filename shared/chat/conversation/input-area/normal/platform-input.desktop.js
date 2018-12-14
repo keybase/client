@@ -10,7 +10,7 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
-import KeyDownHandler from '../../../../util/keydown-handler.desktop'
+import KeyEventHandler from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />
@@ -180,7 +180,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
     }
 
     return (
-      <KeyDownHandler onKeyDown={this._globalKeyDownHandler}>
+      <KeyEventHandler onKeyDown={this._globalKeyDownHandler} onKeyPress={this._globalKeyDownHandler}>
         <Kb.Box style={styles.container}>
           {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
           {this.props.mentionPopupOpen && (
@@ -327,7 +327,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
             </Kb.Text>
           </Kb.Box>
         </Kb.Box>
-      </KeyDownHandler>
+      </KeyEventHandler>
     )
   }
 }
