@@ -285,7 +285,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
 	fillOwnAccounts(mctx, loc, oc)
 
-	relaySecrets, err := relays.DecryptB64(mctx.Ctx(), mctx.G(), p.TeamID, p.BoxB64)
+	relaySecrets, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err == nil {
 		loc.Note = relaySecrets.Note
 	} else {
@@ -356,7 +356,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 		return "", ""
 	}
 
-	decrypted, err := NoteDecryptB64(mctx.Ctx(), mctx.G(), note)
+	decrypted, err := NoteDecryptB64(mctx, note)
 	if err != nil {
 		return "", fmt.Sprintf("failed to decrypt payment note: %s", err)
 	}
@@ -411,7 +411,7 @@ func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, 
 		return page, err
 	}
 
-	oc := NewOwnAccountLookupCache(mctx.Ctx(), mctx.G())
+	oc := NewOwnAccountLookupCache(mctx)
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(remotePage.Payments))
 	for i, p := range remotePage.Payments {
 		page.Payments[i].Payment, err = TransformPaymentSummaryAccount(mctx, p, oc, accountID, &exchRate)
@@ -439,7 +439,7 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 		return nil, err
 	}
 
-	oc := NewOwnAccountLookupCache(mctx.Ctx(), mctx.G())
+	oc := NewOwnAccountLookupCache(mctx)
 
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
