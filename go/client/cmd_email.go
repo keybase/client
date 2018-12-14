@@ -21,6 +21,7 @@ func NewCmdEmail(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			NewCmdListEmails(cl, g),
 			NewCmdSetVisibilityEmail(cl, g),
 			NewCmdSetPrimaryEmail(cl, g),
+			NewCmdSendVerificationEmail(cl, g),
 		},
 	}
 }
