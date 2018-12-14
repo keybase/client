@@ -1295,6 +1295,9 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msgBody c
 	body := msgBody.Text().Body
 	payments := msgBody.Text().Payments
 
+	// escape before applying xforms
+	body = EscapeForDecorate(ctx, body)
+
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
 	return &body
@@ -1746,14 +1749,26 @@ func IsPermanentErr(err error) bool {
 	return err != nil
 }
 
+var decorateBegin = "$>kb$"
+var decorateEnd = "$<kb$"
+var decorateEscapeRe = regexp.MustCompile(`\\*\$\>kb\$`)
+
+func EscapeForDecorate(ctx context.Context, body string) string {
+	// escape any natural occurences of begin so we don't bust markdown parser
+	return decorateEscapeRe.ReplaceAllStringFunc(body, func(s string) string {
+		if len(s)%2 != 0 {
+			return `\` + s
+		}
+		return s
+	})
+}
+
 func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int) {
 	out, err := json.Marshal(decoration)
 	if err != nil {
 		return res, 0
 	}
-	begin := "$>kb$"
-	end := "$<kb$"
-	strDecoration := fmt.Sprintf("%s%s%s", begin, string(out), end)
+	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, string(out), decorateEnd)
 	added = len(strDecoration) - length
 	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
 	return res, added
