@@ -1260,10 +1260,10 @@
 			"revisionTime": "2018-01-22T17:25:45Z"
 		},
 		{
-			"checksumSHA1": "bs4Qet93Z8f2eB8MVdM2hXXTyso=",
+			"checksumSHA1": "hTsGbLDKo7/2jp1UZUjeUT0+xkA=",
 			"path": "go.uber.org/zap",
-			"revision": "67bc79d13d155c02fd008f721863ff8cc5f30659",
-			"revisionTime": "2018-08-14T18:34:19Z"
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
 		},
 		{
 			"checksumSHA1": "HYo/9nwrY08NQA+2ItPOAH8IFW8=",
@@ -1274,26 +1274,26 @@
 		{
 			"checksumSHA1": "MuxOAtZEsJitlWBzhmpm2vGiHok=",
 			"path": "go.uber.org/zap/internal/bufferpool",
-			"revision": "67bc79d13d155c02fd008f721863ff8cc5f30659",
-			"revisionTime": "2018-08-14T18:34:19Z"
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
 		},
 		{
 			"checksumSHA1": "uC0L9eCSAYcCWNC8udJk/t1vvIU=",
 			"path": "go.uber.org/zap/internal/color",
-			"revision": "67bc79d13d155c02fd008f721863ff8cc5f30659",
-			"revisionTime": "2018-08-14T18:34:19Z"
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
 		},
 		{
 			"checksumSHA1": "b80CJExrVpXu3SA1iCQ6uLqTn2c=",
 			"path": "go.uber.org/zap/internal/exit",
-			"revision": "67bc79d13d155c02fd008f721863ff8cc5f30659",
-			"revisionTime": "2018-08-14T18:34:19Z"
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
 		},
 		{
-			"checksumSHA1": "iH3qg/pvsxQ9XW5t8FTc6veuYhY=",
+			"checksumSHA1": "mRD6lujPvXPkbC3+byNwO/bNVu8=",
 			"path": "go.uber.org/zap/zapcore",
-			"revision": "67bc79d13d155c02fd008f721863ff8cc5f30659",
-			"revisionTime": "2018-08-14T18:34:19Z"
+			"revision": "f85c78b1dd998214c5f2138155b320a4a43fbe36",
+			"revisionTime": "2017-10-30T23:38:06Z"
 		},
 		{
 			"checksumSHA1": "0A3/CtNrsx3jmcQBoAnDc2rAEsU=",

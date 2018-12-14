@@ -48,11 +48,11 @@ func (lvl AtomicLevel) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 
-	case http.MethodGet:
+	case "GET":
 		current := lvl.Level()
 		enc.Encode(payload{Level: &current})
 
-	case http.MethodPut:
+	case "PUT":
 		var req payload
 
 		if errmess := func() string {

@@ -44,15 +44,10 @@ func getJSONEncoder() *jsonEncoder {
 }
 
 func putJSONEncoder(enc *jsonEncoder) {
-	if enc.reflectBuf != nil {
-		enc.reflectBuf.Free()
-	}
 	enc.EncoderConfig = nil
 	enc.buf = nil
 	enc.spaced = false
 	enc.openNamespaces = 0
-	enc.reflectBuf = nil
-	enc.reflectEnc = nil
 	_jsonPool.Put(enc)
 }
 
@@ -61,10 +56,6 @@ type jsonEncoder struct {
 	buf            *buffer.Buffer
 	spaced         bool // include spaces after colons and commas
 	openNamespaces int
-
-	// for encoding generic values by reflection
-	reflectBuf *buffer.Buffer
-	reflectEnc *json.Encoder
 }
 
 // NewJSONEncoder creates a fast, low-allocation JSON encoder. The encoder
@@ -133,24 +124,13 @@ func (enc *jsonEncoder) AddInt64(key string, val int64) {
 	enc.AppendInt64(val)
 }
 
-func (enc *jsonEncoder) resetReflectBuf() {
-	if enc.reflectBuf == nil {
-		enc.reflectBuf = bufferpool.Get()
-		enc.reflectEnc = json.NewEncoder(enc.reflectBuf)
-	} else {
-		enc.reflectBuf.Reset()
-	}
-}
-
 func (enc *jsonEncoder) AddReflected(key string, obj interface{}) error {
-	enc.resetReflectBuf()
-	err := enc.reflectEnc.Encode(obj)
+	marshaled, err := json.Marshal(obj)
 	if err != nil {
 		return err
 	}
-	enc.reflectBuf.TrimNewline()
 	enc.addKey(key)
-	_, err = enc.buf.Write(enc.reflectBuf.Bytes())
+	_, err = enc.buf.Write(marshaled)
 	return err
 }
 
@@ -233,14 +213,12 @@ func (enc *jsonEncoder) AppendInt64(val int64) {
 }
 
 func (enc *jsonEncoder) AppendReflected(val interface{}) error {
-	enc.resetReflectBuf()
-	err := enc.reflectEnc.Encode(val)
+	marshaled, err := json.Marshal(val)
 	if err != nil {
 		return err
 	}
-	enc.reflectBuf.TrimNewline()
 	enc.addElementSeparator()
-	_, err = enc.buf.Write(enc.reflectBuf.Bytes())
+	_, err = enc.buf.Write(marshaled)
 	return err
 }
 
