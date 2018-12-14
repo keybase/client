@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {View} from 'react-native'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
@@ -16,6 +17,20 @@ class ConversationList extends React.PureComponent<Props> {
       const ordinalIndex = item
       const ordinal = this.props.messageOrdinals.get(ordinalIndex)
       const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
+
+      if (ordinalIndex === this.props.messageOrdinals.count() - 1) {
+        return (
+          <View key={ordinal} nativeID="tti_complete">
+            <Message
+              key={ordinal}
+              ordinal={ordinal}
+              previous={prevOrdinal}
+              measure={null}
+              conversationIDKey={this.props.conversationIDKey}
+            />
+          </View>
+        )
+      }
 
       return (
         <Message
