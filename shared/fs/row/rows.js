@@ -108,7 +108,7 @@ class Rows extends React.PureComponent<Props> {
         renderItem={this._rowRenderer}
       />
     ) : (
-      <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+      <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
         <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
       </Kb.Box2>
     )
@@ -119,6 +119,9 @@ const styles = Styles.styleSheetCreate({
   divider: {
     backgroundColor: Styles.globalColors.black_05,
     marginLeft: 48,
+  },
+  emptyContainer: {
+    ...Styles.globalStyles.flexGrow,
   },
   rowContainer: {
     ...Styles.globalStyles.flexBoxColumn,
