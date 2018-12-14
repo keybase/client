@@ -181,7 +181,7 @@ func (s *Sender) DescribePayments(ctx context.Context, uid gregor1.UID, convID c
 	return res, toSend, nil
 }
 
-func (s *Sender) SendPayments(ctx context.Context, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {
+func (s *Sender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []types.ParsedStellarPayment) (res []chat1.TextPayment, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SendPayments")()
 	usernameToFull := make(map[string]string)
 	var minis []libkb.MiniChatPayment
@@ -189,7 +189,7 @@ func (s *Sender) SendPayments(ctx context.Context, payments []types.ParsedStella
 		minis = append(minis, p.ToMini())
 		usernameToFull[p.Username.String()] = p.Full
 	}
-	paymentRes, err := s.G().GetStellar().SendMiniChatPayments(s.G().MetaContext(ctx), minis)
+	paymentRes, err := s.G().GetStellar().SendMiniChatPayments(s.G().MetaContext(ctx), convID, minis)
 	if err != nil {
 		return res, err
 	}

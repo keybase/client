@@ -1233,7 +1233,7 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		return res, errors.New("Payment message declined")
 	}
 	h.Debug(ctx, "runStellarSendUI: message confirmed, sending payments")
-	payments, err := h.G().StellarSender.SendPayments(ctx, toSend)
+	payments, err := h.G().StellarSender.SendPayments(ctx, convID, toSend)
 	if err != nil {
 		// Send regardless here
 		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)

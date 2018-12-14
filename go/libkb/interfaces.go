@@ -700,7 +700,7 @@ type Stellar interface {
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
-	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
+	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 }
 
