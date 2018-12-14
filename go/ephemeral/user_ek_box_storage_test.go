@@ -40,7 +40,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
-	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
+	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
 	// Test get valid & unbox
@@ -83,7 +83,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
-	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
+	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, bad)
 
 	// test delete
@@ -94,7 +94,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
-	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
+	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 
 	s.ClearCache()
 
@@ -113,7 +113,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
-	require.Equal(t, defaultHumanErrMsg, ekErr.HumanError())
+	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
 	cache, err := rawUserEKBoxStorage.getCache(context.Background())
