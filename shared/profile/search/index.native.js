@@ -8,7 +8,7 @@ import type {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => (
-  <StandardScreen style={styleContainer} onCancel={props.onClose} title="Search people">
+  <StandardScreen style={styleContainer} onLeftAction={props.onClose} leftAction="cancel" title="Search people">
     <UserInput
       searchKey={searchKey}
       onExitSearch={props.onClose}

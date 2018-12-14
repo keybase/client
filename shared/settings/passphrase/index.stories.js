@@ -11,13 +11,14 @@ const props = {
   newPassphraseConfirm: 'open sesame',
   newPassphraseConfirmError: null,
   newPassphraseError: null,
-  onBack: action('onBack'),
   onChangeNewPassphrase: action('onChangeNewPassphrase'),
   onChangeNewPassphraseConfirm: action('onChangeNewPassphraseConfirm'),
   onChangeShowPassphrase: action('onChangeShowPassphrase'),
+  onLeftAction: action('onLeftAction'),
   onSave: action('onSave'),
   onUpdatePGPSettings: action('onUpdatePGPSettings'),
   showTyping: false,
+  title: 'Passphrase',
   waitingForResponse: false,
 }
 

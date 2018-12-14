@@ -27,7 +27,11 @@ const Teams = (props: Props) => (
           bottomBorder={true}
           fullWidth={true}
           small={true}
-          style={{minHeight: 0}}
+          style={{
+            minHeight: 0,
+            paddingBottom: Styles.globalMargins.xtiny,
+            paddingTop: Styles.globalMargins.xtiny,
+          }}
         >
           <Kb.Button style={styles.button} small={true} type="PrimaryColoredBackground" backgroundMode="Blue" label="Create a team" onClick={props.onCreateTeam} />
           <Kb.Button style={styles.button} small={true} type="PrimaryColoredBackground" backgroundMode="Blue" label="Join a team" onClick={props.onJoinTeam} />

@@ -19,8 +19,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
   onChangeShowPassphrase: () => dispatch(SettingsGen.createOnChangeShowPassphrase()),
+  onLeftAction: () => dispatch(navigateUp()),
   onSave: (passphrase: string, passphraseConfirm: string) => {
     dispatch(SettingsGen.createOnChangeNewPassphrase({passphrase: new HiddenString(passphrase)}))
     dispatch(

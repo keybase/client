@@ -8,12 +8,13 @@ export type Action = {
   icon?: IconType,
   onPress?: ?Function,
 }
+export type LeftActionType = 'back' | 'cancel'
 export type Props = {
   badgeNumber?: number,
   borderless?: boolean,
   children?: React.Node,
   title?: string,
-  leftAction?: 'back' | 'cancel',
+  leftAction?: LeftActionType,
   onLeftAction?: ?() => void,
   leftActionText?: string, // defaults to 'cancel' when leftAction is 'cancel'
   hideBackLabel?: boolean,
