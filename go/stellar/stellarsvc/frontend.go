@@ -363,13 +363,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	oc := stellar.NewOwnAccountLookupCache(mctx)
 	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
 	var summary *stellar1.PaymentLocal
 
 	// AccountID argument is optional.
