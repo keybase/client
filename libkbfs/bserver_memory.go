@@ -406,6 +406,40 @@ func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 	return nil
 }
 
+// GetLiveBlockReferences implements the BlockServer interface for
+// BlockServerMemory.
+func (b *BlockServerMemory) GetLiveBlockReferences(
+	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
+	liveCounts map[kbfsblock.ID]int, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	b.log.CDebugf(ctx, "BlockServerMemory.GetLiveBlockReferences "+
+		"tlfID=%s contexts=%v", tlfID, contexts)
+
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	if b.m == nil {
+		return nil, errBlockServerMemoryShutdown
+	}
+
+	liveCounts = make(map[kbfsblock.ID]int)
+	for id := range contexts {
+		count := 0
+		entry, ok := b.m[id]
+		if ok {
+			count = entry.refs.getLiveCount()
+		}
+		liveCounts[id] = count
+	}
+	return liveCounts, nil
+}
+
 // getAllRefsForTest implements the blockServerLocal interface for
 // BlockServerMemory.
 func (b *BlockServerMemory) getAllRefsForTest(

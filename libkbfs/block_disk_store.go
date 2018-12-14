@@ -252,6 +252,15 @@ func (s *blockDiskStore) hasNonArchivedRef(id kbfsblock.ID) (bool, error) {
 	return info.Refs.hasNonArchivedRef(), nil
 }
 
+func (s *blockDiskStore) getLiveCount(id kbfsblock.ID) (int, error) {
+	info, err := s.getInfo(id)
+	if err != nil {
+		return 0, err
+	}
+
+	return info.Refs.getLiveCount(), nil
+}
+
 func (s *blockDiskStore) hasContext(id kbfsblock.ID, context kbfsblock.Context) (
 	bool, blockRefStatus, error) {
 	info, err := s.getInfo(id)
