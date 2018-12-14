@@ -383,10 +383,10 @@
 			"revisionTime": "2018-10-24T23:09:25Z"
 		},
 		{
-			"checksumSHA1": "4gUT7oWBn7VPU9ZAEq3BifUWIRE=",
+			"checksumSHA1": "RTmzY+6HWQJivvVhW5Ho7Zxk9Xs=",
 			"path": "github.com/golang/mock/gomock",
-			"revision": "5f3a40bc29aa3f8115e37b1ae65fe38747f39816",
-			"revisionTime": "2018-12-05T18:54:19Z"
+			"revision": "51421b967af1f557f93a59e0057aaf15ca02e29c",
+			"revisionTime": "2018-12-05T17:17:00Z"
 		},
 		{
 			"checksumSHA1": "Y2MOwzNZfl4NRNDbLCZa6sgx7O0=",
