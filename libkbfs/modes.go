@@ -171,7 +171,7 @@ func (mm modeMinimal) PrefetchWorkers() int {
 	return 0
 }
 
-func (md modeMinimal) DefaultBlockRequestAction() BlockRequestAction {
+func (mm modeMinimal) DefaultBlockRequestAction() BlockRequestAction {
 	return BlockRequestSolo
 }
 
@@ -369,7 +369,7 @@ func (mc modeConstrained) PrefetchWorkers() int {
 	return 1
 }
 
-func (md modeConstrained) DefaultBlockRequestAction() BlockRequestAction {
+func (mc modeConstrained) DefaultBlockRequestAction() BlockRequestAction {
 	return BlockRequestSolo
 }
 
