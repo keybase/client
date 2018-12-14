@@ -10,7 +10,7 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
-import KeyEventHandler from '../../../../util/key-event-handler.desktop'
+import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />

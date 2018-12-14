@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
 import EscapeHandler from '../util/escape-handler.desktop'
-import KeyEventHandler from '../util/key-event-handler.desktop'
+import {KeyEventHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 
 import type {Props} from './popup-dialog'

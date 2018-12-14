@@ -107,5 +107,4 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
   )
 }
 
-export {GlobalKeyEventHandler}
-export default KeyEventHandlerWrapper
+export {GlobalKeyEventHandler, KeyEventHandlerWrapper as KeyEventHandler}
