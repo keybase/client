@@ -37,7 +37,6 @@ export const commonConversationMemberStatus = {
   left: 2,
   preview: 3,
   reset: 4,
-  neverJoined: 5,
 }
 
 export const commonConversationMembersType = {
