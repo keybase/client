@@ -18,12 +18,17 @@ type chatMsg struct {
 	sender libkb.NormalizedUsername
 }
 
+type paymentQueueEntry struct {
+	id      stellar1.PaymentID
+	attempt int
+}
+
 type Loader struct {
 	libkb.Contextified
 
 	payments  map[stellar1.PaymentID]*stellar1.PaymentLocal
 	pmessages map[stellar1.PaymentID]chatMsg
-	pqueue    chan stellar1.PaymentID
+	pqueue    chan paymentQueueEntry
 
 	requests  map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal
 	rmessages map[stellar1.KeybaseRequestID]chatMsg
@@ -43,7 +48,7 @@ func NewLoader(g *libkb.GlobalContext) *Loader {
 		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
 		pmessages:    make(map[stellar1.PaymentID]chatMsg),
-		pqueue:       make(chan stellar1.PaymentID, 100),
+		pqueue:       make(chan paymentQueueEntry, 100),
 		requests:     make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal),
 		rmessages:    make(map[stellar1.KeybaseRequestID]chatMsg),
 		rqueue:       make(chan stellar1.KeybaseRequestID, 100),
@@ -193,7 +198,11 @@ func (p *Loader) Shutdown() error {
 }
 
 func (p *Loader) runPayments() {
-	for id := range p.pqueue {
+	for entry := range p.pqueue {
+		if entry.attempt >= 10 {
+			p.G().GetLog().Debug("giving up loading payment %s after %d attempts", entry.id, entry.attempt)
+			continue
+		}
 		p.loadPayment(id)
 	}
 }
