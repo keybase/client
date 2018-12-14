@@ -27,12 +27,12 @@ const mapDispatchToProps = dispatch => ({
         reportUser,
       })
     ),
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
-  onBack: dispatchProps.onBack,
+  onLeftAction: dispatchProps.onLeftAction,
   onBlock: () => dispatchProps._onBlock(stateProps.conversationIDKey, false),
   onBlockAndReport: () => dispatchProps._onBlock(stateProps.conversationIDKey, true),
   participants: stateProps.participants,

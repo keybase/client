@@ -64,23 +64,24 @@ const ChannelHeader = (props: Props) => (
 
 const UsernameHeader = (props: Props) => (
   <Wrapper {...props}>
-    <>
-      <Kb.ConnectedUsernames
-        colorFollowing={true}
-        inline={false}
-        commaColor={Styles.globalColors.black_40}
-        type={Styles.isMobile ? 'BodySemibold' : 'BodyBig'}
-        usernames={props.participants}
-        onUsernameClicked={props.onShowProfile}
-        skipSelf={props.participants.length > 1}
-      />
-      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </>
+    <Kb.ConnectedUsernames
+      colorFollowing={true}
+      inline={false}
+      commaColor={Styles.globalColors.black_40}
+      type={Styles.isMobile ? 'BodySemibold' : 'BodyBig'}
+      usernames={props.participants}
+      onUsernameClicked={props.onShowProfile}
+      skipSelf={props.participants.length > 1}
+    />
+    {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
   </Wrapper>
 )
 
 const styles = Styles.styleSheetCreate({
-  channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
+  channelHeaderContainer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
   channelName: {
     color: Styles.globalColors.black_75,
   },

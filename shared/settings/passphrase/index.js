@@ -8,9 +8,7 @@ type Props = {
   newPassphraseError: ?string,
   newPassphraseConfirmError: ?string,
   hasPGPKeyOnServer: boolean,
-  onLeftAction: () => void,
   onSave: (passphrase: string, passphraseConfirm: string) => void,
-  title: string,
   waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
 }
@@ -66,7 +64,7 @@ class UpdatePassphrase extends Component<Props, State> {
         }
       : null
     return (
-      <StandardScreen title={this.props.title} onLeftAction={this.props.onLeftAction} notification={notification} scrollEnabled={false} style={{alignItems: 'center'}}>
+      <StandardScreen notification={notification} scrollEnabled={false} style={{alignItems: 'center'}}>
         <Input
           hintText="New passphrase"
           type={inputType}

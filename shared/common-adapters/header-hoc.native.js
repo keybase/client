@@ -53,13 +53,13 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             !this.props.rightActions && styles.titlePadding,
           ])}
         >
-          {!!this.props.title &&
-            !this.props.children && (
+          {!this.props.title && this.props.children
+            ? (this.props.children)
+            : (
               <Text type="BodySemibold" style={styles.title} lineClamp={1}>
                 !{this.props.title}
               </Text>
             )}
-          {this.props.children}
         </Box>
         <Box
           style={Styles.collapseStyles([

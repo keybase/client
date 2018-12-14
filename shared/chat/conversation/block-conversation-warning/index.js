@@ -6,15 +6,15 @@ import {globalMargins, globalStyles, globalColors, isMobile} from '../../../styl
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
+  onLeftAction: () => void,
   onBlock: () => void,
   onBlockAndReport: () => void,
   participants: string,
 }
 
-const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
+const _Contents = ({conversationIDKey, onLeftAction, participants, onBlock, onBlockAndReport}: Props) => (
   <StandardScreen
-    onBack={isMobile ? onBack : null}
+    onLeftAction={isMobile ? onLeftAction : null}
     style={{
       paddingLeft: 0,
       paddingRight: 0,
@@ -52,7 +52,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         <Text type="Body">in the terminal on a desktop computer.</Text>
       </Box>
       <ButtonBar direction="column">
-        <Button type="Secondary" onClick={onBack} label="No, don't block them" />
+        <Button type="Secondary" onClick={onLeftAction} label="No, don't block them" />
         <Button type="Danger" onClick={onBlock} label="Yes, block them" />
         <Button type="Danger" onClick={onBlockAndReport} label="Yes, block and report abuse" />
       </ButtonBar>
@@ -68,7 +68,7 @@ const RenderBlockConversationWarning = (props: Props) =>
   isMobile ? (
     <Contents {...props} />
   ) : (
-    <PopupDialog onClose={props.onBack}>
+    <PopupDialog onClose={props.onLeftAction}>
       <Contents {...props} />
     </PopupDialog>
   )

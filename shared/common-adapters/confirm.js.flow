@@ -5,7 +5,7 @@ export type Props = {
   theme: 'public' | 'private',
   danger?: boolean,
   submitLabel: string,
-  onCancel: () => void,
+  onLeftAction: () => void,
   onSubmit: ?() => void,
   header: React.Node,
   body: React.Node,

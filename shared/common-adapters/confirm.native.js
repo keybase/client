@@ -9,7 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class Confirm extends Component<Props> {
   render() {
     return (
-      <StandardScreen theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
+      <StandardScreen theme={mapTheme[this.props.theme]} onLeftAction={this.props.onLeftAction} leftAction="cancel">
         <Box style={styleBodyContainer}>
           <Box style={styleIconContainer}>{this.props.header}</Box>
           {this.props.body}
@@ -33,7 +33,7 @@ class Confirm extends Component<Props> {
             <Button
               fullWidth={true}
               type="Secondary"
-              onClick={this.props.onCancel}
+              onClick={this.props.onLeftAction}
               label="Cancel"
               style={{...styleButton, ...cancelButtonThemed[this.props.theme]}}
               labelStyle={cancelButtonLabelThemed[this.props.theme]}

@@ -1,16 +1,11 @@
 // @flow
 import * as React from 'react'
-import type {LeftActionType} from './header-hoc.types'
+// import type {LeftActionType} from './header-hoc.types'
 
 export type NotificationType = 'error' | 'success'
 
 export type Props = {
   children?: ?any,
-  title?: string,
-  onCancel?: ?() => void,
-  onBack?: ?() => void,
-  onLeftAction?: ?() => void,
-  leftAction?: LeftActionType,
   notification?: ?{
     message: string | React.Node,
     type: NotificationType,

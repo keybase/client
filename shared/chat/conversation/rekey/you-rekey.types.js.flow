@@ -1,6 +1,6 @@
 // @flow
 export type Props = {
   onEnterPaperkey: () => void,
-  onBack: () => void,
+  onLeftAction: () => void,
   onRekey: () => void,
 }

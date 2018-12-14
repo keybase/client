@@ -8,20 +8,17 @@ export type Action = {
   icon?: IconType,
   onPress?: ?Function,
 }
-export type LeftActionType = 'back' | 'cancel'
 export type Props = {
   badgeNumber?: number,
   borderless?: boolean,
   children?: React.Node,
   title?: string,
-  leftAction?: LeftActionType,
-  onLeftAction?: ?() => void,
+  leftAction?: 'back' | 'cancel', // defaults to 'back'
+  onLeftAction?: () => void,
   leftActionText?: string, // defaults to 'cancel' when leftAction is 'cancel'
   hideBackLabel?: boolean,
   customComponent?: ?React.Node,
   style?: StylesCrossPlatform,
-  theme?: 'light' | 'dark', // defaults to light
-  rightActionLabel?: string,
-  onRightAction?: ?() => void,
+  theme?: 'light' | 'dark', // defaults to 'light'
   rightActions?: (?Action)[],
 }

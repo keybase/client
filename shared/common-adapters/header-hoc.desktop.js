@@ -11,26 +11,25 @@ export const HeaderHocHeader = ({
   style,
   customComponent,
   hideBackLabel,
+  leftAction,
+  onLeftAction,
   title,
-  onCancel,
-  onBack,
   theme = 'light',
 }: Props) => (
   <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], style])}>
     {customComponent}
-    {onBack && (
-      <BackButton
-        key="back"
-        hideBackLabel={hideBackLabel}
-        onClick={onBack}
-        style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
-      />
-    )}
-    {onCancel && (
+    {leftAction === 'cancel' ? (
       <Icon
         style={collapseStyles([_styleClose, _styleCloseThemed[theme]])}
         type="iconfont-close"
-        onClick={onCancel}
+        onClick={onLeftAction}
+      />
+    ) : (
+      <BackButton
+        key="back"
+        hideBackLabel={hideBackLabel}
+        onClick={onLeftAction}
+        style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
       />
     )}
     {title && (

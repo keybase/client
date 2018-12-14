@@ -12,7 +12,8 @@ class Confirm extends Component<Props> {
       <StandardScreen
         style={styleContainer}
         theme={mapTheme[this.props.theme]}
-        onCancel={this.props.onCancel}
+        onLeftAction={this.props.onLeftAction}
+        leftAction="cancel"
       >
         <Box style={styleIconContainer}>{this.props.header}</Box>
         {this.props.body}
@@ -21,7 +22,7 @@ class Confirm extends Component<Props> {
             type="Secondary"
             style={cancelButtonThemed[this.props.theme]}
             labelStyle={cancelButtonLabelThemed[this.props.theme]}
-            onClick={this.props.onCancel}
+            onClick={this.props.onLeftAction}
             label="Cancel"
           />
           <Button

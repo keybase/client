@@ -2,28 +2,26 @@
 import * as React from 'react'
 import type {Props} from './standard-screen'
 import {NativeScrollView} from './native-wrappers.native'
+import HeaderHoc from './header-hoc'
 import * as Kb from '.'
 import * as Styles from '../styles'
 
 const StandardScreen = (props: Props) => {
   return (
-    <Kb.Box style={styles.container}>
-      <Kb.HeaderHocHeader title={props.title} onLeftAction={props.onLeftAction} leftAction={props.leftAction} theme={props.theme} />
-      <NativeScrollView scrollEnabled={props.scrollEnabled}>
-        {!!props.notification && (
-          <Kb.Box style={Styles.collapseStyles([styles.banner, props.notification.type === 'error' && styles.bannerError, props.styleBanner])}>
-            {typeof props.notification.message === 'string' ? (
-              <Kb.Text style={styles.bannerText} type="BodySmallSemibold">
-                {props.notification.message}
-              </Kb.Text>
-            ) : (
-              props.notification.message
-            )}
-          </Kb.Box>
-        )}
-        <Kb.Box style={Styles.collapseStyles([styles.content, !!props.notification && styles.contentMargin, props.style])}>{props.children}</Kb.Box>
-      </NativeScrollView>
-    </Kb.Box>
+    <NativeScrollView scrollEnabled={props.scrollEnabled}>
+      {!!props.notification && (
+        <Kb.Box style={Styles.collapseStyles([styles.banner, props.notification.type === 'error' && styles.bannerError, props.styleBanner])}>
+          {typeof props.notification.message === 'string' ? (
+            <Kb.Text style={styles.bannerText} type="BodySmallSemibold">
+              {props.notification.message}
+            </Kb.Text>
+          ) : (
+            props.notification.message
+          )}
+        </Kb.Box>
+      )}
+      <Kb.Box style={Styles.collapseStyles([styles.content, !!props.notification && styles.contentMargin, props.style])}>{props.children}</Kb.Box>
+    </NativeScrollView>
   )
 }
 
@@ -62,4 +60,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default StandardScreen
+export default HeaderHoc(StandardScreen)

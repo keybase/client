@@ -13,7 +13,9 @@ const props = {
       Whoa, look at this centered thing
     </Text>
   ),
-  onClose: action('onClose'),
+  leftAction: 'cancel',
+  leftActionText: 'Close',
+  onLeftAction: action('onClose'),
 }
 
 const load = () => {
@@ -51,15 +53,15 @@ const load = () => {
     ))
     .add('Back Button', () => (
       <Wrapper>
-        <StandardScreen {...props} onClose={null} onBack={action('onBack')} />
+        <StandardScreen {...props} leftAction="back" onLeftAction={action('onLeftAction')} />
       </Wrapper>
     ))
     .add('Error w/ Back Button', () => (
       <Wrapper>
         <StandardScreen
           {...props}
-          onClose={null}
-          onBack={action('onBack')}
+          leftAction="back"
+          onLeftAction={action('onLeftAction')}
           notification={{
             message: 'This is an error, but you can go back!',
             type: 'error',
