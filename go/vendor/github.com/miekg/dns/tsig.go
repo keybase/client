@@ -133,7 +133,7 @@ func TsigGenerate(m *Msg, secret, requestMAC string, timersOnly bool) ([]byte, s
 	t.Algorithm = rr.Algorithm
 	t.OrigId = m.Id
 
-	tbuf := make([]byte, Len(t))
+	tbuf := make([]byte, t.len())
 	if off, err := PackRR(t, tbuf, 0, nil, false); err == nil {
 		tbuf = tbuf[:off] // reset to actual size used
 	} else {
@@ -207,9 +207,6 @@ func tsigBuffer(msgbuf []byte, rr *TSIG, requestMAC string, timersOnly bool) []b
 	if rr.Fudge == 0 {
 		rr.Fudge = 300 // Standard (RFC) default.
 	}
-
-	// Replace message ID in header with original ID from TSIG
-	binary.BigEndian.PutUint16(msgbuf[0:2], rr.OrigId)
 
 	if requestMAC != "" {
 		m := new(macWireFmt)

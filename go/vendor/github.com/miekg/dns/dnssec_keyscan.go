@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"bufio"
 	"crypto"
 	"crypto/dsa"
 	"crypto/ecdsa"
@@ -10,8 +9,6 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
-
-	"golang.org/x/crypto/ed25519"
 )
 
 // NewPrivateKey returns a PrivateKey by parsing the string s.
@@ -89,8 +86,6 @@ func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (crypto.PrivateKey, er
 		}
 		priv.PublicKey = *pub
 		return priv, nil
-	case ED25519:
-		return readPrivateKeyED25519(m)
 	default:
 		return nil, ErrPrivKey
 	}
@@ -171,36 +166,16 @@ func readPrivateKeyECDSA(m map[string]string) (*ecdsa.PrivateKey, error) {
 	return p, nil
 }
 
-func readPrivateKeyED25519(m map[string]string) (ed25519.PrivateKey, error) {
-	var p ed25519.PrivateKey
-	// TODO: validate that the required flags are present
-	for k, v := range m {
-		switch k {
-		case "privatekey":
-			p1, err := fromBase64([]byte(v))
-			if err != nil {
-				return nil, err
-			}
-			if len(p1) != ed25519.SeedSize {
-				return nil, ErrPrivKey
-			}
-			p = ed25519.NewKeyFromSeed(p1)
-		case "created", "publish", "activate":
-			/* not used in Go (yet) */
-		}
-	}
-	return p, nil
-}
-
 // parseKey reads a private key from r. It returns a map[string]string,
 // with the key-value pairs, or an error when the file is not correct.
 func parseKey(r io.Reader, file string) (map[string]string, error) {
+	s := scanInit(r)
 	m := make(map[string]string)
-	var k string
-
-	c := newKLexer(r)
-
-	for l, ok := c.Next(); ok; l, ok = c.Next() {
+	c := make(chan lex)
+	k := ""
+	// Start the lexer
+	go klexer(s, c)
+	for l := range c {
 		// It should alternate
 		switch l.value {
 		case zKey:
@@ -209,111 +184,41 @@ func parseKey(r io.Reader, file string) (map[string]string, error) {
 			if k == "" {
 				return nil, &ParseError{file, "no private key seen", l}
 			}
-
+			//println("Setting", strings.ToLower(k), "to", l.token, "b")
 			m[strings.ToLower(k)] = l.token
 			k = ""
 		}
 	}
-
-	// Surface any read errors from r.
-	if err := c.Err(); err != nil {
-		return nil, &ParseError{file: file, err: err.Error()}
-	}
-
 	return m, nil
 }
 
-type klexer struct {
-	br io.ByteReader
-
-	readErr error
-
-	line   int
-	column int
-
-	key bool
-
-	eol bool // end-of-line
-}
-
-func newKLexer(r io.Reader) *klexer {
-	br, ok := r.(io.ByteReader)
-	if !ok {
-		br = bufio.NewReaderSize(r, 1024)
-	}
-
-	return &klexer{
-		br: br,
-
-		line: 1,
-
-		key: true,
-	}
-}
-
-func (kl *klexer) Err() error {
-	if kl.readErr == io.EOF {
-		return nil
-	}
-
-	return kl.readErr
-}
-
-// readByte returns the next byte from the input
-func (kl *klexer) readByte() (byte, bool) {
-	if kl.readErr != nil {
-		return 0, false
-	}
-
-	c, err := kl.br.ReadByte()
-	if err != nil {
-		kl.readErr = err
-		return 0, false
-	}
-
-	// delay the newline handling until the next token is delivered,
-	// fixes off-by-one errors when reporting a parse error.
-	if kl.eol {
-		kl.line++
-		kl.column = 0
-		kl.eol = false
-	}
-
-	if c == '\n' {
-		kl.eol = true
-	} else {
-		kl.column++
-	}
-
-	return c, true
-}
-
-func (kl *klexer) Next() (lex, bool) {
-	var (
-		l lex
-
-		str strings.Builder
-
-		commt bool
-	)
-
-	for x, ok := kl.readByte(); ok; x, ok = kl.readByte() {
-		l.line, l.column = kl.line, kl.column
-
+// klexer scans the sourcefile and returns tokens on the channel c.
+func klexer(s *scan, c chan lex) {
+	var l lex
+	str := "" // Hold the current read text
+	commt := false
+	key := true
+	x, err := s.tokenText()
+	defer close(c)
+	for err == nil {
+		l.column = s.position.Column
+		l.line = s.position.Line
 		switch x {
 		case ':':
-			if commt || !kl.key {
+			if commt {
 				break
 			}
-
-			kl.key = false
-
-			// Next token is a space, eat it
-			kl.readByte()
-
-			l.value = zKey
-			l.token = str.String()
-			return l, true
+			l.token = str
+			if key {
+				l.value = zKey
+				c <- l
+				// Next token is a space, eat it
+				s.tokenText()
+				key = false
+				str = ""
+			} else {
+				l.value = zValue
+			}
 		case ';':
 			commt = true
 		case '\n':
@@ -321,32 +226,24 @@ func (kl *klexer) Next() (lex, bool) {
 				// Reset a comment
 				commt = false
 			}
-
-			kl.key = true
-
 			l.value = zValue
-			l.token = str.String()
-			return l, true
+			l.token = str
+			c <- l
+			str = ""
+			commt = false
+			key = true
 		default:
 			if commt {
 				break
 			}
-
-			str.WriteByte(x)
+			str += string(x)
 		}
+		x, err = s.tokenText()
 	}
-
-	if kl.readErr != nil && kl.readErr != io.EOF {
-		// Don't return any tokens after a read error occurs.
-		return lex{value: zEOF}, false
-	}
-
-	if str.Len() > 0 {
+	if len(str) > 0 {
 		// Send remainder
+		l.token = str
 		l.value = zValue
-		l.token = str.String()
-		return l, true
+		c <- l
 	}
-
-	return lex{value: zEOF}, false
 }

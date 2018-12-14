@@ -2,94 +2,117 @@ package dns
 
 import (
 	"crypto/sha1"
-	"encoding/hex"
+	"hash"
 	"strings"
 )
 
+type saltWireFmt struct {
+	Salt string `dns:"size-hex"`
+}
+
 // HashName hashes a string (label) according to RFC 5155. It returns the hashed string in uppercase.
 func HashName(label string, ha uint8, iter uint16, salt string) string {
-	if ha != SHA1 {
-		return ""
-	}
-
-	wireSalt := make([]byte, hex.DecodedLen(len(salt)))
-	n, err := packStringHex(salt, wireSalt, 0)
+	saltwire := new(saltWireFmt)
+	saltwire.Salt = salt
+	wire := make([]byte, DefaultMsgSize)
+	n, err := packSaltWire(saltwire, wire)
 	if err != nil {
 		return ""
 	}
-	wireSalt = wireSalt[:n]
-
+	wire = wire[:n]
 	name := make([]byte, 255)
 	off, err := PackDomainName(strings.ToLower(label), name, 0, nil, false)
 	if err != nil {
 		return ""
 	}
 	name = name[:off]
+	var s hash.Hash
+	switch ha {
+	case SHA1:
+		s = sha1.New()
+	default:
+		return ""
+	}
 
-	s := sha1.New()
 	// k = 0
 	s.Write(name)
-	s.Write(wireSalt)
+	s.Write(wire)
 	nsec3 := s.Sum(nil)
-
 	// k > 0
 	for k := uint16(0); k < iter; k++ {
 		s.Reset()
 		s.Write(nsec3)
-		s.Write(wireSalt)
+		s.Write(wire)
 		nsec3 = s.Sum(nsec3[:0])
 	}
-
 	return toBase32(nsec3)
 }
 
-// Cover returns true if a name is covered by the NSEC3 record
-func (rr *NSEC3) Cover(name string) bool {
-	nameHash := HashName(name, rr.Hash, rr.Iterations, rr.Salt)
-	owner := strings.ToUpper(rr.Hdr.Name)
-	labelIndices := Split(owner)
-	if len(labelIndices) < 2 {
-		return false
-	}
-	ownerHash := owner[:labelIndices[1]-1]
-	ownerZone := owner[labelIndices[1]:]
-	if !IsSubDomain(ownerZone, strings.ToUpper(name)) { // name is outside owner zone
-		return false
-	}
-
-	nextHash := rr.NextDomain
-
-	// if empty interval found, try cover wildcard hashes so nameHash shouldn't match with ownerHash
-	if ownerHash == nextHash && nameHash != ownerHash { // empty interval
-		return true
-	}
-	if ownerHash > nextHash { // end of zone
-		if nameHash > ownerHash { // covered since there is nothing after ownerHash
-			return true
-		}
-		return nameHash < nextHash // if nameHash is before beginning of zone it is covered
-	}
-	if nameHash < ownerHash { // nameHash is before ownerHash, not covered
-		return false
-	}
-	return nameHash < nextHash // if nameHash is before nextHash is it covered (between ownerHash and nextHash)
+// Denialer is an interface that should be implemented by types that are used to denial
+// answers in DNSSEC.
+type Denialer interface {
+	// Cover will check if the (unhashed) name is being covered by this NSEC or NSEC3.
+	Cover(name string) bool
+	// Match will check if the ownername matches the (unhashed) name for this NSEC3 or NSEC3.
+	Match(name string) bool
 }
 
-// Match returns true if a name matches the NSEC3 record
+// Cover implements the Denialer interface.
+func (rr *NSEC) Cover(name string) bool {
+	return true
+}
+
+// Match implements the Denialer interface.
+func (rr *NSEC) Match(name string) bool {
+	return true
+}
+
+// Cover implements the Denialer interface.
+func (rr *NSEC3) Cover(name string) bool {
+	// FIXME(miek): check if the zones match
+	// FIXME(miek): check if we're not dealing with parent nsec3
+	hname := HashName(name, rr.Hash, rr.Iterations, rr.Salt)
+	labels := Split(rr.Hdr.Name)
+	if len(labels) < 2 {
+		return false
+	}
+	hash := strings.ToUpper(rr.Hdr.Name[labels[0] : labels[1]-1]) // -1 to remove the dot
+	if hash == rr.NextDomain {
+		return false // empty interval
+	}
+	if hash > rr.NextDomain { // last name, points to apex
+		// hname > hash
+		// hname > rr.NextDomain
+		// TODO(miek)
+	}
+	if hname <= hash {
+		return false
+	}
+	if hname >= rr.NextDomain {
+		return false
+	}
+	return true
+}
+
+// Match implements the Denialer interface.
 func (rr *NSEC3) Match(name string) bool {
-	nameHash := HashName(name, rr.Hash, rr.Iterations, rr.Salt)
-	owner := strings.ToUpper(rr.Hdr.Name)
-	labelIndices := Split(owner)
-	if len(labelIndices) < 2 {
+	// FIXME(miek): Check if we are in the same zone
+	hname := HashName(name, rr.Hash, rr.Iterations, rr.Salt)
+	labels := Split(rr.Hdr.Name)
+	if len(labels) < 2 {
 		return false
 	}
-	ownerHash := owner[:labelIndices[1]-1]
-	ownerZone := owner[labelIndices[1]:]
-	if !IsSubDomain(ownerZone, strings.ToUpper(name)) { // name is outside owner zone
-		return false
-	}
-	if ownerHash == nameHash {
+	hash := strings.ToUpper(rr.Hdr.Name[labels[0] : labels[1]-1]) // -1 to remove the .
+	if hash == hname {
 		return true
 	}
 	return false
+}
+
+func packSaltWire(sw *saltWireFmt, msg []byte) (int, error) {
+	off, err := packStringHex(sw.Salt, msg, 0)
+	if err != nil {
+		return off, err
+	}
+	return off, nil
 }

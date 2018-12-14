@@ -29,7 +29,7 @@ func (rr *SIG) Sign(k crypto.Signer, m *Msg) ([]byte, error) {
 	rr.TypeCovered = 0
 	rr.Labels = 0
 
-	buf := make([]byte, m.Len()+Len(rr))
+	buf := make([]byte, m.Len()+rr.len())
 	mbuf, err := m.PackBuffer(buf)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,8 @@ func (rr *SIG) Verify(k *KEY, buf []byte) error {
 		if offset+1 >= buflen {
 			continue
 		}
-		rdlen := binary.BigEndian.Uint16(buf[offset:])
+		var rdlen uint16
+		rdlen = binary.BigEndian.Uint16(buf[offset:])
 		offset += 2
 		offset += int(rdlen)
 	}
@@ -167,7 +168,7 @@ func (rr *SIG) Verify(k *KEY, buf []byte) error {
 	}
 	// If key has come from the DNS name compression might
 	// have mangled the case of the name
-	if !strings.EqualFold(signername, k.Header().Name) {
+	if strings.ToLower(signername) != strings.ToLower(k.Header().Name) {
 		return &Error{err: "signer name doesn't match key name"}
 	}
 	sigend := offset
