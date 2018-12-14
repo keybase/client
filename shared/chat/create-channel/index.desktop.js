@@ -111,8 +111,8 @@ const _styleCover = {
 }
 
 const _styleContainer = {
-  width: 620,
   height: 520,
+  width: 620,
 }
 
 export default CreateChannel

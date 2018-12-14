@@ -5,6 +5,7 @@ package gexpect
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -14,6 +15,10 @@ import (
 
 	shell "github.com/kballard/go-shellquote"
 	"github.com/kr/pty"
+)
+
+var (
+	ErrEmptySearch = errors.New("empty search string")
 )
 
 type ExpectSubprocess struct {
@@ -66,7 +71,7 @@ func (buf *buffer) ReadRune() (r rune, size int, err error) {
 		if err != nil {
 			return 0, 0, err
 		}
-		if utf8.FullRune(chunk) {
+		if utf8.FullRune(chunk[:n]) {
 			r, rL := utf8.DecodeRune(chunk)
 			if n > rL {
 				buf.PutBack(chunk[rL:n])
@@ -85,7 +90,7 @@ func (buf *buffer) ReadRune() (r rune, size int, err error) {
 		}
 		l = l + fn
 
-		if utf8.FullRune(chunk) {
+		if utf8.FullRune(chunk[:l]) {
 			r, rL := utf8.DecodeRune(chunk)
 			if buf.collect {
 				buf.collection.WriteRune(r)
@@ -191,10 +196,10 @@ func (expect *ExpectSubprocess) ExpectRegex(regex string) (bool, error) {
 	return regexp.MatchReader(regex, expect.buf)
 }
 
-func (expect *ExpectSubprocess) ExpectRegexFind(regex string) ([]string, error) {
+func (expect *ExpectSubprocess) expectRegexFind(regex string, output bool) ([]string, string, error) {
 	re, err := regexp.Compile(regex)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	expect.buf.StartCollecting()
 	pairs := re.FindReaderSubmatchIndex(expect.buf)
@@ -206,7 +211,53 @@ func (expect *ExpectSubprocess) ExpectRegexFind(regex string) ([]string, error) 
 		result[i] = stringIndexedInto[pairs[i*2]:pairs[i*2+1]]
 	}
 	// convert indexes to strings
-	return result, nil
+
+	if len(result) == 0 {
+		err = fmt.Errorf("ExpectRegex didn't find regex '%v'.", regex)
+	} else {
+		// The number in pairs[1] is an index of a first
+		// character outside the whole match
+		putBackIdx := pairs[1]
+		if len(stringIndexedInto) > putBackIdx {
+			stringToPutBack := stringIndexedInto[putBackIdx:]
+			stringIndexedInto = stringIndexedInto[:putBackIdx]
+			expect.buf.PutBack([]byte(stringToPutBack))
+		}
+	}
+	return result, stringIndexedInto, err
+}
+
+func (expect *ExpectSubprocess) expectTimeoutRegexFind(regex string, timeout time.Duration) (result []string, out string, err error) {
+	t := make(chan bool)
+	go func() {
+		result, out, err = expect.ExpectRegexFindWithOutput(regex)
+		t <- false
+	}()
+	go func() {
+		time.Sleep(timeout)
+		err = fmt.Errorf("ExpectRegex timed out after %v finding '%v'.\nOutput:\n%s", timeout, regex, expect.Collect())
+		t <- true
+	}()
+	<-t
+	return result, out, err
+}
+
+func (expect *ExpectSubprocess) ExpectRegexFind(regex string) ([]string, error) {
+	result, _, err := expect.expectRegexFind(regex, false)
+	return result, err
+}
+
+func (expect *ExpectSubprocess) ExpectTimeoutRegexFind(regex string, timeout time.Duration) ([]string, error) {
+	result, _, err := expect.expectTimeoutRegexFind(regex, timeout)
+	return result, err
+}
+
+func (expect *ExpectSubprocess) ExpectRegexFindWithOutput(regex string) ([]string, string, error) {
+	return expect.expectRegexFind(regex, true)
+}
+
+func (expect *ExpectSubprocess) ExpectTimeoutRegexFindWithOutput(regex string, timeout time.Duration) ([]string, string, error) {
+	return expect.expectTimeoutRegexFind(regex, timeout)
 }
 
 func buildKMPTable(searchString string) []int {
@@ -246,14 +297,17 @@ func (expect *ExpectSubprocess) ExpectTimeout(searchString string, timeout time.
 	select {
 	case e = <-result:
 	case <-time.After(timeout):
-		e = errors.New("Expect timed out.")
+		e = fmt.Errorf("Expect timed out after %v waiting for '%v'.\nOutput:\n%s", timeout, searchString, expect.Collect())
 	}
 	return e
 }
 
 func (expect *ExpectSubprocess) Expect(searchString string) (e error) {
-	chunk := make([]byte, len(searchString)*2)
 	target := len(searchString)
+	if target < 1 {
+		return ErrEmptySearch
+	}
+	chunk := make([]byte, target*2)
 	if expect.outputBuffer != nil {
 		expect.outputBuffer = expect.outputBuffer[0:]
 	}
@@ -264,7 +318,6 @@ func (expect *ExpectSubprocess) Expect(searchString string) (e error) {
 
 	for {
 		n, err := expect.buf.Read(chunk)
-
 		if err != nil {
 			return err
 		}
@@ -278,7 +331,7 @@ func (expect *ExpectSubprocess) Expect(searchString string) (e error) {
 				if i == target {
 					unreadIndex := m + i - offset
 					if len(chunk) > unreadIndex {
-						expect.buf.PutBack(chunk[unreadIndex:])
+						expect.buf.PutBack(chunk[unreadIndex:n])
 					}
 					return nil
 				}
@@ -325,26 +378,25 @@ func (expect *ExpectSubprocess) Interact() {
 }
 
 func (expect *ExpectSubprocess) ReadUntil(delim byte) ([]byte, error) {
-	join := make([]byte, 1, 512)
+	join := make([]byte, 0, 512)
 	chunk := make([]byte, 255)
 
 	for {
-
 		n, err := expect.buf.Read(chunk)
-
-		if err != nil {
-			return join, err
-		}
 
 		for i := 0; i < n; i++ {
 			if chunk[i] == delim {
 				if len(chunk) > i+1 {
-					expect.buf.PutBack(chunk[i+1:])
+					expect.buf.PutBack(chunk[i+1:n])
 				}
 				return join, nil
 			} else {
 				join = append(join, chunk[i])
 			}
+		}
+
+		if err != nil {
+			return join, err
 		}
 	}
 }
@@ -355,10 +407,7 @@ func (expect *ExpectSubprocess) Wait() error {
 
 func (expect *ExpectSubprocess) ReadLine() (string, error) {
 	str, err := expect.ReadUntil('\n')
-	if err != nil {
-		return "", err
-	}
-	return string(str), nil
+	return string(str), err
 }
 
 func _start(expect *ExpectSubprocess) (*ExpectSubprocess, error) {

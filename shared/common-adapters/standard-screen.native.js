@@ -36,23 +36,23 @@ const styleContainer = {
 const MIN_BANNER_HEIGHT = 40
 
 const backgroundColorThemed = {
-  light: {
-    backgroundColor: globalColors.white,
-  },
   dark: {
     backgroundColor: globalColors.darkBlue3,
+  },
+  light: {
+    backgroundColor: globalColors.white,
   },
 }
 
 const styleBanner = type => ({
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  backgroundColor: type === 'error' ? globalColors.red : globalColors.green,
+  justifyContent: 'center',
+  marginBottom: globalMargins.tiny,
   minHeight: MIN_BANNER_HEIGHT,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  marginBottom: globalMargins.tiny,
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: type === 'error' ? globalColors.red : globalColors.green,
 })
 
 const styleBannerText = {

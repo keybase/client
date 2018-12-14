@@ -1,33 +1,18 @@
 // @flow
 import * as React from 'react'
-import {
-  Avatar,
-  Text,
-  Box,
-  Button,
-  PopupDialog,
-  ProgressIndicator,
-  ScrollView,
-  Checkbox,
-  Icon,
-  ButtonBar,
-  WaitingButton,
-} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} from '../../styles'
-
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import type {Props, RowProps} from './index.types'
 
-const HoverBox = glamorous(Box)({
+const HoverBox = Styles.styled(Kb.Box)({
+  '.channel-row:hover &': {opacity: 1},
   opacity: 0,
-  '.channel-row:hover &': {
-    opacity: 1,
-  },
 })
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
   <HoverBox style={style} onClick={onClick}>
-    <Icon style={{height: 12, marginRight: globalMargins.xtiny}} type="iconfont-edit" />
-    <Text type="BodySmallPrimaryLink">Edit</Text>
+    <Kb.Icon style={{height: 12, marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" />
+    <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
   </HoverBox>
 )
 
@@ -41,93 +26,102 @@ const Row = (
     onClickChannel: () => void,
   }
 ) => (
-  <Box
+  <Kb.Box
     className="channel-row"
     style={{
-      ...globalStyles.flexBoxColumn,
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
+      ...Styles.globalStyles.flexBoxColumn,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     }}
   >
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 40}}>
-      <Box style={_rowBox}>
-        <Box
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 16}}
+    <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minHeight: 40}}>
+      <Kb.Box style={_rowBox}>
+        <Kb.Box
+          style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', width: 16}}
           title={
             props.name.toLowerCase() === 'general' ? 'Leaving the general channel is disabled' : undefined
           }
         >
-          <Checkbox
+          <Kb.Checkbox
             checked={props.selected}
             label=""
             onCheck={props.onToggle}
             style={{alignSelf: 'flex-start', marginRight: 0}}
             disabled={props.name.toLowerCase() === 'general'}
           />
-        </Box>
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, minHeight: 32}}>
-          <Text type="BodySemiboldLink" onClick={props.onClickChannel} style={{color: globalColors.blue}}>
+        </Kb.Box>
+        <Kb.Box
+          style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.tiny, minHeight: 32}}
+        >
+          <Kb.Text
+            type="BodySemiboldLink"
+            onClick={props.onClickChannel}
+            style={{color: Styles.globalColors.blue}}
+          >
             #{props.name}
-          </Text>
-          <Text type="BodySmall">{props.description}</Text>
-        </Box>
+          </Kb.Text>
+          <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+        </Kb.Box>
         {props.showEdit && props.canEditChannels && (
           <Edit
             style={{
-              ...globalStyles.flexBoxRow,
+              ...Styles.globalStyles.flexBoxRow,
               flex: 1,
               justifyContent: 'flex-end',
             }}
             onClick={props.onEdit}
           />
         )}
-      </Box>
-    </Box>
-  </Box>
+      </Kb.Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const _rowBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   flex: 1,
-  paddingBottom: globalMargins.xtiny,
-  paddingTop: globalMargins.xtiny,
+  paddingBottom: Styles.globalMargins.xtiny,
+  paddingTop: Styles.globalMargins.xtiny,
 }
 
 const ManageChannels = (props: Props) => {
   let channelDisplay
   if (props.channels.length === 0 || props.waitingForGet) {
-    channelDisplay = <ProgressIndicator style={{width: 48}} />
+    channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
   } else {
     channelDisplay = (
-      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+      <Kb.Text
+        type="Header"
+        style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
+      >
         {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
-      </Text>
+      </Kb.Text>
     )
   }
   return (
-    <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+    <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
       {props.canCreateChannels && (
-        <Box style={_createStyle}>
-          <Icon
+        <Kb.Box style={_createStyle}>
+          <Kb.Icon
             style={_createIcon}
             type="iconfont-new"
             onClick={props.onCreate}
             hoverColor={_hoverColor}
-            color={globalColors.blue}
+            color={Styles.globalColors.blue}
           />
-          <Text type="BodyBigLink" onClick={props.onCreate}>
+          <Kb.Text type="BodyBigLink" onClick={props.onCreate}>
             New chat channel
-          </Text>
-        </Box>
+          </Kb.Text>
+        </Kb.Box>
       )}
-      <Box style={_boxStyle}>
-        <Avatar isTeam={true} teamname={props.teamname} size={32} />
-        <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
+      <Kb.Box style={_boxStyle}>
+        <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
+        <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
           {props.teamname}
-        </Text>
+        </Kb.Text>
         {channelDisplay}
-        <ScrollView style={{width: '100%', flex: 1}}>
+        <Kb.ScrollView style={{flex: 1, width: '100%'}}>
           {props.channels.map(c => (
             <Row
               key={c.convID}
@@ -141,46 +135,42 @@ const ManageChannels = (props: Props) => {
               onClickChannel={() => props.onClickChannel(c.name)}
             />
           ))}
-        </ScrollView>
-        <ButtonBar style={{alignSelf: 'flex-end'}}>
-          <Button type="Secondary" label="Cancel" onClick={props.onClose} />
-          <WaitingButton
+        </Kb.ScrollView>
+        <Kb.ButtonBar style={{alignSelf: 'flex-end'}}>
+          <Kb.Button type="Secondary" label="Cancel" onClick={props.onClose} />
+          <Kb.WaitingButton
             type="Primary"
             label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
             waitingKey={props.waitingKey}
             disabled={!props.unsavedSubscriptions}
             onClick={props.onSaveSubscriptions}
-            style={{marginLeft: globalMargins.tiny}}
+            style={{marginLeft: Styles.globalMargins.tiny}}
           />
-        </ButtonBar>
-      </Box>
-    </PopupDialog>
+        </Kb.ButtonBar>
+      </Kb.Box>
+    </Kb.PopupDialog>
   )
 }
 
 const _boxStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
-  paddingTop: globalMargins.medium,
-  paddingBottom: globalMargins.medium,
   flex: 1,
+  paddingBottom: Styles.globalMargins.medium,
+  paddingLeft: Styles.globalMargins.large,
+  paddingRight: Styles.globalMargins.large,
+  paddingTop: Styles.globalMargins.medium,
 }
 
-const _createIcon = platformStyles({
-  common: {
-    marginRight: globalMargins.xtiny,
-  },
-  isElectron: {
-    display: 'block',
-  },
+const _createIcon = Styles.platformStyles({
+  common: {marginRight: Styles.globalMargins.xtiny},
+  isElectron: {display: 'block'},
 })
 
-const _hoverColor = globalColors.blue2
+const _hoverColor = Styles.globalColors.blue2
 
 const _createStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   position: 'absolute',
   right: 32,
@@ -189,13 +179,13 @@ const _createStyle = {
 
 const _styleCover = {
   alignItems: 'center',
-  backgroundColor: globalColors.black_60,
+  backgroundColor: Styles.globalColors.black_60,
   justifyContent: 'center',
 }
 
 const _styleContainer = {
-  width: 620,
   height: 520,
+  width: 620,
 }
 
 export default ManageChannels

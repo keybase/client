@@ -41,8 +41,8 @@ const Meta = (props: Props) => (
         props.color ? {color: props.color} : null,
         props.size === 'Small'
           ? platformStyles({
-              isMobile: {fontSize: 11, lineHeight: 13},
               isElectron: {fontSize: 10, lineHeight: '12px'},
+              isMobile: {fontSize: 11, lineHeight: 13},
             })
           : null,
       ])}
@@ -61,15 +61,15 @@ const styles = styleSheetCreate({
       borderRadius: 2,
     },
     isElectron: {
+      paddingBottom: 1,
       paddingLeft: 2,
       paddingRight: 3,
-      paddingBottom: 1,
     },
     isMobile: {
       paddingBottom: 1,
       paddingLeft: 3,
-      paddingTop: 2,
       paddingRight: 3,
+      paddingTop: 2,
     },
   }),
   text: platformStyles({

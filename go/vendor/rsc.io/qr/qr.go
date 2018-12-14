@@ -5,7 +5,7 @@
 /*
 Package qr encodes QR codes.
 */
-package qr // import "rsc.io/qr"
+package qr
 
 import (
 	"errors"

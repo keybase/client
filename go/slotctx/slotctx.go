@@ -28,11 +28,22 @@ func (s *Slot) Use(ctx context.Context) context.Context {
 	return ctx
 }
 
+// Stop cancels the running task if there is one.
+func (s *Slot) Stop() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		s.cancel = nil
+	}
+}
+
 // PrioritySlot is a slot in which only one context can thrive.
 type PrioritySlot struct {
 	mu       sync.Mutex
 	cancel   context.CancelFunc
 	priority int
+	shutdown bool
 }
 
 func NewPriority() *PrioritySlot {
@@ -46,6 +57,11 @@ func (s *PrioritySlot) Use(ctx context.Context, priority int) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.shutdown {
+		// Not accepting new processes.
+		cancel()
+		return ctx
+	}
 	if s.cancel == nil {
 		// First use
 		s.cancel = cancel
@@ -62,4 +78,27 @@ func (s *PrioritySlot) Use(ctx context.Context, priority int) context.Context {
 	// Incumbent wins
 	cancel()
 	return ctx
+}
+
+// Stop cancels the running task if there is one.
+func (s *PrioritySlot) Stop() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		s.cancel = nil
+		s.priority = 0
+	}
+}
+
+// Shutdown disables the slot forever.
+func (s *PrioritySlot) Shutdown() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		s.cancel = nil
+		s.priority = 0
+	}
+	s.shutdown = true
 }

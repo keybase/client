@@ -266,7 +266,7 @@ function engineSagaGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void, () => void, Array<void>>`
+    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>`
     : `export const ${name}RpcSaga = (p) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
 }
 
@@ -284,7 +284,7 @@ function rpcPromiseGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
+    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
     : `export const ${name}RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error, result) => error ? reject(error) : resolve(result), waitingKey}))`
 }
 
@@ -397,6 +397,7 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
+type WaitingKey = string | Array<string>
 type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 `

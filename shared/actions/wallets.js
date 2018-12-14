@@ -43,9 +43,10 @@ const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload)
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
+          bid: '', // DESKTOP-8530
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
+          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           publicMemo: state.wallets.building.publicMemo.stringValue(),
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
@@ -136,8 +137,8 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     .then(accountID =>
       WalletsGen.createCreatedNewAccount({
         accountID,
-        showOnCreation: action.payload.showOnCreation,
         setBuildingTo: action.payload.setBuildingTo,
+        showOnCreation: action.payload.showOnCreation,
       })
     )
     .catch(err => {
@@ -146,15 +147,18 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     })
 }
 
-const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
+const emptyAsset = {code: '', issuer: '', issuerName: '', type: 'native', verifiedDomain: ''}
 
 const sendPayment = (state: TypedState) => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   return RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
-      // FIXME -- support other assets.
       asset: emptyAsset,
+      // FIXME -- support other assets.
+      bid: '', // DESKTOP-8530
+      bypassBid: true, // DESKTOP-8530
+      bypassReview: true, // DESKTOP-8556
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -198,8 +202,8 @@ const requestPayment = (state: TypedState) =>
         state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
           ? state.wallets.building.currency
           : undefined,
-      recipient: state.wallets.building.to,
       note: state.wallets.building.secretNote.stringValue(),
+      recipient: state.wallets.building.to,
     },
     Constants.requestPaymentWaitingKey
   ).then(kbRqID =>
@@ -432,8 +436,8 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     .then(accountID =>
       WalletsGen.createLinkedExistingAccount({
         accountID,
-        showOnCreation: action.payload.showOnCreation,
         setBuildingTo: action.payload.setBuildingTo,
+        showOnCreation: action.payload.showOnCreation,
       })
     )
     .catch(err => {
@@ -535,8 +539,10 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
 
 const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
   // load the display currency of each wallet, now that we have the IDs
-  action.payload.accounts.map(account =>
-    Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+  Saga.sequentially(
+    action.payload.accounts.map(account =>
+      Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+    )
   )
 
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
@@ -564,14 +570,10 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
     })
 }
 
-const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
-  const {conversationIDKey, ordinal, requestID} = action.payload
-  return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
-    .then(() =>
-      conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null
-    )
-    .catch(err => logger.error(`Error cancelling request: ${err.message}`))
-}
+const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) =>
+  RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID}).catch(err =>
+    logger.error(`Error cancelling request: ${err.message}`)
+  )
 
 const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState
@@ -671,6 +673,26 @@ const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       ? Route.navigateTo([{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}])
       : Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab])
   )
+
+const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnlyModePayload) => {
+  let accountID = action.payload.accountID
+  return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
+    accountID,
+  }).then(res =>
+    WalletsGen.createLoadedMobileOnlyMode({
+      accountID,
+      enabled: res,
+    })
+  )
+}
+
+const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobileOnlyModePayload) => {
+  let accountID = action.payload.accountID
+  let f = action.payload.enabled
+    ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
+    : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
+  return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
+}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
@@ -786,6 +808,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.checkDisclaimer, checkDisclaimer)
   yield Saga.actionToAction(WalletsGen.checkDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
+
+  yield Saga.actionToPromise(WalletsGen.loadMobileOnlyMode, loadMobileOnlyMode)
+  yield Saga.actionToPromise(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
 }
 
 export default walletsSaga

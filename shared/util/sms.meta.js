@@ -1,4 +1,5 @@
 // @flow
+/* eslint-disable sort-keys */
 export type SMSResult = 0 | 1 | 2 | 3
 
 export const smsResults: {[string]: SMSResult} = {

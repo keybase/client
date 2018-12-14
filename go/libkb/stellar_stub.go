@@ -45,4 +45,11 @@ func (n *nullStellar) GetMigrationLock() *sync.Mutex { return new(sync.Mutex) }
 func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
 	return nil, errors.New("nullStellar SendMiniChatPayments")
 }
-func (n *nullStellar) RefreshWalletState(ctx context.Context) {}
+
+func (n *nullStellar) SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error) {
+	return nil, errors.New("nullStellar SpecMiniChatPayments")
+}
+
+func (n *nullStellar) HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error) {
+	return false, errors.New("nullStellar HandleOobm")
+}

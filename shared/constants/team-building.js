@@ -28,13 +28,13 @@ function followStateHelperWithId(
 }
 
 const makeSubState = (): $Exact<Types.TeamBuildingSubState> => ({
-  teamBuildingTeamSoFar: I.Set(),
-  teamBuildingSearchResults: I.Map(),
-  teamBuildingServiceResultCount: I.Map(),
   teamBuildingFinishedTeam: I.Set(),
-  teamBuildingSearchQuery: '',
-  teamBuildingSelectedService: 'keybase',
   teamBuildingSearchLimit: 11,
+  teamBuildingSearchQuery: '',
+  teamBuildingSearchResults: I.Map(),
+  teamBuildingSelectedService: 'keybase',
+  teamBuildingServiceResultCount: I.Map(),
+  teamBuildingTeamSoFar: I.Set(),
   teamBuildingUserRecs: [],
 })
 
@@ -54,9 +54,9 @@ const parseRawResultToUser = (
 
   if (service === 'keybase' && result.keybase) {
     return {
-      serviceMap,
       id: result.keybase.username,
       prettyName: result.keybase.full_name || result.keybase.username,
+      serviceMap,
     }
   } else if (result.service) {
     if (result.service.service_name !== service) {
@@ -81,9 +81,9 @@ const parseRawResultToUser = (
       : `${result.service.username}@${result.service.service_name}`
 
     return {
-      serviceMap,
       id,
       prettyName,
+      serviceMap,
     }
   } else {
     return null

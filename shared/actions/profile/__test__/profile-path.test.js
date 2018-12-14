@@ -56,111 +56,111 @@ describe('getProfilePath', () => {
   }
 
   it('Navigates correctly to user profiles', () => {
-    check(noPath, 'ayoubd', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'ayoubd'}}])
-    check(noPath, 'chris', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'chris'}}])
+    check(noPath, 'ayoubd', 'ayoubd', [peopleTab, {props: {username: 'ayoubd'}, selected: 'profile'}])
+    check(noPath, 'chris', 'ayoubd', [peopleTab, {props: {username: 'chris'}, selected: 'profile'}])
 
-    check(baseTab, 'ayoubd', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'ayoubd'}}])
-    check(baseTab, 'chris', 'ayoubd', [peopleTab, {selected: 'profile', props: {username: 'chris'}}])
+    check(baseTab, 'ayoubd', 'ayoubd', [peopleTab, {props: {username: 'ayoubd'}, selected: 'profile'}])
+    check(baseTab, 'chris', 'ayoubd', [peopleTab, {props: {username: 'chris'}, selected: 'profile'}])
 
     check(oneProfile, 'chrisnojima', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chrisnojima'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chrisnojima'}, selected: 'profile'},
     ])
     check(oneProfile, 'ayoubd', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chrisnojima'}},
-      {selected: 'profile', props: {username: 'ayoubd'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chrisnojima'}, selected: 'profile'},
+      {props: {username: 'ayoubd'}, selected: 'profile'},
     ])
 
     check(editProfile, 'ayoubd', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'ayoubd'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'ayoubd'}, selected: 'profile'},
     ])
     check(editProfile, 'mlsteele', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'ayoubd'}},
-      {selected: 'profile', props: {username: 'mlsteele'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'ayoubd'}, selected: 'profile'},
+      {props: {username: 'mlsteele'}, selected: 'profile'},
     ])
 
     check(nonUserOnTop, 'ayoubd', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chris'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chris'}, selected: 'profile'},
       {
-        selected: 'nonUserProfile',
         props: {
           fullUsername: 'realdonaldtrump@twitter',
           serviceName: 'Twitter',
           username: 'realdonaldtrump',
         },
+        selected: 'nonUserProfile',
       },
-      {selected: 'profile', props: {username: 'ayoubd'}},
+      {props: {username: 'ayoubd'}, selected: 'profile'},
     ])
 
     check(proofOnTop, 'chris', 'chris', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chris'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chris'}, selected: 'profile'},
     ])
     check(proofOnTop, 'ayoubd', 'chris', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chris'}},
-      {selected: 'profile', props: {username: 'ayoubd'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chris'}, selected: 'profile'},
+      {props: {username: 'ayoubd'}, selected: 'profile'},
     ])
   })
 
   it('Navigates correctly to non user profiles', () => {
     check(baseTab, 'realdonaldtrump@twitter', 'ayoubd', [
-      {selected: peopleTab, props: {}},
+      {props: {}, selected: peopleTab},
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
+        selected: 'nonUserProfile',
       },
     ])
 
     check(oneProfile, 'realdonaldtrump@twitter', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chrisnojima'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chrisnojima'}, selected: 'profile'},
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
+        selected: 'nonUserProfile',
       },
     ])
 
     check(editProfile, 'realdonaldtrump@twitter', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'ayoubd'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'ayoubd'}, selected: 'profile'},
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
+        selected: 'nonUserProfile',
       },
     ])
 
     check(nonUserOnTop, 'realdonaldtrump@twitter', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chris'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chris'}, selected: 'profile'},
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
+        selected: 'nonUserProfile',
       },
     ])
     check(nonUserOnTop, 'keybaseIO@twitter', 'ayoubd', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chris'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chris'}, selected: 'profile'},
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
+        selected: 'nonUserProfile',
       },
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'keybaseIO@twitter', serviceName: 'Twitter', username: 'keybaseIO'},
+        selected: 'nonUserProfile',
       },
     ])
 
     check(proofOnTop, 'realdonaldtrump@twitter', 'chris', [
-      {selected: peopleTab, props: {}},
-      {selected: 'profile', props: {username: 'chris'}},
+      {props: {}, selected: peopleTab},
+      {props: {username: 'chris'}, selected: 'profile'},
       {
-        selected: 'nonUserProfile',
         props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
+        selected: 'nonUserProfile',
       },
     ])
   })

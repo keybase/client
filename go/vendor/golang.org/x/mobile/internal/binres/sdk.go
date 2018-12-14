@@ -15,14 +15,15 @@ const MinSDK = 15
 
 // Requires environment variable ANDROID_HOME to be set.
 func apiResources() ([]byte, error) {
-	apiResPath, err := apiResourcesPath()
-	if err != nil {
-		return nil, err
+	sdkdir := os.Getenv("ANDROID_HOME")
+	if sdkdir == "" {
+		return nil, fmt.Errorf("ANDROID_HOME env var not set")
 	}
-	zr, err := zip.OpenReader(apiResPath)
+	platform := fmt.Sprintf("android-%v", MinSDK)
+	zr, err := zip.OpenReader(path.Join(sdkdir, "platforms", platform, "android.jar"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf(`%v; consider installing with "android update sdk --all --no-ui --filter android-%d"`, err, MinSDK)
+			return nil, fmt.Errorf(`%v; consider installing with "android update sdk --all --no-ui --filter %s"`, err, platform)
 		}
 		return nil, err
 	}
@@ -47,17 +48,6 @@ func apiResources() ([]byte, error) {
 		return nil, fmt.Errorf("failed to read resources.arsc")
 	}
 	return buf.Bytes(), nil
-}
-
-func apiResourcesPath() (string, error) {
-	// TODO(elias.naur): use the logic from gomobile's androidAPIPath and use the any installed version of the
-	// Android SDK instead. Currently, the binres_test.go tests fail on anything newer than android-15.
-	sdkdir := os.Getenv("ANDROID_HOME")
-	if sdkdir == "" {
-		return "", fmt.Errorf("ANDROID_HOME env var not set")
-	}
-	platform := fmt.Sprintf("android-%v", MinSDK)
-	return path.Join(sdkdir, "platforms", platform, "android.jar"), nil
 }
 
 // PackResources produces a stripped down gzip version of the resources.arsc from api jar.

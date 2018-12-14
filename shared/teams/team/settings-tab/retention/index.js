@@ -44,9 +44,9 @@ type State = {
 
 class RetentionPicker extends React.Component<Props, State> {
   state = {
+    items: [],
     saving: false,
     selected: retentionPolicies.policyRetain,
-    items: [],
     showMenu: false,
   }
   _timeoutID: TimeoutID
@@ -109,15 +109,15 @@ class RetentionPicker extends React.Component<Props, State> {
     }
     const items = policies.map(policy => {
       if (policy.type === 'retain') {
-        return {title: 'Never auto-delete', onClick: () => this._onSelect(policy)}
+        return {onClick: () => this._onSelect(policy), title: 'Never auto-delete'}
       } else if (policy.type === 'inherit') {
         if (this.props.teamPolicy) {
-          return {title: policyToInheritLabel(this.props.teamPolicy), onClick: () => this._onSelect(policy)}
+          return {onClick: () => this._onSelect(policy), title: policyToInheritLabel(this.props.teamPolicy)}
         } else {
           throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
         }
       }
-      return {title: daysToLabel(policy.days), onClick: () => this._onSelect(policy)}
+      return {onClick: () => this._onSelect(policy), title: daysToLabel(policy.days)}
     })
     this.setState({items})
   }
@@ -271,17 +271,17 @@ const labelStyle = {
 }
 
 const progressIndicatorStyle = {
-  width: 30,
   height: 30,
   marginTop: globalMargins.small,
+  width: 30,
 }
 
 const saveStateStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxRow,
+    alignItems: 'center',
     height: 17,
     justifyContent: 'center',
-    alignItems: 'center',
     marginTop: globalMargins.tiny,
   },
   isMobile: {

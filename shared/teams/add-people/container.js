@@ -22,11 +22,11 @@ type OwnProps = RouteProps<{teamname: string}, {}>
 const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
-    name: teamname,
     _yourRole: getRole(state, teamname),
     errorText: upperFirst(state.teams.teamInviteError),
     loading: anyWaiting(state, teamWaitingKey(teamname)),
+    name: teamname,
+    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
   }
 }
 
@@ -48,6 +48,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
       })
     )
   },
+  onBack: () => {
+    dispatch(navigateUp())
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
+    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
+  },
   onClearSearch: () => {
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
@@ -55,12 +61,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'}))
   },
   onClose: () => {
-    dispatch(navigateUp())
-    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
-    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
-    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
-  },
-  onBack: () => {
     dispatch(navigateUp())
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
@@ -101,8 +101,8 @@ export default compose(
     withStateHandlers(
       {role: 'writer', sendNotification: true},
       {
-        setSendNotification: () => sendNotification => ({sendNotification}),
         onRoleChange: () => role => ({role}),
+        setSendNotification: () => sendNotification => ({sendNotification}),
       }
     ),
     withPropsOnChange(['numberOfUsersSelected'], props => ({

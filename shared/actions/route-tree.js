@@ -37,7 +37,7 @@ export const switchRouteDef = (routeDef: RouteDefParams, path?: Path) =>
 //
 // If parentPath is provided, the path will be switched to relative to
 // parentPath without navigating to it.
-export const switchTo = (path: Path, parentPath?: Path) => RouteTreeGen.createSwitchTo({path, parentPath})
+export const switchTo = (path: Path, parentPath?: Path) => RouteTreeGen.createSwitchTo({parentPath, path})
 
 // Navigate to a new absolute path. E.g.:
 //
@@ -54,13 +54,13 @@ export const switchTo = (path: Path, parentPath?: Path) => RouteTreeGen.createSw
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
 export const navigateTo = (path: PropsPath<any>, parentPath?: ?Path) =>
-  RouteTreeGen.createNavigateTo({path, parentPath})
+  RouteTreeGen.createNavigateTo({parentPath, path})
 
 // Navigate to a path relative to the current path.
 // If parentPath is provided, the path will be appended relative to parentPath
 // without navigating to it.
 export const navigateAppend = (path: PropsPath<any>, parentPath?: Path) =>
-  RouteTreeGen.createNavigateAppend({path, parentPath})
+  RouteTreeGen.createNavigateAppend({parentPath, path})
 
 // Navigate one step up from the current path.
 export const navigateUp = () => RouteTreeGen.createNavigateUp()
@@ -79,7 +79,7 @@ export const setRouteState = (
 export const resetRoute = (path: Path) => RouteTreeGen.createResetRoute({path})
 
 function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const currentPath = pathSelector(state, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {
     yield Saga.put(otherAction)

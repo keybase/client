@@ -22,7 +22,7 @@
 @end
 
 @implementation Benchmarks
-- (void)manyargs:(long)p0 p1:(long)p1 p2:(long)p2 p3:(long)p3 p4:(long)p4 p5:(long)p5 p6:(long)p6 p7:(long)p7 p8:(long)p8 p9:(long)p9 {
+- (void)manyargs:(int)p0 p1:(int)p1 p2:(int)p2 p3:(int)p3 p4:(int)p4 p5:(int)p5 p6:(int)p6 p7:(int)p7 p8:(int)p8 p9:(int)p9 {
 }
 
 - (id<BenchmarkI>)newI {
@@ -32,10 +32,10 @@
 - (void)noargs {
 }
 
-- (void)onearg:(long)p0 {
+- (void)onearg:(int)p0 {
 }
 
-- (long)oneret {
+- (int)oneret {
 	return 0;
 }
 
@@ -125,7 +125,7 @@
 	}
 }
 
-- (void)run:(NSString*)name n:(long)n {
+- (void)run:(NSString*)name n:(int)n {
 	void (^bench)(void) = [self lookupBenchmark:name];
 	if (bench == nil) {
 		NSLog(@"Error: no such benchmark: %@", name);
@@ -136,7 +136,7 @@
 	}
 }
 
-- (void)runDirect:(NSString*)name n:(long)n {
+- (void)runDirect:(NSString*)name n:(int)n {
 	void (^bench)(void) = [self lookupBenchmark:name];
 	if (bench == nil) {
 		NSLog(@"Error: no such benchmark: %@", name);

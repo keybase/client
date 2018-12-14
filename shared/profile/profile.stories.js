@@ -128,17 +128,20 @@ const props = {
   onClickFollowing: Sb.action('onClickFollowing'),
   onClickShowcaseOffer: Sb.action('onClickShowcaseOffer'),
   onClickShowcased: Sb.action('onClickShowcased'),
+  onCopyStellarAddress: Sb.action('onCopyStellarAddress'),
   onEditAvatar: Sb.action('onEditAvatar'),
+  onFilePickerError: Sb.action('onFilePickerError'),
   onFolderClick: Sb.action('onFolderClick'),
   onFollow: Sb.action('onFollow'),
   onMissingProofClick: Sb.action(`Prove`),
   onOpenPrivateFolder: Sb.action('onOpenPrivateFolder'),
   onPushProfile: Sb.action('onPushProfile'),
   onRecheckProof: Sb.action('onRecheckProof'),
+  onRequestLumens: Sb.action('onRequestLumens'),
   onRevokeProof: Sb.action('onRevokeProof'),
   onSearch: Sb.action('onSearch'),
   onSendLumens: Sb.action('onSendLumens'),
-  onRequestLumens: Sb.action('onRequestLumens'),
+  onSendOrRequestStellarAddress: Sb.action('onSendOrRequestStellarAddress'),
   onUnfollow: Sb.action('onUnfollow'),
   onUserClick: Sb.action('showUserProfile'),
   onViewProof: Sb.action('onViewProof'),
@@ -182,13 +185,13 @@ const proofsPending = proofsDefault.map((proof, idx) => ({
 const provider = (cfProps =>
   Sb.createPropProviderWithCommon({
     ConnectedFolders: () => ({
+      loadTlfs: Sb.action('loadTlfs'),
       tlfs: [
         {...cfProps, isPublic: true, isSelf: true, text: `public/meatball`},
         {...cfProps, isPublic: true, isSelf: false, text: `public/meatball,songgao`},
         {...cfProps, isPublic: false, isSelf: true, text: `private/meatball`},
         {...cfProps, isPublic: false, isSelf: false, text: `private/meatball,songgao`},
       ],
-      loadTlfs: Sb.action('loadTlfs'),
     }),
   }))({
   openInFilesTab: Sb.action('openInFilesTab'),
@@ -248,6 +251,9 @@ const load = () => {
     ))
     .add('Followed - Changed - Scrolled', () => (
       <Profile {...props} proofs={proofsDeleted} trackerState={error} currentlyFollowing={true} />
+    ))
+    .add('Your Profile - Stellar Address', () => (
+      <Profile {...props} stellarAddress={'coyne*keybase.io'} bioEditFns={bioEditFns} isYou={true} />
     ))
 }
 export default load

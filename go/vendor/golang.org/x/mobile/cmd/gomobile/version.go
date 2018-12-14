@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 var cmdVersion = &command{
@@ -34,13 +33,13 @@ func runVersion(cmd *command) (err error) {
 			return "", err
 		}
 		bindir := filepath.Dir(bin)
-		cmd := exec.Command("go", "list", "-f", "{{.Stale}}", "golang.org/x/mobile/cmd/gomobile")
+		cmd := exec.Command("go", "install", "-x", "-n", "golang.org/x/mobile/cmd/gomobile")
 		cmd.Env = append(os.Environ(), "GOBIN="+bindir)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", fmt.Errorf("cannot test gomobile binary: %v, %s", err, out)
 		}
-		if strings.TrimSpace(string(out)) != "false" {
+		if len(out) != 0 {
 			return "", fmt.Errorf("binary is out of date, re-install it")
 		}
 		return mobileRepoRevision()

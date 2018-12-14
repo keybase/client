@@ -213,7 +213,11 @@ func (a *Auth) Credentials() (accesskey, secretKey, token string) {
 	}
 
 	// token expired
-	newAuth, _ := GetAuth("", "", "", time.Time{})
+	newAuth, err := GetAuth("", "", "", time.Time{})
+	if err != nil {
+		// we can't do much here. the next caller will try again.
+		return "", "", ""
+	}
 
 	a.mu.Lock()
 	defer a.mu.Unlock()

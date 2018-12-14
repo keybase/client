@@ -1,71 +1,63 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box, Text} from '../../../../common-adapters'
-import {
-  platformStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  glamorous,
-  styleSheetCreate,
-  isMobile,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 type Props = {
   onBuildTeam: () => void,
   showBuildATeam: boolean,
 }
 
-const DividerBox = glamorous(Box)({
-  ...globalStyles.flexBoxRow,
-  ...(isMobile
-    ? {backgroundColor: globalColors.fastBlank}
+const DividerBox = Styles.styled(Kb.Box)({
+  ...Styles.globalStyles.flexBoxRow,
+  ...(Styles.isMobile
+    ? {backgroundColor: Styles.globalColors.fastBlank}
     : {
         ':hover': {
-          borderBottomColor: globalColors.lightGrey,
-          borderTopColor: globalColors.lightGrey,
+          borderBottomColor: Styles.globalColors.lightGrey,
+          borderTopColor: Styles.globalColors.lightGrey,
         },
       }),
   alignItems: 'center',
   borderStyle: 'solid',
-  borderTopColor: globalColors.black_10,
+  borderTopColor: Styles.globalColors.black_10,
   borderTopWidth: 1,
   height: '100%',
   justifyContent: 'flex-start',
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.tiny,
+  paddingRight: Styles.globalMargins.tiny,
   position: 'relative',
   width: '100%',
 })
 
 const BuildTeam = ({loaded, showBuildATeam, onBuildTeam}: Props) =>
   showBuildATeam ? (
-    <ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
+    <Kb.ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
       <DividerBox>
-        <Box style={styles.text}>
-          <Text type="BodySmallSemibold">Build a team!</Text>
-        </Box>
+        <Kb.Box style={styles.text}>
+          <Kb.Text type="BodySmallSemibold">Build a team!</Kb.Text>
+        </Kb.Box>
       </DividerBox>
-    </ClickableBox>
+    </Kb.ClickableBox>
   ) : null
 
-const styles = styleSheetCreate({
-  container: platformStyles({
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
     isElectron: {
-      ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.blueGrey,
+      ...Styles.globalStyles.fillAbsolute,
+      backgroundColor: Styles.globalColors.blueGrey,
       flexShrink: 0,
       height: 32,
       top: undefined,
     },
     isMobile: {
-      backgroundColor: globalColors.fastBlank,
+      backgroundColor: Styles.globalColors.fastBlank,
       flexShrink: 0,
       height: 48,
     },
   }),
   text: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     minHeight: 24,
   },

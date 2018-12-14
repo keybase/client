@@ -60,6 +60,12 @@ func (q *Query) ConsistentRead(c bool) {
 	}
 }
 
+func (q *Query) ReturnConsumedCapacity(r bool) {
+	if r == true {
+		q.buffer["ReturnConsumedCapacity"] = "INDEXES"
+	}
+}
+
 func (q *Query) AddGetRequestItems(tableKeys map[*Table][]Key, consistentRead bool) {
 	requestitems := msi{}
 	for table, keys := range tableKeys {

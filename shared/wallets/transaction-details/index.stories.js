@@ -20,6 +20,8 @@ const props = {
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
+  issuerAccountID: null,
+  issuerDescription: '',
   loading: false,
   memo,
   onBack: Sb.action('onBack'),
@@ -40,8 +42,6 @@ const props = {
   you: 'cjb',
   yourAccountName: '',
   yourRole: 'senderOnly',
-  issuerDescription: '',
-  issuerAccountID: null,
 }
 
 const load = () => {

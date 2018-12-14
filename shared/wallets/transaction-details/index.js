@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
+import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
@@ -119,10 +120,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'otherAccount':
       return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
   }
   return null
@@ -194,12 +192,11 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
         case 'senderAndReceiver':
           return 'Sent'
         default:
-          /*::
-          declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-          ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
-          */
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(yourRole)
           throw new Error(`Unexpected role ${yourRole}`)
       }
+    case 'error':
+      return 'Failed'
     default:
       return capitalize(status)
   }
@@ -237,18 +234,15 @@ const propsToParties = (props: NotLoadingProps) => {
 
   switch (props.yourRole) {
     case 'senderOnly':
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     case 'receiverOnly':
-      return {sender: counterparty, receiver: you}
+      return {receiver: you, sender: counterparty}
     case 'senderAndReceiver':
       // Even if we sent money from an account to itself, show the
       // account details as the recipient.
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -348,9 +342,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Icon
               color={colorForStatus(props.status)}
               fontSize={16}
+              style={Kb.iconCastPlatformStyles(styles.statusIcon)}
               type={
                 ['error', 'canceled'].includes(props.status)
-                  ? 'iconfont-close'
+                  ? 'iconfont-remove'
                   : props.status === 'completed'
                   ? 'iconfont-success'
                   : 'iconfont-clock'
@@ -372,6 +367,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
               selectableText={true}
               timestamp={props.timestamp}
             />
+          )}
+          {props.status === 'error' && (
+            <Kb.Text type='BodySmallError' selectable={true}>
+              {props.statusDetail}
+            </Kb.Text>
           )}
         </Kb.Box2>
 
@@ -446,9 +446,9 @@ const styles = Styles.styleSheetCreate({
   buttonBox: Styles.platformStyles({
     common: {
       justifyContent: 'center',
+      minHeight: 0,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
-      minHeight: 0,
     },
     isElectron: {
       marginTop: 'auto',
@@ -489,14 +489,18 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     alignSelf: 'flex-start',
   },
+  statusIcon: {
+    position: 'relative',
+    top: 1,
+  },
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
   },
   stellarPublicKey: Styles.platformStyles({
     common: {
+      flex: 1,
       justifyContent: 'center',
       marginLeft: Styles.globalMargins.tiny,
-      flex: 1,
     },
     isElectron: {wordBreak: 'break-all'},
   }),

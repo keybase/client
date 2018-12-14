@@ -579,8 +579,8 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, err
 		}
-		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
+			plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_EDIT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, err

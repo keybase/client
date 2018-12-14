@@ -6,10 +6,10 @@ import SetExplodingPopup from '.'
 
 const common = {
   attachTo: () => null,
+  items: messageExplodeDescriptions,
   onHidden: Sb.action('onHidden'),
   onSelect: Sb.action('onSelect'),
   selected: 0,
-  items: messageExplodeDescriptions,
   visible: true,
 }
 

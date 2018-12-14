@@ -10,13 +10,13 @@ type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   return {
-    _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-    _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
-    _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
-    _teamNameToPublicitySettings: state.teams.getIn(['teamNameToPublicitySettings'], I.Map()),
     _teamNameToAllowPromote: state.teams.getIn(['teamNameToAllowPromote'], I.Map()),
+    _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
+    _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
     _teamNameToIsShowcasing: state.teams.getIn(['teamNameToIsShowcasing'], I.Map()),
+    _teamNameToPublicitySettings: state.teams.getIn(['teamNameToPublicitySettings'], I.Map()),
     _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
+    _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
     _waiting: state.waiting,
     teamnames: getSortedTeamnames(state),
   }
@@ -33,11 +33,11 @@ const mergeProps = (stateProps, dispatchProps) => {
     ...stateProps,
     ...dispatchProps,
     customCancelText: 'Close',
-    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-    teammembercounts: stateProps._teammembercounts.toObject(),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
+    teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
     teamNameToRole: stateProps._teamNameToRole.toObject(),
+    teammembercounts: stateProps._teammembercounts.toObject(),
     title: 'Publish your teams',
     waiting: stateProps._waiting.toObject(),
   }

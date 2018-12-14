@@ -155,7 +155,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	require.NoError(t, err)
 
 	t.Logf("get the impteam seqno to wait on later")
-	team, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, alice.username+","+bob.username, false)
+	team, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, alice.username+","+bob.username, false, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	nextSeqno := team.NextSeqno()
 

@@ -20,9 +20,9 @@ const OutlineWrapper = ({style, children}: any) => (
     style={{
       ...style,
       border: 'solid',
-      borderWidth: 1,
       borderColor: 'black',
       borderRadius: 3,
+      borderWidth: 1,
     }}
   >
     {children}
@@ -33,7 +33,7 @@ const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
-      <OutlineWrapper style={{marginTop: 20, width: 460, height: 434}}>
+      <OutlineWrapper style={{height: 434, marginTop: 20, width: 460}}>
         <TeamBuilding
           searchString=""
           selectedService="keybase"
@@ -50,22 +50,22 @@ const load = () => {
           fetchUserRecs={() => {}}
           teamSoFar={[
             {
-              username: 'max',
               prettyName: 'max (Max Krohn)',
               service: 'keybase',
               userId: 'max',
+              username: 'max',
             },
             {
-              username: 'marcopolo',
               prettyName: 'marcopolo (GitHub)',
               service: 'github',
               userId: 'marcopolo@github',
+              username: 'marcopolo',
             },
             {
-              username: 'chris',
               prettyName: 'chris (Chris Coyne)',
               service: 'keybase',
               userId: 'chris',
+              username: 'chris',
             },
           ]}
           serviceResultCount={{}}
@@ -74,8 +74,8 @@ const load = () => {
           highlightedIndex={1}
           searchResults={[
             {
-              userId: 'chris',
-              username: 'chris',
+              followingState: 'Following',
+              inTeam: true,
               prettyName: 'Chris Coyne',
               services: {
                 facebook: 'chriscoyne on Facebook',
@@ -84,12 +84,12 @@ const load = () => {
                 reddit: 'malgorithms on Reddit',
                 twitter: 'malgorithms on Twitter',
               },
-              inTeam: true,
-              followingState: 'Following',
+              userId: 'chris',
+              username: 'chris',
             },
             {
-              userId: 'chrismikacle',
-              username: 'chrismikacle',
+              followingState: 'NotFollowing',
+              inTeam: false,
               prettyName: 'Chris Mikacle',
               services: {
                 github: 'chrismikacle on GitHub',
@@ -97,12 +97,12 @@ const load = () => {
                 reddit: 'chrismikacle on Reddit',
                 twitter: 'chrismikacle on Twitter',
               },
-              inTeam: false,
-              followingState: 'NotFollowing',
+              userId: 'chrismikacle',
+              username: 'chrismikacle',
             },
             {
-              userId: 'chrisnojima',
-              username: 'chrisnojima',
+              followingState: 'Following',
+              inTeam: false,
               prettyName: 'Chris Nojima',
               services: {
                 github: 'cnojima on GitHub',
@@ -110,8 +110,8 @@ const load = () => {
                 reddit: 'cnojima on Reddit',
                 twitter: 'cnojima on Twitter',
               },
-              inTeam: false,
-              followingState: 'Following',
+              userId: 'chrisnojima',
+              username: 'chrisnojima',
             },
           ]}
         />
@@ -139,16 +139,16 @@ const load = () => {
         onRemove={Sb.action('onRemove')}
         teamSoFar={[
           {
-            username: 'max',
             prettyName: 'max (Max Krohn)',
             service: 'keybase',
             userId: 'max',
+            username: 'max',
           },
           {
-            username: 'marcopolo',
             prettyName: 'marcopolo (GitHub)',
             service: 'github',
             userId: 'marcopolo@github',
+            username: 'marcopolo',
           },
         ]}
       />
@@ -180,8 +180,8 @@ const load = () => {
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{
-          reddit: 10,
           hackernews: 10,
+          reddit: 10,
         }}
         showServiceResultCount={true}
       />

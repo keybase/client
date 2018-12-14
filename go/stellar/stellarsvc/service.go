@@ -18,6 +18,7 @@ import (
 type UISource interface {
 	SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI
 	IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI
+	StellarUI() stellar1.UiInterface
 }
 
 type Server struct {
@@ -70,14 +71,13 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 		}
 		return *opts.Err
 	}
-	fin = s.G().CTraceTimed(ctx, opts.RPCName, getFinalErr)
+	fin = s.G().CTraceTimed(ctx, "LRPC "+opts.RPCName, getFinalErr)
 	if !opts.AllowLoggedOut {
 		if err = s.assertLoggedIn(ctx); err != nil {
 			return ctx, err, fin
 		}
 	}
 	if opts.RequireWallet {
-		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RPCName)
 		cwg, err := stellar.CreateWalletGated(ctx, s.G())
 		if err != nil {
 			return ctx, err, fin
@@ -122,13 +122,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	err = stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
-	/*
-		if err == nil {
-			s.wallet.RefreshAll(ctx)
-		}
-	*/
-	return err
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {

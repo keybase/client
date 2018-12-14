@@ -38,6 +38,7 @@ class UnfurlGiphy extends React.Component<Props> {
             height={this.props.imageHeight}
             width={this.props.imageWidth}
             isVideo={this.props.isVideo}
+            autoplayVideo={true}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -53,30 +54,11 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       maxWidth: 500,
     },
-    isMobile: {
-      paddingRight: 0,
-    },
   }),
   favicon: {
-    width: 16,
-    height: 16,
     borderRadius: Styles.borderRadius,
-  },
-  siteNameContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      justifyContent: 'space-between',
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-      paddingBottom: Styles.globalMargins.xxtiny,
-    },
-  }),
-  quoteContainer: {
-    backgroundColor: Styles.globalColors.lightGrey,
-    paddingLeft: Styles.globalMargins.xtiny,
-    alignSelf: 'stretch',
+    height: 16,
+    width: 16,
   },
   imageContainer: Styles.platformStyles({
     isMobile: {
@@ -90,10 +72,26 @@ const styles = Styles.styleSheetCreate({
       minWidth: 150,
     },
     isMobile: {
-      borderWidth: 1,
-      borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
+      borderRadius: Styles.borderRadius,
+      borderWidth: 1,
       padding: Styles.globalMargins.xtiny,
+    },
+  }),
+  quoteContainer: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.lightGrey,
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
+  siteNameContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+      justifyContent: 'space-between',
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.xxtiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
 })

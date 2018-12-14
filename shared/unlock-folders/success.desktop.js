@@ -10,7 +10,7 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
       <Text style={successStyle} type="BodySemibold">
         Success!
       </Text>
-      <Text style={{textAlign: 'center', paddingLeft: 40, paddingRight: 40}} type="Body">
+      <Text style={{paddingLeft: 40, paddingRight: 40, textAlign: 'center'}} type="Body">
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts
         forever, like the decision to have a child
       </Text>
@@ -24,12 +24,12 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  position: 'absolute',
-  top: 40,
-  left: 0,
-  right: 0,
   bottom: 30,
   justifyContent: 'space-between',
+  left: 0,
+  position: 'absolute',
+  right: 0,
+  top: 40,
 }
 
 const successStyle = {

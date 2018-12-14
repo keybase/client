@@ -6,8 +6,8 @@ import Footer from '.'
 
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
-  Footer: props => ({}),
   Available: props => ({}),
+  Footer: props => ({}),
 })
 
 const common = {

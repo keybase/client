@@ -95,7 +95,7 @@ const AccountPayment = (props: Props) => {
           type="Wallet"
           onClick={props.onSend}
           small={true}
-          style={{alignSelf: 'flex-start'}}
+          style={styles.button}
         >
           <ButtonText text={props.sendButtonLabel} amount={props.amount} />
         </Button>
@@ -105,7 +105,7 @@ const AccountPayment = (props: Props) => {
           type="Wallet"
           onClick={props.onClaim}
           small={true}
-          style={{alignSelf: 'flex-start'}}
+          style={styles.button}
         >
           <ButtonText text={props.claimButtonLabel} amount={props.amount} />
         </Button>
@@ -119,7 +119,7 @@ const AccountPayment = (props: Props) => {
             label={props.cancelButtonLabel}
             onClick={props.onCancel}
             small={true}
-            style={{alignSelf: 'flex-start'}}
+            style={styles.button}
           />
         </Box2>
       )}
@@ -135,6 +135,10 @@ const AccountPayment = (props: Props) => {
 const styles = styleSheetCreate({
   alignItemsCenter: {
     alignItems: 'center',
+  },
+  button: {
+    alignSelf: 'flex-start',
+    marginTop: globalMargins.xtiny,
   },
   buttonText: {
     color: globalColors.white,

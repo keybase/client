@@ -43,34 +43,34 @@ const Downloads = (props: DownloadsProps) =>
 
 const styles = styleSheetCreate({
   box: {
-    height: 40,
     backgroundColor: globalColors.blue5,
     borderStyle: 'solid',
-    borderTopWidth: 1,
     borderTopColor: globalColors.black_10,
-  },
-  iconBoxOpenDownload: {
-    padding: globalMargins.tiny,
-  },
-  iconBoxEllipsis: {
-    padding: globalMargins.tiny,
-    backgroundColor: globalColors.black_10,
-    borderRadius: 4,
-    marginLeft: globalMargins.xtiny,
-  },
-  downloadsBox: {
-    ...globalStyles.flexBoxRow,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    overflow: 'hidden',
+    borderTopWidth: 1,
+    height: 40,
   },
   buttonsBox: {
     ...globalStyles.flexBoxRow,
     ...globalStyles.flexGrow,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     minWidth: globalMargins.xtiny + 32 + globalMargins.tiny + 32 + globalMargins.tiny,
     paddingRight: globalMargins.tiny,
-    justifyContent: 'space-between',
+  },
+  downloadsBox: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    overflow: 'hidden',
+  },
+  iconBoxEllipsis: {
+    backgroundColor: globalColors.black_10,
+    borderRadius: 4,
+    marginLeft: globalMargins.xtiny,
+    padding: globalMargins.tiny,
+  },
+  iconBoxOpenDownload: {
+    padding: globalMargins.tiny,
   },
 })
 

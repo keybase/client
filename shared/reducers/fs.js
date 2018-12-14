@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
+import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
 
@@ -100,9 +101,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           meta: Constants.makeDownloadMeta({
             entryType,
             intent,
-            path,
             localPath,
             opID,
+            path,
           }),
           state: Constants.makeDownloadState({
             completePortion: 0,
@@ -220,8 +221,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           [
             Constants.makeEditID(),
             Constants.makeNewFolder({
-              name: newFolderName,
               hint: newFolderName,
+              name: newFolderName,
               parentPath,
             }),
           ],
@@ -299,6 +300,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('moveOrCopy', mc =>
         mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
       )
+    case FsGen.showSendLinkToChat:
+      return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
+    case FsGen.setSendLinkToChatConvID:
+      // $FlowIssue
+      return state.setIn(['sendLinkToChat', 'convID'], action.payload.convID)
+    case FsGen.setSendLinkToChatChannels:
+      // $FlowIssue
+      return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
@@ -332,10 +341,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.cancelMoveOrCopy:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

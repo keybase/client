@@ -31,6 +31,7 @@ type Ramcache struct {
 	frozen bool
 	done   chan bool
 	sync.RWMutex
+	shutdownOnce sync.Once
 }
 
 // New creates a Ramcache with a TTL of 5 minutes.  You can change
@@ -156,7 +157,7 @@ func (rc *Ramcache) Keys() []string {
 // Shutdown cleanly stops any background work, allowing Ramcache
 // to be garbage collected.
 func (rc *Ramcache) Shutdown() {
-	close(rc.done)
+	rc.shutdownOnce.Do(func() { close(rc.done) })
 }
 
 func (rc *Ramcache) cleanup() {

@@ -643,11 +643,11 @@
           "name": "hasPairwiseMacs"
         },
         {
-          "type": [
-            null,
-            "UIPaymentInfo"
-          ],
-          "name": "paymentInfo"
+          "type": {
+            "type": "array",
+            "items": "UIPaymentInfo"
+          },
+          "name": "paymentInfos"
         },
         {
           "type": [
@@ -775,6 +775,59 @@
             "UIPagination"
           ],
           "name": "pagination"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChatPayment",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
+          "name": "xlmAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChatPaymentSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "xlmTotal"
+        },
+        {
+          "type": "string",
+          "name": "displayTotal"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChatPayment"
+          },
+          "name": "payments"
         }
       ]
     }
@@ -967,6 +1020,59 @@
         }
       ],
       "response": "boolean"
+    },
+    "chatPostReadyToSend": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatStellarShowConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatStellarDataConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "summary",
+          "type": "UIChatPaymentSummary"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDataError": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -13,9 +13,13 @@ export type Position =
 
 export type Props<PP: {}> = {|
   ...PP,
-  targetRect: ?ClientRect,
+  // [desktop] if this is true, child will be positioned absolutely with a container the same
+  // width/height depending on position.
+  // e.g. position is 'left'/'right' -> same height; position is 'top'/'bottom' -> same width
+  matchDimension?: boolean,
   position: Position,
   style?: Object,
+  targetRect: ?ClientRect,
 |}
 
 export type RelativePopupHocType<PP> = (

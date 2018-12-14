@@ -11,6 +11,7 @@ export type Props = {
   width: number,
   url: string,
   isVideo: boolean,
+  autoplayVideo: boolean,
   style?: Object,
 }
 
@@ -28,7 +29,7 @@ const clampImageSize = ({width = 0, height = 0}, maxSize) =>
 class UnfurlImage extends React.Component<Props> {
   _getDimensions() {
     const maxSize = Math.min(imgMaxWidth(), 320)
-    const {height, width} = clampImageSize({width: this.props.width, height: this.props.height}, maxSize)
+    const {height, width} = clampImageSize({height: this.props.height, width: this.props.width}, maxSize)
     return {
       flexGrow: 0,
       flexShrink: 0,
@@ -45,7 +46,12 @@ class UnfurlImage extends React.Component<Props> {
   render() {
     const style = Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])
     return this.props.isVideo ? (
-      <Video url={this.props.url} orient={this._getOrient()} style={style} />
+      <Video
+        url={this.props.url}
+        orient={this._getOrient()}
+        style={style}
+        autoPlay={this.props.autoplayVideo}
+      />
     ) : (
       <Kb.Image src={this.props.url} style={style} />
     )

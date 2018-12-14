@@ -280,6 +280,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
+	g.StellarSender = types.DummyStellarSender{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

@@ -14,17 +14,17 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => ({
-  _pathItems: state.fs.pathItems,
   _moveOrCopy: state.fs.moveOrCopy,
+  _pathItems: state.fs.pathItems,
 })
 
 const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}: OwnProps) => ({
   _destinationPickerGoTo: () =>
     dispatch(
       FsGen.createMoveOrCopyOpen({
+        currentIndex: destinationPickerIndex || 0,
         path,
-        routePath,
-        currentIndex: destinationPickerIndex || 0 /* make flow happy */,
+        routePath /* make flow happy */,
       })
     ),
   _open: () => dispatch(FsGen.createOpenPathItem({path, routePath})),

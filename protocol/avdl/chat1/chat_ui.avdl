@@ -160,7 +160,7 @@ protocol chatUi {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     boolean hasPairwiseMacs;
-    union { null, UIPaymentInfo } paymentInfo;
+    array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
   }
@@ -217,4 +217,23 @@ protocol chatUi {
   void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
+
+  void chatPostReadyToSend(int sessionID);
+  // Chat Stellar send confirm screen UI
+  record UIChatPayment {
+    string username;
+    string fullName;
+    string xlmAmount;
+    union { null, string } error;
+    union { null, string } displayAmount;
+  }
+  record UIChatPaymentSummary {
+    string xlmTotal;
+    string displayTotal;
+    array<UIChatPayment> payments;
+  }
+  void chatStellarShowConfirm(int sessionID);
+  boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
+  boolean chatStellarDataError(int sessionID, string message);
+  void chatStellarDone(int sessionID);
 }

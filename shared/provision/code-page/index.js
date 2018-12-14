@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/provision'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {iconMeta} from '../../common-adapters/icon.constants'
@@ -89,10 +90,7 @@ class CodePage2 extends React.Component<Props, State> {
         content = <EnterText {...this.props} />
         break
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.state.tab);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.tab)
         content = null
     }
 
@@ -331,10 +329,10 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flexGrow: 1,
-      paddingTop: 0, // increasing this makes it not visible all on one page in small iphones, so lets leave it
       paddingBottom: Styles.globalMargins.small,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+      paddingTop: 0, // increasing this makes it not visible all on one page in small iPhones, so let's leave it
     },
   }),
   enterTextButton: {

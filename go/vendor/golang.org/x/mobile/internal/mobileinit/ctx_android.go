@@ -8,19 +8,30 @@ package mobileinit
 #include <jni.h>
 #include <stdlib.h>
 
-static char* lockJNI(JavaVM *vm, uintptr_t* envp, int* attachedp) {
+// current_vm is stored to initialize other cgo packages.
+//
+// As all the Go packages in a program form a single shared library,
+// there can only be one JNI_OnLoad function for initialization. In
+// OpenJDK there is JNI_GetCreatedJavaVMs, but this is not available
+// on android.
+JavaVM* current_vm;
+
+// current_ctx is Android's android.context.Context. May be NULL.
+jobject current_ctx;
+
+char* lockJNI(uintptr_t* envp, int* attachedp) {
 	JNIEnv* env;
 
-	if (vm == NULL) {
+	if (current_vm == NULL) {
 		return "no current JVM";
 	}
 
 	*attachedp = 0;
-	switch ((*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6)) {
+	switch ((*current_vm)->GetEnv(current_vm, (void**)&env, JNI_VERSION_1_6)) {
 	case JNI_OK:
 		break;
 	case JNI_EDETACHED:
-		if ((*vm)->AttachCurrentThread(vm, &env, 0) != 0) {
+		if ((*current_vm)->AttachCurrentThread(current_vm, &env, 0) != 0) {
 			return "cannot attach to JVM";
 		}
 		*attachedp = 1;
@@ -35,7 +46,7 @@ static char* lockJNI(JavaVM *vm, uintptr_t* envp, int* attachedp) {
 	return NULL;
 }
 
-static char* checkException(uintptr_t jnienv) {
+char* checkException(uintptr_t jnienv) {
 	jthrowable exc;
 	JNIEnv* env = (JNIEnv*)jnienv;
 
@@ -52,8 +63,8 @@ static char* checkException(uintptr_t jnienv) {
 	return (char*)(*env)->GetStringUTFChars(env, msgStr, 0);
 }
 
-static void unlockJNI(JavaVM *vm) {
-	(*vm)->DetachCurrentThread(vm);
+void unlockJNI() {
+	(*current_vm)->DetachCurrentThread(current_vm);
 }
 */
 import "C"
@@ -64,23 +75,12 @@ import (
 	"unsafe"
 )
 
-// currentVM is stored to initialize other cgo packages.
-//
-// As all the Go packages in a program form a single shared library,
-// there can only be one JNI_OnLoad function for initialization. In
-// OpenJDK there is JNI_GetCreatedJavaVMs, but this is not available
-// on android.
-var currentVM *C.JavaVM
-
-// currentCtx is Android's android.context.Context. May be NULL.
-var currentCtx C.jobject
-
 // SetCurrentContext populates the global Context object with the specified
 // current JavaVM instance (vm) and android.context.Context object (ctx).
 // The android.context.Context object must be a global reference.
-func SetCurrentContext(vm unsafe.Pointer, ctx uintptr) {
-	currentVM = (*C.JavaVM)(vm)
-	currentCtx = (C.jobject)(ctx)
+func SetCurrentContext(vm, ctx unsafe.Pointer) {
+	C.current_vm = (*C.JavaVM)(vm)
+	C.current_ctx = (C.jobject)(ctx)
 }
 
 // RunOnJVM runs fn on a new goroutine locked to an OS thread with a JNIEnv.
@@ -99,16 +99,16 @@ func RunOnJVM(fn func(vm, env, ctx uintptr) error) error {
 
 		env := C.uintptr_t(0)
 		attached := C.int(0)
-		if errStr := C.lockJNI(currentVM, &env, &attached); errStr != nil {
+		if errStr := C.lockJNI(&env, &attached); errStr != nil {
 			errch <- errors.New(C.GoString(errStr))
 			return
 		}
 		if attached != 0 {
-			defer C.unlockJNI(currentVM)
+			defer C.unlockJNI()
 		}
 
-		vm := uintptr(unsafe.Pointer(currentVM))
-		if err := fn(vm, uintptr(env), uintptr(currentCtx)); err != nil {
+		vm := uintptr(unsafe.Pointer(C.current_vm))
+		if err := fn(vm, uintptr(env), uintptr(C.current_ctx)); err != nil {
 			errch <- err
 			return
 		}

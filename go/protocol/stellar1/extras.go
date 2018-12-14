@@ -17,6 +17,13 @@ const (
 	KeybaseRequestIDSuffixHex = "31"
 )
 
+const (
+	PushAutoClaim           = "stellar.autoclaim"
+	PushPaymentStatus       = "stellar.payment_status"
+	PushPaymentNotification = "stellar.payment_notification"
+	PushRequestStatus       = "stellar.request_status"
+)
+
 func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 	if len(s) != hex.EncodedLen(KeybaseTransactionIDLen) {
 		return "", fmt.Errorf("bad KeybaseTransactionID %q: must be %d bytes long", s, KeybaseTransactionIDLen)
@@ -361,4 +368,16 @@ func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (r
 
 func (c OutsideCurrencyCode) String() string {
 	return string(c)
+}
+
+func (b BuildPaymentID) String() string {
+	return string(b)
+}
+
+func (b BuildPaymentID) IsNil() bool {
+	return len(b) == 0
+}
+
+func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
+	return b == other
 }

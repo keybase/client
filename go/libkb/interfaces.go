@@ -393,6 +393,11 @@ type ChatUI interface {
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatStellarShowConfirm(context.Context) error
+	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
+	ChatStellarDataError(context.Context, string) (bool, error)
+	ChatStellarDone(context.Context) error
+	ChatPostReadyToSend(context.Context) error
 }
 
 type PromptDefault int
@@ -670,6 +675,22 @@ type MiniChatPaymentResult struct {
 	Error     error
 }
 
+// MiniChatPaymentSpec describes the amounts involved in a MiniChatPayment.
+type MiniChatPaymentSpec struct {
+	Username      NormalizedUsername
+	Error         error
+	XLMAmount     string
+	DisplayAmount string // optional
+}
+
+// MiniChatPaymentSummary contains all the recipients and the amounts they
+// will receive plus a total in XLM and in the sender's preferred currency.
+type MiniChatPaymentSummary struct {
+	Specs        []MiniChatPaymentSpec
+	XLMTotal     string
+	DisplayTotal string
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletSoft(context.Context)
@@ -678,8 +699,9 @@ type Stellar interface {
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
+	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
-	RefreshWalletState(ctx context.Context)
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 }
 
 type DeviceEKStorage interface {
@@ -697,7 +719,7 @@ type DeviceEKStorage interface {
 
 type UserEKBoxStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
-	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.UserEk, error)
+	Get(ctx context.Context, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
 	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
@@ -705,7 +727,7 @@ type UserEKBoxStorage interface {
 
 type TeamEKBoxStorage interface {
 	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
@@ -716,7 +738,7 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
-	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
@@ -754,6 +776,11 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+}
+
+type MemLRUer interface {
+	Get(key interface{}) (interface{}, bool)
+	Put(key, value interface{}) bool
 }
 
 type ClockContext interface {

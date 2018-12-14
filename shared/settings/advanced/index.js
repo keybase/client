@@ -170,8 +170,8 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    paddingTop: Styles.globalMargins.xlarge,
     paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.xlarge,
   },
   divider: {
     marginTop: Styles.globalMargins.xsmall,

@@ -15,6 +15,7 @@ export type Props = {
   // mobile you can control this by setting a margin in `containerStyle`.
   propagateOutsideClicks?: boolean,
   containerStyle?: StylesCrossPlatform,
+  matchDimension?: boolean,
   position?: Position,
   positionFallbacks?: Position[],
 }

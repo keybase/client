@@ -22,7 +22,7 @@ type MentionState = {|
 
 type SelectionKey = 'Enter' | 'Tab' | ''
 
-class MentionInput extends React.Component<MentionInputProps, MentionState> {
+class MentionInput extends React.PureComponent<MentionInputProps, MentionState> {
   state: MentionState = {
     channelMentionFilter: '',
     channelMentionHudIsShowing: false,

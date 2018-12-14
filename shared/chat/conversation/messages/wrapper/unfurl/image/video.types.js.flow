@@ -3,4 +3,5 @@ export type Props = {
   url: string,
   style: Object,
   orient: string,
+  autoPlay: boolean,
 }

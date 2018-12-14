@@ -438,13 +438,13 @@ func TestSendLocalKeybase(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Amount, "9899.9999900")
+	require.Equal(t, "9899.9999900", balances[0].Amount)
 
-	balances, err = srvSender.BalancesLocal(context.Background(), accountIDRecip)
+	balances, err = srvRecip.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Amount, "10100.0000000")
+	require.Equal(t, "10100.0000000", balances[0].Amount)
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
@@ -606,6 +606,8 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.NoError(t, err)
 	}
 
+	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -667,7 +669,11 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
 
 	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
@@ -682,7 +688,13 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
+
+	tcs[0].Srv.walletState.RefreshAll(tcs[0].MetaContext(), "test")
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -714,8 +726,6 @@ func testRelayReset(t *testing.T, yank bool) {
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
-
-	// tcs[0].Srv.wallet.RefreshAll(context.Background())
 
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -754,6 +764,9 @@ func testRelayReset(t *testing.T, yank bool) {
 		claimant = 0
 	}
 
+	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	tcs[claimant].Srv.walletState.DumpToLog(tcs[claimant].MetaContext())
+
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -761,6 +774,8 @@ func testRelayReset(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
+
+	t.Logf("claimant primary account id: %s", getPrimaryAccountID(tcs[claimant]))
 
 	fhistory, err := tcs[claimant].Srv.GetPendingPaymentsLocal(context.Background(),
 		stellar1.GetPendingPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
@@ -1124,7 +1139,9 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
 	// try to make it accessible on all devices, which shouldn't work
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+		AccountID: a1,
+	})
 	aerr, ok = err.(libkb.AppStatusError)
 	if !ok {
 		t.Fatalf("invalid error type %T", err)
@@ -1216,7 +1233,9 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// make it accessible on all devices
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
@@ -1425,12 +1444,14 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 type testUISource struct {
 	secretUI   libkb.SecretUI
 	identifyUI libkb.IdentifyUI
+	stellarUI  stellar1.UiInterface
 }
 
 func newTestUISource() *testUISource {
 	return &testUISource{
 		secretUI:   nullSecretUI{},
 		identifyUI: &kbtest.FakeIdentifyUI{},
+		stellarUI:  &mockStellarUI{},
 	}
 }
 
@@ -1440,6 +1461,21 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 
 func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
 	return t.identifyUI
+}
+
+func (t *testUISource) StellarUI() stellar1.UiInterface {
+	return t.stellarUI
+}
+
+type mockStellarUI struct {
+	PaymentReviewedHandler func(context.Context, stellar1.PaymentReviewedArg) error
+}
+
+func (ui *mockStellarUI) PaymentReviewed(ctx context.Context, arg stellar1.PaymentReviewedArg) error {
+	if ui.PaymentReviewedHandler != nil {
+		return ui.PaymentReviewedHandler(ctx, arg)
+	}
+	return fmt.Errorf("mockStellarUI.UiPaymentReview called with no handler")
 }
 
 func TestV2EndpointsAsV1(t *testing.T) {

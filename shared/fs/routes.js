@@ -6,6 +6,7 @@ import {BarePreview, NormalPreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import SecurityPrefs from './common/security-prefs-container'
 import DestinationPicker from './destination-picker/container'
+import SendLinkToChat from './send-link-to-chat/container'
 
 /*
  * Example Fs routes:
@@ -17,6 +18,11 @@ import DestinationPicker from './destination-picker/container'
  *       /keybase/team/keybase folder view
  *     /tabs:settings/settingsTab:fsTab/folder/folder/folder/preview
  *       file preview of some file under /keybase/team/keybase
+ *     /tabs:settings/settingsTab:fsTab/folder/folder/folder/sendLinkToChat
+ *       send a KBFS path link to chat in folder view screen of /keybase/team/keybase
+ *     /tabs:settings/settingsTab:fsTab/folder/folder/folder/preview/SendLinkToChat
+ *       send a KBFS path link to chat in file previewview screen of some file
+ *       under /keybase/team/keybase
  *     /tabs:settings/settingsTab:fsTab/destinationPicker/destinationPicker/destinationPicker
  *       moveOrCopy dialog showing /keybase/team/keybase
  *     /tabs:settings/settingsTab:fsTab/destinationPicker
@@ -38,6 +44,11 @@ import DestinationPicker from './destination-picker/container'
  *       /keybase/team/keybase folder view
  *     /tabs:fsTab/folder/folder/folder/preview
  *       file preview of some file under /keybase/team/keybase
+ *     /tabs:fsTab/folder/folder/folder/sendLinkToChat
+ *       send a KBFS path link to chat in folder view screen of /keybase/team/keybase
+ *     /tabs:fsTab/folder/folder/folder/preview/SendLinkToChat
+ *       send a KBFS path link to chat in file previewview screen of some file
+ *       under /keybase/team/keybase
  *     /tabs:fsTab/folder/folder/folder/destinationPicker
  *       moveOrCopy dialog active when main view is in /keybase/team/keybase;
  *       doesn't matter what folder moveOrCopy dialog is showing
@@ -64,8 +75,8 @@ const _destinationPicker = {
     : undefined,
   component: DestinationPicker,
   tags: makeLeafTags({
-    title: 'Move or Copy',
     layerOnTop: !isMobile,
+    title: 'Move or Copy',
   }),
 }
 
@@ -74,6 +85,9 @@ const _commonChildren = {
     component: SecurityPrefs,
   },
   ...(isMobile ? {} : {destinationPicker: () => makeRouteDefNode(_destinationPicker)}),
+  sendLinkToChat: {
+    component: SendLinkToChat,
+  },
 }
 
 const _folderRoute = {
@@ -81,22 +95,22 @@ const _folderRoute = {
     ..._commonChildren,
     barePreview: () =>
       makeRouteDefNode({
-        component: BarePreview,
         children: _commonChildren,
+        component: BarePreview,
         tags: makeLeafTags({
           fullscreen: true,
           title: 'Preview',
         }),
       }),
+    folder: () => makeRouteDefNode(_folderRoute),
     preview: () =>
       makeRouteDefNode({
-        component: NormalPreview,
         children: _commonChildren,
+        component: NormalPreview,
         tags: makeLeafTags({
           title: 'Preview',
         }),
       }),
-    folder: () => makeRouteDefNode(_folderRoute),
   },
   component: Files,
 }

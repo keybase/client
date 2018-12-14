@@ -11,5 +11,6 @@ export {
   scrollViewDecorator,
   action,
   perfDecorator,
+  propOverridesForStory,
 } from './storybook.shared'
 export {storiesOf} from '@storybook/react-native'

@@ -37,6 +37,7 @@ type Props = {|
   onHidden: () => void,
   onSeeDetails: ?() => void, // if falsy this doesn't have a details page
   position: Position,
+  style?: Styles.StylesCrossPlatform,
   visible: boolean,
 |}
 
@@ -126,6 +127,7 @@ const PaymentPopup = (props: Props) => {
     onHidden,
     onSeeDetails,
     position,
+    style,
     visible,
     ...headerProps
   } = props
@@ -141,9 +143,11 @@ const PaymentPopup = (props: Props) => {
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}
+      containerStyle={style}
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       header={header}
       items={items}
       visible={props.visible}
@@ -166,6 +170,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   icon: Styles.platformStyles({
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
     isElectron: {
       position: 'absolute',
       top: -12,
@@ -173,9 +180,6 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       marginBottom: 6,
       marginTop: -15,
-    },
-    isAndroid: {
-      marginTop: Styles.globalMargins.tiny,
     },
   }),
   loadingHeaderTop: Styles.platformStyles({

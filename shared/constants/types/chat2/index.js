@@ -27,6 +27,11 @@ export type _QuoteInfo = {
 }
 export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
+export type PaymentConfirmInfo = {
+  error?: string,
+  summary?: RPCChatTypes.UIChatPaymentSummary,
+}
+
 // Static config data we use for various things
 export type _StaticConfig = {
   deletableByDeleteHistory: I.Set<Message.MessageType>,
@@ -45,6 +50,7 @@ export type _State = {
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  inboxVersion: number, // gets incremented as we get updates. used to know when the inbox has actually changed content
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
@@ -65,6 +71,7 @@ export type _State = {
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
+  paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

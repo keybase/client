@@ -19,6 +19,7 @@ export type Props = {|
   attachTo?: () => ?React.ElementRef<any>,
   children: React.Node,
   color?: string,
+  matchDimension?: boolean,
   onHidden: () => void,
   position?: Position,
   positionFallbacks?: Position[],

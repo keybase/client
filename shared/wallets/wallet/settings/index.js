@@ -20,16 +20,16 @@ export type SettingsProps = {|
   onSetDefault: () => void,
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
+  onMobileOnlyModeChange: (enabled: boolean) => void,
   refresh: () => void,
   saveCurrencyWaiting: boolean,
+  mobileOnlyMode: boolean,
 |}
 
 const HoverText = Styles.isMobile
   ? Kb.Text
-  : Styles.glamorous(Kb.Text)({
-      ':hover': {
-        backgroundColor: Styles.globalColors.yellow3,
-      },
+  : Styles.styled(Kb.Text)({
+      ':hover': {backgroundColor: Styles.globalColors.yellow3},
     })
 
 const AccountSettings = (props: SettingsProps) => {
@@ -130,6 +130,37 @@ const AccountSettings = (props: SettingsProps) => {
               <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
+          <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />
+          <Kb.Box2
+            direction="vertical"
+            gap="tiny"
+            style={Styles.collapseStyles([styles.sidePaddings, {marginBottom: Styles.globalMargins.small}])}
+          >
+            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
+              <Kb.Box
+                style={{
+                  ...Styles.globalStyles.flexBoxRow,
+                  marginBottom: Styles.globalMargins.tiny,
+                  marginTop: Styles.globalMargins.tiny,
+                }}
+              >
+                <Kb.Checkbox
+                  checked={props.mobileOnlyMode}
+                  disabled={!Styles.isMobile}
+                  label="Mobile only"
+                  onCheck={props.onMobileOnlyModeChange}
+                />
+              </Kb.Box>
+              {!Styles.isMobile && (
+                <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
+              )}
+              {Styles.isMobile && (
+                <Kb.Text type="BodySmall">
+                  Prevents sending from this account, when on a desktop or laptop.
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
           {Styles.isMobile && <Kb.Divider />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
             {!Styles.isMobile && <Kb.Divider style={{marginBottom: Styles.globalMargins.small}} />}
@@ -160,10 +191,6 @@ const AccountSettings = (props: SettingsProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  identityBox: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
   accountBox: {
     marginBottom: Styles.globalMargins.medium,
   },
@@ -174,23 +201,32 @@ const styles = Styles.styleSheetCreate({
   alignSelfFlexStart: {
     alignSelf: 'flex-start',
   },
-  deleteOpacity: {
-    opacity: 0.3,
-  },
   centerText: {
     textAlign: 'center',
   },
+  deleteOpacity: {
+    opacity: 0.3,
+  },
   header: {
-    borderBottomWidth: 1,
     borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
     borderStyle: 'solid',
     marginBottom: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
   },
   icon: {
     marginLeft: Styles.globalMargins.xtiny,
   },
+  identityBox: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
   red: {
     color: Styles.globalColors.red,
+  },
+  remove: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   removeContainer: Styles.platformStyles({
     isElectron: {
@@ -203,30 +239,25 @@ const styles = Styles.styleSheetCreate({
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
   },
+  scrollView: {
+    display: 'flex',
+    flexGrow: 1,
+    width: '100%',
+  },
   sectionLabel: {
-    marginBottom: Styles.globalMargins.tiny,
     alignSelf: 'flex-start',
+    marginBottom: Styles.globalMargins.tiny,
   },
   settingsPage: {
     alignSelf: 'flex-start',
     backgroundColor: Styles.globalColors.white,
-    paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
     paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
   },
   sidePaddings: {
     alignSelf: 'flex-start',
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-  },
-  remove: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scrollView: {
-    display: 'flex',
-    flexGrow: 1,
-    width: '100%',
   },
 })
 

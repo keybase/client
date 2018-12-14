@@ -7,13 +7,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"go/ast"
 	"go/build"
 	"go/token"
 	"go/types"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"unicode"
@@ -22,59 +22,56 @@ import (
 	"golang.org/x/mobile/bind"
 	"golang.org/x/mobile/internal/importers"
 	"golang.org/x/mobile/internal/importers/java"
-	"golang.org/x/mobile/internal/importers/objc"
 )
 
-func genPkg(lang string, p *types.Package, astFiles []*ast.File, allPkg []*types.Package, classes []*java.Class, otypes []*objc.Named) {
-	fname := defaultFileName(lang, p)
+func genPkg(p *types.Package, allPkg []*types.Package, classes []*java.Class) {
+	fname := defaultFileName(*lang, p)
 	conf := &bind.GeneratorConfig{
 		Fset:   fset,
 		Pkg:    p,
 		AllPkg: allPkg,
 	}
-	var pname string
-	if p != nil {
-		pname = p.Name()
-	} else {
-		pname = "universe"
-	}
-	var buf bytes.Buffer
-	generator := &bind.Generator{
-		Printer: &bind.Printer{Buf: &buf, IndentEach: []byte("\t")},
-		Fset:    conf.Fset,
-		AllPkg:  conf.AllPkg,
-		Pkg:     conf.Pkg,
-		Files:   astFiles,
-	}
-	switch lang {
+	switch *lang {
 	case "java":
+		var buf bytes.Buffer
 		g := &bind.JavaGen{
-			JavaPkg:   *javaPkg,
-			Generator: generator,
+			JavaPkg: *javaPkg,
+			Generator: &bind.Generator{
+				Printer: &bind.Printer{Buf: &buf, IndentEach: []byte("    ")},
+				Fset:    conf.Fset,
+				AllPkg:  conf.AllPkg,
+				Pkg:     conf.Pkg,
+			},
 		}
 		g.Init(classes)
 
 		pkgname := bind.JavaPkgName(*javaPkg, p)
 		pkgDir := strings.Replace(pkgname, ".", "/", -1)
 		buf.Reset()
-		w, closer := writer(filepath.Join("java", pkgDir, fname))
+		w, closer := writer(filepath.Join(pkgDir, fname))
 		processErr(g.GenJava())
 		io.Copy(w, &buf)
 		closer()
 		for i, name := range g.ClassNames() {
 			buf.Reset()
-			w, closer := writer(filepath.Join("java", pkgDir, name+".java"))
+			w, closer := writer(filepath.Join(pkgDir, name+".java"))
 			processErr(g.GenClass(i))
 			io.Copy(w, &buf)
 			closer()
 		}
 		buf.Reset()
-		w, closer = writer(filepath.Join("src", "gobind", pname+"_android.c"))
+		pn := "universe"
+		if p != nil {
+			pn = p.Name()
+		}
+		cname := "java_" + pn + ".c"
+		w, closer = writer(cname)
 		processErr(g.GenC())
 		io.Copy(w, &buf)
 		closer()
 		buf.Reset()
-		w, closer = writer(filepath.Join("src", "gobind", pname+"_android.h"))
+		hname := pn + ".h"
+		w, closer = writer(hname)
 		processErr(g.GenH())
 		io.Copy(w, &buf)
 		closer()
@@ -93,148 +90,83 @@ func genPkg(lang string, p *types.Package, astFiles []*ast.File, allPkg []*types
 					errorf("failed to open Java support file: %v", err)
 				}
 				defer in.Close()
-				w, closer := writer(filepath.Join("java", "go", javaFile))
+				w, closer := writer(filepath.Join("go", javaFile))
 				defer closer()
 				if _, err := io.Copy(w, in); err != nil {
 					errorf("failed to copy Java support file: %v", err)
 					return
 				}
 			}
-			// Copy support files
-			javaPkg, err := build.Default.Import("golang.org/x/mobile/bind/java", "", build.FindOnly)
-			if err != nil {
-				errorf("unable to import bind/java: %v", err)
-				return
-			}
-			copyFile(filepath.Join("src", "gobind", "seq_android.c"), filepath.Join(javaPkg.Dir, "seq_android.c.support"))
-			copyFile(filepath.Join("src", "gobind", "seq_android.go"), filepath.Join(javaPkg.Dir, "seq_android.go.support"))
-			copyFile(filepath.Join("src", "gobind", "seq_android.h"), filepath.Join(javaPkg.Dir, "seq_android.h"))
 		}
+		// Copy support files
+		javaPkg, err := build.Default.Import("golang.org/x/mobile/bind/java", "", build.FindOnly)
+		if err != nil {
+			errorf("unable to import bind/java: %v", err)
+			return
+		}
+		copyFile("seq_android.c", filepath.Join(javaPkg.Dir, "seq_android.c.support"))
+		copyFile("seq_android.go", filepath.Join(javaPkg.Dir, "seq_android.go.support"))
+		copyFile("seq.h", filepath.Join(javaPkg.Dir, "seq.h"))
 	case "go":
-		w, closer := writer(filepath.Join("src", "gobind", fname))
+		w, closer := writer(fname)
 		conf.Writer = w
 		processErr(bind.GenGo(conf))
-		closer()
-		w, closer = writer(filepath.Join("src", "gobind", pname+".h"))
-		genPkgH(w, pname)
-		io.Copy(w, &buf)
-		closer()
-		w, closer = writer(filepath.Join("src", "gobind", "seq.h"))
-		genPkgH(w, "seq")
-		io.Copy(w, &buf)
 		closer()
 		bindPkg, err := build.Default.Import("golang.org/x/mobile/bind", "", build.FindOnly)
 		if err != nil {
 			errorf("unable to import bind: %v", err)
 			return
 		}
-		copyFile(filepath.Join("src", "gobind", "seq.go"), filepath.Join(bindPkg.Dir, "seq.go.support"))
+		copyFile("seq.go", filepath.Join(bindPkg.Dir, "seq.go.support"))
 	case "objc":
-		g := &bind.ObjcGen{
-			Generator: generator,
-			Prefix:    *prefix,
+		var gohname string
+		if p != nil {
+			gohname = p.Name() + ".h"
+		} else {
+			gohname = "universe.h"
 		}
-		g.Init(otypes)
-		w, closer := writer(filepath.Join("src", "gobind", pname+"_darwin.h"))
+		var buf bytes.Buffer
+		g := &bind.ObjcGen{
+			Generator: &bind.Generator{
+				Printer: &bind.Printer{Buf: &buf, IndentEach: []byte("\t")},
+				Fset:    conf.Fset,
+				AllPkg:  conf.AllPkg,
+				Pkg:     conf.Pkg,
+			},
+			Prefix: *prefix,
+		}
+		g.Init(nil)
+
+		w, closer := writer(gohname)
 		processErr(g.GenGoH())
 		io.Copy(w, &buf)
 		closer()
 		hname := strings.Title(fname[:len(fname)-2]) + ".objc.h"
-		w, closer = writer(filepath.Join("src", "gobind", hname))
+		w, closer = writer(hname)
 		processErr(g.GenH())
 		io.Copy(w, &buf)
 		closer()
-		mname := strings.Title(fname[:len(fname)-2]) + "_darwin.m"
-		w, closer = writer(filepath.Join("src", "gobind", mname))
+		w, closer = writer(fname)
 		conf.Writer = w
 		processErr(g.GenM())
 		io.Copy(w, &buf)
 		closer()
-		if p == nil {
-			// Copy support files
-			objcPkg, err := build.Default.Import("golang.org/x/mobile/bind/objc", "", build.FindOnly)
-			if err != nil {
-				errorf("unable to import bind/objc: %v", err)
-				return
-			}
-			copyFile(filepath.Join("src", "gobind", "seq_darwin.m"), filepath.Join(objcPkg.Dir, "seq_darwin.m.support"))
-			copyFile(filepath.Join("src", "gobind", "seq_darwin.go"), filepath.Join(objcPkg.Dir, "seq_darwin.go.support"))
-			copyFile(filepath.Join("src", "gobind", "ref.h"), filepath.Join(objcPkg.Dir, "ref.h"))
-			copyFile(filepath.Join("src", "gobind", "seq_darwin.h"), filepath.Join(objcPkg.Dir, "seq_darwin.h"))
+		// Copy support files
+		objcPkg, err := build.Default.Import("golang.org/x/mobile/bind/objc", "", build.FindOnly)
+		if err != nil {
+			errorf("unable to import bind/objc: %v", err)
+			return
 		}
+		copyFile("seq_darwin.m", filepath.Join(objcPkg.Dir, "seq_darwin.m.support"))
+		copyFile("seq_darwin.go", filepath.Join(objcPkg.Dir, "seq_darwin.go.support"))
+		copyFile("ref.h", filepath.Join(objcPkg.Dir, "ref.h"))
+		copyFile("seq.h", filepath.Join(objcPkg.Dir, "seq.h"))
 	default:
-		errorf("unknown target language: %q", lang)
+		errorf("unknown target language: %q", *lang)
 	}
 }
 
-func genPkgH(w io.Writer, pname string) {
-	fmt.Fprintf(w, `// Code generated by gobind. DO NOT EDIT.
-
-#ifdef __GOBIND_ANDROID__
-#include "%[1]s_android.h"
-#endif
-#ifdef __GOBIND_DARWIN__
-#include "%[1]s_darwin.h"
-#endif`, pname)
-}
-
-func genObjcPackages(dir string, types []*objc.Named, embedders []importers.Struct) error {
-	var buf bytes.Buffer
-	cg := &bind.ObjcWrapper{
-		Printer: &bind.Printer{
-			IndentEach: []byte("\t"),
-			Buf:        &buf,
-		},
-	}
-	var genNames []string
-	for _, emb := range embedders {
-		genNames = append(genNames, emb.Name)
-	}
-	cg.Init(types, genNames)
-	for i, opkg := range cg.Packages() {
-		pkgDir := filepath.Join(dir, "src", "ObjC", opkg)
-		if err := os.MkdirAll(pkgDir, 0700); err != nil {
-			return err
-		}
-		pkgFile := filepath.Join(pkgDir, "package.go")
-		buf.Reset()
-		cg.GenPackage(i)
-		if err := ioutil.WriteFile(pkgFile, buf.Bytes(), 0600); err != nil {
-			return err
-		}
-	}
-	buf.Reset()
-	cg.GenInterfaces()
-	objcBase := filepath.Join(dir, "src", "ObjC")
-	if err := os.MkdirAll(objcBase, 0700); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile(filepath.Join(objcBase, "interfaces.go"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	goBase := filepath.Join(dir, "src", "gobind")
-	if err := os.MkdirAll(goBase, 0700); err != nil {
-		return err
-	}
-	buf.Reset()
-	cg.GenGo()
-	if err := ioutil.WriteFile(filepath.Join(goBase, "interfaces_darwin.go"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	buf.Reset()
-	cg.GenH()
-	if err := ioutil.WriteFile(filepath.Join(goBase, "interfaces.h"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	buf.Reset()
-	cg.GenM()
-	if err := ioutil.WriteFile(filepath.Join(goBase, "interfaces_darwin.m"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-func genJavaPackages(dir string, classes []*java.Class, embedders []importers.Struct) error {
+func genJavaPackages(ctx *build.Context, dir string, classes []*java.Class, embedders []importers.Struct) error {
 	var buf bytes.Buffer
 	cg := &bind.ClassGen{
 		JavaPkg: *javaPkg,
@@ -244,8 +176,12 @@ func genJavaPackages(dir string, classes []*java.Class, embedders []importers.St
 		},
 	}
 	cg.Init(classes, embedders)
+	pkgBase := filepath.Join(dir, "src", "Java")
+	if err := os.MkdirAll(pkgBase, 0700); err != nil {
+		return err
+	}
 	for i, jpkg := range cg.Packages() {
-		pkgDir := filepath.Join(dir, "src", "Java", jpkg)
+		pkgDir := filepath.Join(pkgBase, jpkg)
 		if err := os.MkdirAll(pkgDir, 0700); err != nil {
 			return err
 		}
@@ -258,31 +194,21 @@ func genJavaPackages(dir string, classes []*java.Class, embedders []importers.St
 	}
 	buf.Reset()
 	cg.GenInterfaces()
-	javaBase := filepath.Join(dir, "src", "Java")
-	if err := os.MkdirAll(javaBase, 0700); err != nil {
+	clsFile := filepath.Join(pkgBase, "interfaces.go")
+	if err := ioutil.WriteFile(clsFile, buf.Bytes(), 0600); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(filepath.Join(javaBase, "interfaces.go"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	goBase := filepath.Join(dir, "src", "gobind")
-	if err := os.MkdirAll(goBase, 0700); err != nil {
-		return err
-	}
-	buf.Reset()
-	cg.GenGo()
-	if err := ioutil.WriteFile(filepath.Join(goBase, "classes_android.go"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	buf.Reset()
-	cg.GenH()
-	if err := ioutil.WriteFile(filepath.Join(goBase, "classes.h"), buf.Bytes(), 0600); err != nil {
-		return err
-	}
-	buf.Reset()
-	cg.GenC()
-	if err := ioutil.WriteFile(filepath.Join(goBase, "classes_android.c"), buf.Bytes(), 0600); err != nil {
-		return err
+
+	cmd := exec.Command(
+		"go",
+		"install",
+		"-pkgdir="+filepath.Join(dir, "pkg", ctx.GOOS+"_"+ctx.GOARCH),
+		"Java/...",
+	)
+	cmd.Env = append(os.Environ(), "GOPATH="+dir)
+	cmd.Env = append(cmd.Env, "GOROOT="+ctx.GOROOT)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to go install the generated Java wrappers: %v: %s", err, string(out))
 	}
 	return nil
 }
@@ -364,7 +290,7 @@ func defaultFileName(lang string, pkg *types.Package) string {
 		}
 		firstRune, size := utf8.DecodeRuneInString(pkg.Name())
 		className := string(unicode.ToUpper(firstRune)) + pkg.Name()[size:]
-		return *prefix + className + ".m"
+		return className + ".m"
 	}
 	errorf("unknown target language: %q", lang)
 	os.Exit(exitStatus)

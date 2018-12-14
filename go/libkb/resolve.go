@@ -437,6 +437,15 @@ type serverTrustUserLookup struct {
 func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
 	defer m.CTrace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), func() error { return res.err })()
 
+	enabled := m.G().FeatureFlags.Enabled(m, FeatureIMPTOFU)
+	if enabled {
+		m.CDebugf("Resolver: phone number and email proofs enabled")
+	} else {
+		m.CDebugf("Resolver: phone number and email proofs disabled")
+		res.err = ResolutionError{Input: input, Msg: "Proof type disabled.", Kind: ResolutionErrorInvalidInput}
+		return res
+	}
+
 	key, val, err := au.ToLookup()
 	if err != nil {
 		res.err = err
@@ -449,7 +458,7 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 		arg = NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
 		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
 	case "email":
-		arg = NewAPIArgWithMetaContext(m, "user/emails_search")
+		arg = NewAPIArgWithMetaContext(m, "email/search")
 		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
 	default:
 		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}

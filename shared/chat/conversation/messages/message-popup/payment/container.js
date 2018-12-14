@@ -10,6 +10,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 // This file has two connectors and a wrapper. One connector is for sendPayment
 // and the other for requestPayment. The wrapper decides which to use.
@@ -19,6 +20,7 @@ type OwnProps = {|
   message: Types.MessageRequestPayment | Types.MessageSendPayment,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 |}
 
@@ -52,8 +54,8 @@ const commonLoadingProps = {
 
 // MessageSendPayment ===================================
 const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
-  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
   _you: state.config.username,
+  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
 })
 
 const sendMapDispatchToProps = dispatch => ({
@@ -71,7 +73,7 @@ const sendMapDispatchToProps = dispatch => ({
         path: [
           ...WalletConstants.rootWalletPath,
           'wallet',
-          {selected: 'transactionDetails', props: {accountID, paymentID}},
+          {props: {accountID, paymentID}, selected: 'transactionDetails'},
         ],
       })
     )
@@ -113,6 +115,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
       paymentInfo.worth ? ' Lumens worth' : ''
@@ -130,8 +133,8 @@ const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
 
 // MessageRequestPayment ================================
 const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
-  requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
+  requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
 })
 
 const requestMapDispatchToProps = (dispatch, ownProps: RequestOwnProps) => ({
@@ -191,6 +194,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine,
     txVerb: 'requested',

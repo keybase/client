@@ -37,7 +37,7 @@ class _Passphrase extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {showTyping: false, passphrase: null}
+    this.state = {passphrase: null, showTyping: false}
   }
 
   onChange(passphrase: string) {

@@ -53,11 +53,11 @@ const makeRoleOption = (
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       backgroundColor: selected === role ? globalColors.blue : globalColors.white,
-      width: '100%',
       borderRadius: 0,
       padding: globalMargins.tiny,
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.large,
+      width: '100%',
     }}
     onClick={() => setSelected(role)}
   >
@@ -113,7 +113,7 @@ export const RoleOptions = ({
     {makeRoleOption('writer', selectedRole, setSelectedRole, pluralizeRoleName)}
     {makeRoleOption('reader', selectedRole, setSelectedRole, pluralizeRoleName)}
     {showSendNotification && (
-      <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
+      <Box style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}>
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
       </Box>
     )}

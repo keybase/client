@@ -6,12 +6,14 @@ import TextMessage from './text/container'
 import ExplodingMessage from './exploding/container'
 import PaymentMessage from './payment/container'
 import type {Position} from '../../../../common-adapters/relative-popup-hoc'
+import type {StylesCrossPlatform} from '../../../../styles/css'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
   message: Types.DecoratedMessage,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
@@ -26,6 +28,7 @@ class MessageAction extends React.PureComponent<Props> {
               message={this.props.message}
               onHidden={this.props.onHidden}
               position={this.props.position}
+              style={this.props.style}
               visible={this.props.visible}
             />
           )
@@ -36,6 +39,7 @@ class MessageAction extends React.PureComponent<Props> {
             message={this.props.message}
             onHidden={this.props.onHidden}
             position={this.props.position}
+            style={this.props.style}
             visible={this.props.visible}
           />
         )
@@ -47,6 +51,7 @@ class MessageAction extends React.PureComponent<Props> {
               message={this.props.message}
               onHidden={this.props.onHidden}
               position={this.props.position}
+              style={this.props.style}
               visible={this.props.visible}
             />
           )
@@ -57,6 +62,7 @@ class MessageAction extends React.PureComponent<Props> {
             message={this.props.message}
             onHidden={this.props.onHidden}
             position={this.props.position}
+            style={this.props.style}
             visible={this.props.visible}
           />
         )
@@ -67,6 +73,7 @@ class MessageAction extends React.PureComponent<Props> {
             message={this.props.message}
             onHidden={this.props.onHidden}
             position={this.props.position}
+            style={this.props.style}
             visible={this.props.visible}
           />
         )
@@ -77,6 +84,7 @@ class MessageAction extends React.PureComponent<Props> {
             message={this.props.message}
             onHidden={this.props.onHidden}
             position={this.props.position}
+            style={this.props.style}
             visible={this.props.visible}
           />
         )

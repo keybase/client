@@ -95,7 +95,7 @@ class Avatars extends React.Component<AvatarProps> {
 
 const multiStyle = memoize(backgroundColor => {
   return {
-    ...(isMobile ? {paddingBottom: 10, paddingTop: 10, backgroundColor} : {}),
+    ...(isMobile ? {backgroundColor, paddingBottom: 10, paddingTop: 10} : {}),
     height: 48,
     width: 48,
   }

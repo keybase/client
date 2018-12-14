@@ -7,6 +7,10 @@ import HiddenString from '../../../util/hidden-string'
 type OwnProps = {||}
 
 const secretNoteConnector = {
+  mapDispatchToProps: (dispatch, ownProps) => ({
+    onChangeSecretNote: (secretNote: string) =>
+      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
+  }),
   mapStateToProps: state => {
     const recipientType = state.wallets.building.recipientType
     const building = state.wallets.building
@@ -17,21 +21,9 @@ const secretNoteConnector = {
       toSelf: recipientType === 'otherAccount',
     }
   },
-  mapDispatchToProps: (dispatch, ownProps) => ({
-    onChangeSecretNote: (secretNote: string) =>
-      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
-  }),
 }
 
 const publicMemoConnector = {
-  mapStateToProps: state => {
-    const building = state.wallets.building
-    const built = state.wallets.builtPayment
-    return {
-      publicMemo: building.publicMemo.stringValue(),
-      publicMemoError: built.publicMemoErrMsg.stringValue(),
-    }
-  },
   mapDispatchToProps: (dispatch, ownProps) => ({
     onChangePublicMemo: (publicMemo: string) =>
       dispatch(
@@ -40,6 +32,14 @@ const publicMemoConnector = {
         })
       ),
   }),
+  mapStateToProps: state => {
+    const building = state.wallets.building
+    const built = state.wallets.builtPayment
+    return {
+      publicMemo: building.publicMemo.stringValue(),
+      publicMemoError: built.publicMemoErrMsg.stringValue(),
+    }
+  },
 }
 
 export const SecretNote = namedConnect<OwnProps, _, _, _, _>(

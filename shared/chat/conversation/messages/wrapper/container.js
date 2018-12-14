@@ -111,15 +111,9 @@ const getDecorate = (message, you) => {
       return !message.exploded && !message.errorReason
     case 'attachment':
       return !message.exploded && !message.errorReason
-    case 'requestPayment':
-    case 'sendPayment':
-    case 'systemAddedToTeam':
-    case 'systemLeft':
+    default:
       return true
-    case 'systemJoined':
-      return message.author !== you
   }
-  return false
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {

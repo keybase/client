@@ -57,7 +57,7 @@ export const getContentTypeFromURL = (
   url: string,
   cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
-  const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
+  const req = SafeElectron.getRemote().net.request({method: 'HEAD', url})
   req.on('response', response => {
     let contentType = ''
     let disposition = ''
@@ -67,7 +67,7 @@ export const getContentTypeFromURL = (
       const dispositionHeader = response.headers['content-disposition']
       disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, contentType, disposition})
+    cb({contentType, disposition, statusCode: response.statusCode})
   })
   req.on('error', error => cb({error}))
   req.end()
@@ -89,7 +89,7 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
       SafeElectron.getIpcRenderer().send('getAppState')
     })
 
-  const state = yield Saga.call(getAppState)
+  const state = yield* Saga.callPromise(getAppState)
   if (state) {
     yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
     yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
@@ -112,7 +112,7 @@ export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
     })
 
 const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const waitKey = 'pipeCheckFail'
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -123,7 +123,7 @@ const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
       const localAppData = String(process.env.LOCALAPPDATA)
       var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
       const args = ['pipeowner', socketPath]
-      yield Saga.call(
+      yield Saga.callUntyped(
         () =>
           new Promise((resolve, reject) => {
             execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
@@ -165,7 +165,7 @@ const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
   })
 
 const setupReachabilityWatcher = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const channel = Saga.eventChannel(emitter => {
       window.addEventListener('online', () => emitter('online'))
       window.addEventListener('offline', () => emitter('offline'))
@@ -191,8 +191,8 @@ const setupEngineListeners = () => {
       SafeElectron.getApp().exit(0)
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) =>
-      Saga.call(function*() {
-        const state = yield Saga.select()
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
         kbfsNotification(notification, NotifyPopup, state)
       }),
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
@@ -212,7 +212,7 @@ const setupEngineListeners = () => {
       NotifyPopup('Client out of date!', {body}, 60 * 60)
       // This is from the API server. Consider notifications from API server
       // always critical.
-      return Saga.put(ConfigGen.createUpdateInfo({isOutOfDate: true, critical: true, message: upgradeMsg}))
+      return Saga.put(ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg}))
     },
   })
 }
@@ -244,10 +244,10 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
 }
 
 const startOutOfDateCheckLoop = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     while (1) {
       try {
-        const toPut = yield Saga.call(checkForUpdate)
+        const toPut = yield* Saga.callPromise(checkForUpdate)
         yield Saga.put(toPut)
         yield Saga.delay(3600 * 1000) // 1 hr
       } catch (err) {
@@ -260,8 +260,8 @@ const startOutOfDateCheckLoop = () =>
 const checkForUpdate = () =>
   RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
     ConfigGen.createUpdateInfo({
-      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
       critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
       message,
     })
   )

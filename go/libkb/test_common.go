@@ -515,7 +515,7 @@ func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
 }
 
 func NewMetaContextForTest(tc TestContext) MetaContext {
-	return NewMetaContext(context.TODO(), tc.G).WithLogTag("TST")
+	return NewMetaContextBackground(tc.G).WithLogTag("TST")
 }
 
 func NewMetaContextForTestWithLogUI(tc TestContext) MetaContext {

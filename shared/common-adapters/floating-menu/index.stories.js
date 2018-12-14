@@ -10,15 +10,15 @@ const commonItemProps = {
 const commonItems = [
   {...commonItemProps, title: 'One'},
   {...commonItemProps, title: 'Two'},
-  {...commonItemProps, title: '3', disabled: true},
+  {...commonItemProps, disabled: true, title: '3'},
   {...commonItemProps, title: 'Four'},
 ]
 
 const commonProps = {
+  closeOnSelect: true,
+  items: commonItems,
   onHidden: Sb.action('onHidden'),
   visible: true,
-  items: commonItems,
-  closeOnSelect: true,
 }
 
 const load = () => {
@@ -33,15 +33,15 @@ const load = () => {
           'Divider',
           {
             ...commonItemProps,
-            title: 'Clear history (3.24 MB)',
-            subTitle: 'Deletes old copies of files.',
             danger: true,
+            subTitle: 'Deletes old copies of files.',
+            title: 'Clear history (3.24 MB)',
           },
           {
             ...commonItemProps,
-            title: 'Delete files and clear history (5.17GB)',
-            subTitle: 'Deletes everything in this folder, including its backup versions',
             danger: true,
+            subTitle: 'Deletes everything in this folder, including its backup versions',
+            title: 'Delete files and clear history (5.17GB)',
           },
         ]}
       />

@@ -6,6 +6,11 @@ import (
 	"golang.org/x/net/html"
 )
 
+// used to determine if a set (map[*html.Node]bool) should be used
+// instead of iterating over a slice. The set uses more memory and
+// is slower than slice iteration for small N.
+const minNodesForSet = 1000
+
 var nodeNames = []string{
 	html.ErrorNode:    "#error",
 	html.TextNode:     "#text",
@@ -62,13 +67,6 @@ func OuterHtml(s *Selection) (string, error) {
 	return buf.String(), nil
 }
 
-func getChildren(n *html.Node) (result []*html.Node) {
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		result = append(result, c)
-	}
-	return result
-}
-
 // Loop through all container nodes to search for the target node.
 func sliceContains(container []*html.Node, contained *html.Node) bool {
 	for _, n := range container {
@@ -112,11 +110,32 @@ func indexInSlice(slice []*html.Node, node *html.Node) int {
 // Appends the new nodes to the target slice, making sure no duplicate is added.
 // There is no check to the original state of the target slice, so it may still
 // contain duplicates. The target slice is returned because append() may create
-// a new underlying array.
-func appendWithoutDuplicates(target []*html.Node, nodes []*html.Node) []*html.Node {
+// a new underlying array. If targetSet is nil, a local set is created with the
+// target if len(target) + len(nodes) is greater than minNodesForSet.
+func appendWithoutDuplicates(target []*html.Node, nodes []*html.Node, targetSet map[*html.Node]bool) []*html.Node {
+	// if there are not that many nodes, don't use the map, faster to just use nested loops
+	// (unless a non-nil targetSet is passed, in which case the caller knows better).
+	if targetSet == nil && len(target)+len(nodes) < minNodesForSet {
+		for _, n := range nodes {
+			if !isInSlice(target, n) {
+				target = append(target, n)
+			}
+		}
+		return target
+	}
+
+	// if a targetSet is passed, then assume it is reliable, otherwise create one
+	// and initialize it with the current target contents.
+	if targetSet == nil {
+		targetSet = make(map[*html.Node]bool, len(target))
+		for _, n := range target {
+			targetSet[n] = true
+		}
+	}
 	for _, n := range nodes {
-		if !isInSlice(target, n) {
+		if !targetSet[n] {
 			target = append(target, n)
+			targetSet[n] = true
 		}
 	}
 

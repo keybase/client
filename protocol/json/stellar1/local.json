@@ -469,11 +469,17 @@
     },
     {
       "type": "record",
+      "name": "BuildPaymentID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "BuildPaymentResLocal",
       "fields": [
         {
           "type": "boolean",
-          "name": "readyToSend"
+          "name": "readyToReview"
         },
         {
           "type": "AccountID",
@@ -549,10 +555,6 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
-        },
-        {
-          "type": "boolean",
-          "name": "hideOnConfirm"
         }
       ]
     },
@@ -1185,11 +1187,37 @@
         "items": "SendAssetChoiceLocal"
       }
     },
+    "startBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "BuildPaymentID"
+    },
+    "stopBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "buildPaymentLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
         },
         {
           "name": "from",
@@ -1236,11 +1264,36 @@
       ],
       "response": "BuildPaymentResLocal"
     },
+    "reviewPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "sendPaymentLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        },
+        {
+          "name": "bypassBid",
+          "type": "boolean"
+        },
+        {
+          "name": "bypassReview",
+          "type": "boolean"
         },
         {
           "name": "from",
@@ -1385,6 +1438,19 @@
       "response": "KeybaseRequestID"
     },
     "setAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "setAccountAllDevicesLocal": {
       "request": [
         {
           "name": "sessionID",

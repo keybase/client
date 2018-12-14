@@ -11,9 +11,9 @@ import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
-import {createChangeWaiting} from '../actions/waiting-gen'
+import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
-import {isArray} from 'lodash-es'
+import {isArray, throttle} from 'lodash-es'
 import {sagaMiddleware} from '../store/configure-store'
 import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
@@ -21,9 +21,11 @@ import type {createClientType} from './index.platform'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
+import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
-type TypedActions = {type: string, error: boolean, payload: any}
+type TypedActions = {type: any, error: boolean, payload: any}
+type WaitingKey = string | Array<string>
 
 type IncomingActionCreator = (
   param: Object,
@@ -64,9 +66,17 @@ class Engine {
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
 
-  dispatchWaitingAction = (key: string, waiting: boolean) => {
-    Engine._dispatch(createChangeWaiting({key, increment: waiting}))
+  _queuedChanges = []
+  dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
+    this._queuedChanges.push({error, increment: waiting, key})
+    this._throttledDispatchWaitingAction()
   }
+
+  _throttledDispatchWaitingAction = throttle(() => {
+    const changes = this._queuedChanges
+    this._queuedChanges = []
+    Engine._dispatch(createBatchChangeWaiting({changes}))
+  }, 500)
 
   // TODO deprecate
   deprecatedGetDispatch = () => {
@@ -219,7 +229,7 @@ class Engine {
   _rpcIncoming(payload: {method: MethodKey, param: Array<Object>, response: ?Object}) {
     const {method, param: incomingParam, response} = payload
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
-    const {seqid, cancelled} = response || {seqid: 0, cancelled: false}
+    const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     const {sessionID} = param
 
     if (cancelled) {
@@ -230,7 +240,7 @@ class Engine {
         // Part of a session?
       } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
         // General incoming
-        rpcLog({reason: '[incoming]', type: 'engineInternal', method})
+        rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
 
         let creator = this._incomingActionCreators[method]
         let rawEffects
@@ -284,7 +294,7 @@ class Engine {
       Constants.closeChannelMap(channelMap)
     }
 
-    const sid = this._rpcOutgoing({method, params, incomingCallMap, callback})
+    const sid = this._rpcOutgoing({callback, incomingCallMap, method, params})
     return new Constants.EngineChannel(channelMap, sid, configKeys)
   }
 
@@ -295,13 +305,13 @@ class Engine {
     callback: (...args: Array<any>) => void,
     incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
     customResponseIncomingCallMap?: any,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }) {
     // Make a new session and start the request
     const session = this.createSession({
+      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
       incomingCallMap: p.incomingCallMap,
       waitingKey: p.waitingKey,
-      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
     })
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
@@ -316,7 +326,7 @@ class Engine {
     customResponseIncomingCallMap?: ?CustomResponseIncomingCallMapType,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()

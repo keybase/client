@@ -24,10 +24,10 @@ const Banner = (props: Props) => (
 
 const styles = styleSheetCreate({
   container: {
+    minHeight: 40,
     padding: globalMargins.small,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
-    minHeight: 40,
   },
   text: {
     textAlign: 'center',

@@ -2,16 +2,16 @@
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
-import {Box, Box2, ClickableBox} from '../../common-adapters'
-import {PathItemIcon, PathItemAction, OpenInSystemFileManager} from '../common'
+import * as Kb from '../../common-adapters'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction} from '../common'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
-  paddingRight: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
 }
 
 const itemBox = {
@@ -65,9 +65,9 @@ const leftBoxDisabled = {
 
 const rightBox = {
   ...Styles.globalStyles.flexBoxRow,
+  alignItems: 'center',
   flexShrink: 1,
   justifyContent: 'flex-end',
-  alignItems: 'center',
 }
 
 const pathItemActionIcon = {
@@ -75,8 +75,8 @@ const pathItemActionIcon = {
 }
 
 const badgeContainer = {
-  position: 'absolute',
   left: Styles.isMobile ? -28 : 24,
+  position: 'absolute',
   top: Styles.isMobile ? -4 : -1,
   zIndex: 200,
 }
@@ -88,8 +88,8 @@ const badgeContainerNew = {
 
 const badgeContainerRekey = {
   ...badgeContainer,
-  top: Styles.isMobile ? 5 : 24,
   left: Styles.isMobile ? -40 : 16,
+  top: Styles.isMobile ? 5 : 24,
 }
 
 const badgeCount = {
@@ -99,18 +99,18 @@ const badgeCount = {
 
 export const rowStyles = {
   ...Styles.styleSheetCreate({
-    rowBox,
-    itemBox,
-    pathItemIcon,
-    pathItemIcon_30,
-    leftBox,
-    leftBoxDisabled,
-    rightBox,
-    pathItemActionIcon,
     badgeContainer,
     badgeContainerNew,
     badgeContainerRekey,
     badgeCount,
+    itemBox,
+    leftBox,
+    leftBoxDisabled,
+    pathItemActionIcon,
+    pathItemIcon,
+    pathItemIcon_30,
+    rightBox,
+    rowBox,
   }),
   // We need to annotate color but I can't figure out how to annotate on stuff
   // from Styles.styleSheetCreate.
@@ -119,17 +119,11 @@ export const rowStyles = {
 }
 
 const HoverBox = Styles.isMobile
-  ? Box
-  : Styles.glamorous(Box)({
-      '& .fs-path-item-hover-icon': {
-        color: Styles.globalColors.white,
-      },
-      ':hover .fs-path-item-hover-icon': {
-        color: Styles.globalColors.black_40,
-      },
-      '& .fs-path-item-hover-icon:hover': {
-        color: Styles.globalColors.black_60,
-      },
+  ? Kb.Box
+  : Styles.styled(Kb.Box)({
+      '& .fs-path-item-hover-icon': {color: Styles.globalColors.white},
+      '& .fs-path-item-hover-icon:hover': {color: Styles.globalColors.black_60},
+      ':hover .fs-path-item-hover-icon': {color: Styles.globalColors.black_40},
     })
 
 export type StillCommonProps = {
@@ -146,17 +140,21 @@ export const StillCommon = (
   }
 ) => (
   <HoverBox style={rowStyles.rowBox}>
-    <ClickableBox onClick={props.onOpen} style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}>
-      <Box2 direction="vertical">
+    <Kb.ClickableBox
+      onClick={props.onOpen}
+      style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}
+    >
+      <Kb.Box2 direction="vertical">
         <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-      </Box2>
+      </Kb.Box2>
       {props.children}
-    </ClickableBox>
+    </Kb.ClickableBox>
     {!props.inDestinationPicker && (
-      <Box style={rowStyles.rightBox}>
+      <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
+        <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
         <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
-      </Box>
+      </Kb.Box>
     )}
   </HoverBox>
 )

@@ -3,8 +3,10 @@
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
 import * as MessageTypes from '../types/chat2/message'
+import * as Flow from '../../util/flow'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCStellarTypes from '../types/rpc-stellar-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
@@ -101,13 +103,11 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.tlfname:
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
+    case RPCChatTypes.commonMessageType.unfurl:
       return []
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove: (t: empty) => any
-      // $FlowIssue can't figure out the preceding list is exhaustive
-      ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove(t);
-      */
+      // $FlowIssue need these to be opaque types
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(t)
       return []
   }
 }
@@ -209,6 +209,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   amount: '',
   amountDescription: '',
   asset: 'native',
+  canceled: false,
   currencyCode: '',
   type: 'requestInfo',
 })
@@ -228,9 +229,9 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   delta: 'none',
   note: new HiddenString(''),
   paymentID: WalletTypes.noPaymentID,
+  showCancel: false,
   status: 'none',
   statusDescription: '',
-  showCancel: false,
   type: 'paymentInfo',
   worth: '',
 })
@@ -350,16 +351,18 @@ export const uiRequestInfoToChatRequestInfo = (
     amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
+    canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
   })
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  p: ?RPCChatTypes.UIPaymentInfo
+  ps: ?Array<RPCChatTypes.UIPaymentInfo>
 ): ?MessageTypes.ChatPaymentInfo => {
-  if (!p) {
+  if (!ps || ps.length !== 1) {
     return null
   }
+  const p = ps[0]
   const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
@@ -367,9 +370,9 @@ export const uiPaymentInfoToChatPaymentInfo = (
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
+    showCancel: p.showCancel,
     status: serviceStatus,
     statusDescription: p.statusDescription,
-    showCancel: p.showCancel,
     worth: p.worth,
   })
 }
@@ -471,11 +474,8 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          /*::
-          // $FlowIssue flow gets confused about this switch statement
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(iType);
-      */
+          // $FlowIssue need these to be opaque types
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(iType)
           inviteType = 'unknown'
           break
       }
@@ -485,6 +485,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         inviteType,
         invitee,
         inviter,
+        reactions,
         team,
       })
     }
@@ -492,12 +493,14 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
       const {team = ''} = body.complexteam || {}
       return makeMessageSystemSimpleToComplex({
         ...minimum,
+        reactions,
         team,
       })
     }
     case RPCChatTypes.localMessageSystemType.createteam: {
       const {team = '???', creator = '????'} = body.createteam || {}
       return makeMessageSystemText({
+        reactions,
         text: new HiddenString(`${creator} created a new team ${team}.`),
         ...minimum,
       })
@@ -509,6 +512,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         ...minimum,
         pushType,
         pusher,
+        reactions,
         refs: refs || [],
         repo,
         repoID,
@@ -518,15 +522,13 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
     case RPCChatTypes.localMessageSystemType.changeavatar: {
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
+        reactions,
         text: new HiddenString(`${user} changed team avatar`),
         ...minimum,
       })
     }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(body.systemType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null
   }
 }
@@ -547,10 +549,10 @@ export const isVideoAttachment = (message: Types.MessageAttachment) => message.f
 
 export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
   const res = {
-    height: 0,
-    width: 0,
     attachmentType: 'file',
+    height: 0,
     showPlayButton: false,
+    width: 0,
   }
   if (!preview) {
     return res
@@ -585,13 +587,15 @@ const validUIMessagetoMessage = (
     ordinal: Types.numberToOrdinal(m.messageID),
     timestamp: m.ctime,
   }
+
+  const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
-    reactions: reactionMapToReactions(m.reactions),
+    reactions,
   }
   const explodable = {
     exploded: m.isEphemeralExpired,
@@ -617,8 +621,8 @@ const validUIMessagetoMessage = (
         mentionsChannelName: I.Map(
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
-        unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
         text: new HiddenString(rawText),
+        unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
       })
     case RPCChatTypes.commonMessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.commonMessageType.attachment: {
@@ -685,9 +689,9 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.commonMessageType.join:
-      return makeMessageSystemJoined(minimum)
+      return makeMessageSystemJoined({...minimum, reactions})
     case RPCChatTypes.commonMessageType.leave:
-      return makeMessageSystemLeft(minimum)
+      return makeMessageSystemLeft({...minimum, reactions})
     case RPCChatTypes.commonMessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions)
@@ -697,17 +701,22 @@ const validUIMessagetoMessage = (
         ? makeMessageSetDescription({
             ...minimum,
             newDescription: new HiddenString(m.messageBody.headline.headline),
+            reactions,
           })
         : null
     case RPCChatTypes.commonMessageType.metadata:
       return m.messageBody.metadata
-        ? makeMessageSetChannelname({...minimum, newChannelname: m.messageBody.metadata.conversationTitle})
+        ? makeMessageSetChannelname({
+            ...minimum,
+            newChannelname: m.messageBody.metadata.conversationTitle,
+            reactions,
+          })
         : null
     case RPCChatTypes.commonMessageType.sendpayment:
       return m.messageBody.sendpayment
         ? makeMessageSendPayment({
             ...common,
-            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfo),
+            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos),
           })
         : null
     case RPCChatTypes.commonMessageType.requestpayment:
@@ -730,11 +739,8 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      /*::
-      // $FlowIssue flow gets confused by the fallthroughs
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(m.messageBody.messageType);
-      */
+      // $FlowIssue need these to be opaque types
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(m.messageBody.messageType)
       return null
   }
 }
@@ -878,10 +884,7 @@ export const uiMessageToMessage = (
       }
       return null
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(uiMessage.state);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(uiMessage.state)
       return null
   }
 }
@@ -946,16 +949,16 @@ export const makePendingAttachmentMessage = (
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
-    fileName: fileName,
-    previewURL: previewURL,
-    previewWidth: previewSpec.width,
-    previewHeight: previewSpec.height,
-    showPlayButton: previewSpec.showPlayButton,
     deviceType: isMobile ? 'mobile' : 'desktop',
+    errorReason: errorReason,
+    fileName: fileName,
     id: Types.numberToMessageID(0),
     ordinal: ordinal,
     outboxID: outboxID,
-    errorReason: errorReason,
+    previewHeight: previewSpec.height,
+    previewURL: previewURL,
+    previewWidth: previewSpec.width,
+    showPlayButton: previewSpec.showPlayButton,
     submitState: 'pending',
     timestamp: Date.now(),
     title: title,
@@ -1092,12 +1095,12 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
 }
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: '30 seconds', seconds: 30},
-  {text: '5 minutes', seconds: 300},
-  {text: '60 minutes', seconds: 3600},
-  {text: '6 hours', seconds: 3600 * 6},
-  {text: '24 hours', seconds: 86400},
-  {text: '3 days', seconds: 86400 * 3},
-  {text: '7 days', seconds: 86400 * 7},
-  {text: 'Never explode (turn off)', seconds: 0},
+  {seconds: 30, text: '30 seconds'},
+  {seconds: 300, text: '5 minutes'},
+  {seconds: 3600, text: '60 minutes'},
+  {seconds: 3600 * 6, text: '6 hours'},
+  {seconds: 86400, text: '24 hours'},
+  {seconds: 86400 * 3, text: '3 days'},
+  {seconds: 86400 * 7, text: '7 days'},
+  {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()

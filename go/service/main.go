@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/unfurl"
+	"github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/externals"
@@ -151,6 +152,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
+		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 	}
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
@@ -327,7 +329,6 @@ func (d *Service) setupTeams() error {
 
 func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
-	go d.walletState.RefreshAll(context.Background())
 	return nil
 }
 
@@ -362,6 +363,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
+	d.runHomePoller(ctx)
 	go d.identifySelf()
 }
 
@@ -450,6 +452,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
 	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
+	g.StellarSender = wallet.NewSender(g)
+	g.StellarPushHandler = g.ExternalG().GetStellar()
 
 	convStorage := chat.NewDevConversationBackedStorage(g, ri)
 
@@ -529,6 +533,11 @@ func (d *Service) runTLFUpgrade() {
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
 	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
+	return
+}
+
+func (d *Service) runHomePoller(ctx context.Context) {
+	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
 	return
 }
 
@@ -662,29 +671,28 @@ func (d *Service) chatOutboxPurgeCheck() {
 }
 
 func (d *Service) minuteChecks() {
-	ticker := libkb.NewBgTicker(1 * time.Minute)
-	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
+	ticker := libkb.NewBgTicker(5 * time.Minute)
+	mctx := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
 	d.G().PushShutdownHook(func() error {
-		m.CDebugf("stopping minuteChecks loop")
+		mctx.CDebugf("stopping minuteChecks loop")
 		ticker.Stop()
 		return nil
 	})
 	go func() {
-		d.walletState.RefreshAll(m.Ctx())
 		for {
 			<-ticker.C
-			m.CDebugf("+ minute check loop")
+			mctx.CDebugf("+ 5 minute check loop")
 
 			// In theory, this periodic refresh shouldn't be necessary,
 			// but as the WalletState code is new, this is a nice insurance
 			// policy.  The gregor payment notifications should
 			// keep the WalletState refreshed properly.
-			m.CDebugf("| refreshing wallet state")
-			if err := d.walletState.RefreshAll(m.Ctx()); err != nil {
-				m.CDebugf("service walletState.RefreshAll error: %s", err)
+			mctx.CDebugf("| refreshing wallet state")
+			if err := d.walletState.RefreshAll(mctx, "service bg loop"); err != nil {
+				mctx.CDebugf("service walletState.RefreshAll error: %s", err)
 			}
 
-			m.CDebugf("- minute check loop")
+			mctx.CDebugf("- 5 minute check loop")
 		}
 	}()
 }
@@ -898,6 +906,11 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log("shutting down TLF upgrader")
 	if d.tlfUpgrader != nil {
 		d.tlfUpgrader.Shutdown()
+	}
+
+	log("resetting wallet state on logout")
+	if d.walletState != nil {
+		d.walletState.Reset(m)
 	}
 
 	return nil

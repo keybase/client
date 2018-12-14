@@ -2,7 +2,7 @@
 import {NativeModules} from 'react-native'
 
 const m = __STORYBOOK__
-  ? {setSecureFlagSetting: () => {}, getSecureFlagSetting: () => {}}
+  ? {getSecureFlagSetting: () => {}, setSecureFlagSetting: () => {}}
   : NativeModules.ScreenProtector
 
 const setSecureFlagSetting = m.setSecureFlagSetting
