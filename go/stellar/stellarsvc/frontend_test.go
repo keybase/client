@@ -50,11 +50,18 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.True(t, accts[0].IsDefault)
 	require.Equal(t, "qq", accts[0].Name)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
+	currencyLocal := accts[0].CurrencyLocal
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
+	require.Equal(t, "US Dollar", currencyLocal.Name)
+	require.Equal(t, "USD ($)", currencyLocal.Description)
+	require.Equal(t, "$", currencyLocal.Symbol)
 	require.NotEmpty(t, accts[0].Seqno)
 
 	require.False(t, accts[1].IsDefault)
 	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
+	currencyLocal = accts[1].CurrencyLocal
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 	require.NotEmpty(t, accts[1].Seqno)
 
 	// test the singular version as well
@@ -65,6 +72,8 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
+	currencyLocal = accts[1].CurrencyLocal
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 
 	argDetails.AccountID = accts[1].AccountID
 	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
@@ -73,6 +82,8 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.False(t, details.IsDefault)
 	require.Equal(t, "0 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
+	currencyLocal = accts[1].CurrencyLocal
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 }
 
 func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
@@ -143,6 +154,16 @@ func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
 	require.Equal(t, "CHF", assets[0].WorthCurrency)
 	require.Equal(t, "3,183.28 CHF", assets[0].Worth)
 	require.Equal(t, "3,182.96 CHF", assets[0].AvailableToSendWorth)
+
+	// changing currency also updates DisplayCurrency in GetWalletAccountLocal
+	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
+	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	currencyLocal := details.CurrencyLocal
+	require.Equal(t, stellar1.OutsideCurrencyCode("CHF"), currencyLocal.Code)
+	require.Equal(t, "Swiss Franc", currencyLocal.Name)
+	require.Equal(t, "CHF (CHF)", currencyLocal.Description)
+	require.Equal(t, "CHF", currencyLocal.Symbol)
 }
 
 func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {

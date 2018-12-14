@@ -766,6 +766,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
 		return stellar1.AccountDetails{}, err
 	}
+	res.Details.SetDefaultDisplayCurrency()
 
 	return res.Details, nil
 }
@@ -1012,6 +1013,14 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
 	currency string) error {
+
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return err
+	}
+	if _, ok := conf.Currencies[stellar1.OutsideCurrencyCode(currency)]; !ok {
+		return fmt.Errorf("Unknown currency code: %q", currency)
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -1021,7 +1030,7 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 		NetContext: ctx,
 	}
-	_, err := g.API.Post(apiArg)
+	_, err = g.API.Post(apiArg)
 	return err
 }
 
