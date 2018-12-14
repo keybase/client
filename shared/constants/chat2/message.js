@@ -850,7 +850,7 @@ const errorUIMessagetoMessage = (
     errorReason: o.errMsg,
     exploded: o.isEphemeralExpired,
     exploding: o.isEphemeral,
-    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
+    explodingUnreadable: !!o.errType && o.isEphemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
