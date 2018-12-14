@@ -18,8 +18,8 @@ type HandlerProps = {
 }
 
 const EscapeContext = React.createContext<HandlerProps>({
-  add: (receiver: EscapeHandler) => {},
-  remove: (receiver: EscapeHandler) => {},
+  add: () => {},
+  remove: () => {},
 })
 
 class EscapeHandlerWrapper extends React.Component<Props> {
