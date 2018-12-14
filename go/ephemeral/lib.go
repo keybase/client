@@ -10,6 +10,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 )
@@ -341,7 +342,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	}
 	// Can we access this generation? If not, let's regenerate.
 	s := e.G().GetUserEKBoxStorage()
-	ek, err := s.Get(ctx, statement.CurrentUserEkMetadata.Generation)
+	ek, err := s.Get(ctx, statement.CurrentUserEkMetadata.Generation, nil)
 	if err != nil {
 		switch err.(type) {
 		case EphemeralKeyError:
@@ -388,7 +389,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	}
 	// Can we access this generation? If not, let's regenerate.
 	s := e.G().GetTeamEKBoxStorage()
-	ek, err := s.Get(ctx, teamID, statement.CurrentTeamEkMetadata.Generation)
+	ek, err := s.Get(ctx, teamID, statement.CurrentTeamEkMetadata.Generation, nil)
 	if err != nil {
 		switch err.(type) {
 		case EphemeralKeyError:
@@ -483,7 +484,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
 		if cacheEntry, expired := e.isEntryExpired(val); !expired || cacheEntry.CreationInProgress {
-			teamEK, err = teamEKBoxStorage.Get(ctx, teamID, cacheEntry.Generation)
+			teamEK, err = teamEKBoxStorage.Get(ctx, teamID, cacheEntry.Generation, nil)
 			if err == nil {
 				return teamEK, nil
 			}
@@ -552,7 +553,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		latestGeneration = publishedMetadata.Generation
 	}
 
-	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, latestGeneration)
+	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, latestGeneration, nil)
 	if err != nil {
 		return teamEK, err
 	}
@@ -564,10 +565,11 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 
 // Try to get the TeamEK for the given `generation`. If this fails and the
 // `generation` is also the current maxGeneration, create a new teamEK.
-func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration,
+	contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	defer e.G().CTraceTimed(ctx, "GetTeamEK", func() error { return err })()
 
-	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
+	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation, contentCtime)
 	if err != nil {
 		switch err.(type) {
 		case EphemeralKeyError:
@@ -618,7 +620,7 @@ func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKey
 		e.G().Log.CDebugf(ctx, "No userEK found")
 		return nil, nil
 	}
-	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration)
+	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -670,7 +672,7 @@ func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, rec
 	if err != nil {
 		return nil, err
 	}
-	teamEK, err := teamEKBoxStorage.Get(ctx, teamID, maxGeneration)
+	teamEK, err := teamEKBoxStorage.Get(ctx, teamID, maxGeneration, nil)
 	if err != nil {
 		return nil, err
 	}

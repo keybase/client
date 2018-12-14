@@ -542,3 +542,14 @@ func (s *stellarRetryClient) SetAccountMobileOnlyLocal(ctx context.Context, arg 
 	}
 	return err
 }
+
+func (s *stellarRetryClient) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetAccountAllDevicesLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}

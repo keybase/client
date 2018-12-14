@@ -5,7 +5,6 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
-import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
@@ -266,21 +265,18 @@ class _PlatformInput extends React.Component<
               onKeyDown={this._onKeyDown}
             />
           </Kb.Box2>
-          {flags.explodingMessagesEnabled &&
-            this.props.isExploding &&
-            !this.props.isEditing &&
-            !this.state.hasText && (
-              // This is the `boom!` icon in the placeholder: “Write an exploding message boom!”
-              <Kb.Icon
-                color={Styles.globalColors.black_20}
-                fontSize={34}
-                hoverColor={Styles.globalColors.black_20}
-                onClick={this._inputFocus}
-                style={Kb.iconCastPlatformStyles(styles.boomIcon)}
-                type="iconfont-boom"
-              />
-            )}
-          {flags.explodingMessagesEnabled && this.props.showingMenu && (
+          {this.props.isExploding && !this.props.isEditing && !this.state.hasText && (
+            // This is the `boom!` icon in the placeholder: “Write an exploding message boom!”
+            <Kb.Icon
+              color={Styles.globalColors.black_20}
+              fontSize={34}
+              hoverColor={Styles.globalColors.black_20}
+              onClick={this._inputFocus}
+              style={Kb.iconCastPlatformStyles(styles.boomIcon)}
+              type="iconfont-boom"
+            />
+          )}
+          {this.props.showingMenu && (
             <SetExplodingMessagePopup
               attachTo={this.props.getAttachmentRef}
               conversationIDKey={this.props.conversationIDKey}

@@ -263,6 +263,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         acceptingDisclaimerDelay: true,
       })
+    case WalletsGen.loadedMobileOnlyMode:
+      return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -294,6 +296,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.abandonPayment:
     case WalletsGen.loadSendAssetChoices:
     case WalletsGen.openSendRequestForm:
+    case WalletsGen.loadMobileOnlyMode:
+    case WalletsGen.changeMobileOnlyMode:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

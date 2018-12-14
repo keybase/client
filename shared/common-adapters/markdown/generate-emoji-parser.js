@@ -3,6 +3,31 @@ import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource'
 import {escapeRegExp} from 'lodash'
+import tlds from 'tlds'
+
+const commonTlds = [
+  'com',
+  'org',
+  'edu',
+  'gov',
+  'uk',
+  'net',
+  'ca',
+  'de',
+  'jp',
+  'fr',
+  'au',
+  'us',
+  'ru',
+  'ch',
+  'it',
+  'nl',
+  'se',
+  'no',
+  'es',
+  'io',
+  'tv',
+]
 
 /**
  * Note on above: importing a non-transpiled module that uses modern JS features
@@ -24,7 +49,6 @@ function genEmojiData() {
   const emojiIndexByChar = {}
   const emojiIndexByName = {}
   const emojiLiterals = []
-  const emojiCharacters = new Set()
   function addEmojiLiteral(unified, name, skinTone) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
@@ -41,7 +65,6 @@ function genEmojiData() {
       emojiIndexByName[fullName] = char
     }
     emojiLiterals.push(literals)
-    chars.forEach(c => emojiCharacters.add(c))
   }
 
   emojiData.forEach(emoji => {
@@ -69,16 +92,22 @@ function genEmojiData() {
 
   emojiLiterals.sort((a, b) => b.length - a.length)
 
-  return {emojiCharacters, emojiIndexByChar, emojiIndexByName, emojiLiterals}
+  return {emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
 function buildEmojiFile() {
-  const p = path.join(__dirname, '..', 'markdown', 'emoji.js')
-  const {emojiLiterals, emojiIndexByName} = genEmojiData()
+  const p = path.join(__dirname, 'emoji-gen.js')
+  const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
   const data = `// @noflow
+/* eslint-disable */
 export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
     .map(escapeRegExp)
-    .join('|')})/`
+    .join('|')})/
+export const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
+export const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
+export const tldExp = new RegExp(/.(${tlds.join('|')})\\b/)
+export const commonTlds = ${JSON.stringify(commonTlds)}
+`
   fs.writeFileSync(p, data, {encoding: 'utf8'})
 }
 

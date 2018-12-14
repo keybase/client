@@ -1,0 +1,6 @@
+// @flow
+declare export var emojiRegex: RegExp
+declare export var emojiIndexByName: {[key: string]: string}
+declare export var emojiIndexByChar: {[key: string]: string}
+declare export var tldExp: RegExp
+declare export var commonTlds: Array<string>

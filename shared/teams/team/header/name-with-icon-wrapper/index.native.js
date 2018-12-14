@@ -3,11 +3,10 @@ import * as React from 'react'
 import {NameWithIcon} from '../../../../common-adapters'
 import {showImagePicker, type Response} from 'react-native-image-picker'
 import type {Props} from '.'
-import flags from '../../../../util/feature-flags'
 
 const NameWithIconWrapper = (props: Props) => {
   const _onEditIcon = () =>
-    props.canEditDescription && flags.avatarUploadsEnabled
+    props.canEditDescription
       ? showImagePicker({mediaType: 'photo'}, (response: Response) => {
           if (response.didCancel) {
             return

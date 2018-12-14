@@ -44,10 +44,12 @@ const sharedSettingsProps = {
   accountID: Types.noAccountID,
   currencies: testCurrencies,
   currencyWaiting: false,
+  mobileOnlyMode: false,
   onBack: Sb.action('onBack'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onDelete: Sb.action('onDelete'),
   onEditName: Sb.action('onEditName'),
+  onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
   onSetDefault: Sb.action('setDefault'),
   refresh: () => {},
   saveCurrencyWaiting: false,
@@ -65,6 +67,7 @@ const secondarySettingsProps = {
   ...sharedSettingsProps,
   currency: testCurrencies.get(0),
   isDefault: false,
+  mobileOnlyMode: true,
   name: 'some other account',
 }
 

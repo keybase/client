@@ -199,9 +199,13 @@ const perfDecorator = (copiesToRender: number = 100) => (story: any) => (
   <PerfBox copiesToRender={copiesToRender}>{story()} </PerfBox>
 )
 
+// Used to pass extra props to a component in a story without flow typing
+const propOverridesForStory = (p: any): {} => ({storyProps: p})
+
 export {
   unexpected,
   createPropProvider,
+  propOverridesForStory,
   StorybookErrorBoundary,
   Rnd,
   scrollViewDecorator,

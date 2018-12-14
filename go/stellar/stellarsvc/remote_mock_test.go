@@ -265,8 +265,9 @@ func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamI
 }
 
 func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
-
 		typ, err := tx.Summary.Typ()
 		require.NoError(t.T, err)
 		switch typ {
@@ -291,6 +292,8 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 }
 
 func (t *txlogger) FindFirstUnclaimedFor(uv keybase1.UserVersion) (*stellar1.PaymentDetails, error) {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
 		typ, err := tx.Summary.Typ()
 		if err != nil {
@@ -493,6 +496,10 @@ func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.Accou
 
 func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) error {
 	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
+}
+
+func (r *RemoteClientMock) MakeAccountAllDevices(ctx context.Context, acctID stellar1.AccountID) error {
+	return r.Backend.MakeAccountAllDevices(ctx, r.Tc, acctID)
 }
 
 func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) (bool, error) {
@@ -976,7 +983,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	}
 	r.Unlock()
 
-	tc.Srv.walletState.RefreshAll(context.Background())
+	tc.Srv.walletState.RefreshAll(tc.MetaContext(), "test")
 
 	return res
 }
@@ -1095,6 +1102,10 @@ func (r *BackendMock) IsAccountMobileOnly(ctx context.Context, tc *TestContext, 
 
 func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
 	return remote.SetAccountMobileOnly(ctx, tc.G, accountID)
+}
+
+func (r *BackendMock) MakeAccountAllDevices(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
+	return remote.MakeAccountAllDevices(ctx, tc.G, accountID)
 }
 
 func (r *BackendMock) ServerTimeboundsRecommendation(ctx context.Context, tc *TestContext) (stellar1.TimeboundsRecommendation, error) {
