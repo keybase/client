@@ -80,21 +80,21 @@ type Int64 int64
 //   enum CryptoKeyType
 //    {
 //        KEY_TYPE_ED25519 = 0,
-//        KEY_TYPE_PRE_AUTH_TX = 1,
+//        KEY_TYPE_HASH_TX = 1,
 //        KEY_TYPE_HASH_X = 2
 //    };
 //
 type CryptoKeyType int32
 
 const (
-	CryptoKeyTypeKeyTypeEd25519   CryptoKeyType = 0
-	CryptoKeyTypeKeyTypePreAuthTx CryptoKeyType = 1
-	CryptoKeyTypeKeyTypeHashX     CryptoKeyType = 2
+	CryptoKeyTypeKeyTypeEd25519 CryptoKeyType = 0
+	CryptoKeyTypeKeyTypeHashTx  CryptoKeyType = 1
+	CryptoKeyTypeKeyTypeHashX   CryptoKeyType = 2
 )
 
 var cryptoKeyTypeMap = map[int32]string{
 	0: "CryptoKeyTypeKeyTypeEd25519",
-	1: "CryptoKeyTypeKeyTypePreAuthTx",
+	1: "CryptoKeyTypeKeyTypeHashTx",
 	2: "CryptoKeyTypeKeyTypeHashX",
 }
 
@@ -146,21 +146,21 @@ func (e PublicKeyType) String() string {
 //   enum SignerKeyType
 //    {
 //        SIGNER_KEY_TYPE_ED25519 = KEY_TYPE_ED25519,
-//        SIGNER_KEY_TYPE_PRE_AUTH_TX = KEY_TYPE_PRE_AUTH_TX,
+//        SIGNER_KEY_TYPE_HASH_TX = KEY_TYPE_HASH_TX,
 //        SIGNER_KEY_TYPE_HASH_X = KEY_TYPE_HASH_X
 //    };
 //
 type SignerKeyType int32
 
 const (
-	SignerKeyTypeSignerKeyTypeEd25519   SignerKeyType = 0
-	SignerKeyTypeSignerKeyTypePreAuthTx SignerKeyType = 1
-	SignerKeyTypeSignerKeyTypeHashX     SignerKeyType = 2
+	SignerKeyTypeSignerKeyTypeEd25519 SignerKeyType = 0
+	SignerKeyTypeSignerKeyTypeHashTx  SignerKeyType = 1
+	SignerKeyTypeSignerKeyTypeHashX   SignerKeyType = 2
 )
 
 var signerKeyTypeMap = map[int32]string{
 	0: "SignerKeyTypeSignerKeyTypeEd25519",
-	1: "SignerKeyTypeSignerKeyTypePreAuthTx",
+	1: "SignerKeyTypeSignerKeyTypeHashTx",
 	2: "SignerKeyTypeSignerKeyTypeHashX",
 }
 
@@ -252,19 +252,19 @@ func (u PublicKey) GetEd25519() (result Uint256, ok bool) {
 //    {
 //    case SIGNER_KEY_TYPE_ED25519:
 //        uint256 ed25519;
-//    case SIGNER_KEY_TYPE_PRE_AUTH_TX:
+//    case SIGNER_KEY_TYPE_HASH_TX:
 //        /* Hash of Transaction structure */
-//        uint256 preAuthTx;
+//        uint256 hashTx;
 //    case SIGNER_KEY_TYPE_HASH_X:
 //        /* Hash of random 256 bit preimage X */
 //        uint256 hashX;
 //    };
 //
 type SignerKey struct {
-	Type      SignerKeyType
-	Ed25519   *Uint256
-	PreAuthTx *Uint256
-	HashX     *Uint256
+	Type    SignerKeyType
+	Ed25519 *Uint256
+	HashTx  *Uint256
+	HashX   *Uint256
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -279,8 +279,8 @@ func (u SignerKey) ArmForSwitch(sw int32) (string, bool) {
 	switch SignerKeyType(sw) {
 	case SignerKeyTypeSignerKeyTypeEd25519:
 		return "Ed25519", true
-	case SignerKeyTypeSignerKeyTypePreAuthTx:
-		return "PreAuthTx", true
+	case SignerKeyTypeSignerKeyTypeHashTx:
+		return "HashTx", true
 	case SignerKeyTypeSignerKeyTypeHashX:
 		return "HashX", true
 	}
@@ -298,13 +298,13 @@ func NewSignerKey(aType SignerKeyType, value interface{}) (result SignerKey, err
 			return
 		}
 		result.Ed25519 = &tv
-	case SignerKeyTypeSignerKeyTypePreAuthTx:
+	case SignerKeyTypeSignerKeyTypeHashTx:
 		tv, ok := value.(Uint256)
 		if !ok {
 			err = fmt.Errorf("invalid value, must be Uint256")
 			return
 		}
-		result.PreAuthTx = &tv
+		result.HashTx = &tv
 	case SignerKeyTypeSignerKeyTypeHashX:
 		tv, ok := value.(Uint256)
 		if !ok {
@@ -341,25 +341,25 @@ func (u SignerKey) GetEd25519() (result Uint256, ok bool) {
 	return
 }
 
-// MustPreAuthTx retrieves the PreAuthTx value from the union,
+// MustHashTx retrieves the HashTx value from the union,
 // panicing if the value is not set.
-func (u SignerKey) MustPreAuthTx() Uint256 {
-	val, ok := u.GetPreAuthTx()
+func (u SignerKey) MustHashTx() Uint256 {
+	val, ok := u.GetHashTx()
 
 	if !ok {
-		panic("arm PreAuthTx is not set")
+		panic("arm HashTx is not set")
 	}
 
 	return val
 }
 
-// GetPreAuthTx retrieves the PreAuthTx value from the union,
+// GetHashTx retrieves the HashTx value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u SignerKey) GetPreAuthTx() (result Uint256, ok bool) {
+func (u SignerKey) GetHashTx() (result Uint256, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
-	if armName == "PreAuthTx" {
-		result = *u.PreAuthTx
+	if armName == "HashTx" {
+		result = *u.HashTx
 		ok = true
 	}
 
@@ -566,9 +566,9 @@ func (e String64) XDRMaxSize() int {
 
 // SequenceNumber is an XDR Typedef defines as:
 //
-//   typedef int64 SequenceNumber;
+//   typedef uint64 SequenceNumber;
 //
-type SequenceNumber Int64
+type SequenceNumber Uint64
 
 // DataValue is an XDR Typedef defines as:
 //
@@ -914,12 +914,6 @@ func (e AccountFlags) String() string {
 	return name
 }
 
-// MaskAccountFlags is an XDR Const defines as:
-//
-//   const MASK_ACCOUNT_FLAGS = 0x7;
-//
-const MaskAccountFlags = 0x7
-
 // AccountEntryExt is an XDR NestedUnion defines as:
 //
 //   union switch (int v)
@@ -1031,12 +1025,6 @@ func (e TrustLineFlags) String() string {
 	return name
 }
 
-// MaskTrustlineFlags is an XDR Const defines as:
-//
-//   const MASK_TRUSTLINE_FLAGS = 1;
-//
-const MaskTrustlineFlags = 1
-
 // TrustLineEntryExt is an XDR NestedUnion defines as:
 //
 //   union switch (int v)
@@ -1135,12 +1123,6 @@ func (e OfferEntryFlags) String() string {
 	name, _ := offerEntryFlagsMap[int32(e)]
 	return name
 }
-
-// MaskOfferentryFlags is an XDR Const defines as:
-//
-//   const MASK_OFFERENTRY_FLAGS = 1;
-//
-const MaskOfferentryFlags = 1
 
 // OfferEntryExt is an XDR NestedUnion defines as:
 //
@@ -1595,8 +1577,7 @@ type DecoratedSignature struct {
 //        ALLOW_TRUST = 7,
 //        ACCOUNT_MERGE = 8,
 //        INFLATION = 9,
-//        MANAGE_DATA = 10,
-//        BUMP_SEQUENCE = 11
+//        MANAGE_DATA = 10
 //    };
 //
 type OperationType int32
@@ -1613,7 +1594,6 @@ const (
 	OperationTypeAccountMerge       OperationType = 8
 	OperationTypeInflation          OperationType = 9
 	OperationTypeManageData         OperationType = 10
-	OperationTypeBumpSequence       OperationType = 11
 )
 
 var operationTypeMap = map[int32]string{
@@ -1628,7 +1608,6 @@ var operationTypeMap = map[int32]string{
 	8:  "OperationTypeAccountMerge",
 	9:  "OperationTypeInflation",
 	10: "OperationTypeManageData",
-	11: "OperationTypeBumpSequence",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -1926,23 +1905,12 @@ type AllowTrustOp struct {
 //   struct ManageDataOp
 //    {
 //        string64 dataName;
-//        DataValue* dataValue; // set to null to clear
+//        DataValue* dataValue;   // set to null to clear
 //    };
 //
 type ManageDataOp struct {
 	DataName  String64
 	DataValue *DataValue
-}
-
-// BumpSequenceOp is an XDR Struct defines as:
-//
-//   struct BumpSequenceOp
-//    {
-//        SequenceNumber bumpTo;
-//    };
-//
-type BumpSequenceOp struct {
-	BumpTo SequenceNumber
 }
 
 // OperationBody is an XDR NestedUnion defines as:
@@ -1971,8 +1939,6 @@ type BumpSequenceOp struct {
 //            void;
 //        case MANAGE_DATA:
 //            ManageDataOp manageDataOp;
-//        case BUMP_SEQUENCE:
-//            BumpSequenceOp bumpSequenceOp;
 //        }
 //
 type OperationBody struct {
@@ -1987,7 +1953,6 @@ type OperationBody struct {
 	AllowTrustOp         *AllowTrustOp
 	Destination          *AccountId
 	ManageDataOp         *ManageDataOp
-	BumpSequenceOp       *BumpSequenceOp
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -2022,8 +1987,6 @@ func (u OperationBody) ArmForSwitch(sw int32) (string, bool) {
 		return "", true
 	case OperationTypeManageData:
 		return "ManageDataOp", true
-	case OperationTypeBumpSequence:
-		return "BumpSequenceOp", true
 	}
 	return "-", false
 }
@@ -2104,13 +2067,6 @@ func NewOperationBody(aType OperationType, value interface{}) (result OperationB
 			return
 		}
 		result.ManageDataOp = &tv
-	case OperationTypeBumpSequence:
-		tv, ok := value.(BumpSequenceOp)
-		if !ok {
-			err = fmt.Errorf("invalid value, must be BumpSequenceOp")
-			return
-		}
-		result.BumpSequenceOp = &tv
 	}
 	return
 }
@@ -2365,31 +2321,6 @@ func (u OperationBody) GetManageDataOp() (result ManageDataOp, ok bool) {
 	return
 }
 
-// MustBumpSequenceOp retrieves the BumpSequenceOp value from the union,
-// panicing if the value is not set.
-func (u OperationBody) MustBumpSequenceOp() BumpSequenceOp {
-	val, ok := u.GetBumpSequenceOp()
-
-	if !ok {
-		panic("arm BumpSequenceOp is not set")
-	}
-
-	return val
-}
-
-// GetBumpSequenceOp retrieves the BumpSequenceOp value from the union,
-// returning ok if the union's switch indicated the value is valid.
-func (u OperationBody) GetBumpSequenceOp() (result BumpSequenceOp, ok bool) {
-	armName, _ := u.ArmForSwitch(int32(u.Type))
-
-	if armName == "BumpSequenceOp" {
-		result = *u.BumpSequenceOp
-		ok = true
-	}
-
-	return
-}
-
 // Operation is an XDR Struct defines as:
 //
 //   struct Operation
@@ -2423,8 +2354,6 @@ func (u OperationBody) GetBumpSequenceOp() (result BumpSequenceOp, ok bool) {
 //            void;
 //        case MANAGE_DATA:
 //            ManageDataOp manageDataOp;
-//        case BUMP_SEQUENCE:
-//            BumpSequenceOp bumpSequenceOp;
 //        }
 //        body;
 //    };
@@ -2757,8 +2686,8 @@ type Transaction struct {
 //   union switch (EnvelopeType type)
 //        {
 //        case ENVELOPE_TYPE_TX:
-//            Transaction tx;
-//            /* All other values of type are invalid */
+//              Transaction tx;
+//        /* All other values of type are invalid */
 //        }
 //
 type TransactionSignaturePayloadTaggedTransaction struct {
@@ -2824,16 +2753,14 @@ func (u TransactionSignaturePayloadTaggedTransaction) GetTx() (result Transactio
 
 // TransactionSignaturePayload is an XDR Struct defines as:
 //
-//   struct TransactionSignaturePayload
-//    {
+//   struct TransactionSignaturePayload {
 //        Hash networkId;
 //        union switch (EnvelopeType type)
 //        {
 //        case ENVELOPE_TYPE_TX:
-//            Transaction tx;
-//            /* All other values of type are invalid */
-//        }
-//        taggedTransaction;
+//              Transaction tx;
+//        /* All other values of type are invalid */
+//        } taggedTransaction;
 //    };
 //
 type TransactionSignaturePayload struct {
@@ -2848,7 +2775,8 @@ type TransactionSignaturePayload struct {
 //        Transaction tx;
 //        /* Each decorated signature is a signature over the SHA256 hash of
 //         * a TransactionSignaturePayload */
-//        DecoratedSignature signatures<20>;
+//        DecoratedSignature
+//        signatures<20>;
 //    };
 //
 type TransactionEnvelope struct {
@@ -3688,8 +3616,7 @@ func NewSetOptionsResult(code SetOptionsResultCode, value interface{}) (result S
 //        CHANGE_TRUST_NO_ISSUER = -2,     // could not find issuer
 //        CHANGE_TRUST_INVALID_LIMIT = -3, // cannot drop limit below balance
 //                                         // cannot create with a limit of 0
-//        CHANGE_TRUST_LOW_RESERVE =
-//            -4, // not enough funds to create a new trust line,
+//        CHANGE_TRUST_LOW_RESERVE = -4, // not enough funds to create a new trust line,
 //        CHANGE_TRUST_SELF_NOT_ALLOWED = -5 // trusting self is not allowed
 //    };
 //
@@ -3780,7 +3707,7 @@ func NewChangeTrustResult(code ChangeTrustResultCode, value interface{}) (result
 //        ALLOW_TRUST_NO_TRUST_LINE = -2, // trustor does not have a trustline
 //                                        // source account does not require trust
 //        ALLOW_TRUST_TRUST_NOT_REQUIRED = -3,
-//        ALLOW_TRUST_CANT_REVOKE = -4,     // source account can't revoke trust,
+//        ALLOW_TRUST_CANT_REVOKE = -4, // source account can't revoke trust,
 //        ALLOW_TRUST_SELF_NOT_ALLOWED = -5 // trusting self is not allowed
 //    };
 //
@@ -3867,11 +3794,10 @@ func NewAllowTrustResult(code AllowTrustResultCode, value interface{}) (result A
 //        // codes considered as "success" for the operation
 //        ACCOUNT_MERGE_SUCCESS = 0,
 //        // codes considered as "failure" for the operation
-//        ACCOUNT_MERGE_MALFORMED = -1,       // can't merge onto itself
-//        ACCOUNT_MERGE_NO_ACCOUNT = -2,      // destination does not exist
-//        ACCOUNT_MERGE_IMMUTABLE_SET = -3,   // source account has AUTH_IMMUTABLE set
-//        ACCOUNT_MERGE_HAS_SUB_ENTRIES = -4, // account has trust lines/offers
-//        ACCOUNT_MERGE_SEQNUM_TOO_FAR = -5   // sequence number is over max allowed
+//        ACCOUNT_MERGE_MALFORMED = -1,      // can't merge onto itself
+//        ACCOUNT_MERGE_NO_ACCOUNT = -2,     // destination does not exist
+//        ACCOUNT_MERGE_IMMUTABLE_SET = -3,  // source account has AUTH_IMMUTABLE set
+//        ACCOUNT_MERGE_HAS_SUB_ENTRIES = -4 // account has trust lines/offers
 //    };
 //
 type AccountMergeResultCode int32
@@ -3882,7 +3808,6 @@ const (
 	AccountMergeResultCodeAccountMergeNoAccount     AccountMergeResultCode = -2
 	AccountMergeResultCodeAccountMergeImmutableSet  AccountMergeResultCode = -3
 	AccountMergeResultCodeAccountMergeHasSubEntries AccountMergeResultCode = -4
-	AccountMergeResultCodeAccountMergeSeqnumTooFar  AccountMergeResultCode = -5
 )
 
 var accountMergeResultCodeMap = map[int32]string{
@@ -3891,7 +3816,6 @@ var accountMergeResultCodeMap = map[int32]string{
 	-2: "AccountMergeResultCodeAccountMergeNoAccount",
 	-3: "AccountMergeResultCodeAccountMergeImmutableSet",
 	-4: "AccountMergeResultCodeAccountMergeHasSubEntries",
-	-5: "AccountMergeResultCodeAccountMergeSeqnumTooFar",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -4110,12 +4034,10 @@ func (u InflationResult) GetPayouts() (result []InflationPayout, ok bool) {
 //        // codes considered as "success" for the operation
 //        MANAGE_DATA_SUCCESS = 0,
 //        // codes considered as "failure" for the operation
-//        MANAGE_DATA_NOT_SUPPORTED_YET =
-//            -1, // The network hasn't moved to this protocol change yet
-//        MANAGE_DATA_NAME_NOT_FOUND =
-//            -2, // Trying to remove a Data Entry that isn't there
-//        MANAGE_DATA_LOW_RESERVE = -3, // not enough funds to create a new Data Entry
-//        MANAGE_DATA_INVALID_NAME = -4 // Name not a valid string
+//        MANAGE_DATA_NOT_SUPPORTED_YET = -1, // The network hasn't moved to this protocol change yet
+//        MANAGE_DATA_NAME_NOT_FOUND = -2,    // Trying to remove a Data Entry that isn't there
+//        MANAGE_DATA_LOW_RESERVE = -3,       // not enough funds to create a new Data Entry
+//        MANAGE_DATA_INVALID_NAME = -4       // Name not a valid string
 //    };
 //
 type ManageDataResultCode int32
@@ -4192,109 +4114,28 @@ func NewManageDataResult(code ManageDataResultCode, value interface{}) (result M
 	return
 }
 
-// BumpSequenceResultCode is an XDR Enum defines as:
-//
-//   enum BumpSequenceResultCode
-//    {
-//        // codes considered as "success" for the operation
-//        BUMP_SEQUENCE_SUCCESS = 0,
-//        // codes considered as "failure" for the operation
-//        BUMP_SEQUENCE_BAD_SEQ = -1 // `bumpTo` is not within bounds
-//    };
-//
-type BumpSequenceResultCode int32
-
-const (
-	BumpSequenceResultCodeBumpSequenceSuccess BumpSequenceResultCode = 0
-	BumpSequenceResultCodeBumpSequenceBadSeq  BumpSequenceResultCode = -1
-)
-
-var bumpSequenceResultCodeMap = map[int32]string{
-	0:  "BumpSequenceResultCodeBumpSequenceSuccess",
-	-1: "BumpSequenceResultCodeBumpSequenceBadSeq",
-}
-
-// ValidEnum validates a proposed value for this enum.  Implements
-// the Enum interface for BumpSequenceResultCode
-func (e BumpSequenceResultCode) ValidEnum(v int32) bool {
-	_, ok := bumpSequenceResultCodeMap[v]
-	return ok
-}
-
-// String returns the name of `e`
-func (e BumpSequenceResultCode) String() string {
-	name, _ := bumpSequenceResultCodeMap[int32(e)]
-	return name
-}
-
-// BumpSequenceResult is an XDR Union defines as:
-//
-//   union BumpSequenceResult switch (BumpSequenceResultCode code)
-//    {
-//    case BUMP_SEQUENCE_SUCCESS:
-//        void;
-//    default:
-//        void;
-//    };
-//
-type BumpSequenceResult struct {
-	Code BumpSequenceResultCode
-}
-
-// SwitchFieldName returns the field name in which this union's
-// discriminant is stored
-func (u BumpSequenceResult) SwitchFieldName() string {
-	return "Code"
-}
-
-// ArmForSwitch returns which field name should be used for storing
-// the value for an instance of BumpSequenceResult
-func (u BumpSequenceResult) ArmForSwitch(sw int32) (string, bool) {
-	switch BumpSequenceResultCode(sw) {
-	case BumpSequenceResultCodeBumpSequenceSuccess:
-		return "", true
-	default:
-		return "", true
-	}
-}
-
-// NewBumpSequenceResult creates a new  BumpSequenceResult.
-func NewBumpSequenceResult(code BumpSequenceResultCode, value interface{}) (result BumpSequenceResult, err error) {
-	result.Code = code
-	switch BumpSequenceResultCode(code) {
-	case BumpSequenceResultCodeBumpSequenceSuccess:
-		// void
-	default:
-		// void
-	}
-	return
-}
-
 // OperationResultCode is an XDR Enum defines as:
 //
 //   enum OperationResultCode
 //    {
 //        opINNER = 0, // inner object result is valid
 //
-//        opBAD_AUTH = -1,     // too few valid signatures / wrong network
-//        opNO_ACCOUNT = -2,   // source account was not found
-//        opNOT_SUPPORTED = -3 // operation not supported at this time
+//        opBAD_AUTH = -1,  // too few valid signatures / wrong network
+//        opNO_ACCOUNT = -2 // source account was not found
 //    };
 //
 type OperationResultCode int32
 
 const (
-	OperationResultCodeOpInner        OperationResultCode = 0
-	OperationResultCodeOpBadAuth      OperationResultCode = -1
-	OperationResultCodeOpNoAccount    OperationResultCode = -2
-	OperationResultCodeOpNotSupported OperationResultCode = -3
+	OperationResultCodeOpInner     OperationResultCode = 0
+	OperationResultCodeOpBadAuth   OperationResultCode = -1
+	OperationResultCodeOpNoAccount OperationResultCode = -2
 )
 
 var operationResultCodeMap = map[int32]string{
 	0:  "OperationResultCodeOpInner",
 	-1: "OperationResultCodeOpBadAuth",
 	-2: "OperationResultCodeOpNoAccount",
-	-3: "OperationResultCodeOpNotSupported",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -4336,8 +4177,6 @@ func (e OperationResultCode) String() string {
 //            InflationResult inflationResult;
 //        case MANAGE_DATA:
 //            ManageDataResult manageDataResult;
-//        case BUMP_SEQUENCE:
-//            BumpSequenceResult bumpSeqResult;
 //        }
 //
 type OperationResultTr struct {
@@ -4353,7 +4192,6 @@ type OperationResultTr struct {
 	AccountMergeResult       *AccountMergeResult
 	InflationResult          *InflationResult
 	ManageDataResult         *ManageDataResult
-	BumpSeqResult            *BumpSequenceResult
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -4388,8 +4226,6 @@ func (u OperationResultTr) ArmForSwitch(sw int32) (string, bool) {
 		return "InflationResult", true
 	case OperationTypeManageData:
 		return "ManageDataResult", true
-	case OperationTypeBumpSequence:
-		return "BumpSeqResult", true
 	}
 	return "-", false
 }
@@ -4475,13 +4311,6 @@ func NewOperationResultTr(aType OperationType, value interface{}) (result Operat
 			return
 		}
 		result.ManageDataResult = &tv
-	case OperationTypeBumpSequence:
-		tv, ok := value.(BumpSequenceResult)
-		if !ok {
-			err = fmt.Errorf("invalid value, must be BumpSequenceResult")
-			return
-		}
-		result.BumpSeqResult = &tv
 	}
 	return
 }
@@ -4761,31 +4590,6 @@ func (u OperationResultTr) GetManageDataResult() (result ManageDataResult, ok bo
 	return
 }
 
-// MustBumpSeqResult retrieves the BumpSeqResult value from the union,
-// panicing if the value is not set.
-func (u OperationResultTr) MustBumpSeqResult() BumpSequenceResult {
-	val, ok := u.GetBumpSeqResult()
-
-	if !ok {
-		panic("arm BumpSeqResult is not set")
-	}
-
-	return val
-}
-
-// GetBumpSeqResult retrieves the BumpSeqResult value from the union,
-// returning ok if the union's switch indicated the value is valid.
-func (u OperationResultTr) GetBumpSeqResult() (result BumpSequenceResult, ok bool) {
-	armName, _ := u.ArmForSwitch(int32(u.Type))
-
-	if armName == "BumpSeqResult" {
-		result = *u.BumpSeqResult
-		ok = true
-	}
-
-	return
-}
-
 // OperationResult is an XDR Union defines as:
 //
 //   union OperationResult switch (OperationResultCode code)
@@ -4815,8 +4619,6 @@ func (u OperationResultTr) GetBumpSeqResult() (result BumpSequenceResult, ok boo
 //            InflationResult inflationResult;
 //        case MANAGE_DATA:
 //            ManageDataResult manageDataResult;
-//        case BUMP_SEQUENCE:
-//            BumpSequenceResult bumpSeqResult;
 //        }
 //        tr;
 //    default:
@@ -5287,8 +5089,7 @@ type LedgerHeader struct {
 //    {
 //        LEDGER_UPGRADE_VERSION = 1,
 //        LEDGER_UPGRADE_BASE_FEE = 2,
-//        LEDGER_UPGRADE_MAX_TX_SET_SIZE = 3,
-//        LEDGER_UPGRADE_BASE_RESERVE = 4
+//        LEDGER_UPGRADE_MAX_TX_SET_SIZE = 3
 //    };
 //
 type LedgerUpgradeType int32
@@ -5297,14 +5098,12 @@ const (
 	LedgerUpgradeTypeLedgerUpgradeVersion      LedgerUpgradeType = 1
 	LedgerUpgradeTypeLedgerUpgradeBaseFee      LedgerUpgradeType = 2
 	LedgerUpgradeTypeLedgerUpgradeMaxTxSetSize LedgerUpgradeType = 3
-	LedgerUpgradeTypeLedgerUpgradeBaseReserve  LedgerUpgradeType = 4
 )
 
 var ledgerUpgradeTypeMap = map[int32]string{
 	1: "LedgerUpgradeTypeLedgerUpgradeVersion",
 	2: "LedgerUpgradeTypeLedgerUpgradeBaseFee",
 	3: "LedgerUpgradeTypeLedgerUpgradeMaxTxSetSize",
-	4: "LedgerUpgradeTypeLedgerUpgradeBaseReserve",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -5330,8 +5129,6 @@ func (e LedgerUpgradeType) String() string {
 //        uint32 newBaseFee; // update baseFee
 //    case LEDGER_UPGRADE_MAX_TX_SET_SIZE:
 //        uint32 newMaxTxSetSize; // update maxTxSetSize
-//    case LEDGER_UPGRADE_BASE_RESERVE:
-//        uint32 newBaseReserve; // update baseReserve
 //    };
 //
 type LedgerUpgrade struct {
@@ -5339,7 +5136,6 @@ type LedgerUpgrade struct {
 	NewLedgerVersion *Uint32
 	NewBaseFee       *Uint32
 	NewMaxTxSetSize  *Uint32
-	NewBaseReserve   *Uint32
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -5358,8 +5154,6 @@ func (u LedgerUpgrade) ArmForSwitch(sw int32) (string, bool) {
 		return "NewBaseFee", true
 	case LedgerUpgradeTypeLedgerUpgradeMaxTxSetSize:
 		return "NewMaxTxSetSize", true
-	case LedgerUpgradeTypeLedgerUpgradeBaseReserve:
-		return "NewBaseReserve", true
 	}
 	return "-", false
 }
@@ -5389,13 +5183,6 @@ func NewLedgerUpgrade(aType LedgerUpgradeType, value interface{}) (result Ledger
 			return
 		}
 		result.NewMaxTxSetSize = &tv
-	case LedgerUpgradeTypeLedgerUpgradeBaseReserve:
-		tv, ok := value.(Uint32)
-		if !ok {
-			err = fmt.Errorf("invalid value, must be Uint32")
-			return
-		}
-		result.NewBaseReserve = &tv
 	}
 	return
 }
@@ -5469,31 +5256,6 @@ func (u LedgerUpgrade) GetNewMaxTxSetSize() (result Uint32, ok bool) {
 
 	if armName == "NewMaxTxSetSize" {
 		result = *u.NewMaxTxSetSize
-		ok = true
-	}
-
-	return
-}
-
-// MustNewBaseReserve retrieves the NewBaseReserve value from the union,
-// panicing if the value is not set.
-func (u LedgerUpgrade) MustNewBaseReserve() Uint32 {
-	val, ok := u.GetNewBaseReserve()
-
-	if !ok {
-		panic("arm NewBaseReserve is not set")
-	}
-
-	return val
-}
-
-// GetNewBaseReserve retrieves the NewBaseReserve value from the union,
-// returning ok if the union's switch indicated the value is valid.
-func (u LedgerUpgrade) GetNewBaseReserve() (result Uint32, ok bool) {
-	armName, _ := u.ArmForSwitch(int32(u.Type))
-
-	if armName == "NewBaseReserve" {
-		result = *u.NewBaseReserve
 		ok = true
 	}
 
@@ -6436,33 +6198,17 @@ type OperationMeta struct {
 	Changes LedgerEntryChanges
 }
 
-// TransactionMetaV1 is an XDR Struct defines as:
-//
-//   struct TransactionMetaV1
-//    {
-//        LedgerEntryChanges txChanges; // tx level changes if any
-//        OperationMeta operations<>; // meta for each operation
-//    };
-//
-type TransactionMetaV1 struct {
-	TxChanges  LedgerEntryChanges
-	Operations []OperationMeta
-}
-
 // TransactionMeta is an XDR Union defines as:
 //
 //   union TransactionMeta switch (int v)
 //    {
 //    case 0:
 //        OperationMeta operations<>;
-//    case 1:
-//        TransactionMetaV1 v1;
 //    };
 //
 type TransactionMeta struct {
 	V          int32
 	Operations *[]OperationMeta
-	V1         *TransactionMetaV1
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -6477,8 +6223,6 @@ func (u TransactionMeta) ArmForSwitch(sw int32) (string, bool) {
 	switch int32(sw) {
 	case 0:
 		return "Operations", true
-	case 1:
-		return "V1", true
 	}
 	return "-", false
 }
@@ -6494,13 +6238,6 @@ func NewTransactionMeta(v int32, value interface{}) (result TransactionMeta, err
 			return
 		}
 		result.Operations = &tv
-	case 1:
-		tv, ok := value.(TransactionMetaV1)
-		if !ok {
-			err = fmt.Errorf("invalid value, must be TransactionMetaV1")
-			return
-		}
-		result.V1 = &tv
 	}
 	return
 }
@@ -6524,31 +6261,6 @@ func (u TransactionMeta) GetOperations() (result []OperationMeta, ok bool) {
 
 	if armName == "Operations" {
 		result = *u.Operations
-		ok = true
-	}
-
-	return
-}
-
-// MustV1 retrieves the V1 value from the union,
-// panicing if the value is not set.
-func (u TransactionMeta) MustV1() TransactionMetaV1 {
-	val, ok := u.GetV1()
-
-	if !ok {
-		panic("arm V1 is not set")
-	}
-
-	return val
-}
-
-// GetV1 retrieves the V1 value from the union,
-// returning ok if the union's switch indicated the value is valid.
-func (u TransactionMeta) GetV1() (result TransactionMetaV1, ok bool) {
-	armName, _ := u.ArmForSwitch(int32(u.V))
-
-	if armName == "V1" {
-		result = *u.V1
 		ok = true
 	}
 
@@ -6927,7 +6639,7 @@ type DontHave struct {
 //    case GET_PEERS:
 //        void;
 //    case PEERS:
-//        PeerAddress peers<100>;
+//        PeerAddress peers<>;
 //
 //    case GET_TX_SET:
 //        uint256 txSetHash;
@@ -6954,7 +6666,7 @@ type StellarMessage struct {
 	Hello           *Hello
 	Auth            *Auth
 	DontHave        *DontHave
-	Peers           *[]PeerAddress `xdrmaxsize:"100"`
+	Peers           *[]PeerAddress
 	TxSetHash       *Uint256
 	TxSet           *TransactionSet
 	Transaction     *TransactionEnvelope

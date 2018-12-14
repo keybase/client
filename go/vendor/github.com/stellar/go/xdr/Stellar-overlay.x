@@ -112,7 +112,7 @@ case DONT_HAVE:
 case GET_PEERS:
     void;
 case PEERS:
-    PeerAddress peers<100>;
+    PeerAddress peers<>;
 
 case GET_TX_SET:
     uint256 txSetHash;

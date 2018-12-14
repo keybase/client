@@ -2,7 +2,6 @@
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-%#include "xdr/Stellar-SCP.h"
 %#include "xdr/Stellar-transaction.h"
 
 namespace stellar
@@ -83,8 +82,7 @@ enum LedgerUpgradeType
 {
     LEDGER_UPGRADE_VERSION = 1,
     LEDGER_UPGRADE_BASE_FEE = 2,
-    LEDGER_UPGRADE_MAX_TX_SET_SIZE = 3,
-    LEDGER_UPGRADE_BASE_RESERVE = 4
+    LEDGER_UPGRADE_MAX_TX_SET_SIZE = 3
 };
 
 union LedgerUpgrade switch (LedgerUpgradeType type)
@@ -95,8 +93,6 @@ case LEDGER_UPGRADE_BASE_FEE:
     uint32 newBaseFee; // update baseFee
 case LEDGER_UPGRADE_MAX_TX_SET_SIZE:
     uint32 newMaxTxSetSize; // update maxTxSetSize
-case LEDGER_UPGRADE_BASE_RESERVE:
-    uint32 newBaseReserve; // update baseReserve
 };
 
 /* Entries used to define the bucket list */
@@ -265,19 +261,9 @@ struct OperationMeta
     LedgerEntryChanges changes;
 };
 
-struct TransactionMetaV1
-{
-    LedgerEntryChanges txChanges; // tx level changes if any
-    OperationMeta operations<>; // meta for each operation
-};
-
-// this is the meta produced when applying transactions
-// it does not include pre-apply updates such as fees
 union TransactionMeta switch (int v)
 {
 case 0:
     OperationMeta operations<>;
-case 1:
-    TransactionMetaV1 v1;
 };
 }

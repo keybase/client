@@ -40,6 +40,12 @@
 			"revisionTime": "2018-04-21T15:31:58Z"
 		},
 		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005",
+			"revisionTime": "2018-08-15T10:47:33Z"
+		},
+		{
 			"checksumSHA1": "gPowz5SHTxjYhSUi+vFq20ww4Zg=",
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "2d2796f41742ece03e8086188fa4db16a3a0b458",
@@ -68,6 +74,12 @@
 			"path": "github.com/araddon/dateparse",
 			"revision": "cfd92a431d0efe36a1b81ca25d15b98aae4dbdb6",
 			"revisionTime": "2018-07-29T17:48:19Z"
+		},
+		{
+			"checksumSHA1": "5gnBrB9ISzgkQe5rLOlFp2MqA/8=",
+			"path": "github.com/asaskevich/govalidator",
+			"revision": "f9ffefc3facfbe0caee3fea233cbb6e8208f4541",
+			"revisionTime": "2018-07-20T11:50:03Z"
 		},
 		{
 			"checksumSHA1": "Oae/AzW8+W/lPdL6smTcgyhncrc=",
@@ -560,6 +572,12 @@
 			"revisionTime": "2018-12-10T17:08:49Z"
 		},
 		{
+			"checksumSHA1": "r6ZMyP/HsdeToXIxvgP3ntL6Bds=",
+			"path": "github.com/konsorten/go-windows-terminal-sequences",
+			"revision": "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242",
+			"revisionTime": "2018-10-04T22:41:46Z"
+		},
+		{
 			"checksumSHA1": "Cdsm9pkjn7WC0TP2KKPDSApiQKQ=",
 			"path": "github.com/kr/pty",
 			"revision": "ce7fa45920dc37a92de8377972e52bc55ffa8d57",
@@ -576,6 +594,12 @@
 			"path": "github.com/lib/pq/oid",
 			"revision": "d34b9ff171c21ad295489235aec8b6626023cd04",
 			"revisionTime": "2018-03-27T07:18:24Z"
+		},
+		{
+			"checksumSHA1": "b0T0Hzd+zYk+OCDTFMps+jwa/nY=",
+			"path": "github.com/manucorporat/sse",
+			"revision": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d",
+			"revisionTime": "2016-01-26T18:01:36Z"
 		},
 		{
 			"checksumSHA1": "GiVgQkx5acnq+JZtYiuHPlhHoso=",
@@ -626,6 +650,12 @@
 			"revisionTime": "2016-11-28T21:05:44Z"
 		},
 		{
+			"checksumSHA1": "z/YxxS1zqTSPbvM55UZgiFd1akI=",
+			"path": "github.com/segmentio/go-loggly",
+			"revision": "7a70408c3650c37ba8e58a934f686d0c44cb9b58",
+			"revisionTime": "2018-07-28T23:46:23Z"
+		},
+		{
 			"checksumSHA1": "v7C+aJ1D/z3MEeCte6bxvpoGjM4=",
 			"path": "github.com/sergi/go-diff/diffmatchpatch",
 			"revision": "feef008d51ad2b3778f85d387ccf91735543008d",
@@ -642,6 +672,18 @@
 			"path": "github.com/shirou/gopsutil/mem",
 			"revision": "35815938bff48222524b5954ccf69ddef700b1e8",
 			"revisionTime": "2018-12-03T04:35:08Z"
+		},
+		{
+			"checksumSHA1": "qm2Aiy3d0YWIuTM34RKiKyDNCp0=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "9f049671f18633e0991c2cbc2bebc81e0b3c402c",
+			"revisionTime": "2018-12-10T08:02:29Z"
+		},
+		{
+			"checksumSHA1": "KW0/P62Hm8oTOljdBqNWTyX5MEk=",
+			"path": "github.com/sirupsen/logrus/hooks/test",
+			"revision": "9f049671f18633e0991c2cbc2bebc81e0b3c402c",
+			"revisionTime": "2018-12-10T08:02:29Z"
 		},
 		{
 			"checksumSHA1": "fKq6NiaqP3DFxnCRF5mmpJWTSUA=",
@@ -680,52 +722,161 @@
 			"revisionTime": "2016-07-15T15:55:40Z"
 		},
 		{
+			"checksumSHA1": "Tm7U4dBBSq0z5YscZTqSTs4qjEU=",
+			"path": "github.com/stellar/go/address",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "KbQKKnZV7ns4utj2gLY7FOGYI+w=",
+			"path": "github.com/stellar/go/amount",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "KuREGVBawvFfIMsUmx67D7gGxjw=",
+			"path": "github.com/stellar/go/build",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "lNNS4mTZlbciLrs24+zR03+KyA0=",
+			"path": "github.com/stellar/go/clients/federation",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "Dqtqa121D0oWMyIekFiKa8MN5AE=",
+			"path": "github.com/stellar/go/clients/horizon",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "qqjtlFApV9GJLrb04Iwirvf9UzY=",
+			"path": "github.com/stellar/go/clients/stellartoml",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
 			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",
+			"origin": "github.com/keybase/stellar-org/crc16",
 			"path": "github.com/stellar/go/crc16",
-			"revision": "9f7798175d175b3ba425f3dba01adf5567b234c7",
-			"revisionTime": "2018-04-24T20:44:10Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
 			"checksumSHA1": "7breOdx3oym3WOByXt4Lphr4chc=",
+			"origin": "github.com/keybase/stellar-org/hash",
 			"path": "github.com/stellar/go/hash",
-			"revision": "9f7798175d175b3ba425f3dba01adf5567b234c7",
-			"revisionTime": "2018-04-24T20:44:10Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
-			"checksumSHA1": "/L0UEqLhpegM8wjxR+BMJ+AVW8Y=",
+			"checksumSHA1": "b3hvHZMMpxnzU1PPI/+GbrSppq4=",
+			"origin": "github.com/keybase/stellar-org/keypair",
 			"path": "github.com/stellar/go/keypair",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
 			"checksumSHA1": "smPjsSq12pIzKkI8PX1/YtgCbOY=",
+			"origin": "github.com/keybase/stellar-org/network",
 			"path": "github.com/stellar/go/network",
-			"revision": "9f7798175d175b3ba425f3dba01adf5567b234c7",
-			"revisionTime": "2018-04-24T20:44:10Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
+		},
+		{
+			"checksumSHA1": "rl9glWYc+u+lljHH8z3GmY0t4vM=",
+			"path": "github.com/stellar/go/price",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "EGDnhf+fQo0nfGaglM0TMBPMV0M=",
+			"path": "github.com/stellar/go/protocols/federation",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "wfiHtu29NKl5CXGImiLaDJlxXFQ=",
+			"path": "github.com/stellar/go/protocols/horizon",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "b7jF5v9LJPYZzZf8VlnSBgqgAEI=",
+			"path": "github.com/stellar/go/protocols/horizon/base",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
 		},
 		{
 			"checksumSHA1": "T/ktj9MMn1BW0wi8DOkMXmm/VhQ=",
+			"origin": "github.com/keybase/stellar-org/strkey",
 			"path": "github.com/stellar/go/strkey",
-			"revision": "c2d8566850ab928e4ab70cf8fc79b0af45734dfd",
-			"revisionTime": "2018-12-03T14:44:32Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
 			"checksumSHA1": "RYWv9kXP4XcsZ1oMsJmXf8bWpYs=",
+			"origin": "github.com/keybase/stellar-org/support/errors",
 			"path": "github.com/stellar/go/support/errors",
-			"revision": "9f7798175d175b3ba425f3dba01adf5567b234c7",
-			"revisionTime": "2018-04-24T20:44:10Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
-			"checksumSHA1": "mwJE9i4aZRAWEi9gsyLicCBbsro=",
+			"checksumSHA1": "qg2VHBkWHGciYOWc88kUOImyjLE=",
+			"path": "github.com/stellar/go/support/http/mutil",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "waU3oTSODHjdpuiqcvqTSvNwTnE=",
+			"path": "github.com/stellar/go/support/log",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "kOArfVelPO9tPseHtbMfPtyBn8A=",
+			"path": "github.com/stellar/go/support/render/hal",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "EhwcW96EMcLni5HX24oyGVJVtp0=",
+			"path": "github.com/stellar/go/support/render/problem",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "aA7kiwk05rwCwvpUVqHgxBzs31M=",
+			"path": "github.com/stellar/go/support/url",
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
+		},
+		{
+			"checksumSHA1": "ODB+fbJPxEwx7B6mItaA3P2qC40=",
+			"origin": "github.com/keybase/stellar-org/xdr",
 			"path": "github.com/stellar/go/xdr",
-			"revision": "9f7798175d175b3ba425f3dba01adf5567b234c7",
-			"revisionTime": "2018-04-24T20:44:10Z"
+			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
+			"revisionTime": "2018-08-01T14:55:35Z"
+		},
+		{
+			"checksumSHA1": "BBudH/js1dNI/nEfTwsAYUo9l2M=",
+			"path": "github.com/stretchr/objx",
+			"revision": "ef50b0de28773081167c97fc27cf29a0bf8b8c71",
+			"revisionTime": "2018-08-25T06:49:32Z"
 		},
 		{
 			"checksumSHA1": "v3LEmqP4Cb6qGCIP7mJk7l2ZXw8=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "8019298d9fa5a04fc2ad10ae03349df3483096a6",
 			"revisionTime": "2018-10-28T12:27:15Z"
+		},
+		{
+			"checksumSHA1": "WmBSFdqpdYRIkp0I408JIZ3LDMY=",
+			"path": "github.com/stretchr/testify/mock",
+			"revision": "5b93e2dc01fd8fbf32aa74a198b0ebe78f6f6b6f",
+			"revisionTime": "2018-12-05T23:58:52Z"
 		},
 		{
 			"checksumSHA1": "3DvkGtpbJW8oXepRr3wYSs72LmQ=",
@@ -1026,6 +1177,12 @@
 			"path": "golang.org/x/crypto/ssh/knownhosts",
 			"revision": "2faea1465de239e4babd8f5905cc25b781712442",
 			"revisionTime": "2017-07-22T22:00:11-07:00"
+		},
+		{
+			"checksumSHA1": "BSPDVKviqHQaG2phOFN690zAKB8=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "505ab145d0a99da450461ae2c1a9f6cd10d1f447",
+			"revisionTime": "2018-09-26T22:07:39Z"
 		},
 		{
 			"checksumSHA1": "fgKd/+IO854XgYSrwOQJ5jG8WdI=",

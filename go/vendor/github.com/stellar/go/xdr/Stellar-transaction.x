@@ -25,8 +25,7 @@ enum OperationType
     ALLOW_TRUST = 7,
     ACCOUNT_MERGE = 8,
     INFLATION = 9,
-    MANAGE_DATA = 10,
-    BUMP_SEQUENCE = 11
+    MANAGE_DATA = 10
 };
 
 /* CreateAccount
@@ -208,8 +207,8 @@ Result: InflationResult
 */
 
 /* ManageData
-    Adds, Updates, or Deletes a key value pair associated with a particular
-        account.
+    Adds, Updates, or Deletes a key value pair associated with a particular 
+	account.
 
     Threshold: med
 
@@ -218,20 +217,8 @@ Result: InflationResult
 
 struct ManageDataOp
 {
-    string64 dataName;
-    DataValue* dataValue; // set to null to clear
-};
-
-/* Bump Sequence
-
-    increases the sequence to a given level
-
-    Result: BumpSequenceResult
-*/
-
-struct BumpSequenceOp
-{
-    SequenceNumber bumpTo;
+    string64 dataName; 
+    DataValue* dataValue;   // set to null to clear
 };
 
 /* An operation is the lowest unit of work that a transaction does */
@@ -266,8 +253,6 @@ struct Operation
         void;
     case MANAGE_DATA:
         ManageDataOp manageDataOp;
-    case BUMP_SEQUENCE:
-        BumpSequenceOp bumpSequenceOp;
     }
     body;
 };
@@ -336,16 +321,14 @@ struct Transaction
     ext;
 };
 
-struct TransactionSignaturePayload
-{
+struct TransactionSignaturePayload {
     Hash networkId;
     union switch (EnvelopeType type)
     {
     case ENVELOPE_TYPE_TX:
-        Transaction tx;
-        /* All other values of type are invalid */
-    }
-    taggedTransaction;
+          Transaction tx;
+    /* All other values of type are invalid */
+    } taggedTransaction;
 };
 
 /* A TransactionEnvelope wraps a transaction with signatures. */
@@ -354,7 +337,8 @@ struct TransactionEnvelope
     Transaction tx;
     /* Each decorated signature is a signature over the SHA256 hash of
      * a TransactionSignaturePayload */
-    DecoratedSignature signatures<20>;
+    DecoratedSignature
+    signatures<20>;
 };
 
 /* Operation Results section */
@@ -561,8 +545,7 @@ enum ChangeTrustResultCode
     CHANGE_TRUST_NO_ISSUER = -2,     // could not find issuer
     CHANGE_TRUST_INVALID_LIMIT = -3, // cannot drop limit below balance
                                      // cannot create with a limit of 0
-    CHANGE_TRUST_LOW_RESERVE =
-        -4, // not enough funds to create a new trust line,
+    CHANGE_TRUST_LOW_RESERVE = -4, // not enough funds to create a new trust line,
     CHANGE_TRUST_SELF_NOT_ALLOWED = -5 // trusting self is not allowed
 };
 
@@ -585,7 +568,7 @@ enum AllowTrustResultCode
     ALLOW_TRUST_NO_TRUST_LINE = -2, // trustor does not have a trustline
                                     // source account does not require trust
     ALLOW_TRUST_TRUST_NOT_REQUIRED = -3,
-    ALLOW_TRUST_CANT_REVOKE = -4,     // source account can't revoke trust,
+    ALLOW_TRUST_CANT_REVOKE = -4, // source account can't revoke trust,
     ALLOW_TRUST_SELF_NOT_ALLOWED = -5 // trusting self is not allowed
 };
 
@@ -604,11 +587,10 @@ enum AccountMergeResultCode
     // codes considered as "success" for the operation
     ACCOUNT_MERGE_SUCCESS = 0,
     // codes considered as "failure" for the operation
-    ACCOUNT_MERGE_MALFORMED = -1,       // can't merge onto itself
-    ACCOUNT_MERGE_NO_ACCOUNT = -2,      // destination does not exist
-    ACCOUNT_MERGE_IMMUTABLE_SET = -3,   // source account has AUTH_IMMUTABLE set
-    ACCOUNT_MERGE_HAS_SUB_ENTRIES = -4, // account has trust lines/offers
-    ACCOUNT_MERGE_SEQNUM_TOO_FAR = -5   // sequence number is over max allowed
+    ACCOUNT_MERGE_MALFORMED = -1,      // can't merge onto itself
+    ACCOUNT_MERGE_NO_ACCOUNT = -2,     // destination does not exist
+    ACCOUNT_MERGE_IMMUTABLE_SET = -3,  // source account has AUTH_IMMUTABLE set
+    ACCOUNT_MERGE_HAS_SUB_ENTRIES = -4 // account has trust lines/offers
 };
 
 union AccountMergeResult switch (AccountMergeResultCode code)
@@ -650,12 +632,10 @@ enum ManageDataResultCode
     // codes considered as "success" for the operation
     MANAGE_DATA_SUCCESS = 0,
     // codes considered as "failure" for the operation
-    MANAGE_DATA_NOT_SUPPORTED_YET =
-        -1, // The network hasn't moved to this protocol change yet
-    MANAGE_DATA_NAME_NOT_FOUND =
-        -2, // Trying to remove a Data Entry that isn't there
-    MANAGE_DATA_LOW_RESERVE = -3, // not enough funds to create a new Data Entry
-    MANAGE_DATA_INVALID_NAME = -4 // Name not a valid string
+    MANAGE_DATA_NOT_SUPPORTED_YET = -1, // The network hasn't moved to this protocol change yet
+    MANAGE_DATA_NAME_NOT_FOUND = -2,    // Trying to remove a Data Entry that isn't there
+    MANAGE_DATA_LOW_RESERVE = -3,       // not enough funds to create a new Data Entry
+    MANAGE_DATA_INVALID_NAME = -4       // Name not a valid string
 };
 
 union ManageDataResult switch (ManageDataResultCode code)
@@ -666,32 +646,14 @@ default:
     void;
 };
 
-/******* BumpSequence Result ********/
-
-enum BumpSequenceResultCode
-{
-    // codes considered as "success" for the operation
-    BUMP_SEQUENCE_SUCCESS = 0,
-    // codes considered as "failure" for the operation
-    BUMP_SEQUENCE_BAD_SEQ = -1 // `bumpTo` is not within bounds
-};
-
-union BumpSequenceResult switch (BumpSequenceResultCode code)
-{
-case BUMP_SEQUENCE_SUCCESS:
-    void;
-default:
-    void;
-};
 /* High level Operation Result */
 
 enum OperationResultCode
 {
     opINNER = 0, // inner object result is valid
 
-    opBAD_AUTH = -1,     // too few valid signatures / wrong network
-    opNO_ACCOUNT = -2,   // source account was not found
-    opNOT_SUPPORTED = -3 // operation not supported at this time
+    opBAD_AUTH = -1,  // too few valid signatures / wrong network
+    opNO_ACCOUNT = -2 // source account was not found
 };
 
 union OperationResult switch (OperationResultCode code)
@@ -721,8 +683,6 @@ case opINNER:
         InflationResult inflationResult;
     case MANAGE_DATA:
         ManageDataResult manageDataResult;
-    case BUMP_SEQUENCE:
-        BumpSequenceResult bumpSeqResult;
     }
     tr;
 default:
