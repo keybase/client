@@ -1308,10 +1308,10 @@
 			"revisionTime": "2018-01-11T11:10:38Z"
 		},
 		{
-			"checksumSHA1": "Yjacru/DE9yXphaefh67NrjNgAk=",
+			"checksumSHA1": "lBWiVnI+9tnYWuXnUiWljDy9dnc=",
 			"path": "golang.org/x/crypto/acme/autocert",
-			"revision": "505ab145d0a99da450461ae2c1a9f6cd10d1f447",
-			"revisionTime": "2018-09-26T22:07:39Z"
+			"revision": "13931e22f9e72ea58bb73048bc752b48c6d4d4ac",
+			"revisionTime": "2018-01-11T11:10:38Z"
 		},
 		{
 			"checksumSHA1": "oCH3J96RWvO8W4xjix47PModpio=",
