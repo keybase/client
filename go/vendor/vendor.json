@@ -42,26 +42,26 @@
 		{
 			"checksumSHA1": "hYtV4dXAd8dkPaVJZZ8tqJzKlBo=",
 			"path": "camlistore.org/pkg/buildinfo",
-			"revision": "a5a65f0d8b2281c4cc8c259ba882dd0ec851427f",
-			"revisionTime": "2017-12-30T00:22:26Z"
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
 		},
 		{
 			"checksumSHA1": "GLsMO24weWLI/4sft+5lUvljMH4=",
 			"path": "camlistore.org/pkg/images",
-			"revision": "a5a65f0d8b2281c4cc8c259ba882dd0ec851427f",
-			"revisionTime": "2017-12-30T00:22:26Z"
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
 		},
 		{
-			"checksumSHA1": "0gzFG8x3LVw63nImi4CaXi4VNgk=",
+			"checksumSHA1": "1je72I+oh+Nx9mrSHY8PN2sdDSA=",
 			"path": "camlistore.org/pkg/images/fastjpeg",
-			"revision": "a5a65f0d8b2281c4cc8c259ba882dd0ec851427f",
-			"revisionTime": "2017-12-30T00:22:26Z"
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
 		},
 		{
 			"checksumSHA1": "MbnwDeEckBC4pLM8GEsPNeSMd+c=",
 			"path": "camlistore.org/pkg/images/resize",
-			"revision": "a5a65f0d8b2281c4cc8c259ba882dd0ec851427f",
-			"revisionTime": "2017-12-30T00:22:26Z"
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
 		},
 		{
 			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
