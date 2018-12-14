@@ -58,6 +58,6 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	if err != nil {
 		return err
 	}
-	walletState.Refresh(mctx.Ctx(), senderEntry.AccountID)
+	walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
 	return nil
 }
