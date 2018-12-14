@@ -23,10 +23,9 @@ const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
   const filter = state.chat2.inboxFilter
   const username = state.config.username
-  const inboxVersion = state.chat2.inboxVersion
   const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
     ? filteredRowData(metaMap, filter, username)
-    : normalRowData(metaMap, state.chat2.smallTeamsExpanded, inboxVersion)
+    : normalRowData(metaMap, state.chat2.smallTeamsExpanded)
   const neverLoaded = !state.chat2.inboxHasLoaded
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
