@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
+// https://pool.lumenaut.net/
 const lumenautPoolAccountID = "GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"
 
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
