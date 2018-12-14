@@ -230,6 +230,11 @@ const submitCryptoAddress = (
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ) =>
   Saga.callUntyped(function*() {
+    if (!state.profile.usernameValid) {
+      yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: 0, errorText: 'Invalid address format'}))
+      return
+    }
+
     const address = state.profile.username
 
     let wantedFamily

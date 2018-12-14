@@ -5,39 +5,32 @@ import * as Constants from '../constants/profile'
 import * as Flow from '../util/flow'
 import * as Validators from '../util/simple-validators'
 
-// A simple check, the server does a fuller check
-function checkBTC(address: string): boolean {
-  return !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-}
+const updateUsername = state => {
+  let username = state.username || ''
+  let usernameValid = true
 
-// A simple check, the server does a fuller check
-function checkZcash(address: string): boolean {
-  return true // !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-}
-
-function checkUsernameValid(platform: ?string, username: string): boolean {
-  if (platform === 'btc') {
-    return checkBTC(username)
-  } else if (platform === 'zcash') {
-    return checkZcash(username)
-  } else {
-    return true
+  switch (state.platform) {
+    case 'http': // fallthrough
+    case 'https':
+      // Ensure that only the hostname is getting returned, with no
+      // protocol, port, or path information
+      username =
+        state.username &&
+        state.username
+          // Remove protocol information (if present)
+          .replace(/^.*?:\/\//, '')
+          // Remove port information (if present)
+          .replace(/:.*/, '')
+          // Remove path information (if present)
+          .replace(/\/.*/, '')
+      break
+    case 'btc':
+      // A simple check, the server does a fuller check
+      usernameValid = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      break
   }
-}
 
-function cleanupUsername(platform: ?string, username: string): string {
-  if (['http', 'https'].includes(platform)) {
-    // Ensure that only the hostname is getting returned, with no
-    // protocol, port, or path information
-    return (
-      username &&
-      username
-        .replace(/^.*?:\/\//, '') // Remove protocol information (if present)
-        .replace(/:.*/, '') // Remove port information (if present)
-        .replace(/\/.*/, '')
-    ) // Remove path information (if present)
-  }
-  return username
+  return state.merge({username, usernameValid})
 }
 
 const initialState = Constants.makeInitialState()
@@ -46,21 +39,12 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
   switch (action.type) {
     case ProfileGen.resetStore:
       return initialState
-    case ProfileGen.updatePlatform: {
-      const {platform} = action.payload
-      const usernameValid = checkUsernameValid(platform, state.username)
-      return state.merge({
-        platform,
-        usernameValid,
-      })
-    }
-    case ProfileGen.updateUsername: {
-      const {username} = action.payload
-      const usernameValid = checkUsernameValid(state.platform, username)
-      return state.merge({usernameValid})
-    }
+    case ProfileGen.updatePlatform:
+      return updateUsername(state.merge({platform: action.payload.platform}))
+    case ProfileGen.updateUsername:
+      return updateUsername(state.merge({username: action.payload.username}))
     case ProfileGen.cleanupUsername:
-      return state.merge({username: cleanupUsername(state.platform, state.username)})
+      return updateUsername(state)
     case ProfileGen.revokeFinish:
       return state.merge({revokeError: action.error ? action.payload.error : ''})
     case ProfileGen.updateProofText:
@@ -89,20 +73,19 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
     case ProfileGen.addProof:
-      const {platform} = action.payload
-      const usernameValid = checkUsernameValid(platform, state.username)
-      return state.merge({
-        errorCode: null,
-        errorText: '',
-        platform,
-        usernameValid,
-      })
+      return updateUsername(
+        state.merge({
+          errorCode: null,
+          errorText: '',
+          platform: action.payload.platform,
+        })
+      )
     case ProfileGen.cancelAddProof: // fallthrough
     case ProfileGen.checkProof:
       return state.merge({errorCode: null, errorText: ''})
     case ProfileGen.submitBTCAddress:
     case ProfileGen.submitZcashAddress:
-      return state.merge({username: cleanupUsername(state.platform, state.username)})
+      return updateUsername(state)
     // Saga only actions
     case ProfileGen.backToProfile:
     case ProfileGen.cancelPgpGen:
