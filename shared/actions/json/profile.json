@@ -49,12 +49,6 @@
       "pgpEmail3?": "string",
       "pgpErrorText?": "string",
       "pgpFullName?": "string",
-      "canError": {
-        "pgpErrorText": "string",
-        "pgpErrorEmail1": "boolean",
-        "pgpErrorEmail2": "boolean",
-        "pgpErrorEmail3": "boolean",
-      }
     },
     "updatePgpPublicKey": { "publicKey": "string" },
     "updatePlatform": { "platform": "More.PlatformsExpandedType" },

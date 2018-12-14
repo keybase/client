@@ -62,7 +62,6 @@ type _SubmitUsernamePayload = void
 type _SubmitZcashAddressPayload = void
 type _UpdateErrorTextPayload = $ReadOnly<{|errorText: string, errorCode: ?number|}>
 type _UpdatePgpInfoPayload = $ReadOnly<{|pgpEmail1?: string, pgpEmail2?: string, pgpEmail3?: string, pgpErrorText?: string, pgpFullName?: string|}>
-type _UpdatePgpInfoPayloadError = $ReadOnly<{|pgpErrorText: string, pgpErrorEmail1: boolean, pgpErrorEmail2: boolean, pgpErrorEmail3: boolean|}>
 type _UpdatePgpPublicKeyPayload = $ReadOnly<{|publicKey: string|}>
 type _UpdatePlatformPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
 type _UpdateProofStatusPayload = $ReadOnly<{|found: boolean, status: RPCTypes.ProofStatus|}>
@@ -76,7 +75,6 @@ type _UploadAvatarPayload = $ReadOnly<{|filename: string, crop?: RPCTypes.ImageC
  * Update any fields
  */
 export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload) => ({payload, type: updatePgpInfo})
-export const createUpdatePgpInfoError = (payload: _UpdatePgpInfoPayloadError) => ({error: true, payload, type: updatePgpInfo})
 export const createAddProof = (payload: _AddProofPayload) => ({payload, type: addProof})
 export const createBackToProfile = (payload: _BackToProfilePayload) => ({payload, type: backToProfile})
 export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({payload, type: cancelAddProof})
@@ -129,7 +127,6 @@ export type SubmitUsernamePayload = {|+payload: _SubmitUsernamePayload, +type: '
 export type SubmitZcashAddressPayload = {|+payload: _SubmitZcashAddressPayload, +type: 'profile:submitZcashAddress'|}
 export type UpdateErrorTextPayload = {|+payload: _UpdateErrorTextPayload, +type: 'profile:updateErrorText'|}
 export type UpdatePgpInfoPayload = {|+payload: _UpdatePgpInfoPayload, +type: 'profile:updatePgpInfo'|}
-export type UpdatePgpInfoPayloadError = {|+error: true, +payload: _UpdatePgpInfoPayloadError, +type: 'profile:updatePgpInfo'|}
 export type UpdatePgpPublicKeyPayload = {|+payload: _UpdatePgpPublicKeyPayload, +type: 'profile:updatePgpPublicKey'|}
 export type UpdatePlatformPayload = {|+payload: _UpdatePlatformPayload, +type: 'profile:updatePlatform'|}
 export type UpdateProofStatusPayload = {|+payload: _UpdateProofStatusPayload, +type: 'profile:updateProofStatus'|}
@@ -163,7 +160,6 @@ export type Actions =
   | SubmitZcashAddressPayload
   | UpdateErrorTextPayload
   | UpdatePgpInfoPayload
-  | UpdatePgpInfoPayloadError
   | UpdatePgpPublicKeyPayload
   | UpdatePlatformPayload
   | UpdateProofStatusPayload

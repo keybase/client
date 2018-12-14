@@ -76,18 +76,16 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.updateSigID:
       return state.merge({sigID: action.payload.sigID})
     case ProfileGen.updatePgpInfo:
-      if (action.error) {
-        const valid1 = Validators.isValidEmail(state.pgpEmail1)
-        const valid2 = Validators.isValidEmail(state.pgpEmail2)
-        const valid3 = Validators.isValidEmail(state.pgpEmail3)
-        return state.merge({
-          pgpErrorEmail1: !!valid1,
-          pgpErrorEmail2: !!valid2,
-          pgpErrorEmail3: !!valid3,
-          pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
-        })
-      }
-      return state.merge(action.payload)
+      const valid1 = Validators.isValidEmail(state.pgpEmail1)
+      const valid2 = state.pgpEmail2 && Validators.isValidEmail(state.pgpEmail2)
+      const valid3 = state.pgpEmail3 && Validators.isValidEmail(state.pgpEmail3)
+      return state.merge({
+        ...action.payload,
+        pgpErrorEmail1: !!valid1,
+        pgpErrorEmail2: !!valid2,
+        pgpErrorEmail3: !!valid3,
+        pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
+      })
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
     case ProfileGen.addProof:
