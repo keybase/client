@@ -414,7 +414,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		a.Unlock()
 
 		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(details, isPrimary, name)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, details, isPrimary, name)
 			if err == nil {
 				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
 			}
@@ -466,7 +466,7 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
 	if err == nil {
 		a.Lock()
-		if seqno > a.seqno {
+		if seqno != a.seqno {
 			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 			a.seqno = seqno
 		} else {
@@ -580,6 +580,9 @@ func detailsChanged(a, b *stellar1.AccountDetails) bool {
 		}
 	}
 	if a.SubentryCount != b.SubentryCount {
+		return true
+	}
+	if a.DisplayCurrency != b.DisplayCurrency {
 		return true
 	}
 	if len(a.Balances) != len(b.Balances) {

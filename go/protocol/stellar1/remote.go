@@ -453,6 +453,7 @@ type AccountDetails struct {
 	Reserves          []AccountReserve `codec:"reserves" json:"reserves"`
 	ReadTransactionID *TransactionID   `codec:"readTransactionID,omitempty" json:"readTransactionID,omitempty"`
 	UnreadPayments    int              `codec:"unreadPayments" json:"unreadPayments"`
+	DisplayCurrency   string           `codec:"displayCurrency" json:"displayCurrency"`
 }
 
 func (o AccountDetails) DeepCopy() AccountDetails {
@@ -490,7 +491,8 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReadTransactionID),
-		UnreadPayments: o.UnreadPayments,
+		UnreadPayments:  o.UnreadPayments,
+		DisplayCurrency: o.DisplayCurrency,
 	}
 }
 
