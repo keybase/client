@@ -339,6 +339,7 @@ export type EncryptedNote = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, s
 export type EncryptedRelaySecret = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerTeamKeyGeneration}>
 export type Hash = Bytes
 export type InflationDestination = {typ: 1} | {typ: 2, accountid: ?AccountID} | {typ: 3}
+export type InflationDestinationResultLocal = $ReadOnly<{destination?: ?AccountID, comment: String}>
 export type InflationDestinationType =
   | 1 // SELF_1
   | 2 // ACCOUNTID_2

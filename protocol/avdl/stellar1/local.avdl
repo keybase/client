@@ -475,7 +475,12 @@ protocol local {
     case LUMENAUT: void;
   }
   void setInflationDestinationLocal(int sessionID, AccountID accountID, InflationDestination destination);
-  union { null, AccountID } getInflationDestinationLocal(int sessionID, AccountID accountID);
+
+  record InflationDestinationResultLocal {
+    union { null, AccountID } destination;
+    string comment;
+  }
+  InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

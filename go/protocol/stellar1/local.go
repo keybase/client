@@ -665,6 +665,24 @@ func (o InflationDestination) DeepCopy() InflationDestination {
 	}
 }
 
+type InflationDestinationResultLocal struct {
+	Destination *AccountID `codec:"destination,omitempty" json:"destination,omitempty"`
+	Comment     string     `codec:"comment" json:"comment"`
+}
+
+func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLocal {
+	return InflationDestinationResultLocal{
+		Destination: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Destination),
+		Comment: o.Comment,
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 	TxID   TransactionID        `codec:"txID" json:"txID"`
@@ -1171,7 +1189,7 @@ type LocalInterface interface {
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
 	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
 	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
-	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (*AccountID, error)
+	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (InflationDestinationResultLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -2198,7 +2216,7 @@ func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg Set
 	return
 }
 
-func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res *AccountID, err error) {
+func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res InflationDestinationResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res)
 	return
 }

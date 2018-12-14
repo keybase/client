@@ -59,13 +59,17 @@ func (c *cmdWalletGetInflation) Run() (err error) {
 
 	dui := c.G().UI.GetDumbOutputUI()
 	var formatted string
-	if dest != nil {
-		formatted = dest.String()
+	if dest.Destination != nil {
+		formatted = dest.Destination.String()
 	} else {
 		formatted = "(not set)"
 	}
+	var maybeComment string
+	if dest.Comment != "" {
+		maybeComment = fmt.Sprintf(" (%s)", dest.Comment)
+	}
 	dui.Printf("Checking inflation destination for %s\n", accountID)
-	dui.Printf("Inflation destination: %s\n", formatted)
+	dui.Printf("Inflation destination: %s%s\n", formatted, maybeComment)
 	return nil
 }
 

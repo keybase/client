@@ -7,7 +7,7 @@ import (
 )
 
 // https://pool.lumenaut.net/
-const lumenautPoolAccountID = "GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"
+const lumenautPoolAccountID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")
 
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
 	defer mctx.CTraceTimed("Stellar.SetInflationDestinationLocal", func() error { return err })()
@@ -41,7 +41,7 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	case stellar1.InflationDestinationType_SELF:
 		destinationAddrStr = stellarnet.AddressStr(senderEntry.AccountID)
 	case stellar1.InflationDestinationType_LUMENAUT:
-		destinationAddrStr = stellarnet.AddressStr(lumenautPoolAccountID)
+		destinationAddrStr = stellarnet.AddressStr(lumenautPoolAccountID.String())
 	case stellar1.InflationDestinationType_ACCOUNTID:
 		destinationAddrStr, err = stellarnet.NewAddressStr(arg.Destination.Accountid().String())
 		if err != nil {
@@ -60,4 +60,29 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	}
 	walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
 	return nil
+}
+
+func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.InflationDestinationResultLocal, err error) {
+	defer mctx.CTraceTimed("Stellar.GetInflationDestination", func() error { return err })()
+
+	walletState := getGlobal(mctx.G()).walletState
+	destination, err := walletState.GetInflationDestination(mctx.Ctx(), accountID)
+	if err != nil {
+		return res, err
+	}
+
+	if destination == nil {
+		// Inflation destination is not set on the account
+		res.Destination = nil
+		res.Comment = ""
+		return res, nil
+	}
+
+	res.Destination = destination
+	if destination.Eq(accountID) {
+		res.Comment = "self"
+	} else if destination.Eq(lumenautPoolAccountID) {
+		res.Comment = "https://pool.lumenaut.net/"
+	}
+	return res, nil
 }
