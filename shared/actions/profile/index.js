@@ -9,7 +9,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
-import {navigateTo, navigateUp} from '../../actions/route-tree'
+import * as RouteTree from '../../actions/route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
@@ -25,7 +25,7 @@ function _editProfile(action: ProfileGen.EditProfilePayload) {
       location,
     }),
     // If the profile tab remained on the edit profile screen, navigate back to the top level.
-    Saga.put(navigateUp()),
+    Saga.put(RouteTree.createNavigateUp()),
   ])
 }
 
@@ -36,7 +36,7 @@ function _uploadAvatar(action: ProfileGen.UploadAvatarPayload) {
       crop,
       filename,
     }),
-    Saga.put(navigateUp()),
+    Saga.put(RouteTree.createNavigateUp()),
   ])
 }
 
@@ -44,25 +44,25 @@ function _finishRevoking() {
   return Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true})),
     Saga.put(ProfileGen.createRevokeFinish()),
-    Saga.put(navigateUp()),
+    Saga.put(RouteTree.createNavigateUp()),
   ])
 }
 
-function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: TypedState) {
+const showUserProfile = (state: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
   const {username: userId} = action.payload
+  // TODO search itself should handle this
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
     state.entities.search.searchResults,
     userId
   )
-  const me = state.config.username || ''
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
-  const onlyProfilesPath = Constants.getProfilePath(peopleRouteProps, username, me, state)
+  const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)
   // $FlowIssue
-  return Saga.put(navigateTo(onlyProfilesPath))
+  return path ? Promise.resolve(RouteTree.createNavigateTo({path})) : null
 }
 
-function _onClickAvatar(action: ProfileGen.OnClickAvatarPayload) {
+const onClickAvatar = (_, action: ProfileGen.OnClickAvatarPayload) => {
   if (!action.payload.username) {
     return
   }
@@ -74,9 +74,10 @@ function _onClickAvatar(action: ProfileGen.OnClickAvatarPayload) {
   }
 }
 
-function _openProfileOrWebsite(
+const openProfileOrWebsite = (
+  _,
   action: ProfileGen.OnClickFollowersPayload | ProfileGen.OnClickFollowingPayload
-) {
+) => {
   if (!action.payload.username) {
     return
   }
@@ -114,10 +115,10 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function _outputInstructionsActionLink(
-  action: ProfileGen.OutputInstructionsActionLinkPayload,
-  state: TypedState
-) {
+const outputInstructionsActionLink = (
+  state: TypedState,
+  action: ProfileGen.OutputInstructionsActionLinkPayload
+) => {
   const profile = state.profile
   switch (profile.platform) {
     case 'twitter':
@@ -143,7 +144,7 @@ function _outputInstructionsActionLink(
 function _backToProfile() {
   return Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({})),
-    Saga.put(navigateTo(['profile'], [peopleTab])),
+    Saga.put(RouteTree.createNavigateTo({parentPath: [peopleTab], path: ['profile']})),
   ])
 }
 
@@ -153,13 +154,10 @@ function* _profileSaga() {
   yield Saga.safeTakeEveryPure(ProfileGen.editProfile, _editProfile)
   yield Saga.safeTakeEveryPure(ProfileGen.uploadAvatar, _uploadAvatar)
   yield Saga.safeTakeEveryPure(ProfileGen.finishRevoking, _finishRevoking)
-  yield Saga.safeTakeEveryPure(ProfileGen.onClickAvatar, _onClickAvatar)
-  yield Saga.safeTakeEveryPure(
-    [ProfileGen.onClickFollowers, ProfileGen.onClickFollowing],
-    _openProfileOrWebsite
-  )
-  yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
-  yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
+  yield Saga.actionToAction(ProfileGen.onClickAvatar, onClickAvatar)
+  yield Saga.actionToAction([ProfileGen.onClickFollowers, ProfileGen.onClickFollowing], openProfileOrWebsite)
+  yield Saga.actionToAction(ProfileGen.outputInstructionsActionLink, outputInstructionsActionLink)
+  yield Saga.actionToPromise(ProfileGen.showUserProfile, showUserProfile)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {
