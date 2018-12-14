@@ -26,13 +26,14 @@ const getIcon = status => {
 
 const PaymentStatus = (props: Props) => (
   <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
+    {' '}
     {props.text}{' '}
     <Kb.Icon
       type={getIcon(props.status)}
       fontSize={12}
       boxStyle={styles.iconBoxStyle}
       style={styles[props.status + 'Icon']}
-    />
+    />{' '}
   </Kb.Text>
 )
 
