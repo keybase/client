@@ -28,7 +28,7 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
   return {
     errorMessage: profile.errorText,
     isOnCompleteWaiting: profile.waiting,
-    onCancelText: 'Cancel',
+    leftActionText: 'Cancel',
     platform,
     platformUserName: profile.username,
     proofText: profile.proofText || '',
@@ -37,8 +37,8 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 
 const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
+  onLeftAction: () => dispatch(ProfileGen.createCancelAddProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
 })
 

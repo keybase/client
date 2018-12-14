@@ -14,7 +14,7 @@ type OwnProps = {|
 |}
 
 type Props = {
-  onBack: () => void,
+  onLeftAction: () => void,
   onEnterPaperkey: () => void,
   onRekey: () => void,
   onShowProfile: (username: string) => void,
@@ -28,15 +28,15 @@ const mapStateToProps = (state, {conversationIDKey}) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
+  onLeftAction: () => dispatch(navigateUp()),
   onRekey: () => dispatch(createOpenPopup()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  onBack: dispatchProps.onBack,
   onEnterPaperkey: dispatchProps.onEnterPaperkey,
+  onLeftAction: dispatchProps.onLeftAction,
   onRekey: dispatchProps.onRekey,
   onShowProfile: dispatchProps.onShowProfile,
   rekeyers: stateProps.rekeyers.toArray(),
@@ -48,14 +48,14 @@ class Rekey extends React.PureComponent<Props> {
     return this.props.youRekey ? (
       <YouRekey
         onEnterPaperkey={this.props.onEnterPaperkey}
-        onBack={this.props.onBack}
+        onLeftAction={this.props.onLeftAction}
         onRekey={this.props.onRekey}
       />
     ) : (
       <ParticipantRekey
         rekeyers={this.props.rekeyers}
         onShowProfile={this.props.onShowProfile}
-        onBack={this.props.onBack}
+        onLeftAction={this.props.onLeftAction}
       />
     )
   }

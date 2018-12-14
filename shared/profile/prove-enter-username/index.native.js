@@ -80,7 +80,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
       ? {notification: {message: customError(this.props.errorText, this.props.errorCode), type: 'error'}}
       : {}
     return (
-      <StandardScreen {...notification} onCancel={this.props.onCancel}>
+      <StandardScreen {...notification}>
         <PlatformIcon
           style={styleIcon}
           platform={this.props.platform}

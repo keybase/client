@@ -425,7 +425,7 @@ class Profile extends Component<Props, State> {
       return (
         <Kb.HeaderHocHeader
           borderless={true}
-          onLeftAction={this.props.onBack}
+          onLeftAction={this.props.onLeftAction}
           style={{
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
@@ -514,7 +514,7 @@ class Profile extends Component<Props, State> {
 
   render() {
     if (this.props.error) {
-      return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
+      return <ErrorComponent error={this.props.error} onBack={this.props.onLeftAction} />
     }
 
     const activeMenuProof = this.state.activeMenuProof

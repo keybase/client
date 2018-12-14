@@ -4,7 +4,7 @@ import {Box, Text, Button, StandardScreen} from '../../../common-adapters/mobile
 import {globalColors, globalStyles, globalMargins} from '../../../styles'
 import type {Props} from './you-rekey.types'
 
-const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
+const YouRekey = ({onEnterPaperkey, onLeftAction}: Props) => {
   const bannerEl = (
     <Box
       style={{
@@ -25,7 +25,7 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
   const notification = {message: bannerEl, type: 'error'}
 
   return (
-    <StandardScreen onBack={onBack} theme="dark" notification={notification}>
+    <StandardScreen onLeftAction={onLeftAction} theme="dark" notification={notification}>
       <Box style={containerStyle}>
         <Box
           style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', flex: 1, justifyContent: 'center'}}

@@ -14,7 +14,7 @@ export type Props = {
   children?: React.Node,
   title?: string,
   leftAction?: 'back' | 'cancel', // defaults to 'back'
-  onLeftAction?: () => void,
+  onLeftAction?: ?() => void,
   leftActionText?: string, // defaults to 'cancel' when leftAction is 'cancel'
   hideBackLabel?: boolean,
   customComponent?: ?React.Node,

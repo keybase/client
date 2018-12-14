@@ -9,9 +9,9 @@ const props = {
   allowProofCheck: true,
   copyToClipboard: action('copyToClipboard'),
   onAllowProofCheck: action('onAllowProofCheck'),
-  onCancel: action('onCancel'),
-  onCancelText: 'Cancel',
+  // onCancelText: 'Cancel',
   onComplete: action('onComplete'),
+  onLeftAction: action('onLeftAction'),
   platformUserName: 'awendland',
 }
 

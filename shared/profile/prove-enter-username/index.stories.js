@@ -9,8 +9,8 @@ const props = {
   canContinue: true,
   errorCode: null,
   errorText: null,
-  onCancel: () => action('onCancel'),
   onContinue: () => action('onContinue'),
+  onLeftAction: () => action('onLeftAction'),
   onUsernameChange: username => action('onUsernameChange'),
   username: 'chris',
 }

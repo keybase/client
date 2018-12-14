@@ -14,7 +14,7 @@ const PostProof = (props: Props) => {
     descriptionText,
     proofAction,
     onAllowProofCheck,
-    onCancel,
+    onLeftAction,
     onComplete,
     isOnCompleteWaiting,
     errorMessage,
@@ -38,7 +38,7 @@ const PostProof = (props: Props) => {
       }
 
   return (
-    <StandardScreen {...notification} onCancel={onCancel}>
+    <StandardScreen {...notification} onLeftAction={onLeftAction}>
       <PlatformIcon
         style={stylePlatformIcon}
         platform={platform}

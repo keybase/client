@@ -1,23 +1,22 @@
 // @flow
 import * as React from 'react'
 import type {ProvablePlatformsType} from '../../constants/types/more'
-import type {IconType} from '../../common-adapters'
 
 export type Props = {
   allowProofCheck: boolean,
+  copyToClipboard: string => void,
+  descriptionText?: string,
+  errorMessage?: ?string,
+  isOnCompleteWaiting?: boolean,
+  leftActionText?: ?string,
+  onAllowProofCheck: boolean => void,
+  onLeftAction: () => void,
+  onComplete: () => void,
   platform: ProvablePlatformsType,
   platformUserName: string,
-  descriptionText?: string,
-  proofText?: ?string,
   proofAction?: () => void,
   proofActionText?: ?string,
-  onAllowProofCheck: boolean => void,
-  onCancel: () => void,
-  onCancelText?: ?string,
-  onComplete: () => void,
-  isOnCompleteWaiting?: boolean,
-  errorMessage?: ?string,
-  copyToClipboard: string => void,
+  proofText?: ?string,
 }
 
 export default class Render extends React.Component<Props> {}
