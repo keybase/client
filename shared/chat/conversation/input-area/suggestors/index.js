@@ -218,7 +218,8 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         if (this.state.filter.length) {
           this._triggerTransform(this._getSelected())
         } else {
-          this._move(false)
+          // shift held -> move up
+          this._move(evt.shiftKey)
         }
         shouldCallParentCallback = false
       }
