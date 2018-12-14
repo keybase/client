@@ -874,6 +874,29 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	status = dbc.Status(ctx)
 	require.Equal(t, uint64(3), status[syncCacheName].NumBlocks)
 
+	t.Log("Add two empty files, to cause deduplication")
+	_, _, err = kbfsOps.CreateFile(ctx, aNode, "c", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	_, _, err = kbfsOps.CreateFile(ctx, aNode, "d", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Logf("Remove one file, but not the other")
+	err = kbfsOps.RemoveEntry(ctx, aNode, "d")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Wait for cleanup")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	// 4 blocks == root, a, b, and d without the old unref'd blocks.
+	status = dbc.Status(ctx)
+	require.Equal(t, uint64(4), status[syncCacheName].NumBlocks)
+
 	t.Log("Test another TLF that isn't synced until after a few revisions")
 	rootNode = GetRootNodeOrBust(ctx, t, config, userName.String(), tlf.Public)
 	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
