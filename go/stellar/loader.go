@@ -367,7 +367,7 @@ func (p *Loader) enqueuePayment(paymentID stellar1.PaymentID) {
 // entry on the queue.
 func (p *Loader) enqueuePaymentEntryDelayed(entry paymentQueueEntry) {
 	go func() {
-		time.Sleep(entry.attempt * 50 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		p.enqueuePaymentEntry(entry)
 	}()
 }
