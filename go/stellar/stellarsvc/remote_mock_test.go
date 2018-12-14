@@ -510,6 +510,14 @@ func (r *RemoteClientMock) ServerTimeboundsRecommendation(ctx context.Context) (
 	return r.Backend.ServerTimeboundsRecommendation(ctx, r.Tc)
 }
 
+func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx string) error {
+	return errors.New("not implemented")
+}
+
+func (r *RemoteClientMock) GetInflationDestination(ctx context.Context, accountID stellar1.AccountID) (*stellar1.AccountID, error) {
+	return nil, errors.New("not implemented")
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (

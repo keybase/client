@@ -563,3 +563,13 @@ func (s *stellarRetryClient) SetInflationDestinationLocal(ctx context.Context, a
 	}
 	return err
 }
+
+func (s *stellarRetryClient) GetInflationDestinationLocal(ctx context.Context, arg stellar1.GetInflationDestinationLocalArg) (res stellar1.InflationDestinationResultLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetInflationDestinationLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
