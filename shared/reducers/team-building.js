@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {trim} from 'lodash-es'
+import {trim} from 'lodash'
 import * as Flow from '../util/flow'
 
 export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(

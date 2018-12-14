@@ -6,7 +6,7 @@ import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import {invert} from 'lodash-es'
+import {invert} from 'lodash'
 import type {Props, IconType} from './icon'
 
 const invertedColors = invert(Styles.globalColors)

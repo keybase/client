@@ -2,7 +2,7 @@
 import logger from '../logger'
 import React from 'react'
 import * as I from 'immutable'
-import {debounce, trim} from 'lodash-es'
+import {debounce, trim} from 'lodash'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {compose, namedConnect} from '../util/container'

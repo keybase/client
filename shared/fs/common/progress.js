@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, Text} from '../../common-adapters'
-import {memoize} from 'lodash-es'
+import {memoize} from 'lodash'
 
 type ProgressProps = {
   completePortion: number,

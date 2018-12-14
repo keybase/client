@@ -4,7 +4,7 @@ import * as Kb from '../../../../common-adapters'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as TeamConstants from '../../../../constants/teams'
 import * as Style from '../../../../styles'
-import {upperFirst} from 'lodash-es'
+import {upperFirst} from 'lodash'
 
 type Props = {|
   canSetMinWriterRole: boolean,

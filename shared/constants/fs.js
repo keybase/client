@@ -13,7 +13,7 @@ import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import type {IconType} from '../common-adapters'
 import {tlfToPreferredOrder} from '../util/kbfs'
-import {memoize, findKey} from 'lodash-es'
+import {memoize, findKey} from 'lodash'
 import {putActionIfOnPath, navigateAppend, navigateTo} from '../actions/route-tree'
 
 export const defaultPath = '/keybase'

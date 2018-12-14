@@ -1,7 +1,7 @@
 // @flow
 import {emojiIndex} from 'emoji-mart'
 import emojidata from 'emoji-datasource'
-import {groupBy} from 'lodash-es'
+import {groupBy} from 'lodash'
 
 export type EmojiData = {
   category: string,

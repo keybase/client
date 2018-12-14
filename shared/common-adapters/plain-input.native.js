@@ -5,7 +5,7 @@ import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
-import {pick} from 'lodash-es'
+import {pick} from 'lodash'
 import logger from '../logger'
 
 import type {InternalProps, TextInfo, Selection} from './plain-input'

@@ -3,7 +3,7 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
 import * as Saga from '../util/saga'
-import {mapValues, forEach} from 'lodash-es'
+import {mapValues, forEach} from 'lodash'
 import {getEngine} from '../engine/require'
 
 export type Buffer<T> = {

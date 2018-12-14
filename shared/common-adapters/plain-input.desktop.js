@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
-import {pick} from 'lodash-es'
+import {pick} from 'lodash'
 import logger from '../logger'
 
 import type {_StylesDesktop} from '../styles/css'

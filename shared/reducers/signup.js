@@ -3,7 +3,7 @@ import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
-import {trim} from 'lodash-es'
+import {trim} from 'lodash'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import * as Flow from '../util/flow'
 

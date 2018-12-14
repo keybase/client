@@ -1,6 +1,6 @@
 // @flow
 import {favoriteFolderType, type FolderType} from './types/rpc-gen'
-import {invert} from 'lodash-es'
+import {invert} from 'lodash'
 
 const folderTypeToString = invert(favoriteFolderType)
 

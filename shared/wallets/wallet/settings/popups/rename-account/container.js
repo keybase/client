@@ -1,5 +1,5 @@
 // @flow
-import {capitalize} from 'lodash-es'
+import {capitalize} from 'lodash'
 import {connect, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'

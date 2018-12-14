@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import {map, last} from 'lodash-es'
+import {map, last} from 'lodash'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
 import * as TeamsGen from './teams-gen'

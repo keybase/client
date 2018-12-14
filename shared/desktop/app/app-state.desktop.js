@@ -3,7 +3,7 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
-import {isEqual} from 'lodash-es'
+import {isEqual} from 'lodash'
 import logger from '../../logger'
 
 export type State = {

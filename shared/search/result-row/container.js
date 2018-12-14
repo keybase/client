@@ -5,7 +5,7 @@ import {followStateHelper, getUserInputItemIds, makeSearchResult} from '../../co
 import {type SearchResultId} from '../../constants/types/search'
 import {parseUserId} from '../../util/platforms'
 import {namedConnect} from '../../util/container'
-import {some} from 'lodash-es'
+import {some} from 'lodash'
 
 export type OwnProps = {|
   disableIfInTeamName: ?string,

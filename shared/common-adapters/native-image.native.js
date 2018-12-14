@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Image, type ImageProps} from 'react-native'
 import FastImageImpl from 'react-native-fast-image'
-import {isArray} from 'lodash-es'
+import {isArray} from 'lodash'
 
 export class NativeImage extends React.Component<ImageProps> {
   static getSize = Image.getSize

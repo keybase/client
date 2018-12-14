@@ -2,7 +2,7 @@
 import * as React from 'react'
 import fs from 'fs'
 import EXIF from 'exif-js'
-import {noop, isNumber} from 'lodash-es'
+import {noop, isNumber} from 'lodash'
 import logger from '../logger'
 import {Image as ImageComponent} from '../common-adapters'
 import type {Props} from './oriented-image.types'

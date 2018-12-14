@@ -4,7 +4,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import {invert} from 'lodash-es'
+import {invert} from 'lodash'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 

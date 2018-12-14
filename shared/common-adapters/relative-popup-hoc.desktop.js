@@ -1,7 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as React from 'react'
-import {includes, throttle, without} from 'lodash-es'
+import {includes, throttle, without} from 'lodash'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler.desktop'

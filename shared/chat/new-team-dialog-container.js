@@ -5,7 +5,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as Constants from '../constants/teams'
 import NewTeamDialog from '../teams/new-team'
-import {upperFirst} from 'lodash-es'
+import {upperFirst} from 'lodash'
 import {connect, lifecycle, compose, withStateHandlers, type RouteProps} from '../util/container'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>

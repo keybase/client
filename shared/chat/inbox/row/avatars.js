@@ -3,7 +3,7 @@ import * as React from 'react'
 import shallowEqual from 'shallowequal'
 import {Avatar, MultiAvatar, Icon, Box} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
-import {memoize} from 'lodash-es'
+import {memoize} from 'lodash'
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified

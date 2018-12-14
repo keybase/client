@@ -2,7 +2,7 @@
 import * as React from 'react'
 import openURL from '../../util/open-url'
 import {Avatar, Box, Button, Icon, Text, HeaderHoc} from '../../common-adapters'
-import {capitalize} from 'lodash-es'
+import {capitalize} from 'lodash'
 import {globalColors, globalStyles, globalMargins, platformStyles} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
 import type {Props} from '.'

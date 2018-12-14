@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
-import {clamp} from 'lodash-es'
+import {clamp} from 'lodash'
 import {imgMaxWidth} from '../../../attachment/image/image-render'
 import {Video} from './video'
 

@@ -1,5 +1,5 @@
 // @flow
-import {invert} from 'lodash-es'
+import {invert} from 'lodash'
 import * as React from 'react'
 import * as RPCTypes from '../../../../constants/types/rpc-gen'
 import * as Types from '../../../../constants/types/chat2'

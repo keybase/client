@@ -8,7 +8,7 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import {namedConnect} from '../util/container'
-import {isArray} from 'lodash-es'
+import {isArray} from 'lodash'
 
 type OwnProps = {|
   children: React.Node,

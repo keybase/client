@@ -7,6 +7,7 @@
  * 4. Exports a generic measuring function (measureStart, measureStop) to help add your own for debugging sessions
  */
 import {userTimings} from '../local-debug'
+require('./performance-polyfill.js')
 
 const perf = typeof performance !== 'undefined' && performance // eslint-disable-line
 const mark = perf && perf.mark && perf.mark.bind(perf)

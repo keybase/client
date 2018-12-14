@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
 import MentionInput from './mention-input'
 import {type InputProps} from './types'
-import {throttle} from 'lodash-es'
+import {throttle} from 'lodash'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
