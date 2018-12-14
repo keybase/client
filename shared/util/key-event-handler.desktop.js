@@ -107,4 +107,20 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
   )
 }
 
-export {GlobalKeyEventHandler, KeyEventHandlerWrapper as KeyEventHandler}
+type EscapeHandlerProps = {
+  onESC: ?() => void,
+  children: ?React.Node,
+}
+
+const handleESC = (onESC: ?() => void, ev: KeyboardEvent) => {
+  if (ev.key !== 'Escape') {
+    return
+  }
+  onESC && onESC()
+}
+
+const EscapeHandler = (props: EscapeHandlerProps) => (
+  <KeyEventHandlerWrapper onKeyDown={ev => handleESC(props.onESC, ev)} children={props.children} />
+)
+
+export {GlobalKeyEventHandler, KeyEventHandlerWrapper as KeyEventHandler, EscapeHandler}

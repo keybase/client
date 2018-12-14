@@ -2,8 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
-import EscapeHandler from '../util/escape-handler.desktop'
-import {KeyEventHandler} from '../util/key-event-handler.desktop'
+import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 
 import type {Props} from './popup-dialog'
@@ -27,33 +26,29 @@ export function PopupDialog({
 }: Props) {
   return (
     <EscapeHandler onESC={onClose}>
-      <KeyEventHandler onKeyEvent={() => {}}>
-        <Box
-          style={Styles.collapseStyles([styles.cover, styleCover])}
-          onClick={onClose}
-          onMouseUp={onMouseUp}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-        >
+      <Box
+        style={Styles.collapseStyles([styles.cover, styleCover])}
+        onClick={onClose}
+        onMouseUp={onMouseUp}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+      >
+        <Box style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}>
+          <Icon
+            type="iconfont-close"
+            style={Styles.collapseStyles([styles.close, styleClose])}
+            color={Styles.globalColors.white}
+            onClick={onClose}
+            hoverColor={Styles.globalColors.white_40}
+          />
           <Box
-            style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
+            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
+            onClick={allowClipBubbling ? undefined : stopBubbling}
           >
-            <Icon
-              type="iconfont-close"
-              style={Styles.collapseStyles([styles.close, styleClose])}
-              color={Styles.globalColors.white}
-              onClick={onClose}
-              hoverColor={Styles.globalColors.white_40}
-            />
-            <Box
-              style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
-              onClick={allowClipBubbling ? undefined : stopBubbling}
-            >
-              {children}
-            </Box>
+            {children}
           </Box>
         </Box>
-      </KeyEventHandler>
+      </Box>
     </EscapeHandler>
   )
 }
