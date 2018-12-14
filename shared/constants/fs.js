@@ -16,7 +16,7 @@ import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
 import {putActionIfOnPath, navigateAppend, navigateTo} from '../actions/route-tree'
 
-export const defaultPath = '/keybase'
+export const defaultPath = Types.stringToPath('/keybase')
 
 // See Installer.m: KBExitFuseKextError
 export const ExitCodeFuseKextError = 4

@@ -1,8 +1,8 @@
 // @flow
 import * as I from 'immutable'
-import Files from './folder/container'
+import Files from './container'
 import {isMobile} from '../constants/platform'
-import {BarePreview, NormalPreview} from './filepreview'
+import {BarePreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import SecurityPrefs from './common/security-prefs-container'
 import DestinationPicker from './destination-picker/container'
@@ -89,7 +89,7 @@ const _commonChildren = {
   },
 }
 
-const _folderRoute = {
+const _mainRoute = {
   children: {
     ..._commonChildren,
     barePreview: () =>
@@ -101,7 +101,8 @@ const _folderRoute = {
           title: 'Preview',
         }),
       }),
-    folder: () => makeRouteDefNode(_folderRoute),
+    main: () => makeRouteDefNode(_mainRoute),
+    /* TODO delete
     preview: () =>
       makeRouteDefNode({
         children: _commonChildren,
@@ -110,12 +111,13 @@ const _folderRoute = {
           title: 'Preview',
         }),
       }),
+      */
   },
   component: Files,
 }
 
 const routeTree = makeRouteDefNode({
-  ..._folderRoute,
+  ..._mainRoute,
   initialState: {expandedSet: I.Set()},
   tags: makeLeafTags({title: 'Files'}),
 })

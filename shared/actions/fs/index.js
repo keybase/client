@@ -625,7 +625,7 @@ const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPa
                     ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
                     : Types.stringToPath(`/keybase/${elem}`),
                 },
-                selected: 'folder',
+                selected: 'main',
               },
             ],
             []
@@ -636,7 +636,7 @@ const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPa
         Tabs.fsTab,
         // Prepend the parent folder so when user clicks the back button they'd
         // go back to the parent folder.
-        {props: {path: Types.getPathParent(action.payload.path)}, selected: 'folder'},
+        {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
         finalRoute,
       ])
 
@@ -655,57 +655,42 @@ const openPathItem = (
   state: TypedState,
   action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload
 ) =>
-  Saga.callUntyped(function*() {
-    const {path} = action.payload
+  Saga.all([
+    Saga.callUntyped(function*() {
+      const {path} = action.payload
 
-    if (Types.getPathLevel(path) < 3) {
-      // We are in either /keybase or a TLF list. So treat it as a folder.
-      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
-      return
-    }
+      if (Types.getPathLevel(path) < 3) {
+        return
+      }
 
-    let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-    // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
-    // (PathItem), as the type of the entry could have changed before last time
-    // we heard about it from SimpleFS. Technically this is possible for
-    // FsGen.openPathItem too, but generally it's shortly after user has
-    // interacted with its parent folder, where we'd have just refreshed the
-    // PathItem for the entry.
-    if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
-      const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(path),
-        },
-      })
-      pathItem = makeEntry(dirent)
-      yield Saga.put(
-        FsGen.createFilePreviewLoaded({
-          meta: pathItem,
-          path,
+      let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+      // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
+      // (PathItem), as the type of the entry could have changed before last time
+      // we heard about it from SimpleFS. Technically this is possible for
+      // FsGen.openPathItem too, but generally it's shortly after user has
+      // interacted with its parent folder, where we'd have just refreshed the
+      // PathItem for the entry.
+      if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
+        const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+          path: {
+            PathType: RPCTypes.simpleFSPathType.kbfs,
+            kbfs: Constants.fsPathToRpcPathString(path),
+          },
         })
-      )
-    }
-
-    if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
-      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
-      return
-    }
-
-    let selected = 'preview'
-    if (pathItem.type === 'file') {
-      let mimeType = pathItem.mimeType
-      if (mimeType === null) {
-        mimeType = yield* _loadMimeType(path)
+        pathItem = makeEntry(dirent)
+        yield Saga.put(
+          FsGen.createFilePreviewLoaded({
+            meta: pathItem,
+            path,
+          })
+        )
       }
-      if (isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image') {
-        selected = 'barePreview'
+      if (pathItem.type === 'file') {
+        yield Saga.put(FsGen.createMimeTypeLoad({path}))
       }
-    }
-
-    // This covers both 'file' and 'symlink'
-    yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected}))
-  })
+    }),
+    Saga.put(_getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})),
+  ])
 
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.callUntyped(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})

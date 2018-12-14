@@ -11,30 +11,20 @@ import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
 
-const mapStateToProps = (state, ownProps: BarePreviewProps) => {
-  // $FlowIssue Flow is confused here for no reason.
-  const path = Types.stringToPath(ownProps.routeProps.get('path'))
-  return {
-    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-    path,
-  }
-}
-
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = ({path, _pathItem}, {onBack}, {routePath}) => ({
+const mergeProps = (stateProps, {onBack}, {routeProps, routePath}) => ({
   onBack,
-  path,
+  path: routeProps.get('path', Constants.defaultPath),
   routePath,
 })
 
 type ConnectedBarePreviewProps = {
+  onBack: () => void,
   path: Types.Path,
   routePath: I.List<string>,
-
-  onBack: () => void,
 }
 
 type State = {
@@ -118,7 +108,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default connect<BarePreviewProps, _, _, _, _>(
-  mapStateToProps,
+  () => ({}),
   mapDispatchToProps,
   mergeProps
 )(BarePreview)
