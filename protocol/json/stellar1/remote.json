@@ -16,7 +16,7 @@
       "type": "record",
       "name": "ChatConversationID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "string"
     },
     {
       "type": "record",
