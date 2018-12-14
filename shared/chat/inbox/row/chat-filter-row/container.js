@@ -13,6 +13,7 @@ type OwnProps = {
   focusFilter: () => void,
   onSelectUp: () => void,
   onSelectDown: () => void,
+  onEnsureSelection: () => void,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -49,6 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onNewChat: ownProps.onNewChat,
   onSelectDown: ownProps.onSelectDown,
   onSelectUp: ownProps.onSelectUp,
+  onEnsureSelection: ownProps.onEnsureSelection,
   onSetFilter: dispatchProps.onSetFilter,
 })
 

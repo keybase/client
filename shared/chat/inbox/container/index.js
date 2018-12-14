@@ -84,6 +84,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
     filter: stateProps.filter,
     neverLoaded: stateProps.neverLoaded,
+    onEnsureSelection: () => {
+      // $ForceType
+      if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
+        return
+      }
+      const first = stateProps.rows[0]
+      if ((first && first.type === 'small') || first.type === 'big') {
+        dispatchProps._onSelect(first.conversationIDKey)
+      }
+    },
     onNewChat: dispatchProps.onNewChat,
     onSelectDown: () =>
       dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),

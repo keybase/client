@@ -348,6 +348,7 @@ const propsInboxCommon = {
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
   onSelectDown: Sb.action('onSelectDown'),
+  onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
