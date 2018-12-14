@@ -1017,12 +1017,6 @@
 			"revisionTime": "2018-08-01T14:55:35Z"
 		},
 		{
-			"checksumSHA1": "KuREGVBawvFfIMsUmx67D7gGxjw=",
-			"path": "github.com/stellar/go/build",
-			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
-			"revisionTime": "2018-12-14T17:34:17Z"
-		},
-		{
 			"checksumSHA1": "lNNS4mTZlbciLrs24+zR03+KyA0=",
 			"path": "github.com/stellar/go/clients/federation",
 			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
