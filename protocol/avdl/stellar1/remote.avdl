@@ -4,6 +4,8 @@ protocol remote {
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
+  @typedef("bytes") record ChatConversationID {}
+
   record PaymentDirectPost {
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
@@ -14,6 +16,9 @@ protocol remote {
     // If quickReturn == true then the RPC can return success
     //   while the payment is still pending on the stellar network.
     boolean quickReturn;
+    // if not null, stellard will inform gregord about this payment's
+    // status changes along with this conversation ID
+    union { null, ChatConversationID } chatConversationID; 
   }
 
   record PaymentRelayPost {
