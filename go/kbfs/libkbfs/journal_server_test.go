@@ -545,8 +545,8 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 		jServer.lock.RLock()
 		defer jServer.lock.RUnlock()
 		return jServer.dirtyOps[tlfID]
-	}
-	require.NotEqual(t, 0, dirtyOps)
+	}()
+	require.Equal(t, uint(0), dirtyOps)
 }
 
 func TestJournalServerMultiUser(t *testing.T) {

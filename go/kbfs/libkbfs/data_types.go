@@ -1007,7 +1007,7 @@ func (bra BlockRequestAction) String() string {
 	}
 
 	attrs := make([]string, 0, 2)
-	if bra.Prefetch() {
+	if bra.prefetch() {
 		attrs = append(attrs, "prefetch")
 	} else if bra.PrefetchTracked() {
 		attrs = append(attrs, "prefetch-tracked")
@@ -1025,16 +1025,26 @@ func (bra BlockRequestAction) Combine(
 	return bra | other
 }
 
+func (bra BlockRequestAction) prefetch() bool {
+	return bra&blockRequestPrefetch > 0
+}
+
 // Prefetch returns true if the action indicates the block should
 // trigger a prefetch.
-func (bra BlockRequestAction) Prefetch() bool {
-	return bra&blockRequestPrefetch > 0
+func (bra BlockRequestAction) Prefetch(block Block) bool {
+	// When syncing, always prefetch child blocks of an indirect
+	// block, since it makes no sense to sync just part of a
+	// multi-block object.
+	if block.IsIndirect() && bra.Sync() {
+		return true
+	}
+	return bra.prefetch()
 }
 
 // PrefetchTracked returns true if this block is being tracked by the
 // prefetcher.
 func (bra BlockRequestAction) PrefetchTracked() bool {
-	return bra.Prefetch() || bra&blockRequestTrackedInPrefetch > 0
+	return bra.prefetch() || bra&blockRequestTrackedInPrefetch > 0
 }
 
 // Sync returns true if the action indicates the block should go into
@@ -1051,8 +1061,11 @@ func (bra BlockRequestAction) DeepSync() bool {
 
 // ChildAction returns the action that should propagate down to any
 // children of this block.
-func (bra BlockRequestAction) ChildAction() BlockRequestAction {
-	if bra.DeepSync() {
+func (bra BlockRequestAction) ChildAction(block Block) BlockRequestAction {
+	// When syncing, always prefetch child blocks of an indirect
+	// block, since it makes no sense to sync just part of a
+	// multi-block object.
+	if bra.DeepSync() || (block.IsIndirect() && bra.Sync()) {
 		return bra
 	}
 	return bra &^ (blockRequestPrefetch | blockRequestSync)
@@ -1068,7 +1081,7 @@ func (bra BlockRequestAction) SoloAction() BlockRequestAction {
 // original request.  For prefetch requests, it returns a deep-sync
 // request (unlike `Combine`, which just adds the regular sync bit).
 func (bra BlockRequestAction) AddSync() BlockRequestAction {
-	if bra.Prefetch() {
+	if bra.prefetch() {
 		return BlockRequestWithDeepSync
 	}
 	// If the prefetch bit is NOT yet set (as when some component

@@ -286,7 +286,7 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := standardCache.Put(
-			ctx, tlf, blockPtr.ID, blockEncoded, serverHalf, DiskBlockAnyCache)
+			ctx, tlf, blockPtr.ID, blockEncoded, serverHalf)
 		require.NoError(t, err)
 		clock.Add(time.Second)
 	}
@@ -296,7 +296,7 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := standardCache.Put(
-			ctx, tlf1, blockPtr.ID, blockEncoded, serverHalf, DiskBlockAnyCache)
+			ctx, tlf1, blockPtr.ID, blockEncoded, serverHalf)
 		require.NoError(t, err)
 		clock.Add(time.Second)
 	}
@@ -375,8 +375,7 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := standardCache.Put(
-				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
-				DiskBlockAnyCache)
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -453,8 +452,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := standardCache.Put(
-				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
-				DiskBlockAnyCache)
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -469,8 +467,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 		t, config)
 	err := standardCache.Put(
-		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf,
-		DiskBlockAnyCache)
+		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
 	require.True(t, int64(standardCache.currBytes) < currBytes)
@@ -498,8 +495,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := standardCache.Put(
-				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
-				DiskBlockAnyCache)
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -527,7 +523,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 			t, config)
 		err := standardCache.Put(
 			ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded,
-			serverHalf, DiskBlockAnyCache)
+			serverHalf)
 		require.NoError(t, err)
 		require.Equal(t, start+(i%defaultNumBlocksToEvict), standardCache.numBlocks)
 	}
@@ -608,7 +604,7 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 	t.Log("Test that disk cache eviction works when we hit the static limit.")
 	cache, config := initDiskBlockCacheTest(t)
 	standardCache := cache.syncCache
-	defer shutdownDiskBlockCacheTest(standardCache)
+	defer shutdownDiskBlockCacheTest(cache)
 	ctx := context.Background()
 
 	numTlfs := 10
@@ -647,26 +643,27 @@ func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {
 	t.Log("Put and get a last unref revision into the cache.")
 	tlf1 := tlf.FakeID(0, tlf.Private)
 	rev1 := kbfsmd.Revision(1)
-	err := cache.PutLastUnrefRev(ctx, tlf1, rev1)
+	ct := DiskBlockWorkingSetCache
+	err := cache.PutLastUnrefRev(ctx, tlf1, rev1, ct)
 	require.NoError(t, err)
-	getRev1, err := cache.GetLastUnrefRev(ctx, tlf1)
+	getRev1, err := cache.GetLastUnrefRev(ctx, tlf1, ct)
 	require.NoError(t, err)
 	require.Equal(t, rev1, getRev1)
 
 	t.Log("Put and get a last unref revision into the cache for another TLF.")
 	tlf2 := tlf.FakeID(1, tlf.Public)
 	rev2 := kbfsmd.Revision(200)
-	err = cache.PutLastUnrefRev(ctx, tlf2, rev2)
+	err = cache.PutLastUnrefRev(ctx, tlf2, rev2, ct)
 	require.NoError(t, err)
-	getRev2, err := cache.GetLastUnrefRev(ctx, tlf2)
+	getRev2, err := cache.GetLastUnrefRev(ctx, tlf2, ct)
 	require.NoError(t, err)
 	require.Equal(t, rev2, getRev2)
 
 	t.Log("Put a lower revision; should be ignored")
 	rev2b := kbfsmd.Revision(100)
-	err = cache.PutLastUnrefRev(ctx, tlf2, rev2b)
+	err = cache.PutLastUnrefRev(ctx, tlf2, rev2b, ct)
 	require.NoError(t, err)
-	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2)
+	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2, ct)
 	require.NoError(t, err)
 	require.Equal(t, rev2, getRev2)
 
@@ -674,10 +671,10 @@ func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {
 	cache.syncCache.tlfLastUnrefs = nil
 	err = cache.syncCache.syncBlockCountsAndUnrefsFromDb()
 	require.NoError(t, err)
-	getRev1, err = cache.GetLastUnrefRev(ctx, tlf1)
+	getRev1, err = cache.GetLastUnrefRev(ctx, tlf1, ct)
 	require.NoError(t, err)
 	require.Equal(t, rev1, getRev1)
-	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2)
+	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2, ct)
 	require.NoError(t, err)
 	require.Equal(t, rev2, getRev2)
 }

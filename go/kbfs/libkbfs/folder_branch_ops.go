@@ -361,6 +361,7 @@ type folderBranchOps struct {
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	merkleFetches      kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
+	partialSyncs       kbfssync.RepeatedWaitGroup
 	launchEditMonitor  sync.Once
 
 	muLastGetHead sync.Mutex
@@ -791,6 +792,238 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 	})
 }
 
+func (fbo *folderBranchOps) getProtocolSyncConfig(
+	ctx context.Context, lState *lockState, kmd KeyMetadata) (
+	ret keybase1.FolderSyncConfig, err error) {
+	fbo.syncLock.AssertAnyLocked(lState)
+
+	config := fbo.config.GetTlfSyncState(fbo.id())
+	ret.Mode = config.Mode
+	if ret.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return ret, nil
+	}
+
+	var block *FileBlock
+	// Skip block assembly if it's already cached.
+	b, err := fbo.config.BlockCache().Get(config.Paths.Ptr)
+	if err == nil {
+		var ok bool
+		block, ok = b.(*FileBlock)
+		if !ok {
+			return keybase1.FolderSyncConfig{}, errors.Errorf(
+				"Partial sync block is not a file block, but %T", b)
+		}
+	} else {
+		block = NewFileBlock().(*FileBlock)
+		err = assembleBlock(
+			ctx, fbo.config.keyGetter(), fbo.config.Codec(),
+			fbo.config.Crypto(), kmd, config.Paths.Ptr, block,
+			config.Paths.Buf, config.Paths.ServerHalf)
+		if err != nil {
+			return keybase1.FolderSyncConfig{}, err
+		}
+	}
+
+	paths, err := syncPathListFromBlock(fbo.config.Codec(), block)
+	if err != nil {
+		return keybase1.FolderSyncConfig{}, err
+	}
+	ret.Paths = paths.Paths
+	return ret, nil
+}
+
+func (fbo *folderBranchOps) getProtocolSyncConfigUnlocked(
+	ctx context.Context, lState *lockState, kmd KeyMetadata) (
+	ret keybase1.FolderSyncConfig, err error) {
+	fbo.syncLock.RLock(lState)
+	defer fbo.syncLock.RUnlock(lState)
+	return fbo.getProtocolSyncConfig(ctx, lState, kmd)
+}
+
+func (fbo *folderBranchOps) syncOneNode(
+	ctx context.Context, node Node, rmd ImmutableRootMetadata,
+	action BlockRequestAction) (BlockPointer, error) {
+	nodePath := fbo.nodeCache.PathFromNode(node)
+	var b Block
+	if node.EntryType() == Dir {
+		b = NewDirBlock()
+	} else {
+		b = NewFileBlock()
+	}
+	ptr := nodePath.tailPointer()
+	ch := fbo.config.BlockOps().BlockRetriever().Request(
+		ctx, defaultOnDemandRequestPriority-1, rmd,
+		ptr, b, TransientEntry, action)
+	select {
+	case err := <-ch:
+		if err != nil {
+			return zeroPtr, err
+		}
+		return ptr, nil
+	case <-ctx.Done():
+		return zeroPtr, ctx.Err()
+	}
+}
+
+// doPartialSync iterates through the paths, deep-syncing them and
+// also syncing their parent directories up to the root node.
+func (fbo *folderBranchOps) doPartialSync(
+	ctx context.Context, syncConfig keybase1.FolderSyncConfig,
+	latestMerged ImmutableRootMetadata) (err error) {
+	fbo.log.CDebugf(
+		ctx, "Starting partial sync at revision %d", latestMerged.Revision())
+	defer func() {
+		fbo.deferLog.CDebugf(ctx, "Partial sync done: %+v", err)
+	}()
+
+	if syncConfig.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return errors.Errorf(
+			"Bad mode passed to partial sync: %+v", syncConfig.Mode)
+	}
+
+	rootNode, _, _, err := fbo.getRootNode(ctx)
+	if err != nil {
+		return err
+	}
+	// Use `PrefetchTail` for directories, to make sure that any child
+	// blocks in the directory itself get prefetched.
+	_, err = fbo.syncOneNode(
+		ctx, rootNode, latestMerged, BlockRequestPrefetchTailWithSync)
+	if err != nil {
+		return err
+	}
+
+	chs := make(map[string]<-chan struct{}, len(syncConfig.Paths))
+	// Look up and solo-sync each lead-up component of the path.
+pathLoop:
+	for _, p := range syncConfig.Paths {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		fbo.log.CDebugf(ctx, "Partially-syncing %s", p)
+
+		parentPath, syncedElem := stdpath.Split(p)
+		parents := strings.Split(strings.TrimSuffix(parentPath, "/"), "/")
+		currNode := rootNode
+		for _, parent := range parents {
+			if len(parent) == 0 {
+				continue
+			}
+			// TODO: parallelize the parent fetches and lookups.
+			currNode, _, err = fbo.Lookup(ctx, currNode, parent)
+			switch errors.Cause(err).(type) {
+			case NoSuchNameError:
+				fbo.log.CDebugf(ctx, "Synced path %s doesn't exist yet", p)
+				continue pathLoop
+			case nil:
+			default:
+				return err
+			}
+
+			// Use `PrefetchTail` for directories, to make sure that
+			// any child blocks in the directory itself get
+			// prefetched.
+			_, err = fbo.syncOneNode(
+				ctx, currNode, latestMerged, BlockRequestPrefetchTailWithSync)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Kick off a full deep sync of `syncedElem`.
+		elemNode, _, err := fbo.Lookup(ctx, currNode, syncedElem)
+		switch errors.Cause(err).(type) {
+		case NoSuchNameError:
+			fbo.log.CDebugf(ctx, "Synced element %s doesn't exist yet", p)
+			continue pathLoop
+		case nil:
+		default:
+			return err
+		}
+
+		ptr, err := fbo.syncOneNode(
+			ctx, elemNode, latestMerged, BlockRequestWithDeepSync)
+		if err != nil {
+			return err
+		}
+		ch, err := fbo.config.BlockOps().Prefetcher().
+			WaitChannelForBlockPrefetch(ctx, ptr)
+		if err != nil {
+			return err
+		}
+		chs[p] = ch
+	}
+
+	for p, ch := range chs {
+		select {
+		case <-ch:
+			fbo.log.CDebugf(ctx, "Prefetch for %s complete", p)
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
+}
+
+func (fbo *folderBranchOps) kickOffPartialSync(
+	ctx context.Context, lState *lockState,
+	syncConfig keybase1.FolderSyncConfig, rmd ImmutableRootMetadata) {
+	// Kick off a background partial sync.
+	partialSyncCtx, cancel := context.WithCancel(
+		fbo.ctxWithFBOID(context.Background()))
+	fbo.log.CDebugf(
+		ctx, "Partial sync with a new context: FBOID=%s",
+		partialSyncCtx.Value(CtxFBOIDKey))
+	fbo.partialSyncs.Add(1)
+	go func() {
+		defer cancel()
+		defer fbo.partialSyncs.Done()
+		_ = fbo.doPartialSync(partialSyncCtx, syncConfig, rmd)
+	}()
+
+	// Cancel the partial sync if the latest merged revision is updated.
+	updatedCh := func() <-chan struct{} {
+		fbo.headLock.Lock(lState)
+		defer fbo.headLock.Unlock(lState)
+		if rmd.Revision() != fbo.latestMergedRevision {
+			fbo.log.CDebugf(
+				partialSyncCtx, "Latest merged changed is now %d, not %d; "+
+					"aborting partial sync", fbo.latestMergedRevision,
+				rmd.Revision())
+			return nil
+		}
+		return fbo.latestMergedUpdated
+	}()
+	if updatedCh == nil {
+		cancel()
+	} else {
+		go func() {
+			select {
+			case <-updatedCh:
+				cancel()
+			case <-partialSyncCtx.Done():
+			}
+		}()
+	}
+}
+
+func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
+	ctx context.Context, lState *lockState,
+	rmd ImmutableRootMetadata) {
+	// Check if we need to kick off a partial sync.
+	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't get sync config: %+v", err)
+		return
+	}
+	if syncConfig.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return
+	}
+	fbo.kickOffPartialSync(ctx, lState, syncConfig, rmd)
+}
+
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
@@ -829,7 +1062,9 @@ func (fbo *folderBranchOps) commitFlushedMD(
 
 	ctx := fbo.ctxWithFBOID(context.Background())
 	rev := rmd.Revision()
-	if fbo.config.IsSyncedTlf(fbo.id()) {
+	syncConfig := fbo.config.GetTlfSyncState(fbo.id())
+	switch syncConfig.Mode {
+	case keybase1.FolderSyncMode_ENABLED:
 		// For synced TLFs, wait for prefetching to complete for
 		// `rootPtr`. When it's successfully done, commit the
 		// corresponding MD.
@@ -865,7 +1100,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		case <-waitCh:
 		case <-updatedCh:
 			fbo.log.CDebugf(ctx, "The latest merged rev has been updated")
-			fbo.config.BlockOps().Prefetcher().CancelPrefetch(rootPtr.ID)
+			fbo.config.BlockOps().Prefetcher().CancelPrefetch(rootPtr)
 			return
 		case <-fbo.shutdownChan:
 			fbo.log.CDebugf(ctx, "Shutdown, canceling prefetch wait")
@@ -886,6 +1121,26 @@ func (fbo *folderBranchOps) commitFlushedMD(
 
 		fbo.log.CDebugf(ctx, "Prefetch for revision %d complete; commiting",
 			rev)
+	case keybase1.FolderSyncMode_PARTIAL:
+		// For partially-synced TLFs, wait for the partial sync to
+		// complete, or for an update to happen.
+		lState := makeFBOLockState()
+		fbo.kickOffPartialSyncIfNeeded(ctx, lState, rmd)
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		go func() {
+			select {
+			case <-updatedCh:
+				cancel()
+			case <-fbo.shutdownChan:
+				cancel()
+			case <-ctx.Done():
+			}
+		}()
+		err := fbo.partialSyncs.Wait(ctx)
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error waiting for partial sync: %+v", err)
+		}
 	}
 
 	err := diskMDCache.Commit(ctx, fbo.id(), rev)
@@ -1895,6 +2150,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	}()
 
 	var latestRootBlockFetch <-chan error
+	partialSyncMD := md
+	lState := makeFBOLockState()
 	if md.IsReadable() && fbo.config.Mode().PrefetchWorkers() > 0 {
 		// We `Get` the root block to ensure downstream prefetches
 		// occur.  Use a fresh context, in case `ctx` is canceled by
@@ -1904,6 +2161,14 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			"Prefetching root block with a new context: FBOID=%s",
 			prefetchCtx.Value(CtxFBOIDKey))
 		latestRootBlockFetch = fbo.kickOffRootBlockFetch(ctx, md)
+
+		// Kick off partial prefetching once the latest merged
+		// revision is set.
+		defer func() {
+			if err == nil {
+				fbo.kickOffPartialSyncIfNeeded(ctx, lState, partialSyncMD)
+			}
+		}()
 	} else {
 		fbo.log.CDebugf(ctx,
 			"Setting an unreadable head with revision=%d", md.Revision())
@@ -1913,7 +2178,6 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	// mdWriterLock for no reason, and it also avoids any side effects
 	// (e.g., calling `identifyOnce` and downloading the merged
 	// head) if head is already set.
-	lState := makeFBOLockState()
 	head, headStatus := fbo.getHead(ctx, lState, mdNoCommit)
 	if headStatus == headTrusted && head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
 		fbo.log.CDebugf(ctx, "Head MD already set to revision %d (%s), no "+
@@ -1950,6 +2214,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			if err != nil {
 				return err
 			}
+			partialSyncMD = mergedMD
 
 			func() {
 				fbo.headLock.Lock(lState)
@@ -2146,10 +2411,33 @@ func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
 	return fbo.blocks.GetChildren(ctx, lState, md.ReadOnly(), dirPath)
 }
 
+func (fbo *folderBranchOps) transformReadError(
+	ctx context.Context, err error) error {
+	if errors.Cause(err) != context.DeadlineExceeded {
+		return err
+	}
+
+	if fbo.config.IsSyncedTlf(fbo.id()) {
+		fbo.log.CWarningf(ctx, "Got a read timeout on a synced TLF: %+v", err)
+		return err
+	}
+
+	// For unsynced TLFs, return a specific error to let the system
+	// know to show a sync recommendation.
+	h, hErr := fbo.GetTLFHandle(ctx, nil)
+	if hErr != nil {
+		fbo.log.CDebugf(
+			ctx, "Couldn't get handle while transforming error: %+v", hErr)
+		return err
+	}
+	return errors.WithStack(OfflineUnsyncedError{h})
+}
+
 func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %s", getNodeIDStr(dir))
 	defer func() {
+		err = fbo.transformReadError(ctx, err)
 		fbo.deferLog.CDebugf(ctx, "GetDirChildren %s done, %d entries: %+v",
 			getNodeIDStr(dir), len(children), err)
 	}()
@@ -2364,6 +2652,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
 	defer func() {
+		err = fbo.transformReadError(ctx, err)
 		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %v %+v",
 			getNodeIDStr(dir), name, getNodeIDStr(node), err)
 	}()
@@ -2413,6 +2702,9 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 // tests.
 func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	de DirEntry, err error) {
+	defer func() {
+		err = fbo.transformReadError(ctx, err)
+	}()
 	err = fbo.checkNodeForRead(ctx, node)
 	if err != nil {
 		return DirEntry{}, err
@@ -4161,6 +4453,7 @@ func (fbo *folderBranchOps) Read(
 	fbo.log.CDebugf(ctx, "Read %s %d %d", getNodeIDStr(file),
 		len(dest), off)
 	defer func() {
+		err = fbo.transformReadError(ctx, err)
 		fbo.deferLog.CDebugf(ctx, "Read %s %d %d (n=%d) done: %+v",
 			getNodeIDStr(file), len(dest), off, n, err)
 	}()
@@ -5208,7 +5501,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 
 	// Cancel any block prefetches for unreferenced blocks.
 	for _, ptr := range op.Unrefs() {
-		fbo.config.BlockOps().Prefetcher().CancelPrefetch(ptr.ID)
+		fbo.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
 	}
 
 	var changes []NodeChange
@@ -5441,7 +5734,7 @@ func (fbo *folderBranchOps) getCurrMDRevision(
 type applyMDUpdatesFunc func(context.Context, *lockState, []ImmutableRootMetadata) error
 
 func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
-	lState *lockState, rmds []ImmutableRootMetadata) error {
+	lState *lockState, rmds []ImmutableRootMetadata) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	if len(rmds) == 0 {
@@ -5477,6 +5770,15 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			return nil
 		}
 	}
+
+	// Kick off partial prefetching once the latest merged revision is
+	// set.
+	oneApplied := false
+	defer func() {
+		if oneApplied && err == nil {
+			fbo.kickOffPartialSyncIfNeeded(ctx, lState, latestMerged)
+		}
+	}()
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -5540,6 +5842,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		if err != nil {
 			return err
 		}
+		oneApplied = true
 		// No new operations in these.
 		if rmd.IsWriterMetadataCopiedSet() {
 			continue
@@ -6190,9 +6493,13 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
 		return err
 	}
-	if err := fbo.fbm.waitForSyncCacheCleans(ctx); err != nil {
+	if err := fbo.fbm.waitForDiskCacheCleans(ctx); err != nil {
 		return err
 	}
+	if err := fbo.partialSyncs.Wait(ctx); err != nil {
+		return err
+	}
+
 	// A second journal flush if needed, to clear out any
 	// archive/remove calls caused by the above operations.
 	return WaitForTLFJournal(ctx, fbo.config, fbo.id(), fbo.log)
@@ -6315,6 +6622,14 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 		// Don't update if we're staged.
 		return false, nil
 	}
+
+	// Kick off partial prefetching once the latest merged
+	// revision is set.
+	defer func() {
+		if err == nil {
+			fbo.kickOffPartialSyncIfNeeded(ctx, lState, currHead)
+		}
+	}()
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -7376,6 +7691,14 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		fbo.log.CDebugf(ctx, "Current head is revision %d", currHead.Revision())
 
 		lState := makeFBOLockState()
+		// Kick off partial prefetching once the latest merged
+		// revision is set.
+		defer func() {
+			if err == nil {
+				fbo.kickOffPartialSyncIfNeeded(ctx, lState, currHead)
+			}
+		}()
+
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 		fbo.headLock.Lock(lState)
@@ -7444,46 +7767,6 @@ func (fbo *folderBranchOps) Reset(
 	return nil
 }
 
-func (fbo *folderBranchOps) getProtocolSyncConfig(
-	ctx context.Context, lState *lockState, kmd KeyMetadata) (
-	ret keybase1.FolderSyncConfig, err error) {
-	fbo.syncLock.AssertAnyLocked(lState)
-
-	config := fbo.config.GetTlfSyncState(fbo.id())
-	ret.Mode = config.Mode
-	if ret.Mode != keybase1.FolderSyncMode_PARTIAL {
-		return ret, nil
-	}
-
-	var block *FileBlock
-	// Skip block assembly if it's already cached.
-	b, err := fbo.config.BlockCache().Get(config.Paths.Ptr)
-	if err == nil {
-		var ok bool
-		block, ok = b.(*FileBlock)
-		if !ok {
-			return keybase1.FolderSyncConfig{}, errors.Errorf(
-				"Partial sync block is not a file block, but %T", b)
-		}
-	} else {
-		block = NewFileBlock().(*FileBlock)
-		err = assembleBlock(
-			ctx, fbo.config.keyGetter(), fbo.config.Codec(),
-			fbo.config.Crypto(), kmd, config.Paths.Ptr, block,
-			config.Paths.Buf, config.Paths.ServerHalf)
-		if err != nil {
-			return keybase1.FolderSyncConfig{}, err
-		}
-	}
-
-	paths, err := syncPathListFromBlock(fbo.config.Codec(), block)
-	if err != nil {
-		return keybase1.FolderSyncConfig{}, err
-	}
-	ret.Paths = paths.Paths
-	return ret, nil
-}
-
 // GetSyncConfig implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) GetSyncConfig(
 	ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {
@@ -7494,10 +7777,7 @@ func (fbo *folderBranchOps) GetSyncConfig(
 
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
-
-	fbo.syncLock.RLock(lState)
-	defer fbo.syncLock.RUnlock(lState)
-	return fbo.getProtocolSyncConfig(ctx, lState, md)
+	return fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
 }
 
 func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
@@ -7581,7 +7861,7 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 // SetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
 func (fbo *folderBranchOps) SetSyncConfig(
 	ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
-	<-chan error, error) {
+	ch <-chan error, err error) {
 	if tlfID != fbo.id() || fbo.branch() != MasterBranch {
 		return nil, WrongOpsError{
 			fbo.folderBranch, FolderBranch{tlfID, MasterBranch}}
@@ -7594,6 +7874,16 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		return nil, errors.New(
 			"Cannot set partial sync config on an uninitialized TLF")
 	}
+
+	// On the way back out (after the syncLock is released), kick off
+	// the partial sync.
+	defer func() {
+		if err == nil && config.Mode == keybase1.FolderSyncMode_PARTIAL {
+			fbo.kickOffPartialSync(ctx, lState, config, md)
+			// TODO(KBFS-3644): Somehow un-sync the paths that were
+			// removed from this config.
+		}
+	}()
 
 	fbo.syncLock.Lock(lState)
 	defer fbo.syncLock.Unlock(lState)
@@ -7611,7 +7901,16 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		newConfig.Paths = paths
 	}
 
-	return fbo.config.SetTlfSyncState(tlfID, newConfig)
+	ch, err = fbo.config.SetTlfSyncState(tlfID, newConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Mode == keybase1.FolderSyncMode_ENABLED {
+		fbo.log.CDebugf(ctx, "Starting full deep sync")
+		_ = fbo.kickOffRootBlockFetch(ctx, md)
+	}
+	return ch, nil
 }
 
 // InvalidateNodeAndChildren implements the KBFSOps interface for

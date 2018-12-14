@@ -97,14 +97,28 @@ func newDiskBlockCacheWrapped(config diskBlockCacheConfig,
 	return cache, nil
 }
 
-// DoesSyncCacheHaveSpace returns true if we have more than 1% of space left in
-// the sync cache.
-func (cache *diskBlockCacheWrapped) DoesSyncCacheHaveSpace(
-	ctx context.Context) bool {
-	if !cache.IsSyncCacheEnabled() {
-		return false
+func (cache *diskBlockCacheWrapped) getCacheLocked(
+	cacheType DiskBlockCacheType) (*DiskBlockCacheLocal, error) {
+	if cacheType == DiskBlockSyncCache {
+		if cache.syncCache == nil {
+			return nil, errors.New("Sync cache not enabled")
+		}
+		return cache.syncCache, nil
 	}
-	return cache.syncCache.DoesSyncCacheHaveSpace(ctx)
+	return cache.workingSetCache, nil
+}
+
+// DoesCacheHaveSpace implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) DoesCacheHaveSpace(
+	ctx context.Context, cacheType DiskBlockCacheType) (bool, error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+	c, err := cache.getCacheLocked(cacheType)
+	if err != nil {
+		return false, err
+	}
+	return c.DoesCacheHaveSpace(ctx), nil
 }
 
 // IsSyncCacheEnabled returns true if the sync cache is enabled.
@@ -132,19 +146,17 @@ func (cache *diskBlockCacheWrapped) Get(
 		}
 	}
 	// Check both caches if the primary cache doesn't have the block.
-	buf, serverHalf, prefetchStatus, err =
-		primaryCache.Get(ctx, tlfID, blockID, preferredCacheType)
+	buf, serverHalf, prefetchStatus, err = primaryCache.Get(ctx, tlfID, blockID)
 	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		buf, serverHalf, prefetchStatus, err = secondaryCache.Get(
-			ctx, tlfID, blockID, preferredCacheType)
+			ctx, tlfID, blockID)
 		if err != nil {
 			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 		}
 		if preferredCacheType != DiskBlockAnyCache {
 			// Move the block into its preferred cache.
-			err := primaryCache.Put(
-				ctx, tlfID, blockID, buf, serverHalf, preferredCacheType)
+			err := primaryCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 			if err != nil {
 				// The cache will log the non-fatal error, so just return nil.
 				return buf, serverHalf, prefetchStatus, nil
@@ -196,8 +208,7 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	defer cache.mtx.RUnlock()
 	if cacheType == DiskBlockSyncCache && cache.syncCache != nil {
 		workingSetCache := cache.workingSetCache
-		err := cache.syncCache.Put(
-			ctx, tlfID, blockID, buf, serverHalf, cacheType)
+		err := cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 		if err == nil {
 			cache.deleteGroup.Add(1)
 			go func() {
@@ -211,13 +222,12 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	// No need to put it in the working cache if it's already in the
 	// sync cache.
 	if cache.syncCache != nil {
-		_, _, _, err := cache.syncCache.Get(ctx, tlfID, blockID, cacheType)
+		_, _, _, err := cache.syncCache.Get(ctx, tlfID, blockID)
 		if err == nil {
 			return nil
 		}
 	}
-	return cache.workingSetCache.Put(
-		ctx, tlfID, blockID, buf, serverHalf, cacheType)
+	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }
 
 // Delete implements the DiskBlockCache interface for diskBlockCacheWrapped.
@@ -258,39 +268,42 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 // ClearAllTlfBlocks implements the DiskBlockCache interface for
 // diskBlockCacheWrapper.
 func (cache *diskBlockCacheWrapped) ClearAllTlfBlocks(
-	ctx context.Context, tlfID tlf.ID) error {
+	ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) error {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	// We only clear blocks from the sync cache.
-	if cache.syncCache == nil {
-		return nil
+	c, err := cache.getCacheLocked(cacheType)
+	if err != nil {
+		return err
 	}
-	return cache.syncCache.ClearAllTlfBlocks(ctx, tlfID)
+	return c.ClearAllTlfBlocks(ctx, tlfID)
 }
 
 // GetLastUnrefRev implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) GetLastUnrefRev(
-	ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
+	ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+	kbfsmd.Revision, error) {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	if cache.syncCache == nil {
-		return kbfsmd.RevisionUninitialized,
-			errors.New("Sync cache not enabled")
+	c, err := cache.getCacheLocked(cacheType)
+	if err != nil {
+		return kbfsmd.RevisionUninitialized, err
 	}
-	return cache.syncCache.GetLastUnrefRev(ctx, tlfID)
+	return c.GetLastUnrefRev(ctx, tlfID)
 }
 
 // PutLastUnrefRev implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) PutLastUnrefRev(
-	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+	cacheType DiskBlockCacheType) error {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	if cache.syncCache == nil {
-		return errors.New("Sync cache not enabled")
+	c, err := cache.getCacheLocked(cacheType)
+	if err != nil {
+		return err
 	}
-	return cache.syncCache.PutLastUnrefRev(ctx, tlfID, rev)
+	return c.PutLastUnrefRev(ctx, tlfID, rev)
 }
 
 // Status implements the DiskBlockCache interface for diskBlockCacheWrapped.

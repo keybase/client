@@ -121,6 +121,7 @@ func (r *Root) MakeFS(
 	if err != nil {
 		return CacheableFS{}, tlf.ID{}, nil, err
 	}
+	fsCtx = libfs.EnableFastMode(fsCtx)
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(

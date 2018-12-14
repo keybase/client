@@ -713,6 +713,10 @@ func doInit(
 	}
 	config.SetMDServer(mdServer)
 
+	// Must do this after setting the md server, since it depends on
+	// being able to fetch MDs.
+	go kbfsOps.initSyncedTlfs()
+
 	// Initialize KeyServer connection.  MDServer is the KeyServer at the
 	// moment.
 	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
@@ -782,15 +786,19 @@ func doInit(
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)
-		notification := &keybase1.FSNotification{
-			StatusCode:       keybase1.FSStatusCode_ERROR,
-			NotificationType: keybase1.FSNotificationType_INITIALIZED,
-			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
-		}
-		defer config.Reporter().Notify(ctx, notification)
-	} else {
-		log.CDebugf(ctx, "Disk block metadata store cache enabled")
+		return nil, err
+		// TODO (KBFS-3659): when we can open levelDB read-only, re-enable
+		//                   this, instead of failing the init.
+		/*
+			notification := &keybase1.FSNotification{
+				StatusCode:       keybase1.FSStatusCode_ERROR,
+				NotificationType: keybase1.FSNotificationType_INITIALIZED,
+				ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
+			}
+			defer config.Reporter().Notify(ctx, notification)
+		*/
 	}
+	log.CDebugf(ctx, "Disk block metadata store cache enabled")
 
 	if config.Mode().KBFSServiceEnabled() {
 		// Initialize kbfsService only when we run a full KBFS process.

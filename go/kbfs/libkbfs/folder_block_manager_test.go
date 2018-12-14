@@ -884,7 +884,8 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	lastRev, err := dbc.GetLastUnrefRev(ctx, rootNode.GetFolderBranch().Tlf)
+	lastRev, err := dbc.GetLastUnrefRev(
+		ctx, rootNode.GetFolderBranch().Tlf, DiskBlockSyncCache)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.RevisionUninitialized, lastRev)
 
@@ -900,7 +901,8 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	lastRev, err = dbc.GetLastUnrefRev(ctx, rootNode.GetFolderBranch().Tlf)
+	lastRev, err = dbc.GetLastUnrefRev(
+		ctx, rootNode.GetFolderBranch().Tlf, DiskBlockSyncCache)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.Revision(4), lastRev)
 }

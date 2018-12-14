@@ -5,6 +5,7 @@
 package libfs
 
 import (
+	"context"
 	"errors"
 	"os"
 	"time"
@@ -162,4 +163,68 @@ func (fis fileInfoSys) EntryInfo() libkbfs.EntryInfo {
 // Sys implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Sys() interface{} {
 	return fileInfoSys{fi}
+}
+
+// FileInfoFast always returns a returns a read-only mode, and doesn't populate
+// LastWriterUnverified. This allows us to avoid doing a Lookup on the entry,
+// which makes a big difference in ReadDir.
+type FileInfoFast struct {
+	ei   libkbfs.EntryInfo
+	name string
+}
+
+// Name implements the os.FileInfo interface.
+func (fif *FileInfoFast) Name() string {
+	return fif.name
+}
+
+// Size implements the os.FileInfo interface.
+func (fif *FileInfoFast) Size() int64 {
+	// TODO: deal with overflow?
+	return int64(fif.ei.Size)
+}
+
+// Mode implements the os.FileInfo interface.
+func (fif *FileInfoFast) Mode() os.FileMode {
+	mode := os.FileMode(0400)
+	switch fif.ei.Type {
+	case libkbfs.Dir:
+		mode |= os.ModeDir | 0100
+	case libkbfs.Sym:
+		mode |= os.ModeSymlink
+	case libkbfs.Exec:
+		mode |= 0100
+	}
+	return mode
+}
+
+// ModTime implements the os.FileInfo interface.
+func (fif *FileInfoFast) ModTime() time.Time {
+	return time.Unix(0, fif.ei.Mtime)
+}
+
+// IsDir implements the os.FileInfo interface.
+func (fif *FileInfoFast) IsDir() bool {
+	return fif.ei.Type == libkbfs.Dir
+}
+
+// Sys implements the os.FileInfo interface.
+func (fif *FileInfoFast) Sys() interface{} {
+	return fif
+}
+
+type ctxFastModeKey struct{}
+
+// EnableFastMode returns a context.Context based on ctx that will test to true
+// with IsFastModeEnabled.
+func EnableFastMode(ctx context.Context) context.Context {
+	return context.WithValue(ctx, ctxFastModeKey{}, true)
+}
+
+// IsFastModeEnabled returns true if fast mode should be enabled. In fast mode,
+// *FS doesn't populate LastWriterUnverified, and always returns read-only
+// info. All *FS created under this ctx will also be in fast mode.
+func IsFastModeEnabled(ctx context.Context) bool {
+	v, ok := ctx.Value(ctxFastModeKey{}).(bool)
+	return ok && v == true
 }

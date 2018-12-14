@@ -38,6 +38,10 @@ const (
 	// server for the latest handle before we use the cached value
 	// instead.
 	mdServerLatestHandleTimeout = 500 * time.Millisecond
+	// mdServerTimeoutWhenMDCached defines how long we wait for the
+	// latest MD to return from the server, when we've already read it
+	// from the disk cache.
+	mdServerTimeoutWhenMDCached = 500 * time.Millisecond
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
@@ -605,13 +609,18 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 		md.deferLog.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s done (err=%v)", id, bid, mStatus, err)
 	}()
 
+	var cachedRmds *RootMetadataSigned
+	getCtx := ctx
 	if mStatus == kbfsmd.Merged && lockBeforeGet == nil {
-		rmds, err := md.getLatestFromCache(ctx, id)
-		if err == nil && rmds != nil {
+		cachedRmds, err = md.getLatestFromCache(ctx, id)
+		if err == nil && cachedRmds != nil {
 			md.log.CDebugf(ctx,
 				"Read revision %d for TLF %s from the disk cache",
-				rmds.MD.RevisionNumber(), id)
-			return rmds, nil
+				cachedRmds.MD.RevisionNumber(), id)
+			var cancel context.CancelFunc
+			getCtx, cancel = context.WithTimeout(
+				ctx, mdServerTimeoutWhenMDCached)
+			defer cancel()
 		}
 	}
 
@@ -622,13 +631,28 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 		LockBeforeGet: lockBeforeGet,
 	}
 
-	_, rmdses, err := md.get(ctx, arg)
-	if err != nil {
+	_, rmdses, err := md.get(getCtx, arg)
+	switch errors.Cause(err) {
+	case nil:
+	case context.DeadlineExceeded:
+		if cachedRmds != nil {
+			md.log.CDebugf(ctx, "Can't contact server; using cached MD")
+			return cachedRmds, nil
+		}
+		return nil, err
+	default:
 		return nil, err
 	}
+
 	if len(rmdses) == 0 {
 		return nil, nil
 	}
+
+	if cachedRmds != nil {
+		md.log.CDebugf(ctx, "Read revision %d for TLF %s from the server",
+			rmdses[0].MD.RevisionNumber(), id)
+	}
+
 	// TODO: Error if server returns more than one rmds.
 	return rmdses[0], nil
 }

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"io"
 	"math"
 	"path/filepath"
@@ -86,8 +87,6 @@ type DiskBlockCacheLocal struct {
 
 	closer func()
 }
-
-var _ DiskBlockCache = (*DiskBlockCacheLocal)(nil)
 
 // DiskBlockCacheStartState represents whether this disk block cache has
 // started or failed.
@@ -521,8 +520,8 @@ func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
 }
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheLocal.
-func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
-	blockID kbfsblock.ID, _ DiskBlockCacheType) (buf []byte,
+func (cache *DiskBlockCacheLocal) Get(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	prefetchStatus PrefetchStatus, err error) {
 	cache.lock.RLock()
@@ -589,10 +588,9 @@ func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheLocal.
-func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
-	blockID kbfsblock.ID, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	_ DiskBlockCacheType) (err error) {
+func (cache *DiskBlockCacheLocal) Put(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err = cache.checkCacheLocked("Block(Put)")
@@ -1090,16 +1088,20 @@ func (cache *DiskBlockCacheLocal) Status(
 	}
 }
 
-// DoesSyncCacheHaveSpace returns true if we have more than 1% of space left in
-// the sync cache.
-func (cache *DiskBlockCacheLocal) DoesSyncCacheHaveSpace(
+// DoesCacheHaveSpace returns true if we have more than 1% of space
+// left in the cache.
+func (cache *DiskBlockCacheLocal) DoesCacheHaveSpace(
 	ctx context.Context) bool {
-	if cache.cacheType != syncCacheLimitTrackerType {
-		return false
-	}
 	limiterStatus := cache.config.DiskLimiter().getStatus(
 		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
-	return limiterStatus.SyncCacheByteStatus.UsedFrac <= .99
+	switch cache.cacheType {
+	case syncCacheLimitTrackerType:
+		return limiterStatus.SyncCacheByteStatus.UsedFrac <= .99
+	case workingSetCacheLimitTrackerType:
+		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99
+	default:
+		panic(fmt.Sprintf("Unknown cache type: %d", cache.cacheType))
+	}
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.

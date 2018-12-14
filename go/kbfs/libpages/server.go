@@ -238,62 +238,6 @@ func (s *Server) isDirWithNoIndexHTML(
 	}
 }
 
-const cloningFilename = "CLONING"
-const gitRootInitialTimeout = time.Second
-
-func (s *Server) shouldShowCloningLandingPage(st *site, realFS *libfs.FS) (bool, error) {
-	if st.root.Type != GitRoot {
-		// CLONING file only matters for git roots.
-		return false, nil
-	}
-	ctxInitialRead, cancel := context.WithTimeout(
-		context.Background(), gitRootInitialTimeout)
-	defer cancel()
-	ctxInitialRead, err := libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.CtxWithRandomIDReplayable(ctxInitialRead,
-			ctxIDKey, ctxOpID, nil))
-	if err != nil {
-		return false, err
-	}
-	// Read under timeout to trigger a clone in case this is an initial
-	// request. This should only happen to the first ever access to a site
-	// backed by this git repo.
-	_, err = realFS.WithContext(ctxInitialRead).ReadDir("/")
-	switch err {
-	case nil, context.DeadlineExceeded, context.Canceled:
-		// Assume we have triggered a clone or pull and carry on.
-	default:
-		return false, err
-	}
-	_, err = realFS.Stat(cloningFilename)
-	switch {
-	case err == nil:
-		return true, nil
-	case os.IsNotExist(err):
-		return false, nil
-	default:
-		return false, err
-	}
-
-}
-
-// TODO: replace this with something nicer when fancy error pages and landing
-// pages are ready.
-var cloningLandingPage = []byte(`
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<meta http-equiv="refresh" content="5">
-		<title>CLONING</title>
-	</head>
-	<body>
-		Keybase Pages server is cloning your site.
-		This page will refresh in 5 seconds...
-	</body>
-</html>
-`)
-
 // ServedRequestInfo holds information regarding to an incoming request
 // that might be useful for stats.
 type ServedRequestInfo struct {
@@ -419,11 +363,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sri.TlfType, sri.RootType = root.TlfType, root.Type
-	ctx := libkbfs.CtxWithRandomIDReplayable(r.Context(),
-		CtxKBPKey, CtxKBPOpID, adaptedLogger{
-			msg:    "CtxWithRandomIDReplayable",
-			logger: s.config.Logger,
-		})
+	ctx := libfs.EnableFastMode(
+		libkbfs.CtxWithRandomIDReplayable(r.Context(),
+			CtxKBPKey, CtxKBPOpID, adaptedLogger{
+				msg:    "CtxWithRandomIDReplayable",
+				logger: s.config.Logger,
+			}),
+	)
 	st, err := s.getSite(ctx, root)
 	if err != nil {
 		s.handleError(w, err)
@@ -434,23 +380,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	realFS, err := st.fs.Use()
 	if err != nil {
 		s.handleError(w, err)
-		return
-	}
-
-	// Show a landing page if site uses git root and has a CLONING file which
-	// indicates we are still cloning the assets.
-	shouldShowCloningLandingPage, err := s.shouldShowCloningLandingPage(st, realFS)
-	if err != nil {
-		s.handleError(w, err)
-		return
-	}
-	if shouldShowCloningLandingPage {
-		sri.CloningShown = true
-		// TODO: replace this with something nicer when fancy error pages and
-		// landing pages are ready.
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write(cloningLandingPage)
 		return
 	}
 

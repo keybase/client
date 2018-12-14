@@ -304,7 +304,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	case <-brq.doneCh:
 		ch <- io.EOF
 		if action.PrefetchTracked() {
-			brq.Prefetcher().CancelPrefetch(ptr.ID)
+			brq.Prefetcher().CancelPrefetch(ptr)
 		}
 		return ch
 	default:
@@ -312,7 +312,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	if block == nil {
 		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
 		if action.PrefetchTracked() {
-			brq.Prefetcher().CancelPrefetch(ptr.ID)
+			brq.Prefetcher().CancelPrefetch(ptr)
 		}
 		return ch
 	}
@@ -331,7 +331,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	err = checkDataVersion(brq.config, path{}, ptr)
 	if err != nil {
 		if action.PrefetchTracked() {
-			brq.Prefetcher().CancelPrefetch(ptr.ID)
+			brq.Prefetcher().CancelPrefetch(ptr)
 		}
 		ch <- err
 		return ch
@@ -459,7 +459,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 				retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
 				retrieval.cacheLifetime, NoPrefetch, retrieval.action)
 		} else {
-			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr.ID)
+			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
 		}
 	}
 

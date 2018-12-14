@@ -701,3 +701,25 @@ func TestArchivedByRevision(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
 }
+
+func TestEmptyFS(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+	require.NoError(t, err)
+	fs, err := NewFSIfExists(
+		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+	require.NoError(t, err)
+
+	require.True(t, fs.IsEmpty())
+
+	fis, err := fs.ReadDir("")
+	require.NoError(t, err)
+	require.Len(t, fis, 0)
+
+	err = fs.MkdirAll("a", 0777)
+	require.Error(t, err)
+}

@@ -82,6 +82,14 @@ func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
 	return nil, nil
 }
 
+func (t *testSyncedTlfGetterSetter) GetAllSyncedTlfs() []tlf.ID {
+	tlfs := make([]tlf.ID, 0, len(t.syncedTlfs))
+	for tlf := range t.syncedTlfs {
+		tlfs = append(tlfs, tlf)
+	}
+	return tlfs
+}
+
 type testInitModeGetter struct {
 	mode InitModeType
 }
