@@ -6,7 +6,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {isMobile} from '../../constants/platform'
-import {navigateUp, putActionIfOnPath} from '../../actions/route-tree'
 
 type OwnProps = RouteProps<
   {|
@@ -28,7 +27,14 @@ const getDestinationParentPath = memoize2((stateProps, ownProps: OwnProps) =>
 )
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  _onBackUp: () => dispatch(putActionIfOnPath(ownProps.routePath, navigateUp())),
+  _onBackUp: (currentPath: Types.Path) =>
+    dispatch(
+      FsGen.createMoveOrCopyOpen({
+        currentIndex: getIndex(ownProps),
+        path: Types.getPathParent(currentPath),
+        routePath: ownProps.routePath,
+      })
+    ),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
     dispatch(FsGen.createCancelMoveOrCopy())
@@ -75,7 +81,9 @@ const canBackUp = isMobile
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   index: getIndex(ownProps),
-  onBackUp: canBackUp(stateProps, ownProps) ? dispatchProps._onBackUp : null,
+  onBackUp: canBackUp(stateProps, ownProps)
+    ? () => dispatchProps._onBackUp(getDestinationParentPath(stateProps, ownProps))
+    : null,
   onCancel: dispatchProps.onCancel,
   onCopyHere: canCopy(stateProps, ownProps)
     ? () => dispatchProps._onCopyHere(getDestinationParentPath(stateProps, ownProps))

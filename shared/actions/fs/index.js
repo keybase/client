@@ -18,7 +18,8 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend, navigateTo, switchTo, navigateUp} from '../route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import {getPathProps} from '../../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -614,7 +615,7 @@ const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPa
         // Construct all parent folders so back button works all the way back
         // to /keybase
         ...Types.getPathElements(action.payload.path)
-          .slice(0, -1)
+          .slice(1, -1) // fsTab default to /keybase, so we skip one here
           .reduce(
             (routes, elem) => [
               ...routes,
@@ -622,7 +623,7 @@ const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPa
                 props: {
                   path: routes.length
                     ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                    : Types.stringToPath(`/${elem}`),
+                    : Types.stringToPath(`/keybase/${elem}`),
                 },
                 selected: 'folder',
               },
@@ -763,7 +764,7 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   )
 }
 
-const moveOrCopyOpenMobile = (state, action) =>
+const moveOrCopyOpen = (state, action) =>
   Saga.all([
     Saga.put(
       FsGen.createSetMoveOrCopyDestinationParentPath({
@@ -779,35 +780,23 @@ const moveOrCopyOpenMobile = (state, action) =>
     ),
   ])
 
-const moveOrCopyOpenDesktop = (state, action) =>
-  Saga.put(
-    FsGen.createSetMoveOrCopyDestinationParentPath({
-      index: action.payload.currentIndex,
-      path: action.payload.path,
-    })
+const showMoveOrCopy = (state, action) =>
+  Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
+
+const cancelMoveOrCopy = (state, action) => {
+  const currentRoutes = getPathProps(state.routeTree.routeState)
+  const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
+  const newRoute = currentRoutes.reduce(
+    (routes, {node, props}, i) =>
+      // node is never null
+      i < firstDestinationPickerIndex ? [...routes, {props, selected: node || ''}] : routes,
+    []
   )
-
-const showMoveOrCopy = isMobile
-  ? (state, action) =>
-      Saga.put(
-        navigateTo([
-          Tabs.settingsTab,
-          SettingsConstants.fsTab,
-          ...state.fs.moveOrCopy.destinationParentPath.map((p, index) => ({
-            props: {index},
-            selected: 'destinationPicker',
-          })),
-        ])
-      )
-  : (state, action) => Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
-
-const cancelMoveOrCopy = (state, action) =>
-  Saga.all([
-    isMobile
-      ? Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
-      : Saga.put(navigateUp()),
+  return Saga.all([
     Saga.put(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'})),
+    Saga.put(navigateTo(newRoute)),
   ])
+}
 
 const showSendLinkToChat = (state, action) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
@@ -914,7 +903,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.actionToPromise([FsGen.move, FsGen.copy], moveOrCopy)
-  yield Saga.actionToAction(FsGen.moveOrCopyOpen, isMobile ? moveOrCopyOpenMobile : moveOrCopyOpenDesktop)
+  yield Saga.actionToAction(FsGen.moveOrCopyOpen, moveOrCopyOpen)
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
   yield Saga.actionToAction(FsGen.showSendLinkToChat, showSendLinkToChat)
