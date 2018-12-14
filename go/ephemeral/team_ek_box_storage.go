@@ -151,7 +151,6 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 		Args: libkb.HTTPArgs{
 			"team_id":    libkb.S{Val: string(teamID)},
 			"generation": libkb.U{Val: uint64(generation)},
-			"device_id":  libkb.S{Val: string(s.G().Env.GetDeviceID())},
 		},
 	}
 
