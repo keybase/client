@@ -24,6 +24,7 @@ type BlockServerMeasured struct {
 	addBlockReferenceTimer      metrics.Timer
 	removeBlockReferencesTimer  metrics.Timer
 	archiveBlockReferencesTimer metrics.Timer
+	getLiveBlockReferencesTimer metrics.Timer
 	isUnflushedTimer            metrics.Timer
 }
 
@@ -39,6 +40,7 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 	addBlockReferenceTimer := metrics.GetOrRegisterTimer("BlockServer.AddBlockReference", r)
 	removeBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.RemoveBlockReferences", r)
 	archiveBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.ArchiveBlockReferences", r)
+	getLiveBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.GetLiveBlockReferences", r)
 	isUnflushedTimer := metrics.GetOrRegisterTimer("BlockServer.IsUnflushed", r)
 	return BlockServerMeasured{
 		delegate:                    delegate,
@@ -48,6 +50,7 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 		addBlockReferenceTimer:      addBlockReferenceTimer,
 		removeBlockReferencesTimer:  removeBlockReferencesTimer,
 		archiveBlockReferencesTimer: archiveBlockReferencesTimer,
+		getLiveBlockReferencesTimer: getLiveBlockReferencesTimer,
 		isUnflushedTimer:            isUnflushedTimer,
 	}
 }
@@ -124,13 +127,25 @@ func (b BlockServerMeasured) RemoveBlockReferences(ctx context.Context,
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for
-// BlockServerRemote
+// BlockServerMeasured.
 func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
 	b.archiveBlockReferencesTimer.Time(func() {
 		err = b.delegate.ArchiveBlockReferences(ctx, tlfID, contexts)
 	})
 	return err
+}
+
+// GetLiveBlockReferences implements the BlockServer interface for
+// BlockServerMeasured.
+func (b BlockServerMeasured) GetLiveBlockReferences(
+	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
+	liveCounts map[kbfsblock.ID]int, err error) {
+	b.getLiveBlockReferencesTimer.Time(func() {
+		liveCounts, err = b.delegate.GetLiveBlockReferences(
+			ctx, tlfID, contexts)
+	})
+	return liveCounts, err
 }
 
 // IsUnflushed implements the BlockServer interface for BlockServerMeasured.
