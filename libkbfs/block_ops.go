@@ -74,7 +74,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 
 	errCh := b.queue.Request(
 		ctx, defaultOnDemandRequestPriority, kmd,
-		blockPtr, block, lifetime, BlockRequestWithPrefetch)
+		blockPtr, block, lifetime, defaultBlockRequestAction(b.config.Mode()))
 	err := <-errCh
 
 	b.log.LazyTrace(ctx, "BOps: Request fulfilled for %s (err=%v)", blockPtr.ID, err)

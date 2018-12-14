@@ -2178,6 +2178,9 @@ type InitMode interface {
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.
 	PrefetchWorkers() int
+	// DoPrefetches returns true if block fetches should trigger
+	// automatic prefetching.
+	DoPrefetches() bool
 	// RekeyWorkers returns the number of rekey workers to run.
 	RekeyWorkers() int
 	// RekeyQueueSize returns the size of the rekey queue.

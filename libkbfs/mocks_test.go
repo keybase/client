@@ -8219,6 +8219,20 @@ func (mr *MockInitModeMockRecorder) PrefetchWorkers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrefetchWorkers", reflect.TypeOf((*MockInitMode)(nil).PrefetchWorkers))
 }
 
+// DoPrefetches mocks base method
+func (m *MockInitMode) DoPrefetches() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DoPrefetches")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// DoPrefetches indicates an expected call of DoPrefetches
+func (mr *MockInitModeMockRecorder) DoPrefetches() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoPrefetches", reflect.TypeOf((*MockInitMode)(nil).DoPrefetches))
+}
+
 // RekeyWorkers mocks base method
 func (m *MockInitMode) RekeyWorkers() int {
 	m.ctrl.T.Helper()

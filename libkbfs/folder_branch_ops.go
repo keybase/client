@@ -1029,7 +1029,7 @@ func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ptr := rmd.Data().Dir.BlockPointer
 	return fbo.config.BlockOps().BlockRetriever().Request(
 		ctx, defaultOnDemandRequestPriority-1, rmd, ptr, NewDirBlock(),
-		TransientEntry, BlockRequestWithPrefetch)
+		TransientEntry, defaultBlockRequestAction(fbo.config.Mode()))
 }
 
 func (fbo *folderBranchOps) waitForRootBlockFetch(
