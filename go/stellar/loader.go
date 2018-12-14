@@ -12,6 +12,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
+const maxAttempts = 10
+
 type chatMsg struct {
 	convID chat1.ConversationID
 	msgID  chat1.MessageID
@@ -199,11 +201,11 @@ func (p *Loader) Shutdown() error {
 
 func (p *Loader) runPayments() {
 	for entry := range p.pqueue {
-		if entry.attempt >= 10 {
+		if entry.attempt >= maxAttempts {
 			p.G().GetLog().Debug("giving up loading payment %s after %d attempts", entry.id, entry.attempt)
 			continue
 		}
-		p.loadPayment(id)
+		p.loadPayment(entry)
 	}
 }
 
@@ -213,32 +215,37 @@ func (p *Loader) runRequests() {
 	}
 }
 
-func (p *Loader) loadPayment(id stellar1.PaymentID) {
+func (p *Loader) loadPayment(entry paymentQueueEntry) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	mctx := libkb.NewMetaContext(ctx, p.G())
-	defer mctx.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
+	defer mctx.CTraceTimed(fmt.Sprintf("loadPayment(%s, attempt %d)", entry.id, entry.attempt), func() error { return nil })()
 
 	s := getGlobal(p.G())
-	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
+	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(entry.id).String())
 	if err != nil {
-		mctx.CDebugf("error getting payment details for %s: %s", id, err)
+		mctx.CDebugf("error getting payment details for %s: %s", entry.id, err)
+		if entry.attempt < maxAttempts {
+			entry.attempt += 1
+			mctx.CDebugf("retrying loadPayment for %s (%d): %s", entry.id, entry.attempt, err)
+			p.enqueuePaymentEntryDelayed(entry)
+		}
 		return
 	}
 
 	oc := NewOwnAccountLookupCache(mctx)
 	summary, err := TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	if err != nil {
-		mctx.CDebugf("error transforming details for %s: %s", id, err)
+		mctx.CDebugf("error transforming details for %s: %s", entry.id, err)
 		return
 	}
 
 	p.Lock()
-	p.payments[id] = summary
+	p.payments[entry.id] = summary
 	p.Unlock()
 
-	p.sendPaymentNotification(mctx, id, summary)
+	p.sendPaymentNotification(mctx, entry.id, summary)
 }
 
 func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
@@ -353,8 +360,21 @@ func (p *Loader) sendRequestNotification(m libkb.MetaContext, id stellar1.Keybas
 }
 
 func (p *Loader) enqueuePayment(paymentID stellar1.PaymentID) {
+	p.enqueuePaymentEntry(paymentQueueEntry{id: paymentID})
+}
+
+// enqueuePaymentEntryDelayed sleeps a little bit before putting the
+// entry on the queue.
+func (p *Loader) enqueuePaymentEntryDelayed(entry paymentQueueEntry) {
+	go func() {
+		time.Sleep(entry.attempt * 50 * time.Millisecond)
+		p.enqueuePaymentEntry(entry)
+	}()
+}
+
+func (p *Loader) enqueuePaymentEntry(entry paymentQueueEntry) {
 	select {
-	case p.pqueue <- paymentID:
+	case p.pqueue <- entry:
 	default:
 		p.G().Log.Debug("stellar.Loader payment queue full")
 	}
