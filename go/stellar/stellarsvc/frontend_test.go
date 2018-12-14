@@ -2434,6 +2434,64 @@ func TestSetMobileOnly(t *testing.T) {
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
 
+func TestSetInflation(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	// Test to see if RPCs are reaching remote (mocks).
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "20")
+
+	getInflation := func() stellar1.InflationDestinationResultLocal {
+		res, err := tcs[0].Srv.GetInflationDestinationLocal(context.Background(), stellar1.GetInflationDestinationLocalArg{
+			AccountID: senderAccountID,
+		})
+		require.NoError(t, err)
+		return res
+	}
+	res := getInflation()
+	require.Nil(t, res.Destination)
+	require.Equal(t, "", res.Comment)
+
+	pub, _ := randomStellarKeypair()
+	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
+		AccountID:   senderAccountID,
+		Destination: stellar1.NewInflationDestinationWithAccountid(pub),
+	})
+	require.NoError(t, err)
+
+	res = getInflation()
+	require.NotNil(t, res.Destination)
+	require.Equal(t, pub, *res.Destination)
+	require.Equal(t, "", res.Comment)
+
+	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
+		AccountID:   senderAccountID,
+		Destination: stellar1.NewInflationDestinationWithSelf(),
+	})
+	require.NoError(t, err)
+
+	res = getInflation()
+	require.NotNil(t, res.Destination)
+	require.Equal(t, senderAccountID, *res.Destination)
+	require.Equal(t, "self", res.Comment)
+
+	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
+		AccountID:   senderAccountID,
+		Destination: stellar1.NewInflationDestinationWithLumenaut(),
+	})
+	require.NoError(t, err)
+
+	res = getInflation()
+	require.NotNil(t, res.Destination)
+	require.Equal(t, stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"), *res.Destination)
+	require.Equal(t, "https://pool.lumenaut.net/", res.Comment)
+}
+
 type chatListener struct {
 	libkb.NoopNotifyListener
 

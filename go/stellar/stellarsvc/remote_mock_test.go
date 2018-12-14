@@ -320,6 +320,7 @@ type FakeAccount struct {
 	balance       stellar1.Balance   // XLM
 	otherBalances []stellar1.Balance // other assets
 	subentries    int
+	inflationDest stellar1.AccountID
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -511,11 +512,11 @@ func (r *RemoteClientMock) ServerTimeboundsRecommendation(ctx context.Context) (
 }
 
 func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx string) error {
-	return errors.New("not implemented")
+	return r.Backend.SetInflationDestination(ctx, r.Tc, signedTx)
 }
 
 func (r *RemoteClientMock) GetInflationDestination(ctx context.Context, accountID stellar1.AccountID) (*stellar1.AccountID, error) {
-	return nil, errors.New("not implemented")
+	return r.Backend.GetInflationDestination(ctx, r.Tc, accountID)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -1141,6 +1142,43 @@ func (r *BackendMock) MakeAccountAllDevices(ctx context.Context, tc *TestContext
 func (r *BackendMock) ServerTimeboundsRecommendation(ctx context.Context, tc *TestContext) (stellar1.TimeboundsRecommendation, error) {
 	// Call real timebounds endpoint for integration testing.
 	return remote.ServerTimeboundsRecommendation(ctx, tc.G)
+}
+
+func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestContext, signedTx string) error {
+	unpackedTx, _, err := unpackTx(signedTx)
+	if err != nil {
+		return err
+	}
+
+	accountID := stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
+	account, ok := r.accounts[accountID]
+	require.True(tc.T, ok)
+	require.True(tc.T, account.availableBalance() != "0", "inflation on empty account won't work")
+
+	require.Len(tc.T, unpackedTx.Tx.Operations, 1)
+	op := unpackedTx.Tx.Operations[0]
+	require.Nil(tc.T, op.SourceAccount)
+	require.Equal(tc.T, xdr.OperationTypeSetOptions, op.Body.Type)
+	setOpt, ok := op.Body.GetSetOptionsOp()
+	require.True(tc.T, ok)
+	require.NotNil(tc.T, setOpt.InflationDest)
+
+	account.inflationDest = stellar1.AccountID(setOpt.InflationDest.Address())
+
+	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)
+	return nil
+}
+
+func (r *BackendMock) GetInflationDestination(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res *stellar1.AccountID, err error) {
+	account, ok := r.accounts[accountID]
+	if !ok {
+		return res, fmt.Errorf("source account not found")
+	}
+	if account.inflationDest.IsNil() {
+		return nil, nil
+	}
+	acct := account.inflationDest
+	return &acct, nil
 }
 
 // Friendbot sends someone XLM
