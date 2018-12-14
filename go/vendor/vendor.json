@@ -1107,11 +1107,10 @@
 			"revisionTime": "2018-03-22T21:26:26Z"
 		},
 		{
-			"checksumSHA1": "2Y8G4+fmp8+t8DmxOvs29kpA2rI=",
-			"origin": "github.com/keybase/stellar-org/support/render/hal",
+			"checksumSHA1": "kOArfVelPO9tPseHtbMfPtyBn8A=",
 			"path": "github.com/stellar/go/support/render/hal",
-			"revision": "3bfc312455e94df6c47ec3223a7ee56cbf22da70",
-			"revisionTime": "2018-03-29T15:39:59Z"
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
 		},
 		{
 			"checksumSHA1": "pyj3VCpH5DgWiNSVJ+Oe/5GCd5o=",
@@ -1122,10 +1121,9 @@
 		},
 		{
 			"checksumSHA1": "aA7kiwk05rwCwvpUVqHgxBzs31M=",
-			"origin": "github.com/keybase/stellar-org/support/url",
 			"path": "github.com/stellar/go/support/url",
-			"revision": "3bfc312455e94df6c47ec3223a7ee56cbf22da70",
-			"revisionTime": "2018-03-29T15:39:59Z"
+			"revision": "1adee07661f2cdb26dffe569937263cbaa96b9f7",
+			"revisionTime": "2018-12-14T17:34:17Z"
 		},
 		{
 			"checksumSHA1": "ODB+fbJPxEwx7B6mItaA3P2qC40=",

@@ -68,6 +68,9 @@ type AutoSequence struct {
 	SequenceProvider
 }
 
+// BumpTo sets sequence number on BumpSequence operation
+type BumpTo int64
+
 // NativeAsset is a helper method to create native Asset object
 func NativeAsset() Asset {
 	return Asset{Native: true}
@@ -218,8 +221,8 @@ type Thresholds struct {
 }
 
 type Timebounds struct {
-    MinTime uint64
-    MaxTime uint64
+	MinTime uint64
+	MaxTime uint64
 }
 
 // Trustor is a mutator capable of setting the trustor on
