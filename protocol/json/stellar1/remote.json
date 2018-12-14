@@ -922,6 +922,22 @@
       ],
       "response": null
     },
+    "getInflationDestination": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": [
+        null,
+        "AccountID"
+      ]
+    },
     "ping": {
       "request": [],
       "response": "string"

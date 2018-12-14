@@ -228,6 +228,7 @@ protocol remote {
   void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
 
   void setInflationDestination(keybase1.UserVersion caller, string signedTransaction);
+  union { null, AccountID } getInflationDestination(keybase1.UserVersion caller, AccountID accountID);
 
   string ping();
 
