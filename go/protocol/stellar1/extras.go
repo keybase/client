@@ -383,8 +383,6 @@ func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
 }
 
 func NewChatConversationID(b []byte) *ChatConversationID {
-	c := make([]byte, len(b))
-	copy(c, b)
-	cid := ChatConversationID(c)
+	cid := ChatConversationID(hex.EncodeToString(b))
 	return &cid
 }
