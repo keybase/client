@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import PaymentStatus from '../../chat/payments/status/container'
 
@@ -11,30 +12,38 @@ export type Props = {
 
 const ServiceDecoration = (props: Props) => {
   // Parse JSON to get the type of the decoration
-  const parsed = JSON.parse(props.json)
-  switch (parsed.typ) {
-    case RPCChatTypes.chatUiUITextDecorationTyp.payment:
-      let paymentID
-      let error
-      switch (parsed.payment.result.resultTyp) {
-        case RPCChatTypes.localTextPaymentResultTyp.sent:
-          paymentID = parsed.payment.result.sent
-          break
-        case RPCChatTypes.localTextPaymentResultTyp.error:
-          error = parsed.payment.result.error
-          break
-      }
-      return (
-        <PaymentStatus
-          paymentID={paymentID}
-          error={error}
-          text={parsed.payment.paymentText}
-          allowFontScaling={props.allowFontScaling}
-        />
-      )
-    default:
-      return null
+  let parsed: RPCChatTypes.UITextDecoration
+  try {
+    parsed = JSON.parse(props.json)
+  } catch (e) {
+    return null
   }
+  if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.payment && parsed.payment) {
+    let paymentID: WalletTypes.PaymentID
+    let error
+    if (
+      parsed.payment.result.resultTyp === RPCChatTypes.localTextPaymentResultTyp.sent &&
+      parsed.payment.result.sent
+    ) {
+      paymentID = WalletTypes.rpcPaymentIDToPaymentID(parsed.payment.result.sent)
+    } else if (
+      parsed.payment.result.resultTyp === RPCChatTypes.localTextPaymentResultTyp.error &&
+      parsed.payment.result.error
+    ) {
+      error = parsed.payment.result.error
+    } else {
+      error = 'unknown text decoration'
+    }
+    return (
+      <PaymentStatus
+        paymentID={paymentID}
+        error={error}
+        text={parsed.payment.paymentText}
+        allowFontScaling={props.allowFontScaling}
+      />
+    )
+  }
+  return null
 }
 
 export default ServiceDecoration

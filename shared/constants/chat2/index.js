@@ -27,7 +27,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   explodingModes: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
-  inboxVersion: 0,
   isExplodingNew: true,
   isWalletsNew: true,
   messageMap: I.Map(),

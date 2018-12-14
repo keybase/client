@@ -5,8 +5,8 @@ import PaymentStatus from '.'
 
 type OwnProps = {|
   allowFontScaling?: ?boolean,
-  error?: string,
-  paymentID?: WalletTypes.PaymentID,
+  error?: ?string,
+  paymentID?: ?WalletTypes.PaymentID,
   text: string,
 |}
 
