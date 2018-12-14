@@ -242,10 +242,10 @@
 			"revisionTime": "2018-08-30T03:29:55Z"
 		},
 		{
-			"checksumSHA1": "2nOpYjx8Sn57bqlZq17yM4YJuM4=",
+			"checksumSHA1": "NvkV52M5EFd0kT4U+9A2Eu/kKr8=",
 			"path": "github.com/hashicorp/golang-lru/simplelru",
-			"revision": "a0d98a5f288019575c6d1f4bb1573fef2d1fcdc4",
-			"revisionTime": "2016-02-07T21:47:19Z"
+			"revision": "20f1fb78b0740ba8c3cb143a61e86ba5c8669768",
+			"revisionTime": "2018-08-30T03:29:55Z"
 		},
 		{
 			"checksumSHA1": "tRspGialxHXnWNdFBVAw4ZSEXv4=",
