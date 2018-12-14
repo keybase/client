@@ -157,6 +157,7 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	var result TeamEKBoxedResponse
 	res, err := s.G().GetAPI().Get(apiArg)
 	if err != nil {
+		err = errFromAppStatus(err)
 		return teamEK, err
 	}
 
