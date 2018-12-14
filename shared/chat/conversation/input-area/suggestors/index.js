@@ -11,8 +11,6 @@ import SuggestionList from './suggestion-list'
 
 // Note: transformation doesn't work with controlled inputs! TODO
 
-const lg = (...args) => {}
-
 // For better performance, try not to recreate these objects on every render
 // i.e. don't instantiate the objects inline (like dataSources={{...}})
 type AddSuggestorsProps = {
@@ -86,6 +84,11 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     _lastText = null
     _suggestors = Object.keys(this.props.suggestorToMarker)
     _markerToSuggestor: {[key: string]: string} = invert(this.props.suggestorToMarker)
+    _timeoutID: TimeoutID
+
+    componentWillUnmount() {
+      clearTimeout(this._timeoutID)
+    }
 
     _getInputRef = () => this._inputRef.current
     _getAttachmentRef = () => this._attachmentRef.current
@@ -117,10 +120,9 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     }
 
     _checkTrigger = text => {
-      setTimeout(() => {
+      this._timeoutID = setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
         // desktop would get the previous selection on arrowleft / arrowright
-        lg('checktrigger', text)
         const cursorInfo = this._getWordAtCursor()
         if (!cursorInfo) {
           return
@@ -139,7 +141,6 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         for (let marker of Object.keys(this._markerToSuggestor)) {
           if (word.startsWith(marker)) {
             this.setState({active: this._markerToSuggestor[marker], filter: word.substring(marker.length)})
-            lg('wut!', marker)
           }
         }
       }, 0)
@@ -177,7 +178,6 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     }
 
     _onChangeText = text => {
-      lg('changetext', text)
       this._lastText = text
       // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onChangeText && this.props.onChangeText(text)
@@ -185,8 +185,6 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     }
 
     _onKeyDown = (evt: SyntheticKeyboardEvent<>, ici: boolean) => {
-      lg('keydown')
-
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
         this._checkTrigger(this._lastText || '')
       }
@@ -249,7 +247,6 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     }
 
     _triggerTransform = (value, final = true) => {
-      lg('triggerTransform', value)
       if (this._inputRef.current && this.state.active) {
         const input = this._inputRef.current
         const active = this.state.active
@@ -300,7 +297,6 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         this._validateProps()
       }
       const results = this._getResults()
-      lg(results)
       if (results.length) {
         const content = (
           <SuggestionList

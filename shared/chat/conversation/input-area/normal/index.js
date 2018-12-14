@@ -103,10 +103,11 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey) && this._lastText) {
-      const toSubmit = this._lastText
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
       e.preventDefault()
-      this._onSubmit(toSubmit)
+      if (this._lastText) {
+        this._onSubmit(this._lastText)
+      }
     }
   }
 
