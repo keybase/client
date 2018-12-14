@@ -54,7 +54,6 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       e.preventDefault()
       e.stopPropagation()
       this.props.onSelectUp()
-    } else {
     }
   }
 
