@@ -568,6 +568,13 @@
           "name": "messageBody"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "decoratedTextBody"
+        },
+        {
           "type": "string",
           "name": "senderUsername"
         },
@@ -775,6 +782,30 @@
             "UIPagination"
           ],
           "name": "pagination"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UITextDecorationTyp",
+      "symbols": [
+        "PAYMENT_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UITextDecoration",
+      "switch": {
+        "type": "UITextDecorationTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PAYMENT",
+            "def": false
+          },
+          "body": "TextPayment"
         }
       ]
     },

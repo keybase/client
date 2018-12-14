@@ -5,6 +5,7 @@ package chat1
 
 import (
 	"errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -97,6 +98,7 @@ func (e ChatActivityType) String() string {
 
 type IncomingMessage struct {
 	Message                    UIMessage      `codec:"message" json:"message"`
+	ModifiedMessage            *UIMessage     `codec:"modifiedMessage,omitempty" json:"modifiedMessage,omitempty"`
 	ConvID                     ConversationID `codec:"convID" json:"convID"`
 	DisplayDesktopNotification bool           `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
 	DesktopNotificationSnippet string         `codec:"desktopNotificationSnippet" json:"desktopNotificationSnippet"`
@@ -107,7 +109,14 @@ type IncomingMessage struct {
 func (o IncomingMessage) DeepCopy() IncomingMessage {
 	return IncomingMessage{
 		Message: o.Message.DeepCopy(),
-		ConvID:  o.ConvID.DeepCopy(),
+		ModifiedMessage: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ModifiedMessage),
+		ConvID: o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
 		DesktopNotificationSnippet: o.DesktopNotificationSnippet,
 		Conv: (func(x *InboxUIItem) *InboxUIItem {

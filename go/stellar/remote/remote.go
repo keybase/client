@@ -496,7 +496,7 @@ func FetchV2BundleForAccount(ctx context.Context, g *libkb.GlobalContext, accoun
 		Args:           fetchArgs,
 		NetContext:     ctx,
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes fetchAcctRes
 	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
@@ -698,7 +698,7 @@ func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var res seqnoResult
@@ -731,7 +731,7 @@ func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Ac
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var res balancesResult
@@ -759,7 +759,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var res detailsResult
@@ -895,7 +895,7 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	if cursor != nil {
@@ -925,7 +925,7 @@ func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stel
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var apiRes pendingPaymentsResult
@@ -948,7 +948,7 @@ func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (r
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 	var apiRes paymentDetailResult
 	err = g.API.GetDecode(apiArg, &apiRes)
@@ -974,7 +974,7 @@ func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) 
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 	var apiRes tickerResult
 	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
@@ -1003,7 +1003,7 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 		NetContext:     ctx,
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes accountCurrencyResult
 	err := g.API.GetDecode(apiArg, &apiRes)
@@ -1036,7 +1036,7 @@ func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret boo
 		SessionType:    libkb.APISessionTypeREQUIRED,
 		NetContext:     ctx,
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes disclaimerResult
 	err = g.API.GetDecode(apiArg, &apiRes)
@@ -1092,7 +1092,7 @@ func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stell
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 	var res requestDetailsResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
@@ -1217,7 +1217,7 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 		},
 		MetaContext:    libkb.NewMetaContext(ctx, g),
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var res lookupUnverifiedResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {

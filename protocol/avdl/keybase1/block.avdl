@@ -35,6 +35,17 @@ protocol block {
     BlockReference failed;
   }
 
+
+  @lint("ignore")
+  record BlockIdCount{
+    BlockIdCombo id;
+    int liveCount;
+  }
+
+  record ReferenceCountRes{
+    array<BlockIdCount> counts;
+  }
+
   record BlockPingResponse {
     // In the future, we might want to respond with timestamps or
     // ping intervals.
@@ -54,6 +65,7 @@ protocol block {
 
   DowngradeReferenceRes delReferenceWithCount(string folder, array<BlockReference> refs);
   DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
+  ReferenceCountRes getReferenceCount(string folder, array<BlockIdCombo> ids, BlockStatus status);
 
   bytes getUserQuotaInfo();
   bytes getTeamQuotaInfo(TeamID tid);

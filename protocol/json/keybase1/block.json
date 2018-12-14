@@ -94,6 +94,34 @@
     },
     {
       "type": "record",
+      "name": "BlockIdCount",
+      "fields": [
+        {
+          "type": "BlockIdCombo",
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "liveCount"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "ReferenceCountRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "BlockIdCount"
+          },
+          "name": "counts"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BlockPingResponse",
       "fields": []
     }
@@ -247,6 +275,26 @@
         }
       ],
       "response": "DowngradeReferenceRes"
+    },
+    "getReferenceCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "ids",
+          "type": {
+            "type": "array",
+            "items": "BlockIdCombo"
+          }
+        },
+        {
+          "name": "status",
+          "type": "BlockStatus"
+        }
+      ],
+      "response": "ReferenceCountRes"
     },
     "getUserQuotaInfo": {
       "request": [],

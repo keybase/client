@@ -14,6 +14,12 @@
   "types": [
     {
       "type": "record",
+      "name": "ChatConversationID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "PaymentDirectPost",
       "fields": [
         {
@@ -46,6 +52,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },

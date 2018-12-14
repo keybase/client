@@ -612,7 +612,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		if recipient.User != nil {
 			recipientUv = &recipient.User.UV
 		}
-		post.NoteB64, err = NoteEncryptB64(mctx.Ctx(), mctx.G(), noteClear, recipientUv)
+		post.NoteB64, err = NoteEncryptB64(mctx, noteClear, recipientUv)
 		if err != nil {
 			return res, fmt.Errorf("error encrypting note: %v", err)
 		}
@@ -755,7 +755,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
 	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
@@ -777,7 +777,7 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payment
 
 	for _, payment := range payments {
 		go func(p libkb.MiniChatPayment) {
-			prepared <- prepareMiniChatPayment(m, walletState, sp, tb, senderSeed, p)
+			prepared <- prepareMiniChatPayment(m, walletState, sp, tb, senderSeed, convID, p)
 		}(payment)
 	}
 
@@ -818,7 +818,7 @@ type miniPrepared struct {
 	Error    error
 }
 
-func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *miniPrepared {
 	result := &miniPrepared{Username: payment.Username}
 
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
@@ -842,6 +842,9 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 		FromDeviceID: m.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
 		QuickReturn:  true,
+	}
+	if convID != nil {
+		result.Post.ChatConversationID = stellar1.NewChatConversationID(convID)
 	}
 
 	xlmAmount := payment.Amount
@@ -983,7 +986,8 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 		}
 		return res, fmt.Errorf("Payment already claimed by %v", recipient.GetName())
 	}
-	rsec, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+	mctx := libkb.NewMetaContext(ctx, g)
+	rsec, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err != nil {
 		return res, fmt.Errorf("error opening secret to claim: %v", err)
 	}
@@ -1005,7 +1009,6 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 		// Direction from caller
 		useDir = *dir
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	sp := NewSeqnoProvider(mctx, walletState)
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
@@ -1060,8 +1063,9 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 	if err != nil {
 		return nil, err
 	}
+	mctx := libkb.NewMetaContext(ctx, g)
 	for _, p := range page.Payments {
-		lp, err := localizePayment(ctx, g, p)
+		lp, err := localizePayment(mctx, p)
 		if err == nil {
 			res = append(res, stellar1.PaymentOrErrorCLILocal{
 				Payment: &lp,
@@ -1082,16 +1086,17 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 	if err != nil {
 		return res, err
 	}
-	return localizePayment(ctx, g, payment.Summary)
+	mctx := libkb.NewMetaContext(ctx, g)
+	return localizePayment(mctx, payment.Summary)
 }
 
-func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
+func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return res, fmt.Errorf("malformed payment summary: %v", err)
 	}
 	username := func(uid keybase1.UID) (username *string, err error) {
-		uname, err := g.GetUPAKLoader().LookupUsername(ctx, uid)
+		uname, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), uid)
 		if err != nil {
 			return nil, err
 		}
@@ -1135,7 +1140,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			}
 		}
 		if len(p.NoteB64) > 0 {
-			note, err := NoteDecryptB64(ctx, g, p.NoteB64)
+			note, err := NoteDecryptB64(mctx, p.NoteB64)
 			if err != nil {
 				res.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
 			} else {
@@ -1146,7 +1151,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				}
 			}
 			if len(res.NoteErr) > 0 {
-				g.Log.CWarningf(ctx, res.NoteErr)
+				mctx.CWarningf(res.NoteErr)
 			}
 		}
 		return res, nil
@@ -1205,7 +1210,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", *claimantUsername, res.Status)
 			}
 		}
-		relaySecrets, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+		relaySecrets, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 		if err == nil {
 			res.Note = relaySecrets.Note
 		} else {
@@ -1741,7 +1746,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		}
 		_, ok := conf.GetCurrencyLocal(*arg.Currency)
 		if !ok {
-			return ret, fmt.Errorf("unrecognized currency code %q", arg.Currency)
+			return ret, fmt.Errorf("unrecognized currency code %q", *arg.Currency)
 		}
 	}
 

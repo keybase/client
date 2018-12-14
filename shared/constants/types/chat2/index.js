@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
+import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 
 export type PendingMode =
@@ -50,7 +51,6 @@ export type _State = {
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
-  inboxVersion: number, // gets incremented as we get updates. used to know when the inbox has actually changed content
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
@@ -72,6 +72,7 @@ export type _State = {
   pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
+  paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
