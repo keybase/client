@@ -466,7 +466,7 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
 	if err == nil {
 		a.Lock()
-		if seqno > a.seqno {
+		if seqno != a.seqno {
 			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 			a.seqno = seqno
 		} else {
