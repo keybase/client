@@ -23,15 +23,11 @@ const KeyEventContext = React.createContext<HandlerProps>({
   remove: () => {},
 })
 
-class KeyEventHandlerWrapper extends React.Component<Props> {
-  render() {
-    return (
-      <KeyEventContext.Consumer>
-        {({add, remove}) => <KeyEventHandler {...this.props} add={add} remove={remove} />}
-      </KeyEventContext.Consumer>
-    )
-  }
-}
+const KeyEventHandlerWrapper = (props: Props) => (
+  <KeyEventContext.Consumer>
+    {({add, remove}) => <KeyEventHandler {...props} add={add} remove={remove} />}
+  </KeyEventContext.Consumer>
+)
 
 class KeyEventHandler extends React.Component<Props & HandlerProps> {
   componentDidMount() {
