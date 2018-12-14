@@ -860,6 +860,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to move file(s).`
     case FsGen.copy:
       return `Failed to copy file(s).`
+    case FsGen.openPathItem:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInFilesTab:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     default:
       return 'An unexplainable error has occurred.'
   }

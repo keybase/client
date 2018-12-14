@@ -671,19 +671,24 @@ const openPathItem = (
       // interacted with its parent folder, where we'd have just refreshed the
       // PathItem for the entry.
       if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
-        const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-          path: {
-            PathType: RPCTypes.simpleFSPathType.kbfs,
-            kbfs: Constants.fsPathToRpcPathString(path),
-          },
-        })
-        pathItem = makeEntry(dirent)
-        yield Saga.put(
-          FsGen.createFilePreviewLoaded({
-            meta: pathItem,
-            path,
+        try {
+          const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+            path: {
+              PathType: RPCTypes.simpleFSPathType.kbfs,
+              kbfs: Constants.fsPathToRpcPathString(path),
+            },
           })
-        )
+          pathItem = makeEntry(dirent)
+          yield Saga.put(
+            FsGen.createFilePreviewLoaded({
+              meta: pathItem,
+              path,
+            })
+          )
+        } catch (err) {
+          yield Saga.put(makeRetriableErrorHandler(action)(err))
+          return
+        }
       }
       if (pathItem.type === 'file') {
         yield Saga.put(FsGen.createMimeTypeLoad({path}))
