@@ -502,6 +502,7 @@ type UIMessageValid struct {
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
 	OutboxID              *string                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	MessageBody           MessageBody            `codec:"messageBody" json:"messageBody"`
+	DecoratedTextBody     *string                `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
@@ -533,7 +534,14 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.OutboxID),
-		MessageBody:      o.MessageBody.DeepCopy(),
+		MessageBody: o.MessageBody.DeepCopy(),
+		DecoratedTextBody: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DecoratedTextBody),
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
@@ -844,6 +852,75 @@ func (o UIMessages) DeepCopy() UIMessages {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Pagination),
+	}
+}
+
+type UITextDecorationTyp int
+
+const (
+	UITextDecorationTyp_PAYMENT UITextDecorationTyp = 0
+)
+
+func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
+
+var UITextDecorationTypMap = map[string]UITextDecorationTyp{
+	"PAYMENT": 0,
+}
+
+var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
+	0: "PAYMENT",
+}
+
+func (e UITextDecorationTyp) String() string {
+	if v, ok := UITextDecorationTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UITextDecoration struct {
+	Typ__     UITextDecorationTyp `codec:"typ" json:"typ"`
+	Payment__ *TextPayment        `codec:"payment,omitempty" json:"payment,omitempty"`
+}
+
+func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
+	switch o.Typ__ {
+	case UITextDecorationTyp_PAYMENT:
+		if o.Payment__ == nil {
+			err = errors.New("unexpected nil value for Payment__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o UITextDecoration) Payment() (res TextPayment) {
+	if o.Typ__ != UITextDecorationTyp_PAYMENT {
+		panic("wrong case accessed")
+	}
+	if o.Payment__ == nil {
+		return
+	}
+	return *o.Payment__
+}
+
+func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
+	return UITextDecoration{
+		Typ__:     UITextDecorationTyp_PAYMENT,
+		Payment__: &v,
+	}
+}
+
+func (o UITextDecoration) DeepCopy() UITextDecoration {
+	return UITextDecoration{
+		Typ__: o.Typ__.DeepCopy(),
+		Payment__: (func(x *TextPayment) *TextPayment {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Payment__),
 	}
 }
 

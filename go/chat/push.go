@@ -429,6 +429,30 @@ func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.Conversatio
 	return res
 }
 
+func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
+	msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
+	if !msg.IsValid() || conv == nil {
+		return nil
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_EDIT:
+		targetMsgID := msg.Valid().MessageBody.Edit().MessageID
+		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil)
+		if err != nil {
+			g.Debug(ctx, "getSupersedesTarget: failed to get message: %s", err)
+			return nil
+		}
+		msgs, err = g.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		if err != nil || len(msgs) == 0 {
+			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %s", err)
+			return nil
+		}
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
+		return &uiMsg
+	}
+	return nil
+}
+
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -523,9 +547,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
-					ConvID:  nm.ConvID,
-					Conv:    g.presentUIItem(ctx, conv, uid),
+					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
+					ModifiedMessage: g.getSupersedesTarget(ctx, uid, conv, decmsg),
+					ConvID:          nm.ConvID,
+					Conv:            g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
 					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),

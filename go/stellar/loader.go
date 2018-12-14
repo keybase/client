@@ -107,12 +107,12 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 	payment, ok := p.payments[paymentID]
 	if ok {
 		info := p.uiPaymentInfo(m, payment, msg)
+		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), p.G().ActiveDevice.UID(), convID, msgID, *info)
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
 			p.enqueuePayment(paymentID)
 		}
-
 		return info
 	}
 

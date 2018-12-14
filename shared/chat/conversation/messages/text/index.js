@@ -5,12 +5,12 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 export type Props = {
-  text: string,
-  type: 'error' | 'pending' | 'sent',
   isEditing: boolean,
   mentionsAt: Types.MentionsAt,
   mentionsChannel: Types.MentionsChannel,
   mentionsChannelName: Types.MentionsChannelName,
+  text: string,
+  type: 'error' | 'pending' | 'sent',
 }
 
 const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => {

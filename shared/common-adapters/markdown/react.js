@@ -12,6 +12,7 @@ import Box from '../box'
 import Emoji from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
 import type {Props as EmojiProps} from '../emoji'
+import ServiceDecoration from './service-decoration'
 
 const wrapStyle = Styles.platformStyles({
   isElectron: {
@@ -331,6 +332,9 @@ const reactComponentsForMarkdownType = {
         {output(node.content, {...state, inParagraph: true})}
       </Text>
     )
+  },
+  serviceDecoration: (node, output, state) => {
+    return <ServiceDecoration json={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
   strong: (node, output, state) => {
     return (
