@@ -95,8 +95,10 @@ func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheRemote.
-func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
-	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+func (dbcr *DiskBlockCacheRemote) Delete(
+	ctx context.Context, blockIDs []kbfsblock.ID,
+	cacheType DiskBlockCacheType) (
+	numRemoved int, sizeRemoved int64, err error) {
 	numBlocks := len(blockIDs)
 	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Delete %s block(s)",
 		numBlocks)
