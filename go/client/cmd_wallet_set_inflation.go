@@ -71,7 +71,7 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 	case "lumenaut":
 		destination = stellar1.NewInflationDestinationWithLumenaut()
 	default:
-		acc, err := libkb.ParseStellarAccountID(c.accountID)
+		acc, err := libkb.ParseStellarAccountID(c.destination)
 		if err != nil {
 			return err
 		}

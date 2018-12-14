@@ -1282,3 +1282,25 @@ func SetInflationDestination(ctx context.Context, g *libkb.GlobalContext, signed
 	_, err = g.API.Post(apiArg)
 	return err
 }
+
+type getInflationRes struct {
+	libkb.AppStatusEmbed
+	DestinationAccountID *stellar1.AccountID `json:"destination_account_id"`
+}
+
+func GetInflationDestination(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res *stellar1.AccountID, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/getinflation",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+		},
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	var apiRes getInflationRes
+	err = g.API.GetDecode(apiArg, &apiRes)
+	if err != nil {
+		return nil, err
+	}
+	return apiRes.DestinationAccountID, nil
+}

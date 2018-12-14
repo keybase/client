@@ -946,8 +946,20 @@ func (s *Server) SetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	if err != nil {
 		return err
 	}
-
 	return stellar.SetInflationDestinationLocal(s.mctx(ctx), arg)
+}
+
+func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.GetInflationDestinationLocalArg) (res *stellar1.AccountID, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetInflationDestinationLocal",
+		Err:           &err,
+		RequireWallet: false,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+	return s.remoter.GetInflationDestination(ctx, arg.AccountID)
 }
 
 // accountExchangeRate gets the exchange rate for the logged in user's currency

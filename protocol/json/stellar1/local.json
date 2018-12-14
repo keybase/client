@@ -1550,6 +1550,22 @@
       ],
       "response": null
     },
+    "getInflationDestinationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": [
+        null,
+        "AccountID"
+      ]
+    },
     "balancesLocal": {
       "request": [
         {
