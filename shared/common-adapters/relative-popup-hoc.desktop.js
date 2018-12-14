@@ -5,9 +5,8 @@ import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler.desktop'
-import {connect} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
-import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
+import type {Position} from './relative-popup-hoc.types'
 
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,
@@ -369,34 +368,5 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
-// TODO maybe a better type?
-type OwnProps = any
-
-const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
-  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<any>> = ModalPositionRelative(
-    PopupComponent
-  )
-
-  const C: React.ComponentType<Props<any>> = connect<OwnProps, _, _, _, _>(
-    () => ({}),
-    (dispatch, {navigateUp, routeProps}) => ({
-      onClosePopup: () => {
-        dispatch(navigateUp())
-        const onPopupWillClose = routeProps.get('onPopupWillClose')
-        onPopupWillClose && onPopupWillClose()
-      },
-      position: routeProps.get('position'),
-      targetRect: routeProps.get('targetRect'),
-    }),
-    (s, d, o) => ({...o, ...s, ...d})
-  )((props: Props<any> & {onClosePopup: () => void}) => {
-    // $FlowIssue
-    return <ModalPopupComponent {...(props: Props<any>)} onClosePopup={props.onClosePopup} />
-  })
-
-  return C
-}
-
 export {DOMNodeFinder, ModalPositionRelative}
-export default RelativePopupHoc
 export type {Position} from './relative-popup-hoc.types'

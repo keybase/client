@@ -3,7 +3,7 @@ import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const sendIcon = Styles.isMobile
   ? 'icon-fancy-stellar-sending-mobile-149-129'
