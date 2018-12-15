@@ -5594,16 +5594,6 @@
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
-   "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/sha3" : {
-      "github.com/keybase/client/go/chat" : 1,
-      "github.com/keybase/client/go/chat/storage" : 1,
-      "github.com/keybase/client/go/engine" : 1,
-      "github.com/keybase/client/go/git" : 1,
-      "github.com/keybase/client/go/saltpackkeys" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1,
-      "github.com/keybase/client/go/teams" : 1
-   },
    "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/ssh/terminal" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/kbfs/kbpagesconfig" : 1,
@@ -7319,17 +7309,6 @@
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
-   "github.com/keybase/client/go/vendor/github.com/segmentio/go-loggly" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
    "github.com/keybase/client/go/vendor/github.com/sergi/go-diff/diffmatchpatch" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -7378,28 +7357,6 @@
       "github.com/keybase/client/go/kbfs/libpages" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/sirupsen/logrus" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/sirupsen/logrus/hooks/test" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/src-d/gcfg" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
@@ -7709,28 +7666,6 @@
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
-   "github.com/keybase/client/go/vendor/github.com/stellar/go/protocols/horizon" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/stellar/go/protocols/horizon/base" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/strkey" : {
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
@@ -7885,51 +7820,7 @@
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
-   "github.com/keybase/client/go/vendor/github.com/stellar/go/support/http/mutil" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/stellar/go/support/log" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/stellar/go/support/render/hal" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
    "github.com/keybase/client/go/vendor/github.com/stellar/go/support/render/problem" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/stellar/go/support/url" : {
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
@@ -8022,8 +7913,6 @@
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -8121,8 +8010,6 @@
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
       "github.com/keybase/client/go/stellar/stellargregor" : 1,
       "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -10308,17 +10195,6 @@
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
-   "github.com/keybase/client/go/vendor/golang.org/x/crypto/ssh/terminal" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
    "github.com/keybase/client/go/vendor/golang.org/x/crypto/twofish" : {
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,
@@ -10906,7 +10782,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/sys/unix" : {
-      "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
@@ -10924,15 +10799,7 @@
       "github.com/keybase/client/go/kbfs/redirector" : 1,
       "github.com/keybase/client/go/kbfs/simplefs" : 1,
       "github.com/keybase/client/go/kbfs/test" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/mounter" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/relays" : 1,
-      "github.com/keybase/client/go/stellar/stellarcommon" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
-      "github.com/keybase/client/go/systests" : 1
+      "github.com/keybase/client/go/mounter" : 1
    },
    "github.com/keybase/client/go/vendor/golang.org/x/text/encoding" : {
       "github.com/keybase/client/go/chat" : 1,
