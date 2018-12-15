@@ -277,7 +277,7 @@ export type AccountBundleVersion =
   | 9 // V9_9
   | 10 // V10_10
 
-export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID, unreadPayments: Int}>
+export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID, unreadPayments: Int, displayCurrency: String}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
@@ -419,7 +419,7 @@ export type TransactionStatus =
   | 4 // ERROR_PERMANENT_4
 
 export type UIPaymentReviewed = $ReadOnly<{bid: BuildPaymentID, seqno: Int, banners?: ?Array<SendBannerLocal>, nextButton: String}>
-export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String}>
+export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String, currencyLocal: CurrencyLocal}>
 
 export type IncomingCallMapType = {|'stellar.1.notify.paymentNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.paymentStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.requestStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.accountDetailsUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.pendingPaymentsUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.recentPaymentsUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.ui.paymentReviewed'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn|}
 

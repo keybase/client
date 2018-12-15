@@ -665,7 +665,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		return nil, err
 	}
 	senderAccountID := senderAccountBundle.AccountID
-	senderCurrency, err := GetCurrencySetting(mctx, walletState, senderAccountID)
+	senderCurrency, err := GetCurrencySetting(mctx, senderAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -1632,7 +1632,7 @@ func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.Accoun
 	return codeStr, nil
 }
 
-func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+func GetCurrencySetting(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
 	codeStr, err := GetAccountDisplayCurrency(mctx, accountID)
 	if err != nil {
 		return res, err
@@ -1863,7 +1863,7 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 // Note that it is possible that multiple users can own the same account and have
 // different display currency preferences.
 func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.OutsideExchangeRate, error) {
-	currency, err := GetCurrencySetting(mctx, remoter, accountID)
+	currency, err := GetCurrencySetting(mctx, accountID)
 	if err != nil {
 		return stellar1.OutsideExchangeRate{}, err
 	}

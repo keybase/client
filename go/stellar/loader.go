@@ -306,11 +306,12 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	p.Unlock()
 
 	if !ok {
-		m.CDebugf("not sending payment chat notification for %s (no associated convID, msgID)", id)
-		return
+		// this is ok: frontend only needs the payment ID
+		m.CDebugf("sending chat notification for payment %s using empty msg info", id)
+		msg = chatMsg{}
+	} else {
+		m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
-
-	m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiPaymentInfo(m, summary, msg)
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)

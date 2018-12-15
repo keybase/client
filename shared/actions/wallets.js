@@ -9,6 +9,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
+import * as Flow from '../util/flow'
 import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
@@ -263,16 +264,37 @@ const loadAssets = (
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
-) =>
-  !actionHasError(action) &&
-  (action.type === WalletsGen.selectAccount ||
-    Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
-  RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
-    WalletsGen.createAssetsReceived({
-      accountID: action.payload.accountID,
-      assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
-    })
-  )
+    | WalletsGen.AccountUpdateReceivedPayload
+) => {
+  if (actionHasError(action)) {
+    return
+  }
+  let accountID
+  switch (action.type) {
+    case WalletsGen.loadAssets:
+    case WalletsGen.linkedExistingAccount:
+    case WalletsGen.refreshPayments:
+    case WalletsGen.selectAccount:
+      accountID = action.payload.accountID
+      break
+    case WalletsGen.accountUpdateReceived:
+      accountID = action.payload.account.accountID
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      return
+  }
+  // check that we've loaded the account, don't load assets if we don't have the account
+  accountID = Constants.getAccount(state, accountID).accountID
+  if (accountID && accountID !== Types.noAccountID) {
+    return RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID}).then(res =>
+      WalletsGen.createAssetsReceived({
+        accountID,
+        assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
+      })
+    )
+  }
+}
 
 const createPaymentsReceived = (accountID, payments, pending) =>
   WalletsGen.createPaymentsReceived({
@@ -530,13 +552,18 @@ const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPa
       })
   )
 
-const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
-  state.wallets.selectedAccount === Types.noAccountID &&
-  Saga.put(
-    WalletsGen.createSelectAccount({
-      accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
-    })
-  )
+const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) => {
+  if (state.wallets.selectedAccount === Types.noAccountID) {
+    const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
+    if (maybeDefaultAccount) {
+      return Saga.put(
+        WalletsGen.createSelectAccount({
+          accountID: maybeDefaultAccount.accountID,
+        })
+      )
+    }
+  }
+}
 
 const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
   // load the display currency of each wallet, now that we have the IDs
@@ -608,14 +635,12 @@ const maybeNavigateToConversation = (state: TypedState, action: WalletsGen.Reque
 
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
-    'stellar.1.notify.accountDetailsUpdate': ({accountID, account}) => [
+    'stellar.1.notify.accountDetailsUpdate': ({accountID, account}) =>
       Saga.put(
-        WalletsGen.createAccountsReceived({
-          accounts: [Constants.accountResultToAccount(account)],
+        WalletsGen.createAccountUpdateReceived({
+          account: Constants.accountResultToAccount(account),
         })
       ),
-      Saga.put(WalletsGen.createLoadAssets({accountID: Types.stringToAccountID(accountID)})),
-    ],
     'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
       if (!_pending) {
         logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
@@ -733,6 +758,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.refreshPayments,
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
+      WalletsGen.accountUpdateReceived,
     ],
     loadAssets
   )

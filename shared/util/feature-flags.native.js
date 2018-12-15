@@ -10,6 +10,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   chatIndexProfilingEnabled: false,
   foldersInProfileTab: false,
+  kbfsChatIntegration: false,
   moveOrCopy: true,
   newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,
