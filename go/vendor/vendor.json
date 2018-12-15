@@ -739,6 +739,12 @@
 		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
+			"revision": "260b815592d65ec410ecf2e1d6351d8ef0e2db54",
+			"revisionTime": "2018-04-24T15:46:34Z"
+		},
+		{
+			"checksumSHA1": "78N5vY4VNa3agM5pNowP5hgJNwE=",
+			"path": "github.com/keybase/keybase-test-vectors/teamchains",
 			"revision": "84ebf93577bf48141063f7842bc137c3d40c4b82",
 			"revisionTime": "2018-08-06T20:08:11Z"
 		},
