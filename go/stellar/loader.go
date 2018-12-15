@@ -278,6 +278,8 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		Status:            summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
 		ShowCancel:        summary.ShowCancel,
+		FromUsername:      summary.FromUsername,
+		ToUsername:        summary.ToUsername,
 	}
 
 	info.Delta = stellar1.BalanceDelta_NONE

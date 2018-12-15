@@ -115,7 +115,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
     onSeeDetails:
-      paymentInfo.status === 'completed'
+      paymentInfo.status === 'completed' && youAreSender
         ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
         : null,
     position: ownProps.position,

@@ -123,6 +123,8 @@ protocol chatUi {
     stellar1.PaymentStatus status;                // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
     string statusDescription;                     // "pending", "completed", "error"
     boolean showCancel;                           // true if cancel is an option for this payment
+    string fromUsername;
+    string toUsername;
   }
 
   record UIRequestInfo {

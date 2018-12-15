@@ -431,6 +431,8 @@ type UIPaymentInfo struct {
 	Status            stellar1.PaymentStatus `codec:"status" json:"status"`
 	StatusDescription string                 `codec:"statusDescription" json:"statusDescription"`
 	ShowCancel        bool                   `codec:"showCancel" json:"showCancel"`
+	FromUsername      string                 `codec:"fromUsername" json:"fromUsername"`
+	ToUsername        string                 `codec:"toUsername" json:"toUsername"`
 }
 
 func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
@@ -450,6 +452,8 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 		Status:            o.Status.DeepCopy(),
 		StatusDescription: o.StatusDescription,
 		ShowCancel:        o.ShowCancel,
+		FromUsername:      o.FromUsername,
+		ToUsername:        o.ToUsername,
 	}
 }
 
