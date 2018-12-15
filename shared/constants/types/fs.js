@@ -550,4 +550,4 @@ export type RowItemWithKey =
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
-export type RefreshTag = 'main' | 'path-item-action-popup'
+export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'

@@ -38,6 +38,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
       })
     )
   },
+  onHidden: () => dispatch(FsGen.createClearRefreshTag({refreshTag: 'path-item-action-popup'})),
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
@@ -227,6 +228,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // request it regardless whether we have it or not. The FS saga takes care
     // of preventing the RPC if it's already subscribed.
     needLoadMimeType: type === 'file',
+    onHidden: dispatchProps.onHidden,
     path,
     pathElements,
     saveMedia,

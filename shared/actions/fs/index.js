@@ -781,9 +781,13 @@ const showMoveOrCopy = isMobile
       )
   : (state, action) => Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
 
-const cancelMoveOrCopy = isMobile
-  ? (state, action) => Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
-  : (state, action) => Saga.put(navigateUp())
+const cancelMoveOrCopy = (state, action) =>
+  Saga.all([
+    isMobile
+      ? Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
+      : Saga.put(navigateUp()),
+    Saga.put(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'})),
+  ])
 
 const showSendLinkToChat = (state, action) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
@@ -865,6 +869,12 @@ const showSendLinkToChat = (state, action) => {
   return Saga.all(actions)
 }
 
+const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
+  folderListRefreshTags.delete(action.payload.refreshTag)
+  mimeTypeRefreshTags.delete(action.payload.refreshTag)
+  return null
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -888,6 +898,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
   yield Saga.actionToAction(FsGen.showSendLinkToChat, showSendLinkToChat)
+  yield Saga.actionToAction(FsGen.clearRefreshTag, clearRefreshTag)
 
   yield Saga.spawn(platformSpecificSaga)
 }
