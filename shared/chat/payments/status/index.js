@@ -2,8 +2,10 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Types from '../../../constants/types/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
 import {SendPaymentPopup} from '../../conversation/messages/message-popup/payment/container'
+import PaymentStatusError from './error'
 
 type Status = 'error' | 'pending' | 'completed'
 
@@ -13,12 +15,16 @@ type State = {
 
 type Props = {
   allowFontScaling?: ?boolean,
-  message: TypeError.Message,
-  worthDescription: string,
-  paymentID: WalletTypes.PaymentID,
+  allowPopup: boolean,
+  errorDetail?: string,
+  isSendError: boolean,
+  message: Types.MessageText,
+  paymentID?: WalletTypes.PaymentID,
   status: Status,
   text: string,
 }
+
+const onHidden = () => {}
 
 const getIcon = status => {
   switch (status) {
@@ -41,7 +47,9 @@ class PaymentStatus extends React.Component<Props, State> {
     this.statusRef = React.createRef()
   }
   _onMouseOver = () => {
-    this.setState({showPopup: true})
+    if (this.props.allowPopup) {
+      this.setState({showPopup: true})
+    }
   }
   _onMouseLeave = () => {
     this.setState({showPopup: false})
@@ -72,12 +80,22 @@ class PaymentStatus extends React.Component<Props, State> {
             style={styles[this.props.status + 'Icon']}
           />{' '}
         </Kb.Text>
-        <SendPaymentPopup
-          attachTo={this._getAttachmentRef}
-          visible={this.state.showPopup}
-          paymentID={this.props.paymentID}
-          message={this.props.message}
-        />
+        {this.props.isSendError ? (
+          <PaymentStatusError
+            attachTo={this._getAttachmentRef}
+            visible={this.state.showPopup}
+            error={this.props.errorDetail || ''}
+          />
+        ) : (
+          <SendPaymentPopup
+            attachTo={this._getAttachmentRef}
+            visible={this.state.showPopup}
+            paymentID={this.props.paymentID}
+            position={'top center'}
+            message={this.props.message}
+            onHidden={onHidden}
+          />
+        )}
       </Kb.Box2>
     )
   }

@@ -7,8 +7,8 @@ import PaymentStatus from '.'
 type OwnProps = {|
   allowFontScaling?: ?boolean,
   error?: ?string,
-  message: Types.Message,
-  paymentID?: ?WalletTypes.PaymentID,
+  message: Types.MessageText,
+  paymentID?: WalletTypes.PaymentID,
   text: string,
 |}
 
@@ -31,12 +31,13 @@ const reduceStatus = status => {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {error, paymentID, message, text} = ownProps
-  const status =
-    paymentID && !error
-      ? state.chat2.getIn(['paymentStatusMap', paymentID], null)?.status || 'pending'
-      : 'error'
+  const paymentInfo = paymentID ? state.chat2.getIn(['paymentStatusMap', paymentID], null) : null
+  const status = error ? 'error' : paymentInfo?.status || 'pending'
   return {
     allowFontScaling: ownProps.allowFontScaling,
+    allowPopup: status === 'completed' || message.author === state.config.username,
+    errorDetail: error || paymentInfo?.statusDetail,
+    isSendError: !!error,
     message,
     paymentID,
     status: reduceStatus(status),

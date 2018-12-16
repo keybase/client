@@ -9,7 +9,7 @@ export type Props = {
   json: string,
   onClick?: () => void,
   allowFontScaling?: ?boolean,
-  message: Types.Message,
+  message: Types.MessageText,
 }
 
 const ServiceDecoration = (props: Props) => {

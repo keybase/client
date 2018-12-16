@@ -19,6 +19,7 @@ type HeaderProps = {|
   balanceChange: string, // may be empty
   balanceChangeColor: string,
   bottomLine: string, // may be empty
+  errorDetails?: string,
   icon: 'sending' | 'receiving',
   loading: boolean,
   sender: string,
@@ -89,6 +90,17 @@ const Header = (props: HeaderProps) =>
           style={Styles.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
         >
           {props.balanceChange}
+        </Kb.Text>
+      )}
+      {!!props.errorDetails && (
+        <Kb.Text
+          type="BodyExtrabold"
+          style={Styles.collapseStyles([
+            styles.textAlignCenter,
+            {color: Styles.globalColors.red, maxWidth: 200},
+          ])}
+        >
+          {props.errorDetails}
         </Kb.Text>
       )}
     </Kb.Box2>
