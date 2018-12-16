@@ -5,29 +5,23 @@ import * as Styles from '../../../styles'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
+  onHidden: () => void,
   error: string,
   visible: boolean,
 }
 
 const items = []
-const onHidden = () => {}
 
 const PaymentStatusError = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodyExtrabold" style={styles.headerError}>
           Failed to send payment
         </Kb.Text>
         <Kb.Divider />
-        <Kb.Box2
-          style={styles.errorContainer}
-          direction="vertical"
-          centerChildren={true}
-          fullWidth={true}
-          fullHeight={true}
-        >
+        <Kb.Box2 style={styles.errorContainer} direction="vertical" centerChildren={true} fullWidth={true}>
           <Kb.Text type="BodySemibold" style={styles.bodyError}>
             {props.error}
           </Kb.Text>
@@ -41,7 +35,7 @@ const PaymentStatusError = (props: Props) => {
       closeOnSelect={true}
       header={header}
       items={items}
-      onHidden={onHidden}
+      onHidden={props.onHidden}
       visible={props.visible}
     />
   )
@@ -55,10 +49,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   errorContainer: Styles.platformStyles({
+    common: {
+      padding: Styles.globalMargins.small,
+    },
     isElectron: {
       maxWidth: 200,
       minHeight: 100,
-      padding: Styles.globalMargins.small,
     },
   }),
   headerError: {

@@ -36,6 +36,7 @@ const errorProps = {
 const sendErrorProps = {
   attachTo: Sb.action('mocked'),
   error: 'must send at least 1 XLM since it is recipients first transaction',
+  onHidden: Sb.action('onHidden'),
   visible: true,
 }
 

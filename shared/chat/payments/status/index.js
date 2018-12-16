@@ -24,8 +24,6 @@ type Props = {
   text: string,
 }
 
-const onHidden = () => {}
-
 const getIcon = status => {
   switch (status) {
     case 'completed':
@@ -46,56 +44,67 @@ class PaymentStatus extends React.Component<Props, State> {
     super(props)
     this.statusRef = React.createRef()
   }
-  _onMouseOver = () => {
+  _showPopup = () => {
     if (this.props.allowPopup) {
       this.setState({showPopup: true})
     }
   }
-  _onMouseLeave = () => {
+  _hidePopup = () => {
     this.setState({showPopup: false})
   }
   _getAttachmentRef = () => {
     return this.statusRef.current
   }
   render() {
-    return (
+    const text = (
+      <Kb.Text
+        ref={this.statusRef}
+        type="BodyExtrabold"
+        allowFontScaling={!!this.props.allowFontScaling}
+        style={styles[this.props.status]}
+        onClick={this._showPopup}
+      >
+        {' '}
+        {this.props.text}{' '}
+        <Kb.Icon
+          type={getIcon(this.props.status)}
+          fontSize={12}
+          boxStyle={styles.iconBoxStyle}
+          style={styles[this.props.status + 'Icon']}
+        />{' '}
+      </Kb.Text>
+    )
+    const popups = this.props.isSendError ? (
+      <PaymentStatusError
+        attachTo={this._getAttachmentRef}
+        error={this.props.errorDetail || ''}
+        onHidden={this._hidePopup}
+        visible={this.state.showPopup}
+      />
+    ) : (
+      <SendPaymentPopup
+        attachTo={this._getAttachmentRef}
+        visible={this.state.showPopup}
+        paymentID={this.props.paymentID}
+        position={'top center'}
+        message={this.props.message}
+        onHidden={this._hidePopup}
+      />
+    )
+    return Styles.isMobile ? (
+      <React.Fragment>
+        {text}
+        {popups}
+      </React.Fragment>
+    ) : (
       <Kb.Box2
         style={styles.container}
         direction="horizontal"
-        onMouseOver={this._onMouseOver}
-        onMouseLeave={this._onMouseLeave}
+        onMouseOver={this._showPopup}
+        onMouseLeave={this._hidePopup}
       >
-        <Kb.Text
-          ref={this.statusRef}
-          type="BodyExtrabold"
-          allowFontScaling={!!this.props.allowFontScaling}
-          style={styles[this.props.status]}
-        >
-          {' '}
-          {this.props.text}{' '}
-          <Kb.Icon
-            type={getIcon(this.props.status)}
-            fontSize={12}
-            boxStyle={styles.iconBoxStyle}
-            style={styles[this.props.status + 'Icon']}
-          />{' '}
-        </Kb.Text>
-        {this.props.isSendError ? (
-          <PaymentStatusError
-            attachTo={this._getAttachmentRef}
-            visible={this.state.showPopup}
-            error={this.props.errorDetail || ''}
-          />
-        ) : (
-          <SendPaymentPopup
-            attachTo={this._getAttachmentRef}
-            visible={this.state.showPopup}
-            paymentID={this.props.paymentID}
-            position={'top center'}
-            message={this.props.message}
-            onHidden={onHidden}
-          />
-        )}
+        {text}
+        {popups}
       </Kb.Box2>
     )
   }
