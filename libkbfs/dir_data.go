@@ -333,7 +333,7 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) (
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (dd *dirData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
 	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
 	return dd.tree.ready(
 		ctx, id, bcache, dirtyBcache, bops, bps, topBlock, nil)

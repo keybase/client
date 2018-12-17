@@ -985,7 +985,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
 	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
 	return fd.tree.ready(
 		ctx, id, bcache, dirtyBcache, bops, bps, topBlock,
@@ -1231,7 +1231,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 // ones that were deduplicated and the ones that weren't.  It returns
 // the BlockInfos for all children.
 func (fd *fileData) undupChildrenInCopy(ctx context.Context,
-	bcache BlockCache, bops BlockOps, bps *blockPutState,
+	bcache BlockCache, bops BlockOps, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
@@ -1295,7 +1295,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 // It adds all readied blocks to the provided `bps`.  It returns the
 // BlockInfos for all non-leaf children.
 func (fd *fileData) readyNonLeafBlocksInCopy(ctx context.Context,
-	bcache BlockCache, bops BlockOps, bps *blockPutState,
+	bcache BlockCache, bops BlockOps, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil

@@ -58,21 +58,22 @@ const (
 
 type mdToCleanIfUnused struct {
 	md  ReadOnlyRootMetadata
-	bps *blockPutState
+	bps blockPutState
 }
 
 type syncInfo struct {
 	oldInfo         BlockInfo
 	op              *syncOp
 	unrefs          []BlockInfo
-	bps             *blockPutState
+	bps             blockPutState
 	refBytes        uint64
 	unrefBytes      uint64
 	toCleanIfUnused []mdToCleanIfUnused
 }
 
-func (si *syncInfo) DeepCopy(codec kbfscodec.Codec) (*syncInfo, error) {
-	newSi := &syncInfo{
+func (si *syncInfo) DeepCopy(
+	ctx context.Context, codec kbfscodec.Codec) (newSi *syncInfo, err error) {
+	newSi = &syncInfo{
 		oldInfo:    si.oldInfo,
 		refBytes:   si.refBytes,
 		unrefBytes: si.unrefBytes,
@@ -80,7 +81,10 @@ func (si *syncInfo) DeepCopy(codec kbfscodec.Codec) (*syncInfo, error) {
 	newSi.unrefs = make([]BlockInfo, len(si.unrefs))
 	copy(newSi.unrefs, si.unrefs)
 	if si.bps != nil {
-		newSi.bps = si.bps.DeepCopy()
+		newSi.bps, err = si.bps.deepCopy(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if si.op != nil {
 		err := kbfscodec.Update(codec, &newSi.op, si.op)
@@ -98,7 +102,10 @@ func (si *syncInfo) DeepCopy(codec kbfscodec.Codec) (*syncInfo, error) {
 			return nil, err
 		}
 		newSi.toCleanIfUnused[i].md = copyMd.ReadOnly()
-		newSi.toCleanIfUnused[i].bps = toClean.bps.DeepCopy()
+		newSi.toCleanIfUnused[i].bps, err = toClean.bps.deepCopy(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return newSi, nil
 }
@@ -820,7 +827,7 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 }
 
 func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, file path, bps *blockPutState,
+	lState *lockState, kmd KeyMetadata, file path, bps blockPutState,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
@@ -835,7 +842,7 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 }
 
 func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, file path, bps *blockPutState,
+	lState *lockState, kmd KeyMetadata, file path, bps blockPutState,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
@@ -2404,7 +2411,7 @@ func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) error {
 // include all the blocks from before the error, except for those that
 // have encountered recoverable block errors themselves.
 func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
-	blocksToRemove []BlockPointer, result fileSyncState) {
+	ctx context.Context, blocksToRemove []BlockPointer, result fileSyncState) {
 	si := result.si
 	savedSi := result.savedSi
 
@@ -2436,20 +2443,17 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 		return
 	}
 
-	si.bps.blockStates = nil
-
 	// Mark any bad pointers so they get skipped next time.
 	blocksToRemoveSet := make(map[BlockPointer]bool)
 	for _, ptr := range blocksToRemove {
 		blocksToRemoveSet[ptr] = true
 	}
 
-	for _, bs := range savedSi.bps.blockStates {
-		// Only save the good pointers
-		if !blocksToRemoveSet[bs.blockPtr] {
-			si.bps.blockStates = append(si.bps.blockStates, bs)
-		}
+	newBps, err := savedSi.bps.deepCopyWithBlacklist(ctx, blocksToRemoveSet)
+	if err != nil {
+		return
 	}
+	si.bps = newBps
 }
 
 // ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
@@ -2547,7 +2551,7 @@ type fileSyncState struct {
 // entry, dirtyDe will be nil.
 func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps *blockPutState, syncState fileSyncState,
+	fblock *FileBlock, bps blockPutState, syncState fileSyncState,
 	dirtyDe *DirEntry, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
@@ -2585,13 +2589,13 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		syncState.redirtyOnRecoverableError = make(map[BlockPointer]BlockPointer)
 	}
 	syncState.si = si
-	syncState.savedSi, err = si.DeepCopy(fbo.config.Codec())
+	syncState.savedSi, err = si.DeepCopy(ctx, fbo.config.Codec())
 	if err != nil {
 		return nil, nil, syncState, nil, err
 	}
 
 	if si.bps == nil {
-		si.bps = newBlockPutState(1)
+		si.bps = newBlockPutStateMemory(1)
 	} else {
 		// reinstate byte accounting from the previous Sync
 		md.SetRefBytes(si.refBytes)
@@ -2761,7 +2765,7 @@ func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
 //  })
 func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps *blockPutState, dirtyDe *DirEntry,
+	fblock *FileBlock, bps blockPutState, dirtyDe *DirEntry,
 	syncState fileSyncState, err error) {
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
 		jServer.dirtyOpStart(fbo.id())
@@ -2807,12 +2811,16 @@ func (fbo *folderBlockOps) CleanupSyncState(
 
 		// Save this MD for later, so we can clean up its
 		// newly-referenced block pointers if necessary.
+		bpsCopy, err := result.si.bps.deepCopy(ctx)
+		if err != nil {
+			return
+		}
 		result.si.toCleanIfUnused = append(result.si.toCleanIfUnused,
-			mdToCleanIfUnused{md, result.si.bps.DeepCopy()})
+			mdToCleanIfUnused{md, bpsCopy})
 	}
 	if isRecoverableBlockError(err) {
 		if result.si != nil {
-			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
+			fbo.revertSyncInfoAfterRecoverableError(ctx, blocksToRemove, result)
 		}
 		if result.fblock != nil {
 			result.fblock.Set(result.savedFblock)
@@ -2899,22 +2907,22 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 			bdType = blockDeleteOnMDFail
 		}
 
-		failedBps := newBlockPutState(len(oldMD.bps.blockStates))
-		for _, bs := range oldMD.bps.blockStates {
-			if bs.blockPtr == zeroPtr {
+		failedBps := newBlockPutStateMemory(oldMD.bps.numBlocks())
+		for _, ptr := range oldMD.bps.ptrs() {
+			if ptr == zeroPtr {
 				panic("Unexpected zero block ptr in an old sync MD revision")
 			}
-			if blocksSeen[bs.blockPtr] {
+			if blocksSeen[ptr] {
 				continue
 			}
-			blocksSeen[bs.blockPtr] = true
-			if refs[bs.blockPtr] && bdType == blockDeleteAlways {
+			blocksSeen[ptr] = true
+			if refs[ptr] && bdType == blockDeleteAlways {
 				continue
 			}
 			failedBps.blockStates = append(failedBps.blockStates,
-				blockState{blockPtr: bs.blockPtr})
+				blockState{blockPtr: ptr})
 			fbo.log.CDebugf(ctx, "Cleaning up block %v from a previous "+
-				"failed revision %d (oldMD is %s, bdType=%d)", bs.blockPtr,
+				"failed revision %d (oldMD is %s, bdType=%d)", ptr,
 				oldMD.md.Revision(), oldMD.md.MergedStatus(), bdType)
 		}
 

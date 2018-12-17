@@ -1688,12 +1688,13 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Equal(t, firstRevision, maxMD)
 	// 3 blocks, 3 old MD markers, 1 new MD marker
 	require.Equal(t, 7, blocks.length())
-	require.Len(t, blocks.puts.blockStates, 2)
-	require.Len(t, blocks.adds.blockStates, 0)
+	require.Equal(t, 2, blocks.puts.numBlocks())
+	require.Equal(t, 0, blocks.adds.numBlocks())
 	// 1 ignored block, 3 ignored MD markers, 1 real MD marker
 	require.Len(t, blocks.other, 5)
-	require.Equal(t, bids[0], blocks.puts.blockStates[0].blockPtr.ID)
-	require.Equal(t, bids[2], blocks.puts.blockStates[1].blockPtr.ID)
+	ptrs := blocks.puts.ptrs()
+	require.Equal(t, bids[0], ptrs[0].ID)
+	require.Equal(t, bids[2], ptrs[1].ID)
 	// 2 bytes of data in 2 unignored blocks.
 	require.Equal(t, int64(2), b)
 

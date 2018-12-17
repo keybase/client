@@ -786,8 +786,8 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, rev-1, gotRev)
 	require.Equal(t, 6, entries.length())
-	require.Len(t, entries.puts.blockStates, 2)
-	require.Len(t, entries.adds.blockStates, 0)
+	require.Equal(t, 2, entries.puts.numBlocks())
+	require.Equal(t, 0, entries.adds.numBlocks())
 	require.Len(t, entries.other, 4)
 
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
@@ -860,11 +860,12 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.RevisionUninitialized, gotRev)
 	require.Equal(t, 7, entries.length())
-	require.Len(t, entries.puts.blockStates, 2)
-	require.Len(t, entries.adds.blockStates, 0)
+	require.Equal(t, 2, entries.puts.numBlocks())
+	require.Equal(t, 0, entries.adds.numBlocks())
 	require.Len(t, entries.other, 5)
-	require.Equal(t, bID1, entries.puts.blockStates[0].blockPtr.ID)
-	require.Equal(t, bID4, entries.puts.blockStates[1].blockPtr.ID)
+	ptrs := entries.puts.ptrs()
+	require.Equal(t, bID1, ptrs[0].ID)
+	require.Equal(t, bID4, ptrs[1].ID)
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 		entries, DiskBlockAnyCache)

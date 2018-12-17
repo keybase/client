@@ -1899,7 +1899,7 @@ func (fbo *folderBranchOps) nowUnixNano() int64 {
 }
 
 func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
-	md *RootMetadata) (*blockPutState, error) {
+	md *RootMetadata) (blockPutState, error) {
 	if fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
 		return nil, nil
 	}
@@ -1910,7 +1910,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 		return nil, err
 	}
 
-	bps := newBlockPutState(1)
+	bps := newBlockPutStateMemory(1)
 	err = fbo.prepper.unembedBlockChanges(
 		ctx, bps, md, &md.data.Changes, chargedTo)
 	if err != nil {
@@ -1929,7 +1929,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	ptrsToDelete, err := doBlockPuts(
 		ctx, fbo.config.BlockServer(), fbo.config.BlockCache(),
 		fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps, cacheType)
+		md.GetTlfHandle().GetCanonicalName(), bps, cacheType)
 	if err != nil {
 		return nil, err
 	}
@@ -2828,14 +2828,6 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 
 var zeroPtr BlockPointer
 
-type blockState struct {
-	blockPtr       BlockPointer
-	block          Block
-	readyBlockData ReadyBlockData
-	syncedCb       func() error
-	oldPtr         BlockPointer
-}
-
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
 	ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Stat %s", getNodeIDStr(node))
@@ -2895,74 +2887,6 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	return res, nil
 }
 
-// blockPutState is an internal structure to track data when putting blocks
-type blockPutState struct {
-	blockStates []blockState
-}
-
-func newBlockPutState(length int) *blockPutState {
-	bps := &blockPutState{}
-	bps.blockStates = make([]blockState, 0, length)
-	return bps
-}
-
-// addNewBlock tracks a new block that will be put.  If syncedCb is
-// non-nil, it will be called whenever the put for that block is
-// complete (whether or not the put resulted in an error).  Currently
-// it will not be called if the block is never put (due to an earlier
-// error).
-func (bps *blockPutState) addNewBlock(
-	blockPtr BlockPointer, block Block,
-	readyBlockData ReadyBlockData, syncedCb func() error) {
-	bps.blockStates = append(bps.blockStates,
-		blockState{blockPtr, block, readyBlockData, syncedCb, zeroPtr})
-}
-
-// saveOldPtr stores the given BlockPointer as the old (pre-readied)
-// pointer for the most recent blockState.
-func (bps *blockPutState) saveOldPtr(oldPtr BlockPointer) {
-	bps.blockStates[len(bps.blockStates)-1].oldPtr = oldPtr
-}
-
-func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
-	bps.blockStates = append(bps.blockStates, other.blockStates...)
-}
-
-func (bps *blockPutState) removeOtherBps(other *blockPutState) {
-	if len(other.blockStates) == 0 {
-		return
-	}
-
-	otherPtrs := make(map[BlockPointer]bool, len(other.blockStates))
-	for _, bs := range other.blockStates {
-		otherPtrs[bs.blockPtr] = true
-	}
-
-	// Assume that `other` is a subset of `bps` when initializing the
-	// slice length.
-	newLen := len(bps.blockStates) - len(other.blockStates)
-	if newLen < 0 {
-		newLen = 0
-	}
-
-	// Remove any blocks that appear in `other`.
-	newBlockStates := make([]blockState, 0, newLen)
-	for _, bs := range bps.blockStates {
-		if otherPtrs[bs.blockPtr] {
-			continue
-		}
-		newBlockStates = append(newBlockStates, bs)
-	}
-	bps.blockStates = newBlockStates
-}
-
-func (bps *blockPutState) DeepCopy() *blockPutState {
-	newBps := &blockPutState{}
-	newBps.blockStates = make([]blockState, len(bps.blockStates))
-	copy(newBps.blockStates, bps.blockStates)
-	return newBps
-}
-
 type localBcache map[BlockPointer]*DirBlock
 
 // Returns whether the given error is one that shouldn't block the
@@ -2983,20 +2907,23 @@ func isRetriableError(err error, retries int) bool {
 }
 
 func (fbo *folderBranchOps) finalizeBlocks(
-	ctx context.Context, bps *blockPutState) error {
+	ctx context.Context, bps blockPutState) error {
 	if bps == nil {
 		return nil
 	}
 	bcache := fbo.config.BlockCache()
-	for _, blockState := range bps.blockStates {
-		newPtr := blockState.blockPtr
+	for _, newPtr := range bps.ptrs() {
 		// only cache this block if we made a brand new block, not if
 		// we just incref'd some other block.
 		if !newPtr.IsFirstRef() {
 			continue
 		}
-		if err := bcache.Put(newPtr, fbo.id(), blockState.block,
-			TransientEntry); err != nil {
+		block, err := bps.getBlock(ctx, newPtr)
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error getting block for %v: %+v", newPtr, err)
+		}
+		if err := bcache.Put(
+			newPtr, fbo.id(), block, TransientEntry); err != nil {
 			fbo.log.CDebugf(
 				ctx, "Error caching new block %v: %+v", newPtr, err)
 		}
@@ -3163,7 +3090,7 @@ func (fbo *folderBranchOps) handleUnflushedEditNotifications(
 }
 
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, bps *blockPutState, excl Excl,
+	lState *lockState, md *RootMetadata, bps blockPutState, excl Excl,
 	notifyFn func(ImmutableRootMetadata) error) (
 	err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -4874,7 +4801,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, node Node, file path) (
 	doSync, stillDirty bool, fblock *FileBlock, dirtyDe *DirEntry,
-	bps *blockPutState, syncState fileSyncState,
+	bps blockPutState, syncState fileSyncState,
 	cleanup cleanupFn, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
@@ -4966,7 +4893,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		return err
 	}
 
-	bps := newBlockPutState(0)
+	bps := newBlockPutStateMemory(0)
 	resolvedPaths := make(map[BlockPointer]path)
 	lbc := make(localBcache)
 
@@ -5162,7 +5089,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	fbo.log.LazyTrace(ctx, "Syncing %d file(s)", len(dirtyFiles))
 
 	fbo.log.CDebugf(ctx, "Syncing %d file(s)", len(dirtyFiles))
-	fileSyncBlocks := newBlockPutState(1)
+	fileSyncBlocks := newBlockPutStateMemory(1)
 	for _, ref := range dirtyFiles {
 		node := fbo.nodeCache.Get(ref)
 		if node == nil {
@@ -5195,8 +5122,14 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 
 		// Merge the per-file sync info into the batch sync info.
-		bps.mergeOtherBps(newBps)
-		fileSyncBlocks.mergeOtherBps(newBps)
+		err = bps.mergeOtherBps(ctx, newBps)
+		if err != nil {
+			return err
+		}
+		err = fileSyncBlocks.mergeOtherBps(ctx, newBps)
+		if err != nil {
+			return err
+		}
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
 		if _, ok := fileBlocks[parent]; !ok {
@@ -5278,14 +5211,20 @@ func (fbo *folderBranchOps) syncAllLocked(
 		return errors.Errorf("Unexpectedly found unflushed blocks to delete "+
 			"during syncAllLocked: %v", blocksToDelete)
 	}
-	bps.mergeOtherBps(newBps)
+	err = bps.mergeOtherBps(ctx, newBps)
+	if err != nil {
+		return err
+	}
 
 	defer func() {
 		if err != nil {
 			// Remove any blocks that are covered by file syncs --
 			// those might get reused upon sync retry.  All other
 			// blocks are fair game for cleanup though.
-			bps.removeOtherBps(fileSyncBlocks)
+			removeErr := bps.removeOtherBps(ctx, fileSyncBlocks)
+			if removeErr != nil {
+				fbo.log.CDebugf(ctx, "Error removing other bps: %+v", removeErr)
+			}
 			fbo.fbm.cleanUpBlockState(md.ReadOnly(), bps, blockDeleteOnMDFail)
 		}
 	}()
@@ -5298,7 +5237,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	blocksToRemove, err = doBlockPuts(
 		ctx, fbo.config.BlockServer(), fbo.config.BlockCache(),
 		fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps, cacheType)
+		md.GetTlfHandle().GetCanonicalName(), bps, cacheType)
 	if err != nil {
 		return err
 	}
@@ -7117,7 +7056,7 @@ func (fbo *folderBranchOps) unblockUnmergedWrites(lState *lockState) {
 }
 
 func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, bps *blockPutState,
+	lState *lockState, md *RootMetadata, bps blockPutState,
 	newOps []op, blocksToDelete []kbfsblock.ID) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
@@ -7214,7 +7153,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 // out the given newOps notifications locally.  This is used for
 // completing conflict resolution.
 func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
-	lState *lockState, md *RootMetadata, bps *blockPutState,
+	lState *lockState, md *RootMetadata, bps blockPutState,
 	newOps []op, blocksToDelete []kbfsblock.ID) error {
 	// Take the writer lock.
 	fbo.mdWriterLock.Lock(lState)

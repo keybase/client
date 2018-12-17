@@ -999,7 +999,7 @@ type makeSyncFunc func(ptr BlockPointer) func() error
 // pointer.
 func (bt *blockTree) readyHelper(
 	ctx context.Context, id tlf.ID, bcache BlockCache, bops BlockOps,
-	bps *blockPutState, pathsFromRoot [][]parentBlockAndChildIndex,
+	bps blockPutState, pathsFromRoot [][]parentBlockAndChildIndex,
 	makeSync makeSyncFunc) (map[BlockInfo]BlockPointer, error) {
 	oldPtrs := make(map[BlockInfo]BlockPointer)
 	newPtrs := make(map[BlockPointer]bool)
@@ -1040,9 +1040,15 @@ func (bt *blockTree) readyHelper(
 				syncFunc = makeSync(ptr)
 			}
 
-			bps.addNewBlock(
-				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
-			bps.saveOldPtr(ptr)
+			err = bps.addNewBlock(
+				ctx, newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
+			if err != nil {
+				return nil, err
+			}
+			err = bps.saveOldPtr(ctx, ptr)
+			if err != nil {
+				return nil, err
+			}
 
 			parentPB.setChildBlockInfo(newInfo)
 			oldPtrs[newInfo] = ptr
@@ -1058,7 +1064,7 @@ func (bt *blockTree) readyHelper(
 // info from any readied block to its corresponding old block pointer.
 func (bt *blockTree) ready(
 	ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
 	topBlock BlockWithPtrs, makeSync makeSyncFunc) (
 	map[BlockInfo]BlockPointer, error) {
 	if !topBlock.IsIndirect() {

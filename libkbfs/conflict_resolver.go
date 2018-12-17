@@ -3008,7 +3008,7 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	lState *lockState, md *RootMetadata,
 	unmergedChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer,
-	bps *blockPutState, blocksToDelete []kbfsblock.ID, writerLocked bool) error {
+	bps blockPutState, blocksToDelete []kbfsblock.ID, writerLocked bool) error {
 	err := cr.checkDone(ctx)
 	if err != nil {
 		return err
@@ -3125,7 +3125,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	_, err = doBlockPuts(
 		ctx, cr.config.BlockServer(), cr.config.BlockCache(),
 		cr.config.Reporter(), cr.log, cr.deferLog, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps, cacheType)
+		md.GetTlfHandle().GetCanonicalName(), bps, cacheType)
 	if err != nil {
 		return err
 	}

@@ -2665,3 +2665,23 @@ type Chat interface {
 	// everything it might have cached, e.g. when a user logs out.
 	ClearCache()
 }
+
+type blockPutState interface {
+	addNewBlock(
+		ctx context.Context, blockPtr BlockPointer, block Block,
+		readyBlockData ReadyBlockData, syncedCb func() error) error
+	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
+	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
+	mergeOtherBps(ctx context.Context, other blockPutState) error
+	removeOtherBps(ctx context.Context, other blockPutState) error
+	ptrs() []BlockPointer
+	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
+	getReadyBlockData(
+		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
+	synced(blockPtr BlockPointer) error
+	numBlocks() int
+	deepCopy(ctx context.Context) (blockPutState, error)
+	deepCopyWithBlacklist(
+		ctx context.Context, blacklist map[BlockPointer]bool) (
+		blockPutState, error)
+}
