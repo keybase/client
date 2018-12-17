@@ -405,6 +405,7 @@ export const commonConversationMemberStatus = {
   left: 2,
   preview: 3,
   reset: 4,
+  neverJoined: 5,
 }
 
 export const commonConversationMembersType = {
@@ -764,6 +765,7 @@ export type ConversationMemberStatus =
   | 2 // LEFT_2
   | 3 // PREVIEW_3
   | 4 // RESET_4
+  | 5 // NEVER_JOINED_5
 
 export type ConversationMembersType =
   | 0 // KBFS_0
