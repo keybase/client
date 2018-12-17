@@ -123,14 +123,22 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
     cancelButtonLabel: 'Cancel',
-    errorDetails: paymentInfo.status === 'error' ? paymentInfo.statusDetail : undefined,
+    errorDetails:
+      paymentInfo.status === 'error' ||
+      paymentInfo.status === 'canceled' ||
+      paymentInfo.status === 'claimable'
+        ? paymentInfo.statusDetail
+        : undefined,
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
     onCancel: paymentInfo.showCancel ? () => dispatchProps.onCancel(paymentInfo.paymentID) : null,
     onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
     onSeeDetails:
-      (paymentInfo.status === 'completed' || paymentInfo.status === 'error') &&
+      (paymentInfo.status === 'completed' ||
+        paymentInfo.status === 'error' ||
+        paymentInfo.status === 'claimable' ||
+        paymentInfo.status === 'canceled') &&
       (youAreSender || youAreReceiver)
         ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
         : null,
