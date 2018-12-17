@@ -59,7 +59,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, false)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, true)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -1485,10 +1485,13 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	ctx := context.TODO()
 	g := tcs[0].G
 
-	acceptDisclaimer(tcs[0])
 	// create a v1 bundle with two accounts
-	_, err := stellar.CreateWallet(ctx, g, false)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
+	created, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	require.False(t, created)
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	_, err = bundle.CreateNewAccount(&v1Bundle0, "whatevs", false)
