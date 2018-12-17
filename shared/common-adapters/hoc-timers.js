@@ -24,9 +24,10 @@ function getDisplayName(Component): string {
 function hOCTimers<Config: {}, Instance>(
   Component: React.AbstractComponent<Config, Instance>
 ): React.AbstractComponent<$Diff<Config, TimerProps>, Instance> {
-  type HOCTimersProps = $Diff<Config, TimerProps> & {
+  type HOCTimersProps = {|
+    ...$Exact<$Diff<Config, TimerProps>>,
     forwardedRef: React.Ref<React.AbstractComponent<Config, Instance>>,
-  }
+  |}
 
   class HOCTimers extends React.Component<HOCTimersProps> {
     static displayName = `HOCTimers(${getDisplayName(Component)})`
