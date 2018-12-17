@@ -309,7 +309,9 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	if !ok {
 		// this is ok: frontend only needs the payment ID
 		m.CDebugf("sending chat notification for payment %s using empty msg info", id)
-		msg = chatMsg{}
+		msg = chatMsg{
+			convID: chat1.ConversationID{},
+		}
 	} else {
 		m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
