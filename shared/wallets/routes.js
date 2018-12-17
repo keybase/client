@@ -25,13 +25,13 @@ import WalletsList from './wallet-list/container'
 const createNewAccount = {
   children: {},
   component: CreateNewAccount,
-  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+  tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const linkExisting = {
   children: {},
   component: LinkExisting,
-  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+  tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const sendRequestFormRoute = {
@@ -40,6 +40,7 @@ const sendRequestFormRoute = {
       children: {},
       component: ConfirmForm,
       tags: makeLeafTags({
+        fullscreen: isMobile,
         layerOnTop: !isMobile,
         renderTopmostOnly: true,
         underNotch: true,
@@ -50,15 +51,16 @@ const sendRequestFormRoute = {
     [Constants.chooseAssetFormRouteKey]: {
       children: {},
       component: ChooseAsset,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
     qrScan: {
       component: QRScan,
-      tags: makeLeafTags({layerOnTop: true, underNotch: true}),
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, underNotch: true}),
     },
   },
   component: SendForm,
   tags: makeLeafTags({
+    fullscreen: isMobile,
     layerOnTop: !isMobile,
     renderTopmostOnly: true,
     underNotch: true,
