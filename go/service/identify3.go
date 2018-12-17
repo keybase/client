@@ -59,7 +59,7 @@ func unimplemented() error {
 	return errors.New("unimplemented")
 }
 
-func NewIdentify3UIWrapper(m libkb.MetaContext, cli keybase1.Identify3UiClient) (*Identify3UIWrapper, error) {
+func NewIdentify3UIWrapper(m libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State) (*Identify3UIWrapper, error) {
 	return nil, unimplemented()
 }
 
