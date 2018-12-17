@@ -3,7 +3,6 @@ import * as React from 'react'
 import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
 import {StandardScreen} from '../../common-adapters'
-import {globalStyles} from '../../styles'
 import type {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
@@ -21,7 +20,6 @@ const Search = (props: Props) => (
 )
 
 const styleContainer = {
-  ...globalStyles.flexBoxColumn,
   // StandardScreen supplies padding we don't want.
   paddingBottom: 0,
   paddingLeft: 0,

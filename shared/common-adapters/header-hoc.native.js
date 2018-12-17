@@ -177,9 +177,10 @@ const styles = Styles.styleSheetCreate({
   },
   leftAction: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
       // flex: 1, // still thinking about this
+      flexShrink: 1,
       justifyContent: 'flex-start',
     },
     isIOS: {
@@ -187,9 +188,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   rightActions: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-end',
     // flex: 1, // still thinking about this
+    flexShrink: 1,
     justifyContent: 'flex-end',
   },
   rightActionsPadding: {
@@ -200,7 +202,7 @@ const styles = Styles.styleSheetCreate({
   },
   titleContainer: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
