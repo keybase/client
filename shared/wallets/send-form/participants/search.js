@@ -111,7 +111,8 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
         {this.state.displayResultsList && (
           <Kb.FloatingBox
             attachTo={this._getRef}
-            position="top center"
+            position="bottom center"
+            positionFallbacks={[]}
             containerStyle={styles.resultsFloatingContainer}
             propagateOutsideClicks={true}
           >
