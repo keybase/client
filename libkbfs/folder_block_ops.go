@@ -2919,8 +2919,7 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 			if refs[ptr] && bdType == blockDeleteAlways {
 				continue
 			}
-			failedBps.blockStates = append(failedBps.blockStates,
-				blockState{blockPtr: ptr})
+			failedBps.blockStates[ptr] = blockState{}
 			fbo.log.CDebugf(ctx, "Cleaning up block %v from a previous "+
 				"failed revision %d (oldMD is %s, bdType=%d)", ptr,
 				oldMD.md.Revision(), oldMD.md.MergedStatus(), bdType)

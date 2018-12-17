@@ -864,8 +864,12 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.Equal(t, 0, entries.adds.numBlocks())
 	require.Len(t, entries.other, 5)
 	ptrs := entries.puts.ptrs()
-	require.Equal(t, bID1, ptrs[0].ID)
-	require.Equal(t, bID4, ptrs[1].ID)
+	ids := make([]kbfsblock.ID, len(ptrs))
+	for i, ptr := range ptrs {
+		ids[i] = ptr.ID
+	}
+	require.Contains(t, ids, bID1)
+	require.Contains(t, ids, bID4)
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
 		entries, DiskBlockAnyCache)

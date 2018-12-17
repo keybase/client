@@ -5077,10 +5077,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 		// Any new files or directories need their pointers explicitly
 		// updated, because the sync will be treating them as a new
 		// ref, and not an update.
-		for _, bs := range bps.blockStates {
+		for ptr, bs := range bps.blockStates {
 			if newBlocks[bs.oldPtr] {
-				fbo.blocks.updatePointer(
-					md.ReadOnly(), bs.oldPtr, bs.blockPtr, false)
+				fbo.blocks.updatePointer(md.ReadOnly(), bs.oldPtr, ptr, false)
 			}
 		}
 		return nil

@@ -1693,8 +1693,12 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	// 1 ignored block, 3 ignored MD markers, 1 real MD marker
 	require.Len(t, blocks.other, 5)
 	ptrs := blocks.puts.ptrs()
-	require.Equal(t, bids[0], ptrs[0].ID)
-	require.Equal(t, bids[2], ptrs[1].ID)
+	ids := make([]kbfsblock.ID, len(ptrs))
+	for i, ptr := range ptrs {
+		ids[i] = ptr.ID
+	}
+	require.Contains(t, ids, bids[0])
+	require.Contains(t, ids, bids[2])
 	// 2 bytes of data in 2 unignored blocks.
 	require.Equal(t, int64(2), b)
 
