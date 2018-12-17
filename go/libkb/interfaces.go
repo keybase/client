@@ -462,6 +462,7 @@ type UIRouter interface {
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 	GetHomeUI() (keybase1.HomeUIInterface, error)
+	GetIdentify3UIWrapper(MetaContext) (IdentifyUI, error)
 
 	Shutdown()
 }

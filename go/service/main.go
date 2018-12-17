@@ -69,6 +69,7 @@ type Service struct {
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 	walletState          *stellar.WalletState
+	identify3State       *identify3State
 }
 
 type Shutdowner interface {
@@ -93,6 +94,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
+		identify3State:   newIdentify3State(g),
 	}
 }
 
@@ -153,6 +155,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
+		keybase1.Identify3Protocol(newIdentify3Handler(xp, g, d.identify3State)),
 	}
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))

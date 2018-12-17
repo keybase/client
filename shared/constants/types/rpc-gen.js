@@ -385,6 +385,21 @@ export const homeHomeScreenTodoType = {
   annoncementPlaceholder: 10000,
 }
 
+export const identify3UiIdentify3RowColor = {
+  blue: 1,
+  red: 2,
+  black: 3,
+  green: 4,
+}
+
+export const identify3UiIdentify3RowState = {
+  checking: 1,
+  valid: 2,
+  error: 3,
+  warning: 4,
+  revoked: 5,
+}
+
 export const identifyCommonIdentifyReasonType = {
   none: 0,
   id: 1,
