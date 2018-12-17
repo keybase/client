@@ -108,6 +108,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },

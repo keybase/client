@@ -963,8 +963,9 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 	result.Relay = &post
 	result.Seqno = relay.FundTx.Seqno
 
-	// XXX need this:
-	//	result.Relay.ChatConversationID = stellar1.NewChatConversationID(convID)
+	if convID != nil {
+		result.Relay.ChatConversationID = stellar1.NewChatConversationID(convID)
+	}
 
 	return result
 }

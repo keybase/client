@@ -187,9 +187,13 @@ func TestPrepareMiniChatRelays(t *testing.T) {
 		case "t_rebecca":
 			require.Nil(t, p.Direct)
 			require.NotNil(t, p.Relay)
+			require.Equal(t, "1", p.Relay.DisplayAmount)
+			require.Equal(t, "USD", p.Relay.DisplayCurrency)
+			require.True(t, p.Relay.QuickReturn)
 		case tcw.Fu.Username:
 			require.NotNil(t, p.Direct)
 			require.Nil(t, p.Relay)
+			require.True(t, p.Direct.QuickReturn)
 		default:
 			t.Fatalf("unknown username in result: %s", p.Username)
 		}
