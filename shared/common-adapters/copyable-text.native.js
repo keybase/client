@@ -20,10 +20,6 @@ class CopyableText extends React.Component<Props, State> {
   state = {hasCopied: false}
   lastCopyTimeoutId: TimeoutID
 
-  constructor(props: Props) {
-    super(props)
-  }
-
   _handleCopy() {
     Clipboard.setString(this.props.value)
     this.setState({hasCopied: true})
