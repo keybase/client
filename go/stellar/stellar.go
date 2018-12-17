@@ -290,7 +290,16 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	}
 
 	bundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
-	if err != nil {
+	switch err := err.(type) {
+	case nil:
+		// ok
+	case libkb.AppStatusError:
+		if libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarMissingAccount) {
+			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			err = err.WithDesc("Sender account not found")
+		}
+		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
+	default:
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 	}
 

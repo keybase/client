@@ -702,7 +702,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 			PublicMemo:    "public note",
 		})
 		require.Error(t, err)
-		// require.Equal(t, "Sender account not found", err.Error())
+		require.Contains(t, err.Error(), "Sender account not found")
 
 		_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 			BypassBid:     true,
