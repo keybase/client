@@ -149,3 +149,25 @@ func TestSpecMiniChatPayments(t *testing.T) {
 		require.Equal(t, st.summary, *out)
 	}
 }
+
+// TestSendMiniChatRelays checks that a call to SendMiniChatPayments
+// with a destination username that is a valid user but someone who
+// doesn't have a wallet will succeed and create a relay payment.
+func TestSendMiniChatRelays(t *testing.T) {
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+	require.NotNil(t, tc.Srv.walletState)
+
+	mctx := libkb.NewMetaContext(context.Background(), tc.G)
+
+	acceptDisclaimer(tc)
+	payments := []libkb.MiniChatPayment{
+		{Username: libkb.NewNormalizedUsername("t_rebecca"), Amount: "1", Currency: "USD"},
+	}
+	res, err := stellar.SendMiniChatPayments(mctx, tc.Srv.walletState, nil, payments)
+	t.Logf("result: %+v", res)
+	require.NoError(t, err)
+	require.Equal(t, "t_rebecca", res[0].Username.String())
+	require.NotEmpty(t, res[0].PaymentID)
+	require.NoError(t, res[0].Error)
+}
