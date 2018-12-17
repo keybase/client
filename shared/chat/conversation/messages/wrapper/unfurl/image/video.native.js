@@ -1,27 +1,89 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../../../common-adapters/index'
+import * as Styles from '../../../../../../styles'
 import {NativeWebView} from '../../../../../../common-adapters/native-wrappers.native'
 import type {Props} from './video.types'
 
-export class Video extends React.Component<Props> {
+type State = {
+  playingVideo: boolean,
+}
+
+export class Video extends React.Component<Props, State> {
+  webviewRef: any
+  state = {playingVideo: this.props.autoPlay}
+
+  constructor(props: Props) {
+    super(props)
+    this.webviewRef = React.createRef()
+  }
+
+  _onClick = () => {
+    if (!(this.webviewRef && this.webviewRef.current)) {
+      return
+    }
+    const arg = this.state.playingVideo ? 'pause' : 'play'
+    const runJS = this.webviewRef.current.injectJavaScript
+    runJS(`togglePlay("${arg}")`)
+    this.setState({playVideo: !this.state.playingVideo})
+  }
+
   render() {
     const source = {
-      uri: `${this.props.url}&orient=${this.props.orient}`,
+      uri: `${this.props.url}&autoplay=false`,
     }
     return (
-      <Kb.Box2 direction="horizontal" style={this.props.style}>
+      <Kb.ClickableBox
+        onClick={this._onClick}
+        style={Styles.collapseStyles([this.props.style, styles.container])}
+      >
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.absoluteContainer,
+            {
+              height: this.props.style.height,
+              width: this.props.style.width,
+            },
+          ])}
+        >
+          {!this.state.playingVideo && (
+            <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
+          )}
+        </Kb.Box>
         <NativeWebView
+          ref={this.webviewRef}
           allowsInlineMediaPlayback={true}
           useWebKit={true}
           source={source}
           style={this.props.style}
           scrollEnabled={false}
-          onLoadEnd={() => {}}
           automaticallyAdjustContentInsets={false}
           mediaPlaybackRequiresUserAction={false}
         />
-      </Kb.Box2>
+      </Kb.ClickableBox>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  absoluteContainer: {
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  container: {
+    alignSelf: 'flex-start',
+    position: 'relative',
+  },
+  playButton: {
+    bottom: '50%',
+    left: '50%',
+    marginBottom: -32,
+    marginLeft: -32,
+    marginRight: -32,
+    marginTop: -32,
+    position: 'absolute',
+    right: '50%',
+    top: '50%',
+  },
+})
