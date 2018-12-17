@@ -16,6 +16,10 @@
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
     },
+    "accountUpdateReceived": {
+      "_description": "We received an updated account record",
+      "account": "Types.Account"
+    },
     "addNewPayment": {
       "_description": "Mark a payment we were just notified about as being unseen",
       "accountID": "Types.AccountID",
@@ -208,6 +212,18 @@
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>",
       "pending": "Array<Types.PaymentResult>"
+    },
+    "pendingPaymentsReceived": {
+      "_description": "Received a new set of pending payments; replace existing ones with these",
+      "accountID": "Types.AccountID",
+      "pending": "Array<Types.PaymentResult>"
+    },
+    "recentPaymentsReceived": {
+      "_description": "Received a fresh first page of recent payments",
+      "accountID": "Types.AccountID",
+      "paymentCursor": "?StellarRPCTypes.PageCursor",
+      "oldestUnread": "Types.PaymentID",
+      "payments": "Array<Types.PaymentResult>"
     },
     "requestDetailReceived": {
       "_description": "Store a request's details",

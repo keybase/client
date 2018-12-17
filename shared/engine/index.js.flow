@@ -34,10 +34,12 @@ export type CustomResponseIncomingCallMapType = {|
   ...SellarCustomResponseIncomingCallMap,
 |}
 
+type WaitingKey = string | Array<string>
+
 declare export class Engine {
   deprecatedGetDispatch: () => TypedActions => void; // escape hatch for deprecated code to get dispatch, TODO remove all usages of this
   deprecatedGetGetState: () => () => TypedState; // escape hatch for deprecated code to get getState, TODO remove all usages of this
-  dispatchWaitingAction: (key: string, waiting: boolean, err: ?RPCError) => void;
+  dispatchWaitingAction: (key: WaitingKey, waiting: boolean, err: ?RPCError) => void;
   reset(): void;
   cancelRPC(response: any, error: any): void;
   cancelSession(sessionID: any): void;
@@ -50,7 +52,7 @@ declare export class Engine {
   setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
   createSession({
     incomingCallMap?: IncomingCallMapType,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
     cancelHandler?: any,
     dangling?: boolean,
   }): Session;
@@ -58,7 +60,7 @@ declare export class Engine {
     method: string,
     params: ?Object,
     callback: (...args: Array<any>) => void,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }): void;
 }
 

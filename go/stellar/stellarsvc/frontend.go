@@ -86,6 +86,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 }
 
 func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntryRestricted) (stellar1.WalletAccountLocal, error) {
+	mctx := libkb.NewMetaContext(ctx, s.G())
 	var empty stellar1.WalletAccountLocal
 	details, err := s.accountDetails(ctx, entry.AccountID)
 	if err != nil {
@@ -93,7 +94,7 @@ func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntryRes
 		return empty, err
 	}
 
-	return stellar.AccountDetailsToWalletAccountLocal(details, entry.IsPrimary, entry.Name)
+	return stellar.AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
@@ -363,13 +364,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	oc := stellar.NewOwnAccountLookupCache(mctx)
 	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, s.G())
 	var summary *stellar1.PaymentLocal
 
 	// AccountID argument is optional.
@@ -587,13 +588,6 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 	if arg.AccountID.IsNil() {
 		return errors.New("passed empty AccountID")
 	}
-	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
-	if err != nil {
-		return err
-	}
-	if _, ok := conf.Currencies[arg.Currency]; !ok {
-		return fmt.Errorf("Unknown currency code: %q", arg.Currency)
-	}
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, string(arg.Currency))
 }
 
@@ -610,7 +604,7 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 		}
 		accountID = &primaryAccountID
 	}
-	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, *accountID)
+	return stellar.GetCurrencySetting(s.mctx(ctx), *accountID)
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {

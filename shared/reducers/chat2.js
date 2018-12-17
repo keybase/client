@@ -883,14 +883,14 @@ const rootReducer = (
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
-        s.update('inboxVersion', old =>
-          action.payload.metas.reduce((v, meta) => Math.max(v, meta.inboxVersion), old)
-        )
       })
     }
     case Chat2Gen.paymentInfoReceived: {
       const {conversationIDKey, messageID, paymentInfo} = action.payload
-      return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], paymentInfo))
+      let nextState = state.update('accountsInfoMap', old =>
+        old.setIn([conversationIDKey, messageID], paymentInfo)
+      )
+      return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload

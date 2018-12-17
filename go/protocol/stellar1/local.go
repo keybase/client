@@ -9,11 +9,12 @@ import (
 )
 
 type WalletAccountLocal struct {
-	AccountID          AccountID `codec:"accountID" json:"accountID"`
-	IsDefault          bool      `codec:"isDefault" json:"isDefault"`
-	Name               string    `codec:"name" json:"name"`
-	BalanceDescription string    `codec:"balanceDescription" json:"balanceDescription"`
-	Seqno              string    `codec:"seqno" json:"seqno"`
+	AccountID          AccountID     `codec:"accountID" json:"accountID"`
+	IsDefault          bool          `codec:"isDefault" json:"isDefault"`
+	Name               string        `codec:"name" json:"name"`
+	BalanceDescription string        `codec:"balanceDescription" json:"balanceDescription"`
+	Seqno              string        `codec:"seqno" json:"seqno"`
+	CurrencyLocal      CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
 }
 
 func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
@@ -23,6 +24,7 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		Name:               o.Name,
 		BalanceDescription: o.BalanceDescription,
 		Seqno:              o.Seqno,
+		CurrencyLocal:      o.CurrencyLocal.DeepCopy(),
 	}
 }
 

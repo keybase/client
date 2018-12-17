@@ -13,6 +13,10 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUITextDecorationTyp = {
+  payment: 0,
+}
+
 export const commonAssetMetadataType = {
   none: 0,
   image: 1,
@@ -37,7 +41,6 @@ export const commonConversationMemberStatus = {
   left: 2,
   preview: 3,
   reset: 4,
-  neverJoined: 5,
 }
 
 export const commonConversationMembersType = {

@@ -978,6 +978,11 @@ type FailSharePostArg struct {
 	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
 }
 
+type BroadcastGregorMessageToConvArg struct {
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Msg    gregor1.Message `codec:"msg" json:"msg"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1015,6 +1020,7 @@ type RemoteInterface interface {
 	UpgradeKBFSToImpteam(context.Context, TLFID) error
 	RegisterSharePost(context.Context, RegisterSharePostArg) error
 	FailSharePost(context.Context, FailSharePostArg) error
+	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1556,6 +1562,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"broadcastGregorMessageToConv": {
+				MakeArg: func() interface{} {
+					var ret [1]BroadcastGregorMessageToConvArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BroadcastGregorMessageToConvArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BroadcastGregorMessageToConvArg)(nil), args)
+						return
+					}
+					err = i.BroadcastGregorMessageToConv(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1754,5 +1775,10 @@ func (c RemoteClient) RegisterSharePost(ctx context.Context, __arg RegisterShare
 
 func (c RemoteClient) FailSharePost(ctx context.Context, __arg FailSharePostArg) (err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.failSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg BroadcastGregorMessageToConvArg) (err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.broadcastGregorMessageToConv", []interface{}{__arg}, nil, rpc.CompressionGzip)
 	return
 }

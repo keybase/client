@@ -306,7 +306,7 @@ func (m *TlfMock) EphemeralEncryptionKey(ctx context.Context, tlfName string, tl
 
 func (m *TlfMock) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
 	// Returns a totally zero teamEK. That's enough to get some very simple
 	// round trip tests to pass.
 	return keybase1.TeamEk{}, nil
@@ -919,6 +919,11 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	}
 
 	return msg
+}
+
+func (m *ChatRemoteMock) BroadcastGregorMessageToConv(ctx context.Context,
+	arg chat1.BroadcastGregorMessageToConvArg) error {
+	return nil
 }
 
 func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {

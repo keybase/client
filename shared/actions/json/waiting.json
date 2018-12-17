@@ -8,10 +8,8 @@
       "key": ["string", "Array<string>"],
       "error?": "RPCError"
     },
-    "changeWaiting": {
-      "key": ["string", "Array<string>"],
-      "increment": "boolean",
-      "error?": "RPCError"
+    "batchChangeWaiting": {
+      "changes": "Array<{key: string | Array<string>, increment: boolean, error?: RPCError}>"
     },
     "clearWaiting": {
       "key": ["string", "Array<string>"]

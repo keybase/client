@@ -301,4 +301,7 @@ protocol remote {
   // Share extension
   void registerSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);
   void failSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);
+
+  // Message an entire conv with an arbitrary Gregor message
+  void broadcastGregorMessageToConv(ConversationID convID, gregor1.Message msg);
 }

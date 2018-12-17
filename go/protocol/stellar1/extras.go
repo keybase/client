@@ -381,3 +381,14 @@ func (b BuildPaymentID) IsNil() bool {
 func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
 	return b == other
 }
+
+func NewChatConversationID(b []byte) *ChatConversationID {
+	cid := ChatConversationID(hex.EncodeToString(b))
+	return &cid
+}
+
+func (a *AccountDetails) SetDefaultDisplayCurrency() {
+	if a.DisplayCurrency == "" {
+		a.DisplayCurrency = "USD"
+	}
+}

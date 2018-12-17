@@ -9,6 +9,8 @@ import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
 import {isArray} from 'lodash-es'
 
+type WaitingKey = string | Array<string>
+
 type EmittedCall = {
   method: string,
   params: any,
@@ -58,7 +60,7 @@ function* call(p: {
   params: ?Object,
   incomingCallMap?: {[method: string]: any}, // this is typed by the generated helpers
   customResponseIncomingCallMap?: {[method: string]: any},
-  waitingKey?: string,
+  waitingKey?: WaitingKey,
 }): Generator<any, any, any> {
   const {method, params, waitingKey} = p
   const incomingCallMap = p.incomingCallMap || {}

@@ -5,7 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
-import {memoize1, memoize2, memoize3} from '../../../util/memoize'
+import {memoize1, memoize2} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const smallTeamsCollapsedMaxShown = 5
@@ -78,8 +78,8 @@ const getBigRows = memoize1(
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize3<Types.MetaMap, boolean, number, _>(
-  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean, inboxVersion: number) => {
+const getRowsAndMetadata = memoize2<Types.MetaMap, boolean, _>(
+  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
     const {bigMetas, smallMetas} = splitMetas(metaMap)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
     const smallRows = getSmallRows(smallMetas, showAllSmallRows)
@@ -95,10 +95,8 @@ const getRowsAndMetadata = memoize3<Types.MetaMap, boolean, number, _>(
       smallTeamsExpanded: showAllSmallRows, // only collapse if we're actually showing a divider,
     }
   },
-  // ignore changes to metaMap if inboxVersion is the same
-  (newMetaMap, oldMetaMap) => true,
-  (newExpanded, oldExpanded) => newExpanded === oldExpanded,
-  (newVersion, oldVersion) => newVersion === oldVersion
+  undefined,
+  undefined
 )
 
 export default getRowsAndMetadata

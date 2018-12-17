@@ -14,6 +14,7 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
+type WaitingKey = string | Array<string>
 type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
