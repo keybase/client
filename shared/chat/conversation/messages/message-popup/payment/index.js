@@ -94,10 +94,7 @@ const Header = (props: HeaderProps) =>
       )}
       {!!props.errorDetails && (
         <Kb.Box2 direction="horizontal" style={{maxWidth: 200}}>
-          <Kb.Text
-            type="BodyExtrabold"
-            style={Styles.collapseStyles([styles.textAlignCenter, {color: Styles.globalColors.red}])}
-          >
+          <Kb.Text type="BodyExtrabold" style={styles.errorDetails}>
             {props.errorDetails}
           </Kb.Text>
         </Kb.Box2>
@@ -169,6 +166,10 @@ const PaymentPopup = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   colorWhite: {
     color: Styles.globalColors.white,
+  },
+  errorDetails: {
+    color: Styles.globalColors.red,
+    textAlign: 'center',
   },
   headerTop: Styles.platformStyles({
     common: {
