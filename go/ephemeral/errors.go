@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -18,24 +19,25 @@ const (
 )
 
 type EphemeralKeyError struct {
-	DebugMsg string
-	HumanMsg string
+	DebugMsg   string
+	HumanMsg   string
+	StatusCode int
 }
 
 const (
-	defaultHumanErr                             = "This exploding message is not available to you"
-	deviceProvisionedAfterContentCreationErrMsg = "This exploding message is not available to you, this device was created after the message was sent"
-	deviceCloneErrMsg                           = "This exploding message is not available to you, cloned devices do not support exploding messages"
+	DefaultHumanErrMsg                          = "This exploding message is not available to you"
+	DeviceProvisionedAfterContentCreationErrMsg = "this device was created after the message was sent"
+	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
 )
 
 func newEKUnboxErr(ctx context.Context, g *libkb.GlobalContext, boxType EKType, boxGeneration keybase1.EkGeneration,
 	missingType EKType, missingGeneration keybase1.EkGeneration, contentCtime *gregor1.Time) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", boxType, boxGeneration, missingType, missingGeneration)
-	humanMsg := defaultHumanErr
+	var humanMsg string
 	if deviceProvisionedAfterContentCreation(ctx, g, contentCtime) {
-		humanMsg = deviceProvisionedAfterContentCreationErrMsg
+		humanMsg = DeviceProvisionedAfterContentCreationErrMsg
 	} else if deviceIsCloned(ctx, g) {
-		humanMsg = deviceCloneErrMsg
+		humanMsg = DeviceCloneErrMsg
 	}
 	return newEphemeralKeyError(debugMsg, humanMsg)
 }
@@ -52,13 +54,28 @@ func newEKCorruptedErr(ctx context.Context, g *libkb.GlobalContext, boxType EKTy
 	return newEphemeralKeyError(debugMsg, "")
 }
 
-func newEphemeralKeyError(debugMsg, humanMsg string) EphemeralKeyError {
+func humanMsgWithPrefix(humanMsg string) string {
 	if humanMsg == "" {
-		humanMsg = defaultHumanErr
+		humanMsg = DefaultHumanErrMsg
+	} else if !strings.Contains(humanMsg, DefaultHumanErrMsg) {
+		humanMsg = fmt.Sprintf("%s. %s", DefaultHumanErrMsg, humanMsg)
 	}
+	return humanMsg
+}
+
+func newEphemeralKeyError(debugMsg, humanMsg string) EphemeralKeyError {
+	humanMsg = humanMsgWithPrefix(humanMsg)
 	return EphemeralKeyError{
 		DebugMsg: debugMsg,
 		HumanMsg: humanMsg,
+	}
+}
+func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
+	humanMsg := humanMsgWithPrefix(e.Desc)
+	return EphemeralKeyError{
+		DebugMsg:   e.Desc,
+		HumanMsg:   humanMsg,
+		StatusCode: e.Code,
 	}
 }
 
@@ -68,6 +85,23 @@ func (e EphemeralKeyError) HumanError() string {
 
 func (e EphemeralKeyError) Error() string {
 	return e.DebugMsg
+}
+
+func errFromAppStatus(e error) error {
+	if e == nil {
+		return nil
+	}
+	switch e := e.(type) {
+	case libkb.AppStatusError:
+		switch e.Code {
+		case libkb.SCEphemeralDeviceAfterEK,
+			libkb.SCEphemeralMemberAfterEK,
+			libkb.SCEphemeralDeviceStale,
+			libkb.SCEphemeralUserStale:
+			return newEphemeralKeyErrorFromStatus(e)
+		}
+	}
+	return e
 }
 
 func deviceProvisionedAfterContentCreation(ctx context.Context, g *libkb.GlobalContext, contentCtime *gregor1.Time) bool {
