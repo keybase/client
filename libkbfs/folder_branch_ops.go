@@ -6247,6 +6247,12 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 				return RekeyResult{}, err
 			}
 		}
+
+		head, _ = fbo.getHead(ctx, lState, mdNoCommit)
+		if head.TypeForKeying() == tlf.TeamKeying {
+			fbo.log.CDebugf(ctx, "A team TLF doesn't need a rekey")
+			return RekeyResult{}, nil
+		}
 	}
 
 	md, lastWriterVerifyingKey, rekeyWasSet, err :=
