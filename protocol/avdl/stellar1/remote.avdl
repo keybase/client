@@ -32,6 +32,9 @@ protocol remote {
     string boxB64; // b64-encoded EncryptedRelaySecret
     string signedTransaction; // Funding tx
     boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
+    // if not empty, stellard will inform gregord about this payment's
+    // status changes along with this conversation ID
+    union { null, ChatConversationID } chatConversationID; 
   }
 
   record RelayClaimPost {

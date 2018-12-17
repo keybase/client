@@ -64,6 +64,7 @@ type GlobalContext struct {
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
 	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
+	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
 
 	cacheMu          *sync.RWMutex   // protects all caches
 	ProofCache       *ProofCache     // where to cache proof results
@@ -232,6 +233,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
 	g.RPCCanceller = NewRPCCanceller()
+	g.IdentifyDispatch = NewIdentifyDispatch()
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -337,6 +339,8 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	g.NotifyRouter.HandleLogout()
 
 	g.FeatureFlags.Clear()
+
+	g.IdentifyDispatch.OnLogout()
 
 	return nil
 }

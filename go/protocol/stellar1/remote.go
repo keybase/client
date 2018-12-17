@@ -53,16 +53,17 @@ func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 }
 
 type PaymentRelayPost struct {
-	FromDeviceID      keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
-	To                *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
-	ToAssertion       string                `codec:"toAssertion" json:"toAssertion"`
-	RelayAccount      AccountID             `codec:"relayAccount" json:"relayAccount"`
-	TeamID            keybase1.TeamID       `codec:"teamID" json:"teamID"`
-	DisplayAmount     string                `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency   string                `codec:"displayCurrency" json:"displayCurrency"`
-	BoxB64            string                `codec:"boxB64" json:"boxB64"`
-	SignedTransaction string                `codec:"signedTransaction" json:"signedTransaction"`
-	QuickReturn       bool                  `codec:"quickReturn" json:"quickReturn"`
+	FromDeviceID       keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To                 *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	ToAssertion        string                `codec:"toAssertion" json:"toAssertion"`
+	RelayAccount       AccountID             `codec:"relayAccount" json:"relayAccount"`
+	TeamID             keybase1.TeamID       `codec:"teamID" json:"teamID"`
+	DisplayAmount      string                `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency    string                `codec:"displayCurrency" json:"displayCurrency"`
+	BoxB64             string                `codec:"boxB64" json:"boxB64"`
+	SignedTransaction  string                `codec:"signedTransaction" json:"signedTransaction"`
+	QuickReturn        bool                  `codec:"quickReturn" json:"quickReturn"`
+	ChatConversationID *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
 }
 
 func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
@@ -83,6 +84,13 @@ func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
 		BoxB64:            o.BoxB64,
 		SignedTransaction: o.SignedTransaction,
 		QuickReturn:       o.QuickReturn,
+		ChatConversationID: (func(x *ChatConversationID) *ChatConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatConversationID),
 	}
 }
 

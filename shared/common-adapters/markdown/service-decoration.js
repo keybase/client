@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import PaymentStatus from '../../chat/payments/status/container'
@@ -8,6 +9,7 @@ export type Props = {
   json: string,
   onClick?: () => void,
   allowFontScaling?: ?boolean,
+  message: Types.MessageText,
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -40,6 +42,7 @@ const ServiceDecoration = (props: Props) => {
         error={error}
         text={parsed.payment.paymentText}
         allowFontScaling={props.allowFontScaling}
+        message={props.message}
       />
     )
   }

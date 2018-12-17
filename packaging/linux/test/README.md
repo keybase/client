@@ -4,9 +4,11 @@ Debian/Ubuntu:
 To build a package for debian from a local branch in client (on amd64):
 
     cd $GOPATH/src/github.com/keybase/client/packaging/linux
-    docker build -t keybase_packaging_v14 .
+    # Run the following on Arch: see https://github.com/docker/for-linux/issues/480
+    # echo N | sudo tee /sys/module/overlay/parameters/metacopy
+    docker build -t keybase_packaging_v16 .
     mkdir /var/tmp/keybase_build_work
-    docker run -v /var/tmp/keybase_build_work:/root -v $GOPATH/src/github.com/keybase/client:/CLIENT:ro -v $GOPATH/src/github.com/keybase/client/go/kbfs:/KBFS:ro  -e NOWAIT -ti keybase_packaging_v14 bash
+    docker run -v /var/tmp/keybase_build_work:/root -v $GOPATH/src/github.com/keybase/client:/CLIENT:ro -v $GOPATH/src/github.com/keybase/client/go/kbfs:/KBFS:ro  -e NOWAIT -ti keybase_packaging_v16 bash
 
 Then, from inside the docker environment:
 
@@ -15,6 +17,7 @@ Then, from inside the docker environment:
     git clone https://github.com/keybase/client/go/kbfs.git kbfs --reference /KBFS
     cd client
     git remote add localclient /CLIENT
+    git fetch localclient
     git checkout localclient/<NAME_OF_LOCAL_BRANCH_TO_TEST>
     KEYBASE_SKIP_32_BIT=1 packaging/linux/build_binaries.sh prerelease /root/build
     packaging/linux/deb/package_binaries.sh /root/build
@@ -52,6 +55,35 @@ After that you can upgrade it:
     exit  # back to root
     cd /root/build/deb/amd64
     dpkg -i `ls -tr *.deb | tail -1`
+
+##### Local repo
+
+If you want to try upgrading with `apt-get`, you need to edit the apt list.
+Note that reinstalling will overwrite this change unless you `sudo touch
+/etc/default/keybase` first. Note that for this to work, you need to run
+`packaging/linux/deb/layout_repo.sh /root/build` to create the repo (and
+comment out codesigning while testing). You also need to `rm -r /root/build/deb
+/root/build/deb_repo` in between `layout_repo`s.
+
+```
+# before
+root@813a2fbff4a5:/# cat /etc/apt/sources.list.d/keybase.list
+### THIS FILE IS AUTOMATICALLY CONFIGURED ###
+# You may comment out this entry, but any other modifications may be lost.
+deb http://prerelease.keybase.io/deb stable main
+
+# after
+joot@813a2fbff4a5:/# cat /etc/apt/sources.list.d/keybase.list
+### THIS FILE IS AUTOMATICALLY CONFIGURED ###
+# You may comment out this entry, but any other modifications may be lost.
+deb [trusted=yes] file:/root/build/deb_repo/repo stable main
+
+root@813a2fbff4a5:/# apt-get update
+root@813a2fbff4a5:/# apt-get upgrade keybase
+...
+The following packages will be upgraded:
+  keybase
+```
 
 Ubuntu with systemd:
 =======
@@ -92,6 +124,49 @@ After that you can upgrade it:
     exit  # back to root
     cd /root/build/rpm/x86_64/RPMS/x86_64
     rpm -Uvh `ls -tr *.rpm | tail -1`
+
+##### Local repo
+
+The process is similar as in Debian.
+
+```
+# before
+bash-4.2# cat /etc/yum.repos.d/keybase.repo
+[keybase]
+name=keybase
+baseurl=http://prerelease.keybase.io/rpm/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://keybase.io/docs/server_security/code_signing_key.asc
+metadata_expire=60
+
+# after
+bash-4.2# cat /etc/yum.repos.d/keybase.repo
+[keybase]
+name=keybase
+baseurl=file:///root/build/rpm_repo/repo/x86_64/
+enabled=1
+metadata_expire=60
+
+# nogpgcheck needed in test
+bash-4.2# yum update keybase --nogpgcheck
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: mirror.jaleco.com
+ * extras: mirror.atlanticmetro.net
+ * updates: mirror.metrocast.net
+keybase
+Resolving Dependencies
+--> Running transaction check
+---> Package keybase.x86_64 0:2.11.0.20181204152506.f11f4191e3-1 will be updated
+bash-4.2#
+```
+
+Note that reinstalling will overwrite this change unless you `sudo touch
+/etc/default/keybase` first. Note that for this to work, you need to run
+`packaging/linux/rpm/layout_repo.sh /root/build` to create the repo (and
+comment out codesigning while testing). You also need to `rm -r /root/build/rpm
+/root/build/rpm_repo` in between `layout_repo`s.
 
 Arch:
 =====
