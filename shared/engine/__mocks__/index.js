@@ -9,7 +9,6 @@ class FakeEngine {
   }
   reset() {}
   dispatchWaitingAction() {}
-  cancelRPC() {}
   cancelSession() {}
   rpc() {}
   setFailOnError() {}

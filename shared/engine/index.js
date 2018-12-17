@@ -18,7 +18,7 @@ import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
+import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
 import type {RPCError} from '../util/errors'
 
@@ -355,22 +355,6 @@ class Engine {
     this._deadSessionsMap[String(session.getId())] = true
   }
 
-  // Cancel an rpc
-  cancelRPC(response: ?ResponseType, error: any) {
-    if (response) {
-      if (response.error) {
-        const cancelError = {
-          code: constantsStatusCode.scgeneric,
-          desc: 'Canceling RPC',
-        }
-
-        response.error(error || cancelError)
-      }
-    } else {
-      localLog('Invalid response sent to cancelRPC')
-    }
-  }
-
   // Reset the engine
   reset() {
     // TODO not working on mobile yet
@@ -486,7 +470,6 @@ class FakeEngine {
     this._sessionsMap = {}
   }
   reset() {}
-  cancelRPC() {}
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}

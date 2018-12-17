@@ -41,7 +41,7 @@ declare export class Engine {
   deprecatedGetGetState: () => () => TypedState; // escape hatch for deprecated code to get getState, TODO remove all usages of this
   dispatchWaitingAction: (key: WaitingKey, waiting: boolean, err: ?RPCError) => void;
   reset(): void;
-  cancelRPC(response: any, error: any): void;
+  // TODO maybe get rid of this, only used by tracker
   cancelSession(sessionID: any): void;
   rpc(): void;
   setFailOnError(): void;
