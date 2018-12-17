@@ -312,46 +312,6 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	}
 }
 
-func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
-	t.Log("Test that we can retrieve the same block into different block " +
-		"types.")
-	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(0, 1, newTestBlockRetrievalConfig(t, bg, nil))
-	require.NotNil(t, q)
-	defer q.Shutdown()
-
-	t.Log("Setup source blocks")
-	ptr1 := makeRandomBlockPointer(t)
-	block1 := makeFakeFileBlock(t, false)
-	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
-	testCommonBlock := &CommonBlock{}
-	testCommonBlock.Set(block1)
-	require.Equal(t, &CommonBlock{}, testCommonBlock)
-
-	t.Log("Make a retrieval for the same block twice, but with a different " +
-		"target block type.")
-	testBlock1 := &FileBlock{}
-	testBlock2 := &CommonBlock{}
-	req1Ch := q.Request(
-		context.Background(), 1, makeKMD(), ptr1, testBlock1,
-		NoCacheEntry, BlockRequestWithPrefetch)
-	req2Ch := q.Request(
-		context.Background(), 1, makeKMD(), ptr1, testBlock2,
-		NoCacheEntry, BlockRequestWithPrefetch)
-
-	t.Log("Allow the first ptr1 retrieval to complete.")
-	continueCh1 <- nil
-	err := <-req1Ch
-	require.NoError(t, err)
-	require.Equal(t, testBlock1, block1)
-
-	t.Log("Allow the second ptr1 retrieval to complete.")
-	continueCh1 <- nil
-	err = <-req2Ch
-	require.NoError(t, err)
-	require.Equal(t, testBlock2, testCommonBlock)
-}
-
 func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 	t.Log("Test that we can escalate the priority of a request and it " +
 		"correctly switches workers.")

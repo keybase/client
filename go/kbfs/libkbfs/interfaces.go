@@ -148,6 +148,9 @@ type Block interface {
 	ToCommonBlock() *CommonBlock
 	// IsIndirect indicates whether this block contains indirect pointers.
 	IsIndirect() bool
+	// IsTail returns true if this block doesn't point to any other
+	// blocks, either indirectly or in child directory entries.
+	IsTail() bool
 	// OffsetExceedsData returns true if `off` is greater than the
 	// data contained in a direct block, assuming it starts at
 	// `startOff`.  Note that the offset of the next block isn't
@@ -1654,7 +1657,7 @@ type Prefetcher interface {
 	// the block isn't currently being prefetched, it will return an
 	// already-closed channel.  When the channel is closed, the caller
 	// should still verify that the prefetch status of the block is
-	// `FinishedPrefetch`, in case there was an error.
+	// what they expect it to be, in case there was an error.
 	WaitChannelForBlockPrefetch(ctx context.Context, ptr BlockPointer) (
 		<-chan struct{}, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
@@ -2178,6 +2181,9 @@ type InitMode interface {
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.
 	PrefetchWorkers() int
+	// DefaultBlockRequestAction returns the action to be used by
+	// default whenever fetching a block.
+	DefaultBlockRequestAction() BlockRequestAction
 	// RekeyWorkers returns the number of rekey workers to run.
 	RekeyWorkers() int
 	// RekeyQueueSize returns the size of the rekey queue.

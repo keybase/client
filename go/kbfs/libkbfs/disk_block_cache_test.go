@@ -751,10 +751,10 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 	require.Equal(t, 1, cache.syncCache.numBlocks)
 	require.Equal(t, 0, cache.workingSetCache.numBlocks)
 
-	t.Log("After the move, make sure the prefetch status is right.")
+	t.Log("After the move, make sure the prefetch status is reset.")
 	_, _, prefetchStatus, err := cache.Get(
 		ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.syncCache.numBlocks)
-	require.Equal(t, TriggeredPrefetch, prefetchStatus)
+	require.Equal(t, NoPrefetch, prefetchStatus)
 }
