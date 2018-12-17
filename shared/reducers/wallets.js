@@ -183,6 +183,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         building: state.get('building').merge({sendAssetChoices}),
         builtPayment: Constants.makeBuiltPayment(),
       })
+    case WalletsGen.buildingPaymentIDReceived:
+      const {bid} = action.payload
+      return state.merge({
+        building: state.get('building').merge({bid}),
+      })
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
     case WalletsGen.setReadyToSend:
@@ -324,6 +329,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.openSendRequestForm:
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
+    case WalletsGen.startPayment:
+    case WalletsGen.stopPayment:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

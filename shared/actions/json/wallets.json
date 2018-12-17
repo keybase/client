@@ -34,6 +34,10 @@
       "_description": "Update badges in the nav",
       "accounts": "Array<RPCTypes.WalletAccountInfo>"
     },
+    "buildingPaymentIDReceived": {
+      "_description": "Update our store with an ID for a new building payment",
+      "bid": "string",
+    },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
@@ -303,6 +307,13 @@
     "setReadyToSend": {
       "_description": "Set whether the payment is ready to send",
       "readyToSend": "boolean"
+    },
+    "startPayment": {
+      "_description": "Begin preparing a new payment."
+    },
+    "stopPayment": {
+      "_description": "Invalidate a stale prepared payment.",
+      "bid": "string"
     },
     "openSendRequestForm": {
       "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",

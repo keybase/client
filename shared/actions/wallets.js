@@ -44,7 +44,7 @@ const buildPayment = (state: TypedState, action: WalletsGen.BuildPaymentPayload)
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
-          bid: '', // DESKTOP-8530
+          bid: state.wallets.building.bid,
           currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
@@ -92,6 +92,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
     ? Saga.sequentially(
         [
           WalletsGen.createClearBuilding(),
+          !action.payload.isRequest ? WalletsGen.createStartPayment() : null,
           action.payload.isRequest
             ? WalletsGen.createClearBuiltRequest()
             : WalletsGen.createClearBuiltPayment(),
@@ -124,7 +125,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
           RouteTreeGen.createNavigateAppend({
             path: [Constants.sendReceiveFormRouteKey],
           }),
-        ].map(a => Saga.put(a))
+        ].filter(Boolean).map(a => Saga.put(a))
       )
     : Saga.put(
         isMobile
@@ -158,8 +159,8 @@ const sendPayment = (state: TypedState) => {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
       asset: emptyAsset,
       // FIXME -- support other assets.
-      bid: '', // DESKTOP-8530
-      bypassBid: true, // DESKTOP-8530
+      bid: state.wallets.building.bid,
+      bypassBid: false,
       bypassReview: true, // DESKTOP-8556
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
@@ -214,6 +215,16 @@ const requestPayment = (state: TypedState) =>
       lastSentXLM: state.wallets.building.currency === 'XLM',
       requestee: state.wallets.building.to,
     })
+  )
+
+const startPayment = () =>
+  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
+    WalletsGen.createBuildingPaymentIDReceived({bid})
+  )
+
+const stopPayment = (state: TypedState, action: WalletsGen.StopPaymentPayload) =>
+  RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid}).then(_ =>
+    WalletsGen.createClearBuilding()
   )
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
@@ -805,6 +816,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     spawnBuildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
+  yield Saga.actionToPromise(WalletsGen.startPayment, startPayment)
+  yield Saga.actionToPromise(WalletsGen.stopPayment, stopPayment)
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
@@ -822,7 +835,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateToConversation)
 
   // Effects of abandoning payments
-  yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuilding)
+  yield Saga.actionToPromise(WalletsGen.abandonPayment, stopPayment)
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuiltRequest)
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearErrors)
   yield Saga.actionToAction(WalletsGen.abandonPayment, maybeNavigateAwayFromSendForm)
