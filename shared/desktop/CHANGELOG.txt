@@ -1,10 +1,5 @@
-Chat:
-• Unfurl URLs! Paste a url and you can opt into showing a preview
-• Better handling of urls and formatting
-• Faster thread scrolling
-• Smoother inbox scrolling
-Other:
-• Better badging for git and devices tabs
-• Better feedback during team creation flow
-• Fix inconsistent coloring of usernames
-• Fix for rare case where app could become unresponsive
+• Links to KBFS paths work in chat now!
+• Better handling of error messaging when you can't decode an exploded message
+• New retry screen for handling network issues on the people page
+• New alerts when we don't have correct permissions for photo uploading
+• Various bug fixes and stability improvements
