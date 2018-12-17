@@ -1781,6 +1781,8 @@ func (fbo *folderBranchOps) getSuccessorMDForWriteLocked(
 	return fbo.getSuccessorMDForWriteLockedForFilename(ctx, lState, "")
 }
 
+// getMDForRekeyWriteLocked returns a nil `rmd` if it is a team TLF,
+// since that can't be rekeyed by KBFS.
 func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	ctx context.Context, lState *lockState) (
 	rmd *RootMetadata, lastWriterVerifyingKey kbfscrypto.VerifyingKey,
@@ -1789,6 +1791,10 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 
 	md, err := fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdRekey)
 	if err != nil {
+		return nil, kbfscrypto.VerifyingKey{}, false, err
+	}
+
+	if md.TypeForKeying() == tlf.TeamKeying {
 		return nil, kbfscrypto.VerifyingKey{}, false, err
 	}
 
@@ -6259,6 +6265,10 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
 		return RekeyResult{}, err
+	}
+	if md == nil {
+		fbo.log.CDebugf(ctx, "A team TLF doesn't need a rekey")
+		return RekeyResult{}, nil
 	}
 
 	currKeyGen := md.LatestKeyGeneration()
