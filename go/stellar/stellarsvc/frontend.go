@@ -511,6 +511,8 @@ func (a balanceList) balanceDescription() (res string, err error) {
 	}
 	if more {
 		res += " + more"
+	} else {
+		res += " available"
 	}
 	return res, nil
 }
