@@ -60,12 +60,12 @@ class UnfurlGeneric extends React.Component<Props> {
           {!!this.props.imageURL &&
             !!this.props.imageHeight &&
             !!this.props.imageWidth &&
-            !Styles.isMobile &&
             !this.props.showImageOnSide && (
               <UnfurlImage
                 url={this.props.imageURL}
                 height={this.props.imageHeight}
                 width={this.props.imageWidth}
+                widthPadding={Styles.globalMargins.tiny}
                 style={styles.bottomImage}
                 isVideo={this.props.imageIsVideo || false}
                 autoplayVideo={false}
@@ -81,9 +81,14 @@ class UnfurlGeneric extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  bottomImage: {
-    marginTop: Styles.globalMargins.xtiny,
-  },
+  bottomImage: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      alignSelf: 'center',
+    },
+  }),
   closeBox: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
@@ -114,7 +119,7 @@ const styles = Styles.styleSheetCreate({
       borderColor: Styles.globalColors.lightGrey,
       borderRadius: Styles.borderRadius,
       borderWidth: 1,
-      padding: Styles.globalMargins.tiny,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
   quoteContainer: Styles.platformStyles({
