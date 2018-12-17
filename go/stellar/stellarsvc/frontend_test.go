@@ -1949,7 +1949,7 @@ func TestReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(context.Background(), senderAccountID)
+	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
 
 	t.Logf("u1 proves rooter")
 	_, sigID := proveRooter(tcs[1])
