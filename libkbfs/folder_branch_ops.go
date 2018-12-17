@@ -1795,7 +1795,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	}
 
 	if md.TypeForKeying() == tlf.TeamKeying {
-		return nil, kbfscrypto.VerifyingKey{}, false, err
+		return nil, kbfscrypto.VerifyingKey{}, false, nil
 	}
 
 	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
