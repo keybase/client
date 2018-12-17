@@ -612,15 +612,33 @@ func pendingChanged(a, b []stellar1.PaymentSummary) bool {
 		return false
 	}
 
-	existing, err := a[0].TransactionID()
-	if err == nil {
-		next, err := b[0].TransactionID()
-		if err == nil {
-			if existing != next {
-				return true
-			}
+	for i := 0; i < len(a); i++ {
+		atxid, err := a[i].TransactionID()
+		if err != nil {
+			return true
+		}
+		btxid, err := b[i].TransactionID()
+		if err != nil {
+			return true
+		}
+		if atxid != btxid {
+			return true
+		}
+
+		astatus, err := a[i].TransactionStatus()
+		if err != nil {
+			return true
+		}
+		bstatus, err := b[i].TransactionStatus()
+		if err != nil {
+			return true
+		}
+
+		if astatus != bstatus {
+			return true
 		}
 	}
+
 	return false
 }
 
