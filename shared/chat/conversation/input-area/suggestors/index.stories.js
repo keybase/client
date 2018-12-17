@@ -35,7 +35,7 @@ class _TestArea extends React.Component<Suggestors.PropsWithSuggestor<{something
 const TestArea = AddSuggestors(_TestArea)
 
 // prettier-ignore
-const fruit = ['apple', 'orange', 'raspberry', 'cantaloupe', 'durian', 'blackberry', 'fruit (generic)', 'mango', 'nectarine', 'pineapple', 'lemon']
+const fruit = ['apple', 'orange', 'raspberry', 'cantaloupe', 'durian', 'blackberry', 'fruit_generic', 'mango', 'nectarine', 'pineapple', 'lemon']
 // prettier-ignore
 const users = ['mlsteele', 'mikem', 'ayoubd', 'max', 'chrisnojima', 'chris', 'aimeedavid', 'jakob223', 'joshblum', 'xgess', 'modalduality', 'kurt']
 

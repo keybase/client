@@ -230,7 +230,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     )
   }
 }
-const ViewForGatewayDest = (props: any) => <Kb.NativeView {...props} />
+const ViewForGatewayDest = <T>(props: T) => <Kb.NativeView {...props} />
 
 type AnimatedTabBarProps = {
   show: boolean,

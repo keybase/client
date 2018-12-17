@@ -185,9 +185,7 @@ class Input extends React.Component<InputProps, InputState> {
   _getUserSuggestions = filter => {
     const fil = filter.toLowerCase()
     return this.props.suggestUsers
-      .filter(
-        user => user.username.toLowerCase().includes(fil) || user.fullName.toLowerCase().includes(filter)
-      )
+      .filter(user => user.username.toLowerCase().includes(fil) || user.fullName.toLowerCase().includes(fil))
       .toArray()
   }
 
@@ -204,15 +202,15 @@ class Input extends React.Component<InputProps, InputState> {
       ])}
       gap="small"
     >
-      {!Constants.isSpecialMention(username) ? (
-        <Kb.Avatar username={username} size={32} />
-      ) : (
+      {Constants.isSpecialMention(username) ? (
         <Kb.Icon
           type="iconfont-people"
           style={styles.paddingXTiny}
           color={Styles.globalColors.blue}
           fontSize={24}
         />
+      ) : (
+        <Kb.Avatar username={username} size={32} />
       )}
       <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
       <Kb.Text type="BodySmall">{fullName}</Kb.Text>

@@ -11,7 +11,6 @@ import {
   Text,
   iconCastPlatformStyles,
   OverlayParentHOC,
-  type OverlayParentProps,
 } from '../../../../common-adapters'
 import {
   collapseStyles,
@@ -28,10 +27,10 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import type {PlatformInputProps} from './types'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
-import AddSuggestors, {type PropsWithSuggestor} from '../suggestors'
+import type {PlatformInputPropsInternal} from './platform-input'
+import AddSuggestors from '../suggestors'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -39,15 +38,12 @@ type State = {
   hasText: boolean,
 }
 
-class _PlatformInput extends PureComponent<
-  PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<OverlayParentProps>}>,
-  State
-> {
+class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _input: null | PlainInput
   _lastText: ?string
   _whichMenu: menuType
 
-  constructor(props: PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<OverlayParentProps>}>) {
+  constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
       hasText: false,

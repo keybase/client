@@ -6,25 +6,22 @@ import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
-import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
 import WalletsIcon from './wallets-icon/container'
-import AddSuggestors, {type PropsWithSuggestor} from '../suggestors'
+import type {PlatformInputPropsInternal} from './platform-input'
+import AddSuggestors from '../suggestors'
 
 type State = {
   emojiPickerOpen: boolean,
   hasText: boolean,
 }
 
-class _PlatformInput extends React.Component<
-  PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<Kb.OverlayParentProps>}>,
-  State
-> {
+class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
   _input: ?Kb.PlainInput
   _lastText: ?string
   _fileInput: ?HTMLInputElement
 
-  constructor(props: PropsWithSuggestor<{...$Exact<PlatformInputProps>, ...$Exact<Kb.OverlayParentProps>}>) {
+  constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
