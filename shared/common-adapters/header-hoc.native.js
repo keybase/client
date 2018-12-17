@@ -23,7 +23,7 @@ export const HeaderHocHeader = ({
     {customComponent}
     {!!title && (
       <Box style={styles.titleContainer}>
-        <Text type="BodySmall" style={styles.title}>{title}</Text>
+        <Text type="BodySemibold" style={styles.title}>{title}</Text>
       </Box>
     )}
     {onCancel && (

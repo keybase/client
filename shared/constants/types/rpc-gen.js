@@ -267,6 +267,10 @@ export const constantsStatusCode = {
   scephemeralkeywrongnumberofkeys: 2903,
   scephemeralkeymismatchedkey: 2904,
   scephemeralpairwisemacsmissinguids: 2905,
+  scephemeraldeviceafterek: 2906,
+  scephemeralmemberafterek: 2907,
+  scephemeraldevicestale: 2908,
+  scephemeraluserstale: 2909,
   scstellarerror: 3100,
   scstellarbadinput: 3101,
   scstellarwrongrevision: 3102,
@@ -342,9 +346,21 @@ export const gregorUIPushReason = {
   newData: 2,
 }
 
+export const homeAppLinkType = {
+  none: 0,
+  people: 1,
+  chat: 2,
+  files: 3,
+  wallet: 4,
+  git: 5,
+  devices: 6,
+  settings: 7,
+}
+
 export const homeHomeScreenItemType = {
   todo: 1,
   people: 2,
+  announcement: 3,
 }
 
 export const homeHomeScreenPeopleNotificationType = {
@@ -366,6 +382,7 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  annoncementPlaceholder: 10000,
 }
 
 export const identifyCommonIdentifyReasonType = {
@@ -886,7 +903,7 @@ export const loginLogoutRpcPromise = (params, waitingKey) => new Promise((resolv
 export const loginPaperKeyRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.login.paperKey', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const loginPaperKeySubmitRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.paperKeySubmit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const notifyCtlSetNotificationsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
+export const pgpPgpKeyGenDefaultRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

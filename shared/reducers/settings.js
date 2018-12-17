@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
+import * as Flow from '../util/flow'
 
 function reducer(state: Types.State = Constants.initialState, action: SettingsGen.Actions): Types.State {
   switch (action.type) {
@@ -113,11 +114,11 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         },
       }
     case SettingsGen.loadedSettings: {
-      const {emailState} = action.payload
       return {
         ...state,
         email: {
-          ...emailState,
+          ...state.email,
+          emails: action.payload.emails || [],
         },
       }
     }
@@ -248,10 +249,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.unfurlSettingsRefresh:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

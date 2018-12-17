@@ -20,16 +20,16 @@ export type SettingsProps = {|
   onSetDefault: () => void,
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
+  onMobileOnlyModeChange: (enabled: boolean) => void,
   refresh: () => void,
   saveCurrencyWaiting: boolean,
+  mobileOnlyMode: boolean,
 |}
 
 const HoverText = Styles.isMobile
   ? Kb.Text
-  : Styles.glamorous(Kb.Text)({
-      ':hover': {
-        backgroundColor: Styles.globalColors.yellow3,
-      },
+  : Styles.styled(Kb.Text)({
+      ':hover': {backgroundColor: Styles.globalColors.yellow3},
     })
 
 const AccountSettings = (props: SettingsProps) => {
@@ -128,6 +128,37 @@ const AccountSettings = (props: SettingsProps) => {
               <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
               <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
               <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+          <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />
+          <Kb.Box2
+            direction="vertical"
+            gap="tiny"
+            style={Styles.collapseStyles([styles.sidePaddings, {marginBottom: Styles.globalMargins.small}])}
+          >
+            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
+              <Kb.Box
+                style={{
+                  ...Styles.globalStyles.flexBoxRow,
+                  marginBottom: Styles.globalMargins.tiny,
+                  marginTop: Styles.globalMargins.tiny,
+                }}
+              >
+                <Kb.Checkbox
+                  checked={props.mobileOnlyMode}
+                  disabled={!Styles.isMobile}
+                  label="Mobile only"
+                  onCheck={props.onMobileOnlyModeChange}
+                />
+              </Kb.Box>
+              {!Styles.isMobile && (
+                <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
+              )}
+              {Styles.isMobile && (
+                <Kb.Text type="BodySmall">
+                  Prevents sending from this account, when on a desktop or laptop.
+                </Kb.Text>
+              )}
             </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && <Kb.Divider />}

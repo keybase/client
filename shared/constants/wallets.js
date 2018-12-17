@@ -4,6 +4,7 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
+import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
 import {isMobile} from './platform'
 import {invert} from 'lodash-es'
@@ -96,6 +97,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   lastSentXLM: false,
   linkExistingAccountError: '',
+  mobileOnlyMap: I.Map(),
   newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
@@ -119,7 +121,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     displayAmountXLM: b.displayAmountXLM,
     from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
-    readyToSend: b.readyToSend,
+    readyToSend: b.readyToReview, // DESKTOP-8556
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     sendingIntentionXLM: b.sendingIntentionXLM,
     toErrMsg: b.toErrMsg,
@@ -460,10 +462,7 @@ const paymentToYourInfoAndCounterparty = (
       }
 
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(p.delta)
       throw new Error(`Unexpected delta ${p.delta}`)
   }
 }

@@ -100,7 +100,7 @@ class ReactionsRow extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  button: {marginBottom: globalMargins.tiny},
+  button: {marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny},
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',

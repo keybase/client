@@ -124,7 +124,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 
 	// sanity check that we got the right generation
 	if deviceEK.Metadata.Generation != generation {
-		return newEKCorruptedErr(DeviceEKStr, generation, deviceEK.Metadata.Generation)
+		return newEKCorruptedErr(ctx, s.G(), DeviceEKStr, generation, deviceEK.Metadata.Generation)
 	}
 
 	key, err := s.key(ctx, generation)
@@ -200,7 +200,7 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	}
 	// sanity check that we got the right generation
 	if deviceEK.Metadata.Generation != generation {
-		return deviceEK, newEKCorruptedErr(DeviceEKStr, generation, deviceEK.Metadata.Generation)
+		return deviceEK, newEKCorruptedErr(ctx, s.G(), DeviceEKStr, generation, deviceEK.Metadata.Generation)
 	}
 	return deviceEK, nil
 }
@@ -234,7 +234,7 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (cache deviceEKCache, er
 	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#getCache", func() error { return err })()
 
 	if !s.indexed {
-		keys, err := s.storage.AllKeys(ctx)
+		keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 		if err != nil {
 			return nil, err
 		}
@@ -335,7 +335,7 @@ func (s *DeviceEKStorage) ListAllForUser(ctx context.Context) (all []string, err
 
 func (s *DeviceEKStorage) listAllForUser(ctx context.Context, username libkb.NormalizedUsername) (all []string, err error) {
 	// key in the sense of a key-value pair, not a crypto key!
-	keys, err := s.storage.AllKeys(ctx)
+	keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +497,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err error) {
 	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#deletedWrongEldestSeqno", func() error { return err })()
 
-	keys, err := s.storage.AllKeys(ctx)
+	keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 	if err != nil {
 		return err
 	}

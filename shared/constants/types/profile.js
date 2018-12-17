@@ -30,7 +30,7 @@ export type PgpInfoError = {|
 export type State = {
   errorCode: ?number,
   errorText: ?string,
-  pgpInfo: {...PgpInfo, ...PgpInfoError},
+  pgpInfo: {|...PgpInfo, ...PgpInfoError|},
   pgpPublicKey: ?string,
   platform: ?PlatformsExpandedType,
   proofFound: boolean,

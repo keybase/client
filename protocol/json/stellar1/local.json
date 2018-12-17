@@ -30,6 +30,10 @@
         {
           "type": "string",
           "name": "seqno"
+        },
+        {
+          "type": "CurrencyLocal",
+          "name": "currencyLocal"
         }
       ]
     },
@@ -479,7 +483,7 @@
       "fields": [
         {
           "type": "boolean",
-          "name": "readyToSend"
+          "name": "readyToReview"
         },
         {
           "type": "AccountID",
@@ -555,10 +559,6 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
-        },
-        {
-          "type": "boolean",
-          "name": "hideOnConfirm"
         }
       ]
     },
@@ -1268,6 +1268,19 @@
       ],
       "response": "BuildPaymentResLocal"
     },
+    "reviewPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "sendPaymentLocal": {
       "request": [
         {
@@ -1280,6 +1293,10 @@
         },
         {
           "name": "bypassBid",
+          "type": "boolean"
+        },
+        {
+          "name": "bypassReview",
           "type": "boolean"
         },
         {
@@ -1425,6 +1442,19 @@
       "response": "KeybaseRequestID"
     },
     "setAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "setAccountAllDevicesLocal": {
       "request": [
         {
           "name": "sessionID",

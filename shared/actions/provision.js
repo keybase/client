@@ -110,8 +110,8 @@ class ProvisioningManager {
       logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
       return
     }
-    return Saga.call(function*() {
-      const state: TypedState = yield Saga.select()
+    return Saga.callUntyped(function*() {
+      const state = yield* Saga.selectState()
       let type
       switch (state.provision.codePageOtherDeviceType) {
         case 'mobile':
@@ -394,7 +394,7 @@ const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager
  * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the stashedReponse and respond and wait
  */
 const startProvisioning = (state: TypedState) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     makeProvisioningManager(false)
     try {
       const usernameOrEmail = state.provision.usernameOrEmail
@@ -422,7 +422,7 @@ const startProvisioning = (state: TypedState) =>
   })
 
 const addNewDevice = (state: TypedState) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     // Make a new handler each time just in case
     makeProvisioningManager(true)
     try {

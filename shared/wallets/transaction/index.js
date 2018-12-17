@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
 import {
@@ -38,10 +39,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'otherAccount':
       return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       return null
   }
 }
@@ -78,10 +76,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'otherAccount':
       return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
   }
   return null
@@ -99,6 +94,7 @@ type DetailProps = {|
   isXLM: boolean,
   onShowProfile: string => void,
   selectableText: boolean,
+  status: string,
   issuerDescription: string,
 |}
 
@@ -153,7 +149,7 @@ const Detail = (props: DetailProps) => {
     />
   )
 
-  const textStyle = props.canceled ? styles.lineThrough : null
+  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -201,10 +197,7 @@ const Detail = (props: DetailProps) => {
         </Text>
       )
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -220,16 +213,13 @@ type AmountXLMProps = {|
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'senderOnly':
-      return globalColors.red
+      return globalColors.black_75
     case 'receiverOnly':
       return globalColors.green
     case 'senderAndReceiver':
       return globalColors.black_75
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
-  */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -243,10 +233,7 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
     case 'senderAndReceiver':
       return '0 XLM'
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
-  */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -286,6 +273,7 @@ export const TimestampPending = () => (
 )
 
 type TimestampLineProps = {|
+  detailView: ?boolean,
   error: string,
   status: Types.StatusSimplified,
   timestamp: ?Date,
@@ -293,9 +281,6 @@ type TimestampLineProps = {|
 |}
 
 const TimestampLine = (props: TimestampLineProps) => {
-  if (props.error) {
-    return <TimestampError error={props.error} status={props.status} />
-  }
   const timestamp = props.timestamp
   if (!timestamp) {
     return <TimestampPending />
@@ -311,12 +296,27 @@ const TimestampLine = (props: TimestampLineProps) => {
     case 'Claimable':
       status = 'Pending'
       break
+    case 'Error':
+      status = 'Failed'
+      break
   }
   return (
-    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
-      {human}
-      {status ? ` • ${status}` : null}
-    </Text>
+      <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+        {human}
+        {status ? ` • ` : null}
+        {!!status && (
+          <Text selectable={props.selectableText} type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}>
+            {status}
+          </Text>
+        )}
+        {status === 'Failed' && !props.detailView && (
+          <>
+          {' '}(<Text selectable={props.selectableText} type='BodySmallSecondaryLink'>
+            see more
+          </Text>)
+          </>
+        )}
+      </Text>
   )
 }
 
@@ -364,10 +364,7 @@ export const Transaction = (props: Props) => {
       showMemo = !!props.memo
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
@@ -384,6 +381,7 @@ export const Transaction = (props: Props) => {
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
+              detailView={props.detailView}
               error={props.status === 'error' ? props.statusDetail : ''}
               selectableText={props.selectableText}
               status={props.status}
@@ -401,6 +399,7 @@ export const Transaction = (props: Props) => {
               isXLM={!props.amountUser}
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
+              status={props.status}
               issuerDescription={props.issuerDescription}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
@@ -424,13 +423,15 @@ export const Transaction = (props: Props) => {
                 </Box2>
               )}
               <Box2 direction="horizontal" style={{flex: 1}} />
-              <AmountXLM
-                selectableText={props.selectableText}
-                canceled={props.status === 'canceled'}
-                pending={pending}
-                yourRole={props.yourRole}
-                amountXLM={props.amountXLM}
-              />
+              {props.status !== 'error' && (
+                <AmountXLM
+                  selectableText={props.selectableText}
+                  canceled={props.status === 'canceled'}
+                  pending={pending}
+                  yourRole={props.yourRole}
+                  amountXLM={props.amountXLM}
+                />
+              )}
             </Box2>
           </Box2>
         </Box2>

@@ -10,8 +10,9 @@ import Channel from '../channel-container'
 import Mention from '../mention-container'
 import Box from '../box'
 import Emoji from '../emoji'
-import {emojiIndexByName} from '../../markdown/parser'
+import {emojiIndexByName} from './emoji-gen'
 import type {Props as EmojiProps} from '../emoji'
+import ServiceDecoration from './service-decoration'
 
 const wrapStyle = Styles.platformStyles({
   isElectron: {
@@ -330,6 +331,16 @@ const reactComponentsForMarkdownType = {
       >
         {output(node.content, {...state, inParagraph: true})}
       </Text>
+    )
+  },
+  serviceDecoration: (node, output, state) => {
+    return (
+      <ServiceDecoration
+        json={node.content}
+        key={state.key}
+        allowFontScaling={state.allowFontScaling}
+        message={state.markdownMeta.message}
+      />
     )
   },
   strong: (node, output, state) => {

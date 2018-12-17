@@ -54,7 +54,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
 
   componentDidUpdate(prevProps: DisclaimerProps) {
-    if (this.props.acceptingDisclaimerDelay && !prevProps.acceptingDisclaimerDelay) {
+    if (this.props.acceptingDisclaimerDelay && !this.afterTimer) {
       // Start the after countdown
       this.afterTimer = addTicker(this.afterTick)
     }

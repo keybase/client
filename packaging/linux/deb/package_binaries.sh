@@ -53,6 +53,11 @@ build_one_architecture() {
   # folder. TODO: Something less wasteful of disk space?
   cp -r "$build_root"/binaries/"$debian_arch"/* "$dest/build"
 
+  # Copy changelog directly in, since this is a binary package.
+  doc_dir="$dest/build/usr/share/doc/keybase"
+  mkdir -p "$doc_dir"
+  gzip -cn "$here/changelog" > "$doc_dir/changelog.Debian.gz"
+
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.
   size="$(du --summarize --block-size=1024 "$dest" | awk '{print $1}')"

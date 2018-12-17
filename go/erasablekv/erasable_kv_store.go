@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -37,7 +38,8 @@ type boxedData struct {
 }
 
 // ***
-// If we change this, make sure to update the key derivation reason for all callers of ErasableKVStore!
+// If we change this, make sure to update the key derivation reason for all
+// callers of ErasableKVStore!
 // ***
 const cryptoVersion = 1
 const noiseSuffix = ".ns"
@@ -56,7 +58,7 @@ type ErasableKVStore interface {
 	Put(ctx context.Context, key string, val interface{}) error
 	Get(ctx context.Context, key string, val interface{}) error
 	Erase(ctx context.Context, key string) error
-	AllKeys(ctx context.Context) ([]string, error)
+	AllKeys(ctx context.Context, keySuffix string) ([]string, error)
 }
 
 // File based erasable kv store. Thread safe.
@@ -296,19 +298,29 @@ func (s *FileErasableKVStore) erase(ctx context.Context, key string) (err error)
 	return nil
 }
 
-func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err error) {
+func (s *FileErasableKVStore) AllKeys(ctx context.Context, keySuffix string) (keys []string, err error) {
 	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	if err := os.MkdirAll(s.storageDir, libkb.PermDir); err != nil {
-		return keys, err
+		return nil, err
 	}
 	files, err := ioutil.ReadDir(s.storageDir)
 	if err != nil {
-		return keys, err
+		return nil, err
+	}
+	tmpFileExp, err := regexp.Compile(fmt.Sprintf(`(%s|%s)[\d]+`, keySuffix, noiseSuffix))
+	if err != nil {
+		return nil, err
 	}
 	for _, file := range files {
 		filename := filepath.Base(file.Name())
+		if tmpFileExp.MatchString(filename) {
+			if err := libkb.ShredFile(s.filepath(filename)); err != nil {
+				s.G().Log.CDebugf(ctx, "FileErasableKVStore#AllKeys: unable to remove temp file: %v, %v", file.Name(), err)
+			}
+			continue
+		}
 		if strings.HasSuffix(filename, noiseSuffix) {
 			continue
 		}

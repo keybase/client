@@ -11,4 +11,13 @@ protocol notify {
 
   @notify("")
   void requestStatusNotification(KeybaseRequestID reqID);
+
+  @notify("")
+  void accountDetailsUpdate(AccountID accountID, WalletAccountLocal account);
+
+  @notify("")
+  void pendingPaymentsUpdate(AccountID accountID, array<PaymentOrErrorLocal> pending);
+
+  @notify("")
+  void recentPaymentsUpdate(AccountID accountID, PaymentsPageLocal firstPage);
 }

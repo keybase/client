@@ -3,7 +3,9 @@ package teams
 import (
 	"fmt"
 	"sort"
+	"strings"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -33,33 +35,59 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
+type ImplicitTeamOptions struct {
+	NoForceRepoll bool
+}
+
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-
-	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public)
+	team, teamName, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public, opts)
 	return team, teamName, impTeamName, err
 }
 
 // Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
 // Resolves social assertions.
-func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 	impName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
-	return lookupImplicitTeamAndConflicts(ctx, g, displayName, impName)
+	return lookupImplicitTeamAndConflicts(ctx, g, displayName, impName, opts)
 }
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
 	public bool) (res keybase1.TeamID, err error) {
-	imp, err := loadImpteamFromServer(ctx, g, displayName, public)
+	imp, err := loadImpteam(ctx, g, displayName, public)
 	if err != nil {
 		return res, err
 	}
 	return imp.TeamID, nil
+}
+
+func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
+	cacheKey := impTeamCacheKey(displayName, public)
+	cacher := g.GetImplicitTeamCacher()
+	if cacher != nil {
+		if cv, ok := cacher.Get(cacheKey); ok {
+			if imp, ok := cv.(implicitTeam); ok {
+				g.Log.CDebugf(ctx, "using cached iteam")
+				return imp, nil
+			}
+			g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
+		}
+	}
+	imp, err = loadImpteamFromServer(ctx, g, displayName, public)
+	if err != nil {
+		return imp, err
+	}
+	// If the team has any assertions just skip caching
+	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
+		cacher.Put(cacheKey, imp)
+	}
+	return imp, nil
 }
 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
@@ -89,10 +117,10 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 // Does not resolve social assertions.
 // preResolveDisplayName is used for logging and errors
 func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
-	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName) (
+	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName, opts ImplicitTeamOptions) (
 	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 
-	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v)", preResolveDisplayName), func() error { return err })()
+	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,opts=%+v)", preResolveDisplayName, opts), func() error { return err })()
 
 	impTeamName = impTeamNameInput
 
@@ -104,7 +132,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
-	imp, err := loadImpteamFromServer(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
+	imp, err := loadImpteam(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
 	}
@@ -120,7 +148,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 		if err != nil {
 			// warn, don't fail
-			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
+			g.Log.CDebugf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
 			err = nil
 			continue
 		}
@@ -152,7 +180,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	team, err = Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      impTeamName.IsPublic,
-		ForceRepoll: true,
+		ForceRepoll: !opts.NoForceRepoll,
 	})
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
@@ -201,7 +229,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 		return res, teamName, impTeamName, err
 	}
 
-	res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName, lookupName)
+	res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName, lookupName, ImplicitTeamOptions{})
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			if lookupName.ConflictInfo != nil {
@@ -217,7 +245,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 				if isDupImplicitTeamError(ctx, err) {
 					g.Log.CDebugf(ctx, "LookupOrCreateImplicitTeam: duplicate team, trying to lookup again: err: %s", err)
 					res, teamName, impTeamName, _, err = lookupImplicitTeamAndConflicts(ctx, g, displayName,
-						lookupName)
+						lookupName, ImplicitTeamOptions{})
 				}
 				return res, teamName, impTeamName, err
 			}
@@ -270,7 +298,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 	}
 
 	var suffix string
-	if impTeamName.ConflictInfo != nil && impTeamName.ConflictInfo.IsConflict() {
+	if impTeamName.ConflictInfo.IsConflict() {
 		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 
@@ -294,4 +322,43 @@ func sortStringsFront(ss []string, front string) {
 		}
 		return a < b
 	})
+}
+
+func impTeamCacheKey(displayName string, public bool) string {
+	return fmt.Sprintf("%s-%v", displayName, public)
+}
+
+type implicitTeamCache struct {
+	cache *lru.Cache
+}
+
+func newImplicitTeamCache(g *libkb.GlobalContext) *implicitTeamCache {
+	cache, err := lru.New(libkb.ImplicitTeamCacheSize)
+	if err != nil {
+		panic(err)
+	}
+	return &implicitTeamCache{
+		cache: cache,
+	}
+}
+
+func (i *implicitTeamCache) Get(key interface{}) (interface{}, bool) {
+	return i.cache.Get(key)
+}
+
+func (i *implicitTeamCache) Put(key, value interface{}) bool {
+	return i.cache.Add(key, value)
+}
+
+func (i *implicitTeamCache) OnLogout(m libkb.MetaContext) error {
+	i.cache.Purge()
+	return nil
+}
+
+var _ libkb.MemLRUer = &implicitTeamCache{}
+
+func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
+	cache := newImplicitTeamCache(g)
+	g.SetImplicitTeamCacher(cache)
+	g.AddLogoutHook(cache)
 }

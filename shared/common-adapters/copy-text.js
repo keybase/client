@@ -17,7 +17,7 @@ type TState = {
   showingToast: boolean,
 }
 
-class _ToastContainer extends React.Component<TProps, TState> {
+export class _ToastContainer extends React.Component<TProps, TState> {
   state = {showingToast: false}
   copy = () => {
     this.setState({showingToast: true}, () =>
@@ -36,7 +36,7 @@ class _ToastContainer extends React.Component<TProps, TState> {
     )
   }
 }
-const ToastContainer = HOCTimers(_ToastContainer)
+export const ToastContainer = HOCTimers(_ToastContainer)
 
 type OwnProps = {|
   buttonType?: $PropertyType<ButtonProps, 'type'>,

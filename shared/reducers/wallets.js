@@ -5,6 +5,7 @@ import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -15,6 +16,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.accountsReceived:
       const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
       return state.merge({accountMap: accountMap})
+    case WalletsGen.accountUpdateReceived:
+      // accept the updated account if we've loaded it already
+      // this is because we get the sort order from the full accounts load,
+      // and can't figure it out from these notifications alone.
+      if (state.accountMap.get(action.payload.account.accountID)) {
+        return state.update('accountMap', am =>
+          am.update(action.payload.account.accountID, acc => acc.merge(action.payload.account))
+        )
+      }
+      return state
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.buildPayment:
@@ -51,6 +62,22 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
+        .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
+    case WalletsGen.pendingPaymentsReceived:
+      const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
+      return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
+        paymentsMap.filter(p => p.section !== 'pending').merge(newPending)
+      )
+    case WalletsGen.recentPaymentsReceived:
+      const newPayments = I.Map(action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)]))
+      return state
+        .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
+          paymentsMap.merge(newPayments)
+        )
+        .updateIn(
+          ['paymentCursorMap', action.payload.accountID],
+          cursor => cursor || action.payload.paymentCursor
+        )
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
@@ -262,6 +289,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         acceptingDisclaimerDelay: true,
       })
+    case WalletsGen.loadedMobileOnlyMode:
+      return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -293,12 +322,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.abandonPayment:
     case WalletsGen.loadSendAssetChoices:
     case WalletsGen.openSendRequestForm:
+    case WalletsGen.loadMobileOnlyMode:
+    case WalletsGen.changeMobileOnlyMode:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

@@ -69,12 +69,13 @@ function* updateBillingSaga({payload}: Types.UpdateBilling): Saga.SagaGenerator<
   let planId = payload.planId
   if (planId == null) {
     const currentPlanIdSelector = ({planBilling: {plan}}: TypedState) => plan && plan.planId
-    planId = (yield Saga.select(currentPlanIdSelector): any)
+    const state = yield* Saga.selectState()
+    planId = currentPlanIdSelector(state)
   }
 
   // TODO (MM) some loading indicator: true
   try {
-    yield Saga.call(RPCTypes.apiserverPostRpcPromise, {
+    yield Saga.callUntyped(RPCTypes.apiserverPostRpcPromise, {
       args: apiArgsFormatter(updateBillingArgsToApiArgs({...payload, planId})),
       endpoint: 'account/billing_update',
     })
@@ -96,7 +97,7 @@ function* updateBillingSaga({payload}: Types.UpdateBilling): Saga.SagaGenerator<
 
 function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const results: any = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+    const results: any = yield* Saga.callPromise(RPCTypes.apiserverGetWithSessionRpcPromise, {
       endpoint: 'account/billing_overview',
     })
 
@@ -136,10 +137,10 @@ function* fetchBillingOverviewSaga(): Saga.SagaGenerator<any, any> {
 
 function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
   try {
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const username = state.config.username
 
-    const results: any = yield Saga.call(RPCTypes.apiserverGetRpcPromise, {
+    const results: any = yield* Saga.callPromise(RPCTypes.apiserverGetRpcPromise, {
       args: apiArgsFormatter({fields: 'billing_and_quotas', username}),
       endpoint: 'user/lookup',
     })
@@ -160,7 +161,8 @@ function* fetchBillingAndQuotaSaga(): Saga.SagaGenerator<any, any> {
 function* bootstrapDataSaga(): Saga.SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
 
-  const planBilling: Types.State = (yield Saga.select(billingStateSelector): any)
+  const state = yield* Saga.selectState()
+  const planBilling: Types.State = billingStateSelector(state)
   if (planBilling.availablePlans == null || planBilling.usage == null || planBilling.plan == null) {
     yield Saga.put(fetchBillingOverview())
   }

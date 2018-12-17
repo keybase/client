@@ -19,7 +19,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   mentionsAt: ownProps.message.mentionsAt,
   mentionsChannel: ownProps.message.mentionsChannel,
   mentionsChannelName: ownProps.message.mentionsChannelName,
-  text: ownProps.message.text.stringValue(),
+  message: ownProps.message,
+  text: ownProps.message.decoratedText
+    ? ownProps.message.decoratedText.stringValue()
+    : ownProps.message.text.stringValue(),
   type: ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending',
 })
 

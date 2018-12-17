@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {
   Animation,
   Box,
@@ -31,7 +31,6 @@ import {
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
-import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 
@@ -41,7 +40,7 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
+class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
   _whichMenu: menuType
 
@@ -265,7 +264,7 @@ const Action = ({
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled && isExploding && !isEditing && (
+      {isExploding && !isEditing && (
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
@@ -279,17 +278,15 @@ const Action = ({
     </Box2>
   ) : (
     <Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      {flags.explodingMessagesEnabled && (
-        <>
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-          {smallGap}
-        </>
-      )}
+      <>
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+        {smallGap}
+      </>
       {showWalletsIcon && (
         <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
@@ -315,7 +312,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
       <Icon
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-bomb"
+        type="iconfont-timer"
         fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />

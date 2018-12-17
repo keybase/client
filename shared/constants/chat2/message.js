@@ -3,8 +3,10 @@
 import * as DeviceTypes from '../types/devices'
 import * as I from 'immutable'
 import * as MessageTypes from '../types/chat2/message'
+import * as Flow from '../../util/flow'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCStellarTypes from '../types/rpc-stellar-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
@@ -101,13 +103,11 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.tlfname:
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
+    case RPCChatTypes.commonMessageType.unfurl:
       return []
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove: (t: empty) => any
-      // $FlowIssue can't figure out the preceding list is exhaustive
-      ifFlowErrorsHereItsCauseYouDidntHandleAllMessageTypesAbove(t);
-      */
+      // $FlowIssue need these to be opaque types
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(t)
       return []
   }
 }
@@ -170,6 +170,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
   ...makeMessageExplodable,
+  decoratedText: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -209,6 +210,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   amount: '',
   amountDescription: '',
   asset: 'native',
+  canceled: false,
   currencyCode: '',
   type: 'requestInfo',
 })
@@ -226,11 +228,14 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
+  fromUsername: '',
   note: new HiddenString(''),
   paymentID: WalletTypes.noPaymentID,
   showCancel: false,
   status: 'none',
   statusDescription: '',
+  statusDetail: '',
+  toUsername: '',
   type: 'paymentInfo',
   worth: '',
 })
@@ -350,26 +355,31 @@ export const uiRequestInfoToChatRequestInfo = (
     amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
+    canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
   })
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  p: ?RPCChatTypes.UIPaymentInfo
+  ps: ?Array<RPCChatTypes.UIPaymentInfo>
 ): ?MessageTypes.ChatPaymentInfo => {
-  if (!p) {
+  if (!ps || ps.length !== 1) {
     return null
   }
+  const p = ps[0]
   const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
+    fromUsername: p.fromUsername,
     note: new HiddenString(p.note),
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
     showCancel: p.showCancel,
     status: serviceStatus,
     statusDescription: p.statusDescription,
+    statusDetail: p.statusDetail,
+    toUsername: p.toUsername,
     worth: p.worth,
   })
 }
@@ -471,11 +481,8 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
           inviteType = 'text'
           break
         default:
-          /*::
-          // $FlowIssue flow gets confused about this switch statement
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(iType);
-      */
+          // $FlowIssue need these to be opaque types
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(iType)
           inviteType = 'unknown'
           break
       }
@@ -485,6 +492,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         inviteType,
         invitee,
         inviter,
+        reactions,
         team,
       })
     }
@@ -492,12 +500,14 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
       const {team = ''} = body.complexteam || {}
       return makeMessageSystemSimpleToComplex({
         ...minimum,
+        reactions,
         team,
       })
     }
     case RPCChatTypes.localMessageSystemType.createteam: {
       const {team = '???', creator = '????'} = body.createteam || {}
       return makeMessageSystemText({
+        reactions,
         text: new HiddenString(`${creator} created a new team ${team}.`),
         ...minimum,
       })
@@ -509,6 +519,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         ...minimum,
         pushType,
         pusher,
+        reactions,
         refs: refs || [],
         repo,
         repoID,
@@ -518,15 +529,13 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
     case RPCChatTypes.localMessageSystemType.changeavatar: {
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
+        reactions,
         text: new HiddenString(`${user} changed team avatar`),
         ...minimum,
       })
     }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(body.systemType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null
   }
 }
@@ -585,13 +594,15 @@ const validUIMessagetoMessage = (
     ordinal: Types.numberToOrdinal(m.messageID),
     timestamp: m.ctime,
   }
+
+  const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
-    reactions: reactionMapToReactions(m.reactions),
+    reactions,
   }
   const explodable = {
     exploded: m.isEphemeralExpired,
@@ -611,6 +622,7 @@ const validUIMessagetoMessage = (
       return makeMessageText({
         ...common,
         ...explodable,
+        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         hasBeenEdited: m.superseded,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
@@ -685,9 +697,9 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.commonMessageType.join:
-      return makeMessageSystemJoined(minimum)
+      return makeMessageSystemJoined({...minimum, reactions})
     case RPCChatTypes.commonMessageType.leave:
-      return makeMessageSystemLeft(minimum)
+      return makeMessageSystemLeft({...minimum, reactions})
     case RPCChatTypes.commonMessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions)
@@ -697,17 +709,22 @@ const validUIMessagetoMessage = (
         ? makeMessageSetDescription({
             ...minimum,
             newDescription: new HiddenString(m.messageBody.headline.headline),
+            reactions,
           })
         : null
     case RPCChatTypes.commonMessageType.metadata:
       return m.messageBody.metadata
-        ? makeMessageSetChannelname({...minimum, newChannelname: m.messageBody.metadata.conversationTitle})
+        ? makeMessageSetChannelname({
+            ...minimum,
+            newChannelname: m.messageBody.metadata.conversationTitle,
+            reactions,
+          })
         : null
     case RPCChatTypes.commonMessageType.sendpayment:
       return m.messageBody.sendpayment
         ? makeMessageSendPayment({
             ...common,
-            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfo),
+            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos),
           })
         : null
     case RPCChatTypes.commonMessageType.requestpayment:
@@ -730,11 +747,8 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      /*::
-      // $FlowIssue flow gets confused by the fallthroughs
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(m.messageBody.messageType);
-      */
+      // $FlowIssue need these to be opaque types
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(m.messageBody.messageType)
       return null
   }
 }
@@ -844,7 +858,7 @@ const errorUIMessagetoMessage = (
     errorReason: o.errMsg,
     exploded: o.isEphemeralExpired,
     exploding: o.isEphemeral,
-    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
+    explodingUnreadable: !!o.errType && o.isEphemeral,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
@@ -878,10 +892,7 @@ export const uiMessageToMessage = (
       }
       return null
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(uiMessage.state);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(uiMessage.state)
       return null
   }
 }

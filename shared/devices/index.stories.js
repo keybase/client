@@ -100,7 +100,11 @@ const load = () => {
     ))
     .add('Newly added device', () => <Devices active={activeDevices(true)} revoked={revokedDevices(false)} />)
     .add('Newly revoked device', () => (
-      <Devices active={activeDevices(false)} revoked={revokedDevices(true)} />
+      <Devices
+        _stateOverride={{revokedExpanded: true}}
+        active={activeDevices(false)}
+        revoked={revokedDevices(true)}
+      />
     ))
 }
 

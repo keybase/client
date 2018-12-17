@@ -38,40 +38,28 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 
 func assertTracking(tc libkb.TestContext, username string) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
+
 	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
+
 	m := NewMetaContextForTest(tc)
 	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if s == nil {
-		tc.T.Fatal("expected a tracking statement; but didn't see one")
-	}
+	require.NoError(tc.T, err)
+	require.NotNil(tc.T, s)
 }
 
 func assertNotTracking(tc libkb.TestContext, username string) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
+
 	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
+
 	m := NewMetaContextForTest(tc)
 	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if s != nil {
-		tc.T.Errorf("a tracking statement exists for %s -> %s", me.GetName(), them.GetName())
-	}
+	require.NoError(tc.T, err)
+	require.Nil(tc.T, s)
 }
 
 func trackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
@@ -82,29 +70,21 @@ func trackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion)
 func trackUser(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername, sigVersion libkb.SigVersion) {
 	sv := keybase1.SigVersion(sigVersion)
 	_, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 }
 
 func trackUserGetUI(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername, sigVersion libkb.SigVersion) *FakeIdentifyUI {
 	sv := keybase1.SigVersion(sigVersion)
 	ui, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return ui
 }
 
 func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
 	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, secretUI, false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	upk, err := res.ExportToUPKV2AllIncarnations()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	checkAliceProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_alice")
 	return
@@ -121,13 +101,9 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	// confirm, which wasn't present in the regular "t_bob" case.)
 
 	idUI, res, err := runTrackWithOptions(tc, fu, "kbtester1@twitter", options, secretUI, false)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	upk, err := res.ExportToUPKV2AllIncarnations()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	checkBobProofs(tc.T, idUI, &upk.Current)
 	assertTracking(tc, "t_bob")
 	return
@@ -173,9 +149,7 @@ func TestTrackNoPubKey(t *testing.T) {
 
 	tracker := CreateAndSignupFakeUser(tc, "track")
 	_, _, err := runTrack(tc, tracker, fu.Username, sigVersion)
-	if err != nil {
-		t.Fatalf("error tracking user w/ no pgp key: %s", err)
-	}
+	require.NoError(t, err)
 }
 
 func TestTrackMultiple(t *testing.T) {
@@ -218,9 +192,7 @@ func TestTrackRetrack(t *testing.T) {
 
 	var err error
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	seqnoBefore := fu.User.GetSigChainLastKnownSeqno()
 
 	sv := keybase1.SigVersion(sigVersion)
@@ -236,35 +208,23 @@ func TestTrackRetrack(t *testing.T) {
 	eng := NewTrackEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	seqnoAfter := fu.User.GetSigChainLastKnownSeqno()
 
-	if seqnoAfter == seqnoBefore {
-		t.Errorf("seqno after track: %d, expected > %d", seqnoAfter, seqnoBefore)
-	}
+	require.NotEqual(t, seqnoAfter, seqnoBefore)
 
 	eng = NewTrackEngine(tc.G, arg)
 	err = RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	seqnoRetrack := fu.User.GetSigChainLastKnownSeqno()
 
-	if seqnoRetrack > seqnoAfter {
-		t.Errorf("seqno after retrack: %d, expected %d", seqnoRetrack, seqnoAfter)
-	}
+	require.False(t, seqnoRetrack > seqnoAfter)
 }
 
 func TestTrackLocal(t *testing.T) {
@@ -273,29 +233,18 @@ func TestTrackLocal(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	_, them, err := runTrackWithOptions(tc, fu, "t_alice", keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI(), false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if them == nil {
-		t.Fatal("runTrackWithOptions returned nil 'them' user")
-	}
+	require.NotNil(t, them)
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	m := NewMetaContextForTest(tc)
 	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s == nil {
-		t.Fatal("no tracking statement")
-	}
-	if s.IsRemote() {
-		t.Errorf("tracking statement is remote, expected local")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, s)
+	require.False(t, s.IsRemote())
 }
 
 // Make sure the track engine uses the secret store.
@@ -340,9 +289,8 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 		eng := NewResolveThenIdentify2(tc.G, iarg)
 		uis := libkb.UIs{IdentifyUI: fui}
 		m := NewMetaContextForTest(tc).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Fatal(err)
-		}
+		err := RunEngine2(m, eng)
+		require.NoError(t, err)
 	}
 
 	sv := keybase1.SigVersion(sigVersion)
@@ -365,20 +313,17 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 	}
 
 	trackSucceed := func(tc libkb.TestContext, fui *FakeIdentifyUI) {
-		if err := track(tc, fui); err != nil {
-			t.Fatal(err)
-		}
+		err := track(tc, fui)
+		require.NoError(tc.T, err)
 		assertTracking(dev1, trackee)
 	}
 
 	trackFail := func(tc libkb.TestContext, fui *FakeIdentifyUI, firstTrack bool) {
-		if err := track(tc, fui); err == nil {
-			t.Fatal("wanted an error!")
-		} else if tse, ok := err.(libkb.TrackStaleError); !ok {
-			t.Fatal("wanted a track stale error")
-		} else if tse.FirstTrack != firstTrack {
-			t.Fatalf("first track disagreement: %v != %v", tse.FirstTrack, firstTrack)
-		}
+		err := track(tc, fui)
+		require.Error(tc.T, err)
+		tse, ok := err.(libkb.TrackStaleError)
+		require.True(tc.T, ok)
+		require.Equal(tc.T, tse.FirstTrack, firstTrack)
 	}
 
 	for i := 0; i < 2; i++ {
@@ -414,22 +359,31 @@ func TestTrackNoKeys(t *testing.T) {
 	// provision nk on a new device
 	Logout(tc)
 	nku := &FakeUser{Username: nk, Passphrase: pp}
-	if err := nku.Login(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	err := nku.Login(tc.G)
+	require.NoError(t, err)
 	Logout(tc)
 
 	// track nk again
-	if err := fu.Login(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	err = fu.Login(tc.G)
+	require.NoError(t, err)
 	ui := trackUserGetUI(tc, fu, libkb.NewNormalizedUsername(nk), sigVersion)
 
 	// ensure track diff for new eldest key
-	if len(ui.DisplayKeyDiffs) != 1 {
-		t.Fatal("no key diffs displayed")
-	}
-	if ui.DisplayKeyDiffs[0].Type != keybase1.TrackDiffType_NEW_ELDEST {
-		t.Errorf("track diff type: %v, expected NEW_ELDEST (%v)", ui.DisplayKeyDiffs[0].Type, keybase1.TrackDiffType_NEW_ELDEST)
-	}
+	require.Equal(t, 1, len(ui.DisplayKeyDiffs))
+	require.Equal(t, ui.DisplayKeyDiffs[0].Type, keybase1.TrackDiffType_NEW_ELDEST)
+}
+
+func TestTrackSelf(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
+	sv := keybase1.SigVersion(sigVersion)
+	fu := CreateAndSignupFakeUser(tc, "track")
+	_, _, err := runTrackWithOptions(tc, fu, fu.NormalizedUsername().String(), keybase1.TrackOptions{
+		BypassConfirm: true,
+		SigVersion:    &sv,
+	}, fu.NewSecretUI(), false)
+	require.Error(t, err)
+	require.Equal(t, "You can't follow yourself.", err.Error())
 }

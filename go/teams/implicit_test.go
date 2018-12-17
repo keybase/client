@@ -44,7 +44,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	lookupAndCreate := func(displayName string, public bool) {
 		t.Logf("displayName:%v public:%v", displayName, public)
-		_, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		_, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public, ImplicitTeamOptions{})
 		require.Error(t, err)
 		require.IsType(t, TeamDoesNotExistError{}, err)
 
@@ -68,7 +68,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
 		require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")
 
-		lookupTeam, _, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		lookupTeam, _, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public, ImplicitTeamOptions{})
 		require.NoError(t, err)
 		require.Equal(t, createdTeam.ID, lookupTeam.ID)
 
@@ -123,7 +123,7 @@ func TestImplicitPukless(t *testing.T) {
 	team, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	team2, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	team2, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/, ImplicitTeamOptions{})
 	require.NoError(t, err)
 	require.Equal(t, team.ID, team2.ID)
 

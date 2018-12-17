@@ -31,7 +31,11 @@ const getPassphraseHandler = passphrase => (params, response) => {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
       cancelOnCallback(params, response)
-      return Saga.put(LoginGen.createLoginError({error: new HiddenString(params.pinentry.retryLabel)}))
+      let retryLabel = params.pinentry.retryLabel
+      if (retryLabel === 'Bad passphrase: Invalid passphrase. Server rejected login attempt..') {
+        retryLabel = 'Incorrect password'
+      }
+      return Saga.put(LoginGen.createLoginError({error: new HiddenString(retryLabel)}))
     } else {
       response.result({
         passphrase,
@@ -45,7 +49,7 @@ const getPassphraseHandler = passphrase => (params, response) => {
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
 const login = (_: any, action: LoginGen.LoginPayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     try {
       yield RPCTypes.loginLoginRpcSaga({
         customResponseIncomingCallMap: {
@@ -81,8 +85,8 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
     }
   })
 
-const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
-const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
+const launchForgotPasswordWebPage = () => Saga.callUntyped(openURL, 'https://keybase.io/#password-reset')
+const launchAccountResetWebPage = () => Saga.callUntyped(openURL, 'https://keybase.io/#account-reset')
 
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in

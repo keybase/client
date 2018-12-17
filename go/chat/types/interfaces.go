@@ -51,7 +51,7 @@ type NameInfoSource interface {
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
 	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 }
@@ -228,14 +228,18 @@ type ConvLoader interface {
 	Queue(ctx context.Context, job ConvLoaderJob) error
 }
 
+type OobmHandler interface {
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+}
+
 type PushHandler interface {
 	TlfFinalize(context.Context, gregor.OutOfBandMessage) error
 	TlfResolve(context.Context, gregor.OutOfBandMessage) error
 	Activity(context.Context, gregor.OutOfBandMessage) error
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
-	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) error
+	OobmHandler
 }
 
 type AppState interface {
@@ -359,7 +363,12 @@ type StellarLoader interface {
 }
 
 type StellarSender interface {
-	ParseAndSendPayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body string) ([]chat1.TextPayment, error)
+	ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		body string) []ParsedStellarPayment
+	DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		payments []ParsedStellarPayment) (chat1.UIChatPaymentSummary, []ParsedStellarPayment, error)
+	DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string
+	SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 
 type ConversationBackedStorage interface {
@@ -376,6 +385,7 @@ type WhitelistExemption interface {
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed)
+	Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int
 	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error)
 	Retry(ctx context.Context, outboxID chat1.OutboxID)
 	Complete(ctx context.Context, outboxID chat1.OutboxID)

@@ -205,7 +205,10 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 		ID: team.ID,
 	})
 	require.NoError(t, err)
-	require.Zero(t, len(team.KBFSCryptKeys(context.TODO(), keybase1.TeamApplication_CHAT)))
+
+	// See TODO below, CORE-9677. This test previously relied on buggy behavior, which now is fixed.
+	//require.Zero(t, len(team.KBFSCryptKeys(context.TODO(), keybase1.TeamApplication_CHAT)))
+
 	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
 		ID: team.ID,
 		Refreshers: keybase1.TeamRefreshers{
@@ -245,9 +248,13 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 	require.NoError(t, err)
 	keys, err := team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(keys))
+
+	// TODO -- See CORE-9677 - fix this test to switch users to test the refresher, since if Alice does the update
+	// herself, her load is autorefreshed after bugfixes in CORE-9663.
+	require.Equal(t, 3, len(keys))
 	require.Equal(t, 1, keys[0].Generation())
-	key3 := keys[0].Key
+	key3 := keys[2].Key // See above TODO, this is also wonky
+
 	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
 		ID: team.ID,
 		Refreshers: keybase1.TeamRefreshers{
@@ -256,6 +263,7 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 			},
 		},
 	})
+
 	require.NoError(t, err)
 	keys, err = team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
 	require.NoError(t, err)

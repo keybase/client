@@ -405,33 +405,25 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 }
 
-const HoverBox = Styles.glamorous(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)({
   '&.filled': {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.lightGrey2,
     borderStyle: 'solid',
     cursor: '-webkit-grab',
   },
-  '&.filled:active': {
-    cursor: '-webkit-grabbing',
-  },
+  '&.filled:active': {cursor: '-webkit-grabbing'},
   '&.filled:hover': {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.lightGrey2,
   },
-  '&:hover': {
-    borderColor: Styles.globalColors.black_40,
-  },
-  '&:hover .icon': {
-    color: Styles.globalColors.black_40,
-  },
+  '&:hover': {borderColor: Styles.globalColors.black_40},
+  '&:hover .icon': {color: Styles.globalColors.black_40},
   '.dropping &': {
     backgroundColor: Styles.globalColors.blue_60,
     borderColor: Styles.globalColors.blue_60,
   },
-  '.dropping & .icon': {
-    color: Styles.globalColors.blue_60,
-  },
+  '.dropping & .icon': {color: Styles.globalColors.blue_60},
   backgroundColor: Styles.globalColors.lightGrey2,
   borderColor: Styles.globalColors.grey,
   borderStyle: 'dotted',
@@ -453,9 +445,7 @@ const styles = Styles.styleSheetCreate({
     minWidth: 460,
     paddingBottom: Styles.globalMargins.xlarge,
   },
-  cover: {
-    zIndex: EDIT_AVATAR_ZINDEX,
-  },
+  cover: {zIndex: EDIT_AVATAR_ZINDEX},
   createdBanner: {
     backgroundColor: Styles.globalColors.green,
     borderTopLeftRadius: 4,
@@ -466,9 +456,7 @@ const styles = Styles.styleSheetCreate({
     textAlign: 'center',
     width: '100%',
   },
-  hidden: {
-    display: 'none',
-  },
+  hidden: {display: 'none'},
   icon: {
     left: '50%',
     marginLeft: -24,

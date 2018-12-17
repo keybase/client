@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,19 +82,25 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 
 func TestScraper(t *testing.T) {
 	scraper := NewScraper(logger.NewTestLogger(t))
+
+	clock := clockwork.NewFakeClock()
+	scraper.cache.setClock(clock)
+
 	srv := createTestCaseHTTPSrv(t)
 	addr := srv.Start()
 	defer srv.Stop()
 	forceGiphy := new(chat1.UnfurlType)
 	*forceGiphy = chat1.UnfurlType_GIPHY
 	testCase := func(name string, expected chat1.UnfurlRaw, forceTyp *chat1.UnfurlType) {
-		res, err := scraper.Scrape(context.TODO(), "http://"+addr+"/?name="+name, forceTyp)
+		uri := fmt.Sprintf("http://%s/?name=%s", addr, name)
+		res, err := scraper.Scrape(context.TODO(), uri, forceTyp)
 		require.NoError(t, err)
 		etyp, err := expected.UnfurlType()
 		require.NoError(t, err)
 		rtyp, err := res.UnfurlType()
 		require.NoError(t, err)
 		require.Equal(t, etyp, rtyp)
+
 		t.Logf("expected:\n%v\n\nactual:\n%v", expected, res)
 		switch rtyp {
 		case chat1.UnfurlType_GENERIC:
@@ -119,6 +126,13 @@ func TestScraper(t *testing.T) {
 			if e.FaviconUrl != nil {
 				require.Equal(t, *e.FaviconUrl, *r.FaviconUrl)
 			}
+
+			require.True(t, (e.Video == nil && r.Video == nil) || (e.Video != nil && r.Video != nil))
+			if e.Video != nil {
+				require.Equal(t, e.Video.Url, r.Video.Url)
+				require.Equal(t, e.Video.Height, r.Video.Height)
+				require.Equal(t, e.Video.Width, r.Video.Width)
+			}
 		case chat1.UnfurlType_GIPHY:
 			e := expected.Giphy()
 			r := res.Giphy()
@@ -134,7 +148,17 @@ func TestScraper(t *testing.T) {
 		default:
 			require.Fail(t, "unknown unfurl typ")
 		}
+
+		// test caching
+		cachedRes, valid := scraper.cache.get(uri)
+		require.True(t, valid)
+		require.Equal(t, res, cachedRes.data.(chat1.UnfurlRaw))
+
+		clock.Advance(defaultCacheLifetime * 2)
+		cachedRes, valid = scraper.cache.get(uri)
+		require.False(t, valid)
 	}
+
 	testCase("cnn0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Kanye West seeks separation from politics",
 		Url:         "https://www.cnn.com/2018/10/30/entertainment/kanye-west-politics/index.html",
@@ -222,10 +246,23 @@ func TestScraper(t *testing.T) {
 	testCase("giphy0", chat1.NewUnfurlRawWithGiphy(chat1.UnfurlGiphyRaw{
 		ImageUrl:   "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif",
 		FaviconUrl: strPtr("https://giphy.com/static/img/icons/apple-touch-icon-180px.png"),
-		Video: &chat1.UnfurlGiphyVideo{
+		Video: &chat1.UnfurlVideo{
 			Url:    "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy.mp4",
 			Height: 480,
 			Width:  480,
 		},
 	}), forceGiphy)
+	testCase("imgur0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "Amazing Just Cause 4 Easter egg",
+		Url:         "https://i.imgur.com/lXDyzHY.gifv",
+		SiteName:    "Imgur",
+		Description: strPtr("2433301 views and 2489 votes on Imgur"),
+		ImageUrl:    strPtr("https://i.imgur.com/lXDyzHY.jpg?play"),
+		FaviconUrl:  strPtr(fmt.Sprintf("http://%s/favicon.ico", addr)),
+		Video: &chat1.UnfurlVideo{
+			Url:    "https://i.imgur.com/lXDyzHY.mp4",
+			Height: 408,
+			Width:  728,
+		},
+	}), nil)
 }

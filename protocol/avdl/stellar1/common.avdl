@@ -55,6 +55,7 @@ protocol common {
   }
 
   record PaymentResult {
+    AccountID senderAccountID;
     KeybaseTransactionID keybaseID;
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx

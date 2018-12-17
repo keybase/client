@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../../styles/css'
-import type {Position} from '../relative-popup-hoc'
+import type {Position} from '../relative-popup-hoc.types'
 
 export type Props = {
   children?: React.Node,
@@ -15,6 +15,7 @@ export type Props = {
   // mobile you can control this by setting a margin in `containerStyle`.
   propagateOutsideClicks?: boolean,
   containerStyle?: StylesCrossPlatform,
+  matchDimension?: boolean,
   position?: Position,
   positionFallbacks?: Position[],
 }

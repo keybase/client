@@ -1,6 +1,5 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
@@ -77,7 +76,7 @@ class BottomLine extends PureComponent<Props> {
               fontSize={isMobile ? 40 : 28}
               style={platformStyles({
                 common: {
-                  color: this.props.isSelected ? globalColors.white : globalColors.black_20,
+                  color: this.props.isSelected ? globalColors.white : globalColors.black_40,
                 },
                 isMobile: {
                   marginTop: -8,
@@ -90,8 +89,8 @@ class BottomLine extends PureComponent<Props> {
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = (
             <Icon
-              color={globalColors.black_75}
-              type="iconfont-bomb"
+              color={this.props.isSelected ? globalColors.white : globalColors.black_40}
+              type="iconfont-timer"
               fontSize={isMobile ? 16 : 12}
               style={{alignSelf: 'flex-start'}}
             />
@@ -119,7 +118,6 @@ class BottomLine extends PureComponent<Props> {
     } else {
       return null
     }
-
     return (
       <Box
         style={collapseStyles([
@@ -140,7 +138,6 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-
 const styles = styleSheetCreate({
   alertMeta: platformStyles({
     common: {
@@ -162,7 +159,7 @@ const styles = styleSheetCreate({
       lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
-      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
+      paddingRight: 10,
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       width: '100%',
@@ -172,7 +169,7 @@ const styles = styleSheetCreate({
       color: globalColors.black_40,
       flex: 1,
       fontSize: 14,
-      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
+      paddingRight: 40,
     },
   }),
   contentBox: {

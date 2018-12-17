@@ -182,6 +182,7 @@ const mapDispatchToProps = dispatch => ({})
 const mergeProps = (s, d, o: OwnProps) => ({
   destinationPickerIndex: o.destinationPickerIndex,
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
+  path: o.path,
   routePath: o.routePath,
 })
 

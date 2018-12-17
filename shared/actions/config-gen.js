@@ -23,6 +23,7 @@ export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
+export const filePickerError = 'config:filePickerError'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
@@ -62,6 +63,7 @@ type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean, version: number|}>
 type _DaemonHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, increment: boolean, failedReason?: ?string, failedFatal?: true|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
+type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
@@ -92,6 +94,10 @@ type _UpdateNowPayload = void
 type __avatarQueuePayload = void
 
 // Action Creators
+/**
+ * Sent whenever the mobile file picker encounters an error.
+ */
+export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -165,44 +171,45 @@ export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: 
 export const create_avatarQueue = (payload: __avatarQueuePayload) => ({payload, type: _avatarQueue})
 
 // Action Payloads
-export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
-export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
-export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
-export type CheckForUpdatePayload = $Call<typeof createCheckForUpdate, _CheckForUpdatePayload>
-export type CopyToClipboardPayload = $Call<typeof createCopyToClipboard, _CopyToClipboardPayload>
-export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
-export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
-export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
-export type DaemonHandshakeWaitPayload = $Call<typeof createDaemonHandshakeWait, _DaemonHandshakeWaitPayload>
-export type DumpLogsPayload = $Call<typeof createDumpLogs, _DumpLogsPayload>
-export type GlobalErrorPayload = $Call<typeof createGlobalError, _GlobalErrorPayload>
-export type InstallerRanPayload = $Call<typeof createInstallerRan, _InstallerRanPayload>
-export type LinkPayload = $Call<typeof createLink, _LinkPayload>
-export type LoadAvatarsPayload = $Call<typeof createLoadAvatars, _LoadAvatarsPayload>
-export type LoadTeamAvatarsPayload = $Call<typeof createLoadTeamAvatars, _LoadTeamAvatarsPayload>
-export type LoadedAvatarsPayload = $Call<typeof createLoadedAvatars, _LoadedAvatarsPayload>
-export type LoggedInPayload = $Call<typeof createLoggedIn, _LoggedInPayload>
-export type LoggedOutPayload = $Call<typeof createLoggedOut, _LoggedOutPayload>
-export type LogoutHandshakePayload = $Call<typeof createLogoutHandshake, _LogoutHandshakePayload>
-export type LogoutHandshakeWaitPayload = $Call<typeof createLogoutHandshakeWait, _LogoutHandshakeWaitPayload>
-export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
-export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
-export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
-export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
-export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
-export type SetAccountsPayload = $Call<typeof createSetAccounts, _SetAccountsPayload>
-export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
-export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
-export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
-export type SetStartupDetailsPayload = $Call<typeof createSetStartupDetails, _SetStartupDetailsPayload>
-export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListeners, _SetupEngineListenersPayload>
-export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
-export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
-export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
-export type UpdateInfoPayload = $Call<typeof createUpdateInfo, _UpdateInfoPayload>
-export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
-export type UpdateNowPayload = $Call<typeof createUpdateNow, _UpdateNowPayload>
-export type _avatarQueuePayload = $Call<typeof create_avatarQueue, __avatarQueuePayload>
+export type BootstrapStatusLoadedPayload = {|+payload: _BootstrapStatusLoadedPayload, +type: 'config:bootstrapStatusLoaded'|}
+export type ChangedActivePayload = {|+payload: _ChangedActivePayload, +type: 'config:changedActive'|}
+export type ChangedFocusPayload = {|+payload: _ChangedFocusPayload, +type: 'config:changedFocus'|}
+export type CheckForUpdatePayload = {|+payload: _CheckForUpdatePayload, +type: 'config:checkForUpdate'|}
+export type CopyToClipboardPayload = {|+payload: _CopyToClipboardPayload, +type: 'config:copyToClipboard'|}
+export type DaemonErrorPayload = {|+payload: _DaemonErrorPayload, +type: 'config:daemonError'|}
+export type DaemonHandshakeDonePayload = {|+payload: _DaemonHandshakeDonePayload, +type: 'config:daemonHandshakeDone'|}
+export type DaemonHandshakePayload = {|+payload: _DaemonHandshakePayload, +type: 'config:daemonHandshake'|}
+export type DaemonHandshakeWaitPayload = {|+payload: _DaemonHandshakeWaitPayload, +type: 'config:daemonHandshakeWait'|}
+export type DumpLogsPayload = {|+payload: _DumpLogsPayload, +type: 'config:dumpLogs'|}
+export type FilePickerErrorPayload = {|+payload: _FilePickerErrorPayload, +type: 'config:filePickerError'|}
+export type GlobalErrorPayload = {|+payload: _GlobalErrorPayload, +type: 'config:globalError'|}
+export type InstallerRanPayload = {|+payload: _InstallerRanPayload, +type: 'config:installerRan'|}
+export type LinkPayload = {|+payload: _LinkPayload, +type: 'config:link'|}
+export type LoadAvatarsPayload = {|+payload: _LoadAvatarsPayload, +type: 'config:loadAvatars'|}
+export type LoadTeamAvatarsPayload = {|+payload: _LoadTeamAvatarsPayload, +type: 'config:loadTeamAvatars'|}
+export type LoadedAvatarsPayload = {|+payload: _LoadedAvatarsPayload, +type: 'config:loadedAvatars'|}
+export type LoggedInPayload = {|+payload: _LoggedInPayload, +type: 'config:loggedIn'|}
+export type LoggedOutPayload = {|+payload: _LoggedOutPayload, +type: 'config:loggedOut'|}
+export type LogoutHandshakePayload = {|+payload: _LogoutHandshakePayload, +type: 'config:logoutHandshake'|}
+export type LogoutHandshakeWaitPayload = {|+payload: _LogoutHandshakeWaitPayload, +type: 'config:logoutHandshakeWait'|}
+export type LogoutPayload = {|+payload: _LogoutPayload, +type: 'config:logout'|}
+export type MobileAppStatePayload = {|+payload: _MobileAppStatePayload, +type: 'config:mobileAppState'|}
+export type OpenAppSettingsPayload = {|+payload: _OpenAppSettingsPayload, +type: 'config:openAppSettings'|}
+export type PushLoadedPayload = {|+payload: _PushLoadedPayload, +type: 'config:pushLoaded'|}
+export type RestartHandshakePayload = {|+payload: _RestartHandshakePayload, +type: 'config:restartHandshake'|}
+export type SetAccountsPayload = {|+payload: _SetAccountsPayload, +type: 'config:setAccounts'|}
+export type SetDeletedSelfPayload = {|+payload: _SetDeletedSelfPayload, +type: 'config:setDeletedSelf'|}
+export type SetNotifySoundPayload = {|+payload: _SetNotifySoundPayload, +type: 'config:setNotifySound'|}
+export type SetOpenAtLoginPayload = {|+payload: _SetOpenAtLoginPayload, +type: 'config:setOpenAtLogin'|}
+export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +type: 'config:setStartupDetails'|}
+export type SetupEngineListenersPayload = {|+payload: _SetupEngineListenersPayload, +type: 'config:setupEngineListeners'|}
+export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
+export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
+export type UpdateFollowingPayload = {|+payload: _UpdateFollowingPayload, +type: 'config:updateFollowing'|}
+export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
+export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
+export type UpdateNowPayload = {|+payload: _UpdateNowPayload, +type: 'config:updateNow'|}
+export type _avatarQueuePayload = {|+payload: __avatarQueuePayload, +type: 'config:_avatarQueue'|}
 
 // All Actions
 // prettier-ignore
@@ -217,6 +224,7 @@ export type Actions =
   | DaemonHandshakePayload
   | DaemonHandshakeWaitPayload
   | DumpLogsPayload
+  | FilePickerErrorPayload
   | GlobalErrorPayload
   | InstallerRanPayload
   | LinkPayload
@@ -245,4 +253,4 @@ export type Actions =
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | _avatarQueuePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

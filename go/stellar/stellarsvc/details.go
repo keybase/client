@@ -12,6 +12,7 @@ import (
 // stellar payment unread count for accountID.
 func (s *Server) accountDetails(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
 	details, err := s.remoter.Details(ctx, accountID)
+	details.SetDefaultDisplayCurrency()
 	if err != nil {
 		return details, err
 	}
