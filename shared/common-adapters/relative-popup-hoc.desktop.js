@@ -4,7 +4,7 @@ import * as React from 'react'
 import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM from 'react-dom'
-import EscapeHandler from '../util/escape-handler.desktop'
+import {EscapeHandler} from '../util/key-event-handler.desktop'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 import type {Position} from './relative-popup-hoc.types'
 
