@@ -25,26 +25,15 @@ const PoweredByStellar = () => (
   </Kb.Box2>
 )
 
-const RootNoSafeArea = (props: Props) => (
-  <>
-    <Kb.Box2 direction="vertical" style={styles.container}>
-      <Header onBack={Styles.isMobile ? props.onClose : null} />
-      {props.children}
-    </Kb.Box2>
-    {!Styles.isMobile && <PoweredByStellar />}
-  </>
-)
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    {Styles.isMobile ? (
-      <Kb.SafeAreaView style={styles.safeAreaView}>
-        <RootNoSafeArea {...props} />
-        {/* This box is to show a different color on the bottom than on the top */}
-        <Kb.Box style={styles.safeAreaViewBottom} />
-      </Kb.SafeAreaView>
-    ) : (
-      <RootNoSafeArea {...props} />
-    )}
+    <Kb.SafeAreaViewTopBottom topColor={Styles.globalColors.purple} bottomColor={Styles.globalColors.blue5}>
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        <Header onBack={Styles.isMobile ? props.onClose : null} />
+        {props.children}
+      </Kb.Box2>
+      {!Styles.isMobile && <PoweredByStellar />}
+    </Kb.SafeAreaViewTopBottom>
   </Kb.MaybePopup>
 )
 
@@ -57,8 +46,7 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       backgroundColor: Styles.globalColors.white,
-      flexGrow: 1,
-      flexShrink: 1,
+      flex: 1,
       maxHeight: '100%',
       width: '100%',
     },

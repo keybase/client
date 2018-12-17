@@ -7,5 +7,12 @@ export type Props = {|
   style?: StylesCrossPlatform,
 |}
 
+export type SafeAreaViewTopBottomProps = {|
+  bottomColor?: string,
+  children?: React.Node,
+  topColor?: string,
+|}
+
 export default class SafeAreaView extends React.Component<Props> {}
 export class SafeAreaViewTop extends React.Component<Props> {}
+export class SafeAreaViewTopBottom extends React.Component<SafeAreaViewTopBottomProps> {}
