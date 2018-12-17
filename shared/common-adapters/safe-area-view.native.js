@@ -12,17 +12,26 @@ export const SafeAreaViewTop = ({style, children}: Props) =>
     <SafeAreaView style={Styles.collapseStyles([styles.topSafeArea, style])}>{children}</SafeAreaView>
   )
 
-export const SafeAreaViewTopBottom = ({bottomColor, children, topColor}: SafeAreaViewTopBottomProps) => (
-  <SafeAreaView style={Styles.collapseStyles([styles.flexOne, topColor && {backgroundColor: topColor}])}>
+export const SafeAreaViewTopBottom = (props: SafeAreaViewTopBottomProps) => (
+  <SafeAreaView
+    style={Styles.collapseStyles([
+      styles.safeAreaTopBottom,
+      props.topColor && {backgroundColor: props.topColor},
+      props.style,
+    ])}
+  >
     {Styles.isAndroid && (
       <View
-        style={Styles.collapseStyles([styles.androidTopSafeArea, topColor && {backgroundColor: topColor}])}
+        style={Styles.collapseStyles([
+          styles.androidTopSafeArea,
+          props.topColor && {backgroundColor: props.topColor},
+        ])}
       />
     )}
-    {children}
+    {props.children}
     {/* workaround for two background colors from here: https://stackoverflow.com/questions/47725607/react-native-safeareaview-background-color-how-to-assign-two-different-backgro */}
-    {!!bottomColor && (
-      <View style={Styles.collapseStyles([styles.bottomSafeArea, {backgroundColor: bottomColor}])} />
+    {!!props.bottomColor && (
+      <View style={Styles.collapseStyles([styles.bottomSafeArea, {backgroundColor: props.bottomColor}])} />
     )}
   </SafeAreaView>
 )
@@ -43,8 +52,9 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     zIndex: -1000,
   },
-  flexOne: {
-    flex: 1,
+  safeAreaTopBottom: {
+    flexGrow: 1,
+    flexShrink: 0,
   },
   topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
 })

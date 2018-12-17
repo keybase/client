@@ -33,36 +33,40 @@ const backButtonTypeToFcnHandle = {
 
 const WalletPopup = (props: WalletPopupProps) => (
   <Kb.Box2 direction="vertical" style={styles.outerContainer}>
-    <Kb.ScrollView
-      alwaysBounceVertical={false}
-      style={styles.scrollView}
-      contentContainerStyle={styles.scrollViewContentContainer}
-    >
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        centerChildren={true}
-        style={Styles.collapseStyles([
-          styles.container,
-          props.backButtonType === 'back' && !Styles.isMobile ? {paddingTop: Styles.globalMargins.small} : {},
-          props.containerStyle,
-        ])}
+    <Kb.SafeAreaViewTopBottom>
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContentContainer}
       >
-        {props.children}
-        {props.bottomButtons && props.bottomButtons.length > 0 && (
-          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-            <Kb.ButtonBar
-              direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
-              fullWidth={Styles.isMobile}
-              style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
-            >
-              {props.bottomButtons}
-            </Kb.ButtonBar>
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
-    </Kb.ScrollView>
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          fullWidth={true}
+          centerChildren={true}
+          style={Styles.collapseStyles([
+            styles.container,
+            props.backButtonType === 'back' && !Styles.isMobile
+              ? {paddingTop: Styles.globalMargins.small}
+              : {},
+            props.containerStyle,
+          ])}
+        >
+          {props.children}
+          {props.bottomButtons && props.bottomButtons.length > 0 && (
+            <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+              <Kb.ButtonBar
+                direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
+                fullWidth={Styles.isMobile}
+                style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
+              >
+                {props.bottomButtons}
+              </Kb.ButtonBar>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </Kb.SafeAreaViewTopBottom>
   </Kb.Box2>
 )
 
