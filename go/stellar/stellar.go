@@ -108,7 +108,10 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateW
 		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
 		return res, nil
 	}
-	justCreated, err := CreateWallet(ctx, g, false)
+	m := libkb.NewMetaContext(ctx, g)
+	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
+	flaggedForV2 := remote.AcctBundlesEnabled(m)
+	justCreated, err := CreateWallet(ctx, g, flaggedForV2)
 	if err != nil {
 		return res, nil
 	}
@@ -217,7 +220,7 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return nil
 }
 
-func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) error {
+func SetMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext, value bool) error {
 	if g.GetRunMode() == libkb.ProductionRunMode {
 		return errors.New("this doesn't work in production")
 	}
@@ -227,8 +230,8 @@ func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) err
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"feature":   libkb.S{Val: string(libkb.FeatureStellarAcctBundles)},
-			"value":     libkb.I{Val: 1},
-			"cache_sec": libkb.I{Val: 100},
+			"value":     libkb.B{Val: value},
+			"cache_sec": libkb.I{Val: 60},
 		},
 		MetaContext: m,
 	})

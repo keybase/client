@@ -165,7 +165,7 @@ func setupWithNewBundle(t *testing.T, tc *TestContext) {
 	g := tc.G
 	err := remote.SetAcceptedDisclaimer(ctx, g)
 	require.NoError(t, err)
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	_, err = stellar.CreateWallet(ctx, g, true)
 	require.NoError(t, err)
@@ -1537,6 +1537,8 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	ctx := context.TODO()
 	g := tcs[0].G
 	m := libkb.NewMetaContextTODO(g)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
+	require.NoError(t, err)
 	acceptDisclaimer(tcs[0])
 
 	// verify that we have a v1 bundle
@@ -1546,7 +1548,7 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	require.Equal(t, len(bundle.Accounts), 1)
 
 	// enable the feature flag
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 
@@ -1577,10 +1579,10 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	g := tcs[0].G
 	m := libkb.NewMetaContextTODO(g)
 
-	acceptDisclaimer(tcs[0])
 	// create a v1 bundle with two accounts
-	_, err := stellar.CreateWallet(ctx, g, false)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
+	acceptDisclaimer(tcs[0]) // this actually creates the bundle
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	primaryAccount, err := v1Bundle0.PrimaryAccount()
@@ -1619,7 +1621,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.True(t, correctErrorType)
 
 	// flip feature flag and migrate
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 	enabled, err := m.G().FeatureFlags.EnabledWithError(m, libkb.FeatureStellarAcctBundles)
