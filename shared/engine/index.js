@@ -1,7 +1,6 @@
 // @flow
 // Handles sending requests to the daemon
 import logger from '../logger'
-import * as Constants from '../constants/engine'
 import Session from './session'
 import * as ConfigGen from '../actions/config-gen'
 import {initEngine, initEngineSaga} from './require'
@@ -275,27 +274,6 @@ class Engine {
         this._handleUnhandled(sessionID, method, seqid, param, response)
       }
     }
-  }
-
-  // An outgoing call. ONLY called by the flow-type rpc helpers
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): any {
-    const params = paramsIn || {}
-    const channelConfig = Constants.singleFixedChannelConfig(configKeys)
-    const channelMap = Constants.createChannelMap(channelConfig)
-    const empty = {}
-    const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
-      acc[k] = (params, response) => {
-        Constants.putOnChannelMap(channelMap, k, {params, response})
-      }
-      return acc
-    }, empty)
-    const callback = (error, params) => {
-      channelMap['finished'] && Constants.putOnChannelMap(channelMap, 'finished', {error, params})
-      Constants.closeChannelMap(channelMap)
-    }
-
-    const sid = this._rpcOutgoing({callback, incomingCallMap, method, params})
-    return new Constants.EngineChannel(channelMap, sid, configKeys)
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers

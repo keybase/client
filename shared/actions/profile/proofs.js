@@ -107,7 +107,7 @@ const addServiceProof = (_, action: ProfileGen.AddProofPayload) =>
     })
 
     const checkProofTask = yield Saga._fork(function*() {
-      const action = yield Saga.take(ProfileGen.checkProof)
+      yield Saga.take(ProfileGen.checkProof)
       if (_outputInstructionsResponse) {
         _outputInstructionsResponse.result()
         _outputInstructionsResponse = null
