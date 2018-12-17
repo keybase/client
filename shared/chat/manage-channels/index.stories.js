@@ -126,11 +126,10 @@ const load = () => {
     .add('EditChannel', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={'takeover'}
           topic={''}
-          onCancel={Sb.action('onCancel')}
+          onLeftAction={Sb.action('onLeftAction')}
           onSave={Sb.action('onSave')}
           onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
@@ -143,11 +142,10 @@ const load = () => {
     .add('EditChannel - general', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={'general'}
           topic={''}
-          onCancel={Sb.action('onCancel')}
+          onLeftAction={Sb.action('onLeftAction')}
           onSave={Sb.action('onSave')}
           onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
@@ -160,11 +158,10 @@ const load = () => {
     .add('EditChannel - loading', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={''}
           topic={''}
-          onCancel={Sb.action('onCancel')}
+          onLeftAction={Sb.action('onLeftAction')}
           onSave={Sb.action('onSave')}
           onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}

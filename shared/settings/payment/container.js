@@ -20,7 +20,7 @@ type State = {
 type Props = {
   errorMessage?: ?string,
   clearBillingError: () => void,
-  onBack: () => void,
+  onLeftAction: () => void,
   onSubmit: (cardNumber: ?string, name: ?string, securityCode: ?string, expiration: ?string) => void,
 }
 
@@ -53,7 +53,7 @@ class PaymentStateHolder extends Component<Props, State> {
         expiration={this.state.expiration}
         securityCode={this.state.securityCode}
         errorMessage={this.props.errorMessage}
-        onBack={this.props.onBack}
+        onLeftAction={this.props.onLeftAction}
         onSubmit={() =>
           this.props.onSubmit(
             this.state.cardNumber,
@@ -83,7 +83,7 @@ export default connect<OwnProps, _, _, _, _>(
       bootstrapDone: true,
       originalProps: {
         errorMessage: errorMessage,
-        onBack: () => logger.debug('todo'),
+        onLeftAction: () => logger.debug('todo'),
       },
     }
   },

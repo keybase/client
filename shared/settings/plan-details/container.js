@@ -39,7 +39,7 @@ export default connect<OwnProps, _, _, _, _>(
     }
   },
   (dispatch: any, ownProps: {}) => ({
-    onBack: () => dispatch(navigateUp()),
+    onLeftAction: () => dispatch(navigateUp()),
   }),
   (stateProps, dispatchProps) => ({
     ...stateProps,

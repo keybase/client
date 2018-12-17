@@ -9,7 +9,7 @@ import {connect} from '../../util/container'
 type OwnProps = {||}
 
 const NoPGPView = props => (
-  <Kb.StandardScreen style={styleContainer} onCancel={props.onCancel}>
+  <Kb.StandardScreen style={styleContainer} onLeftAction={props.onLeftAction} leftAction="cancel">
     <Kb.Text style={styleTitle} type="Header">
       Add a PGP key
     </Kb.Text>
@@ -19,7 +19,7 @@ const NoPGPView = props => (
 
 const NoPGP = connect<OwnProps, _, _, _, _>(
   () => ({}),
-  dispatch => ({onCancel: () => dispatch(navigateUp())}),
+  dispatch => ({onLeftAction: () => dispatch(navigateUp())}),
   (s, d, o) => ({...o, ...s, ...d})
 )(NoPGPView)
 

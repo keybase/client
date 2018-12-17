@@ -23,7 +23,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
   onSave: email => {
     dispatch(SettingsGen.createOnChangeNewEmail({email}))
     dispatch(SettingsGen.createOnSubmitNewEmail())

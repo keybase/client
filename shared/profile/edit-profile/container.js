@@ -26,7 +26,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
   _onSubmit: (bio: string, fullname: string, location: string) =>
     dispatch(createEditProfile({bio, fullname, location})),
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
 })
 
 const Component = HeaderOnMobile(Render)
@@ -35,7 +35,7 @@ type Props = {|
   bio: string,
   fullname: string,
   location: string,
-  onBack: () => void,
+  onLeftAction: () => void,
   _onSubmit: (bio: string, fullname: string, location: string) => void,
   title: string,
 |}
@@ -58,7 +58,7 @@ class Wrapper extends React.Component<Props, State> {
 
   render() {
     const bioLengthLeft = this.props.bio ? maxProfileBioChars - this.props.bio.length : maxProfileBioChars
-    const extra = isMobile ? {} : {onCancel: this.props.onBack}
+    const extra = isMobile ? {} : {leftAction: 'cancel', onLeftAction: this.props.onLeftAction}
 
     return (
       <Component

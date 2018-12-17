@@ -44,9 +44,9 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
   return null
 }
 
-function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: Props) {
+function PlanDetails({plan, price, paymentOption, onLeftAction, gigabytes, numStars}: Props) {
   return (
-    <StandardScreen onBack={onBack}>
+    <StandardScreen onLeftAction={onLeftAction}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
         <Stars count={numStars} />
         <Text type={'Header'} style={{marginTop: globalMargins.small, textAlign: 'center'}}>

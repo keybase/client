@@ -18,7 +18,7 @@ type Props = {
   teamname: string,
   channelName: string,
   topic: string,
-  onCancel: () => void,
+  onLeftAction: () => void,
   onSave: (channelName: string, topic: string) => void,
   onConfirmedDelete: () => void,
   showDelete: boolean,
@@ -89,7 +89,7 @@ const EditChannelBare = (props: Props & TextState) => (
         />
       )}
       <ButtonBar>
-        <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Button type="Secondary" label="Cancel" onClick={props.onLeftAction} />
         <Button
           type="Primary"
           label="Save"
@@ -111,7 +111,7 @@ const EditChannelBare = (props: Props & TextState) => (
 
 // TODO(mm) this should be handled at a higher level
 const _EditChannelOnStandardScreen = (props: Props & TextState) => (
-  <StandardScreen onBack={props.onCancel}>
+  <StandardScreen onLeftAction={props.onLeftAction} leftAction="cancel">
     <EditChannelBare {...props} />
   </StandardScreen>
 )

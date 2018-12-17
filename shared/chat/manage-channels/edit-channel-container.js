@@ -78,11 +78,11 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     _loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
     channelName,
     deleteRenameDisabled,
-    onCancel: dispatchProps._navigateUp,
     onConfirmedDelete: () => {
       dispatchProps._onConfirmedDelete(teamname, conversationIDKey)
       dispatchProps._navigateUp()
     },
+    onLeftAction: dispatchProps._navigateUp,
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled && newChannelName !== channelName) {
         dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)

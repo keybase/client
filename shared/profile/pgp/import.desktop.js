@@ -7,11 +7,11 @@ import {namedConnect} from '../../util/container'
 
 type OwnProps = {||}
 type Props = {|
-  onCancel: () => void,
+  onLeftAction: () => void,
 |}
 
 const Import = (props: Props) => (
-  <Kb.StandardScreen onCancel={props.onCancel} style={styleContainer}>
+  <Kb.StandardScreen leftAction="cancel" onLeftAction={props.onLeftAction} style={styleContainer}>
     <Kb.Icon type="icon-pgp-key-import-48" />
     <Kb.Text style={styleHeader} type="Header">
       Import a PGP key
@@ -27,7 +27,7 @@ const Import = (props: Props) => (
       <Kb.Text type="TerminalComment"># for more options</Kb.Text>
       <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
     </Kb.Box>
-    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onCancel} label={'Close'} />
+    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onLeftAction} label={'Close'} />
   </Kb.StandardScreen>
 )
 
@@ -66,7 +66,7 @@ const styleTerminal = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

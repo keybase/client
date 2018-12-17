@@ -7,8 +7,8 @@ const props = {
   edited: false,
   email: 'party@mypla.ce',
   isVerified: true,
-  onBack: action('onBack'),
   onChangeNewEmail: action('onChangeNewEmail'),
+  onLeftAction: action('onLeftAction'),
   onSave: action('onSave'),
   waitingForResponse: false,
 }

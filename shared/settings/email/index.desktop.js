@@ -34,7 +34,7 @@ class UpdateEmail extends Component<Props, State> {
   render() {
     const error = this.props.error ? {message: this.props.error.message, type: 'error'} : null
     return (
-      <StandardScreen onBack={this.props.onBack} notification={error}>
+      <StandardScreen onLeftAction={this.props.onLeftAction} notification={error}>
         <Input
           hintText="Email"
           value={this.state.email}

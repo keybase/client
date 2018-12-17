@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalMargins} from '../../styles'
+import * as Styles from '../../styles'
 import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
 
 type Props = {
@@ -66,7 +66,7 @@ class UpdatePassphrase extends Component<Props, State> {
         }
       : null
     return (
-      <StandardScreen title={this.props.title} onLeftAction={this.props.onLeftAction} notification={notification} scrollEnabled={false} style={{alignItems: 'center'}}>
+      <StandardScreen title={this.props.title} onLeftAction={this.props.onLeftAction} notification={notification} scrollEnabled={false} style={styles.screen}>
         <Input
           hintText="New passphrase"
           type={inputType}
@@ -74,10 +74,10 @@ class UpdatePassphrase extends Component<Props, State> {
           value={this.state.passphrase}
           onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
           uncontrolled={false}
-          style={styleInput}
+          style={styles.input}
         />
         {!this.props.newPassphraseError && (
-          <Text type="BodySmall" style={stylePasswordNote}>
+          <Text type="BodySmall" style={styles.note}>
             (Minimum 8 characters)
           </Text>
         )}
@@ -88,13 +88,13 @@ class UpdatePassphrase extends Component<Props, State> {
           errorText={this.props.newPassphraseConfirmError}
           onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
           uncontrolled={false}
-          style={styleInput}
+          style={styles.input}
         />
         <Checkbox
           label="Show typing"
           onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
           checked={this.state.showTyping}
-          style={{marginBottom: globalMargins.medium}}
+          style={styles.checkbox}
         />
         <Button
           type="Primary"
@@ -108,14 +108,21 @@ class UpdatePassphrase extends Component<Props, State> {
   }
 }
 
-const styleInput = {
-  marginBottom: globalMargins.small,
-}
-
-const stylePasswordNote = {
-  height: 0, // don't offset next input by label height
-  position: 'relative',
-  top: -globalMargins.small,
-}
+const styles = Styles.styleSheetCreate({
+  checkbox: {
+    marginBottom: Styles.globalMargins.medium,
+  },
+  input: {
+    marginBottom: Styles.globalMargins.small,
+  },
+  note: {
+    height: 0, // don't offset next input by label height
+    position: 'relative',
+    top: -Styles.globalMargins.small,
+  },
+  screen: {
+    alignItems: 'center',
+  },
+})
 
 export default UpdatePassphrase

@@ -24,7 +24,7 @@ export type Props = {
   paymentOption: PaymentVariants,
   price: string,
   gigabytes: number,
-  onBack: () => void,
+  onLeftAction: () => void,
   numStars: number,
 }
 

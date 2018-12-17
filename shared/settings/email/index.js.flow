@@ -5,7 +5,7 @@ export type Props = {
   email: ?string,
   isVerified: boolean,
   error?: ?Error,
-  onBack: () => void,
+  onLeftAction: () => void,
   onSave: (email: string) => void,
   waitingForResponse: boolean,
   onResendConfirmationCode?: () => void,

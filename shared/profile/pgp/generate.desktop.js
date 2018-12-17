@@ -8,7 +8,7 @@ import {namedConnect} from '../../util/container'
 type OwnProps = {||}
 
 const Generate = props => (
-  <Kb.StandardScreen onCancel={props.onCancel} style={styleContainer}>
+  <Kb.StandardScreen leftAction="cancel" onLeftAction={props.onLeftAction} style={styleContainer}>
     <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
     <Kb.Text style={styleHeader} type="Header">
       Generating your unique key...
@@ -19,7 +19,7 @@ const Generate = props => (
       This could take as long as a couple of minutes.
     </Kb.Text>
     <Kb.Icon type="icon-loader-infinity-64" />
-    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onCancel} label={'Cancel'} />
+    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onLeftAction} label={'Cancel'} />
   </Kb.StandardScreen>
 )
 
@@ -41,7 +41,7 @@ const styleCancelButton = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(ProfileGen.createCancelPgpGen()),
+  onLeftAction: () => dispatch(ProfileGen.createCancelPgpGen()),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

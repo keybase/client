@@ -8,7 +8,7 @@ import type {Props} from './index'
 function PaymentForm(props: Props) {
   return (
     <StandardScreen
-      onBack={props.onBack}
+      onLeftAction={props.onLeftAction}
       notification={props.errorMessage ? {message: props.errorMessage, type: 'error'} : null}
     >
       <Input

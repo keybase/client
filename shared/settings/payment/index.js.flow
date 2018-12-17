@@ -11,7 +11,7 @@ export type Props = {
   expiration: ?string,
   securityCode: ?string,
   errorMessage?: ?string,
-  onBack: () => void,
+  onLeftAction: () => void,
   onSubmit: () => void,
 }
 

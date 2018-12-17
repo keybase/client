@@ -95,12 +95,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
       )
       dispatch(navigateUp())
     },
-    onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
     onCreate: () =>
       dispatch(navigateTo([{props: {teamname}, selected: 'createChannel'}], routePath.butLast())),
     onEdit: conversationIDKey =>
       dispatch(navigateAppend([{props: {conversationIDKey, teamname}, selected: 'editChannel'}])),
+    onLeftAction: () => dispatch(navigateUp()),
   }
 }
 
