@@ -8,6 +8,7 @@
 #   - regular Go setup for building the client
 #   - rpmbuild for building the .rpm
 #   - createrepo (or createrepo_c) for writing the hierarchy
+#       - createrepo provides modifyrepo/modifyrepo_c
 
 set -e -u -o pipefail
 
@@ -32,12 +33,21 @@ code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
 
 # Get the name of the create repo program. It can be called either "createrepo"
 # (normally) or "createrepo_c" (on Arch).
-if which createrepo &> /dev/null ; then
+if command -v createrepo &> /dev/null ; then
   CREATEREPO=createrepo
-elif which createrepo_c &> /dev/null ; then
+elif command -v createrepo_c &> /dev/null ; then
   CREATEREPO=createrepo_c
 else
   echo "ERROR: createrepo doesn't seem to be installed."
+  exit 1
+fi
+
+if command -v modifyrepo &> /dev/null; then
+  MODIFYREPO=modifyrepo
+elif command -v modifyrepo_c &> /dev/null; then
+  MODIFYREPO=modifyrepo_c
+else
+  echo "ERROR: modifyrepo doesn't seem to be installed."
   exit 1
 fi
 
@@ -81,4 +91,7 @@ for arch in i386 x86_64 ; do
 
   # Run createrepo to update the database files.
   "$CREATEREPO" "$repo_root/repo/$arch"
+
+  # Add updateinfo.xml changelog to the repo
+  "$MODIFYREPO" "$here/updateinfo.xml" "$repo_root/repo/$arch/repodata"
 done
