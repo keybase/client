@@ -16,7 +16,7 @@
       "type": "record",
       "name": "ChatConversationID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -108,6 +108,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },
@@ -505,6 +512,10 @@
         {
           "type": "int",
           "name": "unreadPayments"
+        },
+        {
+          "type": "string",
+          "name": "displayCurrency"
         }
       ]
     },

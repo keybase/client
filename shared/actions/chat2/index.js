@@ -667,7 +667,9 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.ChatLeftConversation': () =>
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})),
     'chat.1.NotifyChat.ChatPaymentInfo': notif => {
-      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const conversationIDKey = notif.convID
+        ? Types.conversationIDToKey(notif.convID)
+        : Constants.noConversationIDKey
       const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([notif.info])
       if (!paymentInfo) {
         // This should never happen

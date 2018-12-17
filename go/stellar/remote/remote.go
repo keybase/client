@@ -39,7 +39,7 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 	return apiRes.ShouldCreateResult, err
 }
 
-func acctBundlesEnabled(m libkb.MetaContext) bool {
+func AcctBundlesEnabled(m libkb.MetaContext) bool {
 	enabled := m.G().FeatureFlags.Enabled(m, libkb.FeatureStellarAcctBundles)
 	if enabled {
 		m.CDebugf("stellar account bundles enabled")
@@ -274,7 +274,7 @@ func (e MissingFeatureFlagMigrationError) Error() string {
 
 func preMigrationChecks(m libkb.MetaContext) error {
 	// verify that the feature flag is enabled
-	if !acctBundlesEnabled(m) {
+	if !AcctBundlesEnabled(m) {
 		return MissingFeatureFlagMigrationError{}
 	}
 
@@ -531,7 +531,7 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 	if err != nil && incompatibleVersionError(err) {
 		m := libkb.NewMetaContext(ctx, g)
 		m.CDebugf("requested v2 secretless bundle but not migrated yet.")
-		hasFeatureFlagForMigration := acctBundlesEnabled(m)
+		hasFeatureFlagForMigration := AcctBundlesEnabled(m)
 		if hasFeatureFlagForMigration {
 			m.CDebugf("has feature flag. kicking off migration now.")
 			err := MigrateBundleToAccountBundles(m)
@@ -766,6 +766,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
 		return stellar1.AccountDetails{}, err
 	}
+	res.Details.SetDefaultDisplayCurrency()
 
 	return res.Details, nil
 }
@@ -1012,6 +1013,14 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
 	currency string) error {
+
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return err
+	}
+	if _, ok := conf.Currencies[stellar1.OutsideCurrencyCode(currency)]; !ok {
+		return fmt.Errorf("Unknown currency code: %q", currency)
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -1021,7 +1030,7 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 		NetContext: ctx,
 	}
-	_, err := g.API.Post(apiArg)
+	_, err = g.API.Post(apiArg)
 	return err
 }
 

@@ -59,7 +59,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, false)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, true)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -165,7 +165,7 @@ func setupWithNewBundle(t *testing.T, tc *TestContext) {
 	g := tc.G
 	err := remote.SetAcceptedDisclaimer(ctx, g)
 	require.NoError(t, err)
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	_, err = stellar.CreateWallet(ctx, g, true)
 	require.NoError(t, err)
@@ -1376,7 +1376,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 	require.True(t, len(settings) > 0, "must create at least 1 tc")
 	var tcs []*TestContext
 	bem := NewBackendMock(t)
-	for _, setting := range settings {
+	for i, setting := range settings {
 		tc := SetupTest(t, "wall", 1)
 		switch setting {
 		case usettingFull:
@@ -1398,6 +1398,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 			// All TCs in a test share the same backend.
 			Backend: bem,
 		}
+		t.Logf("setup user %v %v", i, tc2.Fu.Username)
 		rcm := NewRemoteClientMock(tc2, bem)
 		ws := stellar.NewWalletState(tc.G, rcm)
 		tc2.Srv = New(tc.G, newTestUISource(), ws)
@@ -1484,10 +1485,13 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	ctx := context.TODO()
 	g := tcs[0].G
 
-	acceptDisclaimer(tcs[0])
 	// create a v1 bundle with two accounts
-	_, err := stellar.CreateWallet(ctx, g, false)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
+	created, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	require.False(t, created)
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	_, err = bundle.CreateNewAccount(&v1Bundle0, "whatevs", false)
@@ -1536,6 +1540,8 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	ctx := context.TODO()
 	g := tcs[0].G
 	m := libkb.NewMetaContextTODO(g)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
+	require.NoError(t, err)
 	acceptDisclaimer(tcs[0])
 
 	// verify that we have a v1 bundle
@@ -1545,7 +1551,7 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	require.Equal(t, len(bundle.Accounts), 1)
 
 	// enable the feature flag
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 
@@ -1576,10 +1582,10 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	g := tcs[0].G
 	m := libkb.NewMetaContextTODO(g)
 
-	acceptDisclaimer(tcs[0])
 	// create a v1 bundle with two accounts
-	_, err := stellar.CreateWallet(ctx, g, false)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
+	acceptDisclaimer(tcs[0]) // this actually creates the bundle
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	primaryAccount, err := v1Bundle0.PrimaryAccount()
@@ -1618,7 +1624,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.True(t, correctErrorType)
 
 	// flip feature flag and migrate
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 	enabled, err := m.G().FeatureFlags.EnabledWithError(m, libkb.FeatureStellarAcctBundles)

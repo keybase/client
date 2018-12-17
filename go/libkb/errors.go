@@ -497,6 +497,11 @@ func (a AppStatusError) Error() string {
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
 }
 
+func (a AppStatusError) WithDesc(desc string) AppStatusError {
+	a.Desc = desc
+	return a
+}
+
 func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
 	switch err := err.(type) {
 	case AppStatusError:
@@ -1365,11 +1370,11 @@ func NewUntrackError(d string, a ...interface{}) UntrackError {
 //=============================================================================
 
 type APINetError struct {
-	err error
+	Err error
 }
 
 func (e APINetError) Error() string {
-	return fmt.Sprintf("API network error: %s", e.err)
+	return fmt.Sprintf("API network error: %s", e.Err)
 }
 
 //=============================================================================

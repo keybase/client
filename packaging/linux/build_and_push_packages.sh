@@ -18,7 +18,15 @@ kbfs_dir="$client_dir/../kbfs"
 
 if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
   default_bucket_name="jack-testing.keybase.io"
-  echo "This build+push is a DRY RUN."
+  echo
+  echo
+  echo "================================="
+  echo "================================="
+  echo "= This build+push is a DRY RUN. ="
+  echo "================================="
+  echo "================================="
+  echo
+  echo
 else
   default_bucket_name="prerelease.keybase.io"
 fi

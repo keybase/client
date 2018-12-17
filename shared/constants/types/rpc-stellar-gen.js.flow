@@ -277,7 +277,7 @@ export type AccountBundleVersion =
   | 9 // V9_9
   | 10 // V10_10
 
-export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID, unreadPayments: Int}>
+export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID, unreadPayments: Int, displayCurrency: String}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
@@ -323,7 +323,7 @@ export type BundleVisibleEntryV1 = $ReadOnly<{accountID: AccountID, mode: Accoun
 export type BundleVisibleEntryV2 = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, acctBundleRevision: BundleRevision, encAcctBundleHash: Hash}>
 export type BundleVisibleV1 = $ReadOnly<{revision: BundleRevision, prev: Hash, accounts?: ?Array<BundleVisibleEntryV1>}>
 export type BundleVisibleV2 = $ReadOnly<{revision: BundleRevision, prev: Hash, accounts?: ?Array<BundleVisibleEntryV2>}>
-export type ChatConversationID = Bytes
+export type ChatConversationID = String
 export type ClaimSummary = $ReadOnly<{txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, dir: RelayDirection, toStellar: AccountID, to: Keybase1.UserVersion}>
 export type CurrencyLocal = $ReadOnly<{description: String, code: OutsideCurrencyCode, symbol: String, name: String}>
 export type CurrencySymbol = $ReadOnly<{symbol: String, ambigious: Boolean, postfix: Boolean}>
@@ -358,7 +358,7 @@ export type PaymentLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplif
 export type PaymentNotificationMsg = $ReadOnly<{accountID: AccountID, paymentID: PaymentID}>
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
-export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean}>
+export type PaymentRelayPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, toAssertion: String, relayAccount: AccountID, teamID: Keybase1.TeamID, displayAmount: String, displayCurrency: String, boxB64: String, signedTransaction: String, quickReturn: Boolean, chatConversationID?: ?ChatConversationID}>
 export type PaymentResult = $ReadOnly<{senderAccountID: AccountID, keybaseID: KeybaseTransactionID, stellarID: TransactionID, pending: Boolean}>
 export type PaymentStatus =
   | 0 // NONE_0
@@ -419,7 +419,7 @@ export type TransactionStatus =
   | 4 // ERROR_PERMANENT_4
 
 export type UIPaymentReviewed = $ReadOnly<{bid: BuildPaymentID, seqno: Int, banners?: ?Array<SendBannerLocal>, nextButton: String}>
-export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String}>
+export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String, currencyLocal: CurrencyLocal}>
 
 export type IncomingCallMapType = {|'stellar.1.notify.paymentNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.paymentStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.requestStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.accountDetailsUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.pendingPaymentsUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.recentPaymentsUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.ui.paymentReviewed'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn|}
 
