@@ -263,6 +263,7 @@ type ModalPositionRelativeProps<PP> = {
 function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>
 ): React.ComponentType<ModalPositionRelativeProps<PP>> {
+  // $FlowIssue TODO modernize
   class ModalPositionRelativeClass extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: ?HTMLElement
     state: {style: {}}

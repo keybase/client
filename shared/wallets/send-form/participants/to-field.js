@@ -125,7 +125,6 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
               hideBorder={true}
               containerStyle={styles.input}
               multiline={true}
-              // $FlowIssue this is the right type
               ref={this._input}
               rowsMin={2}
               rowsMax={3}

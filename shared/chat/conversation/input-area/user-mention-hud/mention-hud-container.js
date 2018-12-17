@@ -103,5 +103,4 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapDispatchToProps,
   mergeProps,
   'UserMentionHud'
-  // $FlowIssue hud uses a ton of not safe recompose stuff
 )(AutoLoadMentionHud)

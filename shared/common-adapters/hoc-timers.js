@@ -82,18 +82,4 @@ function hOCTimers<Config: {}, Instance>(
   return React.forwardRef<Config, Instance>((props, ref) => <HOCTimers {...props} forwardedRef={ref} />)
 }
 
-class A extends React.Component<PropsWithTimer<{foo: number}>> {
-  componentDidUpdate() {
-    this.props.setInterval(() => console.log(this), 1000)
-  }
-  render() {
-    return <div>{this.props.foo} </div>
-  }
-}
-
-const ref = React.createRef<A>()
-const Wrapped = hOCTimers(A)
-const aa = <Wrapped foo={23} />
-const bb = <Wrapped foo={23} ref={ref} />
-
 export default hOCTimers
