@@ -1019,7 +1019,7 @@ func (p *Pagination) String() string {
 
 // FirstPage returns true if the pagination object is not pointing in any direction
 func (p *Pagination) FirstPage() bool {
-	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
+	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0 && !p.Last)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
