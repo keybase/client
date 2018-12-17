@@ -137,6 +137,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     onSeeDetails:
       (paymentInfo.status === 'completed' ||
         paymentInfo.status === 'error' ||
+        paymentInfo.status === 'claimable' ||
         paymentInfo.status === 'canceled') &&
       (youAreSender || youAreReceiver)
         ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
