@@ -43,7 +43,7 @@ type InfoPanelProps = {|
   admin: boolean,
 
   // Used by HeaderHoc.
-  onBack: () => void,
+  onLeftAction: () => void,
 
   // Used by Participant.
   onShowProfile: (username: string) => void,

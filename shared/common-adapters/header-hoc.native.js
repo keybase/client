@@ -61,46 +61,43 @@ export class HeaderHocHeader extends React.Component<Props, State> {
               </Text>
             )}
         </Box>
-        <Box
-          style={Styles.collapseStyles([
-            styles.rightActions,
-            this.props.rightActions && Styles.isIOS && styles.rightActionsPadding,
-          ])}
-        >
-          {this.props.rightActions &&
-            this.props.rightActions
-              .filter(Boolean)
-              .slice(
-                0,
-                this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS
-                  ? MAX_RIGHT_ACTIONS
-                  : MAX_RIGHT_ACTIONS - 1
-              )
-              .map((action, item) => renderAction(action))}
-          {this.props.rightActions &&
-            this.props.rightActions.length > MAX_RIGHT_ACTIONS && (
-              <>
-                <Icon
-                  fontSize={22}
-                  onClick={this._showFloatingMenu}
-                  style={styles.action}
-                  type="iconfont-ellipsis"
-                />
-                <FloatingMenu
-                  visible={this.state.floatingMenuVisible}
-                  items={this.props.rightActions
-                    .filter(Boolean)
-                    .slice(MAX_RIGHT_ACTIONS - 1)
-                    .map((action, item) => ({
-                      onClick: action.onPress,
-                      title: action.label,
-                    }))}
-                  onHidden={this._onHidden}
-                  position="bottom left"
-                  closeOnSelect={true}
-                />
-              </>
-            )}
+        <Box style={styles.rightActions}>
+          <Box style={styles.rightActionsWrapper}>
+            {this.props.rightActions &&
+              this.props.rightActions
+                .filter(Boolean)
+                .slice(
+                  0,
+                  this.props.rightActions && this.props.rightActions.length <= MAX_RIGHT_ACTIONS
+                    ? MAX_RIGHT_ACTIONS
+                    : MAX_RIGHT_ACTIONS - 1
+                )
+                .map((action, item) => renderAction(action))}
+            {this.props.rightActions &&
+              this.props.rightActions.length > MAX_RIGHT_ACTIONS && (
+                <>
+                  <Icon
+                    fontSize={22}
+                    onClick={this._showFloatingMenu}
+                    style={styles.action}
+                    type="iconfont-ellipsis"
+                  />
+                  <FloatingMenu
+                    visible={this.state.floatingMenuVisible}
+                    items={this.props.rightActions
+                      .filter(Boolean)
+                      .slice(MAX_RIGHT_ACTIONS - 1)
+                      .map((action, item) => ({
+                        onClick: action.onPress,
+                        title: action.label,
+                      }))}
+                    onHidden={this._onHidden}
+                    position="bottom left"
+                    closeOnSelect={true}
+                  />
+                </>
+              )}
+          </Box>
         </Box>
       </Box>
     )
@@ -187,15 +184,20 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-  rightActions: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-end',
-    // flex: 1, // still thinking about this
-    flexShrink: 1,
-    justifyContent: 'flex-end',
-  },
-  rightActionsPadding: {
-    paddingRight: Styles.globalMargins.tiny,
+  rightActions: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'flex-end',
+      // flex: 1, // still thinking about this
+      flexShrink: 1,
+      justifyContent: 'flex-end',
+    },
+    isIOS: {
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
+  rightActionsWrapper: {
+    ...Styles.globalStyles.flexBoxRow,
   },
   title: {
     color: Styles.globalColors.black_75,

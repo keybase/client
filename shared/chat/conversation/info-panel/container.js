@@ -13,7 +13,7 @@ import {Box} from '../../../common-adapters'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
+  onLeftAction: () => void,
 |}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -51,7 +51,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, onLeftAction}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   _onEditChannel: (teamname: string) =>
     dispatch(Route.navigateAppend([{props: {conversationIDKey, teamname}, selected: 'editChannel'}])),
@@ -94,7 +94,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   channelname: stateProps.channelname,
   description: stateProps.description,
   isPreview: stateProps.isPreview,
-  onBack: ownProps.onBack,
+  onLeftAction: ownProps.onLeftAction,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
@@ -133,17 +133,17 @@ const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
 
 const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) => ({
   // Used by HeaderHoc.
-  onBack: () => navigateUp && dispatch(navigateUp()),
+  onLeftAction: () => navigateUp && dispatch(navigateUp()),
 })
 
 const mergeSelectorProps = (stateProps, dispatchProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
-  onBack: dispatchProps.onBack,
+  onLeftAction: dispatchProps.onLeftAction,
 })
 
 type Props = {|
   conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
+  onLeftAction: () => void,
 |}
 
 class InfoPanelSelector extends React.PureComponent<Props> {
@@ -153,11 +153,11 @@ class InfoPanelSelector extends React.PureComponent<Props> {
     }
 
     return isMobile ? (
-      <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+      <ConnectedInfoPanel onLeftAction={this.props.onLeftAction} conversationIDKey={this.props.conversationIDKey} />
     ) : (
-      <Box onClick={this.props.onBack} style={clickCatcherStyle}>
+      <Box onClick={this.props.onLeftAction} style={clickCatcherStyle}>
         <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
-          <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+          <ConnectedInfoPanel onLeftAction={this.props.onLeftAction} conversationIDKey={this.props.conversationIDKey} />
         </Box>
       </Box>
     )

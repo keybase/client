@@ -58,7 +58,7 @@ const provider = Sb.createPropProviderWithCommon({
 const commonProps = {
   canDeleteHistory: true,
   canSetMinWriterRole: false,
-  onBack: Sb.unexpected('onBack'),
+  onLeftAction: Sb.unexpected('onLeftAction'),
   onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
   participants: [
     {
