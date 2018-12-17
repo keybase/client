@@ -61,6 +61,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
 
+  // $FlowIssue typed poorly and gone soon
   return {
     ...ownProps,
     _generalChannelConversationIDKey,
