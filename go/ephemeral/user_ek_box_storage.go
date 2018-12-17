@@ -146,6 +146,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	var result UserEKBoxedResponse
 	res, err := s.G().GetAPI().Get(apiArg)
 	if err != nil {
+		err = errFromAppStatus(err)
 		return userEK, err
 	}
 
