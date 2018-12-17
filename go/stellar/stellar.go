@@ -767,6 +767,56 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 		return nil, err
 	}
 
+	prepared, err := PrepareMiniChatPayments(m, walletState, senderSeed, convID, payments)
+	if err != nil {
+		return nil, err
+	}
+
+	resultList := make([]libkb.MiniChatPaymentResult, len(payments))
+
+	// need to submit tx one at a time, in order
+	for i := 0; i < len(prepared); i++ {
+		if prepared[i] == nil {
+			// this should never happen
+			return nil, errors.New("mini chat prepare failed")
+		}
+		mcpResult := libkb.MiniChatPaymentResult{Username: prepared[i].Username}
+		if prepared[i].Error != nil {
+			mcpResult.Error = prepared[i].Error
+		} else {
+			// submit the transaction
+			m.CDebugf("submitting payment seqno %d", prepared[i].Seqno)
+			var submitRes stellar1.PaymentResult
+			switch {
+			case prepared[i].Direct != nil:
+				submitRes, err = walletState.SubmitPayment(m.Ctx(), *prepared[i].Direct)
+			case prepared[i].Relay != nil:
+				submitRes, err = walletState.SubmitRelayPayment(m.Ctx(), *prepared[i].Relay)
+			default:
+				mcpResult.Error = errors.New("no direct or relay payment")
+			}
+
+			if err != nil {
+				mcpResult.Error = err
+			} else {
+				mcpResult.PaymentID = stellar1.NewPaymentID(submitRes.StellarID)
+			}
+		}
+		resultList[i] = mcpResult
+	}
+
+	return resultList, nil
+}
+
+type miniPrepared struct {
+	Username libkb.NormalizedUsername
+	Direct   *stellar1.PaymentDirectPost
+	Relay    *stellar1.PaymentRelayPost
+	Seqno    uint64
+	Error    error
+}
+
+func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]*miniPrepared, error) {
 	prepared := make(chan *miniPrepared)
 
 	sp := NewSeqnoProvider(m, walletState)
@@ -788,39 +838,12 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
-	resultList := make([]libkb.MiniChatPaymentResult, len(payments))
+	return preparedList, nil
 
-	// need to submit tx one at a time, in order
-	for i := 0; i < len(preparedList); i++ {
-		mcpResult := libkb.MiniChatPaymentResult{Username: preparedList[i].Username}
-		if preparedList[i].Error != nil {
-			mcpResult.Error = preparedList[i].Error
-		} else {
-			// submit the transaction
-			m.CDebugf("submitting payment seqno %d", preparedList[i].Seqno)
-			submitRes, err := walletState.SubmitPayment(m.Ctx(), preparedList[i].Post)
-			if err != nil {
-				mcpResult.Error = err
-			} else {
-				mcpResult.PaymentID = stellar1.NewPaymentID(submitRes.StellarID)
-			}
-		}
-		resultList[i] = mcpResult
-	}
-
-	return resultList, nil
-}
-
-type miniPrepared struct {
-	Username libkb.NormalizedUsername
-	Post     stellar1.PaymentDirectPost
-	Seqno    uint64
-	Error    error
 }
 
 func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *miniPrepared {
 	result := &miniPrepared{Username: payment.Username}
-
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
 	if err != nil {
 		result.Error = err
@@ -828,29 +851,32 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 	}
 
 	if recipient.AccountID == nil {
-		result.Error = errors.New("user has no stellar account")
-		return result
+		return prepareMiniChatPaymentRelay(m, remoter, sp, tb, senderSeed, convID, payment, recipient)
 	}
+	return prepareMiniChatPaymentDirect(m, remoter, sp, tb, senderSeed, convID, payment, recipient)
+}
 
+func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *miniPrepared {
+	result := &miniPrepared{Username: payment.Username}
 	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		result.Error = err
 		return result
 	}
 
-	result.Post = stellar1.PaymentDirectPost{
+	result.Direct = &stellar1.PaymentDirectPost{
 		FromDeviceID: m.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
 		QuickReturn:  true,
 	}
 	if convID != nil {
-		result.Post.ChatConversationID = stellar1.NewChatConversationID(convID)
+		result.Direct.ChatConversationID = stellar1.NewChatConversationID(convID)
 	}
 
 	xlmAmount := payment.Amount
 	if payment.Currency != "" && payment.Currency != "XLM" {
-		result.Post.DisplayAmount = payment.Amount
-		result.Post.DisplayCurrency = payment.Currency
+		result.Direct.DisplayAmount = payment.Amount
+		result.Direct.DisplayCurrency = payment.Currency
 		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
 		if err != nil {
 			result.Error = err
@@ -874,10 +900,73 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 		result.Error = err
 		return result
 	}
-	result.Post.SignedTransaction = signResult.Signed
+	result.Direct.SignedTransaction = signResult.Signed
 	result.Seqno = signResult.Seqno
 	return result
 
+}
+
+func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *miniPrepared {
+	result := &miniPrepared{Username: payment.Username}
+
+	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	xlmAmount := payment.Amount
+	var displayAmount, displayCurrency string
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		displayAmount = payment.Amount
+		displayCurrency = payment.Currency
+		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+	}
+
+	relay, err := relays.Create(relays.Input{
+		From:          stellar1.SecretKey(senderSeed),
+		AmountXLM:     xlmAmount,
+		EncryptFor:    appKey,
+		SeqnoProvider: sp,
+		Timebounds:    tb,
+	})
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	post := stellar1.PaymentRelayPost{
+		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
+		ToAssertion:       string(recipient.Input),
+		RelayAccount:      relay.RelayAccountID,
+		TeamID:            teamID,
+		BoxB64:            relay.EncryptedB64,
+		SignedTransaction: relay.FundTx.Signed,
+		DisplayAmount:     displayAmount,
+		DisplayCurrency:   displayCurrency,
+		QuickReturn:       true,
+	}
+	if recipient.User != nil {
+		post.To = &recipient.User.UV
+	}
+
+	result.Relay = &post
+	result.Seqno = relay.FundTx.Seqno
+
+	// XXX need this:
+	//	result.Relay.ChatConversationID = stellar1.NewChatConversationID(convID)
+
+	return result
 }
 
 // sendRelayPayment sends XLM through a relay account.
