@@ -1743,7 +1743,7 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		return nil
 	}
 	// Attempt to prefetch any unfurls in the background that are in the message text
-	go h.G().Unfurler.Prefetch(ctx, uid, arg.ConversationID, arg.Text)
+	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
 
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
