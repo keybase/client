@@ -808,7 +808,7 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 	return resultList, nil
 }
 
-type miniPrepared struct {
+type MiniPrepared struct {
 	Username libkb.NormalizedUsername
 	Direct   *stellar1.PaymentDirectPost
 	Relay    *stellar1.PaymentRelayPost
@@ -816,8 +816,8 @@ type miniPrepared struct {
 	Error    error
 }
 
-func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]*miniPrepared, error) {
-	prepared := make(chan *miniPrepared)
+func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]*MiniPrepared, error) {
+	prepared := make(chan *MiniPrepared)
 
 	sp := NewSeqnoProvider(m, walletState)
 	tb, err := getTimeboundsForSending(m, walletState)
@@ -832,7 +832,7 @@ func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, send
 	}
 
 	// prepared chan could be out of order, so sort by seqno
-	preparedList := make([]*miniPrepared, len(payments))
+	preparedList := make([]*MiniPrepared, len(payments))
 	for i := 0; i < len(payments); i++ {
 		preparedList[i] = <-prepared
 	}
@@ -842,8 +842,8 @@ func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, send
 
 }
 
-func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *miniPrepared {
-	result := &miniPrepared{Username: payment.Username}
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *MiniPrepared {
+	result := &MiniPrepared{Username: payment.Username}
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
 	if err != nil {
 		result.Error = err
@@ -856,8 +856,8 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 	return prepareMiniChatPaymentDirect(m, remoter, sp, tb, senderSeed, convID, payment, recipient)
 }
 
-func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *miniPrepared {
-	result := &miniPrepared{Username: payment.Username}
+func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
+	result := &MiniPrepared{Username: payment.Username}
 	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		result.Error = err
@@ -906,8 +906,8 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 
 }
 
-func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *miniPrepared {
-	result := &miniPrepared{Username: payment.Username}
+func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
+	result := &MiniPrepared{Username: payment.Username}
 
 	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
 	if err != nil {
