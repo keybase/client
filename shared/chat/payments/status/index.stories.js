@@ -8,6 +8,17 @@ import * as Sb from '../../../stories/storybook'
 import PaymentStatus from '.'
 import PaymentStatusError from './error'
 
+const provider = Sb.createPropProviderWithCommon({
+  PaymentPopup: p => ({
+    attachTo: Sb.action('mocked'),
+    message: Constants.makeMessageText(),
+    onHidden: Sb.action('onHidden'),
+    paymentID: WalletTypes.noPaymentID,
+    position: 'top center',
+    visible: false,
+  }),
+})
+
 const common = {
   allowPopup: true,
   isSendError: false,
@@ -43,6 +54,7 @@ const sendErrorProps = {
 const load = () => {
   Sb.storiesOf('Chat/Wallet/Status', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
+    .addDecorator(provider)
     .add('Message', () => {
       return (
         <Text type="Body">
