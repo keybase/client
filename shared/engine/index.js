@@ -54,8 +54,6 @@ class Engine {
   _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
   _onConnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
-  // Set to true to throw on errors. Used in testing
-  _failOnError: boolean = false
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -207,14 +205,6 @@ class Engine {
       )
     }
     logger.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
-
-    if (__DEV__ && this._failOnError) {
-      throw new Error(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${
-          response ? '. has response' : ''
-        }`
-      )
-    }
 
     response &&
       response.error &&
@@ -401,11 +391,6 @@ class Engine {
       })
       this._customResponseIncomingActionCreators[method] = customResponseIncomingCallMap[method]
     })
-  }
-
-  // Test want to fail on any error
-  setFailOnError() {
-    this._failOnError = true
   }
 
   // Register a named callback when we disconnect from the server. Call if we're already disconnected. Callback should produce an action

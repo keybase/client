@@ -11,7 +11,6 @@ class FakeEngine {
   dispatchWaitingAction() {}
   cancelSession() {}
   rpc() {}
-  setFailOnError() {}
   listenOnConnect() {}
   listenOnDisconnect() {}
   hasEverConnected() {}
