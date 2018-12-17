@@ -53,6 +53,10 @@ func (md modeDefault) PrefetchWorkers() int {
 	return defaultPrefetchWorkerQueueSize
 }
 
+func (md modeDefault) DefaultBlockRequestAction() BlockRequestAction {
+	return BlockRequestWithPrefetch
+}
+
 func (md modeDefault) RekeyWorkers() int {
 	return 16
 }
@@ -165,6 +169,10 @@ func (mm modeMinimal) BlockWorkers() int {
 
 func (mm modeMinimal) PrefetchWorkers() int {
 	return 0
+}
+
+func (mm modeMinimal) DefaultBlockRequestAction() BlockRequestAction {
+	return BlockRequestSolo
 }
 
 func (mm modeMinimal) RekeyWorkers() int {
@@ -358,7 +366,11 @@ func (mc modeConstrained) BlockWorkers() int {
 }
 
 func (mc modeConstrained) PrefetchWorkers() int {
-	return 0
+	return 1
+}
+
+func (mc modeConstrained) DefaultBlockRequestAction() BlockRequestAction {
+	return BlockRequestSolo
 }
 
 func (mc modeConstrained) RekeyWorkers() int {

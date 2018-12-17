@@ -1029,7 +1029,7 @@ func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ptr := rmd.Data().Dir.BlockPointer
 	return fbo.config.BlockOps().BlockRetriever().Request(
 		ctx, defaultOnDemandRequestPriority-1, rmd, ptr, NewDirBlock(),
-		TransientEntry, BlockRequestWithPrefetch)
+		TransientEntry, fbo.config.Mode().DefaultBlockRequestAction())
 }
 
 func (fbo *folderBranchOps) waitForRootBlockFetch(
@@ -1781,6 +1781,8 @@ func (fbo *folderBranchOps) getSuccessorMDForWriteLocked(
 	return fbo.getSuccessorMDForWriteLockedForFilename(ctx, lState, "")
 }
 
+// getMDForRekeyWriteLocked returns a nil `rmd` if it is a team TLF,
+// since that can't be rekeyed by KBFS.
 func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	ctx context.Context, lState *lockState) (
 	rmd *RootMetadata, lastWriterVerifyingKey kbfscrypto.VerifyingKey,
@@ -1790,6 +1792,10 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	md, err := fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdRekey)
 	if err != nil {
 		return nil, kbfscrypto.VerifyingKey{}, false, err
+	}
+
+	if md.TypeForKeying() == tlf.TeamKeying {
+		return nil, kbfscrypto.VerifyingKey{}, false, nil
 	}
 
 	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
@@ -6247,12 +6253,22 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 				return RekeyResult{}, err
 			}
 		}
+
+		head, _ = fbo.getHead(ctx, lState, mdNoCommit)
+		if head.TypeForKeying() == tlf.TeamKeying {
+			fbo.log.CDebugf(ctx, "A team TLF doesn't need a rekey")
+			return RekeyResult{}, nil
+		}
 	}
 
 	md, lastWriterVerifyingKey, rekeyWasSet, err :=
 		fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
 		return RekeyResult{}, err
+	}
+	if md == nil {
+		fbo.log.CDebugf(ctx, "A team TLF doesn't need a rekey")
+		return RekeyResult{}, nil
 	}
 
 	currKeyGen := md.LatestKeyGeneration()

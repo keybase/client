@@ -1511,3 +1511,38 @@ func TestCrBothSetMtimeDir(t *testing.T) {
 		),
 	)
 }
+
+// alice and bob both create the same dir structure and make and
+// rename the same file in it.  Regression for KBFS-2883.
+func TestCrBothCreateSameRenamedFileInSameNewDir(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/c/d/e", "foo"),
+			rename("a/c/d/e", "a/c/d/f"),
+		),
+		as(bob, noSync(),
+			mkfile("a/c/d/e", "foo"),
+			rename("a/c/d/e", "a/c/d/f"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", "c$": "DIR"}),
+			lsdir("a/c", m{"d$": "DIR"}),
+			lsdir("a/c/d", m{"f$": "FILE", crnameEsc("f", bob): "FILE"}),
+			read("a/c/d/f", "foo"),
+			read(crname("a/c/d/f", bob), "foo"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", "c$": "DIR"}),
+			lsdir("a/c", m{"d$": "DIR"}),
+			lsdir("a/c/d", m{"f$": "FILE", crnameEsc("f", bob): "FILE"}),
+			read("a/c/d/f", "foo"),
+			read(crname("a/c/d/f", bob), "foo"),
+		),
+	)
+}

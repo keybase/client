@@ -386,7 +386,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
-		action := BlockRequestWithPrefetch
+		action := fbo.config.Mode().DefaultBlockRequestAction()
 		if fbo.config.IsSyncedTlf(fbo.id()) {
 			action = action.AddSync()
 		}
@@ -469,23 +469,6 @@ func (fbo *folderBlockOps) getFileBlockHelperLocked(ctx context.Context,
 	}
 
 	return fblock, nil
-}
-
-// GetBlockForReading retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server.  The
-// returned block may have a generic type (not DirBlock or FileBlock).
-//
-// This should be called for "internal" operations, like conflict
-// resolution and state checking, which don't know what kind of block
-// the pointer refers to.  The block will not be cached, if it wasn't
-// in the cache already.
-func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, ptr BlockPointer, branch BranchName) (
-	Block, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getBlockHelperLocked(ctx, lState, kmd, ptr, branch,
-		NewCommonBlock, NoCacheEntry, path{}, blockRead)
 }
 
 // GetCleanEncodedBlocksSizeSum retrieves the sum of the encoded sizes
@@ -3366,7 +3349,7 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 		// No need to cache because it's already cached.
 		_ = fbo.config.BlockOps().BlockRetriever().Request(
 			ctx, updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
-			lifetime, BlockRequestWithPrefetch)
+			lifetime, fbo.config.Mode().DefaultBlockRequestAction())
 	}
 	// Cancel any prefetches for the old pointer from the prefetcher.
 	fbo.config.BlockOps().Prefetcher().CancelPrefetch(oldPtr)

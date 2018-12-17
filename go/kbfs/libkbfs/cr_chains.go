@@ -276,7 +276,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			// we find the type or not.
 			return nil
 		}
-		return NoChainFoundError{parentDir}
+		return errors.WithStack(NoChainFoundError{parentDir})
 	}
 
 	// We have to find the current parent directory block.  If the
@@ -745,7 +745,7 @@ func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byOriginal[original]
 	if !ok {
-		return BlockPointer{}, NoChainFoundError{original}
+		return BlockPointer{}, errors.WithStack(NoChainFoundError{original})
 	}
 	return chain.mostRecent, nil
 }
@@ -756,7 +756,7 @@ func (ccs *crChains) mostRecentFromOriginalOrSame(original BlockPointer) (
 	if err == nil {
 		// A satisfactory chain was found.
 		return ptr, nil
-	} else if _, ok := err.(NoChainFoundError); !ok {
+	} else if _, ok := errors.Cause(err).(NoChainFoundError); !ok {
 		// An unexpected error!
 		return BlockPointer{}, err
 	}
@@ -767,7 +767,7 @@ func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byMostRecent[mostRecent]
 	if !ok {
-		return BlockPointer{}, NoChainFoundError{mostRecent}
+		return BlockPointer{}, errors.WithStack(NoChainFoundError{mostRecent})
 	}
 	return chain.original, nil
 }
@@ -778,7 +778,7 @@ func (ccs *crChains) originalFromMostRecentOrSame(mostRecent BlockPointer) (
 	if err == nil {
 		// A satisfactory chain was found.
 		return ptr, nil
-	} else if _, ok := err.(NoChainFoundError); !ok {
+	} else if _, ok := errors.Cause(err).(NoChainFoundError); !ok {
 		// An unexpected error!
 		return BlockPointer{}, err
 	}
@@ -1062,7 +1062,7 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	}
 	chain, ok := ccs.byOriginal[oldOriginal]
 	if !ok {
-		return NoChainFoundError{oldOriginal}
+		return errors.WithStack(NoChainFoundError{oldOriginal})
 	}
 	if _, ok := ccs.byOriginal[newOriginal]; ok {
 		return errors.Errorf("crChains.changeOriginal: New original %v "+
@@ -1086,6 +1086,20 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	if ri, ok := ccs.renamedOriginals[oldOriginal]; ok {
 		delete(ccs.renamedOriginals, oldOriginal)
 		ccs.renamedOriginals[newOriginal] = ri
+	}
+	for p, info := range ccs.renamedOriginals {
+		changed := false
+		if info.originalOldParent == oldOriginal {
+			info.originalOldParent = newOriginal
+			changed = true
+		}
+		if info.originalNewParent == oldOriginal {
+			info.originalNewParent = newOriginal
+			changed = true
+		}
+		if changed {
+			ccs.renamedOriginals[p] = info
+		}
 	}
 	return nil
 }
