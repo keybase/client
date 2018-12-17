@@ -3653,7 +3653,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 	}
 
 	err = fbo.config.DirtyBlockCache().Put(
-		fbo.id(), newPtr, fbo.branch(), newBlock)
+		ctx, fbo.id(), newPtr, fbo.branch(), newBlock)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}

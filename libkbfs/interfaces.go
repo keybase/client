@@ -1196,6 +1196,21 @@ type BlockCache interface {
 // struct{}.
 type DirtyPermChan <-chan struct{}
 
+// DirtyBlockCacheSimple is a bare-bones interface for a dirty block
+// cache.
+type DirtyBlockCacheSimple interface {
+	// Get gets the block associated with the given block ID.  Returns
+	// the dirty block for the given ID, if one exists.
+	Get(
+		ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
+		branch BranchName) (Block, error)
+	// Put stores a dirty block currently identified by the
+	// given block pointer and branch name.
+	Put(
+		ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName,
+		block Block) error
+}
+
 type isDirtyProvider interface {
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
@@ -1211,13 +1226,8 @@ type isDirtyProvider interface {
 // they must be deleted explicitly.
 type DirtyBlockCache interface {
 	isDirtyProvider
+	DirtyBlockCacheSimple
 
-	// Get gets the block associated with the given block ID.  Returns
-	// the dirty block for the given ID, if one exists.
-	Get(tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error)
-	// Put stores a dirty block currently identified by the
-	// given block pointer and branch name.
-	Put(tlfID tlf.ID, ptr BlockPointer, branch BranchName, block Block) error
 	// Delete removes the dirty block associated with the given block
 	// pointer and branch from the cache.  No error is returned if no
 	// block exists for the given ID.

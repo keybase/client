@@ -4830,6 +4830,58 @@ func (mr *MockBlockCacheMockRecorder) GetCleanBytesCapacity() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCleanBytesCapacity", reflect.TypeOf((*MockBlockCache)(nil).GetCleanBytesCapacity))
 }
 
+// MockDirtyBlockCacheSimple is a mock of DirtyBlockCacheSimple interface
+type MockDirtyBlockCacheSimple struct {
+	ctrl     *gomock.Controller
+	recorder *MockDirtyBlockCacheSimpleMockRecorder
+}
+
+// MockDirtyBlockCacheSimpleMockRecorder is the mock recorder for MockDirtyBlockCacheSimple
+type MockDirtyBlockCacheSimpleMockRecorder struct {
+	mock *MockDirtyBlockCacheSimple
+}
+
+// NewMockDirtyBlockCacheSimple creates a new mock instance
+func NewMockDirtyBlockCacheSimple(ctrl *gomock.Controller) *MockDirtyBlockCacheSimple {
+	mock := &MockDirtyBlockCacheSimple{ctrl: ctrl}
+	mock.recorder = &MockDirtyBlockCacheSimpleMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDirtyBlockCacheSimple) EXPECT() *MockDirtyBlockCacheSimpleMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockDirtyBlockCacheSimple) Get(ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, tlfID, ptr, branch)
+	ret0, _ := ret[0].(Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockDirtyBlockCacheSimpleMockRecorder) Get(ctx, tlfID, ptr, branch interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDirtyBlockCacheSimple)(nil).Get), ctx, tlfID, ptr, branch)
+}
+
+// Put mocks base method
+func (m *MockDirtyBlockCacheSimple) Put(ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName, block Block) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Put", ctx, tlfID, ptr, branch, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Put indicates an expected call of Put
+func (mr *MockDirtyBlockCacheSimpleMockRecorder) Put(ctx, tlfID, ptr, branch, block interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDirtyBlockCacheSimple)(nil).Put), ctx, tlfID, ptr, branch, block)
+}
+
 // MockisDirtyProvider is a mock of isDirtyProvider interface
 type MockisDirtyProvider struct {
 	ctrl     *gomock.Controller
@@ -4905,32 +4957,32 @@ func (mr *MockDirtyBlockCacheMockRecorder) IsDirty(tlfID, ptr, branch interface{
 }
 
 // Get mocks base method
-func (m *MockDirtyBlockCache) Get(tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error) {
+func (m *MockDirtyBlockCache) Get(ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", tlfID, ptr, branch)
+	ret := m.ctrl.Call(m, "Get", ctx, tlfID, ptr, branch)
 	ret0, _ := ret[0].(Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockDirtyBlockCacheMockRecorder) Get(tlfID, ptr, branch interface{}) *gomock.Call {
+func (mr *MockDirtyBlockCacheMockRecorder) Get(ctx, tlfID, ptr, branch interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDirtyBlockCache)(nil).Get), tlfID, ptr, branch)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDirtyBlockCache)(nil).Get), ctx, tlfID, ptr, branch)
 }
 
 // Put mocks base method
-func (m *MockDirtyBlockCache) Put(tlfID tlf.ID, ptr BlockPointer, branch BranchName, block Block) error {
+func (m *MockDirtyBlockCache) Put(ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName, block Block) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", tlfID, ptr, branch, block)
+	ret := m.ctrl.Call(m, "Put", ctx, tlfID, ptr, branch, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockDirtyBlockCacheMockRecorder) Put(tlfID, ptr, branch, block interface{}) *gomock.Call {
+func (mr *MockDirtyBlockCacheMockRecorder) Put(ctx, tlfID, ptr, branch, block interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDirtyBlockCache)(nil).Put), tlfID, ptr, branch, block)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDirtyBlockCache)(nil).Put), ctx, tlfID, ptr, branch, block)
 }
 
 // Delete mocks base method

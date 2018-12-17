@@ -2225,7 +2225,7 @@ type fileBlockMap map[BlockPointer]map[string]*FileBlock
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	lState *lockState, chains *crChains, mergedMostRecent BlockPointer,
 	parentPath path, name string, ptr BlockPointer, blocks fileBlockMap,
-	dirtyBcache DirtyBlockCache) (BlockPointer, error) {
+	dirtyBcache DirtyBlockCacheSimple) (BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo
 
 	file := parentPath.ChildPath(name, ptr)
@@ -2241,7 +2241,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		return BlockPointer{}, err
 	}
 
-	block, err := dirtyBcache.Get(cr.fbo.id(), newPtr, cr.fbo.branch())
+	block, err := dirtyBcache.Get(ctx, cr.fbo.id(), newPtr, cr.fbo.branch())
 	if err != nil {
 		return BlockPointer{}, err
 	}
@@ -2286,7 +2286,7 @@ func (cr *ConflictResolver) doOneAction(
 	mergedPaths map[BlockPointer]path, chargedTo keybase1.UserOrTeamID,
 	actionMap map[BlockPointer]crActionList, lbc localBcache,
 	doneActions map[BlockPointer]bool, newFileBlocks fileBlockMap,
-	dirtyBcache DirtyBlockCache) error {
+	dirtyBcache DirtyBlockCacheSimple) error {
 	unmergedMostRecent := unmergedPath.tailPointer()
 	unmergedChain, ok :=
 		unmergedChains.byMostRecent[unmergedMostRecent]
@@ -2445,7 +2445,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	actionMap map[BlockPointer]crActionList, lbc localBcache,
-	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) error {
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCacheSimple) error {
 	mergedMD := mergedChains.mostRecentChainMDInfo
 	chargedTo, err := chargedToForTLF(
 		ctx, cr.config.KBPKI(), cr.config.KBPKI(), mergedMD.GetTlfHandle())
@@ -3042,8 +3042,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
-	lbc localBcache, newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
-	writerLocked bool) (err error) {
+	lbc localBcache, newFileBlocks fileBlockMap,
+	dirtyBcache DirtyBlockCacheSimple, writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(
 		ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains, mostRecentMergedMD)

@@ -384,7 +384,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	}
 
 	if block, err := fbo.config.DirtyBlockCache().Get(
-		fbo.id(), ptr, branch); err == nil {
+		ctx, fbo.id(), ptr, branch); err == nil {
 		return block, nil
 	}
 
@@ -811,7 +811,7 @@ func (fbo *folderBlockOps) ClearChargedTo(lState *lockState) {
 // directs where the resulting block copies are stored.
 func (fbo *folderBlockOps) deepCopyFileLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
-	dirtyBcache DirtyBlockCache, dataVer DataVer) (
+	dirtyBcache DirtyBlockCacheSimple, dataVer DataVer) (
 	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
 	// Deep copying doesn't alter any data in use, it only makes copy,
 	// so only a read lock is needed.
@@ -828,7 +828,8 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 
 func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, file path, bps blockPutState,
-	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
+	dirtyBcache DirtyBlockCacheSimple, topBlock *FileBlock) (
+	[]BlockInfo, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
@@ -843,7 +844,8 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 
 func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, file path, bps blockPutState,
-	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
+	dirtyBcache DirtyBlockCacheSimple, topBlock *FileBlock) (
+	[]BlockInfo, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
@@ -967,9 +969,9 @@ func (fbo *folderBlockOps) newDirDataLocked(lState *lockState,
 			return fbo.getDirLocked(
 				ctx, lState, kmd, ptr, dir, rtype)
 		},
-		func(ptr BlockPointer, block Block) error {
+		func(ctx context.Context, ptr BlockPointer, block Block) error {
 			return fbo.config.DirtyBlockCache().Put(
-				fbo.id(), ptr, dir.Branch, block)
+				ctx, fbo.id(), ptr, dir.Branch, block)
 		}, fbo.log)
 }
 
@@ -1012,7 +1014,7 @@ func (fbo *folderBlockOps) newDirDataWithLBCLocked(lState *lockState,
 			}
 			return block, wasDirty, nil
 		},
-		func(ptr BlockPointer, block Block) error {
+		func(_ context.Context, ptr BlockPointer, block Block) error {
 			lbc[ptr] = block.(*DirBlock)
 			return nil
 		}, fbo.log)
@@ -1565,14 +1567,15 @@ func (fbo *folderBlockOps) getOrCreateDirtyFileLocked(lState *lockState,
 // This is useful when operating on a dirty copy of a block that may
 // already be in the cache.
 func (fbo *folderBlockOps) cacheBlockIfNotYetDirtyLocked(
-	lState *lockState, ptr BlockPointer, file path, block Block) error {
+	ctx context.Context, lState *lockState, ptr BlockPointer, file path,
+	block Block) error {
 	fbo.blockLock.AssertLocked(lState)
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
 	needsCaching, isSyncing := df.setBlockDirty(ptr)
 
 	if needsCaching {
-		err := fbo.config.DirtyBlockCache().Put(fbo.id(), ptr, file.Branch,
-			block)
+		err := fbo.config.DirtyBlockCache().Put(
+			ctx, fbo.id(), ptr, file.Branch, block)
 		if err != nil {
 			return err
 		}
@@ -1667,7 +1670,8 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	}
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
-	topBlock, err := dirtyBcache.Get(fbo.id(), file.tailPointer(), fbo.branch())
+	topBlock, err := dirtyBcache.Get(
+		ctx, fbo.id(), file.tailPointer(), fbo.branch())
 	fblock, ok := topBlock.(*FileBlock)
 	if err != nil || !ok {
 		fbo.log.CWarningf(ctx, "Couldn't find dirtied "+
@@ -1710,7 +1714,7 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 			continue
 		}
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
-			lState, newPtr, file, b); err != nil {
+			ctx, lState, newPtr, file, b); err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 		}
 		fbo.log.CDebugf(ctx, "Deleting dirty ptr %v after recoverable error",
@@ -1783,21 +1787,21 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 			return fbo.getFileBlockLocked(
 				ctx, lState, kmd, ptr, file, rtype)
 		},
-		func(ptr BlockPointer, block Block) error {
+		func(ctx context.Context, ptr BlockPointer, block Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(
-				lState, ptr, file, block)
+				ctx, lState, ptr, file, block)
 		}, fbo.log)
 }
 
 func (fbo *folderBlockOps) newFileDataWithCache(lState *lockState,
 	file path, chargedTo keybase1.UserOrTeamID, kmd KeyMetadata,
-	dirtyBcache DirtyBlockCache) *fileData {
+	dirtyBcache DirtyBlockCacheSimple) *fileData {
 	fbo.blockLock.AssertAnyLocked(lState)
 	return newFileData(file, chargedTo, fbo.config.Crypto(),
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
 			file path, rtype blockReqType) (*FileBlock, bool, error) {
-			block, err := dirtyBcache.Get(file.Tlf, ptr, file.Branch)
+			block, err := dirtyBcache.Get(ctx, file.Tlf, ptr, file.Branch)
 			if fblock, ok := block.(*FileBlock); ok && err == nil {
 				return fblock, true, nil
 			}
@@ -1808,8 +1812,8 @@ func (fbo *folderBlockOps) newFileDataWithCache(lState *lockState,
 			return fbo.getFileBlockLocked(
 				ctx, lState, kmd, ptr, file, rtype)
 		},
-		func(ptr BlockPointer, block Block) error {
-			return dirtyBcache.Put(file.Tlf, ptr, file.Branch, block)
+		func(ctx context.Context, ptr BlockPointer, block Block) error {
+			return dirtyBcache.Put(ctx, file.Tlf, ptr, file.Branch, block)
 		}, fbo.log)
 }
 
@@ -2659,14 +2663,14 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		// avoid unrefing it as well.
 		si.removeReplacedBlock(ctx, fbo.log, oldPtr)
 
-		err = df.setBlockSyncing(oldPtr)
+		err = df.setBlockSyncing(ctx, oldPtr)
 		if err != nil {
 			return nil, nil, syncState, nil, err
 		}
 		syncState.redirtyOnRecoverableError[newInfo.BlockPointer] = oldPtr
 	}
 
-	err = df.setBlockSyncing(file.tailPointer())
+	err = df.setBlockSyncing(ctx, file.tailPointer())
 	if err != nil {
 		return nil, nil, syncState, nil, err
 	}

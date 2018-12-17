@@ -29,7 +29,8 @@ type blockGetterFn func(context.Context, KeyMetadata, BlockPointer,
 	path, blockReqType) (block BlockWithPtrs, wasDirty bool, err error)
 
 // dirtyBlockCacher writes dirty blocks to a cache.
-type dirtyBlockCacher func(ptr BlockPointer, block Block) error
+type dirtyBlockCacher func(
+	ctx context.Context, ptr BlockPointer, block Block) error
 
 type blockTree struct {
 	file      path
@@ -640,7 +641,7 @@ func (bt *blockTree) newRightBlock(
 			newTopBlock.SetIndirectPtrType(0, dType)
 			info, _ := newTopBlock.IndirectPtr(0)
 			ptr := info.BlockPointer
-			err = bt.cacher(ptr, parentBlocks[0].pblock)
+			err = bt.cacher(ctx, ptr, parentBlocks[0].pblock)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -694,7 +695,7 @@ func (bt *blockTree) newRightBlock(
 			pblock = rblock
 		}
 
-		err = bt.cacher(newPtr, rblock)
+		err = bt.cacher(ctx, newPtr, rblock)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -707,7 +708,7 @@ func (bt *blockTree) newRightBlock(
 	ptr := bt.rootBlockPointer()
 	for i := 0; i <= lowestAncestorWithRoom; i++ {
 		pb := parentBlocks[i]
-		if err := bt.cacher(ptr, pb.pblock); err != nil {
+		if err := bt.cacher(ctx, ptr, pb.pblock); err != nil {
 			return nil, nil, err
 		}
 		newDirtyPtrs = append(newDirtyPtrs, ptr)
@@ -731,7 +732,7 @@ func (bt *blockTree) setParentOffsets(
 		// modified.
 		childInfo, _ := parents[level].childIPtr()
 		if err := bt.cacher(
-			childInfo.BlockPointer, parents[level+1].pblock); err != nil {
+			ctx, childInfo.BlockPointer, parents[level+1].pblock); err != nil {
 			return nil, nil, err
 		}
 		newDirtyPtrs = append(newDirtyPtrs, childInfo.BlockPointer)
@@ -917,7 +918,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 			i := len(newParents) - 2
 			childPtr := newParents[i].childBlockPtr()
 			if err := bt.cacher(
-				childPtr, newImmedPblock); err != nil {
+				ctx, childPtr, newImmedPblock); err != nil {
 				return nil, nil, 0, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, childPtr)
@@ -932,7 +933,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 				return nil, nil, 0, err
 			}
 			if err := bt.cacher(
-				rightLeafInfo.BlockPointer, leafBlock); err != nil {
+				ctx, rightLeafInfo.BlockPointer, leafBlock); err != nil {
 				return nil, nil, 0, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, rightLeafInfo.BlockPointer)
@@ -967,11 +968,12 @@ func (bt *blockTree) shiftBlocksToFillHole(
 // markParentsDirty caches all the blocks in `parentBlocks` as dirty,
 // and returns the dirtied block pointers as well as any block infos
 // with non-zero encoded sizes that will now need to be unreferenced.
-func (bt *blockTree) markParentsDirty(parentBlocks []parentBlockAndChildIndex) (
+func (bt *blockTree) markParentsDirty(
+	ctx context.Context, parentBlocks []parentBlockAndChildIndex) (
 	dirtyPtrs []BlockPointer, unrefs []BlockInfo, err error) {
 	parentPtr := bt.rootBlockPointer()
 	for _, pb := range parentBlocks {
-		if err := bt.cacher(parentPtr, pb.pblock); err != nil {
+		if err := bt.cacher(ctx, parentPtr, pb.pblock); err != nil {
 			return nil, unrefs, err
 		}
 		dirtyPtrs = append(dirtyPtrs, parentPtr)

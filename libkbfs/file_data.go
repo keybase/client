@@ -337,7 +337,7 @@ func (fd *fileData) createIndirectBlock(
 	// Mark the old block ID as not dirty, so that we will treat the
 	// old block ID as newly dirtied in cacheBlockIfNotYetDirtyLocked.
 	df.setBlockNotDirty(fd.rootBlockPointer())
-	err = fd.tree.cacher(fd.rootBlockPointer(), fblock)
+	err = fd.tree.cacher(ctx, fd.rootBlockPointer(), fblock)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +529,8 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 			newlyDirtiedChildBytes -= int64(oldLen)
 		}
 
-		newDirtyPtrs, newUnrefs, err := fd.tree.markParentsDirty(parentBlocks)
+		newDirtyPtrs, newUnrefs, err := fd.tree.markParentsDirty(
+			ctx, parentBlocks)
 		unrefs = append(unrefs, newUnrefs...)
 		if err != nil {
 			return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
@@ -539,7 +540,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 		}
 
 		// keep the old block ID while it's dirty
-		if err = fd.tree.cacher(ptr, block); err != nil {
+		if err = fd.tree.cacher(ctx, ptr, block); err != nil {
 			return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 		}
 		dirtyMap[ptr] = true
@@ -551,7 +552,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 	// it's to a block that's not currently being sync'd, since this
 	// top-most block will always be in the dirtyFiles map.  We do
 	// this even for 0-byte writes, which indicate a forced sync.
-	if err = fd.tree.cacher(fd.rootBlockPointer(), topBlock); err != nil {
+	if err = fd.tree.cacher(ctx, fd.rootBlockPointer(), topBlock); err != nil {
 		return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 	}
 	dirtyMap[fd.rootBlockPointer()] = true
@@ -599,7 +600,7 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 
 	if switchToIndirect {
 		topBlock.IPtrs[0].Holes = true
-		err = fd.tree.cacher(topBlock.IPtrs[0].BlockPointer, oldTopBlock)
+		err = fd.tree.cacher(ctx, topBlock.IPtrs[0].BlockPointer, oldTopBlock)
 		if err != nil {
 			return DirEntry{}, nil, err
 		}
@@ -624,7 +625,7 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 	// deferred, even if it's to a block that's not currently
 	// being sync'd, since this top-most block will always be in
 	// the fileBlockStates map.
-	err = fd.tree.cacher(fd.rootBlockPointer(), topBlock)
+	err = fd.tree.cacher(ctx, fd.rootBlockPointer(), topBlock)
 	if err != nil {
 		return DirEntry{}, nil, err
 	}
@@ -670,7 +671,7 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	// Need to mark the parents dirty before calling
 	// `getIndirectBlocksForOffsetRange`, so that function will see
 	// the new copies when fetching the blocks.
-	newDirtyPtrs, newUnrefs, err := fd.tree.markParentsDirty(parentBlocks)
+	newDirtyPtrs, newUnrefs, err := fd.tree.markParentsDirty(ctx, parentBlocks)
 	unrefs = append(unrefs, newUnrefs...)
 	if err != nil {
 		return DirEntry{}, nil, unrefs, newlyDirtiedChildBytes, err
@@ -751,7 +752,8 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 								newlyDirtiedChildBytes, err
 						}
 						pblock.IPtrs = pblock.IPtrs[:removeStartingFromIndex]
-						err = fd.tree.cacher(parentInfo.BlockPointer, pblock)
+						err = fd.tree.cacher(
+							ctx, parentInfo.BlockPointer, pblock)
 						if err != nil {
 							return DirEntry{}, nil, nil,
 								newlyDirtiedChildBytes, err
@@ -779,7 +781,8 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
 		// the dirtyFiles map.
-		if err = fd.tree.cacher(fd.rootBlockPointer(), topBlock); err != nil {
+		err = fd.tree.cacher(ctx, fd.rootBlockPointer(), topBlock)
+		if err != nil {
 			return DirEntry{}, nil, nil, newlyDirtiedChildBytes, err
 		}
 		dirtyMap[fd.rootBlockPointer()] = true
@@ -790,7 +793,7 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	newDe.Size = size
 
 	// Keep the old block ID while it's dirty.
-	if err = fd.tree.cacher(ptr, block); err != nil {
+	if err = fd.tree.cacher(ctx, ptr, block); err != nil {
 		return DirEntry{}, nil, nil, newlyDirtiedChildBytes, err
 	}
 	dirtyMap[ptr] = true
@@ -889,7 +892,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 				return unrefs, err
 			}
 			rblock.Contents = append(extraBytes, rblock.Contents...)
-			if err = fd.tree.cacher(rPtr, rblock); err != nil {
+			if err = fd.tree.cacher(ctx, rPtr, rblock); err != nil {
 				return unrefs, err
 			}
 			endOfBlock = startOff + Int64Offset(len(block.Contents))
@@ -911,7 +914,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 				}
 			}
 
-			_, newUnrefs, err := fd.tree.markParentsDirty(rParentBlocks)
+			_, newUnrefs, err := fd.tree.markParentsDirty(ctx, rParentBlocks)
 			unrefs = append(unrefs, newUnrefs...)
 			if err != nil {
 				return unrefs, err
@@ -945,7 +948,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 
 			// For the right block, adjust offset or delete as needed.
 			if len(rblock.Contents) > 0 {
-				if err = fd.tree.cacher(rPtr, rblock); err != nil {
+				if err = fd.tree.cacher(ctx, rPtr, rblock); err != nil {
 					return unrefs, err
 				}
 
@@ -968,7 +971,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 			}
 
 			// Mark all parents as dirty.
-			_, newUnrefs, err := fd.tree.markParentsDirty(rParentBlocks)
+			_, newUnrefs, err := fd.tree.markParentsDirty(ctx, rParentBlocks)
 			unrefs = append(unrefs, newUnrefs...)
 			if err != nil {
 				return unrefs, err
@@ -1061,7 +1064,7 @@ func (fd *fileData) findIPtrsAndClearSize(
 					newPath := make([]parentBlockAndChildIndex, level+1)
 					copy(newPath, path[:level+1])
 					newPath[level].childIndex = i
-					_, _, err = fd.tree.markParentsDirty(newPath)
+					_, _, err = fd.tree.markParentsDirty(ctx, newPath)
 					if err != nil {
 						return nil, err
 					}
@@ -1104,7 +1107,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		}
 		newTopPtr.SetWriter(fd.tree.chargedTo)
 
-		if err = fd.tree.cacher(newTopPtr, newTopBlock); err != nil {
+		if err = fd.tree.cacher(ctx, newTopPtr, newTopBlock); err != nil {
 			return zeroPtr, nil, err
 		}
 
@@ -1187,7 +1190,8 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 							"No copied child block found for ptr %v",
 							iptr.BlockPointer)
 					}
-					if err = fd.tree.cacher(newPtr, childBlock); err != nil {
+					err = fd.tree.cacher(ctx, newPtr, childBlock)
+					if err != nil {
 						return zeroPtr, nil, err
 					}
 				}
@@ -1218,7 +1222,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 			"No copied root block found for ptr %v",
 			fd.rootBlockPointer())
 	}
-	if err = fd.tree.cacher(newTopPtr, newTopBlock); err != nil {
+	if err = fd.tree.cacher(ctx, newTopPtr, newTopBlock); err != nil {
 		return zeroPtr, nil, err
 	}
 

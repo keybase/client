@@ -90,9 +90,9 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	// Simple dirty bcaches don't need to be shut down.
 
-	getter := func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, _ KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*FileBlock, bool, error) {
-		block, err := dirtyBcache.Get(fup.id(), ptr, fup.branch())
+		block, err := dirtyBcache.Get(ctx, fup.id(), ptr, fup.branch())
 		if err != nil {
 			return nil, false, err
 		}
@@ -103,11 +103,11 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 		}
 		return fblock, true, nil
 	}
-	cacher := func(ptr BlockPointer, block Block) error {
-		return dirtyBcache.Put(fup.id(), ptr, fup.branch(), block)
+	cacher := func(ctx context.Context, ptr BlockPointer, block Block) error {
+		return dirtyBcache.Put(ctx, fup.id(), ptr, fup.branch(), block)
 	}
 	// Start off the cache with the new block
-	err = cacher(ptr, block)
+	err = cacher(ctx, ptr, block)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	}
 
 	// There might be a new top block.
-	topBlock, err := dirtyBcache.Get(fup.id(), ptr, fup.branch())
+	topBlock, err := dirtyBcache.Get(ctx, fup.id(), ptr, fup.branch())
 	if err != nil {
 		return err
 	}
@@ -415,8 +415,8 @@ const (
 func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata,
 	chargedTo keybase1.UserOrTeamID, node *pathTreeNode, stopAt BlockPointer,
-	lbc localBcache, newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
-	copyBehavior prepFolderCopyBehavior) (
+	lbc localBcache, newFileBlocks fileBlockMap,
+	dirtyBcache DirtyBlockCacheSimple, copyBehavior prepFolderCopyBehavior) (
 	blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
@@ -1145,7 +1145,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	lState *lockState, md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCacheSimple,
 	copyBehavior prepFolderCopyBehavior) (
 	updates map[BlockPointer]BlockPointer, bps blockPutState,
 	blocksToDelete []kbfsblock.ID, err error) {

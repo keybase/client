@@ -521,7 +521,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 			}
 			return fblock, false, nil
 		},
-		func(ptr BlockPointer, block Block) error {
+		func(_ context.Context, ptr BlockPointer, block Block) error {
 			return nil
 		}, log)
 
