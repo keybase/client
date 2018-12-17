@@ -31,7 +31,7 @@ foreach my $os (@oses) {
         printf STDERR ("%d of %d complete (%.0f%%)", $i, $total_packages, $percent_complete);
 
         # This should include vendored dependencies.
-        my @deps = split /\n/, `go list -f '{{ print (join .TestImports "\\n") "\\n" (join .Imports "\\n") }}' "$package" 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
+        my @deps = split /\n/, `go list -f '{{ printf "%s\\n%s\\n%s" (join .TestImports "\\n") (join .Imports "\\n") "$package" }}' "$package" 2>/dev/null | grep 'vendor\\|github.com/keybase/client' | sort | uniq`;
         my $deps = join(' ', @deps);
         my @indirect_deps = split /\n/, `go list -f '{{ join .Deps "\\n" }}' $deps 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
         push(@deps, @indirect_deps);
