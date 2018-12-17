@@ -24,7 +24,12 @@ func NewPermanentUnboxingError(inner error) types.UnboxingError {
 type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
-	return fmt.Sprintf("Unable to decrypt chat message: %s", e.inner.Error())
+	switch err := e.inner.(type) {
+	case EphemeralUnboxingError:
+		return err.Error()
+	default:
+		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
+	}
 }
 
 func (e PermanentUnboxingError) IsPermanent() bool { return true }
