@@ -93,15 +93,14 @@ const Header = (props: HeaderProps) =>
         </Kb.Text>
       )}
       {!!props.errorDetails && (
-        <Kb.Text
-          type="BodyExtrabold"
-          style={Styles.collapseStyles([
-            styles.textAlignCenter,
-            {color: Styles.globalColors.red, maxWidth: 200},
-          ])}
-        >
-          {props.errorDetails}
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal" style={{maxWidth: 200}}>
+          <Kb.Text
+            type="BodyExtrabold"
+            style={Styles.collapseStyles([styles.textAlignCenter, {color: Styles.globalColors.red}])}
+          >
+            {props.errorDetails}
+          </Kb.Text>
+        </Kb.Box2>
       )}
     </Kb.Box2>
   )
