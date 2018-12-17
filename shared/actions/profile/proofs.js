@@ -108,8 +108,7 @@ const addServiceProof = (_, action: ProfileGen.AddProofPayload) =>
 
     const checkProofTask = yield Saga._fork(function*() {
       const action = yield Saga.take(ProfileGen.checkProof)
-      // how does sigid work? TODO
-      if (/*! action.payload.sigID && */ _outputInstructionsResponse) {
+      if (_outputInstructionsResponse) {
         _outputInstructionsResponse.result()
         _outputInstructionsResponse = null
       }
