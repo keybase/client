@@ -38,7 +38,9 @@ const ChannelHeader = (props: Props) => (
       <Kb.Avatar teamname={props.teamName} size={16} />
       <Kb.Text
         type={Styles.isMobile
-          ? 'BodySemibold'
+          ? props.smallTeam
+            ? 'BodySemibold'
+            : 'BodyTinySemibold'
           : props.smallTeam
             ? 'BodyBig'
             : 'BodySmallSemibold'}
