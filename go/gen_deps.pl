@@ -10,6 +10,8 @@ my $dep_packages = {};
 my @oses = ('linux', 'darwin', 'windows');
 my $os_packages = {};
 my $total_packages = 0;
+# Any packages to exclude. This needs to include CGO packages since those aren't cross-compilable.
+my $excluded_pkg_regex = 'github.com/coreos/pkg/dlopen';
 
 $ENV{'GOARCH'} = 'amd64';
 foreach my $os (@oses) {
@@ -33,7 +35,7 @@ foreach my $os (@oses) {
         # This should include vendored dependencies.
         my @deps = split /\n/, `go list -f '{{ printf "%s\\n%s\\n%s" (join .TestImports "\\n") (join .Imports "\\n") "$package" }}' "$package" 2>/dev/null | grep 'vendor\\|github.com/keybase/client' | sort | uniq`;
         my $deps = join(' ', @deps);
-        my @indirect_deps = split /\n/, `go list -f '{{ join .Deps "\\n" }}' $deps 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client'`;
+        my @indirect_deps = split /\n/, `go list -f '{{ join .Deps "\\n" }}' $deps 2>/dev/null | sort | uniq | grep 'vendor\\|github.com\\/keybase\\/client' | grep -v '$excluded_pkg_regex'`;
         push(@deps, @indirect_deps);
 
         foreach my $dep (do { my %deps; grep { !$deps{$_}++ } @deps}) {
