@@ -133,7 +133,7 @@ type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
 type _LoadMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
+type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID, updateOnly?: boolean|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _LoadSendAssetChoicesPayload = $ReadOnly<{|from: Types.AccountID, to: string|}>
@@ -141,7 +141,7 @@ type _LoadWalletDisclaimerPayload = void
 type _LoadedMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: Types.PaymentID|}>
 type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
-type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
+type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail, updateOnly?: boolean|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
 type _PendingPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pending: Array<Types.PaymentResult>|}>
 type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>|}>
@@ -295,7 +295,7 @@ export const createLoadRequestDetail = (payload: _LoadRequestDetailPayload) => (
  */
 export const createLoadDisplayCurrency = (payload: _LoadDisplayCurrencyPayload) => ({payload, type: loadDisplayCurrency})
 /**
- * Load extra detail for one given payment
+ * Load extra detail for one given payment. If updateOnly is set, only save if we've loaded this payment before.
  */
 export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({payload, type: loadPaymentDetail})
 /**
@@ -447,7 +447,7 @@ export const createLinkedExistingAccountError = (payload: _LinkedExistingAccount
 export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload) => ({payload, type: validatedSecretKey})
 export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloadError) => ({error: true, payload, type: validatedSecretKey})
 /**
- * Update a payment with additional detail
+ * Update a payment with additional detail. If updateOnly is set, only save if we've loaded this payment before.
  */
 export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({payload, type: paymentDetailReceived})
 /**

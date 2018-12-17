@@ -469,8 +469,12 @@ const paymentToYourInfoAndCounterparty = (
 
 const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
-  paymentDetail: Types.PaymentDetail
+  paymentDetail: Types.PaymentDetail,
+  updateOnly: boolean
 ): I.Map<Types.PaymentID, Types.Payment> => {
+  if (updateOnly && !map.get(paymentDetail.id)) {
+    return map
+  }
   return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
 }
 

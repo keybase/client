@@ -111,9 +111,10 @@
       "accountID": "Types.AccountID"
     },
     "loadPaymentDetail": {
-      "_description": "Load extra detail for one given payment",
+      "_description": "Load extra detail for one given payment. If updateOnly is set, only save if we've loaded this payment before.",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
+      "paymentID": "Types.PaymentID",
+      "updateOnly?": "boolean"
     },
     "loadWalletDisclaimer": {
       "_description": "Load wallet disclaimer"
@@ -201,9 +202,10 @@
       "requestee": "string"
     },
     "paymentDetailReceived": {
-      "_description": "Update a payment with additional detail",
+      "_description": "Update a payment with additional detail. If updateOnly is set, only save if we've loaded this payment before.",
       "accountID": "Types.AccountID",
-      "payment": "Types.PaymentDetail"
+      "payment": "Types.PaymentDetail",
+      "updateOnly?": "boolean"
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",

@@ -50,7 +50,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({builtRequest: Constants.makeBuiltRequest()})
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-        Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
+        Constants.updatePaymentDetail(paymentsMap, action.payload.payment, !!action.payload.updateOnly)
       )
     case WalletsGen.paymentsReceived:
       return state

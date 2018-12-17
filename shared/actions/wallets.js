@@ -437,6 +437,7 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
       payment: Constants.rpcPaymentDetailToPaymentDetail(res),
+      updateOnly: action.payload.updateOnly,
     })
   )
 
@@ -639,6 +640,13 @@ const setupEngineListeners = () => {
       Saga.put(
         WalletsGen.createAccountUpdateReceived({
           account: Constants.accountResultToAccount(account),
+        })
+      ),
+    'stellar.1.notify.paymentStatusNotification': ({accountID, paymentID}) =>
+      Saga.put(
+        WalletsGen.createLoadPaymentDetail({
+          accountID: Types.stringToAccountID(accountID),
+          paymentID: Types.rpcPaymentIDToPaymentID(paymentID),
         })
       ),
     'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
