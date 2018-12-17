@@ -70,16 +70,8 @@ const props = {
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
-    fruit: (item, {position: {end, start}, text}, preview) => {
-      const newText = text.substring(0, start) + '$' + item + (preview ? '' : ' ') + text.substring(end)
-      const newPos = start + item.length + (preview ? 1 : 2) // start of marker previously + length of inserted text + length of space
-      return {selection: {end: newPos, start: newPos}, text: newText}
-    },
-    users: (item, {position: {end, start}, text}, preview) => {
-      const newText = text.substring(0, start) + '@' + item + (preview ? '' : ' ') + text.substring(end)
-      const newPos = start + item.length + (preview ? 1 : 2)
-      return {selection: {end: newPos, start: newPos}, text: newText}
-    },
+    fruit: (fruit, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
+    users: (username, tData, preview) => Suggestors.standardTransformer(`@${username}`, tData, preview),
   },
 }
 

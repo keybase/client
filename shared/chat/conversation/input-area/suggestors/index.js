@@ -11,6 +11,18 @@ import SuggestionList from './suggestion-list'
 
 // Note: transformation doesn't work with controlled inputs! TODO
 
+type TransformerData = {text: string, position: {start: number, end: number}}
+
+const standardTransformer = (
+  toInsert: string,
+  {text, position: {start, end}}: TransformerData,
+  preview: boolean
+) => {
+  const newText = `${text.substring(0, start)}${toInsert}${preview ? '' : ' '}${text.substring(end)}`
+  const newSelection = start + toInsert.length + (preview ? 0 : 1)
+  return {selection: {end: newSelection, start: newSelection}, text: newText}
+}
+
 // For better performance, try not to recreate these objects on every render
 // i.e. don't instantiate the objects inline (like dataSources={{...}})
 type AddSuggestorsProps = {
@@ -35,7 +47,7 @@ type AddSuggestorsProps = {
   transformers: {
     [key: string]: (
       item: any,
-      {text: string, position: {start: number, end: number}},
+      tData: TransformerData,
       preview: boolean
     ) => {
       text: string,
@@ -367,4 +379,5 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
   return SuggestorsComponent
 }
 
+export {standardTransformer}
 export default AddSuggestors

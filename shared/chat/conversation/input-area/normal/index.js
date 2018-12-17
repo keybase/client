@@ -5,6 +5,7 @@ import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
 import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
+import {standardTransformer} from '../suggestors'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
 
@@ -39,15 +40,9 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (
-  emoji: {colons: string, native: string},
-  {position: {end, start}, text},
-  preview
-) => {
+const emojiTransformer = (emoji: {colons: string, native: string}, tData, preview) => {
   const toInsert = Styles.isMobile ? emoji.native : emoji.colons
-  const newText = `${text.substring(0, start)}${toInsert}${preview ? '' : ' '}${text.substring(end)}`
-  const newSelection = start + toInsert.length + (preview ? 0 : 1)
-  return {selection: {end: newSelection, start: newSelection}, text: newText}
+  return standardTransformer(toInsert, tData, preview)
 }
 
 type InputState = {
@@ -217,15 +212,8 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformUserSuggestion = (
-    input: {fullName: string, username: string},
-    {position: {end, start}, text}: {position: {end: number, start: number}, text: string},
-    preview: boolean
-  ) => {
-    const newText = `${text.substring(0, start)}@${input.username}${preview ? '' : ' '}${text.substring(end)}`
-    const newSelection = start + input.username.length + (preview ? 1 : 2)
-    return {selection: {end: newSelection, start: newSelection}, text: newText}
-  }
+  _transformUserSuggestion = (input: {fullName: string, username: string}, tData, preview: boolean) =>
+    standardTransformer(`@${input.username}`, tData, preview)
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
@@ -248,11 +236,8 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformChannelSuggestion = (channelname: string, {position: {end, start}, text}, preview) => {
-    const newText = `${text.substring(0, start)}#${channelname}${preview ? '' : ' '}${text.substring(end)}`
-    const newSelection = start + channelname.length + (preview ? 1 : 2)
-    return {selection: {end: newSelection, start: newSelection}, text: newText}
-  }
+  _transformChannelSuggestion = (channelname, tData, preview) =>
+    standardTransformer(`#${channelname}`, tData, preview)
 
   render = () => {
     const {suggestUsers, suggestChannels, ...platformInputProps} = this.props
