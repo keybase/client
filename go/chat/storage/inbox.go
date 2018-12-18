@@ -526,11 +526,10 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 			*query.TlfVisibility != conv.Metadata.Visibility {
 			ok = false
 		}
-		isUnread := conv.IsUnread()
-		if query.UnreadOnly && !isUnread {
+		if query.UnreadOnly && !conv.IsUnread() {
 			ok = false
 		}
-		if query.ReadOnly && isUnread {
+		if query.ReadOnly && conv.IsUnread() {
 			ok = false
 		}
 		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
