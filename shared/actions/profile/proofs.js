@@ -5,7 +5,6 @@ import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import {getEngine} from '../../engine'
 import {peopleTab} from '../../constants/tabs'
 
 const checkProof = (state, action: ProfileGen.CheckProofPayload) =>
@@ -79,147 +78,139 @@ const addServiceProof = (_, action: ProfileGen.AddProofPayload) =>
         return // already handled by addProof
     }
 
-    let _promptUsernameResponse: ?Object = null
-    let _outputInstructionsResponse: ?Object = null
+    let _promptUsernameResponse
+    let _outputInstructionsResponse
+
+    const inputCancelError = {
+      code: RPCTypes.constantsStatusCode.scinputcanceled,
+      desc: 'Cancel Add Proof',
+    }
 
     yield Saga.put(ProfileGen.createUpdateSigID({sigID: null}))
 
-    const proveStartProofChanMap: any = RPCTypes.proveStartProofRpcChannelMap(
-      [
-        'keybase.1.proveUi.promptUsername',
-        'keybase.1.proveUi.outputInstructions',
-        'keybase.1.proveUi.promptOverwrite',
-        'keybase.1.proveUi.outputPrechecks',
-        'keybase.1.proveUi.preProofWarning',
-        'keybase.1.proveUi.okToCheck',
-        'keybase.1.proveUi.displayRecheckWarning',
-        'finished',
-      ],
-      {
-        auto: false,
-        force: true,
-        promptPosted: false,
-        service,
-        username: '',
+    let canceled = false
+    // TODO maybe remove engine cancelrpc?
+    const cancelResponse = r => r.error(inputCancelError)
+
+    const cancelTask = yield Saga._fork(function*() {
+      yield Saga.take(ProfileGen.cancelAddProof)
+      canceled = true
+      if (_promptUsernameResponse) {
+        cancelResponse(_promptUsernameResponse)
+        _promptUsernameResponse = null
       }
-    )
 
-    while (true) {
-      const incoming = yield proveStartProofChanMap.race({
-        racers: {
-          cancel: Saga.take(ProfileGen.cancelAddProof),
-          checkProof: Saga.take(ProfileGen.checkProof),
-          submitUsername: Saga.take(ProfileGen.submitUsername),
-        },
-      })
+      if (_outputInstructionsResponse) {
+        cancelResponse(_outputInstructionsResponse)
+        _outputInstructionsResponse = null
+      }
+    })
 
-      // yield Saga.put(ProfileGen.createWaiting({waiting: false}))
+    const checkProofTask = yield Saga._fork(function*() {
+      yield Saga.take(ProfileGen.checkProof)
+      if (_outputInstructionsResponse) {
+        _outputInstructionsResponse.result()
+        _outputInstructionsResponse = null
+      }
+    })
 
-      if (incoming.cancel) {
-        proveStartProofChanMap.close()
-
-        const InputCancelError = {
-          code: RPCTypes.constantsStatusCode.scinputcanceled,
-          desc: 'Cancel Add Proof',
-        }
-        if (_promptUsernameResponse) {
-          getEngine().cancelRPC(_promptUsernameResponse, InputCancelError)
-          _promptUsernameResponse = null
-        }
-
-        if (_outputInstructionsResponse) {
-          getEngine().cancelRPC(_outputInstructionsResponse, InputCancelError)
-          _outputInstructionsResponse = null
-        }
-        // yield Saga.put(ProfileGen.createWaiting({waiting: false}))
-      } else if (incoming.submitUsername) {
-        yield Saga.put(ProfileGen.createCleanupUsername())
-        if (_promptUsernameResponse) {
-          yield Saga.put(
-            ProfileGen.createUpdateErrorText({
-              errorCode: null,
-              errorText: '',
-            })
-          )
-          const state = yield* Saga.selectState()
-          const username = state.profile.username
-          _promptUsernameResponse.result(username)
-          _promptUsernameResponse = null
-
-          // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-        }
-      } else if (incoming.checkProof) {
-        if (!incoming.checkProof.sigID && _outputInstructionsResponse) {
-          _outputInstructionsResponse.result()
-          _outputInstructionsResponse = null
-          // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-        }
-      } else if (incoming['keybase.1.proveUi.promptUsername']) {
-        _promptUsernameResponse = incoming['keybase.1.proveUi.promptUsername'].response
-        if (incoming['keybase.1.proveUi.promptUsername'].params.prevError) {
-          yield Saga.put(
-            ProfileGen.createUpdateErrorText({
-              errorCode: incoming['keybase.1.proveUi.promptUsername'].params.prevError.code,
-              errorText: incoming['keybase.1.proveUi.promptUsername'].params.prevError.desc,
-            })
-          )
-        }
-        yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']}))
-      } else if (incoming['keybase.1.proveUi.outputInstructions']) {
-        if (service === 'dnsOrGenericWebSite') {
-          // We don't get this directly (yet) so we parse this out
-          try {
-            const match = incoming['keybase.1.proveUi.outputInstructions'].params.instructions.data.match(
-              /<url>(http[s]+):\/\//
-            )
-            const protocol = match && match[1]
-            yield Saga.put(
-              ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'})
-            )
-          } catch (_) {
-            yield Saga.put(ProfileGen.createUpdatePlatform({platform: 'http'}))
-          }
-        }
-
+    const submitUsernameTask = yield Saga._fork(function*() {
+      yield Saga.take(ProfileGen.submitUsername)
+      yield Saga.put(ProfileGen.createCleanupUsername())
+      if (_promptUsernameResponse) {
         yield Saga.put(
-          ProfileGen.createUpdateProofText({
-            proof: incoming['keybase.1.proveUi.outputInstructions'].params.proof,
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
           })
         )
-        _outputInstructionsResponse = incoming['keybase.1.proveUi.outputInstructions'].response
-        yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['postProof']}))
-      } else if (incoming.finished) {
-        yield Saga.put(ProfileGen.createUpdateSigID({sigID: incoming.finished.params.sigID}))
-        if (incoming.finished.error) {
-          logger.warn('Error making proof')
-          yield Saga.put(
-            ProfileGen.createUpdateErrorText({
-              errorCode: incoming.finished.error.code,
-              errorText: incoming.finished.error.desc,
-            })
-          )
-        } else {
-          logger.info('Start Proof done: ', incoming.finished.params.sigID)
-          yield Saga.put(ProfileGen.createCheckProof())
-        }
-        break
-      } else if (incoming['keybase.1.proveUi.promptOverwrite']) {
-        incoming['keybase.1.proveUi.promptOverwrite'].response.result(true)
-        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-      } else if (incoming['keybase.1.proveUi.outputPrechecks']) {
-        incoming['keybase.1.proveUi.outputPrechecks'].response.result()
-        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-      } else if (incoming['keybase.1.proveUi.preProofWarning']) {
-        incoming['keybase.1.proveUi.preProofWarning'].response.result(true)
-        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-      } else if (incoming['keybase.1.proveUi.okToCheck']) {
-        incoming['keybase.1.proveUi.okToCheck'].response.result(true)
-        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
-      } else if (incoming['keybase.1.proveUi.displayRecheckWarning']) {
-        incoming['keybase.1.proveUi.displayRecheckWarning'].response.result()
-        // yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+        const state = yield* Saga.selectState()
+        _promptUsernameResponse.result(state.profile.username)
+        _promptUsernameResponse = null
       }
+    })
+
+    const promptUsername = ({prevError}, response) => {
+      if (canceled) {
+        cancelResponse(response)
+        return
+      }
+
+      _promptUsernameResponse = response
+      const actions = []
+      if (prevError) {
+        actions.push(
+          Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
+        )
+      }
+      actions.push(
+        Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']}))
+      )
+      return actions
     }
+
+    const outputInstructions = ({instructions, proof}, response) => {
+      if (canceled) {
+        cancelResponse(response)
+        return
+      }
+
+      const actions = []
+      _outputInstructionsResponse = response
+      if (service === 'dnsOrGenericWebSite') {
+        // We don't get this directly (yet) so we parse this out
+        try {
+          const match = instructions.data.match(/<url>(http[s]+):\/\//)
+          const protocol = match && match[1]
+          actions.push(
+            Saga.put(ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'}))
+          )
+        } catch (_) {
+          actions.push(Saga.put(ProfileGen.createUpdatePlatform({platform: 'http'})))
+        }
+      }
+
+      actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
+      actions.push(
+        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['postProof']}))
+      )
+      return actions
+    }
+
+    const responseYes = (_, response) => response.result(true)
+
+    try {
+      const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
+        customResponseIncomingCallMap: {
+          'keybase.1.proveUi.okToCheck': responseYes,
+          'keybase.1.proveUi.outputInstructions': outputInstructions,
+          'keybase.1.proveUi.preProofWarning': responseYes,
+          'keybase.1.proveUi.promptOverwrite': responseYes,
+          'keybase.1.proveUi.promptUsername': promptUsername,
+        },
+        incomingCallMap: {
+          'keybase.1.proveUi.displayRecheckWarning': () => {},
+          'keybase.1.proveUi.outputPrechecks': () => {},
+        },
+        params: {
+          auto: false,
+          force: true,
+          promptPosted: false,
+          service,
+          username: '',
+        },
+        waitingKey: Constants.waitingKey,
+      })
+      yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
+      logger.info('Start Proof done: ', sigID)
+      yield Saga.put(ProfileGen.createCheckProof())
+    } catch (error) {
+      logger.warn('Error making proof')
+      yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    }
+    cancelTask.cancel()
+    checkProofTask.cancel()
+    submitUsernameTask.cancel()
   })
 
 const cancelAddProof = state =>
