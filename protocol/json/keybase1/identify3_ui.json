@@ -58,7 +58,7 @@
       "request": [
         {
           "name": "guiID",
-          "type": "Identify3Assertion"
+          "type": "Identify3GUIID"
         },
         {
           "name": "key",

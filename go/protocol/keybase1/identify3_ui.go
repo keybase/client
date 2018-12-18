@@ -88,7 +88,7 @@ type ShowTrackerArg struct {
 }
 
 type Identify3UpdateRowArg struct {
-	GuiID    Identify3Assertion `codec:"guiID" json:"guiID"`
+	GuiID    Identify3GUIID     `codec:"guiID" json:"guiID"`
 	Key      string             `codec:"key" json:"key"`
 	Value    string             `codec:"value" json:"value"`
 	SiteURL  string             `codec:"siteURL" json:"siteURL"`
