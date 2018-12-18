@@ -50,4 +50,8 @@ func (f fakeUIRouter) GetIdentify3UIAdapter(_ libkb.MetaContext, _ keybase1.Iden
 	return nil, nil
 }
 
+func (f fakeUIRouter) GetIdentify3UI(libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
+	return nil, nil
+}
+
 func (f fakeUIRouter) Shutdown() {}

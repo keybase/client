@@ -25,13 +25,17 @@ protocol identify3Ui {
     BLUE_1,
     RED_2,
     BLACK_3,
-    GREEN_4
+    GREEN_4,
+    GRAY_5,
+    YELLOW_6,
+    ORANGE_7
   }
 
   enum Identify3ResultType {
     OK_0,
     BROKEN_1,
-    NEEDS_UPGRADE_2
+    NEEDS_UPGRADE_2,
+    CANCELED_3
   }
 
 
@@ -48,18 +52,17 @@ protocol identify3Ui {
     string proofURL,               // http://twitter.com/bob/post/1234
     Identify3RowState state,       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
     array<Identify3RowMeta> metas, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
-    Identify3RowColor color        // 'blue' | 'red' | 'black' | 'green',
+    Identify3RowColor color        // 'blue' | 'red' | 'black' | 'green' | 'gray'
   ) oneway;
 
-  void identify3UpdateDetails(
+  @lint("ignore")
+  void identify3UserReset(
+    Identify3GUIID guiID           // id used to tie these things together
+  ) oneway;
+
+  void identify3UpdateUserCard(
     Identify3GUIID guiID,          // id used to tie these things together
-    boolean followsYou,
-    boolean followThem,
-    int followersCount,
-    int followingCount,
-    string bio,
-    string location,
-    array<string> publishedTeams
+    UserCard card
   ) oneway;
 
   void identify3TrackerTimedOut(
