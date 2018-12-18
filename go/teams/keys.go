@@ -66,7 +66,7 @@ type PerTeamSharedSecretBoxes struct {
 	Nonce            string                        `json:"nonce"`
 	PrevKey          *prevKeySealedEncoded         `json:"prev"`
 	Boxes            map[keybase1.UID]string       `json:"boxes"`
-	EPBPS            string                        `json:"public_summary"` // encoded, packed box public summary
+	BoxSummaryHash   string                        `json:"public_summary"` // encoded hash of the packed box public summary
 	boxPublicSummary *boxPublicSummary             // not exported, therefore, won't be JSON'ed
 }
 
@@ -213,18 +213,14 @@ func (t *TeamKeyManager) sharedBoxes(secret keybase1.PerTeamKeySeed, generation 
 	if err != nil {
 		return nil, err
 	}
-	epbps, err := boxPublicSummary.EncodeToString()
-	if err != nil {
-		return nil, err
-	}
 
 	return &PerTeamSharedSecretBoxes{
 		Generation:       generation,
 		EncryptingKid:    senderNaclDHKey.GetKID(),
 		Nonce:            nonce.PrefixEncoded(),
 		Boxes:            boxes,
+		BoxSummaryHash:   boxPublicSummary.EncodeToString(),
 		boxPublicSummary: boxPublicSummary,
-		EPBPS:            epbps,
 	}, nil
 }
 

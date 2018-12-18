@@ -73,6 +73,12 @@ func NewCmdChatAPIListenRunner(g *libkb.GlobalContext) *CmdChatAPIListen {
 	}
 }
 
+func sendPing(cli keybase1.SessionClient) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	return cli.SessionPing(ctx)
+}
+
 func (c *CmdChatAPIListen) Run() error {
 	display := &chatNotificationDisplay{
 		Contextified: libkb.NewContextified(c.G()),
@@ -84,6 +90,11 @@ func (c *CmdChatAPIListen) Run() error {
 	channels := keybase1.NotificationChannels{
 		Chat:    true,
 		Chatdev: c.subscribeDev,
+	}
+
+	sessionClient, err := GetSessionClient(c.G())
+	if err != nil {
+		return err
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -99,6 +110,9 @@ func (c *CmdChatAPIListen) Run() error {
 
 	display.errorf("Listening for chat notifications...\n")
 	for {
+		if err := sendPing(sessionClient); err != nil {
+			return fmt.Errorf("connection to service lost: error during ping: %v", err)
+		}
 		time.Sleep(time.Second)
 	}
 }

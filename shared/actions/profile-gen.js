@@ -22,11 +22,8 @@ export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
 export const generatePgp = 'profile:generatePgp'
 export const onClickAvatar = 'profile:onClickAvatar'
-export const onClickFollowers = 'profile:onClickFollowers'
-export const onClickFollowing = 'profile:onClickFollowing'
 export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
 export const revokeFinish = 'profile:revokeFinish'
-export const revokeWaiting = 'profile:revokeWaiting'
 export const showUserProfile = 'profile:showUserProfile'
 export const submitBTCAddress = 'profile:submitBTCAddress'
 export const submitRevokeProof = 'profile:submitRevokeProof'
@@ -41,7 +38,6 @@ export const updateProofText = 'profile:updateProofText'
 export const updateSigID = 'profile:updateSigID'
 export const updateUsername = 'profile:updateUsername'
 export const uploadAvatar = 'profile:uploadAvatar'
-export const waiting = 'profile:waiting'
 
 // Payload Types
 type _AddProofPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
@@ -56,20 +52,16 @@ type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = $ReadOnly<{|shouldStoreKeyOnServer: boolean|}>
 type _GeneratePgpPayload = void
 type _OnClickAvatarPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
-type _OnClickFollowersPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
-type _OnClickFollowingPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
 type _OutputInstructionsActionLinkPayload = void
 type _RevokeFinishPayload = void
 type _RevokeFinishPayloadError = $ReadOnly<{|error: string|}>
-type _RevokeWaitingPayload = $ReadOnly<{|waiting: boolean|}>
 type _ShowUserProfilePayload = $ReadOnly<{|username: string|}>
 type _SubmitBTCAddressPayload = void
 type _SubmitRevokeProofPayload = $ReadOnly<{|proofId: string|}>
 type _SubmitUsernamePayload = void
 type _SubmitZcashAddressPayload = void
-type _UpdateErrorTextPayload = $ReadOnly<{|errorText?: ?string, errorCode?: ?number|}>
-type _UpdatePgpInfoPayload = $ReadOnly<{|info: $Shape<Types.PgpInfo>|}>
-type _UpdatePgpInfoPayloadError = $ReadOnly<{|error: Types.PgpInfoError|}>
+type _UpdateErrorTextPayload = $ReadOnly<{|errorText: string, errorCode: ?number|}>
+type _UpdatePgpInfoPayload = $ReadOnly<{|pgpEmail1?: string, pgpEmail2?: string, pgpEmail3?: string, pgpErrorText?: string, pgpFullName?: string|}>
 type _UpdatePgpPublicKeyPayload = $ReadOnly<{|publicKey: string|}>
 type _UpdatePlatformPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
 type _UpdateProofStatusPayload = $ReadOnly<{|found: boolean, status: RPCTypes.ProofStatus|}>
@@ -77,9 +69,12 @@ type _UpdateProofTextPayload = $ReadOnly<{|proof: string|}>
 type _UpdateSigIDPayload = $ReadOnly<{|sigID: ?RPCTypes.SigID|}>
 type _UpdateUsernamePayload = $ReadOnly<{|username: string|}>
 type _UploadAvatarPayload = $ReadOnly<{|filename: string, crop?: RPCTypes.ImageCropRect|}>
-type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
+/**
+ * Update any fields
+ */
+export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload) => ({payload, type: updatePgpInfo})
 export const createAddProof = (payload: _AddProofPayload) => ({payload, type: addProof})
 export const createBackToProfile = (payload: _BackToProfilePayload) => ({payload, type: backToProfile})
 export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({payload, type: cancelAddProof})
@@ -92,20 +87,15 @@ export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({paylo
 export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({payload, type: finishedWithKeyGen})
 export const createGeneratePgp = (payload: _GeneratePgpPayload) => ({payload, type: generatePgp})
 export const createOnClickAvatar = (payload: _OnClickAvatarPayload) => ({payload, type: onClickAvatar})
-export const createOnClickFollowers = (payload: _OnClickFollowersPayload) => ({payload, type: onClickFollowers})
-export const createOnClickFollowing = (payload: _OnClickFollowingPayload) => ({payload, type: onClickFollowing})
 export const createOutputInstructionsActionLink = (payload: _OutputInstructionsActionLinkPayload) => ({payload, type: outputInstructionsActionLink})
 export const createRevokeFinish = (payload: _RevokeFinishPayload) => ({payload, type: revokeFinish})
 export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({error: true, payload, type: revokeFinish})
-export const createRevokeWaiting = (payload: _RevokeWaitingPayload) => ({payload, type: revokeWaiting})
 export const createShowUserProfile = (payload: _ShowUserProfilePayload) => ({payload, type: showUserProfile})
 export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload) => ({payload, type: submitBTCAddress})
 export const createSubmitRevokeProof = (payload: _SubmitRevokeProofPayload) => ({payload, type: submitRevokeProof})
 export const createSubmitUsername = (payload: _SubmitUsernamePayload) => ({payload, type: submitUsername})
 export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload) => ({payload, type: submitZcashAddress})
 export const createUpdateErrorText = (payload: _UpdateErrorTextPayload) => ({payload, type: updateErrorText})
-export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload) => ({payload, type: updatePgpInfo})
-export const createUpdatePgpInfoError = (payload: _UpdatePgpInfoPayloadError) => ({error: true, payload, type: updatePgpInfo})
 export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) => ({payload, type: updatePgpPublicKey})
 export const createUpdatePlatform = (payload: _UpdatePlatformPayload) => ({payload, type: updatePlatform})
 export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({payload, type: updateProofStatus})
@@ -113,7 +103,6 @@ export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({pay
 export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({payload, type: updateSigID})
 export const createUpdateUsername = (payload: _UpdateUsernamePayload) => ({payload, type: updateUsername})
 export const createUploadAvatar = (payload: _UploadAvatarPayload) => ({payload, type: uploadAvatar})
-export const createWaiting = (payload: _WaitingPayload) => ({payload, type: waiting})
 
 // Action Payloads
 export type AddProofPayload = {|+payload: _AddProofPayload, +type: 'profile:addProof'|}
@@ -128,12 +117,9 @@ export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: '
 export type FinishedWithKeyGenPayload = {|+payload: _FinishedWithKeyGenPayload, +type: 'profile:finishedWithKeyGen'|}
 export type GeneratePgpPayload = {|+payload: _GeneratePgpPayload, +type: 'profile:generatePgp'|}
 export type OnClickAvatarPayload = {|+payload: _OnClickAvatarPayload, +type: 'profile:onClickAvatar'|}
-export type OnClickFollowersPayload = {|+payload: _OnClickFollowersPayload, +type: 'profile:onClickFollowers'|}
-export type OnClickFollowingPayload = {|+payload: _OnClickFollowingPayload, +type: 'profile:onClickFollowing'|}
 export type OutputInstructionsActionLinkPayload = {|+payload: _OutputInstructionsActionLinkPayload, +type: 'profile:outputInstructionsActionLink'|}
 export type RevokeFinishPayload = {|+payload: _RevokeFinishPayload, +type: 'profile:revokeFinish'|}
 export type RevokeFinishPayloadError = {|+error: true, +payload: _RevokeFinishPayloadError, +type: 'profile:revokeFinish'|}
-export type RevokeWaitingPayload = {|+payload: _RevokeWaitingPayload, +type: 'profile:revokeWaiting'|}
 export type ShowUserProfilePayload = {|+payload: _ShowUserProfilePayload, +type: 'profile:showUserProfile'|}
 export type SubmitBTCAddressPayload = {|+payload: _SubmitBTCAddressPayload, +type: 'profile:submitBTCAddress'|}
 export type SubmitRevokeProofPayload = {|+payload: _SubmitRevokeProofPayload, +type: 'profile:submitRevokeProof'|}
@@ -141,7 +127,6 @@ export type SubmitUsernamePayload = {|+payload: _SubmitUsernamePayload, +type: '
 export type SubmitZcashAddressPayload = {|+payload: _SubmitZcashAddressPayload, +type: 'profile:submitZcashAddress'|}
 export type UpdateErrorTextPayload = {|+payload: _UpdateErrorTextPayload, +type: 'profile:updateErrorText'|}
 export type UpdatePgpInfoPayload = {|+payload: _UpdatePgpInfoPayload, +type: 'profile:updatePgpInfo'|}
-export type UpdatePgpInfoPayloadError = {|+error: true, +payload: _UpdatePgpInfoPayloadError, +type: 'profile:updatePgpInfo'|}
 export type UpdatePgpPublicKeyPayload = {|+payload: _UpdatePgpPublicKeyPayload, +type: 'profile:updatePgpPublicKey'|}
 export type UpdatePlatformPayload = {|+payload: _UpdatePlatformPayload, +type: 'profile:updatePlatform'|}
 export type UpdateProofStatusPayload = {|+payload: _UpdateProofStatusPayload, +type: 'profile:updateProofStatus'|}
@@ -149,7 +134,6 @@ export type UpdateProofTextPayload = {|+payload: _UpdateProofTextPayload, +type:
 export type UpdateSigIDPayload = {|+payload: _UpdateSigIDPayload, +type: 'profile:updateSigID'|}
 export type UpdateUsernamePayload = {|+payload: _UpdateUsernamePayload, +type: 'profile:updateUsername'|}
 export type UploadAvatarPayload = {|+payload: _UploadAvatarPayload, +type: 'profile:uploadAvatar'|}
-export type WaitingPayload = {|+payload: _WaitingPayload, +type: 'profile:waiting'|}
 
 // All Actions
 // prettier-ignore
@@ -166,12 +150,9 @@ export type Actions =
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
   | OnClickAvatarPayload
-  | OnClickFollowersPayload
-  | OnClickFollowingPayload
   | OutputInstructionsActionLinkPayload
   | RevokeFinishPayload
   | RevokeFinishPayloadError
-  | RevokeWaitingPayload
   | ShowUserProfilePayload
   | SubmitBTCAddressPayload
   | SubmitRevokeProofPayload
@@ -179,7 +160,6 @@ export type Actions =
   | SubmitZcashAddressPayload
   | UpdateErrorTextPayload
   | UpdatePgpInfoPayload
-  | UpdatePgpInfoPayloadError
   | UpdatePgpPublicKeyPayload
   | UpdatePlatformPayload
   | UpdateProofStatusPayload
@@ -187,5 +167,4 @@ export type Actions =
   | UpdateSigIDPayload
   | UpdateUsernamePayload
   | UploadAvatarPayload
-  | WaitingPayload
   | {type: 'common:resetStore', payload: null}
