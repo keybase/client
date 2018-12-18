@@ -3,23 +3,17 @@ declare export function memoize1Shallow<F, A1>(func: F, equalityCheck?: (a: A1, 
 
 declare export function memoize1<A, R>(
   func: (a: A) => R,
-  equalityCheck1?: (old: A, a: A) => boolean
+  equalityCheck?: (newArgs: [A], lastArgs: [A]) => boolean
 ): (a: A) => R
 declare export function memoize2<A, B, R>(
   func: (a: A, b: B) => R,
-  equalityCheck1?: (a: A, old: A) => boolean,
-  equalityCheck2?: (b: B, old: B) => boolean
+  equalityCheck?: (newArgs: [A, B], lastArgs: [A, B]) => boolean
 ): (a: A, b: B) => R
 declare export function memoize3<A, B, C, R>(
   func: (a: A, b: B, c: C) => R,
-  equalityCheck1?: (a: A, old: A) => boolean,
-  equalityCheck2?: (b: B, old: B) => boolean,
-  equalityCheck3?: (c: C, old: C) => boolean
+  equalityCheck?: (newArgs: [A, B, C], lastArgs: [A, B, C]) => boolean
 ): (a: A, b: B, c: C) => R
 declare export function memoize4<A, B, C, D, R>(
   func: (a: A, b: B, c: C, d: D) => R,
-  equalityCheck1?: (a: A, old: A) => boolean,
-  equalityCheck2?: (b: B, old: B) => boolean,
-  equalityCheck3?: (c: C, old: C) => boolean,
-  equalityCheck4?: (d: D, old: D) => boolean
+  equalityCheck?: (newArgs: [A, B, C, D], lastArgs: [A, B, C, D]) => boolean
 ): (a: A, b: B, c: C, d: D) => R
