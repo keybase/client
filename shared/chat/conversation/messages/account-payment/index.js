@@ -13,6 +13,7 @@ import {
   collapseStyles,
   globalColors,
   globalMargins,
+  isMobile,
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
@@ -78,7 +79,7 @@ const AccountPayment = (props: Props) => {
         </Box2>
         {props.canceled && <Text type="BodySmall">CANCELED</Text>}
         {!!props.balanceChange && (
-          <Box2 direction="horizontal" style={styles.marginLeftAuto} gap="small">
+          <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
             <Text
               type="BodyExtrabold"
               selectable={true}
@@ -130,6 +131,10 @@ const styles = styleSheetCreate({
   alignItemsCenter: {
     alignItems: 'center',
   },
+  amountContainer: {
+    alignItems: 'center',
+    marginLeft: 'auto',
+  },
   button: {
     alignSelf: 'flex-start',
     marginTop: globalMargins.xtiny,
@@ -142,9 +147,6 @@ const styles = styleSheetCreate({
   },
   lineThrough: {
     textDecorationLine: 'line-through',
-  },
-  marginLeftAuto: {
-    marginLeft: 'auto',
   },
   progressIndicator: platformStyles({
     // Match height of a line of text
