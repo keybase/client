@@ -75,6 +75,35 @@ func (e Identify3RowColor) String() string {
 	return ""
 }
 
+type Identify3ResultType int
+
+const (
+	Identify3ResultType_OK            Identify3ResultType = 0
+	Identify3ResultType_BROKEN        Identify3ResultType = 1
+	Identify3ResultType_NEEDS_UPGRADE Identify3ResultType = 2
+)
+
+func (o Identify3ResultType) DeepCopy() Identify3ResultType { return o }
+
+var Identify3ResultTypeMap = map[string]Identify3ResultType{
+	"OK":            0,
+	"BROKEN":        1,
+	"NEEDS_UPGRADE": 2,
+}
+
+var Identify3ResultTypeRevMap = map[Identify3ResultType]string{
+	0: "OK",
+	1: "BROKEN",
+	2: "NEEDS_UPGRADE",
+}
+
+func (e Identify3ResultType) String() string {
+	if v, ok := Identify3ResultTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type Identify3RowMeta string
 
 func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
@@ -114,11 +143,16 @@ type Identify3TrackerTimedOutArg struct {
 	GuiID Identify3GUIID `codec:"guiID" json:"guiID"`
 }
 
+type Identify3ResultArg struct {
+	Result Identify3ResultType `codec:"result" json:"result"`
+}
+
 type Identify3UiInterface interface {
 	ShowTracker(context.Context, ShowTrackerArg) error
 	Identify3UpdateRow(context.Context, Identify3UpdateRowArg) error
 	Identify3UpdateDetails(context.Context, Identify3UpdateDetailsArg) error
 	Identify3TrackerTimedOut(context.Context, Identify3GUIID) error
+	Identify3Result(context.Context, Identify3ResultType) error
 }
 
 func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
@@ -185,6 +219,21 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"identify3Result": {
+				MakeArg: func() interface{} {
+					var ret [1]Identify3ResultArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]Identify3ResultArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]Identify3ResultArg)(nil), args)
+						return
+					}
+					err = i.Identify3Result(ctx, typedArgs[0].Result)
+					return
+				},
+			},
 		},
 	}
 }
@@ -211,5 +260,11 @@ func (c Identify3UiClient) Identify3UpdateDetails(ctx context.Context, __arg Ide
 func (c Identify3UiClient) Identify3TrackerTimedOut(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3TrackerTimedOutArg{GuiID: guiID}
 	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []interface{}{__arg})
+	return
+}
+
+func (c Identify3UiClient) Identify3Result(ctx context.Context, result Identify3ResultType) (err error) {
+	__arg := Identify3ResultArg{Result: result}
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg})
 	return
 }

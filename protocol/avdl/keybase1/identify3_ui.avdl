@@ -28,6 +28,13 @@ protocol identify3Ui {
     GREEN_4
   }
 
+  enum Identify3ResultType {
+    OK_0,
+    BROKEN_1,
+    NEEDS_UPGRADE_2
+  }
+
+
   @typedef("string")
   record Identify3RowMeta {}
 
@@ -57,6 +64,12 @@ protocol identify3Ui {
 
   void identify3TrackerTimedOut(
     Identify3GUIID guiID           // id used to tie these things together
+  ) oneway;
+
+  // Until this RPC arrives, the frontend should show grayed-out buttons. Then, once it does,
+  // it can render buttons for the next actions.
+  void identify3Result(
+    Identify3ResultType result
   ) oneway;
 
 

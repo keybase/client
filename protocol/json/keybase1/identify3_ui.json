@@ -29,6 +29,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "Identify3ResultType",
+      "symbols": [
+        "OK_0",
+        "BROKEN_1",
+        "NEEDS_UPGRADE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "Identify3RowMeta",
       "fields": [],
@@ -146,6 +155,16 @@
         {
           "name": "guiID",
           "type": "Identify3GUIID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3Result": {
+      "request": [
+        {
+          "name": "result",
+          "type": "Identify3ResultType"
         }
       ],
       "response": null,
