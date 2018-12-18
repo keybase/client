@@ -918,10 +918,10 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 
 }
 
-func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
+func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
 	result := &MiniPrepared{Username: payment.Username}
 
-	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
+	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
 		result.Error = err
 		return result
@@ -932,7 +932,7 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 	if payment.Currency != "" && payment.Currency != "XLM" {
 		displayAmount = payment.Amount
 		displayCurrency = payment.Currency
-		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+		exchangeRate, err := remoter.ExchangeRate(mctx.Ctx(), payment.Currency)
 		if err != nil {
 			result.Error = err
 			return result
@@ -958,7 +958,7 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 	}
 
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
+		FromDeviceID:      mctx.ActiveDevice().DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
@@ -984,16 +984,16 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
+func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
 	secretNote string, publicMemo string, quickReturn bool) (res SendPaymentResult, err error) {
-	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
-	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
+	defer mctx.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
+	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
 		return res, err
 	}
-	sp := NewSeqnoProvider(m, walletState)
-	tb, err := getTimeboundsForSending(m, walletState)
+	sp := NewSeqnoProvider(mctx, walletState)
+	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err
 	}
@@ -1010,7 +1010,7 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 		return res, err
 	}
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
+		FromDeviceID:      mctx.ActiveDevice().DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
@@ -1023,15 +1023,15 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 	if recipient.User != nil {
 		post.To = &recipient.User.UV
 	}
-	rres, err := walletState.SubmitRelayPayment(m.Ctx(), post)
+	rres, err := walletState.SubmitRelayPayment(mctx.Ctx(), post)
 	if err != nil {
 		return res, err
 	}
-	m.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
+	mctx.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
-	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+	if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
-		m.CDebugf("failed to send chat SendPayment message: %s", err)
+		mctx.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
 
 	return SendPaymentResult{

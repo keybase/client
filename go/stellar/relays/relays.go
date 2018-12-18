@@ -1,7 +1,6 @@
 package relays
 
 import (
-	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -20,9 +19,8 @@ import (
 // Get the key used to encrypt the stellar key for a relay transfer
 // A key from the implicit team betwen the logged-in user and `to`.
 // If `generation` is nil, gets the latest key.
-func GetKey(ctx context.Context, g *libkb.GlobalContext,
-	recipient stellarcommon.Recipient) (key keybase1.TeamApplicationKey, teamID keybase1.TeamID, err error) {
-	meUsername, err := g.GetUPAKLoader().LookupUsername(ctx, g.ActiveDevice.UID())
+func GetKey(mctx libkb.MetaContext, recipient stellarcommon.Recipient) (key keybase1.TeamApplicationKey, teamID keybase1.TeamID, err error) {
+	meUsername, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), mctx.ActiveDevice().UID())
 	if err != nil {
 		return key, teamID, err
 	}
@@ -39,15 +37,15 @@ func GetKey(ctx context.Context, g *libkb.GlobalContext,
 	default:
 		return key, teamID, fmt.Errorf("recipient unexpectly not user nor assertion: %v", recipient.Input)
 	}
-	impTeamDisplayName, err := teams.FormatImplicitTeamDisplayName(ctx, g, impTeamNameStruct)
+	impTeamDisplayName, err := teams.FormatImplicitTeamDisplayName(mctx.Ctx(), mctx.G(), impTeamNameStruct)
 	if err != nil {
 		return key, teamID, err
 	}
-	team, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, g, impTeamDisplayName, false /*public*/)
+	team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), impTeamDisplayName, false /*public*/)
 	if err != nil {
 		return key, teamID, err
 	}
-	key, err = team.ApplicationKey(ctx, keybase1.TeamApplication_STELLAR_RELAY)
+	key, err = team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_STELLAR_RELAY)
 	return key, team.ID, err
 }
 
