@@ -1,19 +1,7 @@
 // @flow
-declare export function memoize1Shallow<F, A1>(func: F, equalityCheck?: (a: A1, b: A1) => boolean): F
+declare export function memoizeShallow<F, A1>(func: F, equalityCheck?: (a: A1, b: A1) => boolean): F
 
-declare export function memoize1<A, R>(
-  func: (a: A) => R,
-  equalityCheck?: (newArgs: [A], lastArgs: [A]) => boolean
-): (a: A) => R
-declare export function memoize2<A, B, R>(
-  func: (a: A, b: B) => R,
-  equalityCheck?: (newArgs: [A, B], lastArgs: [A, B]) => boolean
-): (a: A, b: B) => R
-declare export function memoize3<A, B, C, R>(
-  func: (a: A, b: B, c: C) => R,
-  equalityCheck?: (newArgs: [A, B, C], lastArgs: [A, B, C]) => boolean
-): (a: A, b: B, c: C) => R
-declare export function memoize4<A, B, C, D, R>(
+declare export function memoize<A, B, C, D, R>(
   func: (a: A, b: B, c: C, d: D) => R,
   equalityCheck?: (newArgs: [A, B, C, D], lastArgs: [A, B, C, D]) => boolean
 ): (a: A, b: B, c: C, d: D) => R

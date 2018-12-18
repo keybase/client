@@ -7,7 +7,7 @@ import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
-import {memoize1} from '../../util/memoize'
+import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 
@@ -302,9 +302,7 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
-export const getPathElements = memoize1<Path, _>(
-  (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
-)
+export const getPathElements = memoize<Path, void, void, void,_>((p: Path): Array<string> => (!p ? [] : p.split('/').slice(1)))
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
