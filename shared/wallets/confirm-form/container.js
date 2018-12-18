@@ -54,20 +54,26 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => {
-    // Clear sentPaymentError when navigating away.
-    return {
-      ...s,
-      onBack: () => {
-        d._onClearErrors()
-        d._onBack()
-      },
-      onClose: () => {
-        d._onClearErrors()
-        d._onClose()
-      },
-      onReviewProofs: () => d._onReviewProofs(s.to),
-      onSendClick: d.onSendClick,
-    }
-  }
+  (stateProps, dispatchProps) => ({
+    banners: stateProps.banners,
+    displayAmountFiat: stateProps.displayAmountFiat,
+    displayAmountXLM: stateProps.displayAmountXLM,
+    encryptedNote: stateProps.encryptedNote,
+    onBack: () => {
+      // Clear sentPaymentError when navigating away.
+      dispatchProps._onClearErrors()
+      dispatchProps._onBack()
+    },
+    onClose: () => {
+      dispatchProps._onClearErrors()
+      dispatchProps._onClose()
+    },
+    onReviewProofs: () => dispatchProps._onReviewProofs(stateProps.to),
+    onSendClick: dispatchProps.onSendClick,
+    publicMemo: stateProps.publicMemo,
+    readyToSend: stateProps.readyToSend,
+    sendFailed: stateProps.sendFailed,
+    sendingIntentionXLM: stateProps.sendingIntentionXLM,
+    waitingKey: stateProps.waitingKey,
+  })
 )(ConfirmSend)
