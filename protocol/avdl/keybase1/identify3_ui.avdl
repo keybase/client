@@ -1,0 +1,76 @@
+@namespace("keybase.1")
+
+protocol identify3Ui {
+
+  import idl "identify3_common.avdl";
+
+  // showTracker is called when Go wants to force the frontend to show a tracker popup
+  // (rather than the frontend app triggering the action). In this case, the Go side comes
+  // up with a unique Identify3GUIID.
+  void showTracker(
+    Identify3GUIID guiID,         // id used to tie these things together
+    Identify3Assertion assertion, // username or bob@twitter etc
+    string reason
+  ) oneway;
+
+  enum Identify3RowState {
+    CHECKING_1,
+    VALID_2,
+    ERROR_3,
+    WARNING_4,
+    REVOKED_5
+  }
+
+  enum Identify3RowColor {
+    BLUE_1,
+    RED_2,
+    BLACK_3,
+    GREEN_4
+  }
+
+  enum Identify3ResultType {
+    OK_0,
+    BROKEN_1,
+    NEEDS_UPGRADE_2
+  }
+
+
+  @typedef("string")
+  record Identify3RowMeta {}
+
+  @lint("ignore")
+  void identify3UpdateRow(
+    Identify3GUIID guiID,          // id used to tie these things together
+    string key,                    // e.g., "twitter", "web", "github", "btc", "pgp"
+    string value,                  // e.g., "bob", "foo.com", "1BYzrCvfbn81dfiksmD1Bdgt8pgLi1SD7Z", "8EFBE2E4DD56B35273634E8F6052B2AD31A6631C"
+    string siteURL,                // https://twitter.com/bob
+    string siteIcon,               // https://keybase.io/_/icons/twitter.png
+    string proofURL,               // http://twitter.com/bob/post/1234
+    Identify3RowState state,       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
+    array<Identify3RowMeta> metas, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
+    Identify3RowColor color        // 'blue' | 'red' | 'black' | 'green',
+  ) oneway;
+
+  void identify3UpdateDetails(
+    Identify3GUIID guiID,          // id used to tie these things together
+    boolean followsYou,
+    boolean followThem,
+    int followersCount,
+    int followingCount,
+    string bio,
+    string location,
+    array<string> publishedTeams
+  ) oneway;
+
+  void identify3TrackerTimedOut(
+    Identify3GUIID guiID           // id used to tie these things together
+  ) oneway;
+
+  // Until this RPC arrives, the frontend should show grayed-out buttons. Then, once it does,
+  // it can render buttons for the next actions.
+  void identify3Result(
+    Identify3ResultType result
+  ) oneway;
+
+
+}
