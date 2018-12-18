@@ -225,7 +225,14 @@ const startPayment = () =>
   )
 
 const reviewPayment = (state: TypedState) =>
-  RPCStellarTypes.localReviewPaymentLocalRpcPromise({bid: state.wallets.building.bid})
+  RPCStellarTypes.localReviewPaymentLocalRpcPromise({bid: state.wallets.building.bid}).catch(error => {
+    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+      // ignore cancellation, which is expected in the case where we have a
+      // failing review and then we build or stop a payment
+    } else {
+      throw error
+    }
+  })
 
 const stopPayment = (state: TypedState, action: WalletsGen.StopPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid}).then(_ =>
@@ -678,7 +685,9 @@ const setupEngineListeners = () => {
         })
       ),
     'stellar.1.ui.paymentReviewed': ({msg: {banners, bid, nextButton}}) =>
-      Saga.put(WalletsGen.createReviewedPaymentReceived({bid, readyToSend: nextButton, reviewBanners: banners})),
+      Saga.put(
+        WalletsGen.createReviewedPaymentReceived({bid, readyToSend: nextButton, reviewBanners: banners})
+      ),
   })
 }
 
