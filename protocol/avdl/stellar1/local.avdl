@@ -77,13 +77,6 @@ protocol local {
     string worth;                   // "$123.23 CLP" (worth at the time the payment was created)
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-                                    // currentWorth is how much the amount of XLM in
-                                    // amountDescription is currently worth in the
-                                    // display currency preference of the user looking
-                                    // at this payment. Both can be "".
-    string currentWorth;            // "$379.12 USD" (worth at the current viewing time)
-    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
-
     string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
@@ -141,13 +134,6 @@ protocol local {
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23 CLP", amount in local currency at the time of sending, or empty if no OutsideCurrency
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
-
-                                    // currentWorth is how much the amount of XLM in
-                                    // amountDescription is currently worth in the
-                                    // display currency preference of the user looking
-                                    // at this payment. Both can be "".
-    string currentWorth;            // "$379.12 CAD" (worth at the current viewing time)
-    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
     string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
