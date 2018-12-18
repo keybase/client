@@ -30,7 +30,7 @@ func newCmdWalletSetInflation(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		Description: `Read more about Stellar inflation payouts:
    https://www.stellar.org/developers/guides/concepts/inflation.html
 
-   Destination can be either a user chosen address (any Stellar account ID),
+   Destination can be either a user-chosen address (any Stellar account ID),
    or one of the following labels:
 
    * "lumenaut" - Sets account's inflation destination to Lumenaut Pool. Read more
@@ -39,8 +39,8 @@ func newCmdWalletSetInflation(cl *libcmdline.CommandLine, g *libkb.GlobalContext
    * "self" - Sets inflation destination to the source account ID.
 
    Inflation destination cannot be removed or cleared from the account right
-   now, but if you want to stop contributing to currently set destination, use
-   "self" option.
+   now, but if you want to stop contributing to the currently set destination,
+   use the "self" option.
 
      keybase wallet set-inflation <account id> self
 `,
