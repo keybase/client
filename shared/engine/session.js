@@ -9,6 +9,8 @@ import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 
+type WaitingKey = string | Array<string>
+
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
   // Our id
@@ -18,7 +20,7 @@ class Session {
   // Map of methods => callbacks
   _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
   // Let the outside know we're waiting
-  _waitingKey: string
+  _waitingKey: WaitingKey
   // Tell engine we're done
   _endHandler: ?EndHandlerType
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
@@ -44,7 +46,7 @@ class Session {
     sessionID: SessionID,
     incomingCallMap: ?IncomingCallMapType,
     customResponseIncomingCallMap: ?CustomResponseIncomingCallMap,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
     invoke: invokeType,
     endHandler: EndHandlerType,
     cancelHandler?: ?CancelHandlerType,

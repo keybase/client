@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<updates>
+  <update from="code@keybase.io" status="stable" type="feature" version="1">
+    <id>KEYBASE-RELEASE-2.11</id>
+    <title>Keybase 2.11</title>
+    <release>Keybase 2.11 Release</release>
+    <issued date="2018-12-04 12:00:00"/>
+    <description>Chat: URL previews, performance improvement updates. Other: team creation flow UI upgrades, bugfixes.</description>
+    <pkglist>
+      <collection>
+        <name>Keybase</name>
+        <package arch="x86_64" name="keybase" release="1" version="2.11.0.20181115195458.06d3f3f3c4"></package>
+        <package arch="i386" name="keybase" release="1" version="2.11.0.20181115195458.06d3f3f3c4"></package>
+      </collection>
+    </pkglist>
+  </update>
+</updates>

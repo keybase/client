@@ -108,7 +108,7 @@ func (f *featureSlot) readFrom(m MetaContext, r rawFeatureSlot) {
 }
 
 func (s *FeatureFlagSet) InvalidateCache(m MetaContext, f Feature) {
-	featureSlot := s.features[f]
+	featureSlot := s.getOrMakeSlot(f)
 	featureSlot.Lock()
 	defer featureSlot.Unlock()
 	featureSlot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)

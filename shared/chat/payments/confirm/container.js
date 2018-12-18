@@ -1,6 +1,6 @@
 // @flow
-import * as Chat2Gen from '../../actions/chat2-gen'
-import {namedConnect} from '../../util/container'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import {namedConnect} from '../../../util/container'
 import PaymentsConfirm from '.'
 
 type OwnProps = {||}

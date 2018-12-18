@@ -154,6 +154,15 @@ func (w *WalletState) Refresh(mctx libkb.MetaContext, accountID stellar1.Account
 	return a.Refresh(mctx, w.G().NotifyRouter, reason)
 }
 
+// ForceSeqnoRefresh refreshes the seqno for an account.
+func (w *WalletState) ForceSeqnoRefresh(mctx libkb.MetaContext, accountID stellar1.AccountID) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return ErrAccountNotFound
+	}
+	return a.ForceSeqnoRefresh(mctx)
+}
+
 // backgroundRefresh gets any refresh requests and will refresh
 // the account state if sufficient time has passed since the
 // last refresh.
@@ -405,7 +414,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		a.Unlock()
 
 		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(details, isPrimary, name)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, details, isPrimary, name)
 			if err == nil {
 				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
 			}
@@ -449,6 +458,22 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 	a.rtime = time.Now()
 	a.Unlock()
 
+	return err
+}
+
+// ForceSeqnoRefresh refreshes the seqno for an account.
+func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
+	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
+	if err == nil {
+		a.Lock()
+		if seqno != a.seqno {
+			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+			a.seqno = seqno
+		} else {
+			mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
+		}
+		a.Unlock()
+	}
 	return err
 }
 
@@ -557,6 +582,9 @@ func detailsChanged(a, b *stellar1.AccountDetails) bool {
 	if a.SubentryCount != b.SubentryCount {
 		return true
 	}
+	if a.DisplayCurrency != b.DisplayCurrency {
+		return true
+	}
 	if len(a.Balances) != len(b.Balances) {
 		return true
 	}
@@ -584,15 +612,33 @@ func pendingChanged(a, b []stellar1.PaymentSummary) bool {
 		return false
 	}
 
-	existing, err := a[0].TransactionID()
-	if err == nil {
-		next, err := b[0].TransactionID()
-		if err == nil {
-			if existing != next {
-				return true
-			}
+	for i := 0; i < len(a); i++ {
+		atxid, err := a[i].TransactionID()
+		if err != nil {
+			return true
+		}
+		btxid, err := b[i].TransactionID()
+		if err != nil {
+			return true
+		}
+		if atxid != btxid {
+			return true
+		}
+
+		astatus, err := a[i].TransactionStatus()
+		if err != nil {
+			return true
+		}
+		bstatus, err := b[i].TransactionStatus()
+		if err != nil {
+			return true
+		}
+
+		if astatus != bstatus {
+			return true
 		}
 	}
+
 	return false
 }
 

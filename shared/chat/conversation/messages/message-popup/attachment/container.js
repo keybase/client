@@ -8,7 +8,7 @@ import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 

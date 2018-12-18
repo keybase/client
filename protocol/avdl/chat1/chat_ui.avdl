@@ -122,7 +122,10 @@ protocol chatUi {
     stellar1.PaymentID paymentID;                 // opaque paymentID
     stellar1.PaymentStatus status;                // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
     string statusDescription;                     // "pending", "completed", "error"
+    string statusDetail;
     boolean showCancel;                           // true if cancel is an option for this payment
+    string fromUsername;
+    string toUsername;
   }
 
   record UIRequestInfo {
@@ -144,9 +147,12 @@ protocol chatUi {
     gregor1.Time ctime;
     union { null, string } outboxID;
     MessageBody messageBody;
+    union { null, string } decoratedTextBody;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+    gregor1.UID senderUID;
+    gregor1.DeviceID senderDeviceID;
     boolean superseded;
     union { null, UIAssetUrlInfo } assetUrlInfo;
     union { null, gregor1.Time } senderDeviceRevokedAt;
@@ -196,6 +202,14 @@ protocol chatUi {
   record UIMessages {
     array<UIMessage> messages;
     union { null, UIPagination } pagination;
+  }
+
+  enum UITextDecorationTyp {
+    PAYMENT_0
+  }
+
+  variant UITextDecoration switch (UITextDecorationTyp typ) {
+    case PAYMENT: TextPayment;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

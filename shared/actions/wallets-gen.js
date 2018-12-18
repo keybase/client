@@ -14,6 +14,7 @@ export const resetStore = 'common:resetStore' // not a part of wallets but is ha
 export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
+export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addNewPayment = 'wallets:addNewPayment'
 export const assetsReceived = 'wallets:assetsReceived'
@@ -59,6 +60,8 @@ export const markAsRead = 'wallets:markAsRead'
 export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
+export const pendingPaymentsReceived = 'wallets:pendingPaymentsReceived'
+export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestDetailReceived = 'wallets:requestDetailReceived'
@@ -91,6 +94,7 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 // Payload Types
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
+type _AccountUpdateReceivedPayload = $ReadOnly<{|account: Types.Account|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AddNewPaymentPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _AssetsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, assets: Array<Types.Assets>|}>
@@ -139,6 +143,8 @@ type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: 
 type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
+type _PendingPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pending: Array<Types.PaymentResult>|}>
+type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>|}>
 type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
@@ -317,6 +323,14 @@ export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type
  */
 export const createSendPayment = (payload: _SendPaymentPayload) => ({payload, type: sendPayment})
 /**
+ * Received a fresh first page of recent payments
+ */
+export const createRecentPaymentsReceived = (payload: _RecentPaymentsReceivedPayload) => ({payload, type: recentPaymentsReceived})
+/**
+ * Received a new set of pending payments; replace existing ones with these
+ */
+export const createPendingPaymentsReceived = (payload: _PendingPaymentsReceivedPayload) => ({payload, type: pendingPaymentsReceived})
+/**
  * Received wallet disclaimer
  */
 export const createWalletDisclaimerReceived = (payload: _WalletDisclaimerReceivedPayload) => ({payload, type: walletDisclaimerReceived})
@@ -476,10 +490,15 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
+/**
+ * We received an updated account record
+ */
+export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
 
 // Action Payloads
 export type AbandonPaymentPayload = {|+payload: _AbandonPaymentPayload, +type: 'wallets:abandonPayment'|}
 export type AcceptDisclaimerPayload = {|+payload: _AcceptDisclaimerPayload, +type: 'wallets:acceptDisclaimer'|}
+export type AccountUpdateReceivedPayload = {|+payload: _AccountUpdateReceivedPayload, +type: 'wallets:accountUpdateReceived'|}
 export type AccountsReceivedPayload = {|+payload: _AccountsReceivedPayload, +type: 'wallets:accountsReceived'|}
 export type AddNewPaymentPayload = {|+payload: _AddNewPaymentPayload, +type: 'wallets:addNewPayment'|}
 export type AssetsReceivedPayload = {|+payload: _AssetsReceivedPayload, +type: 'wallets:assetsReceived'|}
@@ -528,6 +547,8 @@ export type MarkAsReadPayload = {|+payload: _MarkAsReadPayload, +type: 'wallets:
 export type OpenSendRequestFormPayload = {|+payload: _OpenSendRequestFormPayload, +type: 'wallets:openSendRequestForm'|}
 export type PaymentDetailReceivedPayload = {|+payload: _PaymentDetailReceivedPayload, +type: 'wallets:paymentDetailReceived'|}
 export type PaymentsReceivedPayload = {|+payload: _PaymentsReceivedPayload, +type: 'wallets:paymentsReceived'|}
+export type PendingPaymentsReceivedPayload = {|+payload: _PendingPaymentsReceivedPayload, +type: 'wallets:pendingPaymentsReceived'|}
+export type RecentPaymentsReceivedPayload = {|+payload: _RecentPaymentsReceivedPayload, +type: 'wallets:recentPaymentsReceived'|}
 export type RefreshPaymentsPayload = {|+payload: _RefreshPaymentsPayload, +type: 'wallets:refreshPayments'|}
 export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +type: 'wallets:rejectDisclaimer'|}
 export type RequestDetailReceivedPayload = {|+payload: _RequestDetailReceivedPayload, +type: 'wallets:requestDetailReceived'|}
@@ -564,6 +585,7 @@ export type WalletDisclaimerReceivedPayload = {|+payload: _WalletDisclaimerRecei
 export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
+  | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddNewPaymentPayload
   | AssetsReceivedPayload
@@ -612,6 +634,8 @@ export type Actions =
   | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
+  | PendingPaymentsReceivedPayload
+  | RecentPaymentsReceivedPayload
   | RefreshPaymentsPayload
   | RejectDisclaimerPayload
   | RequestDetailReceivedPayload

@@ -101,7 +101,7 @@ const actionTransformMap = {
 
   [WaitingGen.incrementWaiting]: fullOutput,
   [WaitingGen.decrementWaiting]: fullOutput,
-  [WaitingGen.changeWaiting]: fullOutput,
+  [WaitingGen.batchChangeWaiting]: fullOutput,
   [WaitingGen.clearWaiting]: fullOutput,
 }
 

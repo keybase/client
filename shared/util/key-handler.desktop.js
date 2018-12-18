@@ -3,13 +3,15 @@
 import * as React from 'react'
 import Mousetrap from 'mousetrap'
 
-export type Props = {
+type HocExtractProps = {
   hotkeys: Array<string> | string,
   onHotkey: (key: string) => void,
 }
 
-function KeyHandlerHOC<P>(WrappedComponent: React.ComponentType<P & Props>): React.ComponentType<P & Props> {
-  return class KeyHandler extends React.Component<P & Props> {
+function keyHandlerHOC<Config: {} & HocExtractProps>(
+  Component: React.AbstractComponent<$Diff<Config, HocExtractProps>>
+): React.AbstractComponent<Config & HocExtractProps> {
+  return class KeyHandler extends React.Component<Config> {
     componentDidMount() {
       Mousetrap.bind(
         this.props.hotkeys,
@@ -26,10 +28,10 @@ function KeyHandlerHOC<P>(WrappedComponent: React.ComponentType<P & Props>): Rea
     }
 
     render() {
-      // $FlowIssue
-      return <WrappedComponent {...this.props} />
+      const {hotkeys, onHotkey, ...rest} = this.props
+      return <Component {...rest} />
     }
   }
 }
 
-export default KeyHandlerHOC
+export default keyHandlerHOC

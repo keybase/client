@@ -5348,7 +5348,7 @@ type mockStellar struct {
 	specFn func([]libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error)
 }
 
-func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	for _, p := range payments {
 		res = append(res, libkb.MiniChatPaymentResult{
 			Username:  p.Username,

@@ -5,19 +5,28 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 export type Props = {
-  text: string,
-  type: 'error' | 'pending' | 'sent',
   isEditing: boolean,
   mentionsAt: Types.MentionsAt,
   mentionsChannel: Types.MentionsChannel,
   mentionsChannelName: Types.MentionsChannelName,
+  message: Types.MessageText,
+  text: string,
+  type: 'error' | 'pending' | 'sent',
 }
 
-const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => {
+const MessageText = ({
+  text,
+  type,
+  isEditing,
+  mentionsAt,
+  mentionsChannel,
+  mentionsChannelName,
+  message,
+}: Props) => {
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}
-      meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
+      meta={{mentionsAt, mentionsChannel, mentionsChannelName, message}}
       styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
       allowFontScaling={true}
     >

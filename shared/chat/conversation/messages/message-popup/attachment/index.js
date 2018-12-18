@@ -4,7 +4,7 @@ import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
 import {fileUIName, type StylesCrossPlatform} from '../../../../../styles'
 import type {DeviceType} from '../../../../../constants/types/devices'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   attachTo: () => ?React.Component<any>,

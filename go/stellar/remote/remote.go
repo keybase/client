@@ -39,7 +39,7 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 	return apiRes.ShouldCreateResult, err
 }
 
-func acctBundlesEnabled(m libkb.MetaContext) bool {
+func AcctBundlesEnabled(m libkb.MetaContext) bool {
 	enabled := m.G().FeatureFlags.Enabled(m, libkb.FeatureStellarAcctBundles)
 	if enabled {
 		m.CDebugf("stellar account bundles enabled")
@@ -274,7 +274,7 @@ func (e MissingFeatureFlagMigrationError) Error() string {
 
 func preMigrationChecks(m libkb.MetaContext) error {
 	// verify that the feature flag is enabled
-	if !acctBundlesEnabled(m) {
+	if !AcctBundlesEnabled(m) {
 		return MissingFeatureFlagMigrationError{}
 	}
 
@@ -496,7 +496,7 @@ func FetchV2BundleForAccount(ctx context.Context, g *libkb.GlobalContext, accoun
 		Args:           fetchArgs,
 		NetContext:     ctx,
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes fetchAcctRes
 	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
@@ -531,7 +531,7 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 	if err != nil && incompatibleVersionError(err) {
 		m := libkb.NewMetaContext(ctx, g)
 		m.CDebugf("requested v2 secretless bundle but not migrated yet.")
-		hasFeatureFlagForMigration := acctBundlesEnabled(m)
+		hasFeatureFlagForMigration := AcctBundlesEnabled(m)
 		if hasFeatureFlagForMigration {
 			m.CDebugf("has feature flag. kicking off migration now.")
 			err := MigrateBundleToAccountBundles(m)
@@ -698,7 +698,7 @@ func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var res seqnoResult
@@ -731,7 +731,7 @@ func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Ac
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var res balancesResult
@@ -759,13 +759,14 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var res detailsResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
 		return stellar1.AccountDetails{}, err
 	}
+	res.Details.SetDefaultDisplayCurrency()
 
 	return res.Details, nil
 }
@@ -895,7 +896,7 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	if cursor != nil {
@@ -925,7 +926,7 @@ func PendingPayments(ctx context.Context, g *libkb.GlobalContext, accountID stel
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 
 	var apiRes pendingPaymentsResult
@@ -948,7 +949,7 @@ func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (r
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 	var apiRes paymentDetailResult
 	err = g.API.GetDecode(apiArg, &apiRes)
@@ -974,7 +975,7 @@ func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) 
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 	var apiRes tickerResult
 	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
@@ -1003,7 +1004,7 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 		NetContext:     ctx,
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes accountCurrencyResult
 	err := g.API.GetDecode(apiArg, &apiRes)
@@ -1012,6 +1013,14 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
 	currency string) error {
+
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return err
+	}
+	if _, ok := conf.Currencies[stellar1.OutsideCurrencyCode(currency)]; !ok {
+		return fmt.Errorf("Unknown currency code: %q", currency)
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -1021,7 +1030,7 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 		NetContext: ctx,
 	}
-	_, err := g.API.Post(apiArg)
+	_, err = g.API.Post(apiArg)
 	return err
 }
 
@@ -1036,7 +1045,7 @@ func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret boo
 		SessionType:    libkb.APISessionTypeREQUIRED,
 		NetContext:     ctx,
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var apiRes disclaimerResult
 	err = g.API.GetDecode(apiArg, &apiRes)
@@ -1092,7 +1101,7 @@ func RequestDetails(ctx context.Context, g *libkb.GlobalContext, requestID stell
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
-		InitialTimeout:  2 * time.Second,
+		InitialTimeout:  10 * time.Second,
 	}
 	var res requestDetailsResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {
@@ -1217,7 +1226,7 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 		},
 		MetaContext:    libkb.NewMetaContext(ctx, g),
 		RetryCount:     3,
-		InitialTimeout: 1 * time.Second,
+		InitialTimeout: 10 * time.Second,
 	}
 	var res lookupUnverifiedResult
 	if err := g.API.GetDecode(apiArg, &res); err != nil {

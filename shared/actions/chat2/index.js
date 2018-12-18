@@ -252,7 +252,13 @@ const unboxRows = (
 
 // We get an incoming message streamed to us
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
-  const {message: cMsg, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
+  const {
+    message: cMsg,
+    modifiedMessage,
+    convID,
+    displayDesktopNotification,
+    desktopNotificationSnippet,
+  } = incoming
   const actions = []
 
   if (convID && cMsg) {
@@ -285,13 +291,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       // Types that are mutations
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
-          if (body.edit) {
-            actions.push(
-              Chat2Gen.createMessageWasEdited({
-                conversationIDKey,
-                ...Constants.uiMessageEditToMessage(body.edit, valid),
-              })
-            )
+          if (modifiedMessage) {
+            const modMessage = Constants.uiMessageToMessage(state, conversationIDKey, modifiedMessage)
+            if (modMessage) {
+              actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [modMessage]}))
+            }
           }
           break
         case RPCChatTypes.commonMessageType.delete:
@@ -663,7 +667,9 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.ChatLeftConversation': () =>
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})),
     'chat.1.NotifyChat.ChatPaymentInfo': notif => {
-      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const conversationIDKey = notif.convID
+        ? Types.conversationIDToKey(notif.convID)
+        : Constants.noConversationIDKey
       const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([notif.info])
       if (!paymentInfo) {
         // This should never happen

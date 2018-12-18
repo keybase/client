@@ -183,8 +183,10 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				TopicName:   utils.GetTopicName(conv),
 			},
 			Sender: MsgSender{
-				UID:      mv.ClientHeader.Sender.String(),
-				DeviceID: mv.ClientHeader.SenderDevice.String(),
+				UID:        mv.ClientHeader.Sender.String(),
+				DeviceID:   mv.ClientHeader.SenderDevice.String(),
+				Username:   mv.SenderUsername,
+				DeviceName: mv.SenderDeviceName,
 			},
 			SentAt:              mv.ServerHeader.Ctime.UnixSeconds(),
 			SentAtMs:            mv.ServerHeader.Ctime.UnixMilliseconds(),
@@ -195,6 +197,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			IsEphemeral:         mv.IsEphemeral(),
 			IsEphemeralExpired:  mv.IsEphemeralExpired(time.Now()),
 			ETime:               mv.Etime(),
+			Content:             c.convertMsgBody(mv.MessageBody),
 			HasPairwiseMacs:     mv.HasPairwiseMacs(),
 			AtMentionUsernames:  mv.AtMentionUsernames,
 			ChannelMention:      strings.ToLower(mv.ChannelMention.String()),
@@ -203,9 +206,6 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions
 		}
-		msg.Content = c.convertMsgBody(mv.MessageBody)
-		msg.Sender.Username = mv.SenderUsername
-		msg.Sender.DeviceName = mv.SenderDeviceName
 
 		ret = append(ret, Message{
 			Msg: &msg,

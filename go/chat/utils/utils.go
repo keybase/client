@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -1286,6 +1287,22 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.Conver
 	return res
 }
 
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msgBody chat1.MessageBody) *string {
+	typ, err := msgBody.MessageType()
+	if err != nil || typ != chat1.MessageType_TEXT {
+		return nil
+	}
+	body := msgBody.Text().Body
+	payments := msgBody.Text().Payments
+
+	// escape before applying xforms
+	body = EscapeForDecorate(ctx, body)
+
+	// Payment decorations
+	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+	return &body
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1326,10 +1343,13 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid.MessageBody),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,
 			SenderDeviceRevokedAt: valid.SenderDeviceRevokedAt,
+			SenderUID:             valid.ClientHeader.Sender,
+			SenderDeviceID:        valid.ClientHeader.SenderDevice,
 			Superseded:            valid.ServerHeader.SupersededBy != 0,
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
@@ -1729,4 +1749,29 @@ func IsPermanentErr(err error) bool {
 		return uberr.IsPermanent()
 	}
 	return err != nil
+}
+
+var decorateBegin = "$>kb$"
+var decorateEnd = "$<kb$"
+var decorateEscapeRe = regexp.MustCompile(`\\*\$\>kb\$`)
+
+func EscapeForDecorate(ctx context.Context, body string) string {
+	// escape any natural occurences of begin so we don't bust markdown parser
+	return decorateEscapeRe.ReplaceAllStringFunc(body, func(s string) string {
+		if len(s)%2 != 0 {
+			return `\` + s
+		}
+		return s
+	})
+}
+
+func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int) {
+	out, err := json.Marshal(decoration)
+	if err != nil {
+		return res, 0
+	}
+	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, string(out), decorateEnd)
+	added = len(strDecoration) - length
+	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
+	return res, added
 }

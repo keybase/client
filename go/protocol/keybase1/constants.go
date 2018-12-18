@@ -171,6 +171,10 @@ const (
 	StatusCode_SCEphemeralKeyWrongNumberOfKeys    StatusCode = 2903
 	StatusCode_SCEphemeralKeyMismatchedKey        StatusCode = 2904
 	StatusCode_SCEphemeralPairwiseMACsMissingUIDs StatusCode = 2905
+	StatusCode_SCEphemeralDeviceAfterEK           StatusCode = 2906
+	StatusCode_SCEphemeralMemberAfterEK           StatusCode = 2907
+	StatusCode_SCEphemeralDeviceStale             StatusCode = 2908
+	StatusCode_SCEphemeralUserStale               StatusCode = 2909
 	StatusCode_SCStellarError                     StatusCode = 3100
 	StatusCode_SCStellarBadInput                  StatusCode = 3101
 	StatusCode_SCStellarWrongRevision             StatusCode = 3102
@@ -371,6 +375,10 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCEphemeralKeyWrongNumberOfKeys":    2903,
 	"SCEphemeralKeyMismatchedKey":        2904,
 	"SCEphemeralPairwiseMACsMissingUIDs": 2905,
+	"SCEphemeralDeviceAfterEK":           2906,
+	"SCEphemeralMemberAfterEK":           2907,
+	"SCEphemeralDeviceStale":             2908,
+	"SCEphemeralUserStale":               2909,
 	"SCStellarError":                     3100,
 	"SCStellarBadInput":                  3101,
 	"SCStellarWrongRevision":             3102,
@@ -569,6 +577,10 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2903: "SCEphemeralKeyWrongNumberOfKeys",
 	2904: "SCEphemeralKeyMismatchedKey",
 	2905: "SCEphemeralPairwiseMACsMissingUIDs",
+	2906: "SCEphemeralDeviceAfterEK",
+	2907: "SCEphemeralMemberAfterEK",
+	2908: "SCEphemeralDeviceStale",
+	2909: "SCEphemeralUserStale",
 	3100: "SCStellarError",
 	3101: "SCStellarBadInput",
 	3102: "SCStellarWrongRevision",
