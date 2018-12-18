@@ -9,6 +9,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
+import * as Flow from '../util/flow'
 import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
@@ -98,6 +99,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
           WalletsGen.createSetBuildingCurrency({
             currency:
               action.payload.currency ||
+              (state.wallets.lastSentXLM && 'XLM') ||
               (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
               'XLM',
           }),
@@ -158,6 +160,7 @@ const sendPayment = (state: TypedState) => {
       // FIXME -- support other assets.
       bid: '', // DESKTOP-8530
       bypassBid: true, // DESKTOP-8530
+      bypassReview: true, // DESKTOP-8556
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -261,16 +264,37 @@ const loadAssets = (
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
-) =>
-  !actionHasError(action) &&
-  (action.type === WalletsGen.selectAccount ||
-    Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
-  RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
-    WalletsGen.createAssetsReceived({
-      accountID: action.payload.accountID,
-      assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
-    })
-  )
+    | WalletsGen.AccountUpdateReceivedPayload
+) => {
+  if (actionHasError(action)) {
+    return
+  }
+  let accountID
+  switch (action.type) {
+    case WalletsGen.loadAssets:
+    case WalletsGen.linkedExistingAccount:
+    case WalletsGen.refreshPayments:
+    case WalletsGen.selectAccount:
+      accountID = action.payload.accountID
+      break
+    case WalletsGen.accountUpdateReceived:
+      accountID = action.payload.account.accountID
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      return
+  }
+  // check that we've loaded the account, don't load assets if we don't have the account
+  accountID = Constants.getAccount(state, accountID).accountID
+  if (accountID && accountID !== Types.noAccountID) {
+    return RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID}).then(res =>
+      WalletsGen.createAssetsReceived({
+        accountID,
+        assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
+      })
+    )
+  }
+}
 
 const createPaymentsReceived = (accountID, payments, pending) =>
   WalletsGen.createPaymentsReceived({
@@ -534,18 +558,25 @@ const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPa
       })
   )
 
-const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
-  state.wallets.selectedAccount === Types.noAccountID &&
-  Saga.put(
-    WalletsGen.createSelectAccount({
-      accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
-    })
-  )
+const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) => {
+  if (state.wallets.selectedAccount === Types.noAccountID) {
+    const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
+    if (maybeDefaultAccount) {
+      return Saga.put(
+        WalletsGen.createSelectAccount({
+          accountID: maybeDefaultAccount.accountID,
+        })
+      )
+    }
+  }
+}
 
 const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
   // load the display currency of each wallet, now that we have the IDs
-  action.payload.accounts.map(account =>
-    Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+  Saga.sequentially(
+    action.payload.accounts.map(account =>
+      Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+    )
   )
 
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
@@ -573,14 +604,10 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
     })
 }
 
-const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
-  const {conversationIDKey, ordinal, requestID} = action.payload
-  return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
-    .then(() =>
-      conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null
-    )
-    .catch(err => logger.error(`Error cancelling request: ${err.message}`))
-}
+const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) =>
+  RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID}).catch(err =>
+    logger.error(`Error cancelling request: ${err.message}`)
+  )
 
 const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState
@@ -614,23 +641,33 @@ const maybeNavigateToConversation = (state: TypedState, action: WalletsGen.Reque
 
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
-    'stellar.1.notify.paymentNotification': refreshPayments,
-    'stellar.1.notify.paymentStatusNotification': refreshPayments,
+    'stellar.1.notify.accountDetailsUpdate': ({accountID, account}) =>
+      Saga.put(
+        WalletsGen.createAccountUpdateReceived({
+          account: Constants.accountResultToAccount(account),
+        })
+      ),
+    'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
+      if (!_pending) {
+        logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
+        return
+      }
+      const accountID = Types.stringToAccountID(_accountID)
+      const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
+      return Saga.put(WalletsGen.createPendingPaymentsReceived({accountID, pending}))
+    },
+    'stellar.1.notify.recentPaymentsUpdate': ({accountID, firstPage: {payments, cursor, oldestUnread}}) =>
+      Saga.put(
+        WalletsGen.createRecentPaymentsReceived({
+          accountID: Types.stringToAccountID(accountID),
+          oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
+          paymentCursor: cursor,
+          payments: (payments || [])
+            .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
+            .filter(Boolean),
+        })
+      ),
   })
-}
-
-const refreshPayments = response => {
-  const accountID = Types.stringToAccountID(response.accountID)
-  const paymentID = Types.rpcPaymentIDToPaymentID(response.paymentID)
-  return Saga.all([
-    Saga.put(
-      WalletsGen.createRefreshPayments({
-        accountID,
-        paymentID,
-      })
-    ),
-    Saga.put(WalletsGen.createAddNewPayment({accountID, paymentID})),
-  ])
 }
 
 const maybeClearErrors = (state: TypedState) => {
@@ -681,6 +718,26 @@ const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       : Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab])
   )
 
+const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnlyModePayload) => {
+  let accountID = action.payload.accountID
+  return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
+    accountID,
+  }).then(res =>
+    WalletsGen.createLoadedMobileOnlyMode({
+      accountID,
+      enabled: res,
+    })
+  )
+}
+
+const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobileOnlyModePayload) => {
+  let accountID = action.payload.accountID
+  let f = action.payload.enabled
+    ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
+    : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
+  return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -707,6 +764,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.refreshPayments,
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
+      WalletsGen.accountUpdateReceived,
     ],
     loadAssets
   )
@@ -796,6 +854,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.checkDisclaimer, checkDisclaimer)
   yield Saga.actionToAction(WalletsGen.checkDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
+
+  yield Saga.actionToPromise(WalletsGen.loadMobileOnlyMode, loadMobileOnlyMode)
+  yield Saga.actionToPromise(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
 }
 
 export default walletsSaga

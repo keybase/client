@@ -155,6 +155,10 @@
       "name": "PaymentResult",
       "fields": [
         {
+          "type": "AccountID",
+          "name": "senderAccountID"
+        },
+        {
           "type": "KeybaseTransactionID",
           "name": "keybaseID"
         },

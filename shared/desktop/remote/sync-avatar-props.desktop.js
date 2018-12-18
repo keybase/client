@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {connect} from '../../util/container'
-import {memoize2} from '../../util/memoize'
+import {memoize2, memoize3} from '../../util/memoize'
 
 type OwnProps = {|
   usernames: I.Set<string>,
@@ -101,15 +101,24 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
   }
 
-  const mapStateToProps = (state, ownProps) => ({
-    avatars: getRemoteAvatars(state.config.avatars, ownProps.usernames),
-    followers: getRemoteFollowers(state.config.followers, ownProps.usernames),
-    following: getRemoteFollowing(state.config.following, ownProps.usernames),
-  })
+  const mapStateToProps = (state, ownProps) =>
+    immutableCached(
+      getRemoteAvatars(state.config.avatars, ownProps.usernames),
+      getRemoteFollowers(state.config.followers, ownProps.usernames),
+      getRemoteFollowing(state.config.following, ownProps.usernames)
+    )
 
   const getRemoteAvatars = memoize2((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
   const getRemoteFollowers = memoize2((followers, usernames) => followers.intersect(usernames))
   const getRemoteFollowing = memoize2((following, usernames) => following.intersect(usernames))
+
+  // use an immutable equals to not rerender if its the same
+  const immutableCached = memoize3(
+    (avatars, followers, following) => ({avatars, followers, following}),
+    (newAvatars, oldAvatars) => newAvatars.equals(oldAvatars),
+    (newFollowers, oldFollowers) => newFollowers.equals(oldFollowers),
+    (newFollowing, oldFollowing) => newFollowing.equals(oldFollowing)
+  )
 
   const Connected = connect<OwnProps, _, _, _, _>(
     mapStateToProps,
@@ -122,7 +131,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     windowComponent: string,
     windowParam: string,
   }
-  class Wrapper extends React.Component<WrapperProps, {usernames: I.Set<string>}> {
+  class Wrapper extends React.PureComponent<WrapperProps, {usernames: I.Set<string>}> {
     state = {usernames: I.Set()}
     setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
     render() {

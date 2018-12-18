@@ -1,39 +1,34 @@
 // @flow
+import * as React from 'react'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
-import {namedConnect} from '../../../../../../util/container'
 import UnfurlGeneric from '.'
 
-type OwnProps = {|
+type Props = {|
   unfurl: RPCChatTypes.UnfurlGenericDisplay,
   onClose?: () => void,
 |}
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const {unfurl, onClose} = ownProps
-  return {
-    description: unfurl.description || undefined,
-    faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
-    imageHeight: unfurl.image ? unfurl.image.height : undefined,
-    imageURL: unfurl.image ? unfurl.image.url : undefined,
-    imageWidth: unfurl.image ? unfurl.image.width : undefined,
-    onClose,
-    publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
-    showImageOnSide: unfurl.image ? unfurl.image.height >= unfurl.image.width : false,
-    siteName: unfurl.siteName,
-    title: unfurl.title,
-    url: unfurl.url,
+class Wrapper extends React.PureComponent<Props> {
+  render() {
+    const {unfurl, onClose} = this.props
+    const props = {
+      description: unfurl.description || undefined,
+      faviconURL: unfurl.favicon ? unfurl.favicon.url : undefined,
+      imageHeight: unfurl.media ? unfurl.media.height : undefined,
+      imageIsVideo: unfurl.media ? unfurl.media.isVideo : undefined,
+      imageURL: unfurl.media ? unfurl.media.url : undefined,
+      imageWidth: unfurl.media ? unfurl.media.width : undefined,
+      onClose,
+      publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
+      showImageOnSide: unfurl.media
+        ? unfurl.media.height >= unfurl.media.width && !unfurl.media.isVideo
+        : false,
+      siteName: unfurl.siteName,
+      title: unfurl.title,
+      url: unfurl.url,
+    }
+    return <UnfurlGeneric {...props} />
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-})
-
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'UnfurlGeneric'
-)(UnfurlGeneric)
+export default Wrapper

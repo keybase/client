@@ -1,62 +1,15 @@
 // @flow
-import logger from '../../logger'
 import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
-import {isMobile} from '../../constants/platform'
+import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
+import logger from '../../logger'
+import type {MarkdownMeta, Props as MarkdownProps} from '../markdown'
+import {emojiIndexByChar, emojiRegex, tldExp, commonTlds} from './emoji-gen'
+import {isMobile} from '../../constants/platform'
+import {specialMentions} from '../../constants/chat2'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
-import {isSpecialMention, specialMentions} from '../../constants/chat2'
-import parser, {isPlainText, emojiIndexByChar} from '../../markdown/parser'
-import {emojiRegex} from '../../markdown/emoji'
-import {tldExp, commonTlds} from '../../markdown/regex'
-import SimpleMarkdown from 'simple-markdown'
-
-import type {MarkdownCreateComponent, MarkdownMeta, Props as MarkdownProps} from '../markdown'
-
-function processAST(ast, createComponent) {
-  const stack = [ast]
-  if (
-    ast.children.length === 1 &&
-    ast.children[0].type === 'text-block' &&
-    ast.children[0].children.every(child => child.type === 'emoji' || child.type === 'native-emoji')
-  ) {
-    ast.children[0].children.forEach(child => (child.bigEmoji = true))
-    ast.children[0].big = true
-  }
-
-  let index = 0
-  while (stack.length > 0) {
-    const top = stack[0]
-    if (top.type && top.seen) {
-      const childrenComponents = top.children.map(child =>
-        typeof child === 'string' ? child : child.component
-      )
-      top.component = createComponent(top.type, String(index++), childrenComponents, top)
-      stack.shift()
-    } else if (top.type && !top.seen) {
-      top.seen = true
-      stack.unshift(...top.children)
-    } else {
-      stack.shift()
-    }
-  }
-
-  return ast.component
-}
-
-function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
-  if (!meta || !meta.mentionsAt || !meta.mentionsChannel) {
-    return false
-  }
-  const {mentionsChannel, mentionsAt} = meta
-  if (mentionsChannel === 'None' && mentionsAt.isEmpty()) {
-    return false
-  }
-
-  // TODO: Allow uppercase in mentions, and just normalize.
-  return isSpecialMention(mention) || mentionsAt.has(mention)
-}
 
 function createMentionRegex(meta: ?MarkdownMeta): ?RegExp {
   if (!meta || !meta.mentionsAt || !meta.mentionsChannel) {
@@ -90,32 +43,14 @@ function createKbfsPathRegex(): ?RegExp {
 
 const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
 
-function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
-  return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
+function createServiceDecorationRegex(): ?RegExp {
+  return new RegExp(`^\\$\\>kb\\$(((?!\\$\\<kb\\$).)*)\\$\\<kb\\$`)
 }
 
-function parseMarkdown(
-  markdown: ?string,
-  markdownCreateComponent: MarkdownCreateComponent,
-  meta: ?MarkdownMeta
-) {
-  const plainText = isPlainText(markdown)
-  if (plainText) {
-    return plainText
-  }
+const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(createServiceDecorationRegex())
 
-  try {
-    return processAST(
-      parser.parse(markdown || '', {
-        channelNameToConvID: (channel: string) => channelNameToConvID(meta, channel),
-        isValidMention: (mention: string) => isValidMention(meta, mention),
-      }),
-      markdownCreateComponent
-    )
-  } catch (err) {
-    logger.error('Markdown parsing failed:', err)
-    return markdown
-  }
+function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
+  return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
 }
 
 const _makeLinkRegex = () => {
@@ -326,6 +261,7 @@ const rules = {
       type: 'kbfsPath',
     }),
   },
+
   link: {
     match: (source, state, lookBehind) => {
       const matches = inlineLinkMatch(source, state, lookBehind)
@@ -431,6 +367,16 @@ const rules = {
       }
     },
   },
+  serviceDecoration: {
+    match: (source, state, lookBehind) => {
+      return serviceDecorationMatcher(source, state, lookBehind)
+    }, // high
+    order: SimpleMarkdown.defaultRules.autolink.order + 1,
+    parse: capture => ({
+      content: capture[1],
+      type: 'serviceDecoration',
+    }),
+  },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
     // original
@@ -497,8 +443,8 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-        ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
-        : reactOutput(parseTree, {allowFontScaling, styleOverride})
+        ? bigEmojiOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
+        : reactOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)
@@ -543,12 +489,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {
-  SimpleMarkdownComponent,
-  channelNameToConvID,
-  createChannelRegex,
-  createMentionRegex,
-  isValidMention,
-  parseMarkdown,
-  simpleMarkdownParser,
-}
+export {SimpleMarkdownComponent, simpleMarkdownParser}

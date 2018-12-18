@@ -25,7 +25,7 @@ class Passphrase extends Component<Props> {
             inputProps={{
               autoFocus: true,
               errorText: this.props.error,
-              floatingHintTextOverride: 'Passphrase',
+              hintText: 'Passphrase',
               onChangeText: t => this.props.onChange(t),
               onEnterKeyDown: this.props.onSubmit,
               type: showTyping ? 'passwordVisible' : 'password',

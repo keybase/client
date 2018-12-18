@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import type {Path} from '../../constants/types/fs'
-import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../../constants/types/chat2'
+import type {MentionsAt, MentionsChannel, MentionsChannelName, MessageText} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -27,7 +27,8 @@ export type MarkdownMeta = {
   mentionsAt?: MentionsAt,
   mentionsChannelName?: MentionsChannelName,
   mentionsChannel?: MentionsChannel,
-  onOpenInFilesTab?: (Path)=>void,
+  message: MessageText,
+  onOpenInFilesTab?: Path => void,
 }
 
 export type Props = {
@@ -41,11 +42,10 @@ export type Props = {
   // You can also use this to style previews which has a single top level wrapper, but it's
   // preferred to use the props.styleOverride.preview flag for this
   //
-  // TODO(mm) when we kill the old markdown rmmove this style prop
+  // TODO type this up or remove it
   style?: any,
   allowFontScaling?: boolean,
   meta?: ?MarkdownMeta,
-  simple?: boolean,
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_40
   // but want blue_30 for the inline code

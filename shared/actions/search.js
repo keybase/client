@@ -157,11 +157,11 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
       {key: 'service', value: service === 'Keybase' ? '' : service},
     ],
     endpoint: 'user/user_search',
-  }).then(results => JSON.parse(results.body))
+  }).then(results => JSON.parse(results.body).list || [])
 }
 
 function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = Selectors.cachedSearchResults(state, searchQuery)
   if (cachedResults) {
@@ -190,23 +190,23 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
   )
 
   try {
-    yield Saga.call(onIdlePromise, 1e3)
-    const searchResults = yield Saga.call(_apiSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.list.map((result: RawResult) =>
+    yield Saga.callUntyped(onIdlePromise, 1e3)
+    const searchResults = yield* Saga.callPromise(_apiSearch, term, _serviceToApiServiceName(service))
+    const rows = searchResults.map((result: RawResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Types.SearchResult> = rows
+    const kbRows = rows
       .filter(r => r.rightService === 'Keybase')
       .map(r =>
         Constants.makeSearchResult({
           id: r.rightUsername || '',
           leftIcon: null,
           leftService: 'Keybase',
-          leftUsername: r.rightUsername,
+          leftUsername: r.rightUsername || '',
         })
       )
     yield Saga.put(
@@ -259,12 +259,9 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
 }
 
 function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSuggestionsPayload) {
-  let suggestions: Array<RPCTypes.InterestingPerson> = yield Saga.call(
-    RPCTypes.userInterestingPeopleRpcPromise,
-    {
-      maxUsers: maxUsers || 50,
-    }
-  )
+  let suggestions = yield* Saga.callPromise(RPCTypes.userInterestingPeopleRpcPromise, {
+    maxUsers: maxUsers || 50,
+  })
 
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []
@@ -313,7 +310,7 @@ const updateSelectedSearchResult = ({
 function* addResultsToUserInput({
   payload: {searchKey, searchResults},
 }: SearchGen.AddResultsToUserInputPayload) {
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const maybeUpgradedUsers = searchResults.map(u =>
@@ -327,7 +324,7 @@ function* addResultsToUserInput({
       keyPath: ['search', 'searchKeyToUserInputItemIds'],
     })
   )
-  state = yield Saga.select()
+  state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -337,7 +334,7 @@ function* addResultsToUserInput({
 function* removeResultsToUserInput({
   payload: {searchKey, searchResults},
 }: SearchGen.RemoveResultsToUserInputPayload) {
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
   yield Saga.put.resolve(
     EntitiesGen.createSubtractEntity({
@@ -345,7 +342,7 @@ function* removeResultsToUserInput({
       keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
     })
   )
-  state = yield Saga.select()
+  state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -353,7 +350,7 @@ function* removeResultsToUserInput({
 }
 
 function* setUserInputItems({payload: {searchKey, searchResults}}: SearchGen.SetUserInputItemsPayload) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!ids.equals(I.OrderedSet(searchResults))) {
     yield Saga.put.resolve(

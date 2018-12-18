@@ -3,7 +3,6 @@ package stellar
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -109,7 +108,10 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateW
 		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
 		return res, nil
 	}
-	justCreated, err := CreateWallet(ctx, g, false)
+	m := libkb.NewMetaContext(ctx, g)
+	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
+	flaggedForV2 := remote.AcctBundlesEnabled(m)
+	justCreated, err := CreateWallet(ctx, g, flaggedForV2)
 	if err != nil {
 		return res, nil
 	}
@@ -218,7 +220,7 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return nil
 }
 
-func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) error {
+func SetMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext, value bool) error {
 	if g.GetRunMode() == libkb.ProductionRunMode {
 		return errors.New("this doesn't work in production")
 	}
@@ -228,8 +230,8 @@ func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) err
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"feature":   libkb.S{Val: string(libkb.FeatureStellarAcctBundles)},
-			"value":     libkb.I{Val: 1},
-			"cache_sec": libkb.I{Val: 100},
+			"value":     libkb.B{Val: value},
+			"cache_sec": libkb.I{Val: 60},
 		},
 		MetaContext: m,
 	})
@@ -288,7 +290,16 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	}
 
 	bundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
-	if err != nil {
+	switch err := err.(type) {
+	case nil:
+		// ok
+	case libkb.AppStatusError:
+		if libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarMissingAccount) {
+			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			err = err.WithDesc("Sender account not found")
+		}
+		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
+	default:
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 	}
 
@@ -299,6 +310,10 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	}
 
 	return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: fmt.Sprintf("Sender account not found")}
+}
+
+func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	return LookupSender(ctx, g, "" /* empty account id returns primary */)
 }
 
 func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
@@ -434,6 +449,43 @@ type DisplayBalance struct {
 	Currency string
 }
 
+func getTimeboundsForSending(m libkb.MetaContext, walletState *WalletState) (*build.Timebounds, error) {
+	// Timeout added as Timebounds.MaxTime to Stellar transactions that client
+	// creates, effectively adding a "deadline" to the transaction. We can
+	// safely assume that a transaction will never end up in a ledger if it's
+	// not included before the deadline.
+
+	// We ask server for timebounds because local clock might not be accurate,
+	// and typically we will be setting timeout as 30 seconds.
+	start := m.G().Clock().Now()
+	serverTimes, err := walletState.ServerTimeboundsRecommendation(m.Ctx())
+	if err != nil {
+		return nil, err
+	}
+	took := m.G().Clock().Since(start)
+	m.CDebugf("Server timebounds recommendation is: %+v. Request took %fs", serverTimes, took.Seconds())
+	if serverTimes.TimeNow == 0 {
+		return nil, fmt.Errorf("Invalid server response for transaction timebounds")
+	}
+	if serverTimes.Timeout == 0 {
+		m.CDebugf("Returning nil timebounds")
+		return nil, nil
+	}
+
+	// Offset server time by our latency to the server. We are making two
+	// requests to submit a transaction: one here to get the server time, and
+	// another one to send the signed transaction. Assuming server roundtrip
+	// time will be the same for both requests, we can offset timebounds here
+	// by entire roundtrip time and then we will have MaxTime set as 30 seconds
+	// counting from when the server gets our signed tx.
+	deadline := serverTimes.TimeNow.Time().Add(took).Unix() + serverTimes.Timeout
+	tb := build.Timebounds{
+		MaxTime: uint64(deadline),
+	}
+	m.CDebugf("Returning timebounds for tx: %+v", tb)
+	return &tb, nil
+}
+
 type SendPaymentArg struct {
 	From           stellar1.AccountID // Optional. Defaults to primary account.
 	To             stellarcommon.RecipientInput
@@ -472,41 +524,41 @@ func SendPaymentGUI(m libkb.MetaContext, walletState *WalletState, sendArg SendP
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
-	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
+func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
+	defer mctx.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), sendArg.From)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx.Ctx(), mctx.G(), sendArg.From)
 	if err != nil {
 		return res, err
 	}
 	senderSeed := senderAccountBundle.Signers[0]
 
 	// look up recipient
-	recipient, err := LookupRecipient(m, sendArg.To, isCLI)
+	recipient, err := LookupRecipient(mctx, sendArg.To, isCLI)
 	if err != nil {
 		return res, err
 	}
 
-	m.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
+	mctx.CDebugf("using stellar network passphrase: %q", stellarnet.Network().Passphrase)
 
 	if recipient.AccountID == nil || sendArg.ForceRelay {
-		return sendRelayPayment(m, walletState,
+		return sendRelayPayment(mctx, walletState,
 			senderSeed, recipient, sendArg.Amount, sendArg.DisplayBalance,
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, _, err := OwnAccount(m.Ctx(), m.G(),
+	ownRecipient, _, err := OwnAccount(mctx.Ctx(), mctx.G(),
 		stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
-		m.CDebugf("error determining if user own's recipient: %v", err)
+		mctx.CDebugf("error determining if user own's recipient: %v", err)
 		return res, err
 	}
 	if ownRecipient {
 		// When sending to an account that we own, act as though sending to a user as opposed to just an account ID.
-		uv, un := m.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
+		uv, un := mctx.G().ActiveDevice.GetUsernameAndUserVersionIfValid(mctx)
 		if uv.IsNil() || un.IsNil() {
-			m.CDebugf("error finding self: uv:%v un:%v", uv, un)
+			mctx.CDebugf("error finding self: uv:%v un:%v", uv, un)
 			return res, fmt.Errorf("error getting logged-in user")
 		}
 		recipient.User = &stellarcommon.User{
@@ -521,7 +573,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}
 
 	post := stellar1.PaymentDirectPost{
-		FromDeviceID:    m.G().ActiveDevice.DeviceID(),
+		FromDeviceID:    mctx.G().ActiveDevice.DeviceID(),
 		DisplayAmount:   sendArg.DisplayBalance.Amount,
 		DisplayCurrency: sendArg.DisplayBalance.Currency,
 		QuickReturn:     sendArg.QuickReturn,
@@ -530,11 +582,16 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		post.To = &recipient.User.UV
 	}
 
-	sp := NewSeqnoProvider(m, walletState)
+	sp := NewSeqnoProvider(mctx, walletState)
+
+	tb, err := getTimeboundsForSending(mctx, walletState)
+	if err != nil {
+		return res, err
+	}
 
 	// check if recipient account exists
 	var txID string
-	funded, err := isAccountFunded(m.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
+	funded, err := isAccountFunded(mctx.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		return res, fmt.Errorf("error checking destination account balance: %v", err)
 	}
@@ -542,7 +599,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
 		// but for now, just let stellar-core tell us there was an error
-		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp)
+		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb)
 		if err != nil {
 			return res, err
 		}
@@ -550,7 +607,7 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		txID = sig.TxHash
 	} else {
 		// if balance, payment operation
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp)
+		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb)
 		if err != nil {
 			return res, err
 		}
@@ -567,17 +624,20 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 		if recipient.User != nil {
 			recipientUv = &recipient.User.UV
 		}
-		post.NoteB64, err = NoteEncryptB64(m.Ctx(), m.G(), noteClear, recipientUv)
+		post.NoteB64, err = NoteEncryptB64(mctx, noteClear, recipientUv)
 		if err != nil {
 			return res, fmt.Errorf("error encrypting note: %v", err)
 		}
 	}
 
 	// submit the transaction
-	rres, err := walletState.SubmitPayment(m.Ctx(), post)
+	rres, err := walletState.SubmitPayment(mctx.Ctx(), post)
 	if err != nil {
 		return res, err
 	}
+	mctx.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
+
+	walletState.Refresh(mctx, senderEntry.AccountID, "SubmitPayment")
 
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {
@@ -587,12 +647,12 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 			}
 		}
 		if sendArg.QuickReturn {
-			go sendChat(m.WithCtx(context.Background()))
+			go sendChat(mctx.WithCtx(context.Background()))
 		} else {
-			sendChat(m)
+			sendChat(mctx)
 		}
 	} else {
-		m.CDebugf("not sending chat message: sending from non-primary account")
+		mctx.CDebugf("not sending chat message: sending from non-primary account")
 	}
 
 	return SendPaymentResult{
@@ -602,13 +662,115 @@ func sendPayment(m libkb.MetaContext, walletState *WalletState, sendArg SendPaym
 	}, nil
 }
 
+type indexedSpec struct {
+	spec             libkb.MiniChatPaymentSpec
+	index            int
+	xlmAmountNumeric int64
+}
+
+// SpecMiniChatPayments returns a summary of the payment amounts for each recipient
+// and a total.
+func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
+	// look up sender account
+	_, senderAccountBundle, err := LookupSenderPrimary(mctx.Ctx(), mctx.G())
+	if err != nil {
+		return nil, err
+	}
+	senderAccountID := senderAccountBundle.AccountID
+	senderCurrency, err := GetCurrencySetting(mctx, senderAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	senderRate, err := walletState.ExchangeRate(mctx.Ctx(), string(senderCurrency.Code))
+	if err != nil {
+		return nil, err
+	}
+
+	var summary libkb.MiniChatPaymentSummary
+
+	var xlmTotal int64
+	if len(payments) > 0 {
+		ch := make(chan indexedSpec)
+		for i, payment := range payments {
+			go func(payment libkb.MiniChatPayment, index int) {
+				spec, xlmAmountNumeric := specMiniChatPayment(mctx, walletState, payment)
+				ch <- indexedSpec{spec: spec, index: index, xlmAmountNumeric: xlmAmountNumeric}
+			}(payment, i)
+		}
+
+		summary.Specs = make([]libkb.MiniChatPaymentSpec, len(payments))
+		for i := 0; i < len(payments); i++ {
+			ispec := <-ch
+			summary.Specs[ispec.index] = ispec.spec
+			xlmTotal += ispec.xlmAmountNumeric
+		}
+	}
+
+	summary.XLMTotal = stellarnet.StringFromStellarAmount(xlmTotal)
+	if senderRate.Currency != "" && senderRate.Currency != "XLM" {
+		outsideAmount, err := stellarnet.ConvertXLMToOutside(summary.XLMTotal, senderRate.Rate)
+		if err != nil {
+			return nil, err
+		}
+		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), outsideAmount, senderRate.Currency, FmtRound)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	summary.XLMTotal, err = FormatAmountDescriptionXLM(summary.XLMTotal)
+	if err != nil {
+		return nil, err
+	}
+
+	return &summary, nil
+}
+
+func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payment libkb.MiniChatPayment) (libkb.MiniChatPaymentSpec, int64) {
+	spec := libkb.MiniChatPaymentSpec{Username: payment.Username}
+	xlmAmount := payment.Amount
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		exchangeRate, err := walletState.ExchangeRate(mctx.Ctx(), payment.Currency)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), payment.Amount, exchangeRate.Currency, FmtRound)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			spec.Error = err
+			return spec, 0
+		}
+	}
+
+	xlmAmountNumeric, err := stellarnet.ParseStellarAmount(xlmAmount)
+	if err != nil {
+		spec.Error = err
+		return spec, 0
+	}
+
+	spec.XLMAmount, err = FormatAmountDescriptionXLM(xlmAmount)
+	if err != nil {
+		spec.Error = err
+		return spec, 0
+	}
+
+	return spec, xlmAmountNumeric
+}
+
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
+func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
-	_, senderAccountBundle, err := LookupSender(m.Ctx(), m.G(), "" /* empty account id returns primary */)
+	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
 	if err != nil {
 		return nil, err
 	}
@@ -617,34 +779,35 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payment
 		return nil, err
 	}
 
-	prepared := make(chan *miniPrepared)
-
-	sp := NewSeqnoProvider(m, walletState)
-
-	for _, payment := range payments {
-		go func(p libkb.MiniChatPayment) {
-			prepared <- prepareMiniChatPayment(m, walletState, sp, senderSeed, p)
-		}(payment)
+	prepared, err := PrepareMiniChatPayments(m, walletState, senderSeed, convID, payments)
+	if err != nil {
+		return nil, err
 	}
-
-	// prepared chan could be out of order, so sort by seqno
-	preparedList := make([]*miniPrepared, len(payments))
-	for i := 0; i < len(payments); i++ {
-		preparedList[i] = <-prepared
-	}
-	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
 	resultList := make([]libkb.MiniChatPaymentResult, len(payments))
 
 	// need to submit tx one at a time, in order
-	for i := 0; i < len(preparedList); i++ {
-		mcpResult := libkb.MiniChatPaymentResult{Username: preparedList[i].Username}
-		if preparedList[i].Error != nil {
-			mcpResult.Error = preparedList[i].Error
+	for i := 0; i < len(prepared); i++ {
+		if prepared[i] == nil {
+			// this should never happen
+			return nil, errors.New("mini chat prepare failed")
+		}
+		mcpResult := libkb.MiniChatPaymentResult{Username: prepared[i].Username}
+		if prepared[i].Error != nil {
+			mcpResult.Error = prepared[i].Error
 		} else {
 			// submit the transaction
-			m.CDebugf("submitting payment seqno %d", preparedList[i].Seqno)
-			submitRes, err := walletState.SubmitPayment(m.Ctx(), preparedList[i].Post)
+			m.CDebugf("submitting payment seqno %d", prepared[i].Seqno)
+			var submitRes stellar1.PaymentResult
+			switch {
+			case prepared[i].Direct != nil:
+				submitRes, err = walletState.SubmitPayment(m.Ctx(), *prepared[i].Direct)
+			case prepared[i].Relay != nil:
+				submitRes, err = walletState.SubmitRelayPayment(m.Ctx(), *prepared[i].Relay)
+			default:
+				mcpResult.Error = errors.New("no direct or relay payment")
+			}
+
 			if err != nil {
 				mcpResult.Error = err
 			} else {
@@ -657,16 +820,42 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, payment
 	return resultList, nil
 }
 
-type miniPrepared struct {
+type MiniPrepared struct {
 	Username libkb.NormalizedUsername
-	Post     stellar1.PaymentDirectPost
+	Direct   *stellar1.PaymentDirectPost
+	Relay    *stellar1.PaymentRelayPost
 	Seqno    uint64
 	Error    error
 }
 
-func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment libkb.MiniChatPayment) *miniPrepared {
-	result := &miniPrepared{Username: payment.Username}
+func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]*MiniPrepared, error) {
+	prepared := make(chan *MiniPrepared)
 
+	sp := NewSeqnoProvider(m, walletState)
+	tb, err := getTimeboundsForSending(m, walletState)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, payment := range payments {
+		go func(p libkb.MiniChatPayment) {
+			prepared <- prepareMiniChatPayment(m, walletState, sp, tb, senderSeed, convID, p)
+		}(payment)
+	}
+
+	// prepared chan could be out of order, so sort by seqno
+	preparedList := make([]*MiniPrepared, len(payments))
+	for i := 0; i < len(payments); i++ {
+		preparedList[i] = <-prepared
+	}
+	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
+
+	return preparedList, nil
+
+}
+
+func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *MiniPrepared {
+	result := &MiniPrepared{Username: payment.Username}
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
 	if err != nil {
 		result.Error = err
@@ -674,26 +863,32 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 	}
 
 	if recipient.AccountID == nil {
-		result.Error = errors.New("user has no stellar account")
-		return result
+		return prepareMiniChatPaymentRelay(m, remoter, sp, tb, senderSeed, convID, payment, recipient)
 	}
+	return prepareMiniChatPaymentDirect(m, remoter, sp, tb, senderSeed, convID, payment, recipient)
+}
 
+func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
+	result := &MiniPrepared{Username: payment.Username}
 	funded, err := isAccountFunded(m.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		result.Error = err
 		return result
 	}
 
-	result.Post = stellar1.PaymentDirectPost{
+	result.Direct = &stellar1.PaymentDirectPost{
 		FromDeviceID: m.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
 		QuickReturn:  true,
 	}
+	if convID != nil {
+		result.Direct.ChatConversationID = stellar1.NewChatConversationID(convID)
+	}
 
 	xlmAmount := payment.Amount
 	if payment.Currency != "" && payment.Currency != "XLM" {
-		result.Post.DisplayAmount = payment.Amount
-		result.Post.DisplayCurrency = payment.Currency
+		result.Direct.DisplayAmount = payment.Amount
+		result.Direct.DisplayCurrency = payment.Currency
 		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
 		if err != nil {
 			result.Error = err
@@ -709,18 +904,82 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 
 	var signResult stellarnet.SignResult
 	if funded {
-		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp)
+		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb)
 	} else {
-		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp)
+		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb)
 	}
 	if err != nil {
 		result.Error = err
 		return result
 	}
-	result.Post.SignedTransaction = signResult.Signed
+	result.Direct.SignedTransaction = signResult.Signed
 	result.Seqno = signResult.Seqno
 	return result
 
+}
+
+func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
+	result := &MiniPrepared{Username: payment.Username}
+
+	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	xlmAmount := payment.Amount
+	var displayAmount, displayCurrency string
+	if payment.Currency != "" && payment.Currency != "XLM" {
+		displayAmount = payment.Amount
+		displayCurrency = payment.Currency
+		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+
+		xlmAmount, err = stellarnet.ConvertOutsideToXLM(payment.Amount, exchangeRate.Rate)
+		if err != nil {
+			result.Error = err
+			return result
+		}
+	}
+
+	relay, err := relays.Create(relays.Input{
+		From:          stellar1.SecretKey(senderSeed),
+		AmountXLM:     xlmAmount,
+		EncryptFor:    appKey,
+		SeqnoProvider: sp,
+		Timebounds:    tb,
+	})
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	post := stellar1.PaymentRelayPost{
+		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
+		ToAssertion:       string(recipient.Input),
+		RelayAccount:      relay.RelayAccountID,
+		TeamID:            teamID,
+		BoxB64:            relay.EncryptedB64,
+		SignedTransaction: relay.FundTx.Signed,
+		DisplayAmount:     displayAmount,
+		DisplayCurrency:   displayCurrency,
+		QuickReturn:       true,
+	}
+	if recipient.User != nil {
+		post.To = &recipient.User.UV
+	}
+
+	result.Relay = &post
+	result.Seqno = relay.FundTx.Seqno
+
+	if convID != nil {
+		result.Relay.ChatConversationID = stellar1.NewChatConversationID(convID)
+	}
+
+	return result
 }
 
 // sendRelayPayment sends XLM through a relay account.
@@ -734,6 +993,10 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 		return res, err
 	}
 	sp := NewSeqnoProvider(m, walletState)
+	tb, err := getTimeboundsForSending(m, walletState)
+	if err != nil {
+		return res, err
+	}
 	relay, err := relays.Create(relays.Input{
 		From:          from,
 		AmountXLM:     amount,
@@ -741,6 +1004,7 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 		PublicMemo:    publicMemo,
 		EncryptFor:    appKey,
 		SeqnoProvider: sp,
+		Timebounds:    tb,
 	})
 	if err != nil {
 		return res, err
@@ -763,6 +1027,7 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 	if err != nil {
 		return res, err
 	}
+	m.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
 	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
@@ -823,7 +1088,8 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 		}
 		return res, fmt.Errorf("Payment already claimed by %v", recipient.GetName())
 	}
-	rsec, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+	mctx := libkb.NewMetaContext(ctx, g)
+	rsec, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err != nil {
 		return res, fmt.Errorf("error opening secret to claim: %v", err)
 	}
@@ -845,16 +1111,13 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 		// Direction from caller
 		useDir = *dir
 	}
-	sp := NewSeqnoProvider(libkb.NewMetaContext(ctx, g), walletState)
-	// Throw a random ID into the transaction memo so that we get a new txID each time.
-	// This makes it easy to resubmit without hitting a txID collision on the server.
-	memoID, err := randMemoID()
+	sp := NewSeqnoProvider(mctx, walletState)
+	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err
 	}
-	g.Log.CDebugf(ctx, "using randomized memo ID: %v", memoID)
 	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
-		stellarnet.AddressStr(into.String()), destinationFunded, &memoID, sp)
+		stellarnet.AddressStr(into.String()), destinationFunded, nil, sp, tb)
 	if err != nil {
 		return res, fmt.Errorf("error building claim transaction: %v", err)
 	}
@@ -863,14 +1126,6 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 		Dir:               useDir,
 		SignedTransaction: sig.Signed,
 	})
-}
-
-func randMemoID() (uint64, error) {
-	buf, err := libkb.RandBytes(8)
-	if err != nil {
-		return 0, err
-	}
-	return binary.LittleEndian.Uint64(buf), nil
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {
@@ -910,8 +1165,9 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 	if err != nil {
 		return nil, err
 	}
+	mctx := libkb.NewMetaContext(ctx, g)
 	for _, p := range page.Payments {
-		lp, err := localizePayment(ctx, g, p)
+		lp, err := localizePayment(mctx, p)
 		if err == nil {
 			res = append(res, stellar1.PaymentOrErrorCLILocal{
 				Payment: &lp,
@@ -932,16 +1188,17 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 	if err != nil {
 		return res, err
 	}
-	return localizePayment(ctx, g, payment.Summary)
+	mctx := libkb.NewMetaContext(ctx, g)
+	return localizePayment(mctx, payment.Summary)
 }
 
-func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
+func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return res, fmt.Errorf("malformed payment summary: %v", err)
 	}
 	username := func(uid keybase1.UID) (username *string, err error) {
-		uname, err := g.GetUPAKLoader().LookupUsername(ctx, uid)
+		uname, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), uid)
 		if err != nil {
 			return nil, err
 		}
@@ -985,7 +1242,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			}
 		}
 		if len(p.NoteB64) > 0 {
-			note, err := NoteDecryptB64(ctx, g, p.NoteB64)
+			note, err := NoteDecryptB64(mctx, p.NoteB64)
 			if err != nil {
 				res.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
 			} else {
@@ -996,7 +1253,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				}
 			}
 			if len(res.NoteErr) > 0 {
-				g.Log.CWarningf(ctx, res.NoteErr)
+				mctx.CWarningf(res.NoteErr)
 			}
 		}
 		return res, nil
@@ -1035,7 +1292,12 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 		if p.Claim != nil {
 			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 				// If the claim succeeded, the relay payment is done.
-				res.Status = "Completed"
+				switch p.Claim.Dir {
+				case stellar1.RelayDirection_CLAIM:
+					res.Status = "Completed"
+				case stellar1.RelayDirection_YANK:
+					res.Status = "Canceled"
+				}
 				res.ToStellar = &p.Claim.ToStellar
 				res.ToUsername, err = username(p.Claim.To.Uid)
 				if err != nil {
@@ -1050,7 +1312,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", *claimantUsername, res.Status)
 			}
 		}
-		relaySecrets, err := relays.DecryptB64(ctx, g, p.TeamID, p.BoxB64)
+		relaySecrets, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 		if err == nil {
 			res.Note = relaySecrets.Note
 		} else {
@@ -1069,6 +1331,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool) (maybeUsername string, err error) {
 	defer m.CTraceTimed(fmt.Sprintf("Stellar.lookupRecipientAssertion(isCLI:%v, %v)", isCLI, assertion), func() error { return err })()
 	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
+
 	// GUI is a verified lookup modeled after func ResolveAndCheck.
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         assertion,
@@ -1472,7 +1735,7 @@ func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.Accoun
 	return codeStr, nil
 }
 
-func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+func GetCurrencySetting(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
 	codeStr, err := GetAccountDisplayCurrency(mctx, accountID)
 	if err != nil {
 		return res, err
@@ -1586,7 +1849,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		}
 		_, ok := conf.GetCurrencyLocal(*arg.Currency)
 		if !ok {
-			return ret, fmt.Errorf("unrecognized currency code %q", arg.Currency)
+			return ret, fmt.Errorf("unrecognized currency code %q", *arg.Currency)
 		}
 	}
 
@@ -1703,7 +1966,7 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 // Note that it is possible that multiple users can own the same account and have
 // different display currency preferences.
 func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.OutsideExchangeRate, error) {
-	currency, err := GetCurrencySetting(mctx, remoter, accountID)
+	currency, err := GetCurrencySetting(mctx, accountID)
 	if err != nil {
 		return stellar1.OutsideExchangeRate{}, err
 	}

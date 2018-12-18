@@ -698,7 +698,7 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
 	t.Logf("find out the conflict suffix")
-	iTeamxx, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	iTeamxx, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	require.Equal(t, iTeamxx.ID, iTeam1.ID)
 	require.Len(t, conflicts, 1)

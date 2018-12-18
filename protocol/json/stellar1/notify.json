@@ -45,6 +45,51 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "accountDetailsUpdate": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "account",
+          "type": "WalletAccountLocal"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "pendingPaymentsUpdate": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "pending",
+          "type": {
+            "type": "array",
+            "items": "PaymentOrErrorLocal"
+          }
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "recentPaymentsUpdate": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "firstPage",
+          "type": "PaymentsPageLocal"
+        }
+      ],
+      "response": null,
+      "notify": ""
     }
   },
   "namespace": "stellar.1"

@@ -1212,9 +1212,20 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
-	// Send the oobm to that chat system so that it can potentially handle it
+	// Send the oobm to the chat system so that it can potentially handle it
 	if g.G().PushHandler != nil {
 		handled, err := g.G().PushHandler.HandleOobm(ctx, obm)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return nil
+		}
+	}
+
+	// Send the oobm to the wallet system so that it can potentially handle it
+	if g.G().StellarPushHandler != nil {
+		handled, err := g.G().StellarPushHandler.HandleOobm(ctx, obm)
 		if err != nil {
 			return err
 		}
@@ -1226,8 +1237,6 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	switch obm.System().String() {
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
-		g.G().Log.Debug("refreshing wallet state after reconnect")
-		g.G().GetStellar().RefreshWalletState(ctx)
 		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())

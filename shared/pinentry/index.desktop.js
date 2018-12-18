@@ -16,7 +16,7 @@ export type Props = {
 }
 
 type DefaultProps = {
-  retryLabel: ?string,
+  retryLabel: string,
   submitLabel: string,
 }
 
@@ -136,7 +136,7 @@ class Pinentry extends Component<Props, State> {
 }
 
 Pinentry.defaultProps = {
-  retryLabel: null,
+  retryLabel: '',
   submitLabel: 'Continue',
 }
 

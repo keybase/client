@@ -36,6 +36,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   ]),
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
+  paymentConfirmInfo: null,
+  paymentStatusMap: I.Map(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   pendingStatus: 'none',
@@ -161,7 +163,7 @@ export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
-  state.waiting.keySeq().some(k => k.startsWith('chat:'))
+  state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
 
 // When we see that exploding messages are in the app, we set
 // seenExplodingGregorKey. Once newExplodingGregorOffset time

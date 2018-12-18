@@ -263,6 +263,7 @@ export type _State = {
   selectedAccount: AccountID,
   sentPaymentError: string,
   unreadPaymentsMap: I.Map<string, number>,
+  mobileOnlyMap: I.Map<AccountID, boolean>,
 }
 
 export type State = I.RecordOf<_State>

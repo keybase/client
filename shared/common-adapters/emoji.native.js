@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {emojiIndexByName} from '../markdown/parser'
+import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
 
 import type {Props} from './emoji'

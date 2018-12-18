@@ -74,6 +74,10 @@
       "fields": [
         {
           "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
           "name": "paymentText"
         },
         {
@@ -2967,6 +2971,10 @@
     "postTextNonblock": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "conversationID",
           "type": "ConversationID"
         },
@@ -3743,8 +3751,8 @@
           "type": "ConversationID"
         },
         {
-          "name": "typing",
-          "type": "boolean"
+          "name": "text",
+          "type": "string"
         }
       ],
       "response": null

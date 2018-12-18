@@ -7,10 +7,10 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
-import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
+import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />
@@ -91,29 +91,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
     this.props.onChangeText(text)
   }
 
-  componentDidMount = () => {
-    this._registerBodyEvents(true)
-  }
-
-  componentWillUnmount = () => {
-    this._registerBodyEvents(false)
-  }
-
-  _registerBodyEvents = (add: boolean) => {
-    const body = document.body
-    if (!body) {
-      return
-    }
-    if (add) {
-      body.addEventListener('keydown', this._globalKeyDownHandler)
-      body.addEventListener('keypress', this._globalKeyDownHandler)
-    } else {
-      body.removeEventListener('keydown', this._globalKeyDownHandler)
-      body.removeEventListener('keypress', this._globalKeyDownHandler)
-    }
-  }
-
-  _globalKeyDownHandler = (ev: KeyboardEvent) => {
+  _globalKeyDownPressHandler = (ev: KeyboardEvent) => {
     const target = ev.target
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return
@@ -202,104 +180,109 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
     }
 
     return (
-      <Kb.Box style={styles.container}>
-        {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.switchMention}
-            filter={this.props.mentionFilter}
-            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && <MentionCatcher onClick={this._channelMentionCatcherClick} />}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.switchChannelMention}
-            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
-            filter={this.props.channelMentionFilter}
-          />
-        )}
-        <Kb.Box
-          style={Styles.collapseStyles([
-            styles.inputWrapper,
-            {
-              backgroundColor: this.props.isEditing ? Styles.globalColors.yellow3 : Styles.globalColors.white,
-              borderColor: this.props.explodingModeSeconds
-                ? Styles.globalColors.black_75
-                : Styles.globalColors.black_20,
-            },
-          ])}
-        >
-          {!this.props.isEditing && (
-            <HoverBox
-              className={Styles.classNames({expanded: this.props.showingMenu})}
-              onClick={this._toggleShowingMenu}
-              ref={this.props.setAttachmentRef}
-              style={Styles.collapseStyles([
-                styles.explodingIconContainer,
-                !!this.props.explodingModeSeconds && {
-                  backgroundColor: Styles.globalColors.black_75,
-                },
-              ])}
-            >
-              {this.props.explodingModeSeconds ? (
-                <Kb.Text type="BodyTinyBold" style={styles.time}>
-                  {formatDurationShort(this.props.explodingModeSeconds * 1000)}
+      <KeyEventHandler
+        onKeyDown={this._globalKeyDownPressHandler}
+        onKeyPress={this._globalKeyDownPressHandler}
+      >
+        <Kb.Box style={styles.container}>
+          {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
+          {this.props.mentionPopupOpen && (
+            <MentionHud
+              conversationIDKey={this.props.conversationIDKey}
+              selectDownCounter={this.props.downArrowCounter}
+              selectUpCounter={this.props.upArrowCounter}
+              pickSelectedUserCounter={this.props.pickSelectedCounter}
+              onPickUser={this.props.insertMention}
+              onSelectUser={this.props.switchMention}
+              filter={this.props.mentionFilter}
+              setMentionHudIsShowing={this.props.setMentionHudIsShowing}
+            />
+          )}
+          {this.props.channelMentionPopupOpen && (
+            <MentionCatcher onClick={this._channelMentionCatcherClick} />
+          )}
+          {this.props.channelMentionPopupOpen && (
+            <ChannelMentionHud
+              conversationIDKey={this.props.conversationIDKey}
+              selectDownCounter={this.props.downArrowCounter}
+              selectUpCounter={this.props.upArrowCounter}
+              pickSelectedChannelCounter={this.props.pickSelectedCounter}
+              onPickChannel={this.props.insertChannelMention}
+              onSelectChannel={this.props.switchChannelMention}
+              setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
+              filter={this.props.channelMentionFilter}
+            />
+          )}
+          <Kb.Box
+            style={Styles.collapseStyles([
+              styles.inputWrapper,
+              {
+                backgroundColor: this.props.isEditing
+                  ? Styles.globalColors.yellow3
+                  : Styles.globalColors.white,
+                borderColor: this.props.explodingModeSeconds
+                  ? Styles.globalColors.black_75
+                  : Styles.globalColors.black_20,
+              },
+            ])}
+          >
+            {!this.props.isEditing && (
+              <HoverBox
+                className={Styles.classNames({expanded: this.props.showingMenu})}
+                onClick={this._toggleShowingMenu}
+                ref={this.props.setAttachmentRef}
+                style={Styles.collapseStyles([
+                  styles.explodingIconContainer,
+                  !!this.props.explodingModeSeconds && {
+                    backgroundColor: Styles.globalColors.black_75,
+                  },
+                ])}
+              >
+                {this.props.explodingModeSeconds ? (
+                  <Kb.Text type="BodyTinyBold" style={styles.time}>
+                    {formatDurationShort(this.props.explodingModeSeconds * 1000)}
+                  </Kb.Text>
+                ) : (
+                  <Kb.Icon
+                    className="timer"
+                    onClick={this._toggleShowingMenu}
+                    style={Kb.iconCastPlatformStyles(styles.timerIcon)}
+                    type="iconfont-timer"
+                  />
+                )}
+              </HoverBox>
+            )}
+            {this.props.isEditing && (
+              <Kb.Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
+                <Kb.Text style={styles.cancelEditingText} type="BodySmallSemibold">
+                  Cancel
                 </Kb.Text>
-              ) : (
-                <Kb.Icon
-                  className="timer"
-                  onClick={this._toggleShowingMenu}
-                  style={Kb.iconCastPlatformStyles(styles.timerIcon)}
-                  type="iconfont-timer"
-                />
-              )}
-            </HoverBox>
-          )}
-          {this.props.isEditing && (
-            <Kb.Box onClick={this.props.onCancelEditing} style={styles.cancelEditing}>
-              <Kb.Text style={styles.cancelEditingText} type="BodySmallSemibold">
-                Cancel
-              </Kb.Text>
-            </Kb.Box>
-          )}
-          <input
-            type="file"
-            style={styles.hidden}
-            ref={this._filePickerSetRef}
-            onChange={this._pickFile}
-            multiple={true}
-          />
-          <Kb.Input
-            className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-            autoFocus={false}
-            small={true}
-            style={styles.input}
-            ref={this._inputSetRef}
-            hintText={hintText}
-            hideUnderline={true}
-            onChangeText={this._onChangeText}
-            uncontrolled={true}
-            multiline={true}
-            rowsMin={1}
-            rowsMax={10}
-            onKeyDown={this._onKeyDown}
-            onEnterKeyDown={this._onEnterKeyDown}
-          />
-          {flags.explodingMessagesEnabled &&
-            this.props.isExploding &&
-            !this.props.isEditing &&
-            !this.state.hasText && (
+              </Kb.Box>
+            )}
+            <input
+              type="file"
+              style={styles.hidden}
+              ref={this._filePickerSetRef}
+              onChange={this._pickFile}
+              multiple={true}
+            />
+            <Kb.Input
+              className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+              autoFocus={false}
+              small={true}
+              style={styles.input}
+              ref={this._inputSetRef}
+              hintText={hintText}
+              hideUnderline={true}
+              onChangeText={this._onChangeText}
+              uncontrolled={true}
+              multiline={true}
+              rowsMin={1}
+              rowsMax={10}
+              onKeyDown={this._onKeyDown}
+              onEnterKeyDown={this._onEnterKeyDown}
+            />
+            {this.props.isExploding && !this.props.isEditing && !this.state.hasText && (
               // This is the `boom!` icon in the placeholder: “Write an exploding message boom!”
               <Kb.Icon
                 color={Styles.globalColors.black_20}
@@ -310,43 +293,44 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
                 type="iconfont-boom"
               />
             )}
-          {flags.explodingMessagesEnabled && this.props.showingMenu && (
-            <SetExplodingMessagePopup
-              attachTo={this.props.getAttachmentRef}
-              conversationIDKey={this.props.conversationIDKey}
-              onAfterSelect={this._inputFocus}
-              onHidden={this.props.toggleShowingMenu}
-              visible={this.props.showingMenu}
+            {this.props.showingMenu && (
+              <SetExplodingMessagePopup
+                attachTo={this.props.getAttachmentRef}
+                conversationIDKey={this.props.conversationIDKey}
+                onAfterSelect={this._inputFocus}
+                onHidden={this.props.toggleShowingMenu}
+                visible={this.props.showingMenu}
+              />
+            )}
+            {this.state.emojiPickerOpen && (
+              <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
+            )}
+            {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
+            <Kb.Icon
+              color={this.state.emojiPickerOpen ? Styles.globalColors.black_75 : null}
+              onClick={this._emojiPickerToggle}
+              style={Kb.iconCastPlatformStyles(styles.icon)}
+              type="iconfont-emoji"
             />
-          )}
-          {this.state.emojiPickerOpen && (
-            <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
-          )}
-          {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
-          <Kb.Icon
-            color={this.state.emojiPickerOpen ? Styles.globalColors.black_75 : null}
-            onClick={this._emojiPickerToggle}
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-            type="iconfont-emoji"
-          />
-          <Kb.Icon
-            onClick={this._filePickerOpen}
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-            type="iconfont-attachment"
-          />
+            <Kb.Icon
+              onClick={this._filePickerOpen}
+              style={Kb.iconCastPlatformStyles(styles.icon)}
+              type="iconfont-attachment"
+            />
+          </Kb.Box>
+          <Kb.Box style={styles.footerContainer}>
+            {this.props.typing.size > 0 && (
+              <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
+            )}
+            <Kb.Text type="BodySmall" style={styles.isTyping}>
+              {isTyping(this.props.typing)}
+            </Kb.Text>
+            <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
+              *bold*, _italics_, `code`, >quote
+            </Kb.Text>
+          </Kb.Box>
         </Kb.Box>
-        <Kb.Box style={styles.footerContainer}>
-          {this.props.typing.size > 0 && (
-            <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
-          )}
-          <Kb.Text type="BodySmall" style={styles.isTyping}>
-            {isTyping(this.props.typing)}
-          </Kb.Text>
-          <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
-            *bold*, _italics_, `code`, >quote
-          </Kb.Text>
-        </Kb.Box>
-      </Kb.Box>
+      </KeyEventHandler>
     )
   }
 }
@@ -571,7 +555,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const HoverBox = Styles.glamorous(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
     color: Styles.globalColors.black_75,
   },

@@ -2,8 +2,8 @@
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
-import {Box, Box2, ClickableBox} from '../../common-adapters'
-import {PathItemIcon, PathItemAction, OpenInSystemFileManager} from '../common'
+import * as Kb from '../../common-adapters'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction} from '../common'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
@@ -119,17 +119,11 @@ export const rowStyles = {
 }
 
 const HoverBox = Styles.isMobile
-  ? Box
-  : Styles.glamorous(Box)({
-      '& .fs-path-item-hover-icon': {
-        color: Styles.globalColors.white,
-      },
-      '& .fs-path-item-hover-icon:hover': {
-        color: Styles.globalColors.black_60,
-      },
-      ':hover .fs-path-item-hover-icon': {
-        color: Styles.globalColors.black_40,
-      },
+  ? Kb.Box
+  : Styles.styled(Kb.Box)({
+      '& .fs-path-item-hover-icon': {color: Styles.globalColors.white},
+      '& .fs-path-item-hover-icon:hover': {color: Styles.globalColors.black_60},
+      ':hover .fs-path-item-hover-icon': {color: Styles.globalColors.black_40},
     })
 
 export type StillCommonProps = {
@@ -146,17 +140,21 @@ export const StillCommon = (
   }
 ) => (
   <HoverBox style={rowStyles.rowBox}>
-    <ClickableBox onClick={props.onOpen} style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}>
-      <Box2 direction="vertical">
+    <Kb.ClickableBox
+      onClick={props.onOpen}
+      style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}
+    >
+      <Kb.Box2 direction="vertical">
         <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-      </Box2>
+      </Kb.Box2>
       {props.children}
-    </ClickableBox>
+    </Kb.ClickableBox>
     {!props.inDestinationPicker && (
-      <Box style={rowStyles.rightBox}>
+      <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
+        <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
         <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
-      </Box>
+      </Kb.Box>
     )}
   </HoverBox>
 )

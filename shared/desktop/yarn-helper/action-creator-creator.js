@@ -49,7 +49,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: void}
+${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: null}
   `
 }
 
@@ -94,13 +94,13 @@ function printPayload(p: Object) {
 
 function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
   return (
-    `export type ${capitalize(actionName)}Payload = $Call<typeof create${capitalize(
+    `export type ${capitalize(actionName)}Payload = {|+payload: _${capitalize(
       actionName
-    )}, _${capitalize(actionName)}Payload>` +
+    )}Payload, +type: "${ns}:${actionName}"|}` +
     (desc.canError
-      ? `\n export type ${capitalize(actionName)}PayloadError = $Call<typeof create${capitalize(
+      ? `\n export type ${capitalize(actionName)}PayloadError = {|+error: true, +payload: _${capitalize(
           actionName
-        )}Error, _${capitalize(actionName)}PayloadError>`
+        )}PayloadError, +type: "${ns}:${actionName}"|}`
       : '')
   )
 }

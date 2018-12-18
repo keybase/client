@@ -1,19 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
-import {
-  borderRadius,
-  desktopStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 let KeyHandler: any = c => c
-if (!isMobile) {
+if (!Styles.isMobile) {
   KeyHandler = require('../../../../util/key-handler.desktop').default
 }
 
@@ -25,6 +16,7 @@ type Props = {
   onSetFilter: (filter: string) => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
+  onEnsureSelection: () => void,
 }
 
 type State = {
@@ -66,12 +58,13 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
   }
 
   _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (!isMobile) {
+    if (!Styles.isMobile) {
       e.preventDefault()
       e.stopPropagation()
       this.props.onSetFilter('')
       this._stopEditing()
       this._input && this._input.blur()
+      this.props.onEnsureSelection()
     }
   }
 
@@ -90,15 +83,15 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
     let children
     if (this.state.isEditing || this.props.filter) {
       children = [
-        <Icon
+        <Kb.Icon
           key="0"
           type="iconfont-search"
           style={{
-            marginRight: globalMargins.tiny,
+            marginRight: Styles.globalMargins.tiny,
           }}
-          color={globalColors.black_20}
+          color={Styles.globalColors.black_20}
         />,
-        <Input
+        <Kb.Input
           hideUnderline={true}
           key="1"
           small={true}
@@ -110,30 +103,33 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           onKeyDown={this._onKeyDown}
           onEnterKeyDown={this._onEnterKeyDown}
           ref={this._setRef}
-          style={{marginRight: globalMargins.tiny}}
+          style={{marginRight: Styles.globalMargins.tiny}}
         />,
       ]
     } else {
       children = (
-        <ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
-          <Icon
+        <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
+          <Kb.Icon
             type="iconfont-search"
             style={{
-              marginLeft: globalMargins.tiny,
+              marginLeft: Styles.globalMargins.tiny,
             }}
-            color={globalColors.black_20}
+            color={Styles.globalColors.black_20}
             fontSize={16}
           />
-          <Text type="Body" style={{color: globalColors.black_40, marginLeft: globalMargins.tiny}}>
+          <Kb.Text
+            type="Body"
+            style={{color: Styles.globalColors.black_40, marginLeft: Styles.globalMargins.tiny}}
+          >
             Jump to chat
-          </Text>
-        </ClickableBox>
+          </Kb.Text>
+        </Kb.ClickableBox>
       )
     }
     return (
-      <Box style={styles.container}>
+      <Kb.Box style={styles.container}>
         {children}
-        <Icon
+        <Kb.Icon
           type="iconfont-compose"
           style={propsIconPlatform.style}
           color={propsIconPlatform.color}
@@ -141,41 +137,41 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading && (
-          <Box style={styles.loadingContainer}>
-            <LoadingLine />
-          </Box>
+          <Kb.Box style={styles.loadingContainer}>
+            <Kb.LoadingLine />
+          </Kb.Box>
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blueGrey,
+    backgroundColor: Styles.isMobile ? Styles.globalColors.fastBlank : Styles.globalColors.blueGrey,
     justifyContent: 'space-between',
     minHeight: 48,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     position: 'relative',
   },
-  filterContainer: platformStyles({
+  filterContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: globalColors.black_10,
-      borderRadius,
+      backgroundColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
       flexGrow: 1,
       height: 24,
       justifyContent: 'center',
-      marginRight: globalMargins.small,
+      marginRight: Styles.globalMargins.small,
     },
-    isElectron: desktopStyles.editable,
+    isElectron: Styles.desktopStyles.editable,
     isMobile: {
       height: 32,
-      marginRight: globalMargins.small,
+      marginRight: Styles.globalMargins.small,
     },
   }),
   loadingContainer: {
@@ -187,7 +183,7 @@ const styles = styleSheetCreate({
 })
 
 const propsIconCompose = {
-  color: globalColors.blue,
+  color: Styles.globalColors.blue,
   fontSize: 16,
   style: {},
 }
@@ -196,10 +192,10 @@ const propsIconComposeMobile = {
   ...propsIconCompose,
   fontSize: 20,
   style: {
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
   },
 }
 
-const propsIconPlatform = isMobile ? propsIconComposeMobile : propsIconCompose
+const propsIconPlatform = Styles.isMobile ? propsIconComposeMobile : propsIconCompose
 
-export default (isMobile ? ChatFilterRow : KeyHandler<any>(ChatFilterRow))
+export default (Styles.isMobile ? ChatFilterRow : KeyHandler<any>(ChatFilterRow))

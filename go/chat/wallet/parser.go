@@ -27,24 +27,26 @@ type ChatTxCandidate struct {
 	CurrencyCode string
 	Username     *string
 	Full         string
+	Position     []int
 }
 
 func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// A string that does not appear in the candidate regex so we don't get false positives from concatenations.
-	replacer := "$"
-	replaced := replaceQuotedSubstrings(xs, replacer)
+	replaced := replaceQuotedSubstrings(xs)
 
-	rawMatches := txPattern.FindAllStringSubmatch(replaced, maxTxsPerMessage)
-	matches := make([]ChatTxCandidate, 0, len(rawMatches))
-	for _, rawMatch := range rawMatches {
-		amount := rawMatch[1]
-		currencyCode := rawMatch[2]
-		username := rawMatch[3]
-		atSign := "@"
-		if len(username) == 0 {
-			atSign = ""
+	allRawIndices := txPattern.FindAllStringSubmatchIndex(replaced, maxTxsPerMessage)
+	matches := make([]ChatTxCandidate, 0, len(allRawIndices))
+	for _, rawIndices := range allRawIndices {
+		amount := xs[rawIndices[2]:rawIndices[3]]
+		currencyCode := strings.ToUpper(xs[rawIndices[4]:rawIndices[5]])
+		var username, atSign string
+		endIndex := rawIndices[5]
+		if rawIndices[6] >= 0 {
+			username = xs[rawIndices[6]:rawIndices[7]]
+			atSign = "@"
+			endIndex = rawIndices[7]
 		}
-		full := fmt.Sprintf("+%s%s%s%s", rawMatch[1], rawMatch[2], atSign, rawMatch[3])
+		full := fmt.Sprintf("+%s%s%s%s", amount, currencyCode, atSign, username)
 		if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
 			var txUsername *string
 			if username == "" {
@@ -57,6 +59,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 				Amount:       amount,
 				CurrencyCode: currencyCode,
 				Username:     txUsername,
+				Position:     []int{rawIndices[0], endIndex},
 			})
 		}
 	}
@@ -66,9 +69,12 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 var startQuote = ">"
 var newline = []rune("\n")
 
-func replaceQuotedSubstrings(xs string, replacer string) string {
-	xs = regexp.MustCompile("(?s)```.*?```").ReplaceAllString(xs, replacer)
-	xs = regexp.MustCompile("(?s)`.*?`").ReplaceAllString(xs, replacer)
+func replaceQuotedSubstrings(xs string) string {
+	replacer := func(s string) string {
+		return strings.Repeat("$", len(s))
+	}
+	xs = regexp.MustCompile("((?s)```.*?```)").ReplaceAllStringFunc(xs, replacer)
+	xs = regexp.MustCompile("((?s)`.*?`)").ReplaceAllStringFunc(xs, replacer)
 
 	// Remove all quoted lines. Because we removed all codeblocks
 	// before, we only need to consider single lines.
@@ -76,6 +82,8 @@ func replaceQuotedSubstrings(xs string, replacer string) string {
 	for _, line := range strings.Split(xs, string(newline)) {
 		if !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
 			ret = append(ret, line)
+		} else {
+			ret = append(ret, replacer(line))
 		}
 	}
 	return strings.Join(ret, string(newline))

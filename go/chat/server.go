@@ -314,14 +314,14 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
 			h.G().AppState.State())
 		return chat1.MarkAsReadLocalRes{
-			Offline: h.G().Syncer.IsConnected(ctx),
+			Offline: h.G().InboxSource.IsOffline(ctx),
 		}, nil
 	}
 	if err = h.G().ConvSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
-		Offline: h.G().Syncer.IsConnected(ctx),
+		Offline: h.G().InboxSource.IsOffline(ctx),
 	}, nil
 }
 
@@ -1122,6 +1122,20 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Run Stellar UI on any payments in the body
+	bodyTyp, err := arg.Msg.MessageBody.MessageType()
+	if err == nil && bodyTyp == chat1.MessageType_TEXT {
+		text := arg.Msg.MessageBody.Text().Body
+		payments, err := h.runStellarSendUI(ctx, 0, uid, arg.ConversationID, text)
+		if err != nil {
+			return res, err
+		}
+		arg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body:     text,
+			Payments: payments,
+		})
+	}
+
 	// Make sure sender is set
 	db := make([]byte, 16)
 	deviceID := h.G().Env.GetDeviceID()
@@ -1191,6 +1205,43 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	return h.PostLocalNonblock(ctx, parg)
 }
 
+func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
+	convID chat1.ConversationID, body string) (res []chat1.TextPayment, err error) {
+	ui := h.getChatUI(sessionID)
+	defer h.Trace(ctx, func() error { return err }, "runStellarSendUI")()
+	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body)
+	if len(parsedPayments) == 0 {
+		h.Debug(ctx, "runStellarSendUI: no payments")
+		return nil, nil
+	}
+	h.Debug(ctx, "runStellarSendUI: payments found, showing confirm screen")
+	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
+		return res, err
+	}
+	defer ui.ChatStellarDone(ctx)
+	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
+	if err != nil {
+		ui.ChatStellarDataError(ctx, err.Error())
+		return res, err
+	}
+	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")
+	accepted, err := ui.ChatStellarDataConfirm(ctx, uiSummary)
+	if err != nil {
+		return res, err
+	}
+	if !accepted {
+		return res, errors.New("Payment message declined")
+	}
+	h.Debug(ctx, "runStellarSendUI: message confirmed, sending payments")
+	payments, err := h.G().StellarSender.SendPayments(ctx, convID, toSend)
+	if err != nil {
+		// Send regardless here
+		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
+		return nil, nil
+	}
+	return payments, nil
+}
+
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
@@ -1199,10 +1250,13 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 		return res, err
 	}
 
-	// Trigger any Stellar payments in the message
-	payments, err := h.G().StellarSender.ParseAndSendPayments(ctx, uid, arg.ConversationID, arg.Body)
+	// Determine if the messages contains any Stellar payments, and execute them if so
+	payments, err := h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID, arg.Body)
 	if err != nil {
-		h.Debug(ctx, "PostTextNonblock: failed to send payments: %", err)
+		return res, err
+	}
+	if err = h.getChatUI(arg.SessionID).ChatPostReadyToSend(ctx); err != nil {
+		return res, err
 	}
 
 	var parg chat1.PostLocalNonblockArg
@@ -1684,22 +1738,24 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	if err != nil {
 		return err
 	}
-	deviceID := make([]byte, libkb.DeviceIDLen)
-	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
-		return err
-	}
-
 	// Just bail out if we are offline
 	if !h.G().Syncer.IsConnected(ctx) {
 		return nil
+	}
+	// Attempt to prefetch any unfurls in the background that are in the message text
+	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
+
+	deviceID := make([]byte, libkb.DeviceIDLen)
+	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
+		return err
 	}
 	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
 		Uid:      uid,
 		DeviceID: deviceID,
 		ConvID:   arg.ConversationID,
-		Typing:   arg.Typing,
+		Typing:   len(arg.Text) > 0,
 	}); err != nil {
-		h.Debug(ctx, "StartTyping: failed to hit the server: %s", err.Error())
+		h.Debug(ctx, "UpdateTyping: failed to hit the server: %s", err.Error())
 	}
 
 	return nil
@@ -2333,7 +2389,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		}
 	case chat1.UnfurlPromptAction_ONETIME:
 		h.G().Unfurler.WhitelistAddExemption(ctx, uid,
-			unfurl.NewOneTimeWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
+			unfurl.NewSingleMessageWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
 		if err = fetchAndUnfurl(); err != nil {
 			return fmt.Errorf("failed to fetch and unfurl: %s", err)
 		}

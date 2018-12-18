@@ -13,6 +13,7 @@ import Banner from './banner'
 import rowStories, {rowsProvider} from './row/index.stories'
 import commonStories, {commonProvider} from './common/index.stories'
 import footerStories, {footerProvider} from './footer/index.stories'
+import sendLinkToChatStories from './send-link-to-chat/index.stories'
 import destinationPickerStories from './destination-picker/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
@@ -85,14 +86,6 @@ const provider = Sb.createPropProviderWithCommon({
     onReAddToTeam: () => () => undefined,
     onViewProfile: () => () => undefined,
     resetParticipants: ['reset1', 'reset2', 'reset3'],
-  }),
-  SortBar: ({path}: {path: Types.Path}) => ({
-    folderIsPending: true,
-    sortSetting: {
-      sortBy: 'name',
-      sortOrder: 'asc',
-    },
-    sortSettingToAction: sortSetting => Sb.action(`sortSettingToAction${sortSetting}`),
   }),
   ViewContainer: () => ({
     isSymlink: false,
@@ -202,4 +195,6 @@ const load = () => {
 }
 
 export default () =>
-  [load, commonStories, rowStories, footerStories, destinationPickerStories].forEach(l => l())
+  [load, commonStories, rowStories, footerStories, destinationPickerStories, sendLinkToChatStories].forEach(
+    l => l()
+  )

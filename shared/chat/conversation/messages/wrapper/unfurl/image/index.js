@@ -11,6 +11,7 @@ export type Props = {
   width: number,
   url: string,
   isVideo: boolean,
+  autoplayVideo: boolean,
   style?: Object,
 }
 
@@ -45,7 +46,12 @@ class UnfurlImage extends React.Component<Props> {
   render() {
     const style = Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])
     return this.props.isVideo ? (
-      <Video url={this.props.url} orient={this._getOrient()} style={style} />
+      <Video
+        url={this.props.url}
+        orient={this._getOrient()}
+        style={style}
+        autoPlay={this.props.autoplayVideo}
+      />
     ) : (
       <Kb.Image src={this.props.url} style={style} />
     )

@@ -3,29 +3,11 @@ import logger from '../logger'
 import * as React from 'react'
 import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
-import ReactDOM, {findDOMNode} from 'react-dom'
-import EscapeHandler from '../util/escape-handler.desktop'
-import {connect} from '../util/container'
+import ReactDOM from 'react-dom'
+import {EscapeHandler} from '../util/key-event-handler.desktop'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
-import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
+import type {Position} from './relative-popup-hoc.types'
 
-class DOMNodeFinder extends React.Component<{
-  setNode: (node: HTMLElement) => void,
-  children: React.Element<any>,
-}> {
-  componentDidMount() {
-    const {setNode} = this.props
-    const node = findDOMNode(this)
-    if (node instanceof HTMLElement) {
-      setNode && setNode(node)
-    }
-  }
-
-  render() {
-    const {children} = this.props
-    return React.Children.only(children)
-  }
-}
 const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<any>}> {
   el: HTMLElement
@@ -80,11 +62,12 @@ function _computePopupStyle(
   position: Position,
   coords: ClientRect,
   popupCoords: ClientRect,
+  matchDimension: boolean,
   offset: ?number
 ): ComputedStyle {
   const style: ComputedStyle = {position: 'absolute', zIndex: 30}
 
-  const {pageYOffset, pageXOffset} = window
+  const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
 
   if (includes(position, 'right')) {
@@ -93,6 +76,9 @@ function _computePopupStyle(
   } else if (includes(position, 'left')) {
     style.left = Math.round(coords.left + pageXOffset)
     style.right = 'auto'
+  } else if (matchDimension) {
+    style.left = Math.round(coords.left + pageXOffset)
+    style.right = Math.round(clientWidth - (coords.right + pageXOffset))
   } else {
     // if not left nor right, we are horizontally centering the element
     const xOffset = (coords.width - popupCoords.width) / 2
@@ -106,6 +92,9 @@ function _computePopupStyle(
   } else if (includes(position, 'bottom')) {
     style.top = Math.round(coords.bottom + pageYOffset)
     style.bottom = 'auto'
+  } else if (matchDimension) {
+    style.bottom = Math.round(clientHeight - (coords.top + pageYOffset))
+    style.top = Math.round(coords.bottom + pageYOffset)
   } else {
     // if not top nor bottom, we are vertically centering the element
     const yOffset = (coords.height + popupCoords.height) / 2
@@ -132,7 +121,7 @@ function _computePopupStyle(
 }
 
 function isStyleInViewport(style, popupCoords: ClientRect): boolean {
-  const {pageYOffset, pageXOffset} = window
+  const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
 
   const element = {
@@ -149,30 +138,96 @@ function isStyleInViewport(style, popupCoords: ClientRect): boolean {
   }
 
   // hidden on top
-  if (element.top < pageYOffset) return false
+  if (typeof element.top === 'number' && element.top < pageYOffset) return false
   // hidden on the bottom
-  if (element.top + element.height > pageYOffset + clientHeight) return false
+  if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight)
+    return false
   // hidden the left
-  if (element.left < pageXOffset) return false
+  if (typeof element.left === 'number' && element.left < pageXOffset) return false
   // hidden on the right
-  if (element.left + element.width > pageXOffset + clientWidth) return false
+  if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth)
+    return false
 
   return true
+}
+
+function pushStyleIntoViewport(style, popupCoords: ClientRect) {
+  const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
+  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+
+  const element = {
+    height: popupCoords.height,
+    left: style.left,
+    top: style.top,
+    width: popupCoords.width,
+  }
+  if (typeof style.right === 'number') {
+    element.left = clientWidth - style.right - element.width
+  }
+  if (typeof style.bottom === 'number') {
+    element.top = clientHeight - style.bottom - element.height
+  }
+
+  if (typeof element.top === 'number' && element.top < pageYOffset) {
+    // push down
+    const off = pageYOffset - element.top
+    if (typeof style.top === 'number') {
+      style.top += off
+    }
+    if (typeof style.bottom === 'number') {
+      style.bottom -= off
+    }
+  } else if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight) {
+    // push up
+    const off = element.top + element.height - (pageYOffset + clientHeight)
+    if (typeof style.top === 'number') {
+      style.top -= off
+    }
+    if (typeof style.bottom === 'number') {
+      style.bottom += off
+    }
+  }
+
+  if (typeof element.left === 'number' && element.left < pageXOffset) {
+    // push right
+    const off = pageXOffset - element.left
+    if (typeof style.left === 'number') {
+      style.left += off
+    }
+    if (typeof style.right === 'number') {
+      style.right -= off
+    }
+  } else if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth) {
+    // push left
+    const off = element.left + element.width - (pageXOffset + clientWidth)
+    if (typeof style.left === 'number') {
+      style.left -= off
+    }
+    if (typeof style.right === 'number') {
+      style.right += off
+    }
+  }
+
+  return style
 }
 
 function computePopupStyle(
   position: Position,
   coords: ClientRect,
   popupCoords: ClientRect,
+  matchDimension: boolean,
   offset: ?number,
   // When specified, will only use the fallbacks regardless of visibility
   positionFallbacks?: Position[]
 ): ComputedStyle {
-  let style = _computePopupStyle(position, coords, popupCoords, offset)
+  let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
   const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
-    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, offset)
+    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, matchDimension, offset)
+  }
+  if (!isStyleInViewport(style, popupCoords)) {
+    style = pushStyleIntoViewport(style, popupCoords)
   }
   return style
 }
@@ -181,6 +236,7 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   positionFallbacks?: Position[],
+  matchDimension?: boolean,
   onClosePopup: () => void,
   propagateOutsideClicks?: boolean,
   style?: StylesCrossPlatform,
@@ -189,6 +245,7 @@ type ModalPositionRelativeProps<PP> = {
 function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>
 ): React.ComponentType<ModalPositionRelativeProps<PP>> {
+  // $FlowIssue TODO modernize
   class ModalPositionRelativeClass extends React.Component<ModalPositionRelativeProps<PP>, {style: {}}> {
     popupNode: ?HTMLElement
     state: {style: {}}
@@ -210,6 +267,7 @@ function ModalPositionRelative<PP>(
           this.props.position,
           targetRect,
           popupNode.getBoundingClientRect(),
+          !!this.props.matchDimension,
           null,
           this.props.positionFallbacks
         ),
@@ -294,34 +352,4 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
-// TODO maybe a better type?
-type OwnProps = any
-
-const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
-  const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<any>> = ModalPositionRelative(
-    PopupComponent
-  )
-
-  const C: React.ComponentType<Props<any>> = connect<OwnProps, _, _, _, _>(
-    () => ({}),
-    (dispatch, {navigateUp, routeProps}) => ({
-      onClosePopup: () => {
-        dispatch(navigateUp())
-        const onPopupWillClose = routeProps.get('onPopupWillClose')
-        onPopupWillClose && onPopupWillClose()
-      },
-      position: routeProps.get('position'),
-      targetRect: routeProps.get('targetRect'),
-    }),
-    (s, d, o) => ({...o, ...s, ...d})
-  )((props: Props<any> & {onClosePopup: () => void}) => {
-    // $FlowIssue
-    return <ModalPopupComponent {...(props: Props<any>)} onClosePopup={props.onClosePopup} />
-  })
-
-  return C
-}
-
-export {DOMNodeFinder, ModalPositionRelative}
-export default RelativePopupHoc
-export type {Position} from './relative-popup-hoc.types'
+export {ModalPositionRelative}

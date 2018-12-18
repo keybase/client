@@ -106,7 +106,7 @@ type diskStorageGeneric struct {
 
 func newDiskStorageGeneric(g *libkb.GlobalContext, version int, dbObjTyp libkb.ObjType, reason libkb.EncryptionReason, gdi func() diskItemGeneric) *diskStorageGeneric {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return getLocalStorageSecretBoxKeyGeneric(ctx, g, reason)
+		return GetLocalStorageSecretBoxKeyGeneric(ctx, g, reason)
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
@@ -249,7 +249,9 @@ func (s *memoryStorageGeneric) key(teamID keybase1.TeamID, public bool) (key str
 
 // --------------------------------------------------
 
-func getLocalStorageSecretBoxKeyGeneric(ctx context.Context, g *libkb.GlobalContext, reason libkb.EncryptionReason) (fkey [32]byte, err error) {
+// GetLocalStorageSecretBoxKeyGeneric gets a key for encrypting data on disk
+// for the specified purpose
+func GetLocalStorageSecretBoxKeyGeneric(ctx context.Context, g *libkb.GlobalContext, reason libkb.EncryptionReason) (fkey [32]byte, err error) {
 	// Get secret device key
 	encKey, err := engine.GetMySecretKey(ctx, g, getLameSecretUI, libkb.DeviceEncryptionKeyType,
 		"encrypt teams storage")

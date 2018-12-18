@@ -15,7 +15,12 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	return cli.Command{
 		Name:  "stop",
 		Usage: "Stop the background keybase service",
-
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "shutdown",
+				Usage: "A no-op flag for linux, since that is the default behavior; the service will just shutdown",
+			},
+		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(newCmdCtlStop(g), "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)

@@ -115,6 +115,7 @@ const (
 	UPAKCacheSize                     = 2000
 	UIDMapFullNameCacheSize           = 100000
 	ImplicitTeamConflictInfoCacheSize = 10000
+	ImplicitTeamCacheSize             = 10000
 
 	PayloadCacheSize = 1000
 
@@ -309,6 +310,10 @@ const (
 	SCTeamProvisionalCannotKey         = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
 	SCBadSignupUsernameDeleted         = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 	SCEphemeralPairwiseMACsMissingUIDs = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
+	SCEphemeralDeviceAfterEK           = int(keybase1.StatusCode_SCEphemeralDeviceAfterEK)
+	SCEphemeralMemberAfterEK           = int(keybase1.StatusCode_SCEphemeralMemberAfterEK)
+	SCEphemeralDeviceStale             = int(keybase1.StatusCode_SCEphemeralDeviceStale)
+	SCEphemeralUserStale               = int(keybase1.StatusCode_SCEphemeralUserStale)
 	SCStellarNeedDisclaimer            = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
 	SCStellarDeviceNotMobile           = int(keybase1.StatusCode_SCStellarDeviceNotMobile)
 	SCStellarMobileOnlyPurgatory       = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)

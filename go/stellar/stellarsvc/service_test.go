@@ -59,7 +59,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, false)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, true)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -165,7 +165,7 @@ func setupWithNewBundle(t *testing.T, tc *TestContext) {
 	g := tc.G
 	err := remote.SetAcceptedDisclaimer(ctx, g)
 	require.NoError(t, err)
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	_, err = stellar.CreateWallet(ctx, g, true)
 	require.NoError(t, err)
@@ -438,13 +438,13 @@ func TestSendLocalKeybase(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Amount, "9899.9999900")
+	require.Equal(t, "9899.9999900", balances[0].Amount)
 
-	balances, err = srvSender.BalancesLocal(context.Background(), accountIDRecip)
+	balances, err = srvRecip.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Amount, "10100.0000000")
+	require.Equal(t, "10100.0000000", balances[0].Amount)
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
@@ -543,7 +543,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	relaySecrets, err := relays.DecryptB64(context.Background(), tcs[0].G, teamID, out.EncryptedB64)
+	relaySecrets, err := relays.DecryptB64(tcs[0].MetaContext(), teamID, out.EncryptedB64)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)
@@ -606,6 +606,8 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.NoError(t, err)
 	}
 
+	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -667,7 +669,11 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
 
 	fhistoryPage, err := tcs[claimant].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
 	require.NoError(t, err)
@@ -682,7 +688,13 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.Len(t, history, 1)
 	require.Nil(t, history[0].Err)
 	require.NotNil(t, history[0].Payment)
-	require.Equal(t, "Completed", history[0].Payment.Status)
+	if !yank {
+		require.Equal(t, "Completed", history[0].Payment.Status)
+	} else {
+		require.Equal(t, "Canceled", history[0].Payment.Status)
+	}
+
+	tcs[0].Srv.walletState.RefreshAll(tcs[0].MetaContext(), "test")
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -714,8 +726,6 @@ func testRelayReset(t *testing.T, yank bool) {
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
-
-	// tcs[0].Srv.wallet.RefreshAll(context.Background())
 
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -754,6 +764,9 @@ func testRelayReset(t *testing.T, yank bool) {
 		claimant = 0
 	}
 
+	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	tcs[claimant].Srv.walletState.DumpToLog(tcs[claimant].MetaContext())
+
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -761,6 +774,8 @@ func testRelayReset(t *testing.T, yank bool) {
 	require.NotNil(t, history[0].Payment)
 	require.Equal(t, "Claimable", history[0].Payment.Status)
 	txID := history[0].Payment.TxID
+
+	t.Logf("claimant primary account id: %s", getPrimaryAccountID(tcs[claimant]))
 
 	fhistory, err := tcs[claimant].Srv.GetPendingPaymentsLocal(context.Background(),
 		stellar1.GetPendingPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
@@ -1124,7 +1139,9 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
 	// try to make it accessible on all devices, which shouldn't work
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+		AccountID: a1,
+	})
 	aerr, ok = err.(libkb.AppStatusError)
 	if !ok {
 		t.Fatalf("invalid error type %T", err)
@@ -1216,7 +1233,9 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
 
 	// make it accessible on all devices
-	err = remote.MakeAccountAllDevices(ctx, g, a1)
+	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+		AccountID: a1,
+	})
 	require.NoError(t, err)
 
 	acctBundle, version, _, err = remote.FetchAccountBundle(ctx, g, a1)
@@ -1357,7 +1376,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 	require.True(t, len(settings) > 0, "must create at least 1 tc")
 	var tcs []*TestContext
 	bem := NewBackendMock(t)
-	for _, setting := range settings {
+	for i, setting := range settings {
 		tc := SetupTest(t, "wall", 1)
 		switch setting {
 		case usettingFull:
@@ -1379,6 +1398,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 			// All TCs in a test share the same backend.
 			Backend: bem,
 		}
+		t.Logf("setup user %v %v", i, tc2.Fu.Username)
 		rcm := NewRemoteClientMock(tc2, bem)
 		ws := stellar.NewWalletState(tc.G, rcm)
 		tc2.Srv = New(tc.G, newTestUISource(), ws)
@@ -1425,12 +1445,14 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 type testUISource struct {
 	secretUI   libkb.SecretUI
 	identifyUI libkb.IdentifyUI
+	stellarUI  stellar1.UiInterface
 }
 
 func newTestUISource() *testUISource {
 	return &testUISource{
 		secretUI:   nullSecretUI{},
 		identifyUI: &kbtest.FakeIdentifyUI{},
+		stellarUI:  &mockStellarUI{},
 	}
 }
 
@@ -1442,16 +1464,34 @@ func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.I
 	return t.identifyUI
 }
 
+func (t *testUISource) StellarUI() stellar1.UiInterface {
+	return t.stellarUI
+}
+
+type mockStellarUI struct {
+	PaymentReviewedHandler func(context.Context, stellar1.PaymentReviewedArg) error
+}
+
+func (ui *mockStellarUI) PaymentReviewed(ctx context.Context, arg stellar1.PaymentReviewedArg) error {
+	if ui.PaymentReviewedHandler != nil {
+		return ui.PaymentReviewedHandler(ctx, arg)
+	}
+	return fmt.Errorf("mockStellarUI.UiPaymentReview called with no handler")
+}
+
 func TestV2EndpointsAsV1(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 	ctx := context.TODO()
 	g := tcs[0].G
 
-	acceptDisclaimer(tcs[0])
 	// create a v1 bundle with two accounts
-	_, err := stellar.CreateWallet(ctx, g, false)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
+	created, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	require.False(t, created)
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	_, err = bundle.CreateNewAccount(&v1Bundle0, "whatevs", false)
@@ -1500,6 +1540,8 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	ctx := context.TODO()
 	g := tcs[0].G
 	m := libkb.NewMetaContextTODO(g)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
+	require.NoError(t, err)
 	acceptDisclaimer(tcs[0])
 
 	// verify that we have a v1 bundle
@@ -1509,7 +1551,7 @@ func TestImplicitMigrationToAccountBundles(t *testing.T) {
 	require.Equal(t, len(bundle.Accounts), 1)
 
 	// enable the feature flag
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 
@@ -1540,10 +1582,10 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	g := tcs[0].G
 	m := libkb.NewMetaContextTODO(g)
 
-	acceptDisclaimer(tcs[0])
 	// create a v1 bundle with two accounts
-	_, err := stellar.CreateWallet(ctx, g, false)
+	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
+	acceptDisclaimer(tcs[0]) // this actually creates the bundle
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	primaryAccount, err := v1Bundle0.PrimaryAccount()
@@ -1582,7 +1624,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.True(t, correctErrorType)
 
 	// flip feature flag and migrate
-	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
 	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
 	enabled, err := m.G().FeatureFlags.EnabledWithError(m, libkb.FeatureStellarAcctBundles)

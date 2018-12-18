@@ -40,6 +40,7 @@ export const commonProvider = {
     downloading: false,
   }),
   ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
+  SendInAppAction: () => ({onClick: Sb.action('onClick')}),
 }
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)

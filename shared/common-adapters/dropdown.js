@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import OverlayParentHOC, {type OverlayParentProps} from './overlay/parent-hoc'
-import type {Position} from './relative-popup-hoc'
+import type {Position} from './relative-popup-hoc.types'
 import Icon from './icon'
 import * as Styles from '../styles'
 
@@ -134,7 +134,7 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-const ItemBox = Styles.glamorous(Box)({
+const ItemBox = Styles.styled(Box)({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {}
@@ -150,7 +150,7 @@ const ItemBox = Styles.glamorous(Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.glamorous(Box)(props => ({
+const ButtonBox = Styles.styled(Box)(props => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {

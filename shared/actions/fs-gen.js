@@ -5,12 +5,14 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
+import * as ChatTypes from '../constants/types/chat2'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const cancelMoveOrCopy = 'fs:cancelMoveOrCopy'
+export const clearRefreshTag = 'fs:clearRefreshTag'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -62,8 +64,11 @@ export const saveMedia = 'fs:saveMedia'
 export const setFlags = 'fs:setFlags'
 export const setMoveOrCopyDestinationParentPath = 'fs:setMoveOrCopyDestinationParentPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
+export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
+export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const shareNative = 'fs:shareNative'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
+export const showSendLinkToChat = 'fs:showSendLinkToChat'
 export const sortSetting = 'fs:sortSetting'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
@@ -75,6 +80,7 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
 type _CancelMoveOrCopyPayload = void
+type _ClearRefreshTagPayload = $ReadOnly<{|refreshTag: Types.RefreshTag|}>
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _CopyPayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
@@ -126,8 +132,11 @@ type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _SetFlagsPayload = $ReadOnly<{|kbfsOpening?: boolean, kbfsInstalling?: boolean, fuseInstalling?: boolean, kextPermissionError?: boolean, securityPrefsPrompted?: boolean, showBanner?: boolean|}>
 type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
+type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
+type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
+type _ShowSendLinkToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
 type _UninstallKBFSConfirmPayload = void
 type _UploadPayload = $ReadOnly<{|parentPath: Types.Path, localPath: string|}>
@@ -139,6 +148,7 @@ type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
 export const createCancelMoveOrCopy = (payload: _CancelMoveOrCopyPayload) => ({payload, type: cancelMoveOrCopy})
+export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
@@ -190,8 +200,11 @@ export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: 
 export const createSetFlags = (payload: _SetFlagsPayload) => ({payload, type: setFlags})
 export const createSetMoveOrCopyDestinationParentPath = (payload: _SetMoveOrCopyDestinationParentPathPayload) => ({payload, type: setMoveOrCopyDestinationParentPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
+export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
+export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
+export const createShowSendLinkToChat = (payload: _ShowSendLinkToChatPayload) => ({payload, type: showSendLinkToChat})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
@@ -201,74 +214,79 @@ export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => (
 export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({payload, type: userFileEditsLoaded})
 
 // Action Payloads
-export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
-export type CancelMoveOrCopyPayload = $Call<typeof createCancelMoveOrCopy, _CancelMoveOrCopyPayload>
-export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
-export type CopyPayload = $Call<typeof createCopy, _CopyPayload>
-export type DeleteFilePayload = $Call<typeof createDeleteFile, _DeleteFilePayload>
-export type DiscardEditPayload = $Call<typeof createDiscardEdit, _DiscardEditPayload>
-export type DismissDownloadPayload = $Call<typeof createDismissDownload, _DismissDownloadPayload>
-export type DismissFsErrorPayload = $Call<typeof createDismissFsError, _DismissFsErrorPayload>
-export type DownloadPayload = $Call<typeof createDownload, _DownloadPayload>
-export type DownloadProgressPayload = $Call<typeof createDownloadProgress, _DownloadProgressPayload>
-export type DownloadStartedPayload = $Call<typeof createDownloadStarted, _DownloadStartedPayload>
-export type DownloadSuccessPayload = $Call<typeof createDownloadSuccess, _DownloadSuccessPayload>
-export type EditSuccessPayload = $Call<typeof createEditSuccess, _EditSuccessPayload>
-export type FavoriteIgnoreErrorPayload = $Call<typeof createFavoriteIgnoreError, _FavoriteIgnoreErrorPayload>
-export type FavoriteIgnorePayload = $Call<typeof createFavoriteIgnore, _FavoriteIgnorePayload>
-export type FavoritesLoadPayload = $Call<typeof createFavoritesLoad, _FavoritesLoadPayload>
-export type FavoritesLoadedPayload = $Call<typeof createFavoritesLoaded, _FavoritesLoadedPayload>
-export type FilePreviewLoadPayload = $Call<typeof createFilePreviewLoad, _FilePreviewLoadPayload>
-export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _FilePreviewLoadedPayload>
-export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
-export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _FolderListLoadedPayload>
-export type FsErrorPayload = $Call<typeof createFsError, _FsErrorPayload>
-export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
-export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
-export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
-export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
-export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
-export type JournalUpdatePayload = $Call<typeof createJournalUpdate, _JournalUpdatePayload>
-export type LetResetUserBackInPayload = $Call<typeof createLetResetUserBackIn, _LetResetUserBackInPayload>
-export type LoadingPathPayload = $Call<typeof createLoadingPath, _LoadingPathPayload>
-export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
-export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
-export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
-export type MoveOrCopyOpenPayload = $Call<typeof createMoveOrCopyOpen, _MoveOrCopyOpenPayload>
-export type MovePayload = $Call<typeof createMove, _MovePayload>
-export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderNamePayload>
-export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
-export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _NotifySyncActivityPayload>
-export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
-export type OpenAndUploadPayload = $Call<typeof createOpenAndUpload, _OpenAndUploadPayload>
-export type OpenFilesFromWidgetPayload = $Call<typeof createOpenFilesFromWidget, _OpenFilesFromWidgetPayload>
-export type OpenLocalPathInSystemFileManagerPayload = $Call<typeof createOpenLocalPathInSystemFileManager, _OpenLocalPathInSystemFileManagerPayload>
-export type OpenPathInFilesTabPayload = $Call<typeof createOpenPathInFilesTab, _OpenPathInFilesTabPayload>
-export type OpenPathInSystemFileManagerPayload = $Call<typeof createOpenPathInSystemFileManager, _OpenPathInSystemFileManagerPayload>
-export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
-export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
-export type PickAndUploadPayload = $Call<typeof createPickAndUpload, _PickAndUploadPayload>
-export type PlaceholderActionPayload = $Call<typeof createPlaceholderAction, _PlaceholderActionPayload>
-export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
-export type SaveMediaPayload = $Call<typeof createSaveMedia, _SaveMediaPayload>
-export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
-export type SetMoveOrCopyDestinationParentPathPayload = $Call<typeof createSetMoveOrCopyDestinationParentPath, _SetMoveOrCopyDestinationParentPathPayload>
-export type SetMoveOrCopySourcePayload = $Call<typeof createSetMoveOrCopySource, _SetMoveOrCopySourcePayload>
-export type ShareNativePayload = $Call<typeof createShareNative, _ShareNativePayload>
-export type ShowMoveOrCopyPayload = $Call<typeof createShowMoveOrCopy, _ShowMoveOrCopyPayload>
-export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
-export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
-export type UploadPayload = $Call<typeof createUpload, _UploadPayload>
-export type UploadStartedPayload = $Call<typeof createUploadStarted, _UploadStartedPayload>
-export type UploadWritingSuccessPayload = $Call<typeof createUploadWritingSuccess, _UploadWritingSuccessPayload>
-export type UserFileEditsLoadPayload = $Call<typeof createUserFileEditsLoad, _UserFileEditsLoadPayload>
-export type UserFileEditsLoadedPayload = $Call<typeof createUserFileEditsLoaded, _UserFileEditsLoadedPayload>
+export type CancelDownloadPayload = {|+payload: _CancelDownloadPayload, +type: 'fs:cancelDownload'|}
+export type CancelMoveOrCopyPayload = {|+payload: _CancelMoveOrCopyPayload, +type: 'fs:cancelMoveOrCopy'|}
+export type ClearRefreshTagPayload = {|+payload: _ClearRefreshTagPayload, +type: 'fs:clearRefreshTag'|}
+export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
+export type CopyPayload = {|+payload: _CopyPayload, +type: 'fs:copy'|}
+export type DeleteFilePayload = {|+payload: _DeleteFilePayload, +type: 'fs:deleteFile'|}
+export type DiscardEditPayload = {|+payload: _DiscardEditPayload, +type: 'fs:discardEdit'|}
+export type DismissDownloadPayload = {|+payload: _DismissDownloadPayload, +type: 'fs:dismissDownload'|}
+export type DismissFsErrorPayload = {|+payload: _DismissFsErrorPayload, +type: 'fs:dismissFsError'|}
+export type DownloadPayload = {|+payload: _DownloadPayload, +type: 'fs:download'|}
+export type DownloadProgressPayload = {|+payload: _DownloadProgressPayload, +type: 'fs:downloadProgress'|}
+export type DownloadStartedPayload = {|+payload: _DownloadStartedPayload, +type: 'fs:downloadStarted'|}
+export type DownloadSuccessPayload = {|+payload: _DownloadSuccessPayload, +type: 'fs:downloadSuccess'|}
+export type EditSuccessPayload = {|+payload: _EditSuccessPayload, +type: 'fs:editSuccess'|}
+export type FavoriteIgnoreErrorPayload = {|+payload: _FavoriteIgnoreErrorPayload, +type: 'fs:favoriteIgnoreError'|}
+export type FavoriteIgnorePayload = {|+payload: _FavoriteIgnorePayload, +type: 'fs:favoriteIgnore'|}
+export type FavoritesLoadPayload = {|+payload: _FavoritesLoadPayload, +type: 'fs:favoritesLoad'|}
+export type FavoritesLoadedPayload = {|+payload: _FavoritesLoadedPayload, +type: 'fs:favoritesLoaded'|}
+export type FilePreviewLoadPayload = {|+payload: _FilePreviewLoadPayload, +type: 'fs:filePreviewLoad'|}
+export type FilePreviewLoadedPayload = {|+payload: _FilePreviewLoadedPayload, +type: 'fs:filePreviewLoaded'|}
+export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: 'fs:folderListLoad'|}
+export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
+export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
+export type FuseStatusPayload = {|+payload: _FuseStatusPayload, +type: 'fs:fuseStatus'|}
+export type FuseStatusResultPayload = {|+payload: _FuseStatusResultPayload, +type: 'fs:fuseStatusResult'|}
+export type InstallFusePayload = {|+payload: _InstallFusePayload, +type: 'fs:installFuse'|}
+export type InstallFuseResultPayload = {|+payload: _InstallFuseResultPayload, +type: 'fs:installFuseResult'|}
+export type InstallKBFSPayload = {|+payload: _InstallKBFSPayload, +type: 'fs:installKBFS'|}
+export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
+export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
+export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
+export type LocalHTTPServerInfoPayload = {|+payload: _LocalHTTPServerInfoPayload, +type: 'fs:localHTTPServerInfo'|}
+export type MimeTypeLoadPayload = {|+payload: _MimeTypeLoadPayload, +type: 'fs:mimeTypeLoad'|}
+export type MimeTypeLoadedPayload = {|+payload: _MimeTypeLoadedPayload, +type: 'fs:mimeTypeLoaded'|}
+export type MoveOrCopyOpenPayload = {|+payload: _MoveOrCopyOpenPayload, +type: 'fs:moveOrCopyOpen'|}
+export type MovePayload = {|+payload: _MovePayload, +type: 'fs:move'|}
+export type NewFolderNamePayload = {|+payload: _NewFolderNamePayload, +type: 'fs:newFolderName'|}
+export type NewFolderRowPayload = {|+payload: _NewFolderRowPayload, +type: 'fs:newFolderRow'|}
+export type NotifySyncActivityPayload = {|+payload: _NotifySyncActivityPayload, +type: 'fs:notifySyncActivity'|}
+export type NotifyTlfUpdatePayload = {|+payload: _NotifyTlfUpdatePayload, +type: 'fs:notifyTlfUpdate'|}
+export type OpenAndUploadPayload = {|+payload: _OpenAndUploadPayload, +type: 'fs:openAndUpload'|}
+export type OpenFilesFromWidgetPayload = {|+payload: _OpenFilesFromWidgetPayload, +type: 'fs:openFilesFromWidget'|}
+export type OpenLocalPathInSystemFileManagerPayload = {|+payload: _OpenLocalPathInSystemFileManagerPayload, +type: 'fs:openLocalPathInSystemFileManager'|}
+export type OpenPathInFilesTabPayload = {|+payload: _OpenPathInFilesTabPayload, +type: 'fs:openPathInFilesTab'|}
+export type OpenPathInSystemFileManagerPayload = {|+payload: _OpenPathInSystemFileManagerPayload, +type: 'fs:openPathInSystemFileManager'|}
+export type OpenPathItemPayload = {|+payload: _OpenPathItemPayload, +type: 'fs:openPathItem'|}
+export type OpenSecurityPreferencesPayload = {|+payload: _OpenSecurityPreferencesPayload, +type: 'fs:openSecurityPreferences'|}
+export type PickAndUploadPayload = {|+payload: _PickAndUploadPayload, +type: 'fs:pickAndUpload'|}
+export type PlaceholderActionPayload = {|+payload: _PlaceholderActionPayload, +type: 'fs:placeholderAction'|}
+export type RefreshLocalHTTPServerInfoPayload = {|+payload: _RefreshLocalHTTPServerInfoPayload, +type: 'fs:refreshLocalHTTPServerInfo'|}
+export type SaveMediaPayload = {|+payload: _SaveMediaPayload, +type: 'fs:saveMedia'|}
+export type SetFlagsPayload = {|+payload: _SetFlagsPayload, +type: 'fs:setFlags'|}
+export type SetMoveOrCopyDestinationParentPathPayload = {|+payload: _SetMoveOrCopyDestinationParentPathPayload, +type: 'fs:setMoveOrCopyDestinationParentPath'|}
+export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
+export type SetSendLinkToChatChannelsPayload = {|+payload: _SetSendLinkToChatChannelsPayload, +type: 'fs:setSendLinkToChatChannels'|}
+export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvIDPayload, +type: 'fs:setSendLinkToChatConvID'|}
+export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
+export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
+export type ShowSendLinkToChatPayload = {|+payload: _ShowSendLinkToChatPayload, +type: 'fs:showSendLinkToChat'|}
+export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
+export type UninstallKBFSConfirmPayload = {|+payload: _UninstallKBFSConfirmPayload, +type: 'fs:uninstallKBFSConfirm'|}
+export type UploadPayload = {|+payload: _UploadPayload, +type: 'fs:upload'|}
+export type UploadStartedPayload = {|+payload: _UploadStartedPayload, +type: 'fs:uploadStarted'|}
+export type UploadWritingSuccessPayload = {|+payload: _UploadWritingSuccessPayload, +type: 'fs:uploadWritingSuccess'|}
+export type UserFileEditsLoadPayload = {|+payload: _UserFileEditsLoadPayload, +type: 'fs:userFileEditsLoad'|}
+export type UserFileEditsLoadedPayload = {|+payload: _UserFileEditsLoadedPayload, +type: 'fs:userFileEditsLoaded'|}
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
   | CancelMoveOrCopyPayload
+  | ClearRefreshTagPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
@@ -320,8 +338,11 @@ export type Actions =
   | SetFlagsPayload
   | SetMoveOrCopyDestinationParentPathPayload
   | SetMoveOrCopySourcePayload
+  | SetSendLinkToChatChannelsPayload
+  | SetSendLinkToChatConvIDPayload
   | ShareNativePayload
   | ShowMoveOrCopyPayload
+  | ShowSendLinkToChatPayload
   | SortSettingPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload
@@ -329,4 +350,4 @@ export type Actions =
   | UploadWritingSuccessPayload
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

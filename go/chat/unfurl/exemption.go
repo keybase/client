@@ -44,6 +44,40 @@ func (o *OneTimeWhitelistExemption) Domain() string {
 	return o.domain
 }
 
+type SingleMessageWhitelistExemption struct {
+	sync.Mutex
+	convID chat1.ConversationID
+	msgID  chat1.MessageID
+	domain string
+}
+
+var _ (types.WhitelistExemption) = (*SingleMessageWhitelistExemption)(nil)
+
+func NewSingleMessageWhitelistExemption(convID chat1.ConversationID, msgID chat1.MessageID, domain string) *SingleMessageWhitelistExemption {
+	return &SingleMessageWhitelistExemption{
+		convID: convID,
+		msgID:  msgID,
+		domain: domain,
+	}
+}
+
+func (o *SingleMessageWhitelistExemption) Use() bool {
+	o.Lock()
+	defer o.Unlock()
+	return true
+}
+
+func (o *SingleMessageWhitelistExemption) Matches(convID chat1.ConversationID, msgID chat1.MessageID,
+	domain string) bool {
+	return o.convID.Eq(convID) && o.msgID == msgID && o.domain == domain
+}
+
+func (o *SingleMessageWhitelistExemption) Domain() string {
+	o.Lock()
+	defer o.Unlock()
+	return o.domain
+}
+
 type WhitelistExemptionList struct {
 	sync.Mutex
 	exemptions []types.WhitelistExemption

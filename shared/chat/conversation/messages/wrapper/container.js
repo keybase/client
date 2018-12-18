@@ -97,11 +97,6 @@ const getFailureDescriptionAllowCancel = (message, you) => {
       allowCancelRetry = true
     }
   }
-  // $ForceType
-  if (message.explodingUnreadable) {
-    failureDescription = 'This exploding message is not available to you.'
-  }
-
   return {allowCancelRetry, failureDescription}
 }
 
@@ -111,15 +106,9 @@ const getDecorate = (message, you) => {
       return !message.exploded && !message.errorReason
     case 'attachment':
       return !message.exploded && !message.errorReason
-    case 'requestPayment':
-    case 'sendPayment':
-    case 'systemAddedToTeam':
-    case 'systemLeft':
+    default:
       return true
-    case 'systemJoined':
-      return message.author !== you
   }
-  return false
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -142,11 +131,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
       : null
 
+  // $ForceType
+  const forceAsh = !!message.explodingUnreadable
+
   return {
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     failureDescription,
+    forceAsh,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,

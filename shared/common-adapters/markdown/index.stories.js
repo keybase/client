@@ -1,13 +1,13 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
 import {escapePath} from '../../constants/fs'
 import {stringToPath} from '../../constants/types/fs'
 import Markdown, {type MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
-import OriginalParser from '../../markdown/parser'
 
 const cases = {
   'Blank lines': `
@@ -188,6 +188,7 @@ const mockMeta = {
     // $ForceType
     general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
   }),
+  message: ChatConstants.makeMessageText(),
 }
 
 const mocksWithMeta = {
@@ -290,24 +291,16 @@ const randomGenerated = {
 
 export const provider = Sb.createPropProviderWithCommon({})
 
-class ShowAST extends React.Component<
-  {text: string, simple: boolean, meta: ?MarkdownMeta},
-  {visible: boolean}
-> {
+class ShowAST extends React.Component<{text: string, meta: ?MarkdownMeta}, {visible: boolean}> {
   state = {visible: false}
   render = () => {
     let parsed
     try {
-      parsed = this.props.simple
-        ? simpleMarkdownParser((this.props.text || '').trim() + '\n', {
-            disableAutoBlockNewlines: true,
-            inline: false,
-            markdownMeta: this.props.meta,
-          })
-        : OriginalParser.parse(this.props.text, {
-            channelNameToConvID: (channel: string) => null,
-            isValidMention: (mention: string) => false,
-          })
+      parsed = simpleMarkdownParser((this.props.text || '').trim() + '\n', {
+        disableAutoBlockNewlines: true,
+        inline: false,
+        markdownMeta: this.props.meta,
+      })
     } catch (error) {
       parsed = {error}
     }
@@ -343,10 +336,7 @@ class ShowAST extends React.Component<
   }
 }
 
-class ShowPreview extends React.Component<
-  {text: string, simple: boolean, meta: ?MarkdownMeta},
-  {visible: boolean}
-> {
+class ShowPreview extends React.Component<{text: string, meta: ?MarkdownMeta}, {visible: boolean}> {
   state = {visible: false}
   render = () => {
     return (
@@ -357,7 +347,7 @@ class ShowPreview extends React.Component<
           type="Primary"
         />
         {this.state.visible && (
-          <Markdown simple={this.props.simple} preview={true} meta={this.props.meta}>
+          <Markdown preview={true} meta={this.props.meta}>
             {this.props.text}
           </Markdown>
         )}
@@ -369,18 +359,14 @@ class ShowPreview extends React.Component<
 // Adds the perf decorator and disables showing previews and ast
 const PERF_MODE = false
 
-const MarkdownWithAst = ({children, simple, meta}: {children: any, simple: boolean, meta?: ?MarkdownMeta}) =>
+const MarkdownWithAst = ({children, meta}: {children: any, meta?: ?MarkdownMeta}) =>
   PERF_MODE ? (
-    <Markdown simple={simple} meta={meta}>
-      {children}
-    </Markdown>
+    <Markdown meta={meta}>{children}</Markdown>
   ) : (
     <Kb.Box2 direction="vertical">
-      <Markdown simple={simple} meta={meta}>
-        {children}
-      </Markdown>
-      <ShowAST text={children} simple={simple} meta={meta} />
-      <ShowPreview text={children} simple={simple} meta={meta} />
+      <Markdown meta={meta}>{children}</Markdown>
+      <ShowAST text={children} meta={meta} />
+      <ShowPreview text={children} meta={meta} />
     </Kb.Box2>
   )
 
@@ -394,61 +380,26 @@ const load = () => {
   }
 
   Object.keys(cases).forEach(k => {
-    s = s.add(k + '[comparison]', () => (
-      <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true}>
-          {cases[k]}
-        </Markdown>
-        <Markdown style={{flex: 1}} simple={false}>
-          {cases[k]}
-        </Markdown>
-      </Kb.Box2>
-    ))
-    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{cases[k]}</MarkdownWithAst>)
-    s = s.add(k + '[o]', () => <MarkdownWithAst simple={false}>{cases[k]}</MarkdownWithAst>)
+    s = s.add(k, () => <MarkdownWithAst>{cases[k]}</MarkdownWithAst>)
   })
 
   Object.keys(mocksWithMeta).forEach(k => {
-    s = s.add(k + '[comparison]', () => (
-      <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true} meta={mocksWithMeta[k].meta}>
-          {mocksWithMeta[k].text}
-        </Markdown>
-        <Markdown style={{flex: 1}} simple={false} meta={mocksWithMeta[k].meta}>
-          {mocksWithMeta[k].text}
-        </Markdown>
-      </Kb.Box2>
-    ))
-    s = s.add(k + '[s]', () => (
-      <MarkdownWithAst simple={true} meta={mocksWithMeta[k].meta}>
-        {mocksWithMeta[k].text}
-      </MarkdownWithAst>
-    ))
-    s = s.add(k + '[o]', () => (
-      <MarkdownWithAst simple={false} meta={mocksWithMeta[k].meta}>
-        {mocksWithMeta[k].text}
-      </MarkdownWithAst>
+    s = s.add(k, () => (
+      <MarkdownWithAst meta={mocksWithMeta[k].meta}>{mocksWithMeta[k].text}</MarkdownWithAst>
     ))
   })
 
   Object.keys(randomGenerated).forEach(k => {
     s = s.add(k + '[comparison]', () => (
       <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true}>
-          {randomGenerated[k]}
-        </Markdown>
-        <Kb.Box style={{backgroundColor: 'black', width: 1}} />
-        <Markdown style={{flex: 1}} simple={false}>
-          {randomGenerated[k]}
-        </Markdown>
+        <Markdown style={{flex: 1}}>{randomGenerated[k]}</Markdown>
         <Kb.Box style={{backgroundColor: 'black', width: 1}} />
         <Kb.Text style={{flex: 1}} type="Body">
           {JSON.stringify(randomGenerated[k])}
         </Kb.Text>
       </Kb.Box2>
     ))
-    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{randomGenerated[k]}</MarkdownWithAst>)
-    s = s.add(k + '[o]', () => <Markdown simple={false}>{randomGenerated[k]}</Markdown>)
+    s = s.add(k, () => <MarkdownWithAst>{randomGenerated[k]}</MarkdownWithAst>)
   })
 }
 
