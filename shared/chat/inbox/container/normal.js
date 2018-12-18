@@ -5,7 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
-import {memoize1, memoize2} from '../../../util/memoize'
+import {memoize1, memoize2, memoize3} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const smallTeamsCollapsedMaxShown = 5
@@ -25,29 +25,6 @@ const splitMetas = memoize1((metaMap: Types.MetaMap) => {
   })
   return {bigMetas, smallMetas}
 })
-
-const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
-const getSmallRows = memoize2(
-  (smallMetas, showAllSmallRows) => {
-    let metas
-    if (showAllSmallRows) {
-      metas = smallMetas.sort(sortByTimestamp)
-    } else {
-      metas = I.Seq(smallMetas)
-        .sort(sortByTimestamp)
-        .take(smallTeamsCollapsedMaxShown)
-        .toArray()
-    }
-    return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
-  },
-  (newMetas, oldMetas) =>
-    newMetas.length === oldMetas.length &&
-    newMetas.every((a, idx) => {
-      const b = oldMetas[idx]
-      return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
-    }),
-  undefined
-)
 
 const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
@@ -76,15 +53,21 @@ const getBigRows = memoize1(
   (newMetas, oldMetas) => shallowEqual(newMetas, oldMetas)
 )
 
+const smallTeamToRow = memoize2((inboxSmallTeam, showAllSmallRows) =>
+  (showAllSmallRows ? inboxSmallTeam : inboxSmallTeam.take(smallTeamsCollapsedMaxShown))
+    .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+    .toArray()
+)
+
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize2<Types.MetaMap, boolean, _>(
-  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
-    const {bigMetas, smallMetas} = splitMetas(metaMap)
+const getRowsAndMetadata = memoize3<Types.MetaMap, I.List<Types.ConversationIDKey>, boolean, _>(
+  (metaMap: Types.MetaMap, inboxSmallTeam: I.List<Types.ConversationIDKey>, smallTeamsExpanded: boolean) => {
+    const {bigMetas} = splitMetas(metaMap)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
-    const smallRows = getSmallRows(smallMetas, showAllSmallRows)
+    const smallRows = smallTeamToRow(inboxSmallTeam, showAllSmallRows)
     const bigRows = getBigRows(bigMetas)
-    const smallTeamsBelowTheFold = smallMetas.length > smallRows.length
+    const smallTeamsBelowTheFold = inboxSmallTeam.size > smallRows.length
     const divider = bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
     const allowShowFloatingButton = smallRows.length > smallTeamsCollapsedMaxShown && !!bigMetas.length
     const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]

@@ -41,6 +41,11 @@ export type StaticConfig = I.RecordOf<_StaticConfig>
 
 export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
+export type _InboxLargeTeams = {
+  conversationIDKey: Common.ConversationIDKey,
+  name: string, // channelname or teamname if conversationIDKey === NoConversationIDKey
+}
+export type InboxLargeTeams = I.RecordOf<_InboxLargeTeams>
 
 export type _State = {
   accountsInfoMap: I.Map<
@@ -51,6 +56,8 @@ export type _State = {
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  inboxSmallTeams: I.List<Common.ConversationIDKey>, // inbox small teams, this is derived state from metaMap but we need this to be fast
+  inboxLargeTeams: I.List<InboxLargeTeams>,
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI

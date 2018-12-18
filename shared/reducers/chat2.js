@@ -878,11 +878,16 @@ const rootReducer = (
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
-      const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
-      return nextState.withMutations(s => {
-        s.set('metaMap', metaMapReducer(state.metaMap, action))
-        s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
-        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      // TODO incremental
+      const inboxSmallTeams = action.payload.fromInboxRefresh
+        ? I.List(action.payload.metas.filter(m => m.teamType !== 'big').map(m => m.conversationIDKey))
+        : state.inboxSmallTeams
+      return state.merge({
+        inboxHasLoaded: action.payload.fromInboxRefresh || state.inboxHasLoaded,
+        inboxSmallTeams,
+        messageMap: messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal),
+        messageOrdinals: messageOrdinalsReducer(state.messageOrdinals, action),
+        metaMap: metaMapReducer(state.metaMap, action),
       })
     }
     case Chat2Gen.paymentInfoReceived: {
