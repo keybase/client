@@ -83,9 +83,10 @@ func (s *identify3State) makeNewCache() {
 }
 
 // get an identify3Session out of the cache, as keyed by a Identify3GUIID. Return
-// (nil, nil, nil) if not found. Return (nil, nil, Error) if there was an expected error.
-// Return (i, f, nil) if found, where i is the **locked** object, f is the unlocker function
-// that you are required to call if non-nil, and nil is the nil error.
+// (nil, f, nil) if not found. Return (nil, f, Error) if there was an expected error.
+// Return (i, f, nil) if found, where i is the **locked** object. In all cases, the
+// caller must call f() before exiting, either to unlock the locked object, or to
+// just noop.
 func (s *identify3State) get(key keybase1.Identify3GUIID) (ret *identify3Session, unlocker func(), err error) {
 	s.Lock()
 	defer s.Unlock()
@@ -94,16 +95,17 @@ func (s *identify3State) get(key keybase1.Identify3GUIID) (ret *identify3Session
 
 func (s *identify3State) getLocked(key keybase1.Identify3GUIID) (ret *identify3Session, unlocker func(), err error) {
 	v, err := s.cache.Get(string(key))
+	unlocker = func() {}
 	if err != nil {
 		// NotFound isn't an error case
 		if err == ramcache.ErrNotFound {
-			return nil, nil, nil
+			return nil, unlocker, nil
 		}
-		return nil, nil, err
+		return nil, unlocker, err
 	}
 	outcome, ok := v.(*identify3Session)
 	if !ok {
-		return nil, nil, fmt.Errorf("invalid type in cache: %T", v)
+		return nil, unlocker, fmt.Errorf("invalid type in cache: %T", v)
 	}
 	outcome.Lock()
 	unlocker = func() { outcome.Unlock() }
@@ -115,6 +117,7 @@ func (s *identify3State) put(sess *identify3Session) error {
 	defer s.Unlock()
 
 	tmp, unlocker, err := s.getLocked(sess.id)
+	defer unlocker()
 	if err != nil {
 		return err
 	}
