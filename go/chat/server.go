@@ -670,7 +670,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 
 	// Apply any pager mode transformations
 	pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
-	if pagination.Last {
+	if pagination != nil && pagination.Last {
 		return res, nil
 	}
 
