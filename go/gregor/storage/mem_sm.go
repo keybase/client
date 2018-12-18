@@ -324,6 +324,8 @@ func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessag
 		}
 	default:
 	}
+	user.logMessage(i.ctime, msg, i)
+
 	// fetch the message we just consumed out to return
 	ibm, err := user.getInBandMessage(msg.Metadata().MsgID())
 	if err != nil {
@@ -333,7 +335,6 @@ func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessag
 	if err != nil {
 		return nil, err
 	}
-	user.logMessage(i.ctime, msg, i)
 	return retMsg, err
 }
 
