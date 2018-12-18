@@ -916,6 +916,11 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 		d.walletState.Reset(m)
 	}
 
+	log("killing identify3state")
+	if d.identify3state != nil {
+		d.identify3state.Reset(m)
+	}
+
 	return nil
 }
 
