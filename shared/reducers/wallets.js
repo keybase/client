@@ -245,6 +245,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
+        builtPayment: state.get('builtPayment').merge({readyToSend: 'spinning'}),
         createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
