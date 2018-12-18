@@ -43,6 +43,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           })
         : state
     case WalletsGen.clearBuilding:
+    case WalletsGen.stopPayment:
       return state.merge({building: Constants.makeBuilding()})
     case WalletsGen.clearBuiltPayment:
       return state.merge({builtPayment: Constants.makeBuiltPayment()})
@@ -330,7 +331,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
     case WalletsGen.startPayment:
-    case WalletsGen.stopPayment:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

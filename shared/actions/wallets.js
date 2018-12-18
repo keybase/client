@@ -223,9 +223,7 @@ const startPayment = () =>
   )
 
 const stopPayment = (state: TypedState, action: WalletsGen.StopPaymentPayload) =>
-  RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid}).then(_ =>
-    WalletsGen.createClearBuilding()
-  )
+  RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 const clearBuiltRequest = () => Saga.put(WalletsGen.createClearBuiltRequest())
