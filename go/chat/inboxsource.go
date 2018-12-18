@@ -520,7 +520,8 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, localizeCb, err
 	}
-
+	// we add an additional 1 here for the unverified payload which is also sent
+	// on this channel
 	localizeCb = make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified)+1)
 	localizer := s.createConversationLocalizer(ctx, localizerTyp, localizeCb)
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
