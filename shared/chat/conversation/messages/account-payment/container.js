@@ -86,7 +86,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           !youAreSender && cancelable && !acceptedDisclaimer
             ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
             : '',
-        icon: pending ? 'iconfont-clock' : 'iconfont-stellar-send',
+        icon: pending ? 'iconfont-clock' : null,
         loading: false,
         memo: paymentInfo.note.stringValue(),
         pending: pending || canceled,
