@@ -917,8 +917,8 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	}
 
 	log("killing identify3state")
-	if d.identify3state != nil {
-		d.identify3state.Reset(m)
+	if d.identify3State != nil {
+		d.identify3State.Reset(m)
 	}
 
 	return nil

@@ -66,11 +66,20 @@ type identify3State struct {
 }
 
 func newIdentify3State(g *libkb.GlobalContext) *identify3State {
+	ret := &identify3State{}
+	ret.makeNewCache()
+	return ret
+}
+
+func (s *identify3State) makeNewCache() {
+	s.Lock()
+	defer s.Unlock()
+	if s.cache != nil {
+		s.cache.Shutdown()
+	}
 	cache := ramcache.New()
 	cache.MaxAge = 24 * time.Hour
-	return &identify3State{
-		cache: cache,
-	}
+	s.cache = cache
 }
 
 // get an identify3Session out of the cache, as keyed by a Identify3GUIID. Return
@@ -114,6 +123,10 @@ func (s *identify3State) put(sess *identify3Session) error {
 		return libkb.ExistsError{Msg: "Identify3 ID already exists"}
 	}
 	return s.cache.Set(string(sess.id), sess)
+}
+
+func (s *identify3State) Reset(mctx libkb.MetaContext) {
+	s.makeNewCache()
 }
 
 func newIdentify3Handler(xp rpc.Transporter, g *libkb.GlobalContext, state *identify3State) *identify3Handler {
