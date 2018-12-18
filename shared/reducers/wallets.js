@@ -42,7 +42,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
           })
         : state
+    case WalletsGen.abandonPayment:
     case WalletsGen.clearBuilding:
+    case WalletsGen.openSendRequestForm:
       return state.merge({building: Constants.makeBuilding()})
     case WalletsGen.clearBuiltPayment:
       return state.merge({builtPayment: Constants.makeBuiltPayment()})
@@ -334,13 +336,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:
     case WalletsGen.requestedPayment:
-    case WalletsGen.abandonPayment:
     case WalletsGen.loadSendAssetChoices:
-    case WalletsGen.openSendRequestForm:
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
-    case WalletsGen.startPayment:
-    case WalletsGen.stopPayment:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -314,13 +314,6 @@
       "_description": "Set whether the payment is ready to review",
       "readyToReview": "boolean"
     },
-    "startPayment": {
-      "_description": "Begin preparing a new payment."
-    },
-    "stopPayment": {
-      "_description": "Invalidate a stale prepared payment.",
-      "bid": "string"
-    },
     "reviewPayment": {
       "_description": "Move to the confirm screen on a built payment."
     },
