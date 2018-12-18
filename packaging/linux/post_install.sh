@@ -55,7 +55,7 @@ if [ -n "$currlink" ] ; then
     fi
 elif [ -d "$rootmount" ] ; then
     # Handle upgrading from old builds that don't have the rootlink.
-    currowner=`stat -c %U "$rootmount"`
+    currowner="$(stat -c %U "$rootmount")"
     if [ "$currowner" != "root" ]; then
         # Remove any existing legacy mount.
         echo Unmounting $rootmount...
@@ -65,25 +65,25 @@ elif [ -d "$rootmount" ] ; then
         rmdir "$rootmount"
         echo You must run run_keybase to restore file system access.
     elif ! redirector_enabled ; then
-        if killall `basename "$krbin"` &> /dev/null ; then
+        if killall "$(basename "$krbin")" &> /dev/null ; then
             echo "Stopping existing root redirector."
         fi
-    elif killall -USR1 `basename "$krbin"` &> /dev/null ; then
+    elif killall -USR1 "$(basename "$krbin")" &> /dev/null ; then
         echo "Restarting existing root redirector."
         # If the redirector is still owned by root, that probably
         # means we're sill running an old version and it needs to be
         # manually killed and restarted.  Instead, run it as the user
         # currently running kbfsfuse.
-        krName=`basename "$krbin"`
-        krUser=`ps -o user= -C "$krName" 2> /dev/null | head -1`
+        krName="$(basename "$krbin")"
+        krUser="$(ps -o user= -C "$krName" 2> /dev/null | head -1)"
         if [ "$krUser" = "root" ]; then
-            newUser=`ps -o user= -C "kbfsfuse" 2> /dev/null | head -1`
+            newUser="$(ps -o user= -C "kbfsfuse" 2> /dev/null | head -1)"
             killall "$krName" &> /dev/null
-            if [ -n "$newUser" -a "$newUser" != "root" ]; then
+            if [ -n "$newUser" ] && [ "$newUser" != "root" ]; then
                 # Try our best to get the user's $XDG_CACHE_HOME,
                 # though depending on how it's set, it might not be
                 # available to su.
-                userCacheHome=`su -c 'echo -n $XDG_CACHE_HOME' - $newUser`
+                userCacheHome="$(su -c "echo -n \$XDG_CACHE_HOME" - "$newUser")"
                 log="${userCacheHome:-~$newUser/.cache}/keybase/keybase.redirector.log"
                 su -c "nohup \"$krbin\" \"$rootmount\" &>> $log &" "$newUser"
                 echo "Root redirector now running as $newUser."
@@ -97,13 +97,13 @@ elif [ -d "$rootmount" ] ; then
                 logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
                 mkdir -p "$logdir"
                 log="$logdir/keybase.redirector.log"
-                nohup "$krbin" "$rootmount" &>> $log &
+                nohup "$krbin" "$rootmount" &>> "$log" &
             fi
         fi
         t=5
         while ! mountpoint "$rootmount" &> /dev/null; do
             sleep 1
-            t=$[t-1]
+            t=$((t-1))
             if [ $t -eq 0 ]; then
                 echo "Redirector hasn't started yet."
                 break
@@ -116,6 +116,6 @@ fi
 make_mountpoint
 
 # Update the GTK icon cache, if possible.
-if which gtk-update-icon-cache &> /dev/null ; then
+if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
