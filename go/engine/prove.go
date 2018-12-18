@@ -110,7 +110,6 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 		})
 		if err != nil {
 			// Errors here are conditions like EOF. Return them rather than retrying.
-			m.CWarningf("prompt username err: %s", err)
 			return err
 		}
 		var remoteNameNormalized string
