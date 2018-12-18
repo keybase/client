@@ -929,21 +929,24 @@ type weightedByCount struct {
 // weighting by per-TLF block count.
 func (cache *DiskBlockCacheLocal) shuffleTLFsAtPriorityWeighted(
 	priority evictionPriority) []weightedByCount {
-	weightedSlice := make([]weightedByCount,
+	weightedSlice := make([]weightedByCount, 0,
 		len(cache.priorityTlfMap[priority]))
 	idx := 0
 	// Use an exponential distribution to ensure the weights are
 	// correctly used.
 	// See http://utopia.duth.gr/~pefraimi/research/data/2007EncOfAlg.pdf
-	for tlfId, count := range cache.priorityTlfMap[priority] {
-		weightedSlice[idx] = weightedByCount{
-			key:   rand.ExpFloat64() * float64(count),
-			value: tlfId,
+	for tlfID, count := range cache.priorityTlfMap[priority] {
+		if count == 0 {
+			continue
 		}
+		weightedSlice = append(weightedSlice, weightedByCount{
+			key:   math.Pow(rand.Float64(), 1.0/float64(count)),
+			value: tlfID,
+		})
 		idx++
 	}
 	sort.Slice(weightedSlice, func(i, j int) bool {
-		return weightedSlice[i].key < weightedSlice[j].key
+		return weightedSlice[i].key > weightedSlice[j].key
 	})
 	return weightedSlice
 }
@@ -1015,10 +1018,13 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 					blockIDs = append(blockIDs, lruEntry{blockID, lru})
 				}
 			}()
+			if len(blockIDs) == numElements {
+				break
+			}
 		}
 		// Evict some of the selected blocks.
 		currNumRemoved, currSizeRemoved, err := cache.evictSomeBlocks(ctx,
-			numBlocks, blockIDs)
+			numBlocks-numRemoved, blockIDs)
 		if err != nil {
 			return numRemoved, sizeRemoved, err
 		}

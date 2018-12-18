@@ -377,7 +377,7 @@ func (cache *diskBlockCacheWrapped) AddHomeTLF(ctx context.Context,
 	if cache.syncCache == nil {
 		return errors.New("Sync cache not enabled")
 	}
-	return cache.AddHomeTLF(ctx, tlfID)
+	return cache.syncCache.AddHomeTLF(ctx, tlfID)
 }
 
 // ClearHomeTLFs implements the DiskBlockCache interface for
