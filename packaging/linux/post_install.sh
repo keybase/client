@@ -12,11 +12,6 @@ krbin="/usr/bin/keybase-redirector"
 rootConfigFile="/etc/keybase/config.json"
 disableConfigKey="disable-root-redirector"
 
-vardirDeprecated="/var/lib/keybase"
-khuserDeprecated="keybasehelper"
-khbinDeprecated="/usr/bin/keybase-mount-helper"
-optDeprecated="/opt/keybase/mount-readme"
-
 redirector_enabled() {
   disableRedirector="false"
   if [ -r "$rootConfigFile" ] ; then
@@ -119,25 +114,6 @@ fi
 
 # Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint
-
-# Delete the keybasehelper system user, to clean up after older
-# versions.  TODO: remove this once sufficient time has passed since
-# those old releases.
-if userdel $khuserDeprecated &> /dev/null ; then
-    echo Removing $khuserDeprecated system user, as it is no longer needed.
-    rm -f "$khbinDeprecated"
-    rm -rf "$vardirDeprecated"
-    rm -rf "$optDeprecated"
-fi
-
-# Delete the keybasehelper system user, to clean up after older
-# versions.  TODO: remove this once sufficient time has passed since
-# those old releases.
-if userdel $khuserDeprecated &> /dev/null ; then
-    echo Removing $khuserDeprecated system user, as it is no longer needed.
-    # Switch /var/lib/keybase to be owned by root.
-    chown -R "$khuser":"$khuser" "$vardir"
-fi
 
 # Update the GTK icon cache, if possible.
 if which gtk-update-icon-cache &> /dev/null ; then
