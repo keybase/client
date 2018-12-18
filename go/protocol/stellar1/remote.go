@@ -453,15 +453,16 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 }
 
 type AccountDetails struct {
-	AccountID         AccountID        `codec:"accountID" json:"accountID"`
-	Seqno             string           `codec:"seqno" json:"seqno"`
-	Balances          []Balance        `codec:"balances" json:"balances"`
-	SubentryCount     int              `codec:"subentryCount" json:"subentryCount"`
-	Available         string           `codec:"available" json:"available"`
-	Reserves          []AccountReserve `codec:"reserves" json:"reserves"`
-	ReadTransactionID *TransactionID   `codec:"readTransactionID,omitempty" json:"readTransactionID,omitempty"`
-	UnreadPayments    int              `codec:"unreadPayments" json:"unreadPayments"`
-	DisplayCurrency   string           `codec:"displayCurrency" json:"displayCurrency"`
+	AccountID            AccountID        `codec:"accountID" json:"accountID"`
+	Seqno                string           `codec:"seqno" json:"seqno"`
+	Balances             []Balance        `codec:"balances" json:"balances"`
+	SubentryCount        int              `codec:"subentryCount" json:"subentryCount"`
+	Available            string           `codec:"available" json:"available"`
+	Reserves             []AccountReserve `codec:"reserves" json:"reserves"`
+	ReadTransactionID    *TransactionID   `codec:"readTransactionID,omitempty" json:"readTransactionID,omitempty"`
+	UnreadPayments       int              `codec:"unreadPayments" json:"unreadPayments"`
+	DisplayCurrency      string           `codec:"displayCurrency" json:"displayCurrency"`
+	InflationDestination *AccountID       `codec:"inflationDestination,omitempty" json:"inflationDestination,omitempty"`
 }
 
 func (o AccountDetails) DeepCopy() AccountDetails {
@@ -501,6 +502,13 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 		})(o.ReadTransactionID),
 		UnreadPayments:  o.UnreadPayments,
 		DisplayCurrency: o.DisplayCurrency,
+		InflationDestination: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.InflationDestination),
 	}
 }
 
@@ -736,11 +744,6 @@ type SetInflationDestinationArg struct {
 	SignedTransaction string               `codec:"signedTransaction" json:"signedTransaction"`
 }
 
-type GetInflationDestinationArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
-}
-
 type PingArg struct {
 }
 
@@ -763,7 +766,6 @@ type RemoteInterface interface {
 	RequestDetails(context.Context, RequestDetailsArg) (RequestDetails, error)
 	CancelRequest(context.Context, CancelRequestArg) error
 	SetInflationDestination(context.Context, SetInflationDestinationArg) error
-	GetInflationDestination(context.Context, GetInflationDestinationArg) (*AccountID, error)
 	Ping(context.Context) (string, error)
 }
 
@@ -1041,21 +1043,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getInflationDestination": {
-				MakeArg: func() interface{} {
-					var ret [1]GetInflationDestinationArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetInflationDestinationArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetInflationDestinationArg)(nil), args)
-						return
-					}
-					ret, err = i.GetInflationDestination(ctx, typedArgs[0])
-					return
-				},
-			},
 			"ping": {
 				MakeArg: func() interface{} {
 					var ret [1]PingArg
@@ -1163,11 +1150,6 @@ func (c RemoteClient) CancelRequest(ctx context.Context, __arg CancelRequestArg)
 
 func (c RemoteClient) SetInflationDestination(ctx context.Context, __arg SetInflationDestinationArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.setInflationDestination", []interface{}{__arg}, nil)
-	return
-}
-
-func (c RemoteClient) GetInflationDestination(ctx context.Context, __arg GetInflationDestinationArg) (res *AccountID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.getInflationDestination", []interface{}{__arg}, &res)
 	return
 }
 

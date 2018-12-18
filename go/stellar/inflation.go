@@ -60,22 +60,23 @@ func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountI
 	defer mctx.CTraceTimed("Stellar.GetInflationDestination", func() error { return err })()
 
 	walletState := getGlobal(mctx.G()).walletState
-	destination, err := walletState.GetInflationDestination(mctx.Ctx(), accountID)
+	details, err := walletState.Details(mctx.Ctx(), accountID)
 	if err != nil {
 		return res, err
 	}
 
-	if destination == nil {
-		// Inflation destination is not set on the account
+	dest := details.InflationDestination
+	if dest == nil {
+		// Inflation destination is not set on the account.
 		res.Destination = nil
 		res.Comment = ""
 		return res, nil
 	}
 
-	res.Destination = destination
-	if destination.Eq(accountID) {
+	res.Destination = dest
+	if dest.Eq(accountID) {
 		res.Comment = "self"
-	} else if destination.Eq(lumenautPoolAccountID) {
+	} else if dest.Eq(lumenautPoolAccountID) {
 		res.Comment = "https://pool.lumenaut.net/"
 	}
 	return res, nil

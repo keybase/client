@@ -515,10 +515,6 @@ func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx
 	return r.Backend.SetInflationDestination(ctx, r.Tc, signedTx)
 }
 
-func (r *RemoteClientMock) GetInflationDestination(ctx context.Context, accountID stellar1.AccountID) (*stellar1.AccountID, error) {
-	return r.Backend.GetInflationDestination(ctx, r.Tc, accountID)
-}
-
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (
@@ -935,13 +931,19 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		return res, err
 	}
 
+	var inflationDest *stellar1.AccountID
+	if a.inflationDest != "" {
+		inflationDest = &a.inflationDest
+	}
+
 	return stellar1.AccountDetails{
-		AccountID:       accountID,
-		Seqno:           strconv.FormatUint(r.seqnos[accountID], 10),
-		Balances:        balances,
-		SubentryCount:   a.subentries,
-		Available:       a.availableBalance(),
-		DisplayCurrency: apiRes.CurrencyDisplayPreference,
+		AccountID:            accountID,
+		Seqno:                strconv.FormatUint(r.seqnos[accountID], 10),
+		Balances:             balances,
+		SubentryCount:        a.subentries,
+		Available:            a.availableBalance(),
+		DisplayCurrency:      apiRes.CurrencyDisplayPreference,
+		InflationDestination: inflationDest,
 	}, nil
 }
 
@@ -1167,18 +1169,6 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 
 	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)
 	return nil
-}
-
-func (r *BackendMock) GetInflationDestination(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res *stellar1.AccountID, err error) {
-	account, ok := r.accounts[accountID]
-	if !ok {
-		return res, fmt.Errorf("source account not found")
-	}
-	if account.inflationDest.IsNil() {
-		return nil, nil
-	}
-	acct := account.inflationDest
-	return &acct, nil
 }
 
 // Friendbot sends someone XLM
