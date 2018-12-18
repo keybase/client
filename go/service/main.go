@@ -155,7 +155,8 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 	}
 	walletHandler := newWalletHandler(xp, g, d.walletState)
-	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
+	protocols = append(protocols, CancellingProtocol(g, stellar1.LocalProtocol(walletHandler)))
+
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {

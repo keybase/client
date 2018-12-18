@@ -274,6 +274,10 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
 		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
+		autoplay := ""
+		if req.URL.Query().Get("autoplay") != "true" {
+			autoplay = `onloadeddata="togglePlay('pause')"`
+		}
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
 				<head>
@@ -284,13 +288,21 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 							var vid = document.getElementById("vid");
 							vid.play()
 						}
+						window.togglePlay = function(data) {
+							var vid = document.getElementById("vid");
+							if (data === "play") {
+								vid.play();
+							} else {
+								vid.pause();
+							}
+						}
 					</script>
 				</head>
 				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" onloadeddata="playVideo()" style="width: 100%%; height: 100%%; border-radius: 8px; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
+					<video id="vid" %s preload="auto" style="width: 100%%; height: 100%%; border-radius: 4px; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
 				</body>
 			</html>
-		`, req.URL.String()+"&contentforce=true"))); err != nil {
+		`, autoplay, req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
 		}
 		return true

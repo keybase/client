@@ -4,6 +4,9 @@
     "import * as ChatTypes from '../constants/types/chat2'"
   ],
   "actions": {
+    "clearRefreshTag": {
+      "refreshTag": "Types.RefreshTag"
+    },
     "folderListLoad": {
       "path": "Types.Path",
       "refreshTag?": "Types.RefreshTag"
