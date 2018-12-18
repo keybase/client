@@ -1,0 +1,7 @@
+// @flow
+import * as React from 'react'
+import * as Box from '../../common-adapters/box'
+
+export type Props = Box.Props
+
+declare export default class DropTarget extends React.PureComponent<Props> {}

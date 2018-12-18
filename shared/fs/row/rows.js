@@ -11,6 +11,7 @@ import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing-container'
 import Uploading from './uploading-container'
+import DropTarget from './drop-target'
 import SortBar from '../sortbar/container'
 import {rowHeight} from './common'
 import {isMobile} from '../../constants/platform'
@@ -18,8 +19,10 @@ import {isMobile} from '../../constants/platform'
 type Props = {
   destinationPickerIndex?: number,
   items: Array<Types.RowItemWithKey>,
+  onAttach: (destination: Types.Path, dropPaths: Array<string>) => void,
   path: Types.Path,
   routePath: I.List<string>,
+  writable: boolean,
 }
 
 export const WrapRow = ({children}: {children: React.Node}) => (
@@ -95,7 +98,7 @@ class Rows extends React.PureComponent<Props> {
         )
     }
   }
-  render() {
+  renderContents() {
     return this.props.items && this.props.items.length ? (
       <>
         {// Only show sortbar if we are in the folder view.
@@ -118,6 +121,13 @@ class Rows extends React.PureComponent<Props> {
         <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
       </Kb.Box2>
     )
+  }
+  render() {
+    const onDrop = (dropPaths) => this.props.onAttach(this.props.path, dropPaths)
+    return (
+  <DropTarget onAttach={this.props.writable ? onDrop : null}>
+    {this.renderContents()}
+  </DropTarget>)
   }
 }
 
