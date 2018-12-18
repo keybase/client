@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
