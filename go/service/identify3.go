@@ -1,11 +1,15 @@
 package service
 
 import (
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
+	"stathat.com/c/ramcache"
+	"sync"
 	"time"
 )
 
@@ -15,34 +19,120 @@ import (
 // for the final result.
 type identify3Session struct {
 	created time.Time
+	id      keybase1.Identify3GUIID
+	outcome *libkb.IdentifyOutcome
+}
+
+func newIdentify3GUIID() (keybase1.Identify3GUIID, error) {
+	var b []byte
+	l := 12
+	b, err := libkb.RandBytes(l)
+	if err != nil {
+		return keybase1.Identify3GUIID(""), err
+	}
+	b[l-1] = 0x34
+	return keybase1.Identify3GUIID(hex.EncodeToString(b)), nil
+}
+
+func newIdentifySession(g *libkb.GlobalContext) (*identify3Session, error) {
+	id, err := newIdentify3GUIID()
+	if err != nil {
+		return nil, err
+	}
+	ret := &identify3Session{
+		created: g.GetClock().Now(),
+		id:      id,
+	}
+	return ret, nil
 }
 
 // identify3Handler handles one RPC in the identify3 flow
 type identify3Handler struct {
-	state   *identify3State
-	session *identify3Session
+	libkb.Contextified
+	state *identify3State
+	xp    rpc.Transporter
 }
 
 // identify3State keeps track of all active ID3 state across the whole app. It has
 // a cache that's periodically cleaned up.
 type identify3State struct {
-	state      map[keybase1.Identify3GUIID](*identify3Session)
-	cleanOrder []keybase1.Identify3GUIID
+	sync.Mutex
+	cache *ramcache.Ramcache
 }
 
 func newIdentify3State(g *libkb.GlobalContext) *identify3State {
-	return &identify3State{}
+	cache := ramcache.New()
+	cache.MaxAge = 24 * time.Hour
+	return &identify3State{
+		cache: cache,
+	}
+}
+
+func (s *identify3State) get(key keybase1.Identify3GUIID) (*identify3Session, error) {
+	s.Lock()
+	defer s.Unlock()
+	v, err := s.cache.Get(string(key))
+	if err != nil {
+		if err == ramcache.ErrNotFound {
+			return nil, libkb.NotFoundError{Msg: "Identify3 state not found for ID; did it time out?"}
+		}
+		return nil, err
+	}
+	outcome, ok := v.(*identify3Session)
+	if !ok {
+		return nil, fmt.Errorf("invalid type in cache: %T", v)
+	}
+	return outcome, nil
+}
+
+func (s *identify3State) put(sess *identify3Session) error {
+	s.Lock()
+	defer s.Unlock()
+
+	tmp, err := s.get(sess.id)
+	if err != nil {
+		return err
+	}
+	if tmp != nil {
+		return libkb.ExistsError{Msg: "Identify3 ID already exists"}
+	}
+	return s.cache.Set(string(sess.id), sess)
 }
 
 func newIdentify3Handler(xp rpc.Transporter, g *libkb.GlobalContext, state *identify3State) *identify3Handler {
-	return &identify3Handler{}
+	return &identify3Handler{
+		Contextified: libkb.NewContextified(g),
+		xp:           xp,
+	}
 }
 
 var _ keybase1.Identify3Interface = (*identify3Handler)(nil)
 
-func (i *identify3Handler) Identify3(context.Context, keybase1.Identify3Arg) error {
+func (i *identify3Handler) Identify3(ctx context.Context, arg keybase1.Identify3Arg) (err error) {
+	m := libkb.NewMetaContext(ctx, i.G())
+	m = m.WithLogTag("ID3")
+	defer m.CTrace(fmt.Sprintf("Identify3(%+v)", arg), func() error { return err })()
+
+	sess, err := newIdentifySession(m.G())
+	if err != nil {
+		return err
+	}
+	err = i.state.put(sess)
+	if err != nil {
+		return err
+	}
+
+	cli := rpc.NewClient(i.xp, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
+	id3cli := keybase1.Identify3UiClient{Cli: cli}
+	ui, err := NewIdentify3UIWrapperWithSession(m, id3cli, i.state, sess)
+	if err != nil {
+		return err
+	}
+	m = m.WithIdentifyUI(ui)
+
 	return unimplemented()
 }
+
 func (i *identify3Handler) Identify3FollowUser(context.Context, keybase1.Identify3FollowUserArg) error {
 	return unimplemented()
 }
@@ -51,6 +141,8 @@ func (i *identify3Handler) Identify3IgnoreUser(context.Context, keybase1.Identif
 }
 
 type Identify3UIWrapper struct {
+	state   *identify3State
+	session *identify3Session
 }
 
 var _ libkb.IdentifyUI = (*Identify3UIWrapper)(nil)
@@ -60,7 +152,19 @@ func unimplemented() error {
 }
 
 func NewIdentify3UIWrapper(m libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State) (*Identify3UIWrapper, error) {
-	return nil, unimplemented()
+	ret := &Identify3UIWrapper{
+		state: state,
+	}
+	return ret, nil
+}
+
+func NewIdentify3UIWrapperWithSession(m libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State, sess *identify3Session) (*Identify3UIWrapper, error) {
+	ret, err := NewIdentify3UIWrapper(m, cli, state)
+	if err != nil {
+		return nil, err
+	}
+	ret.session = sess
+	return ret, nil
 }
 
 func (i *Identify3UIWrapper) Start(string, keybase1.IdentifyReason, bool) error {
