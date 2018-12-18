@@ -23,6 +23,7 @@ const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNotifications: stateProps.badgeNotifications,
+  // $FlowIssue fix badgeNumbers
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   children: ownProps.children,
   isModal: stateProps.isModal,
@@ -35,5 +36,4 @@ export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-  // $FlowIssue fix badgeNumbers
 )(SettingsContainer)
