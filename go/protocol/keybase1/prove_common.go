@@ -338,6 +338,7 @@ type ParamProofServiceConfig struct {
 	ProfileUrl     string                   `codec:"profileUrl" json:"profile_url"`
 	CheckUrl       string                   `codec:"checkUrl" json:"check_url"`
 	CheckPath      []SelectorEntry          `codec:"checkPath" json:"check_path"`
+	AvatarPath     []SelectorEntry          `codec:"avatarPath" json:"avatar_path"`
 }
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
@@ -369,6 +370,17 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 			}
 			return ret
 		})(o.CheckPath),
+		AvatarPath: (func(x []SelectorEntry) []SelectorEntry {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SelectorEntry, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AvatarPath),
 	}
 }
 
