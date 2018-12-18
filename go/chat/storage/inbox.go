@@ -26,6 +26,12 @@ import (
 
 const inboxVersion = 22
 
+var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
+	chat1.ConversationMemberStatus_ACTIVE,
+	chat1.ConversationMemberStatus_PREVIEW,
+	chat1.ConversationMemberStatus_RESET,
+}
+
 type InboxFlushMode int
 
 const (
@@ -494,11 +500,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 	memberStatus := query.MemberStatus
 	// Default allowed member statuses
 	if len(memberStatus) == 0 {
-		memberStatus = []chat1.ConversationMemberStatus{
-			chat1.ConversationMemberStatus_ACTIVE,
-			chat1.ConversationMemberStatus_PREVIEW,
-			chat1.ConversationMemberStatus_RESET,
-		}
+		memberStatus = defaultMemberStatusFilter
 	}
 	for _, memberStatus := range memberStatus {
 		queryMemberStatusMap[memberStatus] = true
