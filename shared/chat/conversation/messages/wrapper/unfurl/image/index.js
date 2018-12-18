@@ -40,21 +40,14 @@ class UnfurlImage extends React.Component<Props> {
       width,
     }
   }
-  _getOrient() {
-    return this.props.height >= this.props.width ? 'height' : 'width'
-  }
 
   render() {
-    const style = Styles.collapseStyles([this._getDimensions(), styles.image, this.props.style])
+    const dims = this._getDimensions()
+    const style = Styles.collapseStyles([dims, styles.image, this.props.style])
     return this.props.isVideo ? (
-      <Video
-        url={this.props.url}
-        orient={this._getOrient()}
-        style={style}
-        autoPlay={this.props.autoplayVideo}
-      />
+      <Video {...dims} autoPlay={this.props.autoplayVideo} style={style} url={this.props.url} />
     ) : (
-      <Kb.Image src={this.props.url} style={style} />
+      <Kb.Image {...dims} src={this.props.url} style={style} />
     )
   }
 }

@@ -275,8 +275,8 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
 		autoplay := ""
-		if req.URL.Query().Get("autoplay") == "true" {
-			autoplay = "autoplay"
+		if req.URL.Query().Get("autoplay") != "true" {
+			autoplay = `onloadeddata="togglePlay('pause')"`
 		}
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
@@ -299,10 +299,10 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 					</script>
 				</head>
 				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" style="width: 100%%; height: 100%%; border-radius: 4px; object-fit:fill" src="%s" playsinline webkit-playsinline loop %s muted />
+					<video id="vid" %s preload="auto" style="width: 100%%; height: 100%%; border-radius: 4px; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
 				</body>
 			</html>
-		`, req.URL.String()+"&contentforce=true", autoplay))); err != nil {
+		`, autoplay, req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
 		}
 		return true

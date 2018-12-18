@@ -25,24 +25,34 @@ export class Video extends React.Component<Props, State> {
     const arg = this.state.playingVideo ? 'pause' : 'play'
     const runJS = this.webviewRef.current.injectJavaScript
     runJS(`togglePlay("${arg}")`)
-    this.setState({playVideo: !this.state.playingVideo})
+    this.setState({playingVideo: !this.state.playingVideo})
   }
 
   render() {
     const source = {
-      uri: `${this.props.url}&autoplay=false`,
+      uri: `${this.props.url}&autoplay=${this.props.autoPlay ? 'true' : 'false'}`,
     }
     return (
       <Kb.ClickableBox
         onClick={this._onClick}
         style={Styles.collapseStyles([this.props.style, styles.container])}
       >
+        <NativeWebView
+          ref={this.webviewRef}
+          allowsInlineMediaPlayback={true}
+          useWebKit={true}
+          source={source}
+          style={Styles.collapseStyles([styles.webview, this.props.style])}
+          scrollEnabled={false}
+          automaticallyAdjustContentInsets={false}
+          mediaPlaybackRequiresUserAction={false}
+        />
         <Kb.Box
           style={Styles.collapseStyles([
             styles.absoluteContainer,
             {
-              height: this.props.style.height,
-              width: this.props.style.width,
+              height: this.props.height,
+              width: this.props.width,
             },
           ])}
         >
@@ -50,16 +60,6 @@ export class Video extends React.Component<Props, State> {
             <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>
-        <NativeWebView
-          ref={this.webviewRef}
-          allowsInlineMediaPlayback={true}
-          useWebKit={true}
-          source={source}
-          style={this.props.style}
-          scrollEnabled={false}
-          automaticallyAdjustContentInsets={false}
-          mediaPlaybackRequiresUserAction={false}
-        />
       </Kb.ClickableBox>
     )
   }
@@ -85,5 +85,8 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: '50%',
     top: '50%',
+  },
+  webview: {
+    position: 'relative',
   },
 })
