@@ -324,6 +324,9 @@ type KBFSOps interface {
 	// effects are asychronous; if there's an error refreshing the
 	// favorites, the cached favorites will become empty.
 	RefreshCachedFavorites(ctx context.Context)
+	// ClearCachedFavorites tells the instances to forget any cached
+	// favorites list, e.g. when a user logs out.
+	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
 	AddFavorite(ctx context.Context, fav Favorite) error
@@ -682,6 +685,12 @@ type KeybaseService interface {
 
 	// FavoriteList returns the current list of favorites.
 	FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error)
+
+	// EncryptFavorites encrypts cached favorites to store on disk.
+	EncryptFavorites(ctx context.Context, dataToEncrypt []byte) ([]byte, error)
+
+	// DecryptFavorites decrypts cached favorites stored on disk.
+	DecryptFavorites(ctx context.Context, dataToDecrypt []byte) ([]byte, error)
 
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error

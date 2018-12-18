@@ -565,24 +565,41 @@ func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
 	}
 }
 
-func (p *blockPrefetcher) rescheduleIfNeeded(
-	ctx context.Context, req *prefetchRequest) (rescheduled bool) {
+func (p *blockPrefetcher) stopIfNeeded(
+	ctx context.Context, req *prefetchRequest) (doStop, doCancel bool) {
 	dbc := p.config.DiskBlockCache()
-	if req.action.Sync() && dbc != nil {
-		hasRoom, err := dbc.DoesCacheHaveSpace(ctx, DiskBlockSyncCache)
-		if err != nil {
-			p.log.CDebugf(ctx, "Error checking space: +%v", err)
-			return false
-		}
-		if !hasRoom {
-			// If the sync cache is close to full, reschedule the prefetch.
-			p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
-				"full sync cache.", req.ptr.ID)
-			p.reschedulePrefetch(req)
-			return true
-		}
+	if dbc == nil {
+		return false, false
 	}
-	return false
+	hasRoom, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
+	if err != nil {
+		p.log.CDebugf(ctx, "Error checking space: +%v", err)
+		return false, false
+	}
+	if hasRoom {
+		return false, false
+	}
+
+	defer func() {
+		if doStop {
+			p.log.CDebugf(ctx,
+				"stopping prefetch for block %s due to full cache (sync=%t)",
+				req.ptr.ID, req.action.Sync())
+		}
+	}()
+
+	if req.action.Sync() {
+		// If the sync cache is close to full, reschedule the prefetch.
+		p.reschedulePrefetch(req)
+		return true, false
+	}
+
+	// Otherwise, only stop if we're supposed to stop when full.
+	doStop = req.action.StopIfFull()
+	if doStop {
+		doCancel = true
+	}
+	return doStop, doCancel
 }
 
 // run prefetches blocks.
@@ -774,22 +791,20 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			if req.prefetchStatus == TriggeredPrefetch &&
 				!req.action.DeepSync() &&
 				(isPrefetchWaiting &&
-					req.action.Sync() == pre.req.action.Sync()) {
+					req.action.Sync() == pre.req.action.Sync() &&
+					req.action.StopIfFull() == pre.req.action.StopIfFull()) {
 				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
 					"%s", req.ptr.ID)
 				continue
 			}
 
-			// Bail out early if we know the sync cache is already
-			// full, to avoid enqueuing the child blocks when they
-			// aren't able to be cached.
-			if p.rescheduleIfNeeded(ctx, req) {
-				// This is inefficient since it'd be better to know if
-				// the `subtreeBlockCount` below is 0, or if `isTail`
-				// below is true before needlessly rescheduling this.
-				// But currently that requires some complexity to
-				// figure out, so for now just do this early and
-				// revisit if it becomes a problem.
+			// Bail out early if we know the cache is already full, to
+			// avoid enqueuing the child blocks when they aren't able
+			// to be cached.
+			if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
+				if doCancel && isPrefetchWaiting {
+					p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
+				}
 				continue
 			}
 
@@ -975,7 +990,10 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		if err != nil {
 			return
 		}
-		if p.rescheduleIfNeeded(ctx, req) {
+		if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
+			if doCancel {
+				p.CancelPrefetch(ptr)
+			}
 			return
 		}
 	}

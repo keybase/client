@@ -449,14 +449,6 @@ func (cache *DiskBlockCacheLocal) getMetadataLocked(
 		return DiskBlockCacheMetadata{}, err
 	}
 	err = cache.config.Codec().Decode(metadataBytes, &metadata)
-	if cache.cacheType == workingSetCacheLimitTrackerType {
-		// KBFS-2402: a bug in a previous master caused the wrong prefetch
-		// status to be saved in the working set cache.
-		if metadata.FinishedPrefetch == true {
-			metadata.TriggeredPrefetch = true
-		}
-		metadata.FinishedPrefetch = false
-	}
 	return metadata, err
 }
 

@@ -5,8 +5,11 @@
 package libkbfs
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -18,9 +21,22 @@ import (
 )
 
 const (
-	disableFavoritesEnvVar       = "KEYBASE_DISABLE_FAVORITES"
-	favoritesCacheExpirationTime = time.Hour * 24 * 7 // one week
+	disableFavoritesEnvVar           = "KEYBASE_DISABLE_FAVORITES"
+	favoritesCacheExpirationTime     = time.Hour * 24 * 7 // one week
+	kbfsFavoritesCacheSubfolder      = "kbfs.favorites.cache"
+	favoritesDiskCacheVersion        = 1
+	favoritesDiskCacheStorageVersion = 1
 )
+
+type errIncorrectFavoritesCacheVersion struct {
+	cache   string
+	version int
+}
+
+func (e errIncorrectFavoritesCacheVersion) Error() string {
+	return fmt.Sprintf("decoding of %s favorites cache failed: version was %d",
+		e.cache, e.version)
+}
 
 type favToAdd struct {
 	Favorite
@@ -42,6 +58,7 @@ func (f favToAdd) ToKBFolder() keybase1.Folder {
 // given ctx is used for all network operations.
 type favReq struct {
 	// Request types
+	clear   bool
 	refresh bool
 	toAdd   []favToAdd
 	toDel   []Favorite
@@ -98,13 +115,127 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 		reqChan:      reqChan,
 		inFlightAdds: make(map[favToAdd]*favReq),
 	}
-	go f.loop()
+
 	return f
 }
 
 // NewFavorites constructs a new Favorites instance.
 func NewFavorites(config Config) *Favorites {
 	return newFavoritesWithChan(config, make(chan *favReq, 100))
+}
+
+type favoritesCacheForDisk struct {
+	version int
+	cache   map[Favorite]bool
+}
+type favoritesCacheEncryptedForDisk struct {
+	version        int
+	encryptedCache []byte
+}
+
+func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
+	// Read the encrypted cache from disk
+	folder := f.config.StorageRoot()
+	session, err := f.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	user := string(session.UID)
+	path := filepath.Join(folder, kbfsFavoritesCacheSubfolder, user)
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	// decode the data from the file and ensure its version is correct
+	var decodedData favoritesCacheEncryptedForDisk
+	err = f.config.Codec().Decode(data, &decodedData)
+	if err != nil {
+		return err
+	}
+	if decodedData.version != favoritesDiskCacheStorageVersion {
+		return errIncorrectFavoritesCacheVersion{cache: "serialized",
+			version: decodedData.version}
+	}
+
+	// Send the data to the service to be decrypted
+	decryptedData, err := f.config.KeybaseService().DecryptFavorites(ctx, data)
+	if err != nil {
+		return err
+	}
+
+	// Decode the data into the a map
+	var cache favoritesCacheForDisk
+	err = f.config.Codec().Decode(decryptedData, &cache)
+	if err != nil {
+		return err
+	}
+	if cache.version != favoritesDiskCacheVersion {
+		return errIncorrectFavoritesCacheVersion{cache: "encrypted",
+			version: decodedData.version}
+	}
+
+	f.cache = cache.cache
+	return nil
+}
+
+func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
+	// Encode the cache map into a byte buffer
+	cacheForDisk := favoritesCacheForDisk{
+		cache:   f.cache,
+		version: favoritesDiskCacheVersion,
+	}
+	cacheSerialized, err := f.config.Codec().Encode(cacheForDisk)
+	if err != nil {
+		return err
+	}
+
+	// Send the byte buffer to the service for encryption
+	data, err := f.config.KeybaseService().EncryptFavorites(ctx,
+		cacheSerialized)
+	if err != nil {
+		return err
+	}
+
+	// Encode the encrypted data in a versioned struct before writing it to a
+	// file.
+	cacheEncryptedForDisk := favoritesCacheEncryptedForDisk{
+		encryptedCache: data,
+		version:        favoritesDiskCacheStorageVersion,
+	}
+	encodedData, err := f.config.Codec().Encode(cacheEncryptedForDisk)
+
+	// Write the encrypted cache to disk
+	folder := f.config.StorageRoot()
+	subfolder := "kbfs.favorites.cache"
+	session, err := f.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	user := string(session.UID)
+	path := filepath.Join(folder, subfolder, user)
+	// TODO: is this the right permissions
+	return ioutil.WriteFile(path, encodedData, 0600)
+}
+
+// InitForTest starts the Favorites cache's internal processing loop without
+// loading cached favorites from disk.
+func (f *Favorites) InitForTest() {
+	go f.loop()
+}
+
+// Initialize loads the favorites cache from disk and starts listening for
+// requests asynchronously.
+func (f *Favorites) Initialize(ctx context.Context) {
+	// load cache from disk
+	err := f.readCacheFromDisk(ctx)
+	if err != nil {
+		f.config.MakeLogger("favorites").CWarningf(nil,
+			"Failed to read cached favorites from disk: %v", err)
+	}
+
+	// launch background loop
+	go f.loop()
 }
 
 func (f *Favorites) closeReq(req *favReq, err error) {
@@ -125,22 +256,26 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
 	//  * It's stale
-	if req.refresh || f.cache == nil || time.Now().After(f.cacheExpireTime) {
+	if req.refresh || f.cache == nil || f.config.Clock().Now().After(
+		f.cacheExpireTime) && !req.clear {
+
+		// load cache from server
 		folders, err := kbpki.FavoriteList(req.ctx)
 		if err != nil {
 			if req.refresh {
 				// if we're supposed to refresh the cache and it's not
-				// working, try again in a few minutes.
-				in5Minutes := time.Now().Add(5 * time.Minute)
-				if in5Minutes.After(f.cacheExpireTime) {
-					f.cacheExpireTime = in5Minutes
+				// working, try again in a minute.
+				in1Minute := f.config.Clock().Now().Add(time.Minute)
+				if in1Minute.After(f.cacheExpireTime) {
+					f.cacheExpireTime = in1Minute
 				}
 			}
 			return err
 		}
 
 		f.cache = make(map[Favorite]bool)
-		f.cacheExpireTime = libkb.ForceWallClock(time.Now()).Add(favoritesCacheExpirationTime)
+		f.cacheExpireTime = libkb.ForceWallClock(f.config.Clock().Now()).Add(
+			favoritesCacheExpirationTime)
 		for _, folder := range folders {
 			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
@@ -149,7 +284,11 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			// Add favorites for the current user, that cannot be deleted.
 			f.cache[Favorite{string(session.Name), tlf.Private}] = true
 			f.cache[Favorite{string(session.Name), tlf.Public}] = true
+			f.writeCacheToDisk(req.ctx)
 		}
+	} else if req.clear {
+		f.cache = nil
+		return nil
 	}
 
 	for _, fav := range req.toAdd {
@@ -340,6 +479,28 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 	// and context.
 	req := &favReq{
 		refresh: true,
+		done:    make(chan struct{}),
+		ctx:     context.Background(),
+	}
+	f.wg.Add(1)
+	select {
+	case f.reqChan <- req:
+	case <-ctx.Done():
+		f.wg.Done()
+		return
+	}
+}
+
+// ClearCache clears the cached list of favorites.
+func (f *Favorites) ClearCache(ctx context.Context) {
+	if f.disabled || f.hasShutdown() {
+		return
+	}
+	// This request is non-blocking, so use a throw-away done channel
+	// and context.
+	req := &favReq{
+		clear:   true,
+		refresh: false,
 		done:    make(chan struct{}),
 		ctx:     context.Background(),
 	}

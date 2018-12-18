@@ -696,6 +696,8 @@ func doInit(
 	}
 	config.SetKeybaseService(service)
 
+	kbfsOps.favs.Initialize(ctx)
+
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
 	// Initialize Crypto client (needed for MD and Block servers).

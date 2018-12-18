@@ -151,6 +151,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	kbpki := NewKBPKIClient(config, config.MakeLogger(""))
 	config.SetKBPKI(kbpki)
 
+	kbfsOps.favs.Initialize(context.TODO())
+
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser.Name)
 	crypto := NewCryptoLocal(
@@ -270,6 +272,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 		loggedInUID.AsUserOrBust(), localUsers, nil, c.Codec())
 	c.SetKeybaseService(newDaemon)
 	c.SetKBPKI(NewKBPKIClient(c, c.MakeLogger("")))
+	kbfsOps.favs.InitForTest()
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)

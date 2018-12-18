@@ -1744,6 +1744,18 @@ func (mr *MockKBFSOpsMockRecorder) RefreshCachedFavorites(ctx interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).RefreshCachedFavorites), ctx)
 }
 
+// ClearCachedFavorites mocks base method
+func (m *MockKBFSOps) ClearCachedFavorites(ctx context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ClearCachedFavorites", ctx)
+}
+
+// ClearCachedFavorites indicates an expected call of ClearCachedFavorites
+func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).ClearCachedFavorites), ctx)
+}
+
 // AddFavorite mocks base method
 func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite) error {
 	m.ctrl.T.Helper()
@@ -2720,6 +2732,36 @@ func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([
 func (mr *MockKeybaseServiceMockRecorder) FavoriteList(ctx, sessionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoriteList", reflect.TypeOf((*MockKeybaseService)(nil).FavoriteList), ctx, sessionID)
+}
+
+// EncryptFavorites mocks base method
+func (m *MockKeybaseService) EncryptFavorites(ctx context.Context, dataToEncrypt []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EncryptFavorites", ctx, dataToEncrypt)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EncryptFavorites indicates an expected call of EncryptFavorites
+func (mr *MockKeybaseServiceMockRecorder) EncryptFavorites(ctx, dataToEncrypt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptFavorites", reflect.TypeOf((*MockKeybaseService)(nil).EncryptFavorites), ctx, dataToEncrypt)
+}
+
+// DecryptFavorites mocks base method
+func (m *MockKeybaseService) DecryptFavorites(ctx context.Context, dataToDecrypt []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DecryptFavorites", ctx, dataToDecrypt)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DecryptFavorites indicates an expected call of DecryptFavorites
+func (mr *MockKeybaseServiceMockRecorder) DecryptFavorites(ctx, dataToDecrypt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptFavorites", reflect.TypeOf((*MockKeybaseService)(nil).DecryptFavorites), ctx, dataToDecrypt)
 }
 
 // Notify mocks base method
