@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
@@ -10,8 +11,6 @@ import {PathItemInfo} from '../common'
 type StillProps = StillCommonProps & {
   intentIfDownloading?: ?Types.DownloadIntent,
   isEmpty: boolean,
-  lastModifiedTimestamp: number,
-  lastWriter: string,
   type: Types.PathType,
 }
 
@@ -31,7 +30,6 @@ const getDownloadingText = (intent: Types.DownloadIntent) => {
 
 const Still = (props: StillProps) => (
   <StillCommon
-    itemStyles={props.itemStyles}
     name={props.name}
     path={props.path}
     onOpen={props.onOpen}
@@ -45,8 +43,8 @@ const Still = (props: StillProps) => (
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
         <Text
-          type={props.itemStyles.textType}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: props.itemStyles.textColor}])}
+          type={Constants.pathTypeToTextType(props.type)}
+          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
@@ -62,9 +60,7 @@ const Still = (props: StillProps) => (
       {props.intentIfDownloading ? (
         <Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Text>
       ) : (
-        props.type !== 'folder' && (
-          <PathItemInfo lastModifiedTimestamp={props.lastModifiedTimestamp} lastWriter={props.lastWriter} />
-        )
+        props.type !== 'folder' && <PathItemInfo path={props.path} />
       )}
     </Box>
   </StillCommon>

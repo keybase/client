@@ -22,7 +22,6 @@ const mergeProps = (stateProps, dispatchProps, {name, routePath, destinationPick
   return {
     badgeCount,
     destinationPickerIndex,
-    itemStyles: Constants.getItemStyles(Types.getPathElements(path), 'folder', undefined),
     name,
     path,
     routePath,

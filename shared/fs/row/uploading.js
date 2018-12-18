@@ -1,14 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {rowStyles} from './common'
 import {Box, Icon, Meta, Text} from '../../common-adapters'
 import {PathItemIcon} from '../common'
 
 type UploadingProps = {
-  name: string,
-  itemStyles: Types.ItemStyles,
+  path: Types.Path,
+  type: Types.PathType,
   error: boolean,
   writingToJournal: boolean,
   syncing: boolean,
@@ -32,17 +33,17 @@ const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): stri
 
 const Uploading = (props: UploadingProps) => (
   <Box style={rowStyles.rowBox}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
+    <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon_30} />
     <Box style={styles.uploadBadgeContainer}>
       <Icon type="icon-addon-file-uploading" />
     </Box>
     <Box key="main" style={rowStyles.itemBox}>
       <Text
-        type={props.itemStyles.textType}
-        style={Styles.collapseStyles([rowStyles.rowText_30, {color: props.itemStyles.textColor}])}
+        type={Constants.pathTypeToTextType(props.type)}
+        style={Styles.collapseStyles([rowStyles.rowText_30, {color: Constants.getPathTextColor(props.path)}])}
         lineClamp={Styles.isMobile ? 1 : undefined}
       >
-        {props.name}
+        {Types.getPathName(props.path)}
       </Text>
       <Meta
         title={getStatusText(props)}

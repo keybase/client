@@ -448,7 +448,6 @@ export type PathBreadcrumbItem = {
   isLastItem: boolean,
   name: string,
   path: Path,
-  iconSpec: PathItemIconSpec,
   onClick: (evt?: SyntheticEvent<>) => void,
 }
 

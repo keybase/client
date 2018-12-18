@@ -1,15 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Box, Box2, Meta, Text} from '../../common-adapters'
 import {PathItemInfo} from '../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean,
-  isUserReset: boolean,
   needsRekey: boolean,
-  resetParticipants: Array<string>,
+  needPathItemInfo: boolean,
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean,
@@ -38,7 +38,6 @@ const RowMeta = ({isNew, needsRekey}) => {
 
 const Tlf = (props: TlfProps) => (
   <StillCommon
-    itemStyles={props.itemStyles}
     name={props.name}
     path={props.path}
     onOpen={props.onOpen}
@@ -48,16 +47,14 @@ const Tlf = (props: TlfProps) => (
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
         <Text
-          type={props.itemStyles.textType}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: props.itemStyles.textColor}])}
+          type={Constants.pathTypeToTextType('folder')}
+          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
         </Text>
       </Box2>
-      {props.resetParticipants.length !== 0 && (
-        <PathItemInfo resetParticipants={props.resetParticipants} isUserReset={props.isUserReset} />
-      )}
+      {props.needPathItemInfo && <PathItemInfo path={props.path} />}
     </Box>
   </StillCommon>
 )

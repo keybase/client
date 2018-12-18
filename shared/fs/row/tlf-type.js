@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Badge, Box, Box2, Text} from '../../common-adapters'
 
@@ -24,7 +25,6 @@ const RowMeta = ({badgeCount}) => {
 
 const TlfType = (props: TlfTypeProps) => (
   <StillCommon
-    itemStyles={props.itemStyles}
     name={props.name}
     path={props.path}
     onOpen={props.onOpen}
@@ -34,8 +34,8 @@ const TlfType = (props: TlfTypeProps) => (
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
         <Text
-          type={props.itemStyles.textType}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: props.itemStyles.textColor}])}
+          type={Constants.pathTypeToTextType('folder')}
+          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}

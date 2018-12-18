@@ -2,67 +2,105 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
-import {Avatar, avatarCastPlatformStyles, Icon, iconCastPlatformStyles} from '../../common-adapters'
+import * as Constants from '../../constants/fs'
+import * as Kb from '../../common-adapters'
 
-type PathItemIconProps = {
-  spec: Types.PathItemIconSpec,
+type RealSize = 64 | 48 | 32 | 16
+export type Size = 64 | 48 | 32 | 16 | 12
+
+export type Props = {
+  path: Types.Path,
+  size: Size,
   style?: Styles.StylesCrossPlatform,
-  // 12 is not supported by Avatar. But we only use it in destination picker for
-  // targets, which cannot be an avatar. So accept it anyway, but override it
-  // into 16 if it's an Avatar.
-  size?: 32 | 16 | 12,
+  type: Types.PathType,
+  username: string,
 }
 
-const getSizeForAvatar = (size?: 32 | 16 | 12) => (size === 12 ? 16 : size || 32)
+const getIconSize = (size: Size): RealSize => (size === 12 ? 16 : size)
 
-const PathItemIcon = ({spec, style, size}: PathItemIconProps) => {
-  switch (spec.type) {
-    case 'teamAvatar':
-      return (
-        <Avatar
-          size={getSizeForAvatar(size)}
-          teamname={spec.teamName}
-          isTeam={true}
-          style={style && avatarCastPlatformStyles(style)}
-        />
-      )
-    case 'avatar':
-      return (
-        <Avatar
-          size={getSizeForAvatar(size)}
-          username={spec.username}
-          style={style && avatarCastPlatformStyles(style)}
-        />
-      )
-    case 'avatars':
-      // Use first avatar for now.
-      // TODO: fix this when we have support for three avatars as in design.
-      return (
-        <Avatar
-          size={getSizeForAvatar(size)}
-          username={spec.usernames[0]}
-          style={style && avatarCastPlatformStyles(style)}
-        />
-      )
-    case 'basic':
-      return (
-        <Icon
-          type={spec.iconType}
-          style={iconCastPlatformStyles(
-            Styles.collapseStyles([
-              !!size && {
-                height: size,
-                width: size,
-              },
-              style,
-            ])
-          )}
-          color={spec.iconColor}
-        />
-      )
-    default:
-      return null
+const UnknownIcon = (props: Props) => (
+  <Kb.Icon
+    type="iconfont-folder-private"
+    color={Styles.globalColors.grey}
+    fontSize={props.size}
+    style={props.style && Kb.iconCastPlatformStyles(props.style)}
+  />
+)
+
+// $FlowIssue
+const i = (s: string): Kb.IconType => s
+
+export default (props: Props) => {
+  const elems = Types.getPathElements(props.path)
+
+  if (elems.length === 1) {
+    // /keybase
+    return <UnknownIcon {...props} />
   }
-}
 
-export default PathItemIcon
+  if (elems.length === 2) {
+    // a tlf list, i.e. /keybase/{private,public,team}
+    switch (elems[1]) {
+      case 'private':
+        return (
+          <Kb.Icon
+            type={i(`icon-folder-private-${getIconSize(props.size)}`)}
+            style={props.style && Kb.iconCastPlatformStyles(props.style)}
+          />
+        )
+      case 'public':
+        return (
+          <Kb.Icon
+            type={i(`icon-folder-public-${getIconSize(props.size)}`)}
+            style={props.style && Kb.iconCastPlatformStyles(props.style)}
+          />
+        )
+      case 'team':
+        return (
+          <Kb.Icon
+            type={i(`icon-folder-team-${getIconSize(props.size)}`)}
+            style={props.style && Kb.iconCastPlatformStyles(props.style)}
+          />
+        )
+      default:
+        return <UnknownIcon {...props} />
+    }
+  }
+
+  if (elems.length === 3) {
+    // a tlf root, e.g. /keybase/team/kbkbfstest
+    switch (elems[1]) {
+      case 'private':
+      // fallthrough
+      case 'public':
+        const usernames = Constants.splitTlfIntoUsernames(elems[2])
+        return (
+          <Kb.Avatar
+            size={getIconSize(props.size)}
+            username={usernames.find(u => u !== props.username)}
+            style={props.style && Kb.avatarCastPlatformStyles(props.style)}
+          />
+        )
+      case 'team':
+        return (
+          <Kb.Avatar
+            size={getIconSize(props.size)}
+            teamname={elems[2]}
+            isTeam={true}
+            style={props.style && Kb.avatarCastPlatformStyles(props.style)}
+          />
+        )
+      default:
+        return <UnknownIcon {...props} />
+    }
+  }
+
+  const iconPathType = props.type === 'folder' ? 'folder' : 'file'
+  const iconTlfType = elems[1] === 'public' ? 'public' : 'private'
+  return (
+    <Kb.Icon
+      type={i(`icon-${iconPathType}-${iconTlfType}-${getIconSize(props.size)}`)}
+      style={props.style && Kb.iconCastPlatformStyles(props.style)}
+    />
+  )
+}

@@ -127,7 +127,6 @@ const HoverBox = Styles.isMobile
     })
 
 export type StillCommonProps = {
-  itemStyles: Types.ItemStyles,
   name: string,
   path: Types.Path,
   inDestinationPicker?: boolean,
@@ -145,7 +144,7 @@ export const StillCommon = (
       style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}
     >
       <Kb.Box2 direction="vertical">
-        <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+        <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} />
       </Kb.Box2>
       {props.children}
     </Kb.ClickableBox>
