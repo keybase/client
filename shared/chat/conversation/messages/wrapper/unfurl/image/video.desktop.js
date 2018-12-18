@@ -32,8 +32,8 @@ export class Video extends React.Component<Props, State> {
           style={Styles.collapseStyles([
             styles.absoluteContainer,
             {
-              height: this.props.style.height,
-              width: this.props.style.width,
+              height: this.props.height,
+              width: this.props.width,
             },
           ])}
         >

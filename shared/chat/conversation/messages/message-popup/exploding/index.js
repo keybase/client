@@ -12,12 +12,19 @@ import {
   type PropsWithTimer,
   PopupHeaderText,
 } from '../../../../../common-adapters/'
-import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles, type StylesCrossPlatform} from '../../../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+  type StylesCrossPlatform,
+} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
 import type {DeviceType} from '../../../../../constants/types/devices'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   attachTo: () => ?React.Component<any>,

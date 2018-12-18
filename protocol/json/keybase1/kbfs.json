@@ -120,6 +120,26 @@
       ],
       "response": null,
       "doc": "upgradeTLF upgrades a TLF to use implicit team keys"
+    },
+    "encryptFavorites": {
+      "request": [
+        {
+          "name": "dataToEncrypt",
+          "type": "bytes"
+        }
+      ],
+      "response": "bytes",
+      "doc": "Encrypt cached favorites to store on disk."
+    },
+    "decryptFavorites": {
+      "request": [
+        {
+          "name": "dataToEncrypt",
+          "type": "bytes"
+        }
+      ],
+      "response": "bytes",
+      "doc": "Decrypt cached favorites stored on disk."
     }
   },
   "namespace": "keybase.1"

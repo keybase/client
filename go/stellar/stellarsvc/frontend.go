@@ -375,8 +375,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 
 	// AccountID argument is optional.
 	if arg.AccountID != nil {
-		exchRate := s.accountExchangeRate(mctx, *arg.AccountID)
-		summary, err = stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, *arg.AccountID, exchRate)
+		summary, err = stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, *arg.AccountID)
 	} else {
 		summary, err = stellar.TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	}
@@ -385,36 +384,34 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	}
 
 	payment = stellar1.PaymentDetailsLocal{
-		Id:                   summary.Id,
-		TxID:                 stellar1.TransactionIDFromPaymentID(summary.Id),
-		Time:                 summary.Time,
-		StatusSimplified:     summary.StatusSimplified,
-		StatusDescription:    summary.StatusDescription,
-		StatusDetail:         summary.StatusDetail,
-		ShowCancel:           summary.ShowCancel,
-		AmountDescription:    summary.AmountDescription,
-		Delta:                summary.Delta,
-		Worth:                summary.Worth,
-		WorthCurrency:        summary.WorthCurrency,
-		CurrentWorth:         summary.CurrentWorth,
-		CurrentWorthCurrency: summary.CurrentWorthCurrency,
-		FromType:             summary.FromType,
-		ToType:               summary.ToType,
-		FromAccountID:        summary.FromAccountID,
-		FromAccountName:      summary.FromAccountName,
-		FromUsername:         summary.FromUsername,
-		ToAccountID:          summary.ToAccountID,
-		ToAccountName:        summary.ToAccountName,
-		ToUsername:           summary.ToUsername,
-		ToAssertion:          summary.ToAssertion,
-		OriginalToAssertion:  summary.OriginalToAssertion,
-		Note:                 summary.Note,
-		NoteErr:              summary.NoteErr,
-		PublicNote:           details.Memo,
-		PublicNoteType:       details.MemoType,
-		IssuerDescription:    summary.IssuerDescription,
-		IssuerAccountID:      summary.IssuerAccountID,
-		ExternalTxURL:        details.ExternalTxURL,
+		Id:                  summary.Id,
+		TxID:                stellar1.TransactionIDFromPaymentID(summary.Id),
+		Time:                summary.Time,
+		StatusSimplified:    summary.StatusSimplified,
+		StatusDescription:   summary.StatusDescription,
+		StatusDetail:        summary.StatusDetail,
+		ShowCancel:          summary.ShowCancel,
+		AmountDescription:   summary.AmountDescription,
+		Delta:               summary.Delta,
+		Worth:               summary.Worth,
+		WorthCurrency:       summary.WorthCurrency,
+		FromType:            summary.FromType,
+		ToType:              summary.ToType,
+		FromAccountID:       summary.FromAccountID,
+		FromAccountName:     summary.FromAccountName,
+		FromUsername:        summary.FromUsername,
+		ToAccountID:         summary.ToAccountID,
+		ToAccountName:       summary.ToAccountName,
+		ToUsername:          summary.ToUsername,
+		ToAssertion:         summary.ToAssertion,
+		OriginalToAssertion: summary.OriginalToAssertion,
+		Note:                summary.Note,
+		NoteErr:             summary.NoteErr,
+		PublicNote:          details.Memo,
+		PublicNoteType:      details.MemoType,
+		IssuerDescription:   summary.IssuerDescription,
+		IssuerAccountID:     summary.IssuerAccountID,
+		ExternalTxURL:       details.ExternalTxURL,
 	}
 
 	return payment, nil

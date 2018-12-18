@@ -512,6 +512,8 @@ type UIMessageValid struct {
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderUID             gregor1.UID            `codec:"senderUID" json:"senderUID"`
+	SenderDeviceID        gregor1.DeviceID       `codec:"senderDeviceID" json:"senderDeviceID"`
 	Superseded            bool                   `codec:"superseded" json:"superseded"`
 	AssetUrlInfo          *UIAssetUrlInfo        `codec:"assetUrlInfo,omitempty" json:"assetUrlInfo,omitempty"`
 	SenderDeviceRevokedAt *gregor1.Time          `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
@@ -551,6 +553,8 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
+		SenderUID:        o.SenderUID.DeepCopy(),
+		SenderDeviceID:   o.SenderDeviceID.DeepCopy(),
 		Superseded:       o.Superseded,
 		AssetUrlInfo: (func(x *UIAssetUrlInfo) *UIAssetUrlInfo {
 			if x == nil {
