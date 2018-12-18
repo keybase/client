@@ -268,6 +268,15 @@ func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
 	fs.favs.RefreshCache(ctx)
 }
 
+// ClearCachedFavorites implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) ClearCachedFavorites(ctx context.Context) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	fs.favs.ClearCache(ctx)
+}
+
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	fav Favorite) error {
@@ -1217,6 +1226,27 @@ func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
 	return nil
 }
 
+func (fs *KBFSOpsStandard) initTLFWithoutIdentifyPopups(
+	ctx context.Context, handle *TlfHandle) error {
+	ctx, err := MakeExtendedIdentify(
+		ctx, keybase1.TLFIdentifyBehavior_KBFS_CHAT)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = fs.getMaybeCreateRootNode(ctx, handle, MasterBranch, false)
+	if err != nil {
+		return err
+	}
+
+	// The popups and errors were suppressed, but any errors would
+	// have been logged.  So just close out the extended identify.  If
+	// the user accesses the TLF directly, another proper identify
+	// should happen that shows errors.
+	_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
+	return nil
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) NewNotificationChannel(
@@ -1245,13 +1275,12 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 				handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-			ops := fs.getOpsByHandle(
-				ctx, handle, FolderBranch{handle.tlfID, MasterBranch},
-				FavoritesOpNoChange)
-			// Don't initialize the entire TLF, because we don't want
-			// to run identifies on it.  Instead, just start the
-			// chat-monitoring part.
-			ops.startMonitorChat(handle.GetCanonicalName())
+			// Fully initialize the TLF in order to kick off any
+			// necessary prefetches.
+			err := fs.initTLFWithoutIdentifyPopups(ctx, handle)
+			if err != nil {
+				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
+			}
 		}()
 	} else {
 		fs.log.CWarningf(ctx,
@@ -1414,13 +1443,13 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		if h.tlfID != tlf.NullID {
 			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
 				h.GetCanonicalPath(), h.tlfID)
-			ops := fs.getOpsByHandle(
-				ctx, h, FolderBranch{h.tlfID, MasterBranch},
-				FavoritesOpNoChange)
-			// Don't initialize the entire TLF, because we don't want
-			// to run identifies on it.  Instead, just start the
-			// chat-monitoring part.
-			ops.startMonitorChat(h.GetCanonicalName())
+			// Fully initialize the TLF in order to kick off any
+			// necessary prefetches.
+			err := fs.initTLFWithoutIdentifyPopups(ctx, h)
+			if err != nil {
+				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
+				continue
+			}
 		} else {
 			fs.log.CWarningf(ctx,
 				"Handle %s for existing folder unexpectedly has no TLF ID",
@@ -1443,7 +1472,6 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 	// without overwhelming the CPU?
 	for _, tlfID := range tlfs {
 		fs.log.CDebugf(ctx, "Initializing synced TLF: %s", tlfID)
-		fb := FolderBranch{Tlf: tlfID, Branch: MasterBranch}
 		md, err := fs.config.MDOps().GetForTLF(ctx, tlfID, nil)
 		if err != nil {
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
@@ -1456,8 +1484,7 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 
 		// Getting the root node populates the head of the TLF, which
 		// kicks off any needed sync operations.
-		h := md.GetTlfHandle()
-		_, _, err = fs.getMaybeCreateRootNode(ctx, h, fb.Branch, false)
+		err = fs.initTLFWithoutIdentifyPopups(ctx, md.GetTlfHandle())
 		if err != nil {
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
 			continue

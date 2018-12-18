@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	kbname "github.com/keybase/client/go/kbun"
@@ -40,6 +41,7 @@ func favTestShutdown(t *testing.T, mockCtrl *gomock.Controller,
 func TestFavoritesAddTwice(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t)
 	f := NewFavorites(config)
+	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
@@ -47,6 +49,10 @@ func TestFavoritesAddTwice(t *testing.T) {
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Return(nil)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -60,6 +66,7 @@ func TestFavoritesAddTwice(t *testing.T) {
 func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t)
 	f := NewFavorites(config)
+	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
@@ -70,6 +77,10 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), expected1).Return(nil)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -89,11 +100,16 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 func TestFavoritesAddCreated(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t)
 	f := NewFavorites(config)
+	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add with created = true
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, true}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
 	expected := keybase1.Folder{
 		Name:       "test",
 		FolderType: keybase1.FolderType_PUBLIC,
@@ -109,15 +125,22 @@ func TestFavoritesAddCreated(t *testing.T) {
 func TestFavoritesAddRemoveAdd(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t)
 	f := NewFavorites(config)
+	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
 	folder1 := fav1.ToKBFolder()
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), folder1).
 		Times(2).Return(nil)
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
 		Return(nil)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(3)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
+
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
@@ -136,14 +159,19 @@ func TestFavoritesAddAsync(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t)
 	// Only one task at a time
 	f := newFavoritesWithChan(config, make(chan *favReq, 1))
+	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
 
 	c := make(chan struct{})
-	// Block until thereare multiple outstanding calls
+	// Block until there are multiple outstanding calls
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Do(func(_ context.Context, _ keybase1.Folder) {
 			<-c
@@ -163,10 +191,17 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t)
 	// Only one task at a time
 	f := newFavoritesWithChan(config, make(chan *favReq, 1))
+	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
+
+	// Expect that the favorites will be encrypted to write to disk
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(1)
 
 	// Cancel the first list request
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
