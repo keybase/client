@@ -91,8 +91,6 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
   state.wallets.acceptedDisclaimer
     ? Saga.sequentially(
         [
-          WalletsGen.createClearBuilding(),
-          !action.payload.isRequest ? WalletsGen.createStartPayment() : null,
           action.payload.isRequest
             ? WalletsGen.createClearBuiltRequest()
             : WalletsGen.createClearBuiltPayment(),
@@ -125,7 +123,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
           RouteTreeGen.createNavigateAppend({
             path: [Constants.sendReceiveFormRouteKey],
           }),
-        ].filter(Boolean).map(a => Saga.put(a))
+        ].map(a => Saga.put(a))
       )
     : Saga.put(
         isMobile
@@ -222,7 +220,7 @@ const startPayment = () =>
     WalletsGen.createBuildingPaymentIDReceived({bid})
   )
 
-const stopPayment = (state: TypedState, action: WalletsGen.StopPaymentPayload) =>
+const stopPayment = (state: TypedState, action: WalletsGen.AbandonPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
@@ -814,8 +812,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     spawnBuildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
-  yield Saga.actionToPromise(WalletsGen.startPayment, startPayment)
-  yield Saga.actionToPromise(WalletsGen.stopPayment, stopPayment)
+  yield Saga.actionToPromise(WalletsGen.openSendRequestForm, startPayment)
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 

@@ -308,13 +308,6 @@
       "_description": "Set whether the payment is ready to send",
       "readyToSend": "boolean"
     },
-    "startPayment": {
-      "_description": "Begin preparing a new payment."
-    },
-    "stopPayment": {
-      "_description": "Invalidate a stale prepared payment.",
-      "bid": "string"
-    },
     "openSendRequestForm": {
       "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",
       "amount?": "string",

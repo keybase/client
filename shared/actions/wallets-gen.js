@@ -86,8 +86,6 @@ export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToSend = 'wallets:setReadyToSend'
-export const startPayment = 'wallets:startPayment'
-export const stopPayment = 'wallets:stopPayment'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -172,8 +170,6 @@ type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToSendPayload = $ReadOnly<{|readyToSend: boolean|}>
-type _StartPaymentPayload = void
-type _StopPaymentPayload = $ReadOnly<{|bid: string|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -216,10 +212,6 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  * Ask the service to validate an account secret key.
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({payload, type: validateSecretKey})
-/**
- * Begin preparing a new payment.
- */
-export const createStartPayment = (payload: _StartPaymentPayload) => ({payload, type: startPayment})
 /**
  * Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.
  */
@@ -292,10 +284,6 @@ export const createRefreshPayments = (payload: _RefreshPaymentsPayload) => ({pay
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
 export const createOpenSendRequestForm = (payload: _OpenSendRequestFormPayload) => ({payload, type: openSendRequestForm})
-/**
- * Invalidate a stale prepared payment.
- */
-export const createStopPayment = (payload: _StopPaymentPayload) => ({payload, type: stopPayment})
 /**
  * Link an existing Stellar account with this Keybase user.
  */
@@ -591,8 +579,6 @@ export type SetBuildingSecretNotePayload = {|+payload: _SetBuildingSecretNotePay
 export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wallets:setBuildingTo'|}
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
 export type SetReadyToSendPayload = {|+payload: _SetReadyToSendPayload, +type: 'wallets:setReadyToSend'|}
-export type StartPaymentPayload = {|+payload: _StartPaymentPayload, +type: 'wallets:startPayment'|}
-export type StopPaymentPayload = {|+payload: _StopPaymentPayload, +type: 'wallets:stopPayment'|}
 export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
 export type ValidateSecretKeyPayload = {|+payload: _ValidateSecretKeyPayload, +type: 'wallets:validateSecretKey'|}
 export type ValidatedAccountNamePayload = {|+payload: _ValidatedAccountNamePayload, +type: 'wallets:validatedAccountName'|}
@@ -681,8 +667,6 @@ export type Actions =
   | SetBuildingToPayload
   | SetLastSentXLMPayload
   | SetReadyToSendPayload
-  | StartPaymentPayload
-  | StopPaymentPayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload
