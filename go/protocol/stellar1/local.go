@@ -174,50 +174,46 @@ func (e ParticipantType) String() string {
 }
 
 type PaymentLocal struct {
-	Id                   PaymentID       `codec:"id" json:"id"`
-	Time                 TimeMs          `codec:"time" json:"time"`
-	StatusSimplified     PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
-	StatusDescription    string          `codec:"statusDescription" json:"statusDescription"`
-	StatusDetail         string          `codec:"statusDetail" json:"statusDetail"`
-	ShowCancel           bool            `codec:"showCancel" json:"showCancel"`
-	AmountDescription    string          `codec:"amountDescription" json:"amountDescription"`
-	Delta                BalanceDelta    `codec:"delta" json:"delta"`
-	Worth                string          `codec:"worth" json:"worth"`
-	WorthCurrency        string          `codec:"worthCurrency" json:"worthCurrency"`
-	CurrentWorth         string          `codec:"currentWorth" json:"currentWorth"`
-	CurrentWorthCurrency string          `codec:"currentWorthCurrency" json:"currentWorthCurrency"`
-	IssuerDescription    string          `codec:"issuerDescription" json:"issuerDescription"`
-	IssuerAccountID      *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
-	FromType             ParticipantType `codec:"fromType" json:"fromType"`
-	ToType               ParticipantType `codec:"toType" json:"toType"`
-	FromAccountID        AccountID       `codec:"fromAccountID" json:"fromAccountID"`
-	FromAccountName      string          `codec:"fromAccountName" json:"fromAccountName"`
-	FromUsername         string          `codec:"fromUsername" json:"fromUsername"`
-	ToAccountID          *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
-	ToAccountName        string          `codec:"toAccountName" json:"toAccountName"`
-	ToUsername           string          `codec:"toUsername" json:"toUsername"`
-	ToAssertion          string          `codec:"toAssertion" json:"toAssertion"`
-	OriginalToAssertion  string          `codec:"originalToAssertion" json:"originalToAssertion"`
-	Note                 string          `codec:"note" json:"note"`
-	NoteErr              string          `codec:"noteErr" json:"noteErr"`
-	Unread               bool            `codec:"unread" json:"unread"`
+	Id                  PaymentID       `codec:"id" json:"id"`
+	Time                TimeMs          `codec:"time" json:"time"`
+	StatusSimplified    PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
+	StatusDescription   string          `codec:"statusDescription" json:"statusDescription"`
+	StatusDetail        string          `codec:"statusDetail" json:"statusDetail"`
+	ShowCancel          bool            `codec:"showCancel" json:"showCancel"`
+	AmountDescription   string          `codec:"amountDescription" json:"amountDescription"`
+	Delta               BalanceDelta    `codec:"delta" json:"delta"`
+	Worth               string          `codec:"worth" json:"worth"`
+	WorthCurrency       string          `codec:"worthCurrency" json:"worthCurrency"`
+	IssuerDescription   string          `codec:"issuerDescription" json:"issuerDescription"`
+	IssuerAccountID     *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
+	FromType            ParticipantType `codec:"fromType" json:"fromType"`
+	ToType              ParticipantType `codec:"toType" json:"toType"`
+	FromAccountID       AccountID       `codec:"fromAccountID" json:"fromAccountID"`
+	FromAccountName     string          `codec:"fromAccountName" json:"fromAccountName"`
+	FromUsername        string          `codec:"fromUsername" json:"fromUsername"`
+	ToAccountID         *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
+	ToAccountName       string          `codec:"toAccountName" json:"toAccountName"`
+	ToUsername          string          `codec:"toUsername" json:"toUsername"`
+	ToAssertion         string          `codec:"toAssertion" json:"toAssertion"`
+	OriginalToAssertion string          `codec:"originalToAssertion" json:"originalToAssertion"`
+	Note                string          `codec:"note" json:"note"`
+	NoteErr             string          `codec:"noteErr" json:"noteErr"`
+	Unread              bool            `codec:"unread" json:"unread"`
 }
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
 	return PaymentLocal{
-		Id:                   o.Id.DeepCopy(),
-		Time:                 o.Time.DeepCopy(),
-		StatusSimplified:     o.StatusSimplified.DeepCopy(),
-		StatusDescription:    o.StatusDescription,
-		StatusDetail:         o.StatusDetail,
-		ShowCancel:           o.ShowCancel,
-		AmountDescription:    o.AmountDescription,
-		Delta:                o.Delta.DeepCopy(),
-		Worth:                o.Worth,
-		WorthCurrency:        o.WorthCurrency,
-		CurrentWorth:         o.CurrentWorth,
-		CurrentWorthCurrency: o.CurrentWorthCurrency,
-		IssuerDescription:    o.IssuerDescription,
+		Id:                o.Id.DeepCopy(),
+		Time:              o.Time.DeepCopy(),
+		StatusSimplified:  o.StatusSimplified.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+		StatusDetail:      o.StatusDetail,
+		ShowCancel:        o.ShowCancel,
+		AmountDescription: o.AmountDescription,
+		Delta:             o.Delta.DeepCopy(),
+		Worth:             o.Worth,
+		WorthCurrency:     o.WorthCurrency,
+		IssuerDescription: o.IssuerDescription,
 		IssuerAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil
@@ -308,54 +304,50 @@ func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
 }
 
 type PaymentDetailsLocal struct {
-	Id                   PaymentID       `codec:"id" json:"id"`
-	TxID                 TransactionID   `codec:"txID" json:"txID"`
-	Time                 TimeMs          `codec:"time" json:"time"`
-	StatusSimplified     PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
-	StatusDescription    string          `codec:"statusDescription" json:"statusDescription"`
-	StatusDetail         string          `codec:"statusDetail" json:"statusDetail"`
-	ShowCancel           bool            `codec:"showCancel" json:"showCancel"`
-	AmountDescription    string          `codec:"amountDescription" json:"amountDescription"`
-	Delta                BalanceDelta    `codec:"delta" json:"delta"`
-	Worth                string          `codec:"worth" json:"worth"`
-	WorthCurrency        string          `codec:"worthCurrency" json:"worthCurrency"`
-	CurrentWorth         string          `codec:"currentWorth" json:"currentWorth"`
-	CurrentWorthCurrency string          `codec:"currentWorthCurrency" json:"currentWorthCurrency"`
-	IssuerDescription    string          `codec:"issuerDescription" json:"issuerDescription"`
-	IssuerAccountID      *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
-	FromType             ParticipantType `codec:"fromType" json:"fromType"`
-	ToType               ParticipantType `codec:"toType" json:"toType"`
-	FromAccountID        AccountID       `codec:"fromAccountID" json:"fromAccountID"`
-	FromAccountName      string          `codec:"fromAccountName" json:"fromAccountName"`
-	FromUsername         string          `codec:"fromUsername" json:"fromUsername"`
-	ToAccountID          *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
-	ToAccountName        string          `codec:"toAccountName" json:"toAccountName"`
-	ToUsername           string          `codec:"toUsername" json:"toUsername"`
-	ToAssertion          string          `codec:"toAssertion" json:"toAssertion"`
-	OriginalToAssertion  string          `codec:"originalToAssertion" json:"originalToAssertion"`
-	Note                 string          `codec:"note" json:"note"`
-	NoteErr              string          `codec:"noteErr" json:"noteErr"`
-	PublicNote           string          `codec:"publicNote" json:"publicNote"`
-	PublicNoteType       string          `codec:"publicNoteType" json:"publicNoteType"`
-	ExternalTxURL        string          `codec:"externalTxURL" json:"externalTxURL"`
+	Id                  PaymentID       `codec:"id" json:"id"`
+	TxID                TransactionID   `codec:"txID" json:"txID"`
+	Time                TimeMs          `codec:"time" json:"time"`
+	StatusSimplified    PaymentStatus   `codec:"statusSimplified" json:"statusSimplified"`
+	StatusDescription   string          `codec:"statusDescription" json:"statusDescription"`
+	StatusDetail        string          `codec:"statusDetail" json:"statusDetail"`
+	ShowCancel          bool            `codec:"showCancel" json:"showCancel"`
+	AmountDescription   string          `codec:"amountDescription" json:"amountDescription"`
+	Delta               BalanceDelta    `codec:"delta" json:"delta"`
+	Worth               string          `codec:"worth" json:"worth"`
+	WorthCurrency       string          `codec:"worthCurrency" json:"worthCurrency"`
+	IssuerDescription   string          `codec:"issuerDescription" json:"issuerDescription"`
+	IssuerAccountID     *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
+	FromType            ParticipantType `codec:"fromType" json:"fromType"`
+	ToType              ParticipantType `codec:"toType" json:"toType"`
+	FromAccountID       AccountID       `codec:"fromAccountID" json:"fromAccountID"`
+	FromAccountName     string          `codec:"fromAccountName" json:"fromAccountName"`
+	FromUsername        string          `codec:"fromUsername" json:"fromUsername"`
+	ToAccountID         *AccountID      `codec:"toAccountID,omitempty" json:"toAccountID,omitempty"`
+	ToAccountName       string          `codec:"toAccountName" json:"toAccountName"`
+	ToUsername          string          `codec:"toUsername" json:"toUsername"`
+	ToAssertion         string          `codec:"toAssertion" json:"toAssertion"`
+	OriginalToAssertion string          `codec:"originalToAssertion" json:"originalToAssertion"`
+	Note                string          `codec:"note" json:"note"`
+	NoteErr             string          `codec:"noteErr" json:"noteErr"`
+	PublicNote          string          `codec:"publicNote" json:"publicNote"`
+	PublicNoteType      string          `codec:"publicNoteType" json:"publicNoteType"`
+	ExternalTxURL       string          `codec:"externalTxURL" json:"externalTxURL"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 	return PaymentDetailsLocal{
-		Id:                   o.Id.DeepCopy(),
-		TxID:                 o.TxID.DeepCopy(),
-		Time:                 o.Time.DeepCopy(),
-		StatusSimplified:     o.StatusSimplified.DeepCopy(),
-		StatusDescription:    o.StatusDescription,
-		StatusDetail:         o.StatusDetail,
-		ShowCancel:           o.ShowCancel,
-		AmountDescription:    o.AmountDescription,
-		Delta:                o.Delta.DeepCopy(),
-		Worth:                o.Worth,
-		WorthCurrency:        o.WorthCurrency,
-		CurrentWorth:         o.CurrentWorth,
-		CurrentWorthCurrency: o.CurrentWorthCurrency,
-		IssuerDescription:    o.IssuerDescription,
+		Id:                o.Id.DeepCopy(),
+		TxID:              o.TxID.DeepCopy(),
+		Time:              o.Time.DeepCopy(),
+		StatusSimplified:  o.StatusSimplified.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+		StatusDetail:      o.StatusDetail,
+		ShowCancel:        o.ShowCancel,
+		AmountDescription: o.AmountDescription,
+		Delta:             o.Delta.DeepCopy(),
+		Worth:             o.Worth,
+		WorthCurrency:     o.WorthCurrency,
+		IssuerDescription: o.IssuerDescription,
 		IssuerAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
 				return nil

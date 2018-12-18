@@ -169,14 +169,6 @@
         },
         {
           "type": "string",
-          "name": "currentWorth"
-        },
-        {
-          "type": "string",
-          "name": "currentWorthCurrency"
-        },
-        {
-          "type": "string",
           "name": "issuerDescription"
         },
         {
@@ -337,14 +329,6 @@
         {
           "type": "string",
           "name": "worthCurrency"
-        },
-        {
-          "type": "string",
-          "name": "currentWorth"
-        },
-        {
-          "type": "string",
-          "name": "currentWorthCurrency"
         },
         {
           "type": "string",
