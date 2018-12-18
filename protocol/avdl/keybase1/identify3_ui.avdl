@@ -5,7 +5,7 @@ protocol identify3Ui {
   import idl "identify3_common.avdl";
 
   // showTracker is called when Go wants to force the frontend to show a tracker popup
-  // (rather than the react app triggering the action). In this case, the Go side comes
+  // (rather than the frontend app triggering the action). In this case, the Go side comes
   // up with a unique Identify3GUIID.
   void showTracker(
     Identify3GUIID guiID,         // id used to tie these things together
@@ -33,7 +33,7 @@ protocol identify3Ui {
 
   @lint("ignore")
   void identify3UpdateRow(
-    Identify3Assertion guiID,      // id used to tie these things together
+    Identify3GUIID guiID,          // id used to tie these things together
     string key,                    // e.g., "twitter", "web", "github", "btc", "pgp"
     string value,                  // e.g., "bob", "https://foo.com", "1b3309isofijweorijgj3oij423", "33aabbccddeeff",
     string siteURL,                // https://twitter.com/bob

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -18,6 +19,7 @@ import (
 // track of whatever context we need to pass across calls, and also the TrackToken
 // for the final result.
 type identify3Session struct {
+	sync.Mutex
 	created time.Time
 	id      keybase1.Identify3GUIID
 	outcome *libkb.IdentifyOutcome
@@ -34,15 +36,16 @@ func newIdentify3GUIID() (keybase1.Identify3GUIID, error) {
 	return keybase1.Identify3GUIID(hex.EncodeToString(b)), nil
 }
 
-func newIdentifySession(g *libkb.GlobalContext) (*identify3Session, error) {
+func newIdentify3Session(mctx libkb.MetaContext) (*identify3Session, error) {
 	id, err := newIdentify3GUIID()
 	if err != nil {
 		return nil, err
 	}
 	ret := &identify3Session{
-		created: g.GetClock().Now(),
+		created: mctx.G().GetClock().Now(),
 		id:      id,
 	}
+	mctx.CDebugf("generated new identify3 session: %s", id)
 	return ret, nil
 }
 
@@ -57,6 +60,8 @@ type identify3Handler struct {
 // a cache that's periodically cleaned up.
 type identify3State struct {
 	sync.Mutex
+
+	// Table of keybase1.Identify3GUIID -> *identify3Session's
 	cache *ramcache.Ramcache
 }
 
@@ -68,32 +73,44 @@ func newIdentify3State(g *libkb.GlobalContext) *identify3State {
 	}
 }
 
-func (s *identify3State) get(key keybase1.Identify3GUIID) (*identify3Session, error) {
+// get an identify3Session out of the cache, as keyed by a Identify3GUIID. Return
+// (nil, nil, nil) if not found. Return (nil, nil, Error) if there was an expected error.
+// Return (i, f, nil) if found, where i is the **locked** object, f is the unlocker function
+// that you are required to call if non-nil, and nil is the nil error.
+func (s *identify3State) get(key keybase1.Identify3GUIID) (ret *identify3Session, unlocker func(), err error) {
 	s.Lock()
 	defer s.Unlock()
+	return s.getLocked(key)
+}
+
+func (s *identify3State) getLocked(key keybase1.Identify3GUIID) (ret *identify3Session, unlocker func(), err error) {
 	v, err := s.cache.Get(string(key))
 	if err != nil {
+		// NotFound isn't an error case
 		if err == ramcache.ErrNotFound {
-			return nil, libkb.NotFoundError{Msg: "Identify3 state not found for ID; did it time out?"}
+			return nil, nil, nil
 		}
-		return nil, err
+		return nil, nil, err
 	}
 	outcome, ok := v.(*identify3Session)
 	if !ok {
-		return nil, fmt.Errorf("invalid type in cache: %T", v)
+		return nil, nil, fmt.Errorf("invalid type in cache: %T", v)
 	}
-	return outcome, nil
+	outcome.Lock()
+	unlocker = func() { outcome.Unlock() }
+	return outcome, unlocker, nil
 }
 
 func (s *identify3State) put(sess *identify3Session) error {
 	s.Lock()
 	defer s.Unlock()
 
-	tmp, err := s.get(sess.id)
+	tmp, unlocker, err := s.getLocked(sess.id)
 	if err != nil {
 		return err
 	}
 	if tmp != nil {
+		unlocker()
 		return libkb.ExistsError{Msg: "Identify3 ID already exists"}
 	}
 	return s.cache.Set(string(sess.id), sess)
@@ -109,11 +126,11 @@ func newIdentify3Handler(xp rpc.Transporter, g *libkb.GlobalContext, state *iden
 var _ keybase1.Identify3Interface = (*identify3Handler)(nil)
 
 func (i *identify3Handler) Identify3(ctx context.Context, arg keybase1.Identify3Arg) (err error) {
-	m := libkb.NewMetaContext(ctx, i.G())
-	m = m.WithLogTag("ID3")
-	defer m.CTrace(fmt.Sprintf("Identify3(%+v)", arg), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, i.G())
+	mctx = mctx.WithLogTag("ID3")
+	defer mctx.CTrace(fmt.Sprintf("Identify3(%+v)", arg), func() error { return err })()
 
-	sess, err := newIdentifySession(m.G())
+	sess, err := newIdentify3Session(mctx)
 	if err != nil {
 		return err
 	}
@@ -122,15 +139,26 @@ func (i *identify3Handler) Identify3(ctx context.Context, arg keybase1.Identify3
 		return err
 	}
 
-	cli := rpc.NewClient(i.xp, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
+	cli := rpc.NewClient(i.xp, libkb.NewContextifiedErrorUnwrapper(mctx.G()), nil)
 	id3cli := keybase1.Identify3UiClient{Cli: cli}
-	ui, err := NewIdentify3UIWrapperWithSession(m, id3cli, i.state, sess)
+	ui, err := NewIdentify3UIAdapterWithSession(mctx, id3cli, i.state, sess)
 	if err != nil {
 		return err
 	}
-	m = m.WithIdentifyUI(ui)
+	i2arg := keybase1.Identify2Arg{
+		UserAssertion:    string(arg.Assertion),
+		ForceRemoteCheck: arg.IgnoreCache,
+		ForceDisplay:     true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI_PROFILE,
+	}
+	mctx = mctx.WithIdentifyUI(ui)
+	eng := engine.NewResolveThenIdentify2(mctx.G(), &i2arg)
+	err = engine.RunEngine2(mctx, eng)
+	if err != nil {
+		return err
+	}
 
-	return unimplemented()
+	return nil
 }
 
 func (i *identify3Handler) Identify3FollowUser(context.Context, keybase1.Identify3FollowUserArg) error {
@@ -140,26 +168,29 @@ func (i *identify3Handler) Identify3IgnoreUser(context.Context, keybase1.Identif
 	return unimplemented()
 }
 
-type Identify3UIWrapper struct {
+// Identify3UIAdapter converts between the Identify2 UI that Identify2 engine expects, and the
+// Identify3UI interface that the frontend is soon to implement. It's going to maintain the
+// state machine that was previously implemented in JS.
+type Identify3UIAdapter struct {
 	state   *identify3State
 	session *identify3Session
 }
 
-var _ libkb.IdentifyUI = (*Identify3UIWrapper)(nil)
+var _ libkb.IdentifyUI = (*Identify3UIAdapter)(nil)
 
 func unimplemented() error {
 	return errors.New("unimplemented")
 }
 
-func NewIdentify3UIWrapper(m libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State) (*Identify3UIWrapper, error) {
-	ret := &Identify3UIWrapper{
+func NewIdentify3UIAdapter(mctx libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State) (*Identify3UIAdapter, error) {
+	ret := &Identify3UIAdapter{
 		state: state,
 	}
 	return ret, nil
 }
 
-func NewIdentify3UIWrapperWithSession(m libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State, sess *identify3Session) (*Identify3UIWrapper, error) {
-	ret, err := NewIdentify3UIWrapper(m, cli, state)
+func NewIdentify3UIAdapterWithSession(mctx libkb.MetaContext, cli keybase1.Identify3UiClient, state *identify3State, sess *identify3Session) (*Identify3UIAdapter, error) {
+	ret, err := NewIdentify3UIAdapter(mctx, cli, state)
 	if err != nil {
 		return nil, err
 	}
@@ -167,48 +198,48 @@ func NewIdentify3UIWrapperWithSession(m libkb.MetaContext, cli keybase1.Identify
 	return ret, nil
 }
 
-func (i *Identify3UIWrapper) Start(string, keybase1.IdentifyReason, bool) error {
+func (i *Identify3UIAdapter) Start(string, keybase1.IdentifyReason, bool) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+func (i *Identify3UIAdapter) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+func (i *Identify3UIAdapter) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (i *Identify3UIAdapter) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{}, unimplemented()
 }
-func (i *Identify3UIWrapper) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+func (i *Identify3UIAdapter) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) DisplayKey(keybase1.IdentifyKey) error {
+func (i *Identify3UIAdapter) DisplayKey(keybase1.IdentifyKey) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) ReportLastTrack(*keybase1.TrackSummary) error {
+func (i *Identify3UIAdapter) ReportLastTrack(*keybase1.TrackSummary) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
+func (i *Identify3UIAdapter) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) DisplayTrackStatement(string) error {
+func (i *Identify3UIAdapter) DisplayTrackStatement(string) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) DisplayUserCard(keybase1.UserCard) error {
+func (i *Identify3UIAdapter) DisplayUserCard(keybase1.UserCard) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) ReportTrackToken(keybase1.TrackToken) error {
+func (i *Identify3UIAdapter) ReportTrackToken(keybase1.TrackToken) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) Cancel() error {
+func (i *Identify3UIAdapter) Cancel() error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) Finish() error {
+func (i *Identify3UIAdapter) Finish() error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+func (i *Identify3UIAdapter) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
 	return unimplemented()
 }
-func (i *Identify3UIWrapper) Dismiss(string, keybase1.DismissReason) error {
+func (i *Identify3UIAdapter) Dismiss(string, keybase1.DismissReason) error {
 	return unimplemented()
 }
