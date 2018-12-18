@@ -15,6 +15,7 @@ import (
 const kbUsernameKey = "%{kb_username}"
 const remoteUsernameKey = "%{username}"
 const sigHashKey = "%{sig_hash}"
+const kbUaKey = "%{kb_ua}"
 
 //=============================================================================
 
@@ -74,6 +75,9 @@ func (c *GenericSocialProofConfig) validatePrefillURL() error {
 	if !strings.Contains(c.PrefillUrl, sigHashKey) {
 		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, sigHashKey)
 	}
+	if !strings.Contains(c.PrefillUrl, kbUaKey) {
+		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, kbUaKey)
+	}
 	return nil
 }
 
@@ -100,6 +104,10 @@ func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername string, sigID
 	url = strings.Replace(url, sigHashKey, sigID.String(), 1)
 	if !strings.Contains(url, sigID.String()) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing sigHash: %s", url, sigID)
+	}
+	url = strings.Replace(url, kbUaKey, libkb.UserAgent, 1)
+	if !strings.Contains(url, libkb.UserAgent) {
+		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUa: %s", url, libkb.UserAgent)
 	}
 	return url, nil
 }
