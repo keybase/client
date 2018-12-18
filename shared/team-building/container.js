@@ -40,13 +40,8 @@ const initialState: LocalState = {
 }
 
 const deriveSearchResults = memoize4(
-  (
-    searchResults: ?Array<User>,
-    teamSoFar: I.Set<User>,
-    myUsername: string,
-    followingState: I.Set<string>
-  ) => {
-    return (searchResults || []).map(info => ({
+  (searchResults: ?Array<User>, teamSoFar: I.Set<User>, myUsername: string, followingState: I.Set<string>) =>
+    (searchResults || []).map(info => ({
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
       inTeam: teamSoFar.some(u => u.id === info.id),
       prettyName: info.prettyName,
@@ -54,7 +49,6 @@ const deriveSearchResults = memoize4(
       userId: info.id,
       username: info.id.split('@')[0],
     }))
-  }
 )
 
 const deriveTeamSoFar = memoize1((teamSoFar: I.Set<User>) =>

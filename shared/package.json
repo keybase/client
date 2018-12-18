@@ -252,9 +252,6 @@
     "webfonts-generator": "0.4.0"
   },
   "resolutions": {
-    "**/react-docgen/**/@babel/parser": "7.2.0",
-    "**/lottie-react-web/**/minimatch": "3.0.4",
-    "**/lottie-react-web/**/lodash": "4.17.11",
     "babel-core": "7.0.0-bridge.0"
   }
 }

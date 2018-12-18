@@ -40,13 +40,13 @@ const getSmallRows = memoize2(
     }
     return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
   },
-  (newMetas, oldMetas) =>
+  ([newMetas, newShowSmallRows], [oldMetas, oldShowSmallRows]) =>
+    newShowSmallRows === oldShowSmallRows &&
     newMetas.length === oldMetas.length &&
     newMetas.every((a, idx) => {
       const b = oldMetas[idx]
       return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
-    }),
-  undefined
+    })
 )
 
 const sortByTeamChannel = (a, b) =>
@@ -73,7 +73,7 @@ const getBigRows = memoize1(
       return arr
     }, [])
   },
-  (newMetas, oldMetas) => shallowEqual(newMetas, oldMetas)
+  ([newMetas], [oldMetas]) => shallowEqual(newMetas, oldMetas)
 )
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
@@ -94,9 +94,7 @@ const getRowsAndMetadata = memoize2<Types.MetaMap, boolean, _>(
       rows,
       smallTeamsExpanded: showAllSmallRows, // only collapse if we're actually showing a divider,
     }
-  },
-  undefined,
-  undefined
+  }
 )
 
 export default getRowsAndMetadata
