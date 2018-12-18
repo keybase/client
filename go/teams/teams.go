@@ -440,11 +440,7 @@ func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) err
 	if bps == nil || bps.IsEmpty() {
 		return nil
 	}
-	tmp, err := bps.HashHexEncoded()
-	if err != nil {
-		return err
-	}
-	bsh := SCTeamBoxSummaryHash(tmp)
+	bsh := SCTeamBoxSummaryHash(bps.HashHexEncoded())
 	section.BoxSummaryHash = &bsh
 	return nil
 }
