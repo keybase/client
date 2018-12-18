@@ -208,6 +208,43 @@ func (mr *MockcodecGetterMockRecorder) Codec() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Codec", reflect.TypeOf((*MockcodecGetter)(nil).Codec))
 }
 
+// MockblockOpsGetter is a mock of blockOpsGetter interface
+type MockblockOpsGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockblockOpsGetterMockRecorder
+}
+
+// MockblockOpsGetterMockRecorder is the mock recorder for MockblockOpsGetter
+type MockblockOpsGetterMockRecorder struct {
+	mock *MockblockOpsGetter
+}
+
+// NewMockblockOpsGetter creates a new mock instance
+func NewMockblockOpsGetter(ctrl *gomock.Controller) *MockblockOpsGetter {
+	mock := &MockblockOpsGetter{ctrl: ctrl}
+	mock.recorder = &MockblockOpsGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockblockOpsGetter) EXPECT() *MockblockOpsGetterMockRecorder {
+	return m.recorder
+}
+
+// BlockOps mocks base method
+func (m *MockblockOpsGetter) BlockOps() BlockOps {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockOps")
+	ret0, _ := ret[0].(BlockOps)
+	return ret0
+}
+
+// BlockOps indicates an expected call of BlockOps
+func (mr *MockblockOpsGetterMockRecorder) BlockOps() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockOps", reflect.TypeOf((*MockblockOpsGetter)(nil).BlockOps))
+}
+
 // MockblockServerGetter is a mock of blockServerGetter interface
 type MockblockServerGetter struct {
 	ctrl     *gomock.Controller
@@ -9014,6 +9051,20 @@ func (mr *MockConfigMockRecorder) BlockServer() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockServer", reflect.TypeOf((*MockConfig)(nil).BlockServer))
 }
 
+// BlockOps mocks base method
+func (m *MockConfig) BlockOps() BlockOps {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockOps")
+	ret0, _ := ret[0].(BlockOps)
+	return ret0
+}
+
+// BlockOps indicates an expected call of BlockOps
+func (mr *MockConfigMockRecorder) BlockOps() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockOps", reflect.TypeOf((*MockConfig)(nil).BlockOps))
+}
+
 // Codec mocks base method
 func (m *MockConfig) Codec() kbfscodec.Codec {
 	m.ctrl.T.Helper()
@@ -9693,20 +9744,6 @@ func (m *MockConfig) SetKeyOps(arg0 KeyOps) {
 func (mr *MockConfigMockRecorder) SetKeyOps(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetKeyOps", reflect.TypeOf((*MockConfig)(nil).SetKeyOps), arg0)
-}
-
-// BlockOps mocks base method
-func (m *MockConfig) BlockOps() BlockOps {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockOps")
-	ret0, _ := ret[0].(BlockOps)
-	return ret0
-}
-
-// BlockOps indicates an expected call of BlockOps
-func (mr *MockConfigMockRecorder) BlockOps() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockOps", reflect.TypeOf((*MockConfig)(nil).BlockOps))
 }
 
 // SetBlockOps mocks base method
