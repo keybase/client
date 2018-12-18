@@ -68,6 +68,8 @@ export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestDetailReceived = 'wallets:requestDetailReceived'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
+export const reviewPayment = 'wallets:reviewPayment'
+export const reviewedPaymentReceived = 'wallets:reviewedPaymentReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
@@ -85,7 +87,7 @@ export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
-export const setReadyToSend = 'wallets:setReadyToSend'
+export const setReadyToReview = 'wallets:setReadyToReview'
 export const startPayment = 'wallets:startPayment'
 export const stopPayment = 'wallets:stopPayment'
 export const validateAccountName = 'wallets:validateAccountName'
@@ -154,6 +156,8 @@ type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
 type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString, lastSentXLM: boolean, requestee: string|}>
+type _ReviewPaymentPayload = void
+type _ReviewedPaymentReceivedPayload = $ReadOnly<{|reviewBanners?: ?Array<StellarRPCTypes.SendBannerLocal>, bid: string, readyToSend: string|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, secretKey: HiddenString|}>
 type _SecretKeySeenPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID, show?: boolean|}>
@@ -171,7 +175,7 @@ type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.Counter
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
-type _SetReadyToSendPayload = $ReadOnly<{|readyToSend: boolean|}>
+type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
 type _StartPaymentPayload = void
 type _StopPaymentPayload = $ReadOnly<{|bid: string|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -333,6 +337,10 @@ export const createAddNewPayment = (payload: _AddNewPaymentPayload) => ({payload
  */
 export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type: markAsRead})
 /**
+ * Move to the confirm screen on a built payment.
+ */
+export const createReviewPayment = (payload: _ReviewPaymentPayload) => ({payload, type: reviewPayment})
+/**
  * Perform sending a payment
  */
 export const createSendPayment = (payload: _SendPaymentPayload) => ({payload, type: sendPayment})
@@ -417,9 +425,9 @@ export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({payload
  */
 export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({payload, type: setLastSentXLM})
 /**
- * Set whether the payment is ready to send
+ * Set whether the payment is ready to review
  */
-export const createSetReadyToSend = (payload: _SetReadyToSendPayload) => ({payload, type: setReadyToSend})
+export const createSetReadyToReview = (payload: _SetReadyToReviewPayload) => ({payload, type: setReadyToReview})
 /**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
  */
@@ -501,6 +509,10 @@ export const createBuildingPaymentIDReceived = (payload: _BuildingPaymentIDRecei
  */
 export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({payload, type: secretKeyReceived})
 /**
+ * Update our store with the results of reviewing a built payment
+ */
+export const createReviewedPaymentReceived = (payload: _ReviewedPaymentReceivedPayload) => ({payload, type: reviewedPaymentReceived})
+/**
  * Update valid display currencies to choose from
  */
 export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesReceivedPayload) => ({payload, type: displayCurrenciesReceived})
@@ -573,6 +585,8 @@ export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +typ
 export type RequestDetailReceivedPayload = {|+payload: _RequestDetailReceivedPayload, +type: 'wallets:requestDetailReceived'|}
 export type RequestPaymentPayload = {|+payload: _RequestPaymentPayload, +type: 'wallets:requestPayment'|}
 export type RequestedPaymentPayload = {|+payload: _RequestedPaymentPayload, +type: 'wallets:requestedPayment'|}
+export type ReviewPaymentPayload = {|+payload: _ReviewPaymentPayload, +type: 'wallets:reviewPayment'|}
+export type ReviewedPaymentReceivedPayload = {|+payload: _ReviewedPaymentReceivedPayload, +type: 'wallets:reviewedPaymentReceived'|}
 export type SecretKeyReceivedPayload = {|+payload: _SecretKeyReceivedPayload, +type: 'wallets:secretKeyReceived'|}
 export type SecretKeySeenPayload = {|+payload: _SecretKeySeenPayload, +type: 'wallets:secretKeySeen'|}
 export type SelectAccountPayload = {|+payload: _SelectAccountPayload, +type: 'wallets:selectAccount'|}
@@ -590,7 +604,7 @@ export type SetBuildingRecipientTypePayload = {|+payload: _SetBuildingRecipientT
 export type SetBuildingSecretNotePayload = {|+payload: _SetBuildingSecretNotePayload, +type: 'wallets:setBuildingSecretNote'|}
 export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wallets:setBuildingTo'|}
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
-export type SetReadyToSendPayload = {|+payload: _SetReadyToSendPayload, +type: 'wallets:setReadyToSend'|}
+export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
 export type StartPaymentPayload = {|+payload: _StartPaymentPayload, +type: 'wallets:startPayment'|}
 export type StopPaymentPayload = {|+payload: _StopPaymentPayload, +type: 'wallets:stopPayment'|}
 export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
@@ -663,6 +677,8 @@ export type Actions =
   | RequestDetailReceivedPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
+  | ReviewPaymentPayload
+  | ReviewedPaymentReceivedPayload
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
@@ -680,7 +696,7 @@ export type Actions =
   | SetBuildingSecretNotePayload
   | SetBuildingToPayload
   | SetLastSentXLMPayload
-  | SetReadyToSendPayload
+  | SetReadyToReviewPayload
   | StartPaymentPayload
   | StopPaymentPayload
   | ValidateAccountNamePayload

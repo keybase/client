@@ -125,7 +125,9 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
           RouteTreeGen.createNavigateAppend({
             path: [Constants.sendReceiveFormRouteKey],
           }),
-        ].filter(Boolean).map(a => Saga.put(a))
+        ]
+          .filter(Boolean)
+          .map(a => Saga.put(a))
       )
     : Saga.put(
         isMobile
@@ -161,7 +163,7 @@ const sendPayment = (state: TypedState) => {
       // FIXME -- support other assets.
       bid: state.wallets.building.bid,
       bypassBid: false,
-      bypassReview: true, // DESKTOP-8556
+      bypassReview: false,
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -221,6 +223,9 @@ const startPayment = () =>
   RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
     WalletsGen.createBuildingPaymentIDReceived({bid})
   )
+
+const reviewPayment = (state: TypedState) =>
+  RPCStellarTypes.localReviewPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
 const stopPayment = (state: TypedState, action: WalletsGen.StopPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid}).then(_ =>
@@ -672,6 +677,8 @@ const setupEngineListeners = () => {
             .filter(Boolean),
         })
       ),
+    'stellar.1.ui.paymentReviewed': ({msg: {banners, bid, nextButton}}) =>
+      Saga.put(WalletsGen.createReviewedPaymentReceived({bid, readyToSend: nextButton, reviewBanners: banners})),
   })
 }
 
@@ -818,6 +825,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
   yield Saga.actionToPromise(WalletsGen.startPayment, startPayment)
   yield Saga.actionToPromise(WalletsGen.stopPayment, stopPayment)
+  yield Saga.actionToPromise(WalletsGen.reviewPayment, reviewPayment)
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 

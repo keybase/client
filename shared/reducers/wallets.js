@@ -97,6 +97,14 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           stateMutable.update('building', b => b.merge({currency}))
         }
       })
+    case WalletsGen.reviewedPaymentReceived:
+      const {reviewBanners, readyToSend} = action.payload
+      return state.merge({
+        builtPayment: state.get('builtPayment').merge({
+          readyToSend,
+          reviewBanners,
+        }),
+      })
     case WalletsGen.secretKeyReceived:
       return state.merge({
         exportedSecretKey: action.payload.secretKey,
@@ -190,10 +198,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
-    case WalletsGen.setReadyToSend:
+    case WalletsGen.setReadyToReview:
       return state.set(
         'builtPayment',
-        state.get('builtPayment').merge({readyToSend: action.payload.readyToSend})
+        state.get('builtPayment').merge({readyToReview: action.payload.readyToReview})
       )
     case WalletsGen.validateAccountName:
       return state.merge({
@@ -320,6 +328,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
+    case WalletsGen.reviewPayment:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:

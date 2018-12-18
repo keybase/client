@@ -15,7 +15,7 @@ const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
   const isReady = isRequest
     ? state.wallets.builtRequest.readyToRequest
-    : state.wallets.builtPayment.readyToSend
+    : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
   return {
     calculating: !!state.wallets.building.amount,
@@ -30,10 +30,11 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickRequest: () => {
+    dispatch(WalletsGen.createBuildPayment())
     dispatch(WalletsGen.createRequestPayment())
   },
   onClickSend: () => {
-    dispatch(WalletsGen.createBuildPayment())
+    dispatch(WalletsGen.createReviewPayment())
     dispatch(
       Route.navigateAppend([
         {

@@ -28,6 +28,7 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
+  readyToSend: 'enabled',
   sendFailed: false,
   sendingIntentionXLM: true,
   waitingKey: 'false',

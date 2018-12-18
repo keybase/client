@@ -51,12 +51,14 @@ const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '',
   displayAmountXLM: '',
   from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
-  readyToSend: false,
+  readyToReview: false,
+  readyToSend: 'spinning',
+  reviewBanners: null,
   secretNoteErrMsg: new HiddenString(''),
   sendingIntentionXLM: false,
   toErrMsg: '',
@@ -68,7 +70,7 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
 
 const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '',
   displayAmountXLM: '',
   readyToRequest: false,
@@ -117,12 +119,12 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
-    banners: b.banners,
+    builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
     from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
-    readyToSend: b.readyToReview, // DESKTOP-8556
+    readyToReview: b.readyToReview,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     sendingIntentionXLM: b.sendingIntentionXLM,
     toErrMsg: b.toErrMsg,
@@ -135,7 +137,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
 const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
   makeBuiltRequest({
     amountErrMsg: b.amountErrMsg,
-    banners: b.banners,
+    builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
     readyToRequest: b.readyToRequest,
