@@ -159,7 +159,8 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 }
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
-	prevBundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	prevBundle, version, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
@@ -264,7 +265,8 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 }
 
 func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return false, false, err
 	}
@@ -278,7 +280,8 @@ func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 
 func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
 	if accountID == "" {
-		bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+		mctx := libkb.NewMetaContext(ctx, g)
+		bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 		if err != nil {
 			return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 		}
@@ -1148,7 +1151,8 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
-	activeBundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	activeBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return res, err
 	}
@@ -1623,7 +1627,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
 	}
-	bundle, version, _, err := remote.FetchSecretlessBundle(m.Ctx(), m.G())
+	bundle, version, _, err := remote.FetchSecretlessBundle(m)
 	if err != nil {
 		return err
 	}
@@ -1757,7 +1761,7 @@ func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error)
 }
 
 func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
-	prevBundle, version, _, err := remote.FetchSecretlessBundle(m.Ctx(), m.G())
+	prevBundle, version, _, err := remote.FetchSecretlessBundle(m)
 	if err != nil {
 		return ret, err
 	}
