@@ -27,7 +27,6 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 
   return {
     errorMessage: profile.errorText,
-    isOnCompleteWaiting: profile.waiting,
     onCancelText: 'Cancel',
     platform,
     platformUserName: profile.username,
