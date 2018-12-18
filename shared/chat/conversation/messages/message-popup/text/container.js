@@ -8,7 +8,7 @@ import * as Route from '../../../../../actions/route-tree'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Text from '.'
 

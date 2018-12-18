@@ -5,7 +5,9 @@ import (
 	"regexp"
 	"sync"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -105,6 +107,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	// -------------------- to --------------------
 
 	tracer.Stage("to")
+	var recipientUV keybase1.UserVersion
 	skipRecipient := len(arg.To) == 0
 	var minAmountXLM string
 	if !skipRecipient && arg.ToIsAccountID {
@@ -128,6 +131,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			if recipient.User != nil && !arg.ToIsAccountID {
 				bannerThey = recipient.User.Username.String()
 				bannerTheir = fmt.Sprintf("%s's", recipient.User.Username)
+				recipientUV = recipient.User.UV
 			}
 			if recipient.AccountID == nil && !fromPrimaryAccount {
 				// This would have been a relay from a non-primary account.
@@ -289,6 +293,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			data.Frozen = &frozenPayment{
 				From:          fromInfo.from,
 				To:            arg.To,
+				ToUV:          recipientUV,
 				ToIsAccountID: arg.ToIsAccountID,
 				Amount:        amountX.amountOfAsset,
 				Asset:         amountX.asset,
@@ -325,10 +330,15 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 		return err
 	}
 
-	notify := func(seqno int, banners []stellar1.SendBannerLocal, nextButton reviewButtonState) chan struct{} {
+	seqno := 0
+	notify := func(banners []stellar1.SendBannerLocal, nextButton reviewButtonState) chan struct{} {
+		seqno++
 		receivedCh := make(chan struct{}) // channel closed when the notification has been acked.
 		mctx.CDebugf("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
 			arg.Bid, arg.SessionID, seqno, nextButton, len(banners))
+		for _, banner := range banners {
+			mctx.CDebugf("banner: %+v", banner)
+		}
 		go func() {
 			err := stellarUI.PaymentReviewed(mctx.Ctx(), stellar1.PaymentReviewedArg{
 				SessionID: arg.SessionID,
@@ -349,7 +359,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 
 	if !data.ReadyToReview {
 		// Caller goofed.
-		notify(1, []stellar1.SendBannerLocal{{
+		<-notify([]stellar1.SendBannerLocal{{
 			Level:   "error",
 			Message: "This payment is not ready to review",
 		}}, reviewButtonDisabled)
@@ -360,22 +370,73 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 		return fmt.Errorf("this payment is missing values")
 	}
 
-	notify(1, nil, reviewButtonSpinning)
+	notify(nil, reviewButtonSpinning)
 
 	if data.Frozen.ToIsAccountID {
 		mctx.CDebugf("skipping identify for account ID recipient: %v", data.Frozen.To)
+		data.ReadyToSend = true
 	} else {
-		// In the future this method will identify the recipient and check tracking.
-		// But for now, imagine the identify succeeded.
-		mctx.CDebugf("skipping identify of recipient: %v", data.Frozen.To)
-	}
+		recipientAssertion := data.Frozen.To
+		recipientUV := data.Frozen.ToUV
+		mctx.CDebugf("identifying recipient: %v", recipientAssertion)
 
-	data.ReadyToSend = true
+		identifySuccessCh := make(chan struct{}, 1)
+		identifyTrackFailCh := make(chan struct{}, 1)
+		identifyErrCh := make(chan error, 1)
+
+		// Forward notifications about successful identifies of this recipient.
+		go func() {
+			unsubscribe, globalSuccessCh := mctx.G().IdentifyDispatch.Subscribe(mctx)
+			defer unsubscribe()
+			for {
+				select {
+				case <-mctx.Ctx().Done():
+					return
+				case idRes := <-globalSuccessCh:
+					if recipientUV.IsNil() || !idRes.Target.Equal(recipientUV.Uid) {
+						continue
+					}
+					mctx.CDebugf("review forwarding identify success")
+					select {
+					case <-mctx.Ctx().Done():
+						return
+					case identifySuccessCh <- struct{}{}:
+					}
+				}
+			}
+		}()
+
+		// Start an identify in the background.
+		go identifyForReview(mctx, recipientAssertion,
+			identifySuccessCh, identifyTrackFailCh, identifyErrCh)
+
+	waiting:
+		for {
+			select {
+			case <-mctx.Ctx().Done():
+				return mctx.Ctx().Err()
+			case <-identifyErrCh:
+				notify([]stellar1.SendBannerLocal{{
+					Level:   "error",
+					Message: fmt.Sprintf("Error while identifying %v", recipientAssertion),
+				}}, reviewButtonDisabled)
+			case <-identifyTrackFailCh:
+				notify([]stellar1.SendBannerLocal{{
+					Level:         "error",
+					Message:       fmt.Sprintf("Some of %v's proofs have changed since you last followed them. Please review", recipientAssertion),
+					ProofsChanged: true,
+				}}, reviewButtonDisabled)
+			case <-identifySuccessCh:
+				data.ReadyToSend = true
+				break waiting
+			}
+		}
+	}
 
 	if err := mctx.Ctx().Err(); err != nil {
 		return err
 	}
-	receivedEnableCh := notify(2, nil, reviewButtonEnabled)
+	receivedEnableCh := notify(nil, reviewButtonEnabled)
 
 	// Stay open until this call gets canceled or until frontend
 	// acks a notification that enables the button.
@@ -384,6 +445,67 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	case <-mctx.Ctx().Done():
 	}
 	return mctx.Ctx().Err()
+}
+
+// identifyForReview runs identify on a user, looking only for tracking breaks.
+// Sends a value to exactly one of the three channels.
+func identifyForReview(mctx libkb.MetaContext, assertion string,
+	successCh chan<- struct{},
+	trackFailCh chan<- struct{},
+	errCh chan<- error) {
+	// Goroutines that are blocked on otherwise unreachable channels are not GC'd.
+	// So use ctx to clean up.
+	sendSuccess := func() {
+		mctx.CDebugf("identifyForReview(%v) -> success", assertion)
+		select {
+		case successCh <- struct{}{}:
+		case <-mctx.Ctx().Done():
+		}
+	}
+	sendTrackFail := func() {
+		mctx.CDebugf("identifyForReview(%v) -> fail", assertion)
+		select {
+		case trackFailCh <- struct{}{}:
+		case <-mctx.Ctx().Done():
+		}
+	}
+	sendErr := func(err error) {
+		mctx.CDebugf("identifyForReview(%v) -> err %v", assertion, err)
+		select {
+		case errCh <- err:
+		case <-mctx.Ctx().Done():
+		}
+	}
+
+	mctx.CDebugf("identifyForReview(%v)", assertion)
+	reason := fmt.Sprintf("Identify transaction recipient: %s", assertion)
+	eng := engine.NewResolveThenIdentify2(mctx.G(), &keybase1.Identify2Arg{
+		UserAssertion:         assertion,
+		CanSuppressUI:         true,
+		NoErrorOnTrackFailure: true, // take heed
+		Reason:                keybase1.IdentifyReason{Reason: reason},
+		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+	})
+	err := engine.RunEngine2(mctx, eng)
+	if err != nil {
+		sendErr(err)
+		return
+	}
+	idRes, err := eng.Result(mctx)
+	if err != nil {
+		sendErr(err)
+		return
+	}
+	if idRes == nil {
+		sendErr(fmt.Errorf("missing identify result"))
+		return
+	}
+	mctx.CDebugf("identifyForReview: uv: %v", idRes.Upk.Current.ToUserVersion())
+	if idRes.TrackBreaks != nil {
+		sendTrackFail()
+		return
+	}
+	sendSuccess()
 }
 
 func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
@@ -706,6 +828,7 @@ type buildPaymentData struct {
 type frozenPayment struct {
 	From          stellar1.AccountID
 	To            string
+	ToUV          keybase1.UserVersion
 	ToIsAccountID bool
 	Amount        string
 	Asset         stellar1.Asset

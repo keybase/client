@@ -339,6 +339,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.copy:
     case FsGen.moveOrCopyOpen:
     case FsGen.cancelMoveOrCopy:
+    case FsGen.clearRefreshTag:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

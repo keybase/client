@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -701,7 +702,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 			PublicMemo:    "public note",
 		})
 		require.Error(t, err)
-		require.Equal(t, "Sender account not found", err.Error())
+		require.Contains(t, err.Error(), "Sender account not found")
 
 		_, err = srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 			BypassBid:     true,
@@ -1860,9 +1861,145 @@ func reviewPaymentExpectContractFailure(t testing.TB, tc *TestContext, arg stell
 	check(t)
 }
 
+// Start a review. Expect that the review will send a broken tracking banner and then hang.
+// `expectSuccess` can be called later after fixing the tracking and will assert that the review soon enables the button.
+func reviewPaymentExpectBrokenTracking(t testing.TB, tc *TestContext, arg stellar1.ReviewPaymentLocalArg) (expectSuccess func()) {
+	start := time.Now()
+	timeout := time.Second
+	if libkb.UseCITime(tc.G) {
+		timeout = 15 * time.Second
+	}
+	timeoutCh := time.After(timeout)
+	mockUI := tc.Srv.uiSource.(*testUISource).stellarUI.(*mockStellarUI)
+	original := mockUI.PaymentReviewedHandler
+	reviewDisabledCh := make(chan struct{}, 1)
+	// Install a handler that's geared for track failures.
+	mockUI.PaymentReviewedHandler = func(ctx context.Context, notification stellar1.PaymentReviewedArg) error {
+		assert.Equal(t, arg.Bid, notification.Msg.Bid)
+		switch notification.Msg.NextButton {
+		case "spinning":
+		case "disabled":
+			select {
+			case reviewDisabledCh <- struct{}{}:
+			default:
+				assert.Fail(t, "review disabled channel full")
+			}
+		default:
+			assert.Failf(t, "unexpected button status", "%v", notification.Msg.NextButton)
+		}
+		return nil
+	}
+	reviewFinishCh := make(chan error, 1)
+	go func() {
+		err := tc.Srv.ReviewPaymentLocal(context.Background(), arg)
+		reviewFinishCh <- err
+	}()
+	select {
+	case <-timeoutCh:
+		assert.Fail(t, "timed out")
+	case err := <-reviewFinishCh:
+		require.FailNowf(t, "review unexpectedly finished", "%v", err)
+	case <-reviewDisabledCh:
+		// great
+	}
+	t.Logf("review ran for %v", time.Since(start))
+	check(t)
+
+	// Install a new handler that's geared for success.
+	reviewEnabledCh := make(chan struct{}, 1)
+	mockUI.PaymentReviewedHandler = func(ctx context.Context, notification stellar1.PaymentReviewedArg) error {
+		assert.Equal(t, arg.Bid, notification.Msg.Bid)
+		switch notification.Msg.NextButton {
+		case "enabled":
+			select {
+			case reviewEnabledCh <- struct{}{}:
+			default:
+				assert.Fail(t, "review enabled channel full")
+			}
+		default:
+			assert.Failf(t, "unexpected button status", "%v", notification.Msg.NextButton)
+		}
+		return nil
+	}
+	return func() {
+		defer func() {
+			mockUI.PaymentReviewedHandler = original
+		}()
+		timeoutCh := time.After(timeout)
+		select {
+		case <-timeoutCh:
+			require.FailNow(t, "timed out")
+		case <-reviewEnabledCh:
+			// great
+		}
+		check(t)
+	}
+}
+
+// Review a payment.
+// - At first the review fails on a tracking failure.
+// - The user reaffirms their tracking of the recipient.
+// - As a result the review succeeds.
+func TestReviewPaymentLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "100")
+	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+
+	t.Logf("u1 proves rooter")
+	_, sigID := proveRooter(tcs[1])
+
+	t.Logf("u0 tracks u1")
+	_, err = kbtest.RunTrack(tcs[0].TestContext, tcs[0].Fu, tcs[1].Fu.Username)
+	require.NoError(t, err)
+
+	t.Logf("u1 removes their proof")
+	eng := engine.NewRevokeSigsEngine(tcs[1].G, []string{sigID.String()})
+	err = engine.RunEngine2(tcs[1].MetaContext().WithUIs(libkb.UIs{
+		LogUI:    tcs[1].G.UI.GetLogUI(),
+		SecretUI: &libkb.TestSecretUI{Passphrase: "dummy-passphrase"},
+	}), eng)
+	require.NoError(t, err)
+
+	t.Logf("u0 starts a payment")
+	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
+	require.NoError(t, err)
+	amount := "11.0"
+	buildRes, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: amount,
+	})
+	require.NoError(t, err)
+	require.Equal(t, true, buildRes.ReadyToReview)
+
+	t.Logf("u0 starts review of a payment, which gets stuck on u1's broken proof")
+	expectSuccess := reviewPaymentExpectBrokenTracking(t, tcs[0], stellar1.ReviewPaymentLocalArg{Bid: bid1})
+
+	t.Logf("u0 affirms tracking of u1, causing the review to complete")
+	_, err = kbtest.RunTrack(tcs[0].TestContext, tcs[0].Fu, tcs[1].Fu.Username)
+	require.NoError(t, err)
+	expectSuccess()
+
+	t.Logf("u0 completes the send")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: amount,
+		Asset:  stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+}
+
 // Cases where Send is blocked because the build gamut wasn't run.
 func TestBuildPaymentLocalBidBlocked(t *testing.T) {
-	// xxx update this test to purposefully use or not use review
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 

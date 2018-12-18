@@ -10,7 +10,7 @@ import * as Route from '../../../../../actions/route-tree'
 import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 
