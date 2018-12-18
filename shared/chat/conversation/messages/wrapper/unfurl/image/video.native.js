@@ -10,20 +10,15 @@ type State = {
 }
 
 export class Video extends React.Component<Props, State> {
-  webviewRef: any
+  _webviewRef = React.createRef()
   state = {playingVideo: this.props.autoPlay}
 
-  constructor(props: Props) {
-    super(props)
-    this.webviewRef = React.createRef()
-  }
-
   _onClick = () => {
-    if (!(this.webviewRef && this.webviewRef.current)) {
+    if (!(this._webviewRef && this._webviewRef.current)) {
       return
     }
     const arg = this.state.playingVideo ? 'pause' : 'play'
-    const runJS = this.webviewRef.current.injectJavaScript
+    const runJS = this._webviewRef.current.injectJavaScript
     runJS(`togglePlay("${arg}")`)
     this.setState({playingVideo: !this.state.playingVideo})
   }
@@ -38,7 +33,7 @@ export class Video extends React.Component<Props, State> {
         style={Styles.collapseStyles([this.props.style, styles.container])}
       >
         <NativeWebView
-          ref={this.webviewRef}
+          ref={this._webviewRef}
           allowsInlineMediaPlayback={true}
           useWebKit={true}
           source={source}
