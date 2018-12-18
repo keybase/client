@@ -75,6 +75,7 @@ helpers.rootLinuxNode(env, {
                             env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
                             sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
                             env.COMMIT_HASH = readFile('go/revision')
+                            env.BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}")
                         }
                     },
                     pull_glibc: {
@@ -327,8 +328,7 @@ def testGo(prefix) {
         sh 'go list ./... | grep -v "github.com/keybase/client/go/bind\\|github.com/keybase/client/go/kbfs/dokan" | xargs go vet'
 
         // Load list of packages that changed.
-        sh 'git fetch origin master'
-        def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --name-only origin/${env.CHANGE_TARGET} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
+        def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --name-only ${env.BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
         println "Go packages changed:\n${diffPackageList}"
 
         // Load list of dependencies and mark all dependent packages to test.
