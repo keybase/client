@@ -103,13 +103,14 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
         dispatchProps._onRemoveMember(stateProps.teamname, stateProps._username)
       }
     },
+    // $FlowIssue this type is messed up, TODO cleanup
     user,
+    // $FlowIssue this type is messed up, TODO cleanup
     you,
   }
 }
 
 export default compose(
-  // $FlowIssue this type is messed up, TODO cleanup
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
