@@ -11,8 +11,8 @@ import (
 type boxPublicSummaryTable map[keybase1.UID]keybase1.Seqno
 
 type boxPublicSummary struct {
-	table    boxPublicSummaryTable
-	encoding []byte
+	table   boxPublicSummaryTable
+	encoded []byte
 }
 
 func newBoxPublicSummary(d map[keybase1.UserVersion]keybase1.PerUserKey) (*boxPublicSummary, error) {
@@ -26,52 +26,39 @@ func newBoxPublicSummary(d map[keybase1.UserVersion]keybase1.PerUserKey) (*boxPu
 		}
 	}
 
+	// encode only ever gets called with the boxPublicSummary is being constructed. This means
+	// we don't allow mutation. Thus, we just encode it once, since if ever canonical encoding
+	// stops working, it won't matter, we'll still get consistent results.
+	err := ret.encode()
+	if err != nil {
+		return nil, err
+	}
+
 	return &ret, nil
 }
 
-func (b *boxPublicSummary) encode() ([]byte, error) {
-	// Just encode it once, since if ever canonical encoding
-	// stops working, it won't matter, we'll still get consitent results.
-	if b.encoding != nil {
-		return b.encoding, nil
-	}
+func (b *boxPublicSummary) encode() error {
 	var mh codec.MsgpackHandle
 	mh.WriteExt = true
 	mh.Canonical = true
-	var encoded []byte
-	err := codec.NewEncoderBytes(&encoded, &mh).Encode(b.table)
-	if err != nil {
-		return nil, err
-	}
-	b.encoding = encoded
-	return encoded, nil
+	err := codec.NewEncoderBytes(&b.encoded, &mh).Encode(b.table)
+	return err
 }
 
-func (b *boxPublicSummary) Hash() ([]byte, error) {
-	tmp, err := b.encode()
-	if err != nil {
-		return nil, err
-	}
-	ret := sha256.Sum256(tmp)
-	return ret[:], nil
+func (b boxPublicSummary) Hash() []byte {
+	ret := sha256.Sum256(b.encoded)
+	return ret[:]
 }
 
-func (b *boxPublicSummary) HashHexEncoded() (string, error) {
-	tmp, err := b.Hash()
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(tmp), nil
+func (b boxPublicSummary) HashHexEncoded() string {
+	tmp := b.Hash()
+	return hex.EncodeToString(tmp)
 }
 
-func (b *boxPublicSummary) EncodeToString() (string, error) {
-	dst, err := b.encode()
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(dst), nil
+func (b boxPublicSummary) EncodeToString() string {
+	return base64.StdEncoding.EncodeToString(b.encoded)
 }
 
-func (b *boxPublicSummary) IsEmpty() bool {
+func (b boxPublicSummary) IsEmpty() bool {
 	return len(b.table) == 0
 }

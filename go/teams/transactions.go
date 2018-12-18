@@ -714,7 +714,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 			// If there are addditions, then there will be a new key involved.
 			// If there are deletions, then we'll be rotating. So either way,
-			// this section nneeds a box summary.
+			// this section needs a box summary.
 			sectionsWithBoxSummaries = append(sectionsWithBoxSummaries, i)
 		case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 			entropy, err := makeSCTeamEntropy()
