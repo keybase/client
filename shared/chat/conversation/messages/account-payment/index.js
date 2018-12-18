@@ -78,21 +78,14 @@ const AccountPayment = (props: Props) => {
           </Text>
         </Box2>
         {props.canceled && <Text type="BodySmall">CANCELED</Text>}
-        {!!props.balanceChange && (
-          <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
-            <Text
-              type="BodyExtrabold"
-              selectable={true}
-              style={collapseStyles([
-                {color: props.balanceChangeColor},
-                props.canceled && styles.lineThrough,
-              ])}
-            >
+        <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
+          {!!props.balanceChange && (
+            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
               {props.balanceChange}
             </Text>
-            <Icon type="icon-stellar-coins-stacked-16" />
-          </Box2>
-        )}
+          )}
+          <Icon type="icon-stellar-coins-stacked-16" />
+        </Box2>
       </Box2>
       <MarkdownMemo memo={props.memo} />
       {!!props.sendButtonLabel && (

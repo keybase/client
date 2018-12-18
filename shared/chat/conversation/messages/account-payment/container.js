@@ -69,15 +69,15 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const cancelable = paymentInfo.status === 'cancelable'
       const pending = cancelable || paymentInfo.status === 'pending'
       const canceled = paymentInfo.status === 'canceled'
+      const completed = paymentInfo.status === 'completed'
       const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${WalletConstants.balanceChangeSign(
-          paymentInfo.delta,
-          paymentInfo.amountDescription
-        )}`,
+        balanceChange: completed
+          ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`
+          : '',
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
         cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
         cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
