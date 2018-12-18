@@ -1,0 +1,5 @@
+// @flow
+import * as React from 'react'
+export type Props = any
+
+declare export default class DropFileBox extends React.Component<Props> {}

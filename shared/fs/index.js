@@ -17,10 +17,16 @@ type FolderProps = {
   path: Types.Path,
   resetParticipants: Array<string>,
   routePath: I.List<string>,
+  onAttach: (path: Types.Path, local: Array<string>) => void,
 }
 
-class Files extends React.PureComponent<FolderProps> {
+class Files extends React.PureComponent<FolderProps, State> {
+  //      this.props.onAttach(this.props.path, paths)
+
   render() {
+    // TODO check whether the path is writable by the user.
+    const dndEnabled = Types.getPathLevel(this.props.path) > 2
+    const onAttach = paths => this.props.onAttach(this.props.path, paths)
     const content = this.props.isUserReset ? (
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -32,7 +38,12 @@ class Files extends React.PureComponent<FolderProps> {
       <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
     )
     return (
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+      <Kb.DropFileBox
+        direction="vertical"
+        fullHeight={true}
+        style={styles.container}
+        onAttach={dndEnabled ? onAttach : null}
+      >
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <SortBar path={this.props.path} />
@@ -46,7 +57,7 @@ class Files extends React.PureComponent<FolderProps> {
           )}
           <Footer />
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.DropFileBox>
     )
   }
 }

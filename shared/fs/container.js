@@ -4,6 +4,7 @@ import Files from '.'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
+import * as FsGen from '../actions/fs-gen'
 
 const mapStateToProps = (state, {routeProps}) => {
   const path = routeProps.get('path', Constants.defaultPath)
@@ -14,7 +15,15 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
+const mapDispatchToProps = dispatch => ({
+  onAttach: (parentPath: Types.Path, paths: Array<string>) => {
+    for (const localPath of paths) {
+      dispatch(FsGen.createUpload({parentPath, localPath}))
+    }
+  },
+})
+
+const mergeProps = (stateProps, {onAttach}, {routeProps, routePath}) => {
   const path = routeProps.get('path', Constants.defaultPath)
   const {tlfList} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
   const elems = Types.getPathElements(path)
@@ -24,10 +33,10 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
     .toArray()
   const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
   const {sortSetting} = stateProps
-  return {isUserReset, path, resetParticipants, routePath, sortSetting}
+  return {isUserReset, path, resetParticipants, routePath, sortSetting, onAttach}
 }
 
 export default compose(
   SecurityPrefsPromptingHoc,
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'Files')
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Files')
 )(Files)

@@ -41,6 +41,7 @@ const box2 = (props: Box2Props) => {
     <div
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
+      onDragOver={props.onDragOver}
       className={className}
       style={props.style}
     >

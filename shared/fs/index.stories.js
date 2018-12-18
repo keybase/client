@@ -134,6 +134,7 @@ const load = () => {
         isUserReset={false}
         resetParticipants={['foo']}
         sortSetting={Constants.makeSortSetting()}
+        onAttach={Sb.action('attach')}
       />
     ))
     .add('Preview', () => (
@@ -187,6 +188,7 @@ const load = () => {
         isUserReset={false}
         resetParticipants={[]}
         sortSetting={Constants.makeSortSetting()}
+        onAttach={Sb.action('attach')}
       />
     ))
     .add('ResetBanner', () => (
