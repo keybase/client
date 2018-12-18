@@ -61,11 +61,13 @@ func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, teamData *keybase1.TeamData,
 }
 
 type PerTeamSharedSecretBoxes struct {
-	Generation    keybase1.PerTeamKeyGeneration `json:"generation"`
-	EncryptingKid keybase1.KID                  `json:"encrypting_kid"`
-	Nonce         string                        `json:"nonce"`
-	PrevKey       *prevKeySealedEncoded         `json:"prev"`
-	Boxes         map[keybase1.UID]string       `json:"boxes"`
+	Generation       keybase1.PerTeamKeyGeneration `json:"generation"`
+	EncryptingKid    keybase1.KID                  `json:"encrypting_kid"`
+	Nonce            string                        `json:"nonce"`
+	PrevKey          *prevKeySealedEncoded         `json:"prev"`
+	Boxes            map[keybase1.UID]string       `json:"boxes"`
+	EPBPS            string                        `json:"public_summary"` // encoded, packed box public summary
+	boxPublicSummary *boxPublicSummary             // not exported, therefore, won't be JSON'ed
 }
 
 type PerTeamSharedSecretBox struct {
@@ -207,12 +209,22 @@ func (t *TeamKeyManager) sharedBoxes(secret keybase1.PerTeamKeySeed, generation 
 	if err != nil {
 		return nil, err
 	}
+	boxPublicSummary, err := newBoxPublicSummary(recipients)
+	if err != nil {
+		return nil, err
+	}
+	epbps, err := boxPublicSummary.EncodeToString()
+	if err != nil {
+		return nil, err
+	}
 
 	return &PerTeamSharedSecretBoxes{
-		Generation:    generation,
-		EncryptingKid: senderNaclDHKey.GetKID(),
-		Nonce:         nonce.PrefixEncoded(),
-		Boxes:         boxes,
+		Generation:       generation,
+		EncryptingKid:    senderNaclDHKey.GetKID(),
+		Nonce:            nonce.PrefixEncoded(),
+		Boxes:            boxes,
+		boxPublicSummary: boxPublicSummary,
+		EPBPS:            epbps,
 	}, nil
 }
 
