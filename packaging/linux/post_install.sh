@@ -5,12 +5,17 @@
 # and rpm-specific post-install scripts call into this after doing their
 # distro-specific work, which is mainly setting up package repos for updates.
 
+# The script also attempts to restart services if the mountpoint is not being used.
+# To disable this behavior, create /etc/keybase/config.json if it doesn't exist
+# and add the key value pair { "disable-autorestart": true }.
+
 set -u
 
 rootmount="/keybase"
 krbin="/usr/bin/keybase-redirector"
 rootConfigFile="/etc/keybase/config.json"
 disableConfigKey="disable-root-redirector"
+disableAutorestartConfigKey="disable-autorestart"
 
 redirector_enabled() {
   disableRedirector="false"
@@ -22,6 +27,12 @@ redirector_enabled() {
   [ "$disableRedirector" != "true" ]
 }
 
+autorestart_enabled() {
+    [ -r "$rootConfigFile" ] || return 0
+    disableAutorestart=$(keybase --standalone -c "$rootConfigFile" config get -d "$disableAutorestartConfigKey" 2> /dev/null) || return 0
+    [ "$disableAutorestart" != "true" ]
+}
+
 make_mountpoint() {
   if redirector_enabled ; then
     if ! mountpoint "$rootmount" &> /dev/null; then
@@ -30,6 +41,84 @@ make_mountpoint() {
       chmod 755 "$rootmount"
     fi
   fi
+}
+
+systemd_exec_as() {
+    user=$1
+    shift
+
+    # Keybase supports running with and without systemd. In order for `su`
+    # to work with systemd commands, we need to pass in XDG_RUNTIME_DIR.
+    # /run/user/{uid} is the default when using systemd. We can't know the
+    # true value without installing systemd itself, which we don't want to
+    # depend on, so we use this default. Users who want to use a custom
+    # XDG_RUNTIME_DIR should specify it in their .profile so it is known
+    # by su -, which doesn't load pam_systemd. Unfortunately, this also
+    # results in an extra su invocation.
+    user_xdg_runtime_dir=""
+    # shellcheck disable=SC2016
+    # Intentionally do not expand $XDG_RUNTIME_DIR; we want the user's shell to expand it
+    if ! user_xdg_runtime_dir="$(su --login "$user" -c 'echo $XDG_RUNTIME_DIR')" || [ -z "$user_xdg_runtime_dir" ]; then
+        user_xdg_runtime_dir="/run/user/$(id -u "$user")" || return 1
+    fi
+
+    # To support restarting without systemd, we'd also have to pass in DISPLAY,
+    # but there's no easy way to figure that out.
+    su --login "$user" -c "XDG_RUNTIME_DIR=$user_xdg_runtime_dir $* 2> /dev/null"
+}
+
+# Exits with 0 iff the given user is running the service with systemd
+systemd_unit_active_for() {
+    user=$1
+    service=$2
+    command -v systemctl &> /dev/null && systemd_exec_as "$user" "systemctl --user -q is-active $service"
+}
+
+safe_restart_systemd_services() {
+    if ! autorestart_enabled; then
+        echo "Keybase autorestart disabled. Restart manually by running 'run_keybase' for each user using Keybase."
+        return 0
+    fi
+
+    while read -r pid; do
+        if [ -z "$pid" ]; then
+            continue
+        fi
+
+        # Since keybase is running, we can assume run_keybase has been run before
+        # and the mountdir is configured (so, it is not a fresh install).
+        user="$(ps -o user= -p "$pid")"
+
+        restart_instructions="Aborting Keybase autorestart for $user. Restart manually by running 'run_keybase' as $user."
+
+        if ! systemd_unit_active_for "$user" "keybase.service"; then
+            echo "Keybase not running via systemd for $user."
+            echo "$restart_instructions"
+            continue
+        fi
+
+        if systemd_unit_active_for "$user" "kbfs.service"; then
+            if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --bare mountdir")" || [ -z "$mount" ]; then
+                echo "Could not find mountdir for $user via systemd."
+                echo "$restart_instructions"
+                continue
+            fi
+
+            # Mount found, abort autorestart for user if currently being used.
+            # lsof exits with zero iff there are no errors and mount is being used
+            # Be slightly aggressive and restart if lsof did hit errors (e.g., if mount didn't exist)
+            if lsof_output="$(systemd_exec_as "$user" "lsof $mount" 2> /dev/null)"; then
+                programs_accessing_mount="$(echo "$lsof_output" | tail -n +2 | awk '{print $1}' | tr '\n' ', ')"
+                echo "KBFS mount $mount for user $user currently in use by ($programs_accessing_mount)."
+                echo "Please stop these processes before restarting manually."
+                echo "$restart_instructions"
+                continue
+            fi
+        fi
+
+        echo "Autorestarting Keybase via systemd for $user."
+        systemd_exec_as "$user" "systemctl --user restart keybase kbfs keybase.gui"
+    done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
 if redirector_enabled ; then
@@ -119,3 +208,5 @@ make_mountpoint
 if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
+
+safe_restart_systemd_services
