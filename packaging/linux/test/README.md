@@ -97,7 +97,8 @@ Systemd requires that the docker container be run as a daemon:
     docker exec -ti systemd bash
 
 Then inside the container you can use the same steps as above to
-install and start keybase.
+install and start keybase. Instead of `su`, you may need to `login <user>`
+so the systemd pam config runs.
 
 Centos:
 ========
