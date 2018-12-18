@@ -12,6 +12,7 @@ type ConfirmSendProps = {|
   onClose: () => void,
   onSendClick: () => void,
   onBack: () => void,
+  onReviewProofs?: () => void,
   encryptedNote?: string,
   publicMemo?: string,
   banners?: Array<BannerType>,
@@ -34,7 +35,13 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         displayAmountFiat={props.displayAmountFiat}
       />
       {(props.banners || []).map(banner => (
-        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        <Banner
+          background={banner.bannerBackground}
+          key={banner.bannerText}
+          onReviewProofs={props.onReviewProofs}
+          reviewProofs={banner.reviewProofs}
+          text={banner.bannerText}
+        />
       ))}
       <Kb.ScrollView style={styles.scrollView}>
         <Participants />

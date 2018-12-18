@@ -423,7 +423,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 			case <-identifyTrackFailCh:
 				notify([]stellar1.SendBannerLocal{{
 					Level:         "error",
-					Message:       fmt.Sprintf("Some of %v's proofs have changed since you last followed them. Please review", recipientAssertion),
+					Message:       fmt.Sprintf("Some of %v's proofs have changed since you last followed them.", recipientAssertion),
 					ProofsChanged: true,
 				}}, reviewButtonDisabled)
 			case <-identifySuccessCh:

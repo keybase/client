@@ -42,6 +42,7 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 const banner = {
   bannerBackground: 'Announcements',
   bannerText: 'The conversion rate has changed since you got to this screen.',
+  reviewProofs: false,
 }
 
 const load = () => {

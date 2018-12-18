@@ -1,8 +1,10 @@
 // @flow
 import ConfirmSend from '.'
 import * as Constants from '../../constants/wallets'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as TrackerGen from '../../actions/tracker-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {connect, type RouteProps} from '../../util/container'
+import {connect, isMobile, type RouteProps} from '../../util/container'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -21,6 +23,7 @@ const mapStateToProps = state => {
     (built.reviewBanners || []).map(banner => ({
       bannerBackground: Constants.bannerLevelToBackground(banner.level),
       bannerText: banner.message,
+      reviewProofs: banner.proofsChanged,
     }))
   )
   return {
@@ -32,6 +35,7 @@ const mapStateToProps = state => {
     readyToSend: built.readyToSend,
     sendFailed: !!state.wallets.sentPaymentError,
     sendingIntentionXLM: built.sendingIntentionXLM,
+    to: build.to,
     waitingKey: Constants.sendPaymentWaitingKey,
   }
 }
@@ -40,6 +44,10 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   _onBack: () => dispatch(navigateUp()),
   _onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   _onClose: () => dispatch(navigateUp()),
+  _onReviewProofs: (username: string) =>
+    isMobile
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
@@ -58,6 +66,7 @@ export default connect<OwnProps, _, _, _, _>(
         d._onClearErrors()
         d._onClose()
       },
+      onReviewProofs: () => d._onReviewProofs(s.to),
       onSendClick: d.onSendClick,
     }
   }
