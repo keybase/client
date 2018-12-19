@@ -52,7 +52,7 @@ func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
 
 func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
 	accountID stellar1.AccountID) (bool, bool, error) {
-	return OwnAccount(mctx.Ctx(), mctx.G(), accountID)
+	return OwnAccount(mctx, accountID)
 }
 
 func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {

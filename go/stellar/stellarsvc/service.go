@@ -149,7 +149,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	if err != nil {
 		return res, err
 	}
-	return stellar.ExportSecretKey(ctx, s.G(), accountID)
+	return stellar.ExportSecretKey(mctx, accountID)
 }
 
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
@@ -162,7 +162,7 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return isOwn, err
 	}
-	isOwn, _, err = stellar.OwnAccount(mctx.Ctx(), s.G(), accountID)
+	isOwn, _, err = stellar.OwnAccount(mctx, accountID)
 	return isOwn, err
 }
 

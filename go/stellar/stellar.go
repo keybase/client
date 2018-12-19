@@ -236,8 +236,8 @@ func SetMigrationFeatureFlag(mctx libkb.MetaContext, value bool) error {
 	return err
 }
 
-func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
-	prevBundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
+func ExportSecretKey(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
+	prevBundle, _, _, err := remote.FetchAccountBundle(mctx.Ctx(), mctx.G(), accountID)
 	if err != nil {
 		return res, err
 	}
@@ -261,8 +261,7 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 	return res, fmt.Errorf("account not found: %v", accountID)
 }
 
-func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
 	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return false, false, err
@@ -548,8 +547,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, _, err := OwnAccount(mctx.Ctx(), mctx.G(),
-		stellar1.AccountID(recipient.AccountID.String()))
+	ownRecipient, _, err := OwnAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		mctx.CDebugf("error determining if user own's recipient: %v", err)
 		return res, err

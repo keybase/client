@@ -605,7 +605,7 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 	if arg.AccountID.IsNil() {
 		return res, errors.New("passed empty AccountID")
 	}
-	return stellar.ExportSecretKey(mctx.Ctx(), s.G(), arg.AccountID)
+	return stellar.ExportSecretKey(mctx, arg.AccountID)
 }
 
 func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
@@ -619,7 +619,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, _, err := stellar.OwnAccount(mctx.Ctx(), s.G(), arg.From)
+	owns, _, err := stellar.OwnAccount(mctx, arg.From)
 	if err != nil {
 		return res, err
 	}
