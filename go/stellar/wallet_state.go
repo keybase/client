@@ -30,6 +30,7 @@ type WalletState struct {
 	refreshReqs  chan stellar1.AccountID
 	refreshCount int
 	rateGroup    *singleflight.Group
+	shutdown     bool
 	sync.Mutex
 }
 
@@ -46,9 +47,36 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		rateGroup:    &singleflight.Group{},
 	}
 
+	g.PushShutdownHook(func() error {
+		mctx := libkb.NewMetaContextBackground(g)
+		mctx.CDebugf("shutting down WalletState")
+		ws.Reset(mctx)
+		return nil
+	})
+
 	go ws.backgroundRefresh()
 
 	return ws
+}
+
+func (w *WalletState) Shutdown() error {
+	w.Lock()
+	shutdownAlready := w.shutdown
+	if !shutdownAlready {
+		w.shutdown = true
+	}
+	w.Unlock()
+
+	if shutdownAlready {
+		return nil
+	}
+
+	// Reset locks, so do this outside of the lock.  The
+	// shutdown flag should protect us.
+	mctx := libkb.NewMetaContextBackground(w.G())
+	mctx.CDebugf("shutting down WalletState")
+	w.Reset(mctx)
+	return nil
 }
 
 // accountState returns the AccountState object for an accountID.
@@ -360,7 +388,12 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	w.Lock()
 	defer w.Unlock()
 
-	mctx.CDebugf("WalletState: Reset clearing all account state")
+	close(w.refreshReqs)
+
+	for _, a := range w.accounts {
+		a.Reset(mctx)
+	}
+
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
 }
 
@@ -554,6 +587,14 @@ func (a *AccountState) RecentPayments(ctx context.Context) (stellar1.PaymentsPag
 		return stellar1.PaymentsPage{}, nil
 	}
 	return *a.recent, nil
+}
+
+// Reset sets the refreshReqs channel to nil so nothing will be put on it.
+func (a *AccountState) Reset(mctx libkb.MetaContext) {
+	a.Lock()
+	defer a.Unlock()
+
+	a.refreshReqs = nil
 }
 
 // String returns a small string representation of AccountState suitable for
