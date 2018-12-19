@@ -28,6 +28,10 @@ class PickerWrapper extends React.Component<WrapProps> {
     this.focus()
   }
 
+  componentDidUpdate = () => {
+    this.focus()
+  }
+
   focus = () => {
     if (!this._picker) {
       return
@@ -37,11 +41,10 @@ class PickerWrapper extends React.Component<WrapProps> {
       return
     }
     const input = node.querySelector('input')
-    // eslint-disable-next-line no-undef
-    if (!input || !(input instanceof HTMLInputElement)) {
+    if (!input) {
       return
     }
-    input.autofocus = true
+    input.focus()
   }
 
   render = () => {
