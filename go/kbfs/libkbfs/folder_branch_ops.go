@@ -1780,6 +1780,9 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 			return ImmutableRootMetadata{}, err
 		}
 		isReader, err := md.IsReader(ctx, fbo.config.KBPKI(), session.UID)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 		if !isReader {
 			return ImmutableRootMetadata{}, NewReadAccessError(
 				md.GetTlfHandle(), session.Name, md.GetTlfHandle().GetCanonicalPath())
@@ -2804,6 +2807,11 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 
 		// Otherwise, proceed with the usual way.
 		md, err = fbo.getMDForReadNeedIdentify(ctx, lState)
+		// And handle the error, err is local to this block
+		// shadowing the err in the surrounding block.
+		if err != nil {
+			return DirEntry{}, err
+		}
 	} else {
 		// If nodePath has no valid parent, it's just the TLF root, so
 		// we don't need an identify in this case.  Note: we don't
@@ -5890,7 +5898,6 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		return errors.WithStack(NoUpdatesWhileDirtyError{})
 	}
 
-	appliedRevs := make([]ImmutableRootMetadata, 0, len(rmds))
 	for i, rmd := range rmds {
 		// check that we're applying the expected MD revision
 		if rmd.Revision() <= fbo.getCurrMDRevisionLocked(lState) {
@@ -5936,7 +5943,6 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		} else {
 			fbo.rekeyFSM.Event(NewRekeyNotNeededEvent())
 		}
-		appliedRevs = append(appliedRevs, rmd)
 	}
 	return nil
 }
