@@ -544,6 +544,9 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 		// Check with the server to see if the handle became a conflict.
 		latestHandle, err := km.config.MDOps().GetLatestHandleForTLF(ctx, md.TlfID())
+		if err != nil {
+			return false, nil, err
+		}
 		if latestHandle.ConflictInfo != nil {
 			km.log.CDebugf(ctx, "handle for %s is conflicted",
 				handle.GetCanonicalPath())
