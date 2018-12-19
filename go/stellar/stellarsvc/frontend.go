@@ -301,7 +301,7 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
-	err = stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, false, arg.Name)
+	err = stellar.ImportSecretKey(mctx, arg.SecretKey, false, arg.Name)
 	if err != nil {
 		return "", err
 	}

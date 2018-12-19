@@ -157,15 +157,14 @@ func Upkeep(mctx libkb.MetaContext) (err error) {
 	return remote.Post(mctx.Ctx(), mctx.G(), nextBundle, version)
 }
 
-func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
 	prevBundle, version, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
 	var v2Link bool
 	if version == stellar1.BundleVersion_V1 {
-		prevBundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+		prevBundle, _, _, err = remote.FetchWholeBundle(mctx.Ctx(), mctx.G())
 		if err != nil {
 			return err
 		}
@@ -183,9 +182,9 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if makePrimary {
 		// primary account changes need sigchain link
 		// (so other users can find user's primary account id)
-		err = remote.PostWithChainlink(ctx, g, nextBundle, v2Link)
+		err = remote.PostWithChainlink(mctx.Ctx(), mctx.G(), nextBundle, v2Link)
 	} else {
-		err = remote.Post(ctx, g, nextBundle, version)
+		err = remote.Post(mctx.Ctx(), mctx.G(), nextBundle, version)
 	}
 	if err != nil {
 		return err
@@ -196,12 +195,12 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	// has been accomplished.
 	_, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
 	if err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, failed to parse secret key after import: %s", err)
+		mctx.CDebugf("ImportSecretKey, failed to parse secret key after import: %s", err)
 		return nil
 	}
-	page, err := remote.RecentPayments(ctx, g, accountID, nil, 0, true)
+	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), accountID, nil, 0, true)
 	if err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, RecentPayments error: %s", err)
+		mctx.CDebugf("ImportSecretKey, RecentPayments error: %s", err)
 		return nil
 	}
 	if len(page.Payments) == 0 {
@@ -209,23 +208,22 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	}
 	mostRecentID, err := page.Payments[0].TransactionID()
 	if err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, tx id from most recent payment error: %s", err)
+		mctx.CDebugf("ImportSecretKey, tx id from most recent payment error: %s", err)
 		return nil
 	}
-	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
+	if err = remote.MarkAsRead(mctx.Ctx(), mctx.G(), accountID, mostRecentID); err != nil {
+		mctx.CDebugf("ImportSecretKey, markAsRead error: %s", err)
 		return nil
 	}
 
 	return nil
 }
 
-func SetMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext, value bool) error {
-	if g.GetRunMode() == libkb.ProductionRunMode {
+func SetMigrationFeatureFlag(mctx libkb.MetaContext, value bool) error {
+	if mctx.G().GetRunMode() == libkb.ProductionRunMode {
 		return errors.New("this doesn't work in production")
 	}
-	m := libkb.NewMetaContext(ctx, g)
-	_, err := g.API.Post(libkb.APIArg{
+	_, err := mctx.G().API.Post(libkb.APIArg{
 		Endpoint:    "test/feature",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -233,7 +231,7 @@ func SetMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext, value 
 			"value":     libkb.B{Val: value},
 			"cache_sec": libkb.I{Val: 60},
 		},
-		MetaContext: m,
+		MetaContext: mctx,
 	})
 	return err
 }

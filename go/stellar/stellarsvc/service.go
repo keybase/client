@@ -122,7 +122,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(mctx.Ctx(), s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	return stellar.ImportSecretKey(mctx, arg.SecretKey, arg.MakePrimary, arg.Name)
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
