@@ -159,7 +159,8 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 }
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
-	prevBundle, version, _, err := remote.FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	prevBundle, version, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
@@ -264,7 +265,8 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 }
 
 func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return false, false, err
 	}
@@ -278,7 +280,8 @@ func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 
 func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
 	if accountID == "" {
-		bundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+		mctx := libkb.NewMetaContext(ctx, g)
+		bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 		if err != nil {
 			return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 		}
@@ -918,10 +921,10 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 
 }
 
-func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
+func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
 	result := &MiniPrepared{Username: payment.Username}
 
-	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
+	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
 		result.Error = err
 		return result
@@ -932,7 +935,7 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 	if payment.Currency != "" && payment.Currency != "XLM" {
 		displayAmount = payment.Amount
 		displayCurrency = payment.Currency
-		exchangeRate, err := remoter.ExchangeRate(m.Ctx(), payment.Currency)
+		exchangeRate, err := remoter.ExchangeRate(mctx.Ctx(), payment.Currency)
 		if err != nil {
 			result.Error = err
 			return result
@@ -958,7 +961,7 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 	}
 
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
+		FromDeviceID:      mctx.ActiveDevice().DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
@@ -984,16 +987,16 @@ func prepareMiniChatPaymentRelay(m libkb.MetaContext, remoter remote.Remoter, sp
 
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
-func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
+func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
 	secretNote string, publicMemo string, quickReturn bool) (res SendPaymentResult, err error) {
-	defer m.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
-	appKey, teamID, err := relays.GetKey(m.Ctx(), m.G(), recipient)
+	defer mctx.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
+	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
 		return res, err
 	}
-	sp := NewSeqnoProvider(m, walletState)
-	tb, err := getTimeboundsForSending(m, walletState)
+	sp := NewSeqnoProvider(mctx, walletState)
+	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err
 	}
@@ -1010,7 +1013,7 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 		return res, err
 	}
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      m.G().ActiveDevice.DeviceID(),
+		FromDeviceID:      mctx.ActiveDevice().DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
@@ -1023,15 +1026,15 @@ func sendRelayPayment(m libkb.MetaContext, walletState *WalletState,
 	if recipient.User != nil {
 		post.To = &recipient.User.UV
 	}
-	rres, err := walletState.SubmitRelayPayment(m.Ctx(), post)
+	rres, err := walletState.SubmitRelayPayment(mctx.Ctx(), post)
 	if err != nil {
 		return res, err
 	}
-	m.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
+	mctx.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
 
-	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+	if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
-		m.CDebugf("failed to send chat SendPayment message: %s", err)
+		mctx.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
 
 	return SendPaymentResult{
@@ -1148,7 +1151,8 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
-	activeBundle, _, _, err := remote.FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	activeBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return res, err
 	}
@@ -1623,7 +1627,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
 	}
-	bundle, version, _, err := remote.FetchSecretlessBundle(m.Ctx(), m.G())
+	bundle, version, _, err := remote.FetchSecretlessBundle(m)
 	if err != nil {
 		return err
 	}
@@ -1757,7 +1761,7 @@ func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error)
 }
 
 func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
-	prevBundle, version, _, err := remote.FetchSecretlessBundle(m.Ctx(), m.G())
+	prevBundle, version, _, err := remote.FetchSecretlessBundle(m)
 	if err != nil {
 		return ret, err
 	}

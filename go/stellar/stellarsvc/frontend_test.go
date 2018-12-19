@@ -339,7 +339,8 @@ func TestSetAccountAsDefault(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
+	mctx := libkb.NewMetaContextBackground(tcs[0].G)
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 

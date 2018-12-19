@@ -30,7 +30,8 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		return nil, err
 	}
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,8 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 		return acct, err
 	}
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return acct, err
 	}
@@ -512,7 +514,8 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", stellar.AccountNameMaxRunes, runes)
 	}
 	// If this becomes a bottleneck, cache non-critical wallet info on G.Stellar.
-	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	currentBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		s.G().Log.CErrorf(ctx, "error fetching bundle: %v", err)
 		// Return nil since the name is probably fine.

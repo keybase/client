@@ -121,7 +121,7 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
 	defer mctx.CTraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx.Ctx(), w.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
