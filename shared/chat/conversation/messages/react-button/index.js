@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import * as Types from '../../../../constants/types/chat2'
 import {
   Box2,
@@ -14,6 +15,48 @@ import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import DelayInterval from './delay-interval'
+
+type WrapProps = {|
+  backgroundImageFn: (set: string, sheetSize: string) => string,
+  onClick: ({colons: string}, evt: Event) => void,
+|}
+
+class PickerWrapper extends React.Component<WrapProps> {
+  _picker: Picker
+
+  componentDidMount = () => {
+    this.focus()
+  }
+
+  focus = () => {
+    if (!this._picker) {
+      return
+    }
+    const node = ReactDOM.findDOMNode(this._picker)
+    if (!node || !(node instanceof Element)) {
+      return
+    }
+    const input = node.querySelector('input')
+    // eslint-disable-next-line no-undef
+    if (!input || !(input instanceof HTMLInputElement)) {
+      return
+    }
+    input.autofocus = true
+  }
+
+  render = () => {
+    return (
+      <Picker
+        autoFocus={true}
+        emoji="star-struck"
+        ref={picker => (this._picker = picker)}
+        title="reacjibase"
+        onClick={this.props.onClick}
+        backgroundImageFn={this.props.backgroundImageFn}
+      />
+    )
+  }
+}
 
 export type Props = {|
   active: boolean,
@@ -216,13 +259,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             position="top right"
             onHidden={() => this._setShowingPicker(false)}
           >
-            <Picker
-              autoFocus={true}
-              emoji="star-struck"
-              title="reacjibase"
-              onClick={this._onAddReaction}
-              backgroundImageFn={backgroundImageFn}
-            />
+            <PickerWrapper onClick={this._onAddReaction} backgroundImageFn={backgroundImageFn} />
           </FloatingBox>
         )}
       </ButtonBox>
