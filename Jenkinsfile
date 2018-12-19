@@ -329,16 +329,9 @@ def testGo(prefix) {
             sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
             sh "git fetch origin ${env.CHANGE_TARGET}"
             def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-            def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
+            def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --diff-filter=d --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
             def diffPackagesAsString = diffPackageList.join(' ')
             println "Go packages changed:\n${diffPackagesAsString}"
-            println "Running go vet"
-            sh "go vet ${diffPackagesAsString}"
-            if (isUnix()) {
-                // Windows `gofmt` pukes on CRLF, so only run on *nix.
-                println "Check that files are formatted correctly"
-                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
-            }
 
             // Load list of dependencies and mark all dependent packages to test.
             def goos = sh(returnStdout: true, script: "go env GOOS").trim()
@@ -353,7 +346,7 @@ def testGo(prefix) {
             }
         } else {
             println "This is a merge to a branch, so we are running all tests."
-            def diffPackageList = sh(reeturnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+            def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
             diffPackageList.each { pkg ->
                 packagesToTest[pkg] = 1
             }
@@ -364,7 +357,14 @@ def testGo(prefix) {
         def specialTests = [:]
         def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests']
         packagesToTest.each { pkg, _ ->
+            println "Running go vet for ${pkg}"
+            sh "go vet ${pkg}"
             def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
+            if (isUnix()) {
+                // Windows `gofmt` pukes on CRLF, so only run on *nix.
+                println "Check that files are formatted correctly"
+                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
+            }
             println "Building tests for $dirPath"
             dir(dirPath) {
                 def testName = dirPath.replaceAll('/', '_')
