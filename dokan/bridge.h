@@ -62,11 +62,11 @@ enum {
   kbfsLibDokan_DLL_LOAD_ERROR = -99,
 };
 
-extern void *kbfsLibdokanPtr_RemoveMountPoint;
-extern void *kbfsLibdokanPtr_OpenRequestorToken;
-extern void *kbfsLibdokanPtr_Main;
+extern uintptr_t kbfsLibdokanPtr_RemoveMountPoint;
+extern uintptr_t kbfsLibdokanPtr_OpenRequestorToken;
+extern uintptr_t kbfsLibdokanPtr_Main;
 
-ULONG kbfsLibDokan_GetVersion(void *proc);
+ULONG kbfsLibDokan_GetVersion(uintptr_t proc);
 
 #endif /* windows check */
 
