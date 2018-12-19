@@ -189,7 +189,7 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	}
 
 	// Get current implicit team seqno so we can wait for it to be updated later
-	team, _, _, err := teams.LookupImplicitTeam(context.Background(), u1.tc.G, u1.username+","+u2.username+"@rooter", false)
+	team, _, _, err := teams.LookupImplicitTeam(context.Background(), u1.tc.G, u1.username+","+u2.username+"@rooter", false, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	nextSeqno := team.NextSeqno()
 

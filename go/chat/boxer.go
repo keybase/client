@@ -320,8 +320,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		var ephemeralSeed *keybase1.TeamEk
 		if boxed.IsEphemeral() {
 			ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
-				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
-				boxed.EphemeralMetadata().Generation)
+				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
+				boxed.ClientHeader.TlfPublic, boxed.EphemeralMetadata().Generation,
+				&boxed.ServerHeader.Ctime)
 			if err != nil {
 				b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
 				uberr = b.detectPermanentError(err, tlfName)
@@ -1176,7 +1177,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 	tcs := b.G().TeamChannelSource
 	switch typ {
 	case chat1.MessageType_TEXT:
-		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Text().Body, b.G().GetUPAKLoader(),
+		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx, body.Text(), b.G().GetUPAKLoader(),
 			&b.DebugLabeler)
 		if membersType == chat1.ConversationMembersType_TEAM {
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Text().Body, uid, tlfID, tcs)

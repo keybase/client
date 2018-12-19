@@ -32,9 +32,9 @@ const Banner = ({
   const iconType = kbfsEnabled ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'
   const bannerStyle = {
     ...globalStyles.flexBoxRow,
+    alignItems: 'center',
     backgroundColor: kbfsEnabled ? globalColors.green : globalColors.blue,
     height: 176,
-    alignItems: 'center',
     position: 'relative',
   }
   const promptText = kbfsOutdated
@@ -91,10 +91,10 @@ const Banner = ({
 
 const sidePadding = globalMargins.large + globalMargins.tiny
 const bannerIconStyle = {
+  paddingBottom: globalMargins.medium,
   paddingLeft: sidePadding,
   paddingRight: sidePadding,
   paddingTop: globalMargins.large,
-  paddingBottom: globalMargins.medium,
 }
 
 const bannerTextContentStyle = {
@@ -108,10 +108,10 @@ const textStyle = {
 }
 
 const dismissContainerStyle = {
-  position: 'absolute',
-  top: 0,
-  right: 0,
-  paddingTop: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
+  position: 'absolute',
+  right: 0,
+  top: 0,
 }
 export default Banner

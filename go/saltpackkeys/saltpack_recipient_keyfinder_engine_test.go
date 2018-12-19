@@ -26,7 +26,7 @@ func InstallInsecureTriplesec(g *libkb.GlobalContext) {
 		isProduction := func() bool {
 			return g.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 }
 
@@ -330,7 +330,7 @@ func TestSaltpackRecipientKeyfinderCreatesImplicitTeamIfUserHasNoPUK(t *testing.
 
 	symKeys := eng.GetSymmetricKeys()
 	require.Len(t, symKeys, 1)
-	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u2.Username+","+u3.Username, false)
+	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u2.Username+","+u3.Username, false, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
 	require.NoError(t, err)
@@ -998,7 +998,7 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 
-	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false)
+	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
 	require.NoError(t, err)
@@ -1066,7 +1066,7 @@ func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
 		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
 	}
 
-	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false)
+	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
 	require.NoError(t, err)

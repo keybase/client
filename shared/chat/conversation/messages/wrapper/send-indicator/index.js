@@ -6,9 +6,9 @@ import * as Styles from '../../../../../styles'
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
 const statusToIcon: {[key: IconStatus]: Kb.IconType} = {
   encrypting: 'icon-message-status-encrypting-24',
+  error: 'icon-message-status-error-24',
   sending: 'icon-message-status-sending-24',
   sent: 'icon-message-status-sent-24',
-  error: 'icon-message-status-error-24',
 }
 
 const encryptingTimeout = 600
@@ -79,7 +79,7 @@ class SendIndicator extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.failed && !prevProps.failed) {
       this._onFailed()
     } else if (this.props.sent && !prevProps.sent) {

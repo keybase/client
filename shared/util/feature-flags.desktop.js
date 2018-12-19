@@ -12,24 +12,23 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  avatarUploadsEnabled: true,
   chatIndexProfilingEnabled: false,
-  explodingMessagesEnabled: true,
   foldersInProfileTab: false,
+  kbfsChatIntegration: false,
   moveOrCopy: false,
   newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   peopleAnnouncementsEnabled: false,
   plansEnabled: false,
-  useSimpleMarkdown: true,
   walletsEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
+  foldersInProfileTab: true,
+  kbfsChatIntegration: true,
   moveOrCopy: true,
-  useSimpleMarkdown: true,
   walletsEnabled: true,
 }
 

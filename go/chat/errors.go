@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -23,7 +24,12 @@ func NewPermanentUnboxingError(inner error) types.UnboxingError {
 type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
-	return fmt.Sprintf("Unable to decrypt chat message: %s", e.inner.Error())
+	switch err := e.inner.(type) {
+	case EphemeralUnboxingError:
+		return err.Error()
+	default:
+		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
+	}
 }
 
 func (e PermanentUnboxingError) IsPermanent() bool { return true }
@@ -138,14 +144,14 @@ func (e EphemeralAlreadyExpiredError) InternalError() string {
 
 //=============================================================================
 
-type EphemeralUnboxingError struct{ inner error }
+type EphemeralUnboxingError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
-	return "Device is missing required ephemeral keys"
+	return e.inner.HumanError()
 }
 
 func (e EphemeralUnboxingError) InternalError() string {

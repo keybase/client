@@ -4,11 +4,12 @@ import {namedConnect} from '../../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
-  onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
-  onSelectUp: () => void,
+  onEnsureSelection: () => void,
+  onNewChat: () => void,
   onSelectDown: () => void,
+  onSelectUp: () => void,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
@@ -21,10 +22,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   focusFilter: ownProps.focusFilter,
+  onEnsureSelection: ownProps.onEnsureSelection,
   onNewChat: ownProps.onNewChat,
-  showNewChat: stateProps.showNewChat,
-  onSelectUp: ownProps.onSelectUp,
   onSelectDown: ownProps.onSelectDown,
+  onSelectUp: ownProps.onSelectUp,
+  showNewChat: stateProps.showNewChat,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

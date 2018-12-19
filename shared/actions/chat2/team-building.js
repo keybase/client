@@ -52,16 +52,19 @@ const searchResultCounts = (state: TypedState) => {
     state.chat2.teamBuildingSearchQuery === teamBuildingSearchQuery &&
     state.chat2.teamBuildingSelectedService === teamBuildingSelectedService
 
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     // Defer so we aren't conflicting with the main search
-    yield Saga.call(Saga.delay, 100)
+    yield Saga.callUntyped(Saga.delay, 100)
 
     // Change this to control how many requests are in flight at a time
     const parallelRequestsCount = 2
 
     // Channel to interact with workers. Initial buffer size to handle all the messages we'll put
     // + 1 because we'll put the END message at the end when we close
-    const serviceChannel = yield Saga.call(Saga.channel, Saga.buffers.expanding(servicesToSearch.length + 1))
+    const serviceChannel = yield Saga.callUntyped(
+      Saga.channel,
+      Saga.buffers.expanding(servicesToSearch.length + 1)
+    )
     servicesToSearch.forEach(service => serviceChannel.put(service))
     // After the workers pull all the services they can stop
     serviceChannel.close()
@@ -72,7 +75,7 @@ const searchResultCounts = (state: TypedState) => {
         while (true) {
           const service = yield Saga.take(serviceChannel)
           // if we aren't in the same query, let's stop
-          if (!isStillInSameQuery(yield Saga.select())) {
+          if (!isStillInSameQuery(yield* Saga.selectState())) {
             break
           }
           const action = yield apiSearch(
@@ -82,9 +85,9 @@ const searchResultCounts = (state: TypedState) => {
             true
           ).then(users =>
             TeamBuildingGen.createSearchResultsLoaded({
-              users,
               query: teamBuildingSearchQuery,
               service,
+              users,
             })
           )
           yield Saga.put(action)
@@ -105,9 +108,9 @@ const search = (state: TypedState) => {
   return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true).then(
     users =>
       TeamBuildingGen.createSearchResultsLoaded({
-        users,
         query: teamBuildingSearchQuery,
         service: teamBuildingSelectedService,
+        users,
       })
   )
 }

@@ -20,6 +20,7 @@ import PathItemInfo from '../common/path-item-info'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
+import CommaSeparatedName from './comma-separated-name'
 
 type Props = {
   name: string,
@@ -33,6 +34,7 @@ type Props = {
   actionIconClassName?: string,
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
+  onHidden: () => void,
   path: Types.Path,
   pathElements: Array<string>,
   // Menu items
@@ -88,16 +90,18 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.saveMedia
       ? [
           {
+            disabled: props.saveMedia === 'disabled',
+            onClick: props.saveMedia !== 'disabled' ? hideMenuOnClick(props.saveMedia, hideMenu) : undefined,
             title: 'Save',
             view: <Save trackingPath={props.path} trackingIntent="camera-roll" />,
-            onClick: props.saveMedia !== 'disabled' ? hideMenuOnClick(props.saveMedia, hideMenu) : undefined,
-            disabled: props.saveMedia === 'disabled',
           },
         ]
       : []),
     ...(props.shareNative
       ? [
           {
+            disabled: props.shareNative === 'disabled',
+            onClick: props.shareNative !== 'disabled' ? props.shareNative : undefined,
             title: 'Send to other app',
             view: (
               <ShareNative
@@ -107,59 +111,57 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
                 cancelOnUnmount={true}
               />
             ),
-            onClick: props.shareNative !== 'disabled' ? props.shareNative : undefined,
-            disabled: props.shareNative === 'disabled',
           },
         ]
       : []),
     ...(props.showInSystemFileManager
       ? [
           {
-            title: 'Show in ' + fileUIName,
             onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
+            title: 'Show in ' + fileUIName,
           },
         ]
       : []),
     ...(props.copyPath
       ? [
           {
-            title: 'Copy path',
             onClick: hideMenuOnClick(props.copyPath, hideMenu),
+            title: 'Copy path',
           },
         ]
       : []),
     ...(props.download
       ? [
           {
-            title: 'Download a copy',
             onClick: hideMenuOnClick(props.download, hideMenu),
+            title: 'Download a copy',
           },
         ]
       : []),
     ...(props.ignoreFolder
       ? [
           {
-            title: 'Ignore this folder',
+            danger: true,
             onClick: hideMenuOnClick(props.ignoreFolder, hideMenu),
             subTitle: 'The folder will no longer appear in your folders list.',
-            danger: true,
+            title: 'Ignore this folder',
           },
         ]
       : []),
     ...(props.moveOrCopy
       ? [
           {
-            title: 'Move or Copy',
             onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
+            title: 'Move or Copy',
           },
         ]
       : []),
     ...(props.type === 'file' && props.deleteFileOrFolder
       ? [
           {
-            title: 'Delete',
             danger: true,
             onClick: hideMenuOnClick(props.deleteFileOrFolder, hideMenu),
+            title: 'Delete',
           },
         ]
       : []),
@@ -170,11 +172,13 @@ const PathItemActionHeader = (props: Props) => (
   <Box style={styles.header}>
     <PathItemIcon spec={props.itemStyles.iconSpec} style={styles.pathItemIcon} />
     <StaticBreadcrumb pathElements={props.pathElements} />
-    <Box style={styles.nameTextBox}>
-      <Text selectable={true} type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
-        {props.name}
-      </Text>
-    </Box>
+    <Box2 direction="horizontal" style={styles.nameTextBox}>
+      <CommaSeparatedName
+        type="BodySmallSemibold"
+        name={props.name}
+        elementStyle={stylesNameText(props.itemStyles.textColor)}
+      />
+    </Box2>
     {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
     {props.type === 'folder' && (
       <Text type="BodySmall">
@@ -203,6 +207,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       }
       hideMenuCalled = true
       props.toggleShowingMenu()
+      props.onHidden()
     }
   })()
 
@@ -235,10 +240,46 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  nameTextBox: Styles.platformStyles({
+  actionIcon: {
+    padding: Styles.globalMargins.tiny,
+  },
+  floatingContainer: Styles.platformStyles({
     common: {
+      overflow: 'visible',
+    },
+    isElectron: {
+      marginTop: 12,
+      width: 220,
+    },
+    isMobile: {
+      marginTop: undefined,
+      width: '100%',
+    },
+  }),
+  header: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+      width: '100%',
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.large,
+    },
+  }),
+  menuRowText: {
+    color: Styles.globalColors.blue,
+  },
+  menuRowTextDisabled: {
+    color: Styles.globalColors.blue,
+    opacity: 0.6,
+  },
+  nameTextBox: Styles.platformStyles({
+    common: {
+      flexWrap: 'wrap',
     },
     isElectron: {
       textAlign: 'center',
@@ -246,41 +287,6 @@ const styles = Styles.styleSheetCreate({
   }),
   pathItemIcon: {
     marginBottom: Styles.globalMargins.xtiny,
-  },
-  floatingContainer: Styles.platformStyles({
-    common: {
-      overflow: 'visible',
-    },
-    isElectron: {
-      width: 220,
-      marginTop: 12,
-    },
-    isMobile: {
-      width: '100%',
-      marginTop: undefined,
-    },
-  }),
-  header: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      width: '100%',
-      alignItems: 'center',
-      paddingTop: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.large,
-    },
-  }),
-  actionIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
-  menuRowText: {
-    color: Styles.globalColors.blue,
-  },
-  menuRowTextDisabled: {
-    color: Styles.globalColors.blue,
-    opacity: 0.6,
   },
   progressIndicator: {
     marginRight: Styles.globalMargins.xtiny,

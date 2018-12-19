@@ -1,4 +1,5 @@
 // @flow strict
+import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {PlatformsExpandedType} from './more'
 
@@ -12,37 +13,28 @@ export type FriendshipUserInfo = {|
   following: boolean,
 |}
 
-export type PgpInfo = {|
-  email1: ?string,
-  email2: ?string,
-  email3: ?string,
-  errorText: ?string,
-  fullName: ?string,
-|}
-
-export type PgpInfoError = {|
-  errorText: ?string,
-  errorEmail1: boolean,
-  errorEmail2: boolean,
-  errorEmail3: boolean,
-|}
-
-export type State = {
+export type _State = {
   errorCode: ?number,
-  errorText: ?string,
-  pgpInfo: {...PgpInfo, ...PgpInfoError},
-  pgpPublicKey: ?string,
+  errorText: string,
+  pgpErrorText: string,
+  pgpEmail1: string,
+  pgpEmail2: string,
+  pgpEmail3: string,
+  pgpErrorEmail1: boolean,
+  pgpErrorEmail2: boolean,
+  pgpErrorEmail3: boolean,
+  pgpErrorText: string,
+  pgpFullName: string,
+  pgpPublicKey: string,
   platform: ?PlatformsExpandedType,
   proofFound: boolean,
   proofStatus: ?RPCTypes.ProofStatus,
-  proofText: ?string,
-  revoke: {
-    error: ?string,
-    waiting: ?boolean,
-  },
+  proofText: string,
+  revokeError: string,
   sigID: ?RPCTypes.SigID,
   username: string,
   usernameValid: boolean,
-  waiting: boolean,
   searchShowingSuggestions: boolean,
 }
+
+export type State = I.RecordOf<_State>

@@ -16,25 +16,25 @@ const TurnOnNotifications = (props: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
+      backgroundColor: globalColors.red,
+      height: 330,
+      overflow: 'hidden',
       position: 'relative',
       width: '100%',
-      height: 330,
-      backgroundColor: globalColors.red,
-      overflow: 'hidden',
     }}
   >
-    <Box style={{height: 270, width: 250, position: 'absolute', top: -20, left: globalMargins.medium}}>
+    <Box style={{height: 270, left: globalMargins.medium, position: 'absolute', top: -20, width: 250}}>
       <NativeImage resizeMode="contain" source={notificationMonster} />
     </Box>
     <Text
       type="BodySemibold"
       backgroundMode="HighRisk"
       style={{
-        textAlign: 'center',
-        position: 'absolute',
         bottom: globalMargins.medium,
         left: globalMargins.small,
+        position: 'absolute',
         right: globalMargins.small,
+        textAlign: 'center',
       }}
     >
       You turned off native notifications for Keybase. It’s{' '}

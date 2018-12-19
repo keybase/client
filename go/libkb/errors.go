@@ -77,6 +77,14 @@ func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErr
 	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
 }
 
+func NewInvalidPVLSelectorError(selector keybase1.SelectorEntry) error {
+	return NewProofError(
+		keybase1.ProofStatus_INVALID_PVL,
+		"JSON selector entry must be a string, int, or 'all' %v",
+		selector,
+	)
+}
+
 func (e *ProofErrorImpl) Error() string {
 	return fmt.Sprintf("%s (code=%d)", e.Desc, int(e.Status))
 }
@@ -487,6 +495,11 @@ func (a AppStatusError) Error() string {
 	}
 
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
+}
+
+func (a AppStatusError) WithDesc(desc string) AppStatusError {
+	a.Desc = desc
+	return a
 }
 
 func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
@@ -1357,11 +1370,11 @@ func NewUntrackError(d string, a ...interface{}) UntrackError {
 //=============================================================================
 
 type APINetError struct {
-	err error
+	Err error
 }
 
 func (e APINetError) Error() string {
-	return fmt.Sprintf("API network error: %s", e.err)
+	return fmt.Sprintf("API network error: %s", e.Err)
 }
 
 //=============================================================================

@@ -1,6 +1,5 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
@@ -77,7 +76,7 @@ class BottomLine extends PureComponent<Props> {
               fontSize={isMobile ? 40 : 28}
               style={platformStyles({
                 common: {
-                  color: this.props.isSelected ? globalColors.white : globalColors.black_20,
+                  color: this.props.isSelected ? globalColors.white : globalColors.black_40,
                 },
                 isMobile: {
                   marginTop: -8,
@@ -90,8 +89,8 @@ class BottomLine extends PureComponent<Props> {
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = (
             <Icon
-              color={globalColors.black_75}
-              type="iconfont-bomb"
+              color={this.props.isSelected ? globalColors.white : globalColors.black_40}
+              type="iconfont-timer"
               fontSize={isMobile ? 16 : 12}
               style={{alignSelf: 'flex-start'}}
             />
@@ -119,7 +118,6 @@ class BottomLine extends PureComponent<Props> {
     } else {
       return null
     }
-
     return (
       <Box
         style={collapseStyles([
@@ -140,10 +138,44 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-
 const styles = styleSheetCreate({
-  outerBox: {
-    ...globalStyles.flexBoxRow,
+  alertMeta: platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: 6,
+    },
+    isMobile: {
+      marginTop: 2,
+    },
+  }),
+  bottomLine: platformStyles({
+    isAndroid: {
+      lineHeight: undefined,
+    },
+    isElectron: {
+      color: globalColors.black_40,
+      display: 'block',
+      fontSize: 12,
+      lineHeight: 15,
+      minHeight: 16,
+      overflow: 'hidden',
+      paddingRight: 10,
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '100%',
+    },
+    isMobile: {
+      backgroundColor: globalColors.fastBlank,
+      color: globalColors.black_40,
+      flex: 1,
+      fontSize: 14,
+      paddingRight: 40,
+    },
+  }),
+  contentBox: {
+    ...globalStyles.fillAbsolute,
+    alignItems: 'center',
+    width: '100%',
   },
   innerBox: {
     ...globalStyles.flexBoxRow,
@@ -151,6 +183,9 @@ const styles = styleSheetCreate({
     flexGrow: 1,
     height: isMobile ? 21 : 17,
     position: 'relative',
+  },
+  outerBox: {
+    ...globalStyles.flexBoxRow,
   },
   rekeyNeededContainer: {
     alignSelf: 'center',
@@ -180,44 +215,6 @@ const styles = styleSheetCreate({
     isMobile: {
       fontSize: 14,
       lineHeight: 19,
-    },
-  }),
-  bottomLine: platformStyles({
-    isAndroid: {
-      lineHeight: undefined,
-    },
-    isElectron: {
-      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
-      color: globalColors.black_40,
-      display: 'block',
-      fontSize: 12,
-      lineHeight: 15,
-      minHeight: 16,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '100%',
-    },
-    isMobile: {
-      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
-      backgroundColor: globalColors.fastBlank,
-      color: globalColors.black_40,
-      flex: 1,
-      fontSize: 14,
-    },
-  }),
-  contentBox: {
-    ...globalStyles.fillAbsolute,
-    alignItems: 'center',
-    width: '100%',
-  },
-  alertMeta: platformStyles({
-    common: {
-      alignSelf: 'center',
-      marginRight: 6,
-    },
-    isMobile: {
-      marginTop: 2,
     },
   }),
 })

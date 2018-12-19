@@ -23,8 +23,8 @@ const mapDispatchToProps = dispatch => ({
   _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
     const paths = Object.keys(pathToInfo)
     const pathAndOutboxIDs = paths.map(p => ({
-      path: p,
       outboxID: pathToInfo[p].outboxID,
+      path: p,
     }))
     const titles = paths.map(p => pathToInfo[p].title)
     dispatch(
@@ -46,9 +46,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     const filename = FsTypes.getLocalPathName(path)
     map[path] = {
       filename,
+      outboxID: outboxID,
       title: '',
       type: Constants.pathToAttachmentType(path),
-      outboxID: outboxID,
     }
     return map
   }, {}),

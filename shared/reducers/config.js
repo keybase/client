@@ -4,14 +4,26 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
+import * as DevicesGen from '../actions/devices-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: ConfigGen.Actions): Types.State {
+export default function(
+  state: Types.State = initialState,
+  action: ConfigGen.Actions | DevicesGen.RevokedPayload
+): Types.State {
   switch (action.type) {
+    case DevicesGen.revoked:
+      return state.merge({
+        configuredAccounts: state.configuredAccounts,
+        defaultUsername: action.payload.wasCurrentDevice // if revoking self find another name if it exists
+          ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
+          : state.defaultUsername,
+      })
     case ConfigGen.resetStore:
       return initialState.merge({
         appFocused: state.appFocused,
@@ -174,9 +186,15 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts:
+      // already have one?
+      let defaultUsername = state.defaultUsername
+      if (action.payload.usernames.indexOf(defaultUsername) === -1) {
+        defaultUsername = action.payload.defaultUsername
+      }
+
       return state.merge({
         configuredAccounts: I.List(action.payload.usernames),
-        defaultUsername: state.defaultUsername || action.payload.defaultUsername, // keep it if we have one
+        defaultUsername,
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
@@ -208,12 +226,10 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
     case ConfigGen.checkForUpdate:
+    case ConfigGen.filePickerError:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
-      return state
+     Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+     return state
   }
 }

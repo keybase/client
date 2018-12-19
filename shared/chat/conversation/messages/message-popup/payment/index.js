@@ -3,7 +3,7 @@ import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const sendIcon = Styles.isMobile
   ? 'icon-fancy-stellar-sending-mobile-149-129'
@@ -19,6 +19,7 @@ type HeaderProps = {|
   balanceChange: string, // may be empty
   balanceChangeColor: string,
   bottomLine: string, // may be empty
+  errorDetails?: string,
   icon: 'sending' | 'receiving',
   loading: boolean,
   sender: string,
@@ -37,6 +38,7 @@ type Props = {|
   onHidden: () => void,
   onSeeDetails: ?() => void, // if falsy this doesn't have a details page
   position: Position,
+  style?: Styles.StylesCrossPlatform,
   visible: boolean,
 |}
 
@@ -90,6 +92,13 @@ const Header = (props: HeaderProps) =>
           {props.balanceChange}
         </Kb.Text>
       )}
+      {!!props.errorDetails && (
+        <Kb.Box2 direction="horizontal" style={{maxWidth: 200}}>
+          <Kb.Text type="BodyExtrabold" style={styles.errorDetails}>
+            {props.errorDetails}
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 
@@ -126,6 +135,7 @@ const PaymentPopup = (props: Props) => {
     onHidden,
     onSeeDetails,
     position,
+    style,
     visible,
     ...headerProps
   } = props
@@ -141,9 +151,11 @@ const PaymentPopup = (props: Props) => {
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}
+      containerStyle={style}
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       header={header}
       items={items}
       visible={props.visible}
@@ -154,6 +166,10 @@ const PaymentPopup = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   colorWhite: {
     color: Styles.globalColors.white,
+  },
+  errorDetails: {
+    color: Styles.globalColors.red,
+    textAlign: 'center',
   },
   headerTop: Styles.platformStyles({
     common: {
@@ -166,6 +182,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   icon: Styles.platformStyles({
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
     isElectron: {
       position: 'absolute',
       top: -12,
@@ -173,9 +192,6 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       marginBottom: 6,
       marginTop: -15,
-    },
-    isAndroid: {
-      marginTop: Styles.globalMargins.tiny,
     },
   }),
   loadingHeaderTop: Styles.platformStyles({

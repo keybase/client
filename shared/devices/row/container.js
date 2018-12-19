@@ -11,8 +11,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
   return {
     isCurrentDevice: device.currentDevice,
-    isRevoked: !!device.revokedByName,
     isNew: !!state.devices.getIn(['isNew', device.deviceID], false),
+    isRevoked: !!device.revokedByName,
     name: device.name,
     type: device.type,
   }
@@ -26,8 +26,8 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   firstItem: ownProps.firstItem,
   isCurrentDevice: stateProps.isCurrentDevice,
-  isRevoked: stateProps.isRevoked,
   isNew: stateProps.isNew,
+  isRevoked: stateProps.isRevoked,
   name: stateProps.name,
   showExistingDevicePage: () => dispatchProps._showExistingDevicePage(ownProps.deviceID),
   type: stateProps.type,

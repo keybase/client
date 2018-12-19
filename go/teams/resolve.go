@@ -100,13 +100,10 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	var resolvedAssertions []libkb.ResolvedAssertion
-
-	err = ResolveImplicitTeamSetUntrusted(ctx, g, writerAssertions, &res.Writers, &resolvedAssertions)
-	if err != nil {
+	if err = ResolveImplicitTeamSetUntrusted(ctx, g, writerAssertions, &res.Writers, &resolvedAssertions); err != nil {
 		return res, err
 	}
-	err = ResolveImplicitTeamSetUntrusted(ctx, g, readerAssertions, &res.Readers, &resolvedAssertions)
-	if err != nil {
+	if err = ResolveImplicitTeamSetUntrusted(ctx, g, readerAssertions, &res.Readers, &resolvedAssertions); err != nil {
 		return res, err
 	}
 
@@ -194,7 +191,7 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		return nil
 	}
 
-	if resolvedAssertion.ResolveResult.IsServerTrust() && g.Env.GetRunMode() != libkb.ProductionRunMode {
+	if resolvedAssertion.ResolveResult.IsServerTrust() {
 		g.Log.CDebugf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
 		return nil
 	}

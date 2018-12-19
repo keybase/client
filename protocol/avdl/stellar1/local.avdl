@@ -12,6 +12,7 @@ protocol local {
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
     string seqno;               // the stellar sequence number for this account
+    CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -76,14 +77,7 @@ protocol local {
     string worth;                   // "$123.23 CLP" (worth at the time the payment was created)
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-                                    // currentWorth is how much the amount of XLM in
-                                    // amountDescription is currently worth in the
-                                    // display currency preference of the user looking
-                                    // at this payment. Both can be "".
-    string currentWorth;            // "$379.12 USD" (worth at the current viewing time)
-    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
-
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
 
@@ -141,14 +135,7 @@ protocol local {
     string worth;                   // "$123.23 CLP", amount in local currency at the time of sending, or empty if no OutsideCurrency
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
-                                    // currentWorth is how much the amount of XLM in
-                                    // amountDescription is currently worth in the
-                                    // display currency preference of the user looking
-                                    // at this payment. Both can be "".
-    string currentWorth;            // "$379.12 CAD" (worth at the current viewing time)
-    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
-
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
 
@@ -241,11 +228,20 @@ protocol local {
     string subtext; // Examples: "", "max doesn't accept HUGZ"
   }
 
+  // An ID representing a session with the send form.
+  @typedef("string")
+  record BuildPaymentID {}
+
+  BuildPaymentID startBuildPaymentLocal(int sessionID);
+
+  void stopBuildPaymentLocal(int sessionID, BuildPaymentID bid);
+
   // Check but do not send a payment.
   // Arguments are optional unless marked [required] or otherwise described.
   // However, a coherent payment is required in order for res.readyToSend to returned as true.
   BuildPaymentResLocal buildPaymentLocal(
     int sessionID,
+    BuildPaymentID bid,
 
     // Exactly one of `from` and `fromPrimaryAccount` must be set.
     AccountID from,
@@ -268,7 +264,7 @@ protocol local {
     string publicMemo    // Public stellar memo field.
   );
   record BuildPaymentResLocal {
-    boolean readyToSend;
+    boolean readyToReview;
 
     // Optional. Set if a valid account ID to send from was found.
     AccountID from;
@@ -327,13 +323,22 @@ protocol local {
     // Set if this banner means the user's proofs have changed and that is blocking the payment.
     // `message` may be blank in this case.
     boolean proofsChanged;
-    // Set if this banner should be hidden on the confirm screen
-    boolean hideOnConfirm;
   }
+
+  // Called when Send is tapped from the build form.
+  // Sends uiPaymentReview notifications while it is open.
+  void reviewPaymentLocal(
+    int sessionID,
+    // Should be the latest ID that went through buildPaymentLocal and returned readyToReview.
+    BuildPaymentID bid
+  );
 
   // Send a payment
   SendPaymentResLocal sendPaymentLocal(
     int sessionID,
+    BuildPaymentID bid,
+    boolean bypassBid, // implies bypassReview
+    boolean bypassReview,
     AccountID from,
     string to,                             // Username, acctID, or assertion. Examples: "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     boolean toIsAccountID,
@@ -440,9 +445,28 @@ protocol local {
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 
   void setAccountMobileOnlyLocal(int sessionID, AccountID accountID);
+  void setAccountAllDevicesLocal(int sessionID, AccountID accountID); // opposite of mobile-only
   boolean isAccountMobileOnlyLocal(int sessionID, AccountID accountID);
 
   RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);
+
+  enum InflationDestinationType {
+    SELF_1,
+    ACCOUNTID_2,
+    LUMENAUT_3
+  }
+  variant InflationDestination switch (InflationDestinationType typ) {
+    case SELF: void;
+    case ACCOUNTID: AccountID;
+    case LUMENAUT: void;
+  }
+  void setInflationDestinationLocal(int sessionID, AccountID accountID, InflationDestination destination);
+
+  record InflationDestinationResultLocal {
+    union { null, AccountID } destination;
+    string comment;
+  }
+  InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

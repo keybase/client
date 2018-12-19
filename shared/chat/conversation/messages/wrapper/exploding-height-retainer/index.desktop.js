@@ -101,7 +101,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 }
 
-const AshBox = Styles.glamorous.div({
+const AshBox = Styles.styled.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,
@@ -209,6 +209,7 @@ class Flame extends React.Component<{}, {color: string, timer: number, width: nu
 }
 
 const styles = Styles.styleSheetCreate({
+  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
   exploded: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
@@ -232,7 +233,6 @@ const styles = Styles.styleSheetCreate({
     right: -1 * (maxFlameWidth + flameOffset),
     width: maxFlameWidth + flameOffset,
   },
-  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
 })
 
 export default ExplodingHeightRetainer

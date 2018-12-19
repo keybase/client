@@ -44,6 +44,11 @@ export const commonFullNamePackageVersion = {
   v2: 2,
 }
 
+export const commonIdentityVisibility = {
+  private: 0,
+  public: 1,
+}
+
 export const commonLogLevel = {
   none: 0,
   debug: 1,
@@ -262,6 +267,10 @@ export const constantsStatusCode = {
   scephemeralkeywrongnumberofkeys: 2903,
   scephemeralkeymismatchedkey: 2904,
   scephemeralpairwisemacsmissinguids: 2905,
+  scephemeraldeviceafterek: 2906,
+  scephemeralmemberafterek: 2907,
+  scephemeraldevicestale: 2908,
+  scephemeraluserstale: 2909,
   scstellarerror: 3100,
   scstellarbadinput: 3101,
   scstellarwrongrevision: 3102,
@@ -337,9 +346,21 @@ export const gregorUIPushReason = {
   newData: 2,
 }
 
+export const homeAppLinkType = {
+  none: 0,
+  people: 1,
+  chat: 2,
+  files: 3,
+  wallet: 4,
+  git: 5,
+  devices: 6,
+  settings: 7,
+}
+
 export const homeHomeScreenItemType = {
   todo: 1,
   people: 2,
+  announcement: 3,
 }
 
 export const homeHomeScreenPeopleNotificationType = {
@@ -361,6 +382,28 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  annoncementPlaceholder: 10000,
+}
+
+export const identify3UiIdentify3ResultType = {
+  ok: 0,
+  broken: 1,
+  needsUpgrade: 2,
+}
+
+export const identify3UiIdentify3RowColor = {
+  blue: 1,
+  red: 2,
+  black: 3,
+  green: 4,
+}
+
+export const identify3UiIdentify3RowState = {
+  checking: 1,
+  valid: 2,
+  error: 3,
+  warning: 4,
+  revoked: 5,
 }
 
 export const identifyCommonIdentifyReasonType = {
@@ -769,6 +812,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 10,
   kbfsChat: 11,
   resolveAndCheck: 12,
+  guiProfile: 13,
 }
 
 export const uPKKeyType = {
@@ -881,12 +925,12 @@ export const loginLogoutRpcPromise = (params, waitingKey) => new Promise((resolv
 export const loginPaperKeyRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.login.paperKey', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const loginPaperKeySubmitRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.paperKeySubmit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const notifyCtlSetNotificationsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const pgpPgpKeyGenDefaultRpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
+export const pgpPgpKeyGenDefaultRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const proveCheckProofRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.prove.checkProof', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const proveStartProofRpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
+export const proveStartProofRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.prove.startProof', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const reachabilityCheckReachabilityRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.reachability.checkReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const reachabilityStartReachabilityRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.reachability.startReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const rekeyGetRevokeWarningRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.rekey.getRevokeWarning', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

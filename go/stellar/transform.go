@@ -9,32 +9,26 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
-	"github.com/keybase/stellarnet"
+	"github.com/keybase/client/go/stellar/remote"
 )
 
 // TransformPaymentSummaryGeneric converts a stellar1.PaymentSummary (p) into a
 // stellar1.PaymentLocal, without any modifications based on who is viewing the transaction.
 func TransformPaymentSummaryGeneric(mctx libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	var emptyAccountID stellar1.AccountID
-	return transformPaymentSummary(mctx, p, oc, emptyAccountID, nil /* exchange rate */)
+	return transformPaymentSummary(mctx, p, oc, emptyAccountID)
 }
 
 // TransformPaymentSummaryAccount converts a stellar1.PaymentSummary (p) into a
 // stellar1.PaymentLocal, from the perspective of an owner of accountID.
-//
-// exchRate is the current exchange rate from XLM to the "outside" currency
-// that is the preference for accountID.
-func TransformPaymentSummaryAccount(mctx libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	return transformPaymentSummary(mctx, p, oc, accountID, exchRate)
+func TransformPaymentSummaryAccount(mctx libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID) (*stellar1.PaymentLocal, error) {
+	return transformPaymentSummary(mctx, p, oc, accountID)
 }
 
 // transformPaymentSummary converts a stellar1.PaymentSummary (p) into a stellar1.PaymentLocal.
 // accountID can be empty ("") and exchRate can be nil, if a generic response that isn't tied
 // to an account is necessary.
-//
-// exchRate is the current exchange rate from XLM to the "outside" currency
-// that is the preference for accountID.
-func transformPaymentSummary(mctx libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
+func transformPaymentSummary(mctx libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID) (*stellar1.PaymentLocal, error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return nil, err
@@ -42,13 +36,13 @@ func transformPaymentSummary(mctx libkb.MetaContext, p stellar1.PaymentSummary, 
 
 	switch typ {
 	case stellar1.PaymentSummaryType_STELLAR:
-		return transformPaymentStellar(mctx, accountID, p.Stellar(), oc, exchRate)
+		return transformPaymentStellar(mctx, accountID, p.Stellar(), oc)
 	case stellar1.PaymentSummaryType_DIRECT:
-		return transformPaymentDirect(mctx, accountID, p.Direct(), oc, exchRate)
+		return transformPaymentDirect(mctx, accountID, p.Direct(), oc)
 	case stellar1.PaymentSummaryType_RELAY:
-		return transformPaymentRelay(mctx, accountID, p.Relay(), oc, exchRate)
+		return transformPaymentRelay(mctx, accountID, p.Relay(), oc)
 	default:
-		return nil, fmt.Errorf("unrecognized payment type: %s", typ)
+		return nil, fmt.Errorf("unrecognized payment type: %T", typ)
 	}
 }
 
@@ -104,8 +98,8 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 }
 
 // transformPaymentStellar converts a stellar1.PaymentSummaryStellar into a stellar1.PaymentLocal.
-func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, exchRate)
+func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +129,8 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 }
 
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
-func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, exchRate)
+func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -185,8 +179,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 }
 
 // transformPaymentRelay converts a stellar1.PaymentSummaryRelay into a stellar1.PaymentLocal.
-func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative(), exchRate)
+func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +278,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
 	fillOwnAccounts(mctx, loc, oc)
 
-	relaySecrets, err := relays.DecryptB64(mctx.Ctx(), mctx.G(), p.TeamID, p.BoxB64)
+	relaySecrets, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err == nil {
 		loc.Note = relaySecrets.Note
 	} else {
@@ -355,7 +349,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 		return "", ""
 	}
 
-	decrypted, err := NoteDecryptB64(mctx.Ctx(), mctx.G(), note)
+	decrypted, err := NoteDecryptB64(mctx, note)
 	if err != nil {
 		return "", fmt.Sprintf("failed to decrypt payment note: %s", err)
 	}
@@ -367,12 +361,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 	return decrypted.Note, ""
 }
 
-func newPaymentLocal(mctx libkb.MetaContext,
-	txID stellar1.TransactionID,
-	ctime stellar1.TimeMs,
-	amount string,
-	asset stellar1.Asset,
-	exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
+func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
 	formatted, err := FormatAmountDescriptionAsset(amount, asset)
@@ -387,19 +376,96 @@ func newPaymentLocal(mctx libkb.MetaContext,
 		loc.IssuerAccountID = &issuerAcc
 	}
 
-	if asset.IsNativeXLM() && exchRate != nil {
-		outsideAmount, err := stellarnet.ConvertXLMToOutside(amount, exchRate.Rate)
+	return loc, nil
+}
+
+func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID, remotePage stellar1.PaymentsPage) (page stellar1.PaymentsPageLocal, err error) {
+	oc := NewOwnAccountLookupCache(mctx)
+	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(remotePage.Payments))
+	for i, p := range remotePage.Payments {
+		page.Payments[i].Payment, err = TransformPaymentSummaryAccount(mctx, p, oc, accountID)
 		if err != nil {
-			return nil, err
+			mctx.CDebugf("RemoteRecentPaymentsToPage error transforming payment %v: %v", i, err)
+			s := err.Error()
+			page.Payments[i].Err = &s
+			page.Payments[i].Payment = nil // just to make sure
 		}
-		currentWorth, err := FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(),
-			outsideAmount, exchRate.Currency, FmtRound)
-		if err != nil {
-			return nil, err
-		}
-		loc.CurrentWorth = currentWorth
-		loc.CurrentWorthCurrency = string(exchRate.Currency)
+	}
+	page.Cursor = remotePage.Cursor
+
+	if remotePage.OldestUnread != nil {
+		oldestUnread := stellar1.NewPaymentID(*remotePage.OldestUnread)
+		page.OldestUnread = &oldestUnread
 	}
 
-	return loc, nil
+	return page, nil
+
+}
+
+func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID, pending []stellar1.PaymentSummary) (payments []stellar1.PaymentOrErrorLocal, err error) {
+	oc := NewOwnAccountLookupCache(mctx)
+
+	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
+	for i, p := range pending {
+		payment, err := TransformPaymentSummaryAccount(mctx, p, oc, accountID)
+		if err != nil {
+			s := err.Error()
+			payments[i].Err = &s
+			payments[i].Payment = nil // just to make sure
+
+		} else {
+			payments[i].Payment = payment
+			payments[i].Err = nil
+		}
+	}
+
+	return payments, nil
+}
+
+func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
+
+	var empty stellar1.WalletAccountLocal
+	balance, err := balanceList(details.Balances).balanceDescription()
+	if err != nil {
+		return empty, err
+	}
+	currencyLocal, err := GetCurrencySetting(mctx, details.AccountID)
+	if err != nil {
+		return empty, err
+	}
+
+	acct := stellar1.WalletAccountLocal{
+		AccountID:          details.AccountID,
+		IsDefault:          isPrimary,
+		Name:               accountName,
+		BalanceDescription: balance,
+		Seqno:              details.Seqno,
+		CurrencyLocal:      currencyLocal,
+	}
+
+	return acct, nil
+}
+
+type balanceList []stellar1.Balance
+
+// Example: "56.0227002 XLM + more"
+func (a balanceList) balanceDescription() (res string, err error) {
+	var more bool
+	for _, b := range a {
+		if b.Asset.IsNativeXLM() {
+			res, err = FormatAmountDescriptionXLM(b.Amount)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			more = true
+		}
+	}
+	if res == "" {
+		res = "0 XLM"
+	}
+	if more {
+		res += " + more"
+	}
+	return res, nil
 }

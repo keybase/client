@@ -7,7 +7,7 @@ import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import {PathItemAction, OpenInSystemFileManager} from '../common'
+import {OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
 
 const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
   <Box style={styles.headerContainer}>
@@ -32,18 +32,16 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
               <OpenInSystemFileManager path={path} />
             </WithTooltip>
             {onChat && (
-              <Box style={styles.headerIcon}>
-                <Icon
-                  type="iconfont-chat"
-                  color={Styles.globalColors.black_40}
-                  fontSize={16}
-                  onClick={onChat}
-                />
-              </Box>
+              <Icon
+                type="iconfont-chat"
+                color={Styles.globalColors.black_40}
+                fontSize={16}
+                onClick={onChat}
+                style={styles.headerIcon}
+              />
             )}
-            <Box style={styles.headerIcon}>
-              <PathItemAction path={path} actionIconClassName="fs-path-item-hover-icon" />
-            </Box>
+            <SendInAppAction path={path} sendIconClassName="" />
+            <PathItemAction path={path} actionIconClassName="" />
           </Box>
         </Box>
       )}
@@ -58,43 +56,43 @@ const styleCommonRow = {
 }
 
 const styles = Styles.styleSheetCreate({
-  headerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    width: '100%',
+  addNew: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small - 4,
+    paddingTop: Styles.globalMargins.tiny,
   },
   folderHeader: {
     minHeight: 48,
   },
-  folderHeaderRoot: {
+  folderHeaderContainer: {
     ...styleCommonRow,
-    justifyContent: 'center',
-    width: '100%',
+    alignItems: 'center',
     height: 48,
+    position: 'relative',
+    width: '100%',
   },
   folderHeaderEnd: {
     ...styleCommonRow,
     alignItems: 'center',
+    flexShrink: 0,
     paddingLeft: 16,
     paddingRight: 16,
-    flexShrink: 0,
   },
-  folderHeaderContainer: {
+  folderHeaderRoot: {
     ...styleCommonRow,
-    width: '100%',
     height: 48,
-    alignItems: 'center',
-    position: 'relative',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  headerContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    width: '100%',
   },
   headerIcon: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  addNew: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small - 4,
-    paddingLeft: Styles.globalMargins.small,
+    padding: Styles.globalMargins.tiny,
   },
 })
 

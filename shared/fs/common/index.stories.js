@@ -7,39 +7,41 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import {Box, OverlayParentHOC} from '../../common-adapters'
 import PathItemAction from './path-item-action'
+import Loading from './loading'
 
 const pathItemActionPopupProps = (path: Types.Path) => {
   const pathElements = Types.getPathElements(path)
   return {
-    size: 0,
-    type: 'folder',
+    childrenFiles: 0,
+    childrenFolders: 0,
+    copyPath: Sb.action('copyPath'),
+    download: Sb.action('download'),
+    ignoreFolder: Sb.action('ignoreFolder'),
+    itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
     lastModifiedTimestamp: 0,
     lastWriter: 'meatball',
-    childrenFolders: 0,
-    childrenFiles: 0,
-    itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
     name: Types.getPathNameFromElems(pathElements),
-    path,
-    pathElements,
+    onHidden: Sb.action('onHidden'),
     ...(isMobile
       ? {
           saveMedia: Sb.action('saveMedia'),
           shareNative: Sb.action('shareNative'),
         }
       : {}),
+    path,
+    pathElements,
     showInSystemFileManager: Sb.action('showInSystemFileManager'),
-    ignoreFolder: Sb.action('ignoreFolder'),
-    download: Sb.action('download'),
-    copyPath: Sb.action('copyPath'),
-    onHidden: Sb.action('onHidden'),
+    size: 0,
+    type: 'folder',
   }
 }
 
 export const commonProvider = {
-  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
   ConnectedDownloadTrackingHoc: () => ({
     downloading: false,
   }),
+  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
+  SendInAppAction: () => ({onClick: Sb.action('onClick')}),
 }
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
@@ -70,5 +72,6 @@ const load = () =>
         />
       </Box>
     ))
+    .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
 
 export default load

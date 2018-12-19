@@ -2,12 +2,13 @@
 import * as I from 'immutable'
 import Files from './container'
 import {isMobile} from '../constants/platform'
-import {BarePreview, NormalPreview} from './filepreview'
+import {BarePreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import SecurityPrefs from './common/security-prefs-container'
 import DestinationPicker from './destination-picker/container'
+import SendLinkToChat from './send-link-to-chat/container'
 
-/*
+/* TODO: update examples here
  * Example Fs routes:
  *
  *   Mobile:
@@ -17,6 +18,11 @@ import DestinationPicker from './destination-picker/container'
  *       /keybase/team/keybase folder view
  *     /tabs:settings/settingsTab:fsTab/folder/folder/folder/preview
  *       file preview of some file under /keybase/team/keybase
+ *     /tabs:settings/settingsTab:fsTab/folder/folder/folder/sendLinkToChat
+ *       send a KBFS path link to chat in folder view screen of /keybase/team/keybase
+ *     /tabs:settings/settingsTab:fsTab/folder/folder/folder/preview/SendLinkToChat
+ *       send a KBFS path link to chat in file previewview screen of some file
+ *       under /keybase/team/keybase
  *     /tabs:settings/settingsTab:fsTab/destinationPicker/destinationPicker/destinationPicker
  *       moveOrCopy dialog showing /keybase/team/keybase
  *     /tabs:settings/settingsTab:fsTab/destinationPicker
@@ -38,6 +44,11 @@ import DestinationPicker from './destination-picker/container'
  *       /keybase/team/keybase folder view
  *     /tabs:fsTab/folder/folder/folder/preview
  *       file preview of some file under /keybase/team/keybase
+ *     /tabs:fsTab/folder/folder/folder/sendLinkToChat
+ *       send a KBFS path link to chat in folder view screen of /keybase/team/keybase
+ *     /tabs:fsTab/folder/folder/folder/preview/SendLinkToChat
+ *       send a KBFS path link to chat in file previewview screen of some file
+ *       under /keybase/team/keybase
  *     /tabs:fsTab/folder/folder/folder/destinationPicker
  *       moveOrCopy dialog active when main view is in /keybase/team/keybase;
  *       doesn't matter what folder moveOrCopy dialog is showing
@@ -57,56 +68,46 @@ import DestinationPicker from './destination-picker/container'
  */
 
 const _destinationPicker = {
-  children: isMobile
-    ? {
-        destinationPicker: () => makeRouteDefNode(_destinationPicker),
-      }
-    : undefined,
+  children: {
+    destinationPicker: () => makeRouteDefNode(_destinationPicker),
+  },
   component: DestinationPicker,
   tags: makeLeafTags({
-    title: 'Move or Copy',
     layerOnTop: !isMobile,
+    renderTopmostOnly: !isMobile,
+    title: 'Move or Copy',
   }),
 }
 
 const _commonChildren = {
+  destinationPicker: () => makeRouteDefNode(_destinationPicker),
   securityPrefs: {
     component: SecurityPrefs,
   },
-  ...(isMobile ? {} : {destinationPicker: () => makeRouteDefNode(_destinationPicker)}),
+  sendLinkToChat: {
+    component: SendLinkToChat,
+  },
 }
 
-const _folderRoute = {
+const _mainRoute = {
   children: {
     ..._commonChildren,
     barePreview: () =>
       makeRouteDefNode({
-        component: BarePreview,
         children: _commonChildren,
+        component: BarePreview,
         tags: makeLeafTags({
           fullscreen: true,
           title: 'Preview',
         }),
       }),
-    preview: () =>
-      makeRouteDefNode({
-        component: NormalPreview,
-        children: _commonChildren,
-        tags: makeLeafTags({
-          title: 'Preview',
-        }),
-      }),
-    folder: () => makeRouteDefNode(_folderRoute),
+    main: () => makeRouteDefNode(_mainRoute),
   },
   component: Files,
 }
 
 const routeTree = makeRouteDefNode({
-  children: {
-    folder: () => makeRouteDefNode(_folderRoute),
-    ...(isMobile ? {destinationPicker: () => makeRouteDefNode(_destinationPicker)} : {}),
-  },
-  defaultSelected: 'folder',
+  ..._mainRoute,
   initialState: {expandedSet: I.Set()},
   tags: makeLeafTags({title: 'Files'}),
 })

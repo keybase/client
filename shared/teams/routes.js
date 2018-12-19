@@ -21,20 +21,20 @@ import RetentionWarning from './team/settings-tab/retention/warning/container'
 import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
-  manageChannels: {
-    component: ManageChannels,
-    tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
-    children: {
-      editChannel: {
-        component: MaybePopupHoc(false)(EditChannel),
-        tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
-        children: {},
-      },
-    },
-  },
   createChannel: {
     children: {},
     component: CreateChannel,
+    tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+  },
+  manageChannels: {
+    children: {
+      editChannel: {
+        children: {},
+        component: MaybePopupHoc(false)(EditChannel),
+        tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+      },
+    },
+    component: ManageChannels,
     tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
   },
 }
@@ -80,8 +80,8 @@ const makeAddPeopleOptions = {
 }
 
 const retentionWarning = {
-  component: RetentionWarning,
   children: {},
+  component: RetentionWarning,
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
 
@@ -90,20 +90,6 @@ const teamRoute = makeRouteDefNode({
     ...makeManageChannels,
     ...makeAddPeopleOptions,
     controlledRolePicker,
-    rolePicker,
-    reallyLeaveTeam,
-    reallyRemoveMember,
-    retentionWarning,
-    showNewTeamDialog,
-    team: () => teamRoute,
-    member: {
-      children: {
-        rolePicker,
-        reallyLeaveTeam,
-        reallyRemoveMember,
-      },
-      component: Member,
-    },
     editTeamAvatar: {
       component: EditTeamAvatar,
       tags: makeLeafTags({layerOnTop: !isMobile}),
@@ -113,6 +99,20 @@ const teamRoute = makeRouteDefNode({
       component: MaybePopupHoc(true)(EditTeamDescription),
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
+    member: {
+      children: {
+        reallyLeaveTeam,
+        reallyRemoveMember,
+        rolePicker,
+      },
+      component: Member,
+    },
+    reallyLeaveTeam,
+    reallyRemoveMember,
+    retentionWarning,
+    rolePicker,
+    showNewTeamDialog,
+    team: () => teamRoute,
   },
   component: Team,
 })
@@ -120,12 +120,12 @@ const teamRoute = makeRouteDefNode({
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
-    showNewTeamDialog,
     showJoinTeamDialog: {
       children: {},
       component: JoinTeamDialog,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
+    showNewTeamDialog,
     team: teamRoute,
   },
   component: TeamsContainer,

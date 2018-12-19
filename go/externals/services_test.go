@@ -68,6 +68,17 @@ func TestLoadParamServices(t *testing.T) {
 		},
 	}, gubbleConf.CheckPath)
 
+	require.Equal(t, []keybase1.SelectorEntry{
+		keybase1.SelectorEntry{
+			IsKey: true,
+			Key:   "res",
+		},
+		keybase1.SelectorEntry{
+			IsKey: true,
+			Key:   "avatar",
+		},
+	}, gubbleConf.AvatarPath)
+
 	foundGubble := false
 	foundFacebook := false
 	for _, config := range displayConfigs {

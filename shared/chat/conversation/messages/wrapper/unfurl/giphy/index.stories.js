@@ -7,11 +7,11 @@ import UnfurlGiphy from '.'
 
 const full = {
   faviconURL: require('../../../../../../images/mock/wsj.jpg'),
-  imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
   imageHeight: 471,
+  imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
   imageWidth: 900,
-  onClose: Sb.action('onClose'),
   isVideo: false,
+  onClose: Sb.action('onClose'),
 }
 
 const noClose = {

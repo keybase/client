@@ -45,7 +45,7 @@ function setupStore() {
     }
   }
 
-  return {store, runSagas}
+  return {runSagas, store}
 }
 
 function setupApp(store, runSagas) {

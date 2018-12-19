@@ -3,11 +3,10 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, connect} from '../util/container'
+import {NullComponent, namedConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
-import {memoize1} from '../util/memoize'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 
 const windowOpts = {}
@@ -48,9 +47,6 @@ const mapStateToProps = state => ({
   username: state.config.username,
 })
 
-// TODO we should just send a Set like structure over, for now just extract trackerState
-const getBrokenSubset = memoize1(userInfo => userInfo.filter(u => u.broken).toJS())
-
 let _lastUsername
 let _lastClearCacheTrigger = 0
 const mergeProps = stateProps => {
@@ -71,7 +67,7 @@ const mergeProps = stateProps => {
     following: stateProps._following,
     loggedIn: stateProps.loggedIn,
     outOfDate: stateProps.outOfDate,
-    userInfo: getBrokenSubset(stateProps.userInfo),
+    userInfo: stateProps.userInfo,
     username: stateProps.username,
     windowComponent: 'menubar',
     windowOpts,
@@ -87,8 +83,9 @@ const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>)
   }
 
 // Actions are handled by remote-container
-export default connect<Props | {}, _, _, _, _>(
+export default namedConnect<Props | {}, _, _, _, _>(
   mapStateToProps,
   () => ({}),
-  mergeProps
+  mergeProps,
+  'MenubarRemoteProxy'
 )(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))

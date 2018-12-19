@@ -8,7 +8,7 @@ import type {Props} from './index.types'
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
 class AutoMaxSizeImage extends React.Component<any, {width: number, height: number, loaded: boolean}> {
-  state = {height: 0, width: 0, loaded: false}
+  state = {height: 0, loaded: false, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -30,7 +30,7 @@ class AutoMaxSizeImage extends React.Component<any, {width: number, height: numb
       <Kb.ZoomableBox
         contentContainerStyle={{flex: 1, position: 'relative'}}
         maxZoom={10}
-        style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
+        style={{height: '100%', overflow: 'hidden', position: 'relative', width: '100%'}}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
@@ -38,11 +38,11 @@ class AutoMaxSizeImage extends React.Component<any, {width: number, height: numb
           {...this.props}
           resizeMode="contain"
           style={{
+            alignSelf: 'center',
             flex: 1,
             height: Math.min(this.state.height, screenHeight),
-            width: Math.min(this.state.width, screenWidth),
-            alignSelf: 'center',
             opacity: this.props.opacity,
+            width: Math.min(this.state.width, screenWidth),
           }}
         />
       </Kb.ZoomableBox>
@@ -78,7 +78,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
             />
           )}
           {!this.state.loaded && (
-            <Kb.ProgressIndicator style={{width: 48, position: 'absolute', margin: 'auto'}} white={true} />
+            <Kb.ProgressIndicator style={{margin: 'auto', position: 'absolute', width: 48}} white={true} />
           )}
         </Kb.Box>
         <Kb.Icon

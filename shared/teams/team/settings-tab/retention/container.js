@@ -1,5 +1,6 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as Flow from '../../../../util/flow'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {namedConnect, compose, lifecycle, withStateHandlers, withHandlers} from '../../../../util/container'
 import {
@@ -96,10 +97,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
       throw new Error('RetentionPicker needs a teamname to set big team retention policies')
     default:
-    /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(entityType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(entityType)
     // Issue with flow here: https://github.com/facebook/flow/issues/6068
     // throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
@@ -126,15 +124,15 @@ const mapDispatchToProps = (
   dispatch,
   {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
-  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
+  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
       navigateTo(
         [
           {
+            props: {days, entityType, onCancel, onConfirm},
             selected: 'retentionWarning',
-            props: {days, onCancel, onConfirm, entityType},
           },
         ],
         parentPath
@@ -147,7 +145,7 @@ const mapDispatchToProps = (
       teamname && dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname}))
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
-      conversationIDKey && dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
+      conversationIDKey && dispatch(createSetConvRetentionPolicy({conversationIDKey, policy}))
     } else {
       throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
     }

@@ -96,16 +96,16 @@ const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
 
 const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
   RPCTypes.gitSetTeamRepoSettingsRpcPromise({
-    folder: {
-      name: action.payload.teamname,
-      folderType: RPCTypes.favoriteFolderType.team,
-      private: true,
-      created: false,
-      notificationsOn: false,
-    },
-    repoID: action.payload.repoID,
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
+    folder: {
+      created: false,
+      folderType: RPCTypes.favoriteFolderType.team,
+      name: action.payload.teamname,
+      notificationsOn: false,
+      private: true,
+    },
+    repoID: action.payload.repoID,
   }).then(() => GitGen.createLoadGitRepo({teamname: action.payload.teamname, username: null}))
 
 let _wasOnGitTab = false
@@ -139,21 +139,21 @@ const navToGit = (_, action: GitGen.NavToGitPayload) => {
   const {routeState} = action.payload
   const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
   const parentPath = []
-  const actions = [Saga.put(RouteTreeGen.createNavigateTo({path, parentPath}))]
+  const actions = [Saga.put(RouteTreeGen.createNavigateTo({parentPath, path}))]
   if (routeState) {
-    actions.push(Saga.put(RouteTreeGen.createSetRouteState({path, partialState: routeState})))
+    actions.push(Saga.put(RouteTreeGen.createSetRouteState({partialState: routeState, path})))
   }
   return Saga.all(actions)
 }
 
 const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepoPayload) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const {teamname, repoID} = action.payload
     let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
     if (!id) {
       yield Saga.put(GitGen.createLoadGit())
       yield Saga.take(GitGen.loaded)
-      const nextState = yield Saga.select()
+      const nextState = yield* Saga.selectState()
       id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
     }
 

@@ -10,15 +10,15 @@ type OwnProps = {||}
 const mapStateToProps = state => {
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
-    needAction: !kbfsEnabled && state.fs.flags.kextPermissionError,
     _appFocusedCount: state.config.appFocusedCount,
+    needAction: !kbfsEnabled && state.fs.flags.kextPermissionError,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
+  _getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
   back: () => dispatch(navigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
-  _getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
 })
 
 export default compose(

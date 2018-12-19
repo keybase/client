@@ -11,7 +11,7 @@ export type BioEditFns = {
   onEditProfile: () => void,
 }
 
-export type Props = {
+export type Props = {|
   type: 'Tracker' | 'Profile',
   loading: boolean,
   avatarSize: AvatarSize,
@@ -23,6 +23,6 @@ export type Props = {
   editFns?: ?BioEditFns,
   onAvatarLoaded?: () => void,
   onClickAvatar?: (username: ?string) => void,
-}
+|}
 
 export default class Render extends Component<Props> {}

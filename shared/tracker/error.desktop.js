@@ -32,8 +32,8 @@ function TrackerError({errorMessage, onRetry, onClose}: Props) {
 }
 
 const errorTextStyle = {
-  marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
+  marginTop: globalMargins.medium,
   textAlign: 'center',
 }
 

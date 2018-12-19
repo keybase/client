@@ -9,7 +9,7 @@ import {compose, namedConnect} from '../util/container'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
-import {memoize1Shallow, memoize1, memoize2, memoize3, memoize4} from '../util/memoize'
+import {memoizeShallow, memoize} from '../util/memoize'
 import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
 
 // TODO
@@ -34,36 +34,30 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
+  highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
-  highlightedIndex: 0,
 }
 
-const deriveSearchResults = memoize4(
-  (
-    searchResults: ?Array<User>,
-    teamSoFar: I.Set<User>,
-    myUsername: string,
-    followingState: I.Set<string>
-  ) => {
-    return (searchResults || []).map(info => ({
-      userId: info.id,
-      username: info.id.split('@')[0],
-      services: info.serviceMap,
-      prettyName: info.prettyName,
+const deriveSearchResults = memoize(
+  (searchResults: ?Array<User>, teamSoFar: I.Set<User>, myUsername: string, followingState: I.Set<string>) =>
+    (searchResults || []).map(info => ({
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
       inTeam: teamSoFar.some(u => u.id === info.id),
+      prettyName: info.prettyName,
+      services: info.serviceMap,
+      userId: info.id,
+      username: info.id.split('@')[0],
     }))
-  }
 )
 
-const deriveTeamSoFar = memoize1((teamSoFar: I.Set<User>) =>
+const deriveTeamSoFar = memoize((teamSoFar: I.Set<User>) =>
   teamSoFar.toArray().map(userInfo => {
     const {username, serviceId} = parseUserId(userInfo.id)
     return {
-      userId: userInfo.id,
       prettyName: userInfo.prettyName,
       service: serviceId,
+      userId: userInfo.id,
       username,
     }
   })
@@ -72,7 +66,7 @@ const deriveTeamSoFar = memoize1((teamSoFar: I.Set<User>) =>
 const deriveServiceResultCount: (
   searchResults: SearchResults,
   query: string
-) => {[key: ServiceIdWithContact]: ?number} = memoize1((searchResults: SearchResults, query) =>
+) => {[key: ServiceIdWithContact]: ?number} = memoize((searchResults: SearchResults, query) =>
   // $FlowIssue toObject looses typing
   searchResults
     .get(trim(query), I.Map())
@@ -80,9 +74,9 @@ const deriveServiceResultCount: (
     .toObject()
 )
 
-const deriveShowServiceResultCount = memoize1(searchString => !!searchString)
+const deriveShowServiceResultCount = memoize(searchString => !!searchString)
 
-const deriveUserFromUserIdFn = memoize1((searchResults: ?Array<User>) => (userId: string): ?User =>
+const deriveUserFromUserIdFn = memoize((searchResults: ?Array<User>) => (userId: string): ?User =>
   (searchResults || []).filter(u => u.id === userId)[0] || null
 )
 
@@ -93,45 +87,45 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   ])
 
   return {
-    userFromUserId: deriveUserFromUserIdFn(userResults),
-    searchResults: deriveSearchResults(
-      userResults,
-      state.chat2.teamBuildingTeamSoFar,
-      state.config.username,
-      state.config.following
-    ),
     recommendations: deriveSearchResults(
       state.chat2.teamBuildingUserRecs,
       state.chat2.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following
     ),
-    teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
+    searchResults: deriveSearchResults(
+      userResults,
+      state.chat2.teamBuildingTeamSoFar,
+      state.config.username,
+      state.config.following
+    ),
     serviceResultCount: deriveServiceResultCount(
       state.chat2.teamBuildingSearchResults,
       ownProps.searchString
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
+    teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
+    userFromUserId: deriveUserFromUserIdFn(userResults),
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
-  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
   _search: debounce((query: string, service: ServiceIdWithContact) => {
     dispatch(TeamBuildingGen.createSearch({query, service}))
   }, 500),
-  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
+  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
+  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
 })
 
-const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => {
+const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {
   // Check if empty and we have a team so far
   !searchString && teamSoFar.length && onRemove(teamSoFar[teamSoFar.length - 1].userId)
 })
 
-const deriveOnEnterKeyDown = memoize1Shallow(
+const deriveOnEnterKeyDown = memoizeShallow(
   ({
     searchResults,
     teamSoFar,
@@ -160,7 +154,7 @@ const deriveOnEnterKeyDown = memoize1Shallow(
   }
 )
 
-const deriveOnAdd = memoize3((userFromUserId, dispatchOnAdd, changeText) => (userId: string) => {
+const deriveOnAdd = memoize((userFromUserId, dispatchOnAdd, changeText) => (userId: string) => {
   const user = userFromUserId(userId)
   if (!user) {
     logger.error(`Couldn't find User to add for ${userId}`)
@@ -171,7 +165,7 @@ const deriveOnAdd = memoize3((userFromUserId, dispatchOnAdd, changeText) => (use
   dispatchOnAdd(user)
 })
 
-const deriveOnChangeText = memoize3(
+const deriveOnChangeText = memoize(
   (
     onChangeText: (newText: string) => void,
     search: (text: string, service: ServiceIdWithContact) => void,
@@ -182,7 +176,7 @@ const deriveOnChangeText = memoize3(
   }
 )
 
-const deriveOnDownArrowKeyDown = memoize2(
+const deriveOnDownArrowKeyDown = memoize(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
@@ -205,20 +199,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
 
   const onEnterKeyDown = deriveOnEnterKeyDown({
-    searchResults,
-    teamSoFar,
+    changeText: ownProps.onChangeText,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    onRemove: dispatchProps.onRemove,
-    changeText: ownProps.onChangeText,
-    searchStringIsEmpty: !ownProps.searchString,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+    onRemove: dispatchProps.onRemove,
+    searchResults,
+    searchStringIsEmpty: !ownProps.searchString,
+    teamSoFar,
   })
 
   return {
+    fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    searchString: ownProps.searchString,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
@@ -226,16 +220,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownArrowKeyDown: deriveOnDownArrowKeyDown(searchResults.length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+    onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onUpArrowKeyDown: ownProps.decHighlightIndex,
+    recommendations,
     searchResults,
+    searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
     showServiceResultCount,
     teamSoFar,
-    onMakeItATeam: () => console.log('todo'),
-    recommendations,
-    fetchUserRecs: dispatchProps.fetchUserRecs,
   }
 }
 

@@ -20,12 +20,12 @@ export const makeSearchResult: I.RecordFactory<Types.SearchResult> = I.Record({
 
 function serviceIdToService(serviceId: string): Types.Service {
   return {
-    keybase: 'Keybase',
-    twitter: 'Twitter',
-    github: 'GitHub',
-    reddit: 'Reddit',
-    hackernews: 'Hacker News',
     facebook: 'Facebook',
+    github: 'GitHub',
+    hackernews: 'Hacker News',
+    keybase: 'Keybase',
+    reddit: 'Reddit',
+    twitter: 'Twitter',
   }[serviceId]
 }
 
@@ -61,13 +61,13 @@ function maybeUpgradeSearchResultIdToKeybaseId(
 
 function platformToLogo24(service: Types.Service): IconType {
   return {
-    Keybase: 'icon-keybase-logo-24',
-    Twitter: 'icon-twitter-logo-24',
-    GitHub: 'icon-github-logo-24',
-    Reddit: 'icon-reddit-logo-24',
-    'Hacker News': 'icon-hacker-news-logo-24',
-    Pgp: 'icon-pgp-key-24',
     Facebook: 'icon-facebook-logo-24',
+    GitHub: 'icon-github-logo-24',
+    'Hacker News': 'icon-hacker-news-logo-24',
+    Keybase: 'icon-keybase-logo-24',
+    Pgp: 'icon-pgp-key-24',
+    Reddit: 'icon-reddit-logo-24',
+    Twitter: 'icon-twitter-logo-24',
   }[service]
 }
 

@@ -1,7 +1,6 @@
 package relays
 
 import (
-	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -20,9 +19,8 @@ import (
 // Get the key used to encrypt the stellar key for a relay transfer
 // A key from the implicit team betwen the logged-in user and `to`.
 // If `generation` is nil, gets the latest key.
-func GetKey(ctx context.Context, g *libkb.GlobalContext,
-	recipient stellarcommon.Recipient) (key keybase1.TeamApplicationKey, teamID keybase1.TeamID, err error) {
-	meUsername, err := g.GetUPAKLoader().LookupUsername(ctx, g.ActiveDevice.UID())
+func GetKey(mctx libkb.MetaContext, recipient stellarcommon.Recipient) (key keybase1.TeamApplicationKey, teamID keybase1.TeamID, err error) {
+	meUsername, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), mctx.ActiveDevice().UID())
 	if err != nil {
 		return key, teamID, err
 	}
@@ -39,21 +37,21 @@ func GetKey(ctx context.Context, g *libkb.GlobalContext,
 	default:
 		return key, teamID, fmt.Errorf("recipient unexpectly not user nor assertion: %v", recipient.Input)
 	}
-	impTeamDisplayName, err := teams.FormatImplicitTeamDisplayName(ctx, g, impTeamNameStruct)
+	impTeamDisplayName, err := teams.FormatImplicitTeamDisplayName(mctx.Ctx(), mctx.G(), impTeamNameStruct)
 	if err != nil {
 		return key, teamID, err
 	}
-	team, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, g, impTeamDisplayName, false /*public*/)
+	team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), impTeamDisplayName, false /*public*/)
 	if err != nil {
 		return key, teamID, err
 	}
-	key, err = team.ApplicationKey(ctx, keybase1.TeamApplication_STELLAR_RELAY)
+	key, err = team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_STELLAR_RELAY)
 	return key, team.ID, err
 }
 
-func getKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
-	teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
+func getKeyForDecryption(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 		ID:      teamID,
 		StaleOK: true,
 		Refreshers: keybase1.TeamRefreshers{
@@ -65,7 +63,7 @@ func getKeyForDecryption(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return res, err
 	}
-	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_STELLAR_RELAY, generation)
+	return team.ApplicationKeyAtGeneration(mctx.Ctx(), keybase1.TeamApplication_STELLAR_RELAY, generation)
 }
 
 type Input struct {
@@ -76,6 +74,7 @@ type Input struct {
 	// Implicit-team key to encrypt for
 	EncryptFor    keybase1.TeamApplicationKey
 	SeqnoProvider build.SequenceProvider
+	Timebounds    *build.Timebounds
 }
 
 type Output struct {
@@ -104,8 +103,8 @@ func Create(in Input) (res Output, err error) {
 	if err != nil {
 		return res, err
 	}
-	sig, err := stellarnet.CreateAccountXLMTransaction(
-		senderSeed, relayAccountID, in.AmountXLM, in.PublicMemo, in.SeqnoProvider)
+	sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed, relayAccountID, in.AmountXLM,
+		in.PublicMemo, in.SeqnoProvider, in.Timebounds)
 	if err != nil {
 		return res, err
 	}
@@ -151,7 +150,7 @@ func encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKe
 }
 
 // `boxB64` should be a stellar1.EncryptedRelaySecret
-func DecryptB64(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, boxB64 string) (res stellar1.RelayContents, err error) {
+func DecryptB64(mctx libkb.MetaContext, teamID keybase1.TeamID, boxB64 string) (res stellar1.RelayContents, err error) {
 	pack, err := base64.StdEncoding.DecodeString(boxB64)
 	if err != nil {
 		return res, fmt.Errorf("error decoding relay box: %v", err)
@@ -161,7 +160,7 @@ func DecryptB64(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 	if err != nil {
 		return res, err
 	}
-	appKey, err := getKeyForDecryption(ctx, g, teamID, box.Gen)
+	appKey, err := getKeyForDecryption(mctx, teamID, box.Gen)
 	if err != nil {
 		return res, err
 	}

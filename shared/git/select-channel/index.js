@@ -18,8 +18,8 @@ export default (props: Props) => (
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
         flex: 1,
-        paddingTop: globalMargins.xtiny,
         paddingBottom: globalMargins.xtiny,
+        paddingTop: globalMargins.xtiny,
       }}
     >
       <Text type="Header">Select a channel</Text>

@@ -163,7 +163,7 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      dispatch(navigateTo([{selected: 'newRepo', props: {isTeam: false}}], [Tabs.gitTab]))
+      dispatch(navigateTo([{props: {isTeam: false}, selected: 'newRepo'}], [Tabs.gitTab]))
       dispatch(switchTo([Tabs.gitTab]))
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),

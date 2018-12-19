@@ -123,8 +123,15 @@ class AssetInput extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  unit: {
-    color: Styles.globalColors.purple2,
+  container: {
+    alignItems: 'flex-start',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  flexEnd: {
+    alignItems: 'flex-end',
   },
   input: {
     color: Styles.globalColors.purple2,
@@ -136,21 +143,14 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: 0,
     paddingTop: 0,
   },
-  flexEnd: {
-    alignItems: 'flex-end',
-  },
-  container: {
-    alignItems: 'flex-start',
-    paddingRight: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-  },
   labelMargin: {marginLeft: 1},
   text: {
     textAlign: 'center',
   },
   topLabel: {color: Styles.globalColors.blue},
+  unit: {
+    color: Styles.globalColors.purple2,
+  },
 })
 
 export default AssetInput

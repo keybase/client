@@ -22,19 +22,19 @@ const mapStateToProps = (state, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
-  _onSetChannelCreationError: error => {
-    dispatch(TeamsGen.createSetChannelCreationError({error}))
-  },
-  onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
-  onClose: () => dispatch(navigateUp()),
   _onCreateChannel: ({channelname, description, teamname}) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
     const destSubPath = sourceSubPath.butLast()
     dispatch(
-      TeamsGen.createCreateChannel({teamname, channelname, description, rootPath, sourceSubPath, destSubPath})
+      TeamsGen.createCreateChannel({channelname, description, destSubPath, rootPath, sourceSubPath, teamname})
     )
   },
+  _onSetChannelCreationError: error => {
+    dispatch(TeamsGen.createSetChannelCreationError({error}))
+  },
+  onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
+  onClose: () => dispatch(navigateUp()),
 })
 
 export default compose(

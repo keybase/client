@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import OverlayParentHOC, {type OverlayParentProps} from './overlay/parent-hoc'
-import type {Position} from './relative-popup-hoc'
+import type {Position} from './relative-popup-hoc.types'
 import Icon from './icon'
 import * as Styles from '../styles'
 
@@ -94,17 +94,30 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
 const styles = Styles.styleSheetCreate({
   itemClickBox: Styles.platformStyles({
     common: {
-      width: '100%',
       flexShrink: 0,
+      width: '100%',
     },
     isMobile: {
       minHeight: 40,
     },
   }),
+  overlay: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.white,
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      border: `1px solid ${Styles.globalColors.blue}`,
+      borderRadius: 4,
+      maxHeight: 300,
+      width: 270,
+    },
+  }),
   scrollView: Styles.platformStyles({
     common: {
-      width: '100%',
       height: '100%',
+      width: '100%',
     },
     isMobile: {
       backgroundColor: Styles.globalColors.white,
@@ -112,29 +125,16 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   selectedBox: Styles.platformStyles({
-    isMobile: {minHeight: 48},
-    isElectron: {minHeight: 32},
     common: {
       ...Styles.globalStyles.flexBoxCenter,
       width: '100%',
     },
-  }),
-  overlay: Styles.platformStyles({
-    isElectron: {
-      border: `1px solid ${Styles.globalColors.blue}`,
-      borderRadius: 4,
-      maxHeight: 300,
-      width: 270,
-    },
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.white,
-      marginTop: Styles.globalMargins.xtiny,
-    },
+    isElectron: {minHeight: 32},
+    isMobile: {minHeight: 48},
   }),
 })
 
-const ItemBox = Styles.glamorous(Box)({
+const ItemBox = Styles.styled(Box)({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {}
@@ -150,7 +150,7 @@ const ItemBox = Styles.glamorous(Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.glamorous(Box)(props => ({
+const ButtonBox = Styles.styled(Box)(props => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {

@@ -7,21 +7,28 @@ import * as Types from '../../constants/types/fs'
 
 type OwnProps = {
   path: Types.Path,
+  destinationPickerIndex?: number,
 }
 
 const mapStateToProps = state => ({
   syncingPaths: state.fs.uploads.syncingPaths,
 })
 
-const mapDispatchToProps = (dispatch, {path}) => ({
-  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
+const mapDispatchToProps = (dispatch, {path, destinationPickerIndex}) => ({
   loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
+  loadFolderList: () =>
+    dispatch(
+      FsGen.createFolderListLoad({
+        path,
+        refreshTag: typeof destinationPickerIndex === 'number' ? 'destination-picker' : 'main',
+      })
+    ),
 })
 
 const mergeProps = ({syncingPaths}, {loadFolderList, loadFavorites}, o) => ({
-  syncingPaths,
-  loadFolderList,
   loadFavorites,
+  loadFolderList,
+  syncingPaths,
   // $FlowFixMe it's a HOC so we need to pass through inexact properties.
   ...o,
 })

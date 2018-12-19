@@ -1,12 +1,11 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
+import {Avatar, Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
-import flags from '../util/feature-flags'
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
@@ -17,10 +16,10 @@ class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading
             style={{
               ...globalStyles.flexBoxRow,
               alignItems: 'flex-end',
-              zIndex: 2,
+              opacity: this.props.loading ? 1 : 0,
               position: 'relative',
               ...desktopStyles.fadeOpacity,
-              opacity: this.props.loading ? 1 : 0,
+              zIndex: 2,
             }}
           >
             <Box
@@ -85,13 +84,13 @@ class BioRender extends Component<Props> {
               ...globalStyles.flexBoxRow,
               ...desktopStyles.fadeOpacity,
               alignItems: 'flex-end',
-              zIndex: 2,
-              position: 'relative',
               opacity: loading ? 0 : 1,
+              position: 'relative',
+              zIndex: 2,
             }}
           >
             <Avatar
-              editable={!!editFns && flags.avatarUploadsEnabled}
+              editable={!!editFns}
               onClick={editFns ? () => editFns.onEditAvatarClick() : onClickAvatar}
               onEditAvatarClick={editFns ? () => editFns.onEditAvatarClick() : undefined}
               style={
@@ -101,15 +100,6 @@ class BioRender extends Component<Props> {
               size={avatarSize}
               showFollowingStatus={true}
             />
-            {editFns && !flags.avatarUploadsEnabled && (
-              <Box style={{height: 16, width: 0}}>
-                <Icon
-                  type="iconfont-edit"
-                  onClick={() => editFns.onEditAvatarClick()}
-                  style={stylesEditAvatarIcon(avatarSize)}
-                />
-              </Box>
-            )}
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
@@ -211,14 +201,6 @@ class BioRender extends Component<Props> {
   }
 }
 
-const stylesEditAvatarIcon = avatarSize => ({
-  // Hack to make the hover and onclick register over the avatar
-  position: 'absolute',
-  bottom: 0,
-  right: 0,
-  paddingTop: avatarSize,
-  paddingLeft: avatarSize,
-})
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
@@ -227,22 +209,22 @@ const stylesContainer = {
   width: 320,
 }
 const stylesContent = {
-  backgroundColor: globalColors.white,
-  ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
   justifyContent: 'center',
-  width: 320,
   marginTop: -35,
   paddingBottom: globalMargins.tiny,
   paddingTop: 35,
+  width: 320,
   zIndex: 1,
 }
 const stylesUsername = {
   marginTop: 7,
 }
 const stylesFullname = {
-  textAlign: 'center',
   color: globalColors.black_75,
+  textAlign: 'center',
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {

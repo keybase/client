@@ -151,8 +151,6 @@ const propsBase = {
   myUsername: 'bob',
   onChat: Sb.action('onChat'),
   onClickAvatar: Sb.action('onClickAvatar'),
-  onClickFollowers: Sb.action('onClickFollowers'),
-  onClickFollowing: Sb.action('onClickFollowing'),
   onClose: Sb.action('onClose'),
   onFollow: Sb.action('onFollow'),
   onIgnore: Sb.action('onIgnore'),

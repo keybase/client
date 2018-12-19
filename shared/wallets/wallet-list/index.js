@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 
@@ -93,10 +94,7 @@ class _WalletList extends React.Component<Props> {
           />
         )
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }
@@ -110,7 +108,7 @@ class _WalletList extends React.Component<Props> {
         </Kb.Box2>
       )
     }
-    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID, key: accountID}))
+    const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
     const addWallet = 'add wallet'
     rows.push({key: addWallet, type: addWallet})
 
@@ -128,7 +126,7 @@ class _WalletList extends React.Component<Props> {
 const WalletList = Kb.HeaderOnMobile(_WalletList)
 
 const styles = Styles.styleSheetCreate({
-  addContainerBox: {height: rowHeight, alignItems: 'center'},
+  addContainerBox: {alignItems: 'center', height: rowHeight},
   icon: {
     height: Styles.globalMargins.mediumLarge,
     marginLeft: Styles.globalMargins.tiny,

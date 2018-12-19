@@ -28,14 +28,14 @@ func (f *EncryptedFile) Get(ctx context.Context, res interface{}) error {
 	if err != nil {
 		return err
 	}
-	if err = decodeBox(ctx, enc, f.getSecretBoxKey, res); err != nil {
+	if err = DecodeBox(ctx, enc, f.getSecretBoxKey, res); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (f *EncryptedFile) Put(ctx context.Context, data interface{}) error {
-	b, err := encodeBox(ctx, data, f.getSecretBoxKey)
+	b, err := EncodeBox(ctx, data, f.getSecretBoxKey)
 	if err != nil {
 		return err
 	}

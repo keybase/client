@@ -19,7 +19,7 @@ const mapStateToProps = (state, {teamname}) => {
 }
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
-  onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'teamHeader'})),
+  onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onOpenFolder: () =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`)})),
 })

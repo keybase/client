@@ -19,20 +19,20 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  _onClose: () => dispatch(navigateUp()),
   _onAccept: (accountID: Types.AccountID) =>
     dispatch(
       WalletsGen.createSetAccountAsDefault({
         accountID,
       })
     ),
+  _onClose: () => dispatch(navigateUp()),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   accountName: stateProps.accountName,
+  onAccept: () => dispatchProps._onAccept(stateProps.accountID),
+  onClose: () => dispatchProps._onClose(),
   username: stateProps.username,
   waiting: stateProps.waiting,
-  onClose: () => dispatchProps._onClose(),
-  onAccept: () => dispatchProps._onAccept(stateProps.accountID),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

@@ -19,7 +19,9 @@ const mapStateToProps = state => {
     : []
   ).concat(
     (built.banners || [])
-      .filter(banner => !banner.hideOnConfirm)
+      // DESKTOP-8556 Confirm banners used to come from buildPaymentLocal when !hideOnConfirm.
+      //              Going forward they should come from UIPaymentReview.banners.
+      .filter(banner => false)
       .map(banner => ({
         bannerBackground: Constants.bannerLevelToBackground(banner.level),
         bannerText: banner.message,
@@ -27,13 +29,13 @@ const mapStateToProps = state => {
   )
   return {
     banners,
+    displayAmountFiat: built.displayAmountFiat,
+    displayAmountXLM: built.displayAmountXLM,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
     sendFailed: !!state.wallets.sentPaymentError,
-    waitingKey: Constants.sendPaymentWaitingKey,
     sendingIntentionXLM: built.sendingIntentionXLM,
-    displayAmountXLM: built.displayAmountXLM,
-    displayAmountFiat: built.displayAmountFiat,
+    waitingKey: Constants.sendPaymentWaitingKey,
   }
 }
 

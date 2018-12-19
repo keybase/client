@@ -2,138 +2,107 @@
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/profile'
+import * as Flow from '../util/flow'
+import * as Validators from '../util/simple-validators'
 
-export default function(
-  state: Types.State = Constants.initialState,
-  action: ProfileGen.Actions
-): Types.State {
+const updateUsername = state => {
+  let username = state.username || ''
+  let usernameValid = true
+
+  switch (state.platform) {
+    case 'http': // fallthrough
+    case 'https':
+      // Ensure that only the hostname is getting returned, with no
+      // protocol, port, or path information
+      username =
+        state.username &&
+        state.username
+          // Remove protocol information (if present)
+          .replace(/^.*?:\/\//, '')
+          // Remove port information (if present)
+          .replace(/:.*/, '')
+          // Remove path information (if present)
+          .replace(/\/.*/, '')
+      break
+    case 'btc':
+      // A simple check, the server does a fuller check
+      usernameValid = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      break
+  }
+
+  return state.merge({username, usernameValid})
+}
+
+const initialState = Constants.makeInitialState()
+
+export default function(state: Types.State = initialState, action: ProfileGen.Actions): Types.State {
   switch (action.type) {
     case ProfileGen.resetStore:
-      return {...Constants.initialState}
-    case ProfileGen.waiting:
-      const {waiting} = action.payload
-      return {
-        ...state,
-        waiting,
-      }
-    case ProfileGen.updatePlatform: {
-      const {platform} = action.payload
-      const usernameValid = Constants.checkUsernameValid(platform, state.username)
-      return {
-        ...state,
-        platform,
-        usernameValid,
-      }
-    }
-
-    case ProfileGen.updateUsername: {
-      const {username} = action.payload
-      const usernameValid = Constants.checkUsernameValid(state.platform, username)
-      return {
-        ...state,
-        username,
-        usernameValid,
-      }
-    }
-    case ProfileGen.cleanupUsername: {
-      const username = Constants.cleanupUsername(state.platform, state.username)
-      return {
-        ...state,
-        username,
-      }
-    }
-    case ProfileGen.revokeWaiting: {
-      const {waiting} = action.payload
-      return {
-        ...state,
-        revoke: {
-          ...state.revoke,
-          waiting,
-        },
-      }
-    }
+      return initialState
+    case ProfileGen.updatePlatform:
+      return updateUsername(state.merge({platform: action.payload.platform}))
+    case ProfileGen.updateUsername:
+      return updateUsername(state.merge({username: action.payload.username}))
+    case ProfileGen.cleanupUsername:
+      return updateUsername(state)
     case ProfileGen.revokeFinish:
-      return {
-        ...state,
-        revoke: {
-          ...state.revoke,
-          error: action.error ? action.payload.error : null,
-          waiting: false,
-        },
-      }
+      return state.merge({revokeError: action.error ? action.payload.error : ''})
     case ProfileGen.updateProofText:
-      const {proof: proofText} = action.payload
-      return {
-        ...state,
-        proofText,
-      }
+      return state.merge({proofText: action.payload.proof})
     case ProfileGen.updateProofStatus:
-      const {found: proofFound, status: proofStatus} = action.payload
-      return {
-        ...state,
-        proofFound,
-        proofStatus,
-      }
+      return state.merge({
+        proofFound: action.payload.found,
+        proofStatus: action.payload.status,
+      })
     case ProfileGen.updateErrorText:
       const {errorCode, errorText} = action.payload
-      return {
-        ...state,
-        errorCode,
-        errorText,
-      }
+      return state.merge({errorCode, errorText})
     case ProfileGen.updateSigID:
-      const {sigID} = action.payload
-      return {
-        ...state,
-        sigID,
-      }
+      return state.merge({sigID: action.payload.sigID})
     case ProfileGen.updatePgpInfo:
-      if (action.error) {
-        // TODO
-        return state
-      }
-
-      const {info} = action.payload
-      return {
-        ...state,
-        pgpInfo: {
-          ...state.pgpInfo,
-          ...info,
-        },
-      }
+      const valid1 = Validators.isValidEmail(state.pgpEmail1)
+      const valid2 = state.pgpEmail2 && Validators.isValidEmail(state.pgpEmail2)
+      const valid3 = state.pgpEmail3 && Validators.isValidEmail(state.pgpEmail3)
+      return state.merge({
+        ...action.payload,
+        pgpErrorEmail1: !!valid1,
+        pgpErrorEmail2: !!valid2,
+        pgpErrorEmail3: !!valid3,
+        pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
+      })
     case ProfileGen.updatePgpPublicKey:
-      const {publicKey: pgpPublicKey} = action.payload
-      return {
-        ...state,
-        pgpPublicKey,
-      }
-    // Saga only actions
+      return state.merge({pgpPublicKey: action.payload.publicKey})
     case ProfileGen.addProof:
-    case ProfileGen.backToProfile:
-    case ProfileGen.cancelAddProof:
-    case ProfileGen.cancelPgpGen:
+      return updateUsername(
+        state.merge({
+          errorCode: null,
+          errorText: '',
+          platform: action.payload.platform,
+        })
+      )
+    case ProfileGen.cancelAddProof: // fallthrough
     case ProfileGen.checkProof:
+      return state.merge({errorCode: null, errorText: ''})
+    case ProfileGen.submitBTCAddress:
+    case ProfileGen.submitZcashAddress:
+      return updateUsername(state)
+    // Saga only actions
+    case ProfileGen.backToProfile:
+    case ProfileGen.cancelPgpGen:
     case ProfileGen.dropPgp:
     case ProfileGen.editProfile:
     case ProfileGen.finishRevoking:
     case ProfileGen.finishedWithKeyGen:
     case ProfileGen.generatePgp:
     case ProfileGen.onClickAvatar:
-    case ProfileGen.onClickFollowers:
-    case ProfileGen.onClickFollowing:
     case ProfileGen.outputInstructionsActionLink:
     case ProfileGen.showUserProfile:
-    case ProfileGen.submitBTCAddress:
     case ProfileGen.submitRevokeProof:
     case ProfileGen.submitUsername:
-    case ProfileGen.submitZcashAddress:
     case ProfileGen.uploadAvatar:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

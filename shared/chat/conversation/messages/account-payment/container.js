@@ -66,7 +66,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
       const theirUsername = conv.participants.find(p => p !== you) || ''
 
-      const cancelable = paymentInfo.status === 'cancelable'
+      const cancelable = paymentInfo.status === 'claimable'
       const pending = cancelable || paymentInfo.status === 'pending'
       const canceled = paymentInfo.status === 'canceled'
       const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
@@ -100,23 +100,23 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it
         return loadingProps
       }
+      const {amountDescription, asset, canceled} = requestInfo
       return {
         _paymentID: null,
-        action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
-        amount: requestInfo.amountDescription,
+        action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
+        amount: amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
         cancelButtonInfo: '',
         cancelButtonLabel: '',
-        canceled: false, // TODO
+        canceled,
         claimButtonLabel: '',
         icon: 'iconfont-stellar-request',
         loading: false,
         memo: message.note.stringValue(),
         pending: false,
-        sendButtonLabel: youAreSender
-          ? ''
-          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
+        sendButtonLabel:
+          youAreSender || canceled ? '' : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
       }
     }
     default:

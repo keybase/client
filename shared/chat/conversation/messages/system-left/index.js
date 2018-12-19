@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 type Props = {|
   channelname: string,
@@ -9,5 +10,9 @@ type Props = {|
 |}
 
 export default (props: Props) => (
-  <Text type="BodySmall">left {props.isBigTeam ? `#${props.channelname}` : props.teamname}.</Text>
+  <Kb.Text type="BodySmall" style={styles.text}>left {props.isBigTeam ? `#${props.channelname}` : props.teamname}.</Kb.Text>
 )
+
+const styles = Styles.styleSheetCreate({
+  text: {flexGrow: 1},
+})

@@ -12,7 +12,6 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../styles'
-import {forwardRef} from '../util/react'
 
 export type _Props = {
   containerStyle?: StylesCrossPlatform,
@@ -89,7 +88,7 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
     )
   }
 }
-const NewInput = forwardRef<
+const NewInput = React.forwardRef<
   $Diff<
     {
       flexable?: boolean,
@@ -100,33 +99,33 @@ const NewInput = forwardRef<
       forwardedRef: React.Ref<typeof PlainInput>,
     }
   >,
-  _
+  PlainInput
 >((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
 
 const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       alignItems: 'center',
-      margin: 0,
       borderColor: globalColors.black_10,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
+      margin: 0,
       padding: globalMargins.xtiny,
     },
     isElectron: {width: '100%'},
   }),
-  focused: {
-    borderColor: globalColors.blue,
+  displayFlex: {
+    display: 'flex',
   },
   error: {
     borderColor: globalColors.red,
   },
+  focused: {
+    borderColor: globalColors.blue,
+  },
   hideBorder: {
     borderWidth: 0,
-  },
-  displayFlex: {
-    display: 'flex',
   },
   icon: {
     marginRight: globalMargins.xtiny,

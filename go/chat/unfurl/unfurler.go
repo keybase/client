@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 )
 
 type unfurlTask struct {
@@ -33,6 +34,7 @@ type UnfurlMessageSender interface {
 
 type Unfurler struct {
 	sync.Mutex
+	prefetchLock sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 
@@ -67,6 +69,11 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 		settings:     settings,
 		sender:       sender,
 	}
+}
+
+func (u *Unfurler) SetClock(clock clockwork.Clock) {
+	u.scraper.cache.setClock(clock)
+	u.packager.cache.setClock(clock)
 }
 
 func (u *Unfurler) SetTestingRetryCh(ch chan struct{}) {
@@ -274,6 +281,42 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	}
 }
 
+// Prefetch attempts to parse hits out of `msgText` and scrape/package the
+// unfurl so the result is cached.
+func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgText string) (numPrefetched int) {
+	u.prefetchLock.Lock()
+	defer u.prefetchLock.Unlock()
+	defer u.Trace(ctx, func() error { return nil }, "Prefetch")()
+
+	hits, err := u.extractor.Extract(ctx, uid, convID, 0, msgText, u.settings)
+	if err != nil {
+		u.Debug(ctx, "Prefetch: failed to extract: %s", err)
+		return 0
+	} else if len(hits) == 0 {
+		return 0
+	}
+
+	prevUnfurled := make(map[string]bool)
+	// for each hit that is already whitelisted try to prefetch the result to
+	// populate the message cache.
+	for _, hit := range hits {
+		if prevUnfurled[hit.URL] {
+			u.Debug(ctx, "Prefetch: skipping prev unfurled")
+			continue
+		}
+		prevUnfurled[hit.URL] = true // only one action per unique URL
+		if hit.Typ == ExtractorHitUnfurl {
+			if _, err := u.scrapeAndPackage(ctx, uid, convID, hit.URL); err != nil {
+				u.Debug(ctx, "Prefetch: unable to scrapeAndPackge: %s", err)
+			} else {
+				numPrefetched++
+			}
+		}
+	}
+	return numPrefetched
+}
+
 func (u *Unfurler) checkAndSetUnfurling(ctx context.Context, outboxID chat1.OutboxID) (inprogress bool) {
 	u.Lock()
 	defer u.Unlock()
@@ -306,6 +349,21 @@ func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {
 	}
 }
 
+func (u *Unfurler) scrapeAndPackage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	url string) (unfurl chat1.Unfurl, err error) {
+	unfurlRaw, err := u.scraper.Scrape(ctx, url, nil)
+	if err != nil {
+		u.Debug(ctx, "unfurl: failed to scrape: %s(%T)", err, err)
+		return unfurl, err
+	}
+	packaged, err := u.packager.Package(ctx, uid, convID, unfurlRaw)
+	if err != nil {
+		u.Debug(ctx, "unfurl: failed to package: %s", err)
+		return unfurl, err
+	}
+	return packaged, err
+}
+
 func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "unfurl(%s)", outboxID)()
 	if u.checkAndSetUnfurling(ctx, outboxID) {
@@ -333,30 +391,24 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		task, err := u.getTask(ctx, outboxID)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to get task: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusUnfurling); err != nil {
 			u.Debug(ctx, "unfurl: failed to set status: %s", err)
 		}
-		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL, nil)
+		packaged, err := u.scrapeAndPackage(ctx, task.UID, task.ConvID, task.URL)
 		if err != nil {
-			u.Debug(ctx, "unfurl: failed to scrape: %s(%T)", err, err)
-			return unfurl, err
-		}
-		packaged, err := u.packager.Package(ctx, task.UID, task.ConvID, unfurlRaw)
-		if err != nil {
-			u.Debug(ctx, "unfurl: failed to package: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		unfurl = new(chat1.Unfurl)
 		*unfurl = packaged
 		if err := u.setTaskResult(ctx, outboxID, *unfurl); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task result: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusSuccess); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task status: %s", err)
-			return unfurl, err
+			return nil, err
 		}
 		return unfurl, nil
 	}(ctx)

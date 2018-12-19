@@ -167,13 +167,14 @@ function updateIconConstants() {
   ${
     /* eslint-disable */
     Object.keys(icons)
+      .sort()
       .map(name => {
         const icon = icons[name]
         const meta = [
-          `isFont: ${icon.isFont}`,
-          icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
           icon.charCode ? [`charCode: 0x${icons[name].charCode.toString(16)}`] : [],
           icon.extension ? [`extension: '${icons[name].extension}'`] : [],
+          icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
+          `isFont: ${icon.isFont}`,
           icon.require ? [`require: require(${icons[name].require})`] : [],
         ]
 

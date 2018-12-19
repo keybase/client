@@ -48,24 +48,24 @@ const styleContainer = {
 
 const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
-  height: 80,
-  marginBottom: 16,
   alignItems: 'center',
+  height: 80,
   justifyContent: 'center',
+  marginBottom: 16,
 }
 
 const cancelButtonThemed = {
-  public: {},
   private: {
     backgroundColor: globalColors.blue_30,
   },
+  public: {},
 }
 
 const cancelButtonLabelThemed = {
-  public: {},
   private: {
     color: globalColors.white,
   },
+  public: {},
 }
 
 export default Confirm

@@ -122,7 +122,10 @@ protocol chatUi {
     stellar1.PaymentID paymentID;                 // opaque paymentID
     stellar1.PaymentStatus status;                // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
     string statusDescription;                     // "pending", "completed", "error"
+    string statusDetail;
     boolean showCancel;                           // true if cancel is an option for this payment
+    string fromUsername;
+    string toUsername;
   }
 
   record UIRequestInfo {
@@ -144,9 +147,12 @@ protocol chatUi {
     gregor1.Time ctime;
     union { null, string } outboxID;
     MessageBody messageBody;
+    union { null, string } decoratedTextBody;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+    gregor1.UID senderUID;
+    gregor1.DeviceID senderDeviceID;
     boolean superseded;
     union { null, UIAssetUrlInfo } assetUrlInfo;
     union { null, gregor1.Time } senderDeviceRevokedAt;
@@ -160,7 +166,7 @@ protocol chatUi {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     boolean hasPairwiseMacs;
-    union { null, UIPaymentInfo } paymentInfo;
+    array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
   }
@@ -198,6 +204,14 @@ protocol chatUi {
     union { null, UIPagination } pagination;
   }
 
+  enum UITextDecorationTyp {
+    PAYMENT_0
+  }
+
+  variant UITextDecoration switch (UITextDecorationTyp typ) {
+    case PAYMENT: TextPayment;
+  }
+
   void chatAttachmentDownloadStart(int sessionID);
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
@@ -217,4 +231,23 @@ protocol chatUi {
   void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
+
+  void chatPostReadyToSend(int sessionID);
+  // Chat Stellar send confirm screen UI
+  record UIChatPayment {
+    string username;
+    string fullName;
+    string xlmAmount;
+    union { null, string } error;
+    union { null, string } displayAmount;
+  }
+  record UIChatPaymentSummary {
+    string xlmTotal;
+    string displayTotal;
+    array<UIChatPayment> payments;
+  }
+  void chatStellarShowConfirm(int sessionID);
+  boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
+  boolean chatStellarDataError(int sessionID, string message);
+  void chatStellarDone(int sessionID);
 }

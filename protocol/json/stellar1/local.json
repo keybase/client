@@ -30,6 +30,10 @@
         {
           "type": "string",
           "name": "seqno"
+        },
+        {
+          "type": "CurrencyLocal",
+          "name": "currencyLocal"
         }
       ]
     },
@@ -162,14 +166,6 @@
         {
           "type": "string",
           "name": "worthCurrency"
-        },
-        {
-          "type": "string",
-          "name": "currentWorth"
-        },
-        {
-          "type": "string",
-          "name": "currentWorthCurrency"
         },
         {
           "type": "string",
@@ -336,14 +332,6 @@
         },
         {
           "type": "string",
-          "name": "currentWorth"
-        },
-        {
-          "type": "string",
-          "name": "currentWorthCurrency"
-        },
-        {
-          "type": "string",
           "name": "issuerDescription"
         },
         {
@@ -469,11 +457,17 @@
     },
     {
       "type": "record",
+      "name": "BuildPaymentID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "BuildPaymentResLocal",
       "fields": [
         {
           "type": "boolean",
-          "name": "readyToSend"
+          "name": "readyToReview"
         },
         {
           "type": "AccountID",
@@ -549,10 +543,6 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
-        },
-        {
-          "type": "boolean",
-          "name": "hideOnConfirm"
         }
       ]
     },
@@ -670,6 +660,63 @@
         {
           "type": "RequestStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "InflationDestinationType",
+      "symbols": [
+        "SELF_1",
+        "ACCOUNTID_2",
+        "LUMENAUT_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "InflationDestination",
+      "switch": {
+        "type": "InflationDestinationType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SELF",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "ACCOUNTID",
+            "def": false
+          },
+          "body": "AccountID"
+        },
+        {
+          "label": {
+            "name": "LUMENAUT",
+            "def": false
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InflationDestinationResultLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "destination"
+        },
+        {
+          "type": "string",
+          "name": "comment"
         }
       ]
     },
@@ -1185,11 +1232,37 @@
         "items": "SendAssetChoiceLocal"
       }
     },
+    "startBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "BuildPaymentID"
+    },
+    "stopBuildPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "buildPaymentLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
         },
         {
           "name": "from",
@@ -1236,11 +1309,36 @@
       ],
       "response": "BuildPaymentResLocal"
     },
+    "reviewPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        }
+      ],
+      "response": null
+    },
     "sendPaymentLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "bid",
+          "type": "BuildPaymentID"
+        },
+        {
+          "name": "bypassBid",
+          "type": "boolean"
+        },
+        {
+          "name": "bypassReview",
+          "type": "boolean"
         },
         {
           "name": "from",
@@ -1397,6 +1495,19 @@
       ],
       "response": null
     },
+    "setAccountAllDevicesLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
     "isAccountMobileOnlyLocal": {
       "request": [
         {
@@ -1422,6 +1533,36 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "setInflationDestinationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "destination",
+          "type": "InflationDestination"
+        }
+      ],
+      "response": null
+    },
+    "getInflationDestinationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "InflationDestinationResultLocal"
     },
     "balancesLocal": {
       "request": [

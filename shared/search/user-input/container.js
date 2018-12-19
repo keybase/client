@@ -110,11 +110,11 @@ const getUserItems = (state, searchKey) => {
     const {username, serviceId} = parseUserId(id)
     const service = Constants.serviceIdToService(serviceId)
     return {
-      id: id,
       followingState: followingStates[id],
       icon: serviceIdToIcon(serviceId),
-      username,
+      id: id,
       service,
+      username,
     }
   })
 }
@@ -134,29 +134,29 @@ const mapStateToProps = (state, {searchKey, showServiceFilter}: OwnProps) => {
     state.chat2.get('pendingMode') !== 'searchingForUsers' && showServiceFilter
 
   return {
-    clearSearchTextInput,
     _searchResultIds,
-    selectedSearchId,
-    userItems,
+    clearSearchTextInput,
     searchResultTerm,
+    selectedSearchId,
     showServiceFilterIfInputEmpty,
     showingSearchSuggestions,
+    userItems,
   }
 }
 
 const mapDispatchToProps = (dispatch, {searchKey}) => ({
+  clearSearchResults: () => dispatch(SearchGen.createClearSearchResults({searchKey})),
+  onAddUser: id => id && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]})),
   onRemoveUser: id => dispatch(SearchGen.createRemoveResultsToUserInput({searchKey, searchResults: [id]})),
+  onUpdateSelectedSearchResult: id => {
+    dispatch(SearchGen.createUpdateSelectedSearchResult({id, searchKey}))
+  },
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchGen.createSearch({term, searchKey, service}))
+      dispatch(SearchGen.createSearch({searchKey, service, term}))
     } else {
       dispatch(SearchGen.createSearchSuggestions({searchKey}))
     }
-  },
-  onAddUser: id => id && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]})),
-  clearSearchResults: () => dispatch(SearchGen.createClearSearchResults({searchKey})),
-  onUpdateSelectedSearchResult: id => {
-    dispatch(SearchGen.createUpdateSelectedSearchResult({searchKey, id}))
   },
 })
 
@@ -199,8 +199,8 @@ const ConnectedUserInput = compose(
   withHandlers(() => {
     let input
     return {
-      setInputRef: () => el => {
-        input = el
+      onClickAddButton: props => () => {
+        props.search('', props.selectedService)
       },
       onFocusInput: () => () => {
         input && input.focus()
@@ -211,8 +211,8 @@ const ConnectedUserInput = compose(
         props.search(props.searchText, nextService)
         input && input.focus()
       },
-      onClickAddButton: props => () => {
-        props.search('', props.selectedService)
+      setInputRef: () => el => {
+        input = el
       },
     }
   }),
@@ -222,10 +222,11 @@ const ConnectedUserInput = compose(
         this.props.onFocusInput()
       }
 
-      if (this.props.searchResultIds !== prevProps.searchResultIds && !this.props.showingSearchSuggestions) {
-        this.props.onUpdateSelectedSearchResult(
-          (this.props.searchResultIds && this.props.searchResultIds[0]) || null
-        )
+      const prevTopResult = prevProps.searchResultIds && prevProps.searchResultIds[0]
+      const topResult = this.props.searchResultIds && this.props.searchResultIds[0]
+
+      if (topResult !== prevTopResult && !this.props.showingSearchSuggestions) {
+        this.props.onUpdateSelectedSearchResult(topResult)
         this.props.onFocusInput()
       }
 

@@ -36,15 +36,17 @@ type setObj struct {
 type UIRouter struct {
 	sync.Mutex
 	libkb.Contextified
-	cm  *libkb.ConnectionManager
-	uis map[libkb.UIKind]libkb.ConnectionID
+	cm       *libkb.ConnectionManager
+	uis      map[libkb.UIKind]libkb.ConnectionID
+	id3state *identify3State
 }
 
-func NewUIRouter(g *libkb.GlobalContext) *UIRouter {
+func NewUIRouter(g *libkb.GlobalContext, id3state *identify3State) *UIRouter {
 	return &UIRouter{
 		Contextified: libkb.NewContextified(g),
 		cm:           g.ConnectionManager,
 		uis:          make(map[libkb.UIKind]libkb.ConnectionID),
+		id3state:     id3state,
 	}
 }
 
@@ -92,6 +94,16 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 		Contextified: libkb.NewContextified(u.G()),
 	}
 	return ret, nil
+}
+
+func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext, id keybase1.Identify3GUIID) (libkb.IdentifyUI, error) {
+	x, _ := u.getUI(libkb.Identify3UIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
+	id3cli := keybase1.Identify3UiClient{Cli: cli}
+	return NewIdentify3UIAdapter(m, id3cli, u.id3state)
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

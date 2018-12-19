@@ -63,11 +63,11 @@ function _parseKeybaseRawResult(result: RawResult): Types.SearchResult {
     const {keybase, service} = result
     return {
       id: _rawResultToId('Keybase', keybase.username),
+      leftFullname: keybase.full_name,
       leftIcon: null,
-      leftUsername: keybase.username,
       leftService: 'Keybase',
 
-      leftFullname: keybase.full_name,
+      leftUsername: keybase.username,
       rightIcon: serviceIdToIcon(service.service_name),
       rightService: Constants.serviceIdToService(service.service_name),
       rightUsername: service.username,
@@ -78,11 +78,11 @@ function _parseKeybaseRawResult(result: RawResult): Types.SearchResult {
     const {keybase} = result
     return {
       id: _rawResultToId('Keybase', keybase.username),
+      leftFullname: keybase.full_name,
       leftIcon: null,
-      leftUsername: keybase.username,
       leftService: 'Keybase',
 
-      leftFullname: keybase.full_name,
+      leftUsername: keybase.username,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -97,11 +97,11 @@ function _parseThirdPartyRawResult(result: RawResult): Types.SearchResult {
     const {service, keybase} = result
     return {
       id: _rawResultToId(service.service_name, service.username),
+      leftFullname: keybase.full_name,
       leftIcon: serviceIdToLogo24(service.service_name),
-      leftUsername: service.username,
       leftService: Constants.serviceIdToService(service.service_name),
 
-      leftFullname: keybase.full_name,
+      leftUsername: service.username,
       rightIcon: null,
       rightService: 'Keybase',
       rightUsername: keybase.username,
@@ -112,11 +112,11 @@ function _parseThirdPartyRawResult(result: RawResult): Types.SearchResult {
     const service = result.service
     return {
       id: _rawResultToId(service.service_name, service.username),
+      leftFullname: service.full_name,
       leftIcon: serviceIdToLogo24(service.service_name),
-      leftUsername: service.username,
       leftService: Constants.serviceIdToService(service.service_name),
 
-      leftFullname: service.full_name,
+      leftUsername: service.username,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -157,26 +157,26 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
       {key: 'service', value: service === 'Keybase' ? '' : service},
     ],
     endpoint: 'user/user_search',
-  }).then(results => JSON.parse(results.body))
+  }).then(results => JSON.parse(results.body).list || [])
 }
 
 function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = Selectors.cachedSearchResults(state, searchQuery)
   if (cachedResults) {
     yield Saga.put(
       SearchGen.createFinishedSearch({
         searchKey,
-        searchResults: cachedResults.toArray(),
         searchResultTerm: term,
+        searchResults: cachedResults.toArray(),
         service,
       })
     )
     yield Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToResults'],
         entities: I.Map({[searchKey]: cachedResults}),
+        keyPath: ['search', 'searchKeyToResults'],
       })
     )
     return
@@ -184,65 +184,65 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
 
   yield Saga.put(
     EntitiesGen.createReplaceEntity({
-      keyPath: ['search', 'searchKeyToPending'],
       entities: I.Map({[searchKey]: true}),
+      keyPath: ['search', 'searchKeyToPending'],
     })
   )
 
   try {
-    yield Saga.call(onIdlePromise, 1e3)
-    const searchResults = yield Saga.call(_apiSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.list.map((result: RawResult) =>
+    yield Saga.callUntyped(onIdlePromise, 1e3)
+    const searchResults = yield* Saga.callPromise(_apiSearch, term, _serviceToApiServiceName(service))
+    const rows = searchResults.map((result: RawResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
     // (like the case of upgrading a 3rd party result to a kb result)
-    const kbRows: Array<Types.SearchResult> = rows
+    const kbRows = rows
       .filter(r => r.rightService === 'Keybase')
       .map(r =>
         Constants.makeSearchResult({
           id: r.rightUsername || '',
-          leftService: 'Keybase',
-          leftUsername: r.rightUsername,
           leftIcon: null,
+          leftService: 'Keybase',
+          leftUsername: r.rightUsername || '',
         })
       )
     yield Saga.put(
       EntitiesGen.createMergeEntity({
-        keyPath: ['search', 'searchResults'],
         entities: I.Map(keyBy(rows, 'id')),
+        keyPath: ['search', 'searchResults'],
       })
     )
     yield Saga.put(
       EntitiesGen.createMergeEntity({
-        keyPath: ['search', 'searchResults'],
         entities: I.Map(keyBy(kbRows, 'id')),
+        keyPath: ['search', 'searchResults'],
       })
     )
 
     const ids = rows.map(r => r.id)
     yield Saga.put(
       EntitiesGen.createMergeEntity({
-        keyPath: ['search', 'searchQueryToResult'],
         entities: I.Map({[searchQuery]: I.List(ids)}),
+        keyPath: ['search', 'searchQueryToResult'],
       })
     )
     yield Saga.put(
-      SearchGen.createFinishedSearch({searchKey, searchResults: ids, searchResultTerm: term, service})
+      SearchGen.createFinishedSearch({searchKey, searchResultTerm: term, searchResults: ids, service})
     )
     yield Saga.sequentially([
       Saga.put(
         EntitiesGen.createReplaceEntity({
-          keyPath: ['search', 'searchKeyToResults'],
           entities: I.Map({[searchKey]: I.List(ids)}),
+          keyPath: ['search', 'searchKeyToResults'],
         })
       ),
       Saga.put(
         EntitiesGen.createReplaceEntity({
-          keyPath: ['search', 'searchKeyToShowSearchSuggestion'],
           entities: I.Map({[searchKey]: false}),
+          keyPath: ['search', 'searchKeyToShowSearchSuggestion'],
         })
       ),
     ])
@@ -251,20 +251,17 @@ function* search({payload: {term, service, searchKey}}: SearchGen.SearchPayload)
   } finally {
     yield Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToPending'],
         entities: I.Map({[searchKey]: false}),
+        keyPath: ['search', 'searchKeyToPending'],
       })
     )
   }
 }
 
 function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSuggestionsPayload) {
-  let suggestions: Array<RPCTypes.InterestingPerson> = yield Saga.call(
-    RPCTypes.userInterestingPeopleRpcPromise,
-    {
-      maxUsers: maxUsers || 50,
-    }
-  )
+  let suggestions = yield* Saga.callPromise(RPCTypes.userInterestingPeopleRpcPromise, {
+    maxUsers: maxUsers || 50,
+  })
 
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []
@@ -273,29 +270,29 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSu
   const ids = rows.map(r => r.id)
 
   yield Saga.put(
-    EntitiesGen.createMergeEntity({keyPath: ['search', 'searchResults'], entities: I.Map(keyBy(rows, 'id'))})
+    EntitiesGen.createMergeEntity({entities: I.Map(keyBy(rows, 'id')), keyPath: ['search', 'searchResults']})
   )
   yield Saga.sequentially([
     Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToShowSearchSuggestion'],
         entities: I.Map({[searchKey]: true}),
+        keyPath: ['search', 'searchKeyToShowSearchSuggestion'],
       })
     ),
     Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToResults'],
         entities: I.Map({[searchKey]: I.List(ids)}),
+        keyPath: ['search', 'searchKeyToResults'],
       })
     ),
   ])
   yield Saga.put(
     SearchGen.createFinishedSearch({
       searchKey,
-      searchResults: ids,
       searchResultTerm: '',
-      service: 'Keybase',
+      searchResults: ids,
       searchShowingSuggestions: true,
+      service: 'Keybase',
     })
   )
 }
@@ -305,15 +302,15 @@ const updateSelectedSearchResult = ({
 }: SearchGen.UpdateSelectedSearchResultPayload) =>
   Saga.put(
     EntitiesGen.createReplaceEntity({
-      keyPath: ['search', 'searchKeyToSelectedId'],
       entities: I.Map({[searchKey]: id}),
+      keyPath: ['search', 'searchKeyToSelectedId'],
     })
   )
 
 function* addResultsToUserInput({
   payload: {searchKey, searchResults},
 }: SearchGen.AddResultsToUserInputPayload) {
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
   const searchResultMap = Selectors.searchResultMapSelector(state)
   const maybeUpgradedUsers = searchResults.map(u =>
@@ -321,13 +318,13 @@ function* addResultsToUserInput({
   )
   yield Saga.put.resolve(
     EntitiesGen.createMergeEntity({
-      keyPath: ['search', 'searchKeyToUserInputItemIds'],
       entities: I.Map({
         [searchKey]: I.OrderedSet(maybeUpgradedUsers),
       }),
+      keyPath: ['search', 'searchKeyToUserInputItemIds'],
     })
   )
-  state = yield Saga.select()
+  state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -337,15 +334,15 @@ function* addResultsToUserInput({
 function* removeResultsToUserInput({
   payload: {searchKey, searchResults},
 }: SearchGen.RemoveResultsToUserInputPayload) {
-  let state: TypedState = yield Saga.select()
+  let state = yield* Saga.selectState()
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
   yield Saga.put.resolve(
     EntitiesGen.createSubtractEntity({
-      keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
       entities: I.List(searchResults),
+      keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
     })
   )
-  state = yield Saga.select()
+  state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -353,15 +350,15 @@ function* removeResultsToUserInput({
 }
 
 function* setUserInputItems({payload: {searchKey, searchResults}}: SearchGen.SetUserInputItemsPayload) {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(state, searchKey)
   if (!ids.equals(I.OrderedSet(searchResults))) {
     yield Saga.put.resolve(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToUserInputItemIds'],
         entities: I.Map({
           [searchKey]: I.OrderedSet(searchResults),
         }),
+        keyPath: ['search', 'searchKeyToUserInputItemIds'],
       })
     )
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: searchResults}))
@@ -372,16 +369,16 @@ function clearSearchResults({payload: {searchKey}}: SearchGen.ClearSearchResults
   return Saga.sequentially([
     Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToResults'],
         entities: I.Map({[searchKey]: null}),
+        keyPath: ['search', 'searchKeyToResults'],
       })
     ),
     Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToSearchResultQuery'],
         entities: I.Map({
           [searchKey]: null,
         }),
+        keyPath: ['search', 'searchKeyToSearchResultQuery'],
       })
     ),
   ])
@@ -390,10 +387,10 @@ function clearSearchResults({payload: {searchKey}}: SearchGen.ClearSearchResults
 const finishedSearch = ({payload: {searchKey, searchResultTerm, service}}) =>
   Saga.put(
     EntitiesGen.createReplaceEntity({
-      keyPath: ['search', 'searchKeyToSearchResultQuery'],
       entities: I.Map({
-        [searchKey]: {text: searchResultTerm, service},
+        [searchKey]: {service, text: searchResultTerm},
       }),
+      keyPath: ['search', 'searchKeyToSearchResultQuery'],
     })
   )
 
@@ -417,10 +414,10 @@ function clearSearchTextInput(
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, searchKey)
   return Saga.put(
     EntitiesGen.createReplaceEntity({
-      keyPath: ['search', 'searchKeyToClearSearchTextInput'],
       entities: I.Map({
         [searchKey]: clearSearchTextInput + 1,
       }),
+      keyPath: ['search', 'searchKeyToClearSearchTextInput'],
     })
   )
 }

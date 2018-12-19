@@ -64,13 +64,13 @@ const styles = Styles.styleSheetCreate({
   itemContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
-    paddingTop: 8,
     paddingBottom: 8,
+    paddingTop: 8,
   },
   itemText: Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
       color: Styles.globalColors.black_60,
+      marginLeft: Styles.globalMargins.tiny,
       overflow: 'hidden',
     },
     isElectron: {

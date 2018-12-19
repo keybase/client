@@ -43,6 +43,21 @@ const Header = (props: HeaderProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  backButton: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      left: Styles.globalMargins.small,
+      top: Styles.globalMargins.small,
+    },
+    isMobile: {
+      left: Styles.globalMargins.xtiny,
+    },
+  }),
+  backButtonText: {
+    color: Styles.globalColors.white,
+  },
   header: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.purple,
@@ -52,9 +67,9 @@ const styles = Styles.styleSheetCreate({
       minHeight: 144,
     },
     isMobile: {
+      flexBasis: 'auto',
       flexGrow: 1,
       flexShrink: 1,
-      flexBasis: 'auto',
       minHeight: 200,
     },
   }),
@@ -63,25 +78,10 @@ const styles = Styles.styleSheetCreate({
       marginTop: -20,
     },
   }),
-  headerText: {
-    color: Styles.globalColors.white,
-  },
   headerIcon: {
     marginBottom: Styles.globalMargins.small,
   },
-  backButton: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      top: Styles.globalMargins.small,
-      left: Styles.globalMargins.small,
-    },
-    isMobile: {
-      left: Styles.globalMargins.xtiny,
-    },
-  }),
-  backButtonText: {
+  headerText: {
     color: Styles.globalColors.white,
   },
 })

@@ -26,11 +26,11 @@ const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: Own
   const syncing = _uploads.syncingPaths.has(path)
 
   return {
-    name,
-    itemStyles: Constants.getItemStyles(Types.getPathElements(path), _pathItem.type, _username),
     error,
-    writingToJournal,
+    itemStyles: Constants.getItemStyles(Types.getPathElements(path), _pathItem.type, _username),
+    name,
     syncing,
+    writingToJournal,
   }
 }
 

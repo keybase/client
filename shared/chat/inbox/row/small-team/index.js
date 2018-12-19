@@ -39,7 +39,7 @@ type State = {
 
 const SmallTeamBox = Styles.isMobile
   ? Kb.ClickableBox
-  : Styles.glamorous(Kb.Box)({
+  : Styles.styled(Kb.Box)({
       '& .small-team-gear': {display: 'none'},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},

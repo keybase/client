@@ -105,6 +105,7 @@ const styles = styleSheetCreate({
     alignItems: 'flex-start',
     flexWrap: 'wrap',
     paddingRight: 66,
+    paddingTop: globalMargins.tiny,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })

@@ -23,9 +23,9 @@ const pathActionTransformer = (action, oldState) => {
   const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
   return {
     payload: {
-      prevPath,
-      path,
       parentPath,
+      path,
+      prevPath,
     },
     type: action.type,
   }
@@ -101,7 +101,7 @@ const actionTransformMap = {
 
   [WaitingGen.incrementWaiting]: fullOutput,
   [WaitingGen.decrementWaiting]: fullOutput,
-  [WaitingGen.changeWaiting]: fullOutput,
+  [WaitingGen.batchChangeWaiting]: fullOutput,
   [WaitingGen.clearWaiting]: fullOutput,
 }
 

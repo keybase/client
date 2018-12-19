@@ -8,11 +8,12 @@ import ChatFilterRow from '.'
 import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
-  onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
-  onSelectUp: () => void,
+  onEnsureSelection: () => void,
+  onNewChat: () => void,
   onSelectDown: () => void,
+  onSelectUp: () => void,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -29,7 +30,7 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
       dispatch(
         flags.newTeamBuildingForChat
           ? RouteTreeGen.createNavigateAppend({
-              path: [{selected: 'newChat', props: {}}],
+              path: [{props: {}, selected: 'newChat'}],
             })
           : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
       )
@@ -46,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
+  onEnsureSelection: ownProps.onEnsureSelection,
   onNewChat: ownProps.onNewChat,
   onSelectDown: ownProps.onSelectDown,
   onSelectUp: ownProps.onSelectUp,

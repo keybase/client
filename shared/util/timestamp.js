@@ -73,17 +73,17 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
 
 const calendarFormatsForFS = {
   noUpperCaseFirst: {
-    sameDay: '[today at] LT',
     lastDay: '[yesterday at] LT',
     lastWeek: 'ddd [at] LT',
+    sameDay: '[today at] LT',
     sameElse: function(now) {
       return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
     },
   },
   upperCaseFirst: {
-    sameDay: '[Today at] LT',
     lastDay: '[Yesterday at] LT',
     lastWeek: 'ddd [at] LT',
+    sameDay: '[Today at] LT',
     sameElse: function(now) {
       return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
     },
@@ -135,18 +135,18 @@ const defaultLocale = moment.locale()
 moment.defineLocale('people', {
   parentLocale: 'en',
   relativeTime: {
+    M: '1mo',
+    MM: '%dmo',
+    d: '1d',
+    dd: '%dd',
     future: 'in %s',
+    h: '1h',
+    hh: '%dh',
+    m: '1m',
+    mm: '%dm',
     past: '%s ago',
     s: 'now',
     ss: '%ds',
-    m: '1m',
-    mm: '%dm',
-    h: '1h',
-    hh: '%dh',
-    d: '1d',
-    dd: '%dd',
-    M: '1mo',
-    MM: '%dmo',
     y: '1y',
     yy: '%dy',
   },

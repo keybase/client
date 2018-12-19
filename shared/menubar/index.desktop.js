@@ -94,9 +94,9 @@ class MenubarRender extends React.Component<Props, State> {
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
+            alignItems: 'center',
             flex: 1,
             justifyContent: 'center',
-            alignItems: 'center',
           }}
         >
           <Kb.Icon
@@ -120,7 +120,7 @@ class MenubarRender extends React.Component<Props, State> {
       <Kb.Box2 direction="horizontal" style={{width: '100%'}}>
         <Kb.Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
           <Kb.Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
-          {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, top: -2}} />}
+          {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{left: 14, position: 'absolute', top: -2}} />}
         </Kb.Box>
         <Kb.Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
@@ -134,35 +134,35 @@ class MenubarRender extends React.Component<Props, State> {
       ...(Flags.walletsEnabled
         ? [
             {
+              onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
               view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab] || 0),
-              onClick: () => this.props.openApp(Tabs.walletsTab),
             },
           ]
         : []),
       {
+        onClick: () => this.props.openApp(Tabs.gitTab),
         title: 'Git',
         view: this._menuView('Git', 'iconfont-nav-git', countMap[Tabs.gitTab] || 0),
-        onClick: () => this.props.openApp(Tabs.gitTab),
       },
       {
+        onClick: () => this.props.openApp(Tabs.devicesTab),
         title: 'Devices',
         view: this._menuView('Devices', 'iconfont-nav-devices', countMap[Tabs.devicesTab] || 0),
-        onClick: () => this.props.openApp(Tabs.devicesTab),
       },
       {
+        onClick: () => this.props.openApp(Tabs.settingsTab),
         title: 'Settings',
         view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab] || 0),
-        onClick: () => this.props.openApp(Tabs.settingsTab),
       },
       'Divider',
-      ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
-      {title: `Open folders in ${Styles.fileUIName}`, onClick: () => this.props.showInFinder('/')},
+      ...(this.props.loggedIn ? [{onClick: () => this.props.openApp(), title: 'Open main app'}] : []),
+      {onClick: () => this.props.showInFinder('/'), title: `Open folders in ${Styles.fileUIName}`},
       'Divider',
-      {title: 'Keybase.io', onClick: () => this.props.showUser()},
-      {title: 'Report a bug', onClick: this.props.showBug},
-      {title: 'Help', onClick: this.props.showHelp},
-      {title: 'Quit app', onClick: this.props.quit},
+      {onClick: () => this.props.showUser(), title: 'Keybase.io'},
+      {onClick: this.props.showBug, title: 'Report a bug'},
+      {onClick: this.props.showHelp, title: 'Help'},
+      {onClick: this.props.quit, title: 'Quit app'},
     ]
   }
 
@@ -210,7 +210,7 @@ class MenubarRender extends React.Component<Props, State> {
             {!!badgeCountInMenu && (
               <Kb.Badge
                 badgeNumber={badgeCountInMenu}
-                badgeStyle={{position: 'absolute', left: 14, top: -2}}
+                badgeStyle={{left: 14, position: 'absolute', top: -2}}
               />
             )}
           </Kb.Box>
@@ -286,68 +286,68 @@ const BadgeIcon = ({
         fontSize={22}
         type={iconType}
       />
-      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', top: -6, right: -8}} />}
+      {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}
     </Kb.Box>
   )
 }
 
 const styles = Styles.styleSheetCreate({
-  widgetContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    position: 'relative',
-    marginTop: isDarwin ? 13 : 0,
-    borderTopLeftRadius: Styles.globalMargins.xtiny,
-    borderTopRightRadius: Styles.globalMargins.xtiny,
-    backgroundColor: Styles.globalColors.darkBlue,
+  arrowTick: {
+    borderBottomColor: Styles.globalColors.darkBlue2,
+    borderBottomWidth: 6,
+    borderLeftColor: 'transparent',
+    borderLeftWidth: 6,
+    borderRightColor: 'transparent',
+    borderRightWidth: 6,
+    borderStyle: 'solid',
+    height: 0,
+    left: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    position: 'absolute',
+    right: 0,
+    top: -6,
+    width: 0,
   },
-  topRow: {
+  headerBadgesContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.darkBlue2,
     flex: 1,
-    minHeight: 40,
-    maxHeight: 40,
-    paddingLeft: 8,
-    paddingRight: 8,
-    borderTopLeftRadius: Styles.globalMargins.xtiny,
-    borderTopRightRadius: Styles.globalMargins.xtiny,
+    justifyContent: 'center',
+    marginLeft: 24 + 8,
   },
   logo: {
     alignSelf: 'center',
     marginBottom: 12,
   },
-  headerBadgesContainer: {
+  topRow: {
     ...Styles.globalStyles.flexBoxRow,
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 24 + 8,
-  },
-  arrowTick: {
-    height: 0,
-    width: 0,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    top: -6,
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderBottomWidth: 6,
-    borderStyle: 'solid',
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: Styles.globalColors.darkBlue2,
+    backgroundColor: Styles.globalColors.darkBlue2,
+    borderTopLeftRadius: Styles.globalMargins.xtiny,
+    borderTopRightRadius: Styles.globalMargins.xtiny,
+    flex: 1,
+    maxHeight: 40,
+    minHeight: 40,
+    paddingLeft: 8,
+    paddingRight: 8,
   },
   uploadingContainer: {
     ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 32,
     backgroundColor: Styles.globalColors.white,
+    justifyContent: 'center',
+    minHeight: 32,
     padding: 8,
+  },
+  widgetContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.darkBlue,
+    borderTopLeftRadius: Styles.globalMargins.xtiny,
+    borderTopRightRadius: Styles.globalMargins.xtiny,
+    flex: 1,
+    marginTop: isDarwin ? 13 : 0,
+    position: 'relative',
   },
 })
 

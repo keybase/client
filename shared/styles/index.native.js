@@ -7,8 +7,8 @@ import * as Shared from './shared'
 
 const font = isIOS
   ? {
-      fontExtrabold: {fontFamily: 'OpenSans', fontWeight: '800'},
       fontBold: {fontFamily: 'OpenSans', fontWeight: '700'},
+      fontExtrabold: {fontFamily: 'OpenSans', fontWeight: '800'},
       fontRegular: {fontFamily: 'OpenSans', fontWeight: '400'},
       fontSemibold: {fontFamily: 'OpenSans', fontWeight: '600'},
       fontTerminal: {fontFamily: 'Source Code Pro'},
@@ -16,8 +16,8 @@ const font = isIOS
       italic: {fontStyle: 'italic'},
     }
   : {
-      fontExtrabold: {fontFamily: 'OpenSans-ExtraBold', fontWeight: '800'},
       fontBold: {fontFamily: 'OpenSans', fontWeight: 'bold'},
+      fontExtrabold: {fontFamily: 'OpenSans-ExtraBold', fontWeight: '800'},
       fontRegular: {fontFamily: 'OpenSans', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'OpenSans-Semi', fontWeight: 'bold'},
       fontTerminal: {fontFamily: 'SourceCodePro'},
@@ -53,15 +53,16 @@ export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 export const collapseStyles = (
   styles: $ReadOnlyArray<CollapsibleStyle>
 ): $ReadOnlyArray<Object | null | false | void> => {
-  // $ForceType RN handles this directly
   return styles
 }
 export const transition = (...properties: Array<string>) => ({})
 export const backgroundURL = (...path: Array<string>) => ({})
+export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
-export {default as glamorous} from 'glamorous-native'
+export {default as glamorous} from '@emotion/native'
+export {default as styled, css as styledCss} from '@emotion/native'
 export {default as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6

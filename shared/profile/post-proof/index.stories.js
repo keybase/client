@@ -7,12 +7,12 @@ import Render from '.'
 
 const props = {
   allowProofCheck: true,
+  copyToClipboard: action('copyToClipboard'),
   onAllowProofCheck: action('onAllowProofCheck'),
   onCancel: action('onCancel'),
   onCancelText: 'Cancel',
   onComplete: action('onComplete'),
   platformUserName: 'awendland',
-  copyToClipboard: action('copyToClipboard'),
 }
 
 const propsTwitter = {

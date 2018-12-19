@@ -42,8 +42,8 @@ export default compose(
   }),
   withProps({
     autoFocus: true,
-    searchKey: 'chatSearch',
     placeholder: 'Search someone',
+    searchKey: 'chatSearch',
     showServiceFilter: true,
   })
 )(UserInput)

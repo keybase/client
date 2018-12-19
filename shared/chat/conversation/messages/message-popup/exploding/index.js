@@ -12,13 +12,19 @@ import {
   type PropsWithTimer,
   PopupHeaderText,
 } from '../../../../../common-adapters/'
-import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+  type StylesCrossPlatform,
+} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
-import {isAndroid} from '../../../../../constants/platform'
 import type {DeviceType} from '../../../../../constants/types/devices'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
@@ -31,7 +37,7 @@ type Props = {
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   position: Position,
-  style?: Object,
+  style?: StylesCrossPlatform,
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
@@ -75,19 +81,13 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   render() {
     const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
-    // Android overflow doesn't work
-    const bombVerticalOffset = isMobile ? (isAndroid ? 10 : -30) : -20
     return (
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        style={{alignItems: 'center', paddingTop: (isMobile ? 96 : 64) + bombVerticalOffset}}
-      >
+      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
         <Icon
-          style={{marginBottom: globalMargins.tiny, position: 'absolute', top: bombVerticalOffset}}
-          type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
+          style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+          type={isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
         />
-        <Box2 direction="vertical" gap="tiny" gapStart={true} gapEnd={true}>
+        <Box2 direction="vertical">
           <Text type="BodySmall" style={{color: globalColors.black_75}}>
             EXPLODING MESSAGE
           </Text>
@@ -139,11 +139,14 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           ])}
         >
           {hideTimer ? (
-            <ProgressIndicator white={true} style={{width: 17, height: 17}} />
+            <ProgressIndicator white={true} style={{height: 17, width: 17}} />
           ) : (
-            <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-              {msToDHMS(this.props.explodesAt - Date.now())}
-            </Text>
+            <Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
+              <Icon type="iconfont-timer" fontSize={isMobile ? 22 : 16} color={globalColors.white_40} />
+              <Text style={{alignSelf: 'center', color: globalColors.white}} type="BodySemibold">
+                {msToDHMS(this.props.explodesAt - Date.now())}
+              </Text>
+            </Box2>
           )}
         </Box2>
       </Box2>
@@ -169,6 +172,7 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
       items={props.items}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
     />

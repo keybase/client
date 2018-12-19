@@ -13,6 +13,7 @@ import transaction from './transaction/index.stories'
 import transactionDetails from './transaction-details/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
+import walletSwitcherRow from './wallet/header/wallet-switcher/wallet-row/index.stories'
 
 const load = () => {
   asset()
@@ -27,6 +28,7 @@ const load = () => {
   confirmForm()
   walletList()
   wallet()
+  walletSwitcherRow()
   transaction()
   transactionDetails()
 }

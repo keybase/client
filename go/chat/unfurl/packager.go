@@ -23,6 +23,7 @@ import (
 type Packager struct {
 	utils.DebugLabeler
 
+	cache        *unfurlCache
 	ri           func() chat1.RemoteInterface
 	store        attachments.Store
 	s3signer     s3.Signer
@@ -33,6 +34,7 @@ func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
 	ri func() chat1.RemoteInterface) *Packager {
 	return &Packager{
 		DebugLabeler: utils.NewDebugLabeler(l, "Packager", false),
+		cache:        newUnfurlCache(),
 		store:        store,
 		ri:           ri,
 		s3signer:     s3signer,
@@ -141,18 +143,28 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 	return p.uploadAsset(ctx, uid, convID, uploadPt, filename, int64(uploadLen), uploadMd, uploadContentType)
 }
 
-func (p *Packager) uploadGiphyVideo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	body io.ReadCloser, len int64, video chat1.UnfurlGiphyVideo) (res chat1.Asset, err error) {
+func (p *Packager) uploadVideo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	video chat1.UnfurlVideo) (res chat1.Asset, err error) {
+	body, len, err := p.assetBodyAndLength(ctx, video.Url)
+	if err != nil {
+		return res, err
+	}
+	defer body.Close()
+	return p.uploadVideoWithBody(ctx, uid, convID, body, len, video)
+}
+
+func (p *Packager) uploadVideoWithBody(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body io.ReadCloser, len int64, video chat1.UnfurlVideo) (res chat1.Asset, err error) {
 	dat, err := ioutil.ReadAll(body)
 	if err != nil {
 		return res, err
 	}
-	return p.uploadAsset(ctx, uid, convID, attachments.NewBufReadResetter(dat), "giphy.mp4",
+	return p.uploadAsset(ctx, uid, convID, attachments.NewBufReadResetter(dat), "video.mp4",
 		len, chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
 			Width:      video.Width,
 			Height:     video.Height,
 			DurationMs: 1,
-		}), "video/mp4")
+		}), video.MimeType)
 }
 
 func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -164,7 +176,14 @@ func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID c
 		PublishTime: raw.Generic().PublishTime,
 		Description: raw.Generic().Description,
 	}
-	if raw.Generic().ImageUrl != nil {
+	if raw.Generic().Video != nil {
+		asset, err := p.uploadVideo(ctx, uid, convID, *raw.Generic().Video)
+		if err != nil {
+			p.Debug(ctx, "packageGeneric: failed to package video asset: %s", err)
+		}
+		g.Image = &asset
+	}
+	if g.Image == nil && raw.Generic().ImageUrl != nil {
 		asset, err := p.assetFromURL(ctx, *raw.Generic().ImageUrl, uid, convID, true)
 		if err != nil {
 			p.Debug(ctx, "packageGeneric: failed to get image asset URL: %s", err)
@@ -198,7 +217,7 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 		vidBody, vidLength, err := p.assetBodyAndLength(ctx, raw.Giphy().Video.Url)
 		defer vidBody.Close()
 		if err == nil && vidLength < imgLength && vidLength < p.maxAssetSize {
-			asset, err := p.uploadGiphyVideo(ctx, uid, convID, vidBody, int64(vidLength),
+			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, int64(vidLength),
 				*raw.Giphy().Video)
 			if err != nil {
 				p.Debug(ctx, "Package: failed to get video asset URL: %s", err)
@@ -232,9 +251,33 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	return chat1.NewUnfurlWithGiphy(g), nil
 }
 
+func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw chat1.UnfurlRaw) string {
+	url := raw.GetUrl()
+	if url == "" {
+		return ""
+	}
+	typ, err := raw.UnfurlType()
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s-%s-%s-%s", uid, convID, url, typ)
+}
+
 func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
 	defer p.Trace(ctx, func() error { return err }, "Package")()
+
+	cacheKey := p.cacheKey(uid, convID, raw)
+	if item, valid := p.cache.get(cacheKey); cacheKey != "" && valid {
+		p.Debug(ctx, "Package: using cached value")
+		return item.data.(chat1.Unfurl), nil
+	}
+	defer func() {
+		if cacheKey != "" && err == nil {
+			p.cache.put(cacheKey, res)
+		}
+	}()
+
 	typ, err := raw.UnfurlType()
 	if err != nil {
 		return res, err

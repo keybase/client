@@ -111,7 +111,8 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
         {this.state.displayResultsList && (
           <Kb.FloatingBox
             attachTo={this._getRef}
-            position="top center"
+            position="bottom center"
+            positionFallbacks={[]}
             containerStyle={styles.resultsFloatingContainer}
             propagateOutsideClicks={true}
           >
@@ -134,6 +135,32 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
 }
 
 const styles = Styles.styleSheetCreate({
+  input: {
+    alignSelf: 'center',
+    borderBottomWidth: 0,
+    borderWidth: 0,
+    flexGrow: 1,
+    paddingLeft: 0,
+  },
+  list: {
+    height: '100%',
+    width: '100%',
+  },
+  qrCode: {
+    alignSelf: 'center',
+    marginRight: Styles.globalMargins.tiny,
+  },
+  resultsContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      height: '100%',
+      width: '100%',
+    },
+    isElectron: {
+      marginLeft: 1,
+      overflowY: 'auto',
+    },
+  }),
   resultsFloatingContainer: Styles.platformStyles({
     isMobile: {marginTop: 146},
   }),
@@ -150,17 +177,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  resultsContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      height: '100%',
-      width: '100%',
-    },
-    isElectron: {
-      marginLeft: 1,
-      overflowY: 'auto',
-    },
-  }),
   row: {
     minHeight: 48,
     paddingBottom: 0,
@@ -168,22 +184,6 @@ const styles = Styles.styleSheetCreate({
   },
   rowHeading: {
     marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
-  },
-  input: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    borderWidth: 0,
-    borderBottomWidth: 0,
-    paddingLeft: 0,
-  },
-  list: {
-    height: '100%',
-    width: '100%',
-  },
-
-  qrCode: {
-    alignSelf: 'center',
-    marginRight: Styles.globalMargins.tiny,
   },
 })
 

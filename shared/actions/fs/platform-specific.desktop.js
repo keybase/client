@@ -16,7 +16,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import {navigateTo, switchTo} from '../route-tree'
+import {switchTo} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -164,24 +164,27 @@ function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusR
 }
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
+  const state = yield* Saga.selectState()
   const prevStatus = state.fs.fuseStatus
 
-  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
+  let status = yield* Saga.callPromise(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
   if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
     // Check if another Dokan we didn't install mounted the filesystem
-    const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
+    const kbfsMount = yield* Saga.callPromise(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
-      status.installStatus = RPCTypes.installInstallStatus.installed
-      status.installAction = RPCTypes.installInstallAction.none
-      status.kextStarted = true
+      status = {
+        ...status,
+        installAction: RPCTypes.installInstallAction.none,
+        installStatus: RPCTypes.installInstallStatus.installed,
+        kextStarted: true,
+      }
     }
   }
   yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
 }
 
 function* installFuseSaga(): Saga.SagaGenerator<any, any> {
-  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
+  const result: RPCTypes.InstallResult = yield* Saga.callPromise(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults =
     result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
   const kextPermissionError =
@@ -217,8 +220,8 @@ const uninstallKBFSConfirmSuccess = resp =>
   resp
     ? undefined
     : Saga.sequentially([
-        Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-        Saga.call(() => {
+        Saga.callUntyped(RPCTypes.installUninstallKBFSRpcPromise),
+        Saga.callUntyped(() => {
           // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
           SafeElectron.getApp().relaunch()
           SafeElectron.getApp().exit(0)
@@ -226,7 +229,7 @@ const uninstallKBFSConfirmSuccess = resp =>
       ])
 
 const openSecurityPreferences = () =>
-  Saga.call(
+  Saga.callUntyped(
     () =>
       new Promise((resolve, reject) => {
         SafeElectron.getShell().openExternal(
@@ -277,7 +280,7 @@ function installCachedDokan() {
 }
 
 function installDokanSaga() {
-  return Saga.call(installCachedDokan)
+  return Saga.callUntyped(installCachedDokan)
 }
 
 const uninstallDokanPromise = (state: TypedState) => {
@@ -301,20 +304,20 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
       {
-        title: 'Select a file or folder to upload',
         properties: [
           'multiSelections',
           ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
           ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
+        title: 'Select a file or folder to upload',
       },
       filePaths => resolve(filePaths || [])
     )
   )
 
 const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
-  Saga.call(function*() {
-    const localPaths = yield Saga.call(openAndUploadToPromise, state, action)
+  Saga.callUntyped(function*() {
+    const localPaths = yield* Saga.callPromise(openAndUploadToPromise, state, action)
     yield Saga.all(
       localPaths.map(localPath =>
         Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
@@ -323,9 +326,9 @@ const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   })
 
 const loadUserFileEdits = (state: TypedState, action) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     try {
-      const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+      const writerEdits = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
       const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
       const updateSet = tlfUpdates
         .reduce(
@@ -345,8 +348,8 @@ const loadUserFileEdits = (state: TypedState, action) =>
         ...updateSet.map(path =>
           Saga.put(
             FsGen.createFilePreviewLoad({
-              path,
               identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+              path,
             })
           )
         ),
@@ -360,23 +363,7 @@ const loadUserFileEdits = (state: TypedState, action) =>
 const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    ...(path
-      ? [
-          Saga.put(
-            navigateTo([
-              Tabs.fsTab,
-              {
-                props: {path: Types.getPathParent(path)},
-                selected: 'folder',
-              },
-              {
-                props: {path},
-                selected: type === 'folder' ? 'folder' : 'preview',
-              },
-            ])
-          ),
-        ]
-      : [Saga.put(switchTo([Tabs.fsTab]))]),
+    ...(path ? [Saga.put(FsGen.createOpenPathInFilesTab({path}))] : [Saga.put(switchTo([Tabs.fsTab]))]),
   ])
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {

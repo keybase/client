@@ -12,7 +12,10 @@ const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
   const currency = state.wallets.building.currency
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  const displayUnit = currencyWaiting ? '' : Constants.getCurrencyAndSymbol(state, currency)
+  let displayUnit = currencyWaiting ? '' : Constants.getCurrencyAndSymbol(state, currency)
+  if (state.wallets.lastSentXLM && currency === 'XLM') {
+    displayUnit = 'XLM'
+  }
   return {
     accountID,
     bottomLabel: '', // TODO
@@ -26,6 +29,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
   onChangeDisplayUnit: () => {
     dispatch(
       Route.navigateAppend([
@@ -36,7 +40,6 @@ const mapDispatchToProps = dispatch => ({
       ])
     )
   },
-  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

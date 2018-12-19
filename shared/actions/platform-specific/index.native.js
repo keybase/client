@@ -5,11 +5,13 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
+import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
 import {
+  Alert,
   NetInfo,
   Linking,
   NativeModules,
@@ -109,7 +111,7 @@ const getContentTypeFromURL = (
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
   isAndroid
-    ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
+    ? fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
           let disposition = ''
@@ -124,7 +126,7 @@ const getContentTypeFromURL = (
             disposition = response.headers.get('Content-Disposition') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
-          cb({statusCode, contentType, disposition})
+          cb({contentType, disposition, statusCode})
         })
         .catch(error => {
           console.log(error)
@@ -138,7 +140,7 @@ const getContentTypeFromURL = (
             contentType = response.headers.get('Content-Type') || ''
             disposition = response.headers.get('Content-Disposition') || ''
           }
-          cb({statusCode: response.status, contentType, disposition})
+          cb({contentType, disposition, statusCode: response.status})
         })
         .catch(error => {
           console.log(error)
@@ -162,10 +164,7 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
       logState = RPCTypes.appStateAppState.inactive
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (v: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.payload.nextAppState);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
       logState = RPCTypes.appStateAppState.foreground
   }
@@ -180,9 +179,9 @@ const clearRouteState = () =>
   )
 
 const persistRouteState = (state: TypedState) =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     // Put a delay in case we go to a route and crash immediately
-    yield Saga.call(Saga.delay, 3000)
+    yield Saga.callUntyped(Saga.delay, 3000)
     const routePath = getPath(state.routeTree.routeState)
     const selectedTab = routePath.first()
     if (Tabs.isValidInitialTabString(selectedTab)) {
@@ -205,7 +204,7 @@ const persistRouteState = (state: TypedState) =>
   })
 
 const setupNetInfoWatcher = () =>
-  Saga.call(function*() {
+  Saga.callUntyped(function*() {
     const channel = Saga.eventChannel(emitter => {
       NetInfo.addEventListener('connectionChange', () => emitter('changed'))
       return () => {}
@@ -278,7 +277,7 @@ const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandsh
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  return Saga.call(function*() {
+  return Saga.callUntyped(function*() {
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: true,
@@ -301,6 +300,10 @@ const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
+const handleFilePickerError = (state: TypedState, action: ConfigGen.FilePickerErrorPayload) => {
+  Alert.alert('Error', action.payload.error.message)
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
@@ -310,6 +313,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
+  yield Saga.actionToAction(ConfigGen.filePickerError, handleFilePickerError)
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
 

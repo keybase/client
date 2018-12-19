@@ -1,139 +1,139 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Button, PlatformIcon, ButtonBar} from '../../common-adapters'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-  desktopStyles,
-  platformStyles,
-  collapseStyles,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Constants from '../../constants/profile'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
-
 import type {Props} from './index'
 
-const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isWaiting}: Props) => {
-  const platformHandleSubtitle = platformSubtitle(platform)
-
+const Revoke = (props: Props) => {
+  const platformHandleSubtitle = platformSubtitle(props.platform)
   return (
-    <Box style={styleContainer}>
-      {!isWaiting && (
-        <Icon
+    <Kb.Box style={styleContainer}>
+      {!props.isWaiting && (
+        <Kb.Icon
           style={styleClose}
           type="iconfont-close"
-          onClick={() => onCancel()}
-          color={globalColors.black_10}
+          onClick={props.onCancel}
+          color={Styles.globalColors.black_10}
         />
       )}
-      {errorMessage && (
-        <Box style={styleErrorBanner}>
-          <Text style={styleErrorBannerText} type="BodySemibold">
-            {errorMessage}
-          </Text>
-        </Box>
+      {!!props.errorMessage && (
+        <Kb.Box style={styleErrorBanner}>
+          <Kb.Text style={styleErrorBannerText} type="BodySemibold">
+            {props.errorMessage}
+          </Kb.Text>
+        </Kb.Box>
       )}
-      <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} />
-        <Text style={stylePlatformUsername} type="Header">
-          {platformHandle}
-        </Text>
+      <Kb.Box style={styleContentContainer}>
+        <Kb.PlatformIcon
+          platform={props.platform}
+          overlay={'icon-proof-broken'}
+          overlayColor={Styles.globalColors.red}
+        />
+        <Kb.Text style={stylePlatformUsername} type="Header">
+          {props.platformHandle}
+        </Kb.Text>
         {!!platformHandleSubtitle && (
-          <Text style={stylePlatformSubtitle} type="Body">
+          <Kb.Text style={stylePlatformSubtitle} type="Body">
             {platformHandleSubtitle}
-          </Text>
+          </Kb.Text>
         )}
-        <Text style={styleDescriptionText} type="Header">
-          {formatMessage(platform)}
-        </Text>
-        <Text style={styleReminderText} type="Body">
+        <Kb.Text style={styleDescriptionText} type="Header">
+          {formatMessage(props.platform)}
+        </Kb.Text>
+        <Kb.Text style={styleReminderText} type="Body">
           You can add it again later, if you change your mind.
-        </Text>
-        <ButtonBar>
-          <Button type="Secondary" onClick={onCancel} label="Cancel" disabled={isWaiting} />
-          <Button
-            type="Danger"
-            onClick={onRevoke}
-            label={formatConfirmButton(platform)}
-            waiting={isWaiting}
+        </Kb.Text>
+        <Kb.ButtonBar>
+          <Kb.WaitingButton
+            type="Secondary"
+            onClick={props.onCancel}
+            label="Cancel"
+            waitingKey={Constants.waitingKey}
           />
-        </ButtonBar>
-      </Box>
-    </Box>
+          <Kb.WaitingButton
+            type="Danger"
+            onClick={props.onRevoke}
+            label={formatConfirmButton(props.platform)}
+            waitingKey={Constants.waitingKey}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
 const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
+  flexGrow: 1,
+  paddingBottom: Styles.globalMargins.large,
+  paddingTop: Styles.globalMargins.large,
   position: 'relative',
-  paddingTop: globalMargins.large,
-  paddingBottom: globalMargins.large,
-  ...desktopStyles.scrollable,
+  ...Styles.desktopStyles.scrollable,
 }
 
-const styleClose = collapseStyles([
+const styleClose = Styles.collapseStyles([
   {
     position: 'absolute',
-    top: globalMargins.small,
-    right: globalMargins.small,
+    right: Styles.globalMargins.small,
+    top: Styles.globalMargins.small,
   },
-  desktopStyles.clickable,
+  Styles.desktopStyles.clickable,
 ])
 
 const styleErrorBanner = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
+  backgroundColor: Styles.globalColors.red,
+  justifyContent: 'center',
+  minHeight: Styles.globalMargins.large,
+  padding: Styles.globalMargins.tiny,
   width: '100%',
   zIndex: 1,
-  minHeight: globalMargins.large,
-  padding: globalMargins.tiny,
-  backgroundColor: globalColors.red,
 }
 
 const styleErrorBannerText = {
-  color: globalColors.white,
+  color: Styles.globalColors.white,
   maxWidth: 512,
-  ...(isMobile ? {} : {textAlign: 'center'}),
+  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
 }
 
 const styleContentContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
+  alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'center',
-  alignItems: 'center',
-  margin: globalMargins.large,
+  margin: Styles.globalMargins.large,
   maxWidth: 512,
-  ...(isMobile ? {} : {textAlign: 'center'}),
+  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
 }
 
-const stylePlatformUsername = platformStyles({
+const stylePlatformUsername = Styles.platformStyles({
   common: {
+    color: Styles.globalColors.red,
     textDecorationLine: 'line-through',
-    color: globalColors.red,
   },
   isElectron: {
-    textAlign: 'center',
-    overflowWrap: 'break-word',
     maxWidth: 400,
+    overflowWrap: 'break-word',
+    textAlign: 'center',
   },
 })
 const stylePlatformSubtitle = {
-  color: globalColors.black_20,
+  color: Styles.globalColors.black_20,
 }
 
 const styleDescriptionText = {
-  marginTop: globalMargins.medium,
-  ...(isMobile ? {} : {textAlign: 'center'}),
+  marginTop: Styles.globalMargins.medium,
+  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
 }
 
 const styleReminderText = {
-  marginTop: globalMargins.tiny,
-  ...(isMobile ? {} : {textAlign: 'center'}),
+  marginTop: Styles.globalMargins.tiny,
+  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
 }
 
 export default Revoke

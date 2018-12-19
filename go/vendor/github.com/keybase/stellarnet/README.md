@@ -18,3 +18,14 @@ To record new responses from the test horizon servers:
 
 This makes `go test` very fast (0.02s) as it doesn't hit the network at all.
 Currently, `go test -live` or `go test -record` takes 20s.
+
+## Forks
+
+To make a link so the tests use keybase's fork of the horizon client:
+ 
+	ln -s $(GOPATH)/src/github.com/keybase/stellar-org $(GOPATH)/src/github.com/stellar/go
+
+And to remove it:
+
+	rm $(GOPATH)/src/github.com/stellar/go
+

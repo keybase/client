@@ -14,6 +14,7 @@ export type Props = {
   imageURL?: string,
   imageHeight?: number,
   imageWidth?: number,
+  imageIsVideo?: boolean,
   faviconURL?: string,
   onClose?: () => void,
   showImageOnSide: boolean,
@@ -26,9 +27,9 @@ class UnfurlGeneric extends React.Component<Props> {
         {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
         <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-            <Kb.Box2 direction="horizontal" gap="tiny">
-              {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
-              <Kb.Text type="BodySmall">
+            {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
+            <Kb.BoxGrow>
+              <Kb.Text type="BodySmall" lineClamp={1}>
                 {this.props.siteName}
                 {!!this.props.publishTime && (
                   <Kb.Text type="BodySmall">
@@ -37,7 +38,7 @@ class UnfurlGeneric extends React.Component<Props> {
                   </Kb.Text>
                 )}
               </Kb.Text>
-            </Kb.Box2>
+            </Kb.BoxGrow>
             {!!this.props.onClose && (
               <Kb.Icon
                 type="iconfont-close"
@@ -51,30 +52,49 @@ class UnfurlGeneric extends React.Component<Props> {
           <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
             {this.props.title}
           </Kb.Text>
-          {!!this.props.description && <Kb.Text type="Body" lineClamp={5}>{this.props.description}</Kb.Text>}
+          {!!this.props.description && (
+            <Kb.Text type="Body" lineClamp={5}>
+              {this.props.description}
+            </Kb.Text>
+          )}
           {!!this.props.imageURL &&
             !!this.props.imageHeight &&
             !!this.props.imageWidth &&
-            !Styles.isMobile &&
             !this.props.showImageOnSide && (
               <UnfurlImage
                 url={this.props.imageURL}
                 height={this.props.imageHeight}
                 width={this.props.imageWidth}
+                widthPadding={Styles.isMobile ? Styles.globalMargins.tiny : undefined}
                 style={styles.bottomImage}
-                isVideo={false}
+                isVideo={this.props.imageIsVideo || false}
+                autoplayVideo={false}
               />
             )}
         </Kb.Box2>
-        {!!this.props.imageURL &&
-          !Styles.isMobile &&
-          this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
+        {!!this.props.imageURL && !Styles.isMobile && this.props.showImageOnSide && (
+          <Kb.Image src={this.props.imageURL} style={styles.sideImage} />
+        )}
       </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
+  bottomImage: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      alignSelf: 'center',
+    },
+  }),
+  closeBox: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'flex-start',
+      marginLeft: 'auto',
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -82,15 +102,12 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       maxWidth: 500,
     },
-    isMobile: {
-      paddingRight: 66,
-    },
   }),
-  quoteContainer: Styles.platformStyles({
+  favicon: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.lightGrey,
-      paddingLeft: Styles.globalMargins.xtiny,
-      alignSelf: 'stretch',
+      borderRadius: Styles.borderRadius,
+      height: 16,
+      width: 16,
     },
   }),
   innerContainer: Styles.platformStyles({
@@ -99,43 +116,39 @@ const styles = Styles.styleSheetCreate({
       minWidth: 150,
     },
     isMobile: {
-      borderWidth: 1,
-      borderRadius: Styles.borderRadius,
       borderColor: Styles.globalColors.lightGrey,
-      padding: Styles.globalMargins.tiny,
+      borderRadius: Styles.borderRadius,
+      borderWidth: 1,
+      padding: Styles.globalMargins.xtiny,
+    },
+  }),
+  quoteContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'stretch',
+      backgroundColor: Styles.globalColors.lightGrey,
+      paddingLeft: Styles.globalMargins.xtiny,
+    },
+  }),
+  sideImage: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 80,
+      maxWidth: 80,
     },
   }),
   siteNameContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      justifyContent: 'space-between',
     },
-  }),
-  closeBox: Styles.platformStyles({
     isElectron: {
-      marginLeft: 'auto',
-      alignSelf: 'flex-start',
+      minHeight: 16,
     },
-  }),
-  bottomImage: {
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  sideImage: Styles.platformStyles({
-    isElectron: {
-      maxWidth: 80,
-      maxHeight: 80,
+    isMobile: {
+      minHeight: 21,
     },
   }),
   url: {
     ...Styles.globalStyles.fontSemibold,
   },
-  favicon: Styles.platformStyles({
-    common: {
-      width: 16,
-      height: 16,
-      borderRadius: Styles.borderRadius,
-    },
-  }),
 })
 
 export default UnfurlGeneric

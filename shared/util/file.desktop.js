@@ -5,8 +5,7 @@ import os from 'os'
 import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
-
-import type {StatResult, WriteStream} from './file'
+import type {StatResult, WriteStream, Encoding} from './file'
 
 export function tmpDir(): string {
   return cacheRoot
@@ -54,7 +53,7 @@ export function stat(filepath: string): Promise<StatResult> {
       if (err) {
         return reject(err)
       }
-      resolve({size: stats.size, lastModified: stats.mtime.getTime()})
+      resolve({lastModified: stats.mtime.getTime(), size: stats.size})
     })
   })
 }
@@ -100,11 +99,12 @@ export function writeStream(filepath: string, encoding: string, append?: boolean
     close: () => ws.end(),
     write: d => {
       ws.write(d)
+      return Promise.resolve()
     },
   })
 }
 
-export function readFile(filepath: string, encoding: string): Promise<any> {
+export function readFile(filepath: string, encoding: Encoding): Promise<any> {
   return new Promise((resolve, reject) => {
     // $FlowIssue
     fs.readFile(filepath, {encoding}, (err, data) => {

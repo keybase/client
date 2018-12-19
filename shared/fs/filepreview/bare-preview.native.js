@@ -11,30 +11,20 @@ import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
 
-const mapStateToProps = (state, ownProps: BarePreviewProps) => {
-  // $FlowIssue Flow is confused here for no reason.
-  const path = Types.stringToPath(ownProps.routeProps.get('path'))
-  return {
-    path,
-    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  }
-}
-
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = ({path, _pathItem}, {onBack}, {routePath}) => ({
-  path,
-  routePath,
+const mergeProps = (stateProps, {onBack}, {routeProps, routePath}) => ({
   onBack,
+  path: routeProps.get('path', Constants.defaultPath),
+  routePath,
 })
 
 type ConnectedBarePreviewProps = {
+  onBack: () => void,
   path: Types.Path,
   routePath: I.List<string>,
-
-  onBack: () => void,
 }
 
 type State = {
@@ -74,6 +64,11 @@ class BarePreview extends React.PureComponent<ConnectedBarePreviewProps, State> 
 }
 
 const styles = Styles.styleSheetCreate({
+  closeBox: {
+    height: 48,
+    paddingLeft: Styles.globalMargins.tiny,
+    width: 64,
+  },
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -81,28 +76,19 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.black,
     },
   }),
-  text: {
-    color: Styles.globalColors.white,
-    lineHeight: 48,
-  },
-  closeBox: {
-    paddingLeft: Styles.globalMargins.tiny,
-    height: 48,
-    width: 64,
-  },
-  header: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingLeft: Styles.globalMargins.tiny,
-  },
   contentContainer: {
     ...Styles.globalStyles.flexGrow,
   },
   footer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    paddingLeft: Styles.globalMargins.tiny,
     height: 48,
+    paddingLeft: Styles.globalMargins.tiny,
+  },
+  header: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingLeft: Styles.globalMargins.tiny,
   },
   loading: Styles.platformStyles({
     common: {
@@ -110,15 +96,19 @@ const styles = Styles.styleSheetCreate({
       width: 32,
     },
     isMobile: {
+      left: Styles.globalMargins.small,
       position: 'absolute',
       top: 48,
-      left: Styles.globalMargins.small,
     },
   }),
+  text: {
+    color: Styles.globalColors.white,
+    lineHeight: 48,
+  },
 })
 
 export default connect<BarePreviewProps, _, _, _, _>(
-  mapStateToProps,
+  () => ({}),
   mapDispatchToProps,
   mergeProps
 )(BarePreview)
