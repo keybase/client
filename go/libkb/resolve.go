@@ -522,71 +522,71 @@ type ResolveCacheStats struct {
 
 type ResolverImpl struct {
 	cache   *ramcache.Ramcache
-	Stats   ResolveCacheStats
+	Stats   *ResolveCacheStats
 	locktab LockTable
 }
 
-func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
+func (s *ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
 	s.Lock()
 	defer s.Unlock()
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h)
 }
 
-func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
+func (s *ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
 	s.Lock()
 	defer s.Unlock()
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h) && (s.diskGetHits == dh)
 }
 
-func (s ResolveCacheStats) IncMisses() {
+func (s *ResolveCacheStats) IncMisses() {
 	s.Lock()
 	s.misses++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncTimeouts() {
+func (s *ResolveCacheStats) IncTimeouts() {
 	s.Lock()
 	s.timeouts++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncMutableTimeouts() {
+func (s *ResolveCacheStats) IncMutableTimeouts() {
 	s.Lock()
 	s.mutableTimeouts++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncErrorTimeouts() {
+func (s *ResolveCacheStats) IncErrorTimeouts() {
 	s.Lock()
 	s.errorTimeouts++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncHits() {
+func (s *ResolveCacheStats) IncHits() {
 	s.Lock()
 	s.hits++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncDiskGets() {
+func (s *ResolveCacheStats) IncDiskGets() {
 	s.Lock()
 	s.diskGets++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncDiskGetHits() {
+func (s *ResolveCacheStats) IncDiskGetHits() {
 	s.Lock()
 	s.diskGetHits++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncDiskGetMisses() {
+func (s *ResolveCacheStats) IncDiskGetMisses() {
 	s.Lock()
 	s.diskGetMisses++
 	s.Unlock()
 }
 
-func (s ResolveCacheStats) IncDiskPuts() {
+func (s *ResolveCacheStats) IncDiskPuts() {
 	s.Lock()
 	s.diskPuts++
 	s.Unlock()
@@ -595,6 +595,7 @@ func (s ResolveCacheStats) IncDiskPuts() {
 func NewResolverImpl() *ResolverImpl {
 	return &ResolverImpl{
 		cache: nil,
+		Stats: &ResolveCacheStats{},
 	}
 }
 
