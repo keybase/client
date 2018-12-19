@@ -300,7 +300,11 @@ def testGo(prefix) {
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
         "KEYBASE_RUN_CI=1",
-    ]) {
+    ].plus(isUnix() ? [] : [
+        'CC=C:\\cygwin64\\bin\\x86_64-w64-mingw32-gcc.exe',
+        'CPATH=C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
+        // 'CPATH=C:\\cygwin64\\lib\\gcc\\x86_64-w64-mingw32\\6.4.0\\include;C:\\cygwin64\\lib\\gcc\\x86_64-w64-mingw32\\6.4.0\\include\\ssp;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
+    ])) {
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
         println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}. Merging to branch ${env.CHANGE_TARGET}."
