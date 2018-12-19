@@ -5,7 +5,7 @@ import AttachmentMessage from './attachment/container'
 import TextMessage from './text/container'
 import ExplodingMessage from './exploding/container'
 import PaymentMessage from './payment/container'
-import type {Position} from '../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../styles/css'
 
 type Props = {

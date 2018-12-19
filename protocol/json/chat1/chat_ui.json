@@ -489,8 +489,20 @@
           "name": "statusDescription"
         },
         {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
           "type": "boolean",
           "name": "showCancel"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
         }
       ]
     },
@@ -585,6 +597,14 @@
         {
           "type": "string",
           "name": "senderDeviceType"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "senderUID"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDeviceID"
         },
         {
           "type": "boolean",

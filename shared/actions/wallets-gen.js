@@ -14,11 +14,13 @@ export const resetStore = 'common:resetStore' // not a part of wallets but is ha
 export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
+export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addNewPayment = 'wallets:addNewPayment'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
+export const buildingPaymentIDReceived = 'wallets:buildingPaymentIDReceived'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
 export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
@@ -93,11 +95,13 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 // Payload Types
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
+type _AccountUpdateReceivedPayload = $ReadOnly<{|account: Types.Account|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AddNewPaymentPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _AssetsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, assets: Array<Types.Assets>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
 type _BuildPaymentPayload = void
+type _BuildingPaymentIDReceivedPayload = $ReadOnly<{|bid: string|}>
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment, forBuildCounter: number|}>
 type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBuildCounter: number|}>
 type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
@@ -477,6 +481,10 @@ export const createBuiltPaymentReceived = (payload: _BuiltPaymentReceivedPayload
  */
 export const createBuiltRequestReceived = (payload: _BuiltRequestReceivedPayload) => ({payload, type: builtRequestReceived})
 /**
+ * Update our store with an ID for a new building payment
+ */
+export const createBuildingPaymentIDReceived = (payload: _BuildingPaymentIDReceivedPayload) => ({payload, type: buildingPaymentIDReceived})
+/**
  * Update our store with an exported secret key
  */
 export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({payload, type: secretKeyReceived})
@@ -488,15 +496,21 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
+/**
+ * We received an updated account record
+ */
+export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
 
 // Action Payloads
 export type AbandonPaymentPayload = {|+payload: _AbandonPaymentPayload, +type: 'wallets:abandonPayment'|}
 export type AcceptDisclaimerPayload = {|+payload: _AcceptDisclaimerPayload, +type: 'wallets:acceptDisclaimer'|}
+export type AccountUpdateReceivedPayload = {|+payload: _AccountUpdateReceivedPayload, +type: 'wallets:accountUpdateReceived'|}
 export type AccountsReceivedPayload = {|+payload: _AccountsReceivedPayload, +type: 'wallets:accountsReceived'|}
 export type AddNewPaymentPayload = {|+payload: _AddNewPaymentPayload, +type: 'wallets:addNewPayment'|}
 export type AssetsReceivedPayload = {|+payload: _AssetsReceivedPayload, +type: 'wallets:assetsReceived'|}
 export type BadgesUpdatedPayload = {|+payload: _BadgesUpdatedPayload, +type: 'wallets:badgesUpdated'|}
 export type BuildPaymentPayload = {|+payload: _BuildPaymentPayload, +type: 'wallets:buildPayment'|}
+export type BuildingPaymentIDReceivedPayload = {|+payload: _BuildingPaymentIDReceivedPayload, +type: 'wallets:buildingPaymentIDReceived'|}
 export type BuiltPaymentReceivedPayload = {|+payload: _BuiltPaymentReceivedPayload, +type: 'wallets:builtPaymentReceived'|}
 export type BuiltRequestReceivedPayload = {|+payload: _BuiltRequestReceivedPayload, +type: 'wallets:builtRequestReceived'|}
 export type CancelPaymentPayload = {|+payload: _CancelPaymentPayload, +type: 'wallets:cancelPayment'|}
@@ -578,11 +592,13 @@ export type WalletDisclaimerReceivedPayload = {|+payload: _WalletDisclaimerRecei
 export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
+  | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddNewPaymentPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload
+  | BuildingPaymentIDReceivedPayload
   | BuiltPaymentReceivedPayload
   | BuiltRequestReceivedPayload
   | CancelPaymentPayload

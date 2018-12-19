@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import type {Props as PropsCommon} from './copyable-text'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Text from './text'
@@ -16,16 +16,9 @@ type State = {
   hasCopied: boolean,
 }
 
-class CopyableText<P: Props> extends Component<P, State> {
-  state: State
+class CopyableText extends React.Component<Props, State> {
+  state = {hasCopied: false}
   lastCopyTimeoutId: TimeoutID
-
-  constructor(props: P) {
-    super(props)
-    this.state = {
-      hasCopied: false,
-    }
-  }
 
   _handleCopy() {
     Clipboard.setString(this.props.value)

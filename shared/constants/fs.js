@@ -16,7 +16,7 @@ import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
 import {putActionIfOnPath, navigateAppend, navigateTo} from '../actions/route-tree'
 
-export const defaultPath = '/keybase'
+export const defaultPath = Types.stringToPath('/keybase')
 
 // See Installer.m: KBExitFuseKextError
 export const ExitCodeFuseKextError = 4
@@ -860,6 +860,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to move file(s).`
     case FsGen.copy:
       return `Failed to copy file(s).`
+    case FsGen.openPathItem:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInFilesTab:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     default:
       return 'An unexplainable error has occurred.'
   }

@@ -27,7 +27,7 @@ func NewCmdAddPhoneNumber(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 	return cli.Command{
 		Name:         "add",
-		Usage:        "Add phone number to your Keybase account",
+		Usage:        "Add phone number to your Keybase account or resend verification text",
 		ArgumentHelp: "<phone number> <private|public>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "add", c)

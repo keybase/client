@@ -521,24 +521,23 @@ func (h *Server) applyPagerModeIncoming(ctx context.Context, convID chat1.Conver
 			pagination, res)
 	}()
 	switch pgmode {
-	case chat1.GetThreadNonblockPgMode_DEFAULT:
-		return pagination
 	case chat1.GetThreadNonblockPgMode_SERVER:
 		if pagination == nil {
 			return nil
 		}
+		oldStored := h.convPageStatus[convID.String()]
 		if len(pagination.Next) > 0 {
 			return &chat1.Pagination{
 				Num:  pagination.Num,
-				Next: h.convPageStatus[convID.String()].Next,
+				Next: oldStored.Next,
+				Last: oldStored.Last,
 			}
 		} else if len(pagination.Previous) > 0 {
 			return &chat1.Pagination{
 				Num:      pagination.Num,
-				Previous: h.convPageStatus[convID.String()].Previous,
+				Previous: oldStored.Previous,
+				Last:     oldStored.Last,
 			}
-		} else {
-			return pagination
 		}
 	}
 	return pagination
@@ -547,7 +546,6 @@ func (h *Server) applyPagerModeIncoming(ctx context.Context, convID chat1.Conver
 func (h *Server) applyPagerModeOutgoing(ctx context.Context, convID chat1.ConversationID,
 	pagination *chat1.Pagination, incoming *chat1.Pagination, pgmode chat1.GetThreadNonblockPgMode) {
 	switch pgmode {
-	case chat1.GetThreadNonblockPgMode_DEFAULT:
 	case chat1.GetThreadNonblockPgMode_SERVER:
 		if pagination == nil {
 			return
@@ -566,6 +564,7 @@ func (h *Server) applyPagerModeOutgoing(ctx context.Context, convID chat1.Conver
 					pagination)
 				oldStored.Previous = pagination.Previous
 			}
+			oldStored.Last = pagination.Last
 			h.convPageStatus[convID.String()] = oldStored
 		}
 	}
@@ -671,6 +670,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 
 	// Apply any pager mode transformations
 	pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
+	if pagination != nil && pagination.Last {
+		return res, nil
+	}
 
 	// Grab local copy first
 	chatUI := h.getChatUI(arg.SessionID)
@@ -1743,7 +1745,7 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		return nil
 	}
 	// Attempt to prefetch any unfurls in the background that are in the message text
-	go h.G().Unfurler.Prefetch(ctx, uid, arg.ConversationID, arg.Text)
+	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
 
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {

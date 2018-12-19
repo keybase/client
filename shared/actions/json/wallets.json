@@ -16,6 +16,10 @@
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
     },
+    "accountUpdateReceived": {
+      "_description": "We received an updated account record",
+      "account": "Types.Account"
+    },
     "addNewPayment": {
       "_description": "Mark a payment we were just notified about as being unseen",
       "accountID": "Types.AccountID",
@@ -29,6 +33,10 @@
     "badgesUpdated": {
       "_description": "Update badges in the nav",
       "accounts": "Array<RPCTypes.WalletAccountInfo>"
+    },
+    "buildingPaymentIDReceived": {
+      "_description": "Update our store with an ID for a new building payment",
+      "bid": "string",
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",

@@ -2,11 +2,13 @@
 # yarn lockfile v1
 
 
-appdmg@0.4.5:
-  version "0.4.5"
-  resolved "https://registry.yarnpkg.com/appdmg/-/appdmg-0.4.5.tgz#47a827865b8a0be48abb3522567e3493d2f1b838"
+appdmg@0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/appdmg/-/appdmg-0.5.2.tgz#85732299b508f040473fa43ab6f6bce8b7eadc98"
+  integrity sha512-i9ajRl1SscJgH63TmDpm/KLSCom7jCs2a2riT0onDFLNNO/h/lYmJHa2k3Ywn8jxhiv7jyhYR+Hofk+EiKXtPg==
   dependencies:
     async "^1.4.2"
+    buffer-alloc "^1.1.0"
     cp-file "^3.1.0"
     ds-store "^0.1.5"
     execa "^0.4.0"
@@ -35,6 +37,24 @@ bplist-creator@~0.0.3:
   resolved "https://registry.yarnpkg.com/bplist-creator/-/bplist-creator-0.0.7.tgz#37df1536092824b87c42f957b01344117372ae45"
   dependencies:
     stream-buffers "~2.2.0"
+
+buffer-alloc-unsafe@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/buffer-alloc-unsafe/-/buffer-alloc-unsafe-1.1.0.tgz#bd7dc26ae2972d0eda253be061dba992349c19f0"
+  integrity sha512-TEM2iMIEQdJ2yjPJoSIsldnleVaAk1oW3DBVUykyOLsEsFmEc9kn+SFFPz+gl54KQNxlDnAwCXosOS9Okx2xAg==
+
+buffer-alloc@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/buffer-alloc/-/buffer-alloc-1.2.0.tgz#890dd90d923a873e08e10e5fd51a57e5b7cce0ec"
+  integrity sha512-CFsHQgjtW1UChdXgbyJGtnm+O/uLQeZdtbDo8mfUgYXCHSM1wgrVxXm6bSyrUuErEb+4sYVGCzASBRot7zyrow==
+  dependencies:
+    buffer-alloc-unsafe "^1.1.0"
+    buffer-fill "^1.0.0"
+
+buffer-fill@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/buffer-fill/-/buffer-fill-1.0.0.tgz#f8f78b76789888ef39f205cd637f68e702122b2c"
+  integrity sha1-+PeLdniYiO858gXNY39o5wISKyw=
 
 color-convert@~0.5.0:
   version "0.5.3"
@@ -190,9 +210,10 @@ murmur-32@^0.1.0:
     fmix "^0.1.0"
     imul "^1.0.0"
 
-nan@^2.3.2, nan@^2.4.0:
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
+nan@2.12.1, nan@^2.3.2, nan@^2.4.0:
+  version "2.12.1"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.12.1.tgz#7b1aa193e9aa86057e3c7bbd0ac448e770925552"
+  integrity sha512-JY7V6lRkStKcKTvHO5NVSQRv+RV+FIL5pvDoLiAtSL9pKlC5x9PKQcZDsq7m4FO4d57mkhC6Z+QhAh3Jdk5JFw==
 
 nested-error-stacks@^1.0.1:
   version "1.0.2"

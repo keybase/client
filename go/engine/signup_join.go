@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupJoinEngine struct {
@@ -62,7 +61,7 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 			"username":      libkb.S{Val: arg.Username},
 			"email":         libkb.S{Val: arg.Email},
 			"invitation_id": libkb.S{Val: arg.InviteCode},
-			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
+			"pwh_version":   libkb.I{Val: int(libkb.ClientTriplesecVersion)},
 			"skip_mail":     libkb.B{Val: arg.SkipMail},
 			"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
 			"platform":      libkb.S{Val: libkb.GetPlatformString()},

@@ -23,6 +23,9 @@ type RegisterRekeyUIArg struct {
 type RegisterHomeUIArg struct {
 }
 
+type RegisterIdentify3UIArg struct {
+}
+
 type RegisterGregorFirehoseArg struct {
 }
 
@@ -36,6 +39,7 @@ type DelegateUiCtlInterface interface {
 	RegisterUpdateUI(context.Context) error
 	RegisterRekeyUI(context.Context) error
 	RegisterHomeUI(context.Context) error
+	RegisterIdentify3UI(context.Context) error
 	RegisterGregorFirehose(context.Context) error
 	// registerGregorFirehoseFilter allows a client to register for a filtered
 	// firehose, limited to only the OOBMs of the systems provided.
@@ -97,6 +101,16 @@ func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
 					return
 				},
 			},
+			"registerIdentify3UI": {
+				MakeArg: func() interface{} {
+					var ret [1]RegisterIdentify3UIArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RegisterIdentify3UI(ctx)
+					return
+				},
+			},
 			"registerGregorFirehose": {
 				MakeArg: func() interface{} {
 					var ret [1]RegisterGregorFirehoseArg
@@ -152,6 +166,11 @@ func (c DelegateUiCtlClient) RegisterRekeyUI(ctx context.Context) (err error) {
 
 func (c DelegateUiCtlClient) RegisterHomeUI(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerHomeUI", []interface{}{RegisterHomeUIArg{}}, nil)
+	return
+}
+
+func (c DelegateUiCtlClient) RegisterIdentify3UI(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerIdentify3UI", []interface{}{RegisterIdentify3UIArg{}}, nil)
 	return
 }
 

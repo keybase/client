@@ -16,7 +16,7 @@
       "type": "record",
       "name": "ChatConversationID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -108,6 +108,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },
@@ -505,6 +512,17 @@
         {
           "type": "int",
           "name": "unreadPayments"
+        },
+        {
+          "type": "string",
+          "name": "displayCurrency"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "inflationDestination"
         }
       ]
     },
@@ -894,6 +912,19 @@
         {
           "name": "reqID",
           "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
+    "setInflationDestination": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "signedTransaction",
+          "type": "string"
         }
       ],
       "response": null

@@ -136,6 +136,8 @@ protocol proveCommon {
     string checkUrl;
     @jsonkey("check_path")
     array<SelectorEntry> checkPath;
+    @jsonkey("avatar_path")
+    array<SelectorEntry> avatarPath;
   }
 
   record ServiceDisplayConfig {

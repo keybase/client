@@ -336,6 +336,24 @@ func (p *PaymentSummary) TransactionID() (TransactionID, error) {
 	return "", errors.New("unknown payment summary type")
 }
 
+func (p *PaymentSummary) TransactionStatus() (TransactionStatus, error) {
+	t, err := p.Typ()
+	if err != nil {
+		return TransactionStatus_NONE, err
+	}
+
+	switch t {
+	case PaymentSummaryType_STELLAR:
+		return TransactionStatus_SUCCESS, nil
+	case PaymentSummaryType_DIRECT:
+		return p.Direct().TxStatus, nil
+	case PaymentSummaryType_RELAY:
+		return p.Relay().TxStatus, nil
+	}
+
+	return TransactionStatus_NONE, errors.New("unknown payment summary type")
+}
+
 func (c *ClaimSummary) ToPaymentStatus() PaymentStatus {
 	txStatus := c.TxStatus.ToPaymentStatus()
 	switch txStatus {
@@ -383,8 +401,12 @@ func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
 }
 
 func NewChatConversationID(b []byte) *ChatConversationID {
-	c := make([]byte, len(b))
-	copy(c, b)
-	cid := ChatConversationID(c)
+	cid := ChatConversationID(hex.EncodeToString(b))
 	return &cid
+}
+
+func (a *AccountDetails) SetDefaultDisplayCurrency() {
+	if a.DisplayCurrency == "" {
+		a.DisplayCurrency = "USD"
+	}
 }

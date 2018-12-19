@@ -69,6 +69,7 @@ type Service struct {
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 	walletState          *stellar.WalletState
+	identify3State       *identify3State
 }
 
 type Shutdowner interface {
@@ -93,6 +94,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
+		identify3State:   newIdentify3State(g),
 	}
 }
 
@@ -153,9 +155,11 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
+		keybase1.Identify3Protocol(newIdentify3Handler(xp, g, d.identify3State)),
 	}
 	walletHandler := newWalletHandler(xp, g, d.walletState)
-	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
+	protocols = append(protocols, CancellingProtocol(g, stellar1.LocalProtocol(walletHandler)))
+
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -236,7 +240,7 @@ func (d *Service) Run() (err error) {
 	// Sets this global context to "service" mode which will toggle a flag
 	// and will also set in motion various go-routine based managers
 	d.G().SetService()
-	uir := NewUIRouter(d.G())
+	uir := NewUIRouter(d.G(), d.identify3State)
 	d.G().SetUIRouter(uir)
 
 	// register the service's logForwarder as the external handler for the log module:
@@ -911,6 +915,11 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log("resetting wallet state on logout")
 	if d.walletState != nil {
 		d.walletState.Reset(m)
+	}
+
+	log("killing identify3state")
+	if d.identify3State != nil {
+		d.identify3State.Reset(m)
 	}
 
 	return nil

@@ -311,7 +311,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	timer.Report(req.Method + " " + arg.Endpoint)
 
 	if err != nil {
-		return nil, finisher, nil, APINetError{err: err}
+		return nil, finisher, nil, APINetError{Err: err}
 	}
 	status = internalResp.Status
 

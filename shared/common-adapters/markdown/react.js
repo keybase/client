@@ -334,7 +334,14 @@ const reactComponentsForMarkdownType = {
     )
   },
   serviceDecoration: (node, output, state) => {
-    return <ServiceDecoration json={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
+    return (
+      <ServiceDecoration
+        json={node.content}
+        key={state.key}
+        allowFontScaling={state.allowFontScaling}
+        message={state.markdownMeta.message}
+      />
+    )
   },
   strong: (node, output, state) => {
     return (

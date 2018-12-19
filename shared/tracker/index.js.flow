@@ -31,8 +31,6 @@ export type TrackerProps = {
   username: string,
   waiting: boolean,
   onClickAvatar: () => void,
-  onClickFollowers: () => void,
-  onClickFollowing: () => void,
   errorMessage: ?string,
   onRetry: ?() => void,
 }

@@ -15,7 +15,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return initialState
     case WalletsGen.accountsReceived:
       const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
-      return state.update('accountMap', m => m.merge(accountMap))
+      return state.merge({accountMap: accountMap})
+    case WalletsGen.accountUpdateReceived:
+      // accept the updated account if we've loaded it already
+      // this is because we get the sort order from the full accounts load,
+      // and can't figure it out from these notifications alone.
+      if (state.accountMap.get(action.payload.account.accountID)) {
+        return state.update('accountMap', am =>
+          am.update(action.payload.account.accountID, acc => acc.merge(action.payload.account))
+        )
+      }
+      return state
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.buildPayment:
@@ -32,7 +42,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
           })
         : state
+    case WalletsGen.abandonPayment:
     case WalletsGen.clearBuilding:
+    case WalletsGen.openSendRequestForm:
       return state.merge({building: Constants.makeBuilding()})
     case WalletsGen.clearBuiltPayment:
       return state.merge({builtPayment: Constants.makeBuiltPayment()})
@@ -173,6 +185,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         building: state.get('building').merge({sendAssetChoices}),
         builtPayment: Constants.makeBuiltPayment(),
       })
+    case WalletsGen.buildingPaymentIDReceived:
+      const {bid} = action.payload
+      return state.merge({
+        building: state.get('building').merge({bid}),
+      })
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
     case WalletsGen.setReadyToSend:
@@ -309,9 +326,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:
     case WalletsGen.requestedPayment:
-    case WalletsGen.abandonPayment:
     case WalletsGen.loadSendAssetChoices:
-    case WalletsGen.openSendRequestForm:
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
       return state

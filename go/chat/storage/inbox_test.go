@@ -53,7 +53,7 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) t
 				MaxMsgid:  mmsg,
 			},
 			// Make it look like there's a visible message in here too
-			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT}},
+			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT, MsgID: 1}},
 		},
 	}
 	return c
@@ -164,8 +164,7 @@ func TestInboxQueries(t *testing.T) {
 
 	// Make three unread convos
 	makeUnread := func(ri *chat1.ConversationReaderInfo) {
-		ri.MaxMsgid = 5
-		ri.ReadMsgid = 3
+		ri.ReadMsgid = 0
 	}
 	makeUnread(convs[5].Conv.ReaderInfo)
 	makeUnread(convs[13].Conv.ReaderInfo)

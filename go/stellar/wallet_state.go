@@ -29,6 +29,7 @@ type WalletState struct {
 	refreshGroup *singleflight.Group
 	refreshReqs  chan stellar1.AccountID
 	refreshCount int
+	rateGroup    *singleflight.Group
 	sync.Mutex
 }
 
@@ -42,6 +43,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		rates:        make(map[string]rateEntry),
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  make(chan stellar1.AccountID, 100),
+		rateGroup:    &singleflight.Group{},
 	}
 
 	go ws.backgroundRefresh()
@@ -119,7 +121,7 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
 	defer mctx.CTraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx.Ctx(), w.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
@@ -303,10 +305,24 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 	w.Lock()
 	existing, ok := w.rates[currency]
 	w.Unlock()
-	if ok && time.Since(existing.ctime) < 10*time.Second {
+	age := time.Since(existing.ctime)
+	if ok && age < 1*time.Minute {
+		w.G().Log.CDebugf(ctx, "using cached value for ExchangeRate(%s) => %+v (%s old)", currency, existing.rate, age)
 		return existing.rate, nil
 	}
-	rate, err := w.Remoter.ExchangeRate(ctx, currency)
+	if ok {
+		w.G().Log.CDebugf(ctx, "skipping cache for ExchangeRate(%s) because too old (%s)", currency, age)
+	}
+	w.G().Log.CDebugf(ctx, "ExchangeRate(%s) using remote", currency)
+
+	rateRes, err := w.rateGroup.Do(currency, func() (interface{}, error) {
+		return w.Remoter.ExchangeRate(ctx, currency)
+	})
+	rate, ok := rateRes.(stellar1.OutsideExchangeRate)
+	if !ok {
+		return stellar1.OutsideExchangeRate{}, errors.New("invalid cast")
+	}
+
 	if err == nil {
 		w.Lock()
 		w.rates[currency] = rateEntry{
@@ -315,6 +331,7 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 			ctime:    time.Now(),
 		}
 		w.Unlock()
+		w.G().Log.CDebugf(ctx, "ExchangeRate(%s) => %+v, setting cache", currency, rate)
 	}
 
 	return rate, err
@@ -414,7 +431,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		a.Unlock()
 
 		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(details, isPrimary, name)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, details, isPrimary, name)
 			if err == nil {
 				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
 			}
@@ -466,7 +483,7 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
 	if err == nil {
 		a.Lock()
-		if seqno > a.seqno {
+		if seqno != a.seqno {
 			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 			a.seqno = seqno
 		} else {
@@ -582,6 +599,9 @@ func detailsChanged(a, b *stellar1.AccountDetails) bool {
 	if a.SubentryCount != b.SubentryCount {
 		return true
 	}
+	if a.DisplayCurrency != b.DisplayCurrency {
+		return true
+	}
 	if len(a.Balances) != len(b.Balances) {
 		return true
 	}
@@ -609,15 +629,33 @@ func pendingChanged(a, b []stellar1.PaymentSummary) bool {
 		return false
 	}
 
-	existing, err := a[0].TransactionID()
-	if err == nil {
-		next, err := b[0].TransactionID()
-		if err == nil {
-			if existing != next {
-				return true
-			}
+	for i := 0; i < len(a); i++ {
+		atxid, err := a[i].TransactionID()
+		if err != nil {
+			return true
+		}
+		btxid, err := b[i].TransactionID()
+		if err != nil {
+			return true
+		}
+		if atxid != btxid {
+			return true
+		}
+
+		astatus, err := a[i].TransactionStatus()
+		if err != nil {
+			return true
+		}
+		bstatus, err := b[i].TransactionStatus()
+		if err != nil {
+			return true
+		}
+
+		if astatus != bstatus {
+			return true
 		}
 	}
+
 	return false
 }
 
