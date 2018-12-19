@@ -437,30 +437,6 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 	return stellar.Claim(mctx.Ctx(), s.G(), s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
 }
 
-type balanceList []stellar1.Balance
-
-// Example: "56.0227002 XLM + more"
-func (a balanceList) balanceDescription() (res string, err error) {
-	var more bool
-	for _, b := range a {
-		if b.Asset.IsNativeXLM() {
-			res, err = stellar.FormatAmountDescriptionXLM(b.Amount)
-			if err != nil {
-				return "", err
-			}
-		} else {
-			more = true
-		}
-	}
-	if res == "" {
-		res = "0 XLM"
-	}
-	if more {
-		res += " + more"
-	}
-	return res, nil
-}
-
 func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
 	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "ValidateAccountIDLocal",
@@ -946,18 +922,4 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 		return res, err
 	}
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
-}
-
-// accountExchangeRate gets the exchange rate for the logged in user's currency
-// preference for accountID.  If any errors occur, it logs them and returns a
-// nil result.
-func (s *Server) accountExchangeRate(mctx libkb.MetaContext, accountID stellar1.AccountID) *stellar1.OutsideExchangeRate {
-	exchRate, err := stellar.AccountExchangeRate(mctx, s.remoter, accountID)
-	if err != nil {
-		// this shouldn't be fatal, just a temporary inconvenience
-		mctx.CInfof("error getting exchange rate for %s: %s", accountID, err)
-		return nil
-	}
-
-	return &exchRate
 }
