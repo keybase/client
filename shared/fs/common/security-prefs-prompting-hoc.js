@@ -49,20 +49,24 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
   return shouldPromptSecurityPrefs
 }
 
-const ConnectedDesktopSecurityPrefs = connect<any, _, React.ComponentType<MergedProps>, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
-)
-
-const DesktopSecurityPrefsBranch = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<MergedProps> {
+const DesktopSecurityPrefsBranch = <P>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<MergedProps & P> =>
+  class extends React.PureComponent<MergedProps & P> {
     render = () => (!displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null)
   }
 
-const DesktopSecurityPrefsPromptingHoc = <P>(ComposedComponent: React.ComponentType<P>) =>
-  ConnectedDesktopSecurityPrefs(DesktopSecurityPrefsBranch(ComposedComponent))
+const DesktopSecurityPrefsPromptingHoc = <P>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<P> =>
+  connect<P, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  )(DesktopSecurityPrefsBranch<P>(ComposedComponent))
 
-const SecurityPrefsPromptingHoc = isMobile ? (i: any) => i : DesktopSecurityPrefsPromptingHoc
+const SecurityPrefsPromptingHoc = isMobile
+  ? <P>(i: React.ComponentType<P>): React.ComponentType<P> => i
+  : DesktopSecurityPrefsPromptingHoc
 
 export default SecurityPrefsPromptingHoc

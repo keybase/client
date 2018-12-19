@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Files from '.'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -29,7 +29,7 @@ type OwnProps = {
   routePath: I.List<string>,
 }
 
-export default compose(
-  SecurityPrefsPromptingHoc,
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'Files')
-)(Files)
+// flow can't figure out type when compose is used.
+export default SecurityPrefsPromptingHoc<OwnProps>(
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'Files')(Files)
+)

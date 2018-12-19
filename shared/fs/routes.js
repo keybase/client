@@ -102,16 +102,6 @@ const _mainRoute = {
         }),
       }),
     main: () => makeRouteDefNode(_mainRoute),
-    /* TODO delete
-    preview: () =>
-      makeRouteDefNode({
-        children: _commonChildren,
-        component: NormalPreview,
-        tags: makeLeafTags({
-          title: 'Preview',
-        }),
-      }),
-      */
   },
   component: Files,
 }
