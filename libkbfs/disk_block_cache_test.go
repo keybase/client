@@ -717,6 +717,9 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
 	require.Equal(t, numBlocks, standardCache.numBlocks)
 
+	standardCache.clearTickerDuration = 0
+	standardCache.numBlocksToEvictOnClear = 1
+
 	tlfToUnsync := tlf.FakeID(1, tlf.Private)
 	ch, err := config.SetTlfSyncState(tlfToUnsync, FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_DISABLED,
@@ -803,6 +806,8 @@ func TestDiskBlockCacheMark(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Delete all unmarked blocks.")
+	standardCache.clearTickerDuration = 0
+	standardCache.numUnmarkedBlocksToCheck = 1
 	err = cache.DeleteUnmarked(ctx, tlfID, tag, DiskBlockSyncCache)
 	require.NoError(t, err)
 	require.Equal(t, numBlocks-(2*numBlocksPerTlf-2), standardCache.numBlocks)
