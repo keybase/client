@@ -517,8 +517,7 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	}
 	if recipient.AccountID != nil {
 		// Lookup Account ID -> User
-		uv, username, err := stellar.LookupUserByAccountID(s.mctx(ctx),
-			stellar1.AccountID(recipient.AccountID.String()))
+		uv, username, err := stellar.LookupUserByAccountID(mctx, stellar1.AccountID(recipient.AccountID.String()))
 		if err == nil {
 			recipient.User = &stellarcommon.User{
 				UV:       uv,
@@ -541,10 +540,6 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 		res.Username = &u
 	}
 	return res, nil
-}
-
-func (s *Server) mctx(ctx context.Context) libkb.MetaContext {
-	return libkb.NewMetaContext(ctx, s.G())
 }
 
 func percentageAmountChange(a, b int64) float64 {

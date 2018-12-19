@@ -141,7 +141,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		}
 
 		if d.Asset.IsNativeXLM() {
-			availableAmount := stellar.SubtractFeeSoft(s.mctx(ctx), details.Available)
+			availableAmount := stellar.SubtractFeeSoft(mctx, details.Available)
 			fmtAvailable, err := stellar.FormatAmount(availableAmount, false, stellar.FmtRound)
 			if err != nil {
 				return nil, err
@@ -571,7 +571,7 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 		}
 		accountID = &primaryAccountID
 	}
-	return stellar.GetCurrencySetting(s.mctx(ctx), *accountID)
+	return stellar.GetCurrencySetting(mctx, *accountID)
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {
