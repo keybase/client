@@ -56,7 +56,7 @@ func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
 }
 
 func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {
-	return GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
+	return GetOwnPrimaryAccountID(mctx)
 }
 
 func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,

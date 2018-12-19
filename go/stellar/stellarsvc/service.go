@@ -231,12 +231,12 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 		into = *arg.Into
 	} else {
 		// Default to claiming into the user's primary wallet.
-		into, err = stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		into, err = stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return res, err
 		}
 	}
-	return stellar.Claim(mctx.Ctx(), s.G(), s.walletState, arg.TxID, into, nil, nil)
+	return stellar.Claim(mctx, s.walletState, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
@@ -252,7 +252,7 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 
 	var selectAccountID stellar1.AccountID
 	if accountID == nil {
-		selectAccountID, err = stellar.GetOwnPrimaryAccountID(mctx.Ctx(), s.G())
+		selectAccountID, err = stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return nil, err
 		}

@@ -1041,12 +1041,12 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 
 // Claim claims a waiting relay.
 // If `dir` is nil the direction is inferred.
-func Claim(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState,
+func Claim(mctx libkb.MetaContext, walletState *WalletState,
 	txID string, into stellar1.AccountID, dir *stellar1.RelayDirection,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Claim", func() error { return err })()
-	g.Log.CDebugf(ctx, "Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
-	details, err := walletState.PaymentDetails(ctx, txID)
+	defer mctx.CTraceTimed("Stellar.Claim", func() error { return err })()
+	mctx.CDebugf("Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
+	details, err := walletState.PaymentDetails(mctx.Ctx(), txID)
 	if err != nil {
 		return res, err
 	}
@@ -1069,23 +1069,22 @@ func Claim(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState
 			return res, fmt.Errorf("Payment cannot be claimed. The payment failed anyway.")
 		}
 	case stellar1.PaymentSummaryType_RELAY:
-		return claimPaymentWithDetail(ctx, g, walletState, p.Relay(), into, dir)
+		return claimPaymentWithDetail(mctx, walletState, p.Relay(), into, dir)
 	default:
 		return res, fmt.Errorf("unrecognized payment type: %v", typ)
 	}
 }
 
 // If `dir` is nil the direction is inferred.
-func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState,
+func claimPaymentWithDetail(mctx libkb.MetaContext, walletState *WalletState,
 	p stellar1.PaymentSummaryRelay, into stellar1.AccountID, dir *stellar1.RelayDirection) (res stellar1.RelayClaimResult, err error) {
 	if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
-		recipient, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, p.Claim.To.Uid))
+		recipient, _, err := mctx.G().GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(mctx.Ctx(), mctx.G(), p.Claim.To.Uid))
 		if err != nil || recipient == nil {
 			return res, fmt.Errorf("Payment already claimed")
 		}
 		return res, fmt.Errorf("Payment already claimed by %v", recipient.GetName())
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	rsec, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err != nil {
 		return res, fmt.Errorf("error opening secret to claim: %v", err)
@@ -1094,14 +1093,14 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 	if err != nil {
 		return res, fmt.Errorf("error using shared secret key: %v", err)
 	}
-	destinationFunded, err := isAccountFunded(ctx, walletState, into)
+	destinationFunded, err := isAccountFunded(mctx.Ctx(), walletState, into)
 	if err != nil {
 		return res, err
 	}
 	useDir := stellar1.RelayDirection_CLAIM
 	if dir == nil {
 		// Infer direction
-		if p.From.Uid.Equal(g.ActiveDevice.UID()) {
+		if p.From.Uid.Equal(mctx.ActiveDevice().UID()) {
 			useDir = stellar1.RelayDirection_YANK
 		}
 	} else {
@@ -1118,7 +1117,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 	if err != nil {
 		return res, fmt.Errorf("error building claim transaction: %v", err)
 	}
-	return walletState.SubmitRelayClaim(ctx, stellar1.RelayClaimPost{
+	return walletState.SubmitRelayClaim(mctx.Ctx(), stellar1.RelayClaimPost{
 		KeybaseID:         p.KbTxID,
 		Dir:               useDir,
 		SignedTransaction: sig.Signed,
@@ -1144,8 +1143,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 	return false, nil
 }
 
-func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err error) {
 	activeBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return res, err

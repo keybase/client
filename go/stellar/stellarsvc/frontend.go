@@ -434,7 +434,7 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 	}
 	relay := details.Summary.Relay()
 	dir := stellar1.RelayDirection_YANK
-	return stellar.Claim(mctx.Ctx(), s.G(), s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
+	return stellar.Claim(mctx, s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
 }
 
 func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
@@ -565,7 +565,7 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 	}
 	accountID := arg.AccountID
 	if accountID == nil {
-		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return res, err
 		}
