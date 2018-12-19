@@ -143,7 +143,7 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 		isProduction := func() bool {
 			return g.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 }
 

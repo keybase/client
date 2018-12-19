@@ -151,6 +151,8 @@ protocol chatUi {
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+    gregor1.UID senderUID;
+    gregor1.DeviceID senderDeviceID;
     boolean superseded;
     union { null, UIAssetUrlInfo } assetUrlInfo;
     union { null, gregor1.Time } senderDeviceRevokedAt;

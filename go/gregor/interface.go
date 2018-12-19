@@ -149,8 +149,8 @@ type MessageConsumer interface {
 	// of the state machine. Of course messages can be "inband" which actually
 	// perform state mutations, or might be "out-of-band" that just use the
 	// Gregor broadcast mechanism to make sure that all clients get the
-	// notification.
-	ConsumeMessage(ctx context.Context, m Message) (time.Time, error)
+	// notification. It returns a version of the message to broadcast to clients.
+	ConsumeMessage(ctx context.Context, m Message) (Message, error)
 }
 
 // StateMachine is the central interface of the Gregor system. Various parts of the

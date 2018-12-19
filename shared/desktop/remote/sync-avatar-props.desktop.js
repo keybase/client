@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {connect} from '../../util/container'
-import {memoize2, memoize3} from '../../util/memoize'
+import {memoize} from '../../util/memoize'
 
 type OwnProps = {|
   usernames: I.Set<string>,
@@ -108,16 +108,15 @@ function SyncAvatarProps(ComposedComponent: any) {
       getRemoteFollowing(state.config.following, ownProps.usernames)
     )
 
-  const getRemoteAvatars = memoize2((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
-  const getRemoteFollowers = memoize2((followers, usernames) => followers.intersect(usernames))
-  const getRemoteFollowing = memoize2((following, usernames) => following.intersect(usernames))
+  const getRemoteAvatars = memoize((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
+  const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
+  const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))
 
   // use an immutable equals to not rerender if its the same
-  const immutableCached = memoize3(
+  const immutableCached = memoize(
     (avatars, followers, following) => ({avatars, followers, following}),
-    (newAvatars, oldAvatars) => newAvatars.equals(oldAvatars),
-    (newFollowers, oldFollowers) => newFollowers.equals(oldFollowers),
-    (newFollowing, oldFollowing) => newFollowing.equals(oldFollowing)
+    ([newAvatars, newFollowers, newFollowing], [oldAvatars, oldFollowers, oldFollowing]) =>
+      newAvatars.equals(oldAvatars) && newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
   )
 
   const Connected = connect<OwnProps, _, _, _, _>(

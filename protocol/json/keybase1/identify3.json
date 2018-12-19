@@ -1,0 +1,52 @@
+{
+  "protocol": "identify3",
+  "imports": [
+    {
+      "path": "identify3_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "identify3": {
+      "request": [
+        {
+          "name": "assertion",
+          "type": "Identify3Assertion"
+        },
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "ignoreCache",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "identify3FollowUser": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "follow",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "identify3IgnoreUser": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -130,7 +130,7 @@
   "keybase.1.pprof.logProcessorProfile": {"promise": true},
   "keybase.1.pprof.logTrace": {"promise": true},
   "keybase.1.prove.checkProof": {"promise": true},
-  "keybase.1.prove.startProof": {"channelMap": true},
+  "keybase.1.prove.startProof": {"engineSaga": true},
   "keybase.1.reachability.checkReachability": {"promise": true},
   "keybase.1.reachability.reachabilityChanged": {"incoming": true},
   "keybase.1.reachability.startReachability": {"promise": true},

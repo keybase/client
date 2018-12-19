@@ -264,7 +264,7 @@ class TabBar extends React.Component<Props> {
   }
 
   _content(): any {
-    return (this.props.children || []).find(i => i.props.selected)
+    return React.Children.toArray(this.props.children || []).find(i => i.props.selected)
   }
 
   render() {

@@ -148,6 +148,7 @@ protocol remote {
     union { null, TransactionID } readTransactionID;
     int unreadPayments; // number of STELLAR payments that are "unread"
     string displayCurrency; // user configurable, defaults to "USD"
+    union { null, AccountID } inflationDestination;
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
@@ -226,6 +227,8 @@ protocol remote {
   }
   RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
   void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
+
+  void setInflationDestination(keybase1.UserVersion caller, string signedTransaction);
 
   string ping();
 

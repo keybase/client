@@ -12,7 +12,6 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../styles'
-import {forwardRef} from '../util/react'
 
 export type _Props = {
   containerStyle?: StylesCrossPlatform,
@@ -89,7 +88,7 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
     )
   }
 }
-const NewInput = forwardRef<
+const NewInput = React.forwardRef<
   $Diff<
     {
       flexable?: boolean,
@@ -100,7 +99,7 @@ const NewInput = forwardRef<
       forwardedRef: React.Ref<typeof PlainInput>,
     }
   >,
-  _
+  PlainInput
 >((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
 
 const styles = styleSheetCreate({

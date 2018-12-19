@@ -143,7 +143,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this.props
     )
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: Props) {
       if (this.props.files === prevProps.files && this.props.endEstimate === prevProps.endEstimate) {
         return
       }
