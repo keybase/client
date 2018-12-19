@@ -274,9 +274,8 @@ func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPr
 	return false, false, nil
 }
 
-func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
 	if accountID == "" {
-		mctx := libkb.NewMetaContext(ctx, g)
 		bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 		if err != nil {
 			return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
@@ -288,13 +287,13 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 		accountID = entry.AccountID
 	}
 
-	bundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
+	bundle, _, _, err := remote.FetchAccountBundle(mctx.Ctx(), mctx.G(), accountID)
 	switch err := err.(type) {
 	case nil:
 		// ok
 	case libkb.AppStatusError:
 		if libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarMissingAccount) {
-			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			mctx.CDebugf("suppressing error: %v", err)
 			err = err.WithDesc("Sender account not found")
 		}
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
@@ -311,12 +310,12 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: fmt.Sprintf("Sender account not found")}
 }
 
-func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
-	return LookupSender(ctx, g, "" /* empty account id returns primary */)
+func LookupSenderPrimary(mctx libkb.MetaContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	return LookupSender(mctx, "" /* empty account id returns primary */)
 }
 
-func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
-	entry, ab, err := lookupSenderEntry(ctx, g, accountID)
+func LookupSender(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	entry, ab, err := lookupSenderEntry(mctx, accountID)
 	if err != nil {
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 	}
@@ -527,7 +526,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	defer mctx.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSender(mctx.Ctx(), mctx.G(), sendArg.From)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
 	if err != nil {
 		return res, err
 	}
@@ -670,7 +669,7 @@ type indexedSpec struct {
 // and a total.
 func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
 	// look up sender account
-	_, senderAccountBundle, err := LookupSenderPrimary(mctx.Ctx(), mctx.G())
+	_, senderAccountBundle, err := LookupSenderPrimary(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -768,7 +767,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
-	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
+	_, senderAccountBundle, err := LookupSenderPrimary(m)
 	if err != nil {
 		return nil, err
 	}

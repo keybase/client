@@ -519,7 +519,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	stellarSender, senderAccountBundle, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
+	stellarSender, senderAccountBundle, err := stellar.LookupSenderPrimary(tcs[0].MetaContext())
 	require.NoError(t, err)
 	require.Equal(t, stellarSender.AccountID, senderAccountBundle.AccountID)
 
