@@ -142,10 +142,11 @@ class TeamAvatar extends React.Component<{
   }
 }
 
+const offset = isMobile ? -1 : 0
 const avatarIconStyle = {
-  bottom: 0,
+  bottom: offset,
   position: 'absolute',
-  right: 0,
+  right: offset,
 }
 
 export {Avatars, TeamAvatar}

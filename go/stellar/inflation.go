@@ -15,7 +15,7 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	walletState := getGlobal(mctx.G()).walletState
 
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSender(mctx.Ctx(), mctx.G(), arg.AccountID)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
 	if err != nil {
 		return err
 	}
