@@ -31,6 +31,7 @@ type WalletState struct {
 	refreshCount int
 	rateGroup    *singleflight.Group
 	shutdown     bool
+	shutdownOnce sync.Once
 	sync.Mutex
 }
 
@@ -47,12 +48,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		rateGroup:    &singleflight.Group{},
 	}
 
-	g.PushShutdownHook(func() error {
-		mctx := libkb.NewMetaContextBackground(g)
-		mctx.CDebugf("shutting down WalletState")
-		ws.Reset(mctx)
-		return nil
-	})
+	g.PushShutdownHook(ws.Shutdown)
 
 	go ws.backgroundRefresh()
 
@@ -60,22 +56,11 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 }
 
 func (w *WalletState) Shutdown() error {
-	w.Lock()
-	shutdownAlready := w.shutdown
-	if !shutdownAlready {
-		w.shutdown = true
-	}
-	w.Unlock()
-
-	if shutdownAlready {
-		return nil
-	}
-
-	// Reset locks, so do this outside of the lock.  The
-	// shutdown flag should protect us.
-	mctx := libkb.NewMetaContextBackground(w.G())
-	mctx.CDebugf("shutting down WalletState")
-	w.Reset(mctx)
+	w.shutdownOnce.Do(func() {
+		mctx := libkb.NewMetaContextBackground(w.G())
+		mctx.CDebugf("shutting down WalletState")
+		w.Reset(mctx)
+	})
 	return nil
 }
 
@@ -395,6 +380,7 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	}
 
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
+	w.refreshReqs = make(chan stellar1.AccountID, 100)
 }
 
 // AccountState holds the current data for a stellar account.
