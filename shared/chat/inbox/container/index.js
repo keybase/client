@@ -21,12 +21,12 @@ type OwnProps = {|
 
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
-  const filter = state.chat2.inboxFilter
+  const filter = state.chatInbox.filter
   const username = state.config.username
   const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
     ? filteredRowData(metaMap, filter, username)
-    : normalRowData(metaMap, state.chat2.inboxSmallTeams, state.chat2.smallTeamsExpanded)
-  const neverLoaded = !state.chat2.inboxHasLoaded
+    : normalRowData(metaMap, state.chatInbox.smallTeams, state.chat2.smallTeamsExpanded)
+  const neverLoaded = !state.chatInbox.hasLoaded
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
   return {

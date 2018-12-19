@@ -14,8 +14,8 @@ type OwnProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   showNewChat:
-    !state.chat2.inboxFilter &&
-    state.chat2.inboxHasLoaded &&
+    !state.chatInbox.filter &&
+    state.chatInbox.hasLoaded &&
     !state.chat2.metaMap.some((_, id) => Constants.isValidConversationIDKey(id)),
 })
 

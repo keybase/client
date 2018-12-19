@@ -22,6 +22,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import inboxSaga from './inbox'
 import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import engine from '../../engine'
@@ -1073,24 +1074,6 @@ const loadMoreMessages = (
       yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKeyPushLoad(conversationIDKey)}))
     }
   })
-}
-
-const clearInboxFilter = (
-  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload,
-  state: TypedState
-) => {
-  if (!state.chat2.inboxFilter) {
-    return
-  }
-
-  if (
-    action.type === Chat2Gen.selectConversation &&
-    (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
-  ) {
-    return
-  }
-
-  return Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 }
 
 // Show a desktop notification
@@ -2835,6 +2818,8 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
+  yield Saga.spawn(inboxSaga)
+
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
@@ -2898,7 +2883,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
   yield Saga.actionToAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
-  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   // Unfurl

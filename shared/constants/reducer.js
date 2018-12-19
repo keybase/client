@@ -1,5 +1,5 @@
 // @flow
-import type {State as Chat2} from '../constants/types/chat2'
+import type {State as Chat2, InboxState as ChatInbox} from '../constants/types/chat2'
 import type {State as Config} from '../constants/types/config'
 import type {State as Dev} from '../constants/types/dev'
 import type {State as Devices} from '../constants/types/devices'
@@ -26,6 +26,7 @@ import type {State as Wallets} from '../constants/types/wallets'
 
 export type TypedState = $ReadOnly<{|
   chat2: Chat2,
+  chatInbox: ChatInbox,
   config: Config,
   dev: Dev,
   devices: Devices,

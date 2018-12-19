@@ -11,7 +11,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
 
   return {
-    _filter: state.chat2.inboxFilter.toLowerCase(),
+    _filter: state.chatInbox.filter.toLowerCase(),
     _hasUnread: Constants.getHasUnread(state, conversationIDKey),
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username || '',

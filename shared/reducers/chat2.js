@@ -408,8 +408,6 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
-    case Chat2Gen.setInboxFilter:
-      return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
@@ -878,13 +876,7 @@ const rootReducer = (
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
-      // TODO incremental
-      const inboxSmallTeams = action.payload.fromInboxRefresh
-        ? I.List(action.payload.metas.filter(m => m.teamType !== 'big').map(m => m.conversationIDKey))
-        : state.inboxSmallTeams
       return state.merge({
-        inboxHasLoaded: action.payload.fromInboxRefresh || state.inboxHasLoaded,
-        inboxSmallTeams,
         messageMap: messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal),
         messageOrdinals: messageOrdinalsReducer(state.messageOrdinals, action),
         metaMap: metaMapReducer(state.metaMap, action),
@@ -1003,6 +995,8 @@ const rootReducer = (
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
     case Chat2Gen.confirmScreenResponse:
+    // Inbox only actions
+    case Chat2Gen.setInboxFilter:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

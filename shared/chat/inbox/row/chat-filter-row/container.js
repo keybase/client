@@ -16,13 +16,10 @@ type OwnProps = {
   onSelectUp: () => void,
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const filter = state.chat2.inboxFilter
-  return {
-    filter,
-    isLoading: Constants.anyChatWaitingKeys(state),
-  }
-}
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  filter: state.chatInbox.filter,
+  isLoading: Constants.anyChatWaitingKeys(state),
+})
 
 const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
