@@ -59,7 +59,7 @@ const typingTests = () => {
     suggestorToMarker: {},
     transformers: {},
   }
-  // $FlowIssue (missing other prop)
+  // $FlowIssue should error (missing other prop)
   test = <TestArea {...missingOther} />
 
   const extraJunk = {
