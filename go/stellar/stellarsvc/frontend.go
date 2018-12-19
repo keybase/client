@@ -163,8 +163,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting amount: %v", err)
 				}
-				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
-					outsideAmount, rate.Currency, stellar.FmtRound)
+				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellar.FmtRound)
 				if err != nil {
 					return fmt.Errorf("formatting converted amount: %v", err)
 				}
@@ -173,8 +172,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting available amount: %v", err)
 				}
-				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
-					outsideAvailableAmount, rate.Currency, stellar.FmtRound)
+				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAvailableAmount, rate.Currency, stellar.FmtRound)
 				if err != nil {
 					return fmt.Errorf("formatting converted available amount: %v", err)
 				}
@@ -267,12 +265,12 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return err
 	}
 
-	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	err = remote.SetAcceptedDisclaimer(mctx.Ctx(), s.G())
 	if err != nil {
 		return err
 	}
-	stellar.InformAcceptedDisclaimer(ctx, s.G())
-	crg, err := stellar.CreateWalletGated(ctx, s.G())
+	stellar.InformAcceptedDisclaimer(mctx.Ctx(), s.G())
+	crg, err := stellar.CreateWalletGated(mctx)
 	if err != nil {
 		return err
 	}
@@ -301,7 +299,7 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
-	err = stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, false, arg.Name)
+	err = stellar.ImportSecretKey(mctx, arg.SecretKey, false, arg.Name)
 	if err != nil {
 		return "", err
 	}
@@ -434,7 +432,7 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 	}
 	relay := details.Summary.Relay()
 	dir := stellar1.RelayDirection_YANK
-	return stellar.Claim(mctx.Ctx(), s.G(), s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
+	return stellar.Claim(mctx, s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
 }
 
 func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
@@ -565,7 +563,7 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 	}
 	accountID := arg.AccountID
 	if accountID == nil {
-		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return res, err
 		}
@@ -605,7 +603,7 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 	if arg.AccountID.IsNil() {
 		return res, errors.New("passed empty AccountID")
 	}
-	return stellar.ExportSecretKey(mctx.Ctx(), s.G(), arg.AccountID)
+	return stellar.ExportSecretKey(mctx, arg.AccountID)
 }
 
 func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
@@ -619,7 +617,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, _, err := stellar.OwnAccount(mctx.Ctx(), s.G(), arg.From)
+	owns, _, err := stellar.OwnAccount(mctx, arg.From)
 	if err != nil {
 		return res, err
 	}

@@ -172,7 +172,7 @@ func TestPrepareMiniChatRelays(t *testing.T) {
 		{Username: libkb.NewNormalizedUsername(tcw.Fu.Username), Amount: "2", Currency: "XLM"},
 	}
 
-	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx.Ctx(), mctx.G())
+	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx)
 	require.NoError(t, err)
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)

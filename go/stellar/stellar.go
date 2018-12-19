@@ -31,22 +31,22 @@ const AccountNameMaxRunes = 24
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe (but wasteful) to call even if the user has a bundle already.
-func CreateWallet(ctx context.Context, g *libkb.GlobalContext, v2Link bool) (created bool, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
-	loggedInUsername := g.ActiveDevice.Username(libkb.NewMetaContext(ctx, g))
+func CreateWallet(mctx libkb.MetaContext, v2Link bool) (created bool, err error) {
+	defer mctx.CTraceTimed("Stellar.CreateWallet", func() error { return err })()
+	loggedInUsername := mctx.ActiveDevice().Username(mctx)
 	if !loggedInUsername.IsValid() {
 		return false, fmt.Errorf("could not get logged-in username")
 	}
-	perUserKeyUpgradeSoft(ctx, g, "create-wallet")
+	perUserKeyUpgradeSoft(mctx.Ctx(), mctx.G(), "create-wallet")
 	clearBundle, err := acctbundle.NewInitial(fmt.Sprintf("%v's account", loggedInUsername))
 	if err != nil {
 		return false, err
 	}
-	meUV, err := g.GetMeUV(ctx)
+	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return false, err
 	}
-	err = remote.PostWithChainlink(ctx, g, *clearBundle, v2Link)
+	err = remote.PostWithChainlink(mctx.Ctx(), mctx.G(), *clearBundle, v2Link)
 	switch e := err.(type) {
 	case nil:
 		// ok
@@ -55,15 +55,15 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext, v2Link bool) (cre
 		case keybase1.StatusCode_SCStellarWrongRevision:
 			// Assume this happened because a bundle already existed.
 			// And suppress the error.
-			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			mctx.CDebugf("suppressing error: %v", err)
 			return false, nil
 		}
 		return false, err
 	default:
 		return false, err
 	}
-	getGlobal(g).InformHasWallet(ctx, meUV)
-	go getGlobal(g).KickAutoClaimRunner(libkb.NewMetaContext(ctx, g), gregor1.MsgID{})
+	getGlobal(mctx.G()).InformHasWallet(mctx.Ctx(), meUV)
+	go getGlobal(mctx.G()).KickAutoClaimRunner(mctx.BackgroundWithLogTags(), gregor1.MsgID{})
 	return true, nil
 }
 
@@ -76,42 +76,41 @@ type CreateWalletGatedResult struct {
 // CreateWalletGated may create a wallet for the user.
 // Taking into account settings from the server.
 // It should be speedy to call repeatedly _if_ the user gets a wallet.
-func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateWalletGatedResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.CreateWalletGated", func() error { return err })()
+func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err error) {
+	defer mctx.CTraceTimed("Stellar.CreateWalletGated", func() error { return err })()
 	defer func() {
-		g.Log.CDebugf(ctx, "CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
+		mctx.CDebugf("CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
-	meUV, err := g.GetMeUV(ctx)
+	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return res, err
 	}
-	if getGlobal(g).CachedHasWallet(ctx, meUV) {
-		g.Log.CDebugf(ctx, "CreateWalletGated: local cache says we already have a wallet")
+	if getGlobal(mctx.G()).CachedHasWallet(mctx.Ctx(), meUV) {
+		mctx.CDebugf("CreateWalletGated: local cache says we already have a wallet")
 		return CreateWalletGatedResult{
 			JustCreated:        false,
 			HasWallet:          true,
 			AcceptedDisclaimer: true, // because it should be impossible to have created a wallet without accepting.
 		}, nil
 	}
-	scr, err := remote.ShouldCreate(ctx, g)
+	scr, err := remote.ShouldCreate(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return res, err
 	}
 	res.HasWallet = scr.HasWallet
 	res.AcceptedDisclaimer = scr.AcceptedDisclaimer
 	if scr.HasWallet {
-		g.Log.CDebugf(ctx, "CreateWalletGated: server says we already have a wallet")
-		getGlobal(g).InformHasWallet(ctx, meUV)
+		mctx.CDebugf("CreateWalletGated: server says we already have a wallet")
+		getGlobal(mctx.G()).InformHasWallet(mctx.Ctx(), meUV)
 		return res, nil
 	}
 	if !scr.ShouldCreate {
-		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
+		mctx.CDebugf("CreateWalletGated: server did not recommend wallet creation")
 		return res, nil
 	}
-	m := libkb.NewMetaContext(ctx, g)
-	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
-	flaggedForV2 := remote.AcctBundlesEnabled(m)
-	justCreated, err := CreateWallet(ctx, g, flaggedForV2)
+	mctx.G().FeatureFlags.InvalidateCache(mctx, libkb.FeatureStellarAcctBundles)
+	flaggedForV2 := remote.AcctBundlesEnabled(mctx)
+	justCreated, err := CreateWallet(mctx, flaggedForV2)
 	if err != nil {
 		return res, nil
 	}
@@ -124,49 +123,48 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateW
 
 // CreateWalletSoft creates a user's initial wallet if they don't already have one.
 // Does not get in the way of intentional user actions.
-func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
+func CreateWalletSoft(mctx libkb.MetaContext) {
 	var err error
-	defer g.CTraceTimed(ctx, "CreateWalletSoft", func() error { return err })()
-	if !g.LocalSigchainGuard().IsAvailable(ctx, "CreateWalletSoft") {
+	defer mctx.CTraceTimed("CreateWalletSoft", func() error { return err })()
+	if !mctx.G().LocalSigchainGuard().IsAvailable(mctx.Ctx(), "CreateWalletSoft") {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}
-	_, err = CreateWalletGated(ctx, g)
+	_, err = CreateWalletGated(mctx)
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
-func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
-	prevBundle, version, prevPukGen, err := remote.FetchWholeBundle(ctx, g)
+func Upkeep(mctx libkb.MetaContext) (err error) {
+	defer mctx.CTraceTimed("Stellar.Upkeep", func() error { return err })()
+	prevBundle, version, prevPukGen, err := remote.FetchWholeBundle(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return err
 	}
-	pukring, err := g.GetPerUserKeyring(ctx)
+	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return err
 	}
-	err = pukring.Sync(libkb.NewMetaContext(ctx, g))
+	err = pukring.Sync(mctx)
 	if err != nil {
 		return err
 	}
 	pukGen := pukring.CurrentGeneration()
 	if pukGen <= prevPukGen {
-		g.Log.CDebugf(ctx, "Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
+		mctx.CDebugf("Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
 		return nil
 	}
 	nextBundle := acctbundle.AdvanceAll(*prevBundle)
-	return remote.Post(ctx, g, nextBundle, version)
+	return remote.Post(mctx.Ctx(), mctx.G(), nextBundle, version)
 }
 
-func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
 	prevBundle, version, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
 	var v2Link bool
 	if version == stellar1.BundleVersion_V1 {
-		prevBundle, _, _, err = remote.FetchWholeBundle(ctx, g)
+		prevBundle, _, _, err = remote.FetchWholeBundle(mctx.Ctx(), mctx.G())
 		if err != nil {
 			return err
 		}
@@ -184,9 +182,9 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if makePrimary {
 		// primary account changes need sigchain link
 		// (so other users can find user's primary account id)
-		err = remote.PostWithChainlink(ctx, g, nextBundle, v2Link)
+		err = remote.PostWithChainlink(mctx.Ctx(), mctx.G(), nextBundle, v2Link)
 	} else {
-		err = remote.Post(ctx, g, nextBundle, version)
+		err = remote.Post(mctx.Ctx(), mctx.G(), nextBundle, version)
 	}
 	if err != nil {
 		return err
@@ -197,12 +195,12 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	// has been accomplished.
 	_, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
 	if err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, failed to parse secret key after import: %s", err)
+		mctx.CDebugf("ImportSecretKey, failed to parse secret key after import: %s", err)
 		return nil
 	}
-	page, err := remote.RecentPayments(ctx, g, accountID, nil, 0, true)
+	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), accountID, nil, 0, true)
 	if err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, RecentPayments error: %s", err)
+		mctx.CDebugf("ImportSecretKey, RecentPayments error: %s", err)
 		return nil
 	}
 	if len(page.Payments) == 0 {
@@ -210,23 +208,22 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	}
 	mostRecentID, err := page.Payments[0].TransactionID()
 	if err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, tx id from most recent payment error: %s", err)
+		mctx.CDebugf("ImportSecretKey, tx id from most recent payment error: %s", err)
 		return nil
 	}
-	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
+	if err = remote.MarkAsRead(mctx.Ctx(), mctx.G(), accountID, mostRecentID); err != nil {
+		mctx.CDebugf("ImportSecretKey, markAsRead error: %s", err)
 		return nil
 	}
 
 	return nil
 }
 
-func SetMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext, value bool) error {
-	if g.GetRunMode() == libkb.ProductionRunMode {
+func SetMigrationFeatureFlag(mctx libkb.MetaContext, value bool) error {
+	if mctx.G().GetRunMode() == libkb.ProductionRunMode {
 		return errors.New("this doesn't work in production")
 	}
-	m := libkb.NewMetaContext(ctx, g)
-	_, err := g.API.Post(libkb.APIArg{
+	_, err := mctx.G().API.Post(libkb.APIArg{
 		Endpoint:    "test/feature",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -234,13 +231,13 @@ func SetMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext, value 
 			"value":     libkb.B{Val: value},
 			"cache_sec": libkb.I{Val: 60},
 		},
-		MetaContext: m,
+		MetaContext: mctx,
 	})
 	return err
 }
 
-func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
-	prevBundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
+func ExportSecretKey(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
+	prevBundle, _, _, err := remote.FetchAccountBundle(mctx.Ctx(), mctx.G(), accountID)
 	if err != nil {
 		return res, err
 	}
@@ -264,8 +261,7 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 	return res, fmt.Errorf("account not found: %v", accountID)
 }
 
-func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
 	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return false, false, err
@@ -278,9 +274,8 @@ func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 	return false, false, nil
 }
 
-func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
 	if accountID == "" {
-		mctx := libkb.NewMetaContext(ctx, g)
 		bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 		if err != nil {
 			return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
@@ -292,13 +287,13 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 		accountID = entry.AccountID
 	}
 
-	bundle, _, _, err := remote.FetchAccountBundle(ctx, g, accountID)
+	bundle, _, _, err := remote.FetchAccountBundle(mctx.Ctx(), mctx.G(), accountID)
 	switch err := err.(type) {
 	case nil:
 		// ok
 	case libkb.AppStatusError:
 		if libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarMissingAccount) {
-			g.Log.CDebugf(ctx, "suppressing error: %v", err)
+			mctx.CDebugf("suppressing error: %v", err)
 			err = err.WithDesc("Sender account not found")
 		}
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
@@ -315,12 +310,12 @@ func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID st
 	return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, libkb.NotFoundError{Msg: fmt.Sprintf("Sender account not found")}
 }
 
-func LookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
-	return LookupSender(ctx, g, "" /* empty account id returns primary */)
+func LookupSenderPrimary(mctx libkb.MetaContext) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	return LookupSender(mctx, "" /* empty account id returns primary */)
 }
 
-func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
-	entry, ab, err := lookupSenderEntry(ctx, g, accountID)
+func LookupSender(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
+	entry, ab, err := lookupSenderEntry(mctx, accountID)
 	if err != nil {
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 	}
@@ -531,7 +526,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	defer mctx.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSender(mctx.Ctx(), mctx.G(), sendArg.From)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
 	if err != nil {
 		return res, err
 	}
@@ -551,8 +546,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, _, err := OwnAccount(mctx.Ctx(), mctx.G(),
-		stellar1.AccountID(recipient.AccountID.String()))
+	ownRecipient, _, err := OwnAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		mctx.CDebugf("error determining if user own's recipient: %v", err)
 		return res, err
@@ -675,7 +669,7 @@ type indexedSpec struct {
 // and a total.
 func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, payments []libkb.MiniChatPayment) (*libkb.MiniChatPaymentSummary, error) {
 	// look up sender account
-	_, senderAccountBundle, err := LookupSenderPrimary(mctx.Ctx(), mctx.G())
+	_, senderAccountBundle, err := LookupSenderPrimary(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -716,7 +710,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		if err != nil {
 			return nil, err
 		}
-		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), outsideAmount, senderRate.Currency, FmtRound)
+		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, senderRate.Currency, FmtRound)
 		if err != nil {
 			return nil, err
 		}
@@ -739,7 +733,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 			spec.Error = err
 			return spec, 0
 		}
-		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), payment.Amount, exchangeRate.Currency, FmtRound)
+		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx, payment.Amount, exchangeRate.Currency, FmtRound)
 		if err != nil {
 			spec.Error = err
 			return spec, 0
@@ -773,7 +767,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
 	// look up sender account
-	_, senderAccountBundle, err := LookupSenderPrimary(m.Ctx(), m.G())
+	_, senderAccountBundle, err := LookupSenderPrimary(m)
 	if err != nil {
 		return nil, err
 	}
@@ -1047,12 +1041,12 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 
 // Claim claims a waiting relay.
 // If `dir` is nil the direction is inferred.
-func Claim(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState,
+func Claim(mctx libkb.MetaContext, walletState *WalletState,
 	txID string, into stellar1.AccountID, dir *stellar1.RelayDirection,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Claim", func() error { return err })()
-	g.Log.CDebugf(ctx, "Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
-	details, err := walletState.PaymentDetails(ctx, txID)
+	defer mctx.CTraceTimed("Stellar.Claim", func() error { return err })()
+	mctx.CDebugf("Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
+	details, err := walletState.PaymentDetails(mctx.Ctx(), txID)
 	if err != nil {
 		return res, err
 	}
@@ -1075,23 +1069,22 @@ func Claim(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState
 			return res, fmt.Errorf("Payment cannot be claimed. The payment failed anyway.")
 		}
 	case stellar1.PaymentSummaryType_RELAY:
-		return claimPaymentWithDetail(ctx, g, walletState, p.Relay(), into, dir)
+		return claimPaymentWithDetail(mctx, walletState, p.Relay(), into, dir)
 	default:
 		return res, fmt.Errorf("unrecognized payment type: %v", typ)
 	}
 }
 
 // If `dir` is nil the direction is inferred.
-func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletState *WalletState,
+func claimPaymentWithDetail(mctx libkb.MetaContext, walletState *WalletState,
 	p stellar1.PaymentSummaryRelay, into stellar1.AccountID, dir *stellar1.RelayDirection) (res stellar1.RelayClaimResult, err error) {
 	if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
-		recipient, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, p.Claim.To.Uid))
+		recipient, _, err := mctx.G().GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(mctx.Ctx(), mctx.G(), p.Claim.To.Uid))
 		if err != nil || recipient == nil {
 			return res, fmt.Errorf("Payment already claimed")
 		}
 		return res, fmt.Errorf("Payment already claimed by %v", recipient.GetName())
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	rsec, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
 	if err != nil {
 		return res, fmt.Errorf("error opening secret to claim: %v", err)
@@ -1100,14 +1093,14 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 	if err != nil {
 		return res, fmt.Errorf("error using shared secret key: %v", err)
 	}
-	destinationFunded, err := isAccountFunded(ctx, walletState, into)
+	destinationFunded, err := isAccountFunded(mctx.Ctx(), walletState, into)
 	if err != nil {
 		return res, err
 	}
 	useDir := stellar1.RelayDirection_CLAIM
 	if dir == nil {
 		// Infer direction
-		if p.From.Uid.Equal(g.ActiveDevice.UID()) {
+		if p.From.Uid.Equal(mctx.ActiveDevice().UID()) {
 			useDir = stellar1.RelayDirection_YANK
 		}
 	} else {
@@ -1124,7 +1117,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, walletS
 	if err != nil {
 		return res, fmt.Errorf("error building claim transaction: %v", err)
 	}
-	return walletState.SubmitRelayClaim(ctx, stellar1.RelayClaimPost{
+	return walletState.SubmitRelayClaim(mctx.Ctx(), stellar1.RelayClaimPost{
 		KeybaseID:         p.KbTxID,
 		Dir:               useDir,
 		SignedTransaction: sig.Signed,
@@ -1150,8 +1143,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 	return false, nil
 }
 
-func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
-	mctx := libkb.NewMetaContext(ctx, g)
+func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err error) {
 	activeBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return res, err
@@ -1163,13 +1155,12 @@ func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res st
 	return primary.AccountID, nil
 }
 
-func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	page, err := remoter.RecentPayments(ctx, accountID, nil, 0, false)
+func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
+	defer mctx.CTraceTimed("Stellar.RecentPaymentsCLILocal", func() error { return err })()
+	page, err := remoter.RecentPayments(mctx.Ctx(), accountID, nil, 0, false)
 	if err != nil {
 		return nil, err
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	for _, p := range page.Payments {
 		lp, err := localizePayment(mctx, p)
 		if err == nil {
@@ -1394,9 +1385,8 @@ type FmtRounding bool
 const FmtRound = false
 const FmtTruncate = true
 
-func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
-	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return "", err
 	}
@@ -1419,15 +1409,14 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
 
 // FormatCurrencyWithCodeSuffix will return a fiat currency amount formatted with
 // its currency code suffix at the end, like "$123.12 CLP"
-func FormatCurrencyWithCodeSuffix(ctx context.Context, g *libkb.GlobalContext,
-	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
-	pre, err := FormatCurrency(ctx, g, amount, code, rounding)
+func FormatCurrencyWithCodeSuffix(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
+	pre, err := FormatCurrency(mctx, amount, code, rounding)
 	if err != nil {
 		return "", err
 	}
 
 	// some currencies have the same symbol as code (CHF)
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return "", err
 	}
