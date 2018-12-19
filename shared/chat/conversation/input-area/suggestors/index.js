@@ -90,7 +90,8 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     ...PropsWithSuggestorOuter<WrappedOwnProps>,
     forwardedRef:
       | ((instance: React.ElementRef<typeof WrappedComponent> | null) => mixed)
-      | {current: ?WrappedComponent},
+      | {current: ?WrappedComponent}
+      | null,
   |}
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
@@ -109,7 +110,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       this._attachmentRef.current = r
       if (typeof this.props.forwardedRef === 'function') {
         this.props.forwardedRef(r)
-      } else {
+      } else if (this.props.forwardedRef) {
         this.props.forwardedRef.current = r
       }
     }
