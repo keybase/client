@@ -213,8 +213,8 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 		return err
 	}
 	user := string(session.UID)
+	os.MkdirAll(filepath.Join(folder, subfolder), 0700)
 	path := filepath.Join(folder, subfolder, user)
-	// TODO: is this the right permissions
 	return ioutil.WriteFile(path, encodedData, 0600)
 }
 
