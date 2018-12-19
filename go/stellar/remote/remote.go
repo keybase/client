@@ -1269,3 +1269,16 @@ func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext)
 	}
 	return res.TimeboundsRecommendation, nil
 }
+
+func SetInflationDestination(ctx context.Context, g *libkb.GlobalContext, signedTx string) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/setinflation",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	_, err = g.API.Post(apiArg)
+	return err
+}

@@ -68,6 +68,12 @@ export const localBalanceDelta = {
   decrease: 2,
 }
 
+export const localInflationDestinationType = {
+  self: 1,
+  accountid: 2,
+  lumenaut: 3,
+}
+
 export const localParticipantType = {
   none: 0,
   keybase: 1,
