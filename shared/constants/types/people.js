@@ -51,6 +51,7 @@ export type _Announcement = {
   badged: boolean,
   confirmLabel: ?string,
   dismissable: boolean,
+  id: RPCTypes.HomeScreenAnnouncementID,
   iconUrl: ?string,
   text: string,
   type: 'announcement',

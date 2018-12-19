@@ -8,6 +8,7 @@ const props = {
   badged: false,
   confirmLabel: null,
   dismissable: false,
+  id: 0,
   iconUrl: null,
   url: null,
 }
