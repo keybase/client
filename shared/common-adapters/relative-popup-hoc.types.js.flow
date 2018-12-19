@@ -1,5 +1,4 @@
 // @flow
-import * as React from 'react'
 export type Position =
   | 'top left'
   | 'top right'
@@ -10,18 +9,3 @@ export type Position =
   | 'top center'
   | 'bottom center'
   | 'center center'
-
-export type Props<PP: {}> = {|
-  ...PP,
-  // [desktop] if this is true, child will be positioned absolutely with a container the same
-  // width/height depending on position.
-  // e.g. position is 'left'/'right' -> same height; position is 'top'/'bottom' -> same width
-  matchDimension?: boolean,
-  position: Position,
-  style?: Object,
-  targetRect: ?ClientRect,
-|}
-
-export type RelativePopupHocType<PP> = (
-  PopupComponent: React.ComponentType<PP>
-) => React.ComponentType<Props<PP>>

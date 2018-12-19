@@ -53,6 +53,16 @@ const load = () =>
         conversation={{name: 'songgao_test,meatball', type: 'group'}}
       />
     ))
+    .add('group - long', () => (
+      <SendLinkToChat
+        {...common}
+        pathTextToCopy={makePathTextToCopy('/keybase/private/songgao,songgao_test,meatball')}
+        conversation={{
+          name: 'songgao_test,meatball,abc,def,ghi,jkl,mno,pqr,stu,vwx,yz0,alice,bob,charlie',
+          type: 'group',
+        }}
+      />
+    ))
     .add('Small Team', () => (
       <SendLinkToChat
         {...common}
@@ -80,7 +90,7 @@ const load = () =>
           channels,
           name: 'kbkbfstest',
           selectChannel: Sb.action('selectChannel'),
-          selectedChannelname: '#aaa',
+          selectedChannelname: 'aaa',
           type: 'big-team',
         }}
       />

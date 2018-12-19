@@ -13,7 +13,7 @@ import (
 )
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestricted, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        "WalletDumpLocal",
 		Err:            &err,
 		AllowLoggedOut: true,

@@ -385,6 +385,27 @@ export const homeHomeScreenTodoType = {
   annoncementPlaceholder: 10000,
 }
 
+export const identify3UiIdentify3ResultType = {
+  ok: 0,
+  broken: 1,
+  needsUpgrade: 2,
+}
+
+export const identify3UiIdentify3RowColor = {
+  blue: 1,
+  red: 2,
+  black: 3,
+  green: 4,
+}
+
+export const identify3UiIdentify3RowState = {
+  checking: 1,
+  valid: 2,
+  error: 3,
+  warning: 4,
+  revoked: 5,
+}
+
 export const identifyCommonIdentifyReasonType = {
   none: 0,
   id: 1,
@@ -791,6 +812,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 10,
   kbfsChat: 11,
   resolveAndCheck: 12,
+  guiProfile: 13,
 }
 
 export const uPKKeyType = {
@@ -908,7 +930,7 @@ export const pgpPgpStorageDismissRpcPromise = (params, waitingKey) => new Promis
 export const pprofLogProcessorProfileRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const proveCheckProofRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.prove.checkProof', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const proveStartProofRpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
+export const proveStartProofRpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.prove.startProof', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const reachabilityCheckReachabilityRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.reachability.checkReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const reachabilityStartReachabilityRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.reachability.startReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const rekeyGetRevokeWarningRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.rekey.getRevokeWarning', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

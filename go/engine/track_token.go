@@ -266,6 +266,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 	}
 
 	me.SigChainBump(linkID, sigID, false)
+	m.G().IdentifyDispatch.NotifyTrackingSuccess(m, e.them.GetUID())
 
 	return err
 }

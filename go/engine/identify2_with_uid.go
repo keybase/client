@@ -453,6 +453,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	if e.hitFastCache(m) {
 		m.CDebugf("| hit fast cache")
+		e.maybeNotify(m, "hit fast cache")
 		return nil
 	}
 
@@ -482,11 +483,13 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 		if e.untrackedFastPath(m) {
 			m.CDebugf("| used untracked fast path")
+			e.maybeNotify(m, "untracked fast path")
 			return nil
 		}
 
 		if e.checkSlowCacheHit(m) {
 			m.CDebugf("| hit slow cache, first check")
+			e.maybeNotify(m, "slow cache, first check")
 			return nil
 		}
 	}
@@ -511,6 +514,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	if e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit(m) {
 		m.CDebugf("| hit slow cache, second check")
+		e.maybeNotify(m, "slow cache, second check")
 		return nil
 	}
 
@@ -520,7 +524,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	// since it will the foreground context will disappear after we unblock.
 	m = m.BackgroundWithLogTags()
 
-	if !e.useTracking && !e.useRemoteAssertions() && e.allowEarlyOuts() {
+	if (!e.useTracking || e.arg.IdentifyBehavior.UnblockDespiteTracking()) && !e.useRemoteAssertions() && e.allowEarlyOuts() {
 		e.unblock(m /* isFinal */, false, nil)
 	}
 
@@ -818,9 +822,9 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	itm := libkb.IdentifyTableModeActive
+	identifyTableMode := libkb.IdentifyTableModeActive
 	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
-		itm = libkb.IdentifyTableModePassive
+		identifyTableMode = libkb.IdentifyTableModePassive
 	}
 
 	// When we get a callback from IDTabe().Identify, we don't get to thread our metacontext
@@ -828,7 +832,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	e.metaContext = m
 	if them.IDTable() == nil {
 		m.CDebugf("| No IDTable for user")
-	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), iui, e, itm); err != nil {
+	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), iui, e, identifyTableMode); err != nil {
 		m.CDebugf("| Failure in running IDTable")
 		return err
 	}
@@ -865,6 +869,10 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	if err == nil && !e.arg.NoErrorOnTrackFailure {
 		// We only care about tracking errors in this case; hence GetErrorLax
 		_, err = e.state.Result().GetErrorLax()
+	}
+
+	if outcome.IsOK() {
+		e.maybeNotify(m, "runIdentifyUI complete IsOk")
 	}
 
 	return err
@@ -1125,14 +1133,14 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 		return false
 	}
 
-	tfn := func(u keybase1.Identify2ResUPK2) keybase1.Time { return u.IdentifiedAt }
-	dfn := func(u keybase1.Identify2ResUPK2) time.Duration {
+	timeFn := func(u keybase1.Identify2ResUPK2) keybase1.Time { return u.IdentifiedAt }
+	durationFn := func(u keybase1.Identify2ResUPK2) time.Duration {
 		if u.TrackBreaks != nil {
 			return libkb.Identify2CacheBrokenTimeout
 		}
 		return libkb.Identify2CacheLongTimeout
 	}
-	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
+	u, err := e.getCache().Get(e.them.GetUID(), timeFn, durationFn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
 
 	trackBrokenError := false
 	if err != nil {
@@ -1236,4 +1244,26 @@ func (e *Identify2WithUID) FullThemUser() *libkb.User {
 		return nil
 	}
 	return e.them.Full()
+}
+
+func (e *Identify2WithUID) maybeNotify(mctx libkb.MetaContext, explanation string) {
+	target := e.arg.Uid
+	if e.them != nil {
+		target = e.them.GetUID()
+	}
+	if e.me == nil {
+		// This check is needed because ActLoggedOut causes the untracked fast path
+		// to succeed even when the true active user is tracking the identifyee.
+		mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) nope missing ME", target, explanation)
+	}
+	if target.IsNil() {
+		mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) nope missing UID", target, explanation)
+		return
+	}
+	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
+		mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) nope WarningInsteadOfErrorOnBrokenTracks", target, explanation)
+		return
+	}
+	mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) -> sending", target, explanation)
+	go mctx.G().IdentifyDispatch.NotifyTrackingSuccess(mctx, target)
 }

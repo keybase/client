@@ -39,7 +39,7 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 	return apiRes.ShouldCreateResult, err
 }
 
-func acctBundlesEnabled(m libkb.MetaContext) bool {
+func AcctBundlesEnabled(m libkb.MetaContext) bool {
 	enabled := m.G().FeatureFlags.Enabled(m, libkb.FeatureStellarAcctBundles)
 	if enabled {
 		m.CDebugf("stellar account bundles enabled")
@@ -274,7 +274,7 @@ func (e MissingFeatureFlagMigrationError) Error() string {
 
 func preMigrationChecks(m libkb.MetaContext) error {
 	// verify that the feature flag is enabled
-	if !acctBundlesEnabled(m) {
+	if !AcctBundlesEnabled(m) {
 		return MissingFeatureFlagMigrationError{}
 	}
 
@@ -524,25 +524,24 @@ func incompatibleVersionError(inputError error) bool {
 // the accounts is marked as being mobile only. If the FeatureStellarAcctBundles
 // is true and the user is still on a v1 bundle, this method will call
 // `MigrateBundleToAccountBundles` and then fetch again.
-func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.FetchSecretlessBundle", func() error { return err })()
+func FetchSecretlessBundle(mctx libkb.MetaContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer mctx.CTraceTimed("Stellar.FetchSecretlessBundle", func() error { return err })()
 
-	acctBundle, version, pukGen, err = FetchV2BundleForAccount(ctx, g, nil)
+	acctBundle, version, pukGen, err = FetchV2BundleForAccount(mctx.Ctx(), mctx.G(), nil)
 	if err != nil && incompatibleVersionError(err) {
-		m := libkb.NewMetaContext(ctx, g)
-		m.CDebugf("requested v2 secretless bundle but not migrated yet.")
-		hasFeatureFlagForMigration := acctBundlesEnabled(m)
+		mctx.CDebugf("requested v2 secretless bundle but not migrated yet.")
+		hasFeatureFlagForMigration := AcctBundlesEnabled(mctx)
 		if hasFeatureFlagForMigration {
-			m.CDebugf("has feature flag. kicking off migration now.")
-			err := MigrateBundleToAccountBundles(m)
+			mctx.CDebugf("has feature flag. kicking off migration now.")
+			err := MigrateBundleToAccountBundles(mctx)
 			if err != nil && !alreadyMigratedError(err) {
-				m.CDebugf("migration failed. suggest turning off the feature flag and investigating.")
+				mctx.CDebugf("migration failed. suggest turning off the feature flag and investigating.")
 				return nil, 0, 0, err
 			}
-			return FetchV2BundleForAccount(ctx, g, nil)
+			return FetchV2BundleForAccount(mctx.Ctx(), mctx.G(), nil)
 		}
 
-		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(ctx, g)
+		acctBundle, version, pukGen, err = fetchV1BundleAsV2Bundle(mctx.Ctx(), mctx.G())
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -565,7 +564,8 @@ func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBun
 func FetchWholeBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchWholeBundle", func() error { return err })()
 
-	bundle, version, pukGen, err := FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	bundle, version, pukGen, err := FetchSecretlessBundle(mctx)
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -1138,7 +1138,8 @@ func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 }
 
 func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
-	bundle, _, _, err := FetchSecretlessBundle(ctx, g)
+	mctx := libkb.NewMetaContext(ctx, g)
+	bundle, _, _, err := FetchSecretlessBundle(mctx)
 	if err != nil {
 		return false, err
 	}
@@ -1268,4 +1269,17 @@ func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext)
 		return ret, err
 	}
 	return res.TimeboundsRecommendation, nil
+}
+
+func SetInflationDestination(ctx context.Context, g *libkb.GlobalContext, signedTx string) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/setinflation",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	_, err = g.API.Post(apiArg)
+	return err
 }

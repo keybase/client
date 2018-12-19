@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"sync"
 	"time"
 
@@ -278,6 +279,15 @@ func isMessageForDevice(m gregor.InBandMessage, d gregor.DeviceID) bool {
 	return false
 }
 
+func (u *user) getInBandMessage(msgID gregor.MsgID) (gregor.InBandMessage, error) {
+	for _, msg := range u.log {
+		if msg.m.Metadata().MsgID().String() == msgID.String() {
+			return msg.m, nil
+		}
+	}
+	return nil, errors.New("ibm not found")
+}
+
 func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []gregor.InBandMessage, latestCTime *time.Time) {
 	allmsgs := make(map[string]gregor.InBandMessage)
 	for _, msg := range u.log {
@@ -302,28 +312,37 @@ func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []
 	return
 }
 
-func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessage) (time.Time, error) {
+func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessage) (gregor.Message, error) {
 	user := m.getUser(uid)
 	now := m.clock.Now()
 	var i *item
 	var err error
 	switch {
 	case msg.ToStateUpdateMessage() != nil:
-		i, err = m.consumeStateUpdateMessage(user, now, msg.ToStateUpdateMessage())
+		if i, err = m.consumeStateUpdateMessage(user, now, msg.ToStateUpdateMessage()); err != nil {
+			return nil, err
+		}
 	default:
 	}
-
-	retTime := now
+	ctime := now
 	if i != nil {
-		retTime = i.ctime
+		ctime = i.ctime
 	}
+	user.logMessage(ctime, msg, i)
 
-	user.logMessage(retTime, msg, i)
-
-	return retTime, err
+	// fetch the message we just consumed out to return
+	ibm, err := user.getInBandMessage(msg.Metadata().MsgID())
+	if err != nil {
+		return nil, err
+	}
+	retMsg, err := m.objFactory.MakeMessageFromInBandMessage(ibm)
+	if err != nil {
+		return nil, err
+	}
+	return retMsg, err
 }
 
-func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (time.Time, error) {
+func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (gregor.Message, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -331,7 +350,7 @@ func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (tim
 	case msg.ToInBandMessage() != nil:
 		return m.consumeInBandMessage(gregor.UIDFromMessage(msg), msg.ToInBandMessage())
 	default:
-		return m.clock.Now(), nil
+		return msg, nil
 	}
 }
 

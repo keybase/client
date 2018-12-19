@@ -106,13 +106,22 @@ const styleActions = {
   marginTop: Styles.globalMargins.medium,
 }
 
-const mapStateToProps = ({profile: {pgpInfo}}) => pgpInfo
+const mapStateToProps = state => ({
+  email1: state.profile.pgpEmail1,
+  email2: state.profile.pgpEmail2,
+  email3: state.profile.pgpEmail3,
+  errorEmail1: state.profile.pgpErrorEmail1,
+  errorEmail2: state.profile.pgpErrorEmail2,
+  errorEmail3: state.profile.pgpErrorEmail3,
+  errorText: state.profile.pgpErrorText,
+  fullName: state.profile.pgpFullName,
+})
 
 const mapDispatchToProps = dispatch => ({
-  onChangeEmail1: email1 => dispatch(ProfileGen.createUpdatePgpInfo({info: {email1}})),
-  onChangeEmail2: email2 => dispatch(ProfileGen.createUpdatePgpInfo({info: {email2}})),
-  onChangeEmail3: email3 => dispatch(ProfileGen.createUpdatePgpInfo({info: {email3}})),
-  onChangeFullName: fullName => dispatch(ProfileGen.createUpdatePgpInfo({info: {fullName}})),
+  onChangeEmail1: pgpEmail1 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail1})),
+  onChangeEmail2: pgpEmail2 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail2})),
+  onChangeEmail3: pgpEmail3 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail3})),
+  onChangeFullName: pgpFullName => dispatch(ProfileGen.createUpdatePgpInfo({pgpFullName})),
   onLeftAction: () => dispatch(navigateUp()),
   onNext: () => dispatch(ProfileGen.createGeneratePgp()),
 })

@@ -26,7 +26,7 @@ func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 		isProduction := func() bool {
 			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 
 	return tc

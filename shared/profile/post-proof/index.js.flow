@@ -7,7 +7,6 @@ export type Props = {
   copyToClipboard: string => void,
   descriptionText?: string,
   errorMessage?: ?string,
-  isOnCompleteWaiting?: boolean,
   leftActionText?: ?string,
   onAllowProofCheck: boolean => void,
   onLeftAction: () => void,

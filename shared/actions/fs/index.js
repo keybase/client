@@ -18,7 +18,8 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend, navigateTo, switchTo, navigateUp} from '../route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import {getPathProps} from '../../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -606,27 +607,47 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   }
 }
 
-const _getRouteChangeForOpenMobile = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  route: any
-) =>
-  action.type === FsGen.openPathItem
-    ? navigateAppend([route])
-    : navigateTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder', route])
-
-const _getRouteChangeForOpenDesktop = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  route: any
-) =>
-  action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, 'folder', route])
+const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
+  isMobile
+    ? navigateTo([
+        Tabs.settingsTab,
+        SettingsConstants.fsTab,
+        // Construct all parent folders so back button works all the way back
+        // to /keybase
+        ...Types.getPathElements(action.payload.path)
+          .slice(1, -1) // fsTab default to /keybase, so we skip one here
+          .reduce(
+            (routes, elem) => [
+              ...routes,
+              {
+                props: {
+                  path: routes.length
+                    ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                    : Types.stringToPath(`/keybase/${elem}`),
+                },
+                selected: 'main',
+              },
+            ],
+            []
+          ),
+        finalRoute,
+      ])
+    : navigateTo([
+        Tabs.fsTab,
+        // Prepend the parent folder so when user clicks the back button they'd
+        // go back to the parent folder.
+        {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
+        finalRoute,
+      ])
 
 const _getRouteChangeActionForOpen = (
   action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  route: any
+  finalRoute: any
 ) => {
-  const routeChange = isMobile
-    ? _getRouteChangeForOpenMobile(action, route)
-    : _getRouteChangeForOpenDesktop(action, route)
+  const routeChange =
+    action.type === FsGen.openPathItem
+      ? navigateAppend([finalRoute])
+      : _getRouteChangeForOpenPathInFilesTab(action, finalRoute)
   return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
 
@@ -634,57 +655,47 @@ const openPathItem = (
   state: TypedState,
   action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload
 ) =>
-  Saga.callUntyped(function*() {
-    const {path} = action.payload
+  Saga.all([
+    Saga.callUntyped(function*() {
+      const {path} = action.payload
 
-    if (Types.getPathLevel(path) < 3) {
-      // We are in either /keybase or a TLF list. So treat it as a folder.
-      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
-      return
-    }
-
-    let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-    // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
-    // (PathItem), as the type of the entry could have changed before last time
-    // we heard about it from SimpleFS. Technically this is possible for
-    // FsGen.openPathItem too, but generally it's shortly after user has
-    // interacted with its parent folder, where we'd have just refreshed the
-    // PathItem for the entry.
-    if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
-      const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(path),
-        },
-      })
-      pathItem = makeEntry(dirent)
-      yield Saga.put(
-        FsGen.createFilePreviewLoaded({
-          meta: pathItem,
-          path,
-        })
-      )
-    }
-
-    if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
-      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
-      return
-    }
-
-    let selected = 'preview'
-    if (pathItem.type === 'file') {
-      let mimeType = pathItem.mimeType
-      if (mimeType === null) {
-        mimeType = yield* _loadMimeType(path)
+      if (Types.getPathLevel(path) < 3) {
+        return
       }
-      if (isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image') {
-        selected = 'barePreview'
-      }
-    }
 
-    // This covers both 'file' and 'symlink'
-    yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected}))
-  })
+      let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+      // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
+      // (PathItem), as the type of the entry could have changed before last time
+      // we heard about it from SimpleFS. Technically this is possible for
+      // FsGen.openPathItem too, but generally it's shortly after user has
+      // interacted with its parent folder, where we'd have just refreshed the
+      // PathItem for the entry.
+      if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
+        try {
+          const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+            path: {
+              PathType: RPCTypes.simpleFSPathType.kbfs,
+              kbfs: Constants.fsPathToRpcPathString(path),
+            },
+          })
+          pathItem = makeEntry(dirent)
+          yield Saga.put(
+            FsGen.createFilePreviewLoaded({
+              meta: pathItem,
+              path,
+            })
+          )
+        } catch (err) {
+          yield Saga.put(makeRetriableErrorHandler(action)(err))
+          return
+        }
+      }
+      if (pathItem.type === 'file') {
+        yield Saga.put(FsGen.createMimeTypeLoad({path}))
+      }
+    }),
+    Saga.put(_getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})),
+  ])
 
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.callUntyped(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
@@ -743,7 +754,7 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   )
 }
 
-const moveOrCopyOpenMobile = (state, action) =>
+const moveOrCopyOpen = (state, action) =>
   Saga.all([
     Saga.put(
       FsGen.createSetMoveOrCopyDestinationParentPath({
@@ -759,31 +770,23 @@ const moveOrCopyOpenMobile = (state, action) =>
     ),
   ])
 
-const moveOrCopyOpenDesktop = (state, action) =>
-  Saga.put(
-    FsGen.createSetMoveOrCopyDestinationParentPath({
-      index: action.payload.currentIndex,
-      path: action.payload.path,
-    })
+const showMoveOrCopy = (state, action) =>
+  Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
+
+const cancelMoveOrCopy = (state, action) => {
+  const currentRoutes = getPathProps(state.routeTree.routeState)
+  const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
+  const newRoute = currentRoutes.reduce(
+    (routes, {node, props}, i) =>
+      // node is never null
+      i < firstDestinationPickerIndex ? [...routes, {props, selected: node || ''}] : routes,
+    []
   )
-
-const showMoveOrCopy = isMobile
-  ? (state, action) =>
-      Saga.put(
-        navigateTo([
-          Tabs.settingsTab,
-          SettingsConstants.fsTab,
-          ...state.fs.moveOrCopy.destinationParentPath.map((p, index) => ({
-            props: {index},
-            selected: 'destinationPicker',
-          })),
-        ])
-      )
-  : (state, action) => Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
-
-const cancelMoveOrCopy = isMobile
-  ? (state, action) => Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
-  : (state, action) => Saga.put(navigateUp())
+  return Saga.all([
+    Saga.put(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'})),
+    Saga.put(navigateTo(newRoute)),
+  ])
+}
 
 const showSendLinkToChat = (state, action) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
@@ -865,6 +868,12 @@ const showSendLinkToChat = (state, action) => {
   return Saga.all(actions)
 }
 
+const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
+  folderListRefreshTags.delete(action.payload.refreshTag)
+  mimeTypeRefreshTags.delete(action.payload.refreshTag)
+  return null
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -884,10 +893,11 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.actionToPromise([FsGen.move, FsGen.copy], moveOrCopy)
-  yield Saga.actionToAction(FsGen.moveOrCopyOpen, isMobile ? moveOrCopyOpenMobile : moveOrCopyOpenDesktop)
+  yield Saga.actionToAction(FsGen.moveOrCopyOpen, moveOrCopyOpen)
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
   yield Saga.actionToAction(FsGen.showSendLinkToChat, showSendLinkToChat)
+  yield Saga.actionToAction(FsGen.clearRefreshTag, clearRefreshTag)
 
   yield Saga.spawn(platformSpecificSaga)
 }

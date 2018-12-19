@@ -32,6 +32,9 @@ protocol remote {
     string boxB64; // b64-encoded EncryptedRelaySecret
     string signedTransaction; // Funding tx
     boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
+    // if not empty, stellard will inform gregord about this payment's
+    // status changes along with this conversation ID
+    union { null, ChatConversationID } chatConversationID; 
   }
 
   record RelayClaimPost {
@@ -145,6 +148,7 @@ protocol remote {
     union { null, TransactionID } readTransactionID;
     int unreadPayments; // number of STELLAR payments that are "unread"
     string displayCurrency; // user configurable, defaults to "USD"
+    union { null, AccountID } inflationDestination;
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
@@ -223,6 +227,8 @@ protocol remote {
   }
   RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
   void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
+
+  void setInflationDestination(keybase1.UserVersion caller, string signedTransaction);
 
   string ping();
 

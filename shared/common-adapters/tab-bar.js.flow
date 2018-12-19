@@ -16,17 +16,17 @@ export type ItemProps = {|
   underlined?: boolean,
 |}
 
-export type Props = {|
-  style?: ?Object,
-  styleTabBar?: Object,
-  children?: Array<React.Element<React.ComponentType<ItemProps>>>,
-  tabBarOnBottom?: boolean,
-  underlined?: boolean,
-|}
-
 export default class TabBar extends React.Component<Props> {}
 
 export class TabBarItem extends React.Component<ItemProps> {}
+
+export type Props = {|
+  style?: ?Object,
+  styleTabBar?: Object,
+  children?: React.ChildrenArray<React.Element<typeof TabBarItem>>,
+  tabBarOnBottom?: boolean,
+  underlined?: boolean,
+|}
 
 export type TabBarButtonSource =
   | {type: 'icon', icon: IconType}

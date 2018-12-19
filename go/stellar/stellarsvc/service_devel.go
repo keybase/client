@@ -19,7 +19,7 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 		return dump, errors.New("WalletDump only supported in devel run mode")
 	}
 
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "WalletDumpLocal",
 		Err:     &err,
 	})
@@ -27,8 +27,6 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 	if err != nil {
 		return dump, err
 	}
-
-	mctx := libkb.NewMetaContext(ctx, s.G())
 
 	// verify passphrase
 	username := s.G().GetEnv().GetUsername().String()
@@ -44,7 +42,7 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 		return dump, err
 	}
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return dump, err
 	}

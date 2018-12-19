@@ -79,7 +79,7 @@ func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) 
 		isProduction := func() bool {
 			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 
 	ctc := kbtest.ChatTestContext{

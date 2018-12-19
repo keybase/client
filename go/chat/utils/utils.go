@@ -1348,6 +1348,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,
 			SenderDeviceRevokedAt: valid.SenderDeviceRevokedAt,
+			SenderUID:             valid.ClientHeader.Sender,
+			SenderDeviceID:        valid.ClientHeader.SenderDevice,
 			Superseded:            valid.ServerHeader.SupersededBy != 0,
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,

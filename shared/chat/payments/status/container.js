@@ -14,10 +14,10 @@ type OwnProps = {|
 
 const reduceStatus = status => {
   switch (status) {
+    case 'claimable':
     case 'completed':
       return 'completed'
     case 'pending':
-    case 'claimable':
     case 'unknown':
       return 'pending'
     case 'error':

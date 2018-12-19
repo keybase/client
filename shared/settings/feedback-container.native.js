@@ -27,9 +27,11 @@ type State = {
 }
 
 type Props = PropsWithTimer<{
-  status: Object,
-  heading: ?string,
   chat: Object,
+  heading: ?string,
+  onBack: () => void,
+  status: Object,
+  title: string,
 }>
 
 class FeedbackContainer extends React.Component<Props, State> {
@@ -202,9 +204,8 @@ export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o) => ({...s, ...d})
   ),
   HeaderHoc,
-  // $FlowIssue
   HOCTimers
 )(FeedbackContainer)

@@ -46,4 +46,8 @@ func (f fakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
 	return nil, nil
 }
 
+func (f fakeUIRouter) GetIdentify3UIAdapter(_ libkb.MetaContext, _ keybase1.Identify3GUIID) (libkb.IdentifyUI, error) {
+	return nil, nil
+}
+
 func (f fakeUIRouter) Shutdown() {}

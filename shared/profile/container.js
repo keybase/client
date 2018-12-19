@@ -82,8 +82,6 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onChat: (username: string) =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
   _onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
-  _onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
-  _onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
     dispatch(
@@ -181,8 +179,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onChat: () => dispatchProps._onChat(username),
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
-    onClickFollowers: () => dispatchProps._onClickFollowers(username),
-    onClickFollowing: () => dispatchProps._onClickFollowing(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
     onCopyStellarAddress: () => dispatchProps._copyStellarAddress(stateProps.stellarAddress),
     onFollow: () => dispatchProps._onFollow(username),

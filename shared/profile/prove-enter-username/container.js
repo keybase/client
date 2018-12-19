@@ -39,7 +39,6 @@ const mapStateToProps = state => {
     errorText: profile.errorText,
     platform: profile.platform,
     username: profile.username,
-    waiting: profile.waiting,
   }
 }
 

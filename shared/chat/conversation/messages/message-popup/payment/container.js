@@ -9,7 +9,7 @@ import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 // This file has two connectors and a wrapper. One connector is for sendPayment
@@ -123,14 +123,22 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
     cancelButtonLabel: 'Cancel',
-    errorDetails: paymentInfo.status === 'error' ? paymentInfo.statusDetail : undefined,
+    errorDetails:
+      paymentInfo.status === 'error' ||
+      paymentInfo.status === 'canceled' ||
+      paymentInfo.status === 'claimable'
+        ? paymentInfo.statusDetail
+        : undefined,
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
     onCancel: paymentInfo.showCancel ? () => dispatchProps.onCancel(paymentInfo.paymentID) : null,
-    onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
+    onClaimLumens: paymentInfo.status === 'claimable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
     onSeeDetails:
-      (paymentInfo.status === 'completed' || paymentInfo.status === 'error') &&
+      (paymentInfo.status === 'completed' ||
+        paymentInfo.status === 'error' ||
+        paymentInfo.status === 'claimable' ||
+        paymentInfo.status === 'canceled') &&
       (youAreSender || youAreReceiver)
         ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
         : null,

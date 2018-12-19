@@ -364,22 +364,24 @@ export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I
 // under the given parentPath
 export function getPathProps(
   routeState: ?RouteStateNode,
-  parentPath: Path
+  parentPath?: Path
 ): I.List<{node: ?string, props: I.Map<string, any>}> {
   const path = []
   let curState = routeState
 
-  for (const next of parentPath) {
-    // $FlowIssue
-    curState = curState && curState.getChild(next)
-    if (!curState) {
+  if (parentPath) {
+    for (const next of parentPath) {
       // $FlowIssue
-      return I.List(path)
+      curState = curState && curState.getChild(next)
+      if (!curState) {
+        // $FlowIssue
+        return I.List(path)
+      }
+      path.push({
+        node: next,
+        props: curState.props,
+      })
     }
-    path.push({
-      node: next,
-      props: curState.props,
-    })
   }
 
   while (curState && curState.selected !== null) {

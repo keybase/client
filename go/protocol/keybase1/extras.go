@@ -1222,12 +1222,22 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
+func (b TLFIdentifyBehavior) UnblockDespiteTracking() bool {
+	switch b {
+	case TLFIdentifyBehavior_GUI_PROFILE:
+		return true
+	default:
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_KBFS_CHAT:
+		TLFIdentifyBehavior_KBFS_CHAT,
+		TLFIdentifyBehavior_GUI_PROFILE:
 		return true
 	default:
 		return false

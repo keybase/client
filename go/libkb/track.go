@@ -453,7 +453,11 @@ func LocalTmpTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID) (re
 
 func StoreLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, statement *jsonw.Wrapper) error {
 	m.CDebugf("| StoreLocalTrack, expiring = %v", expiringLocal)
-	return m.G().LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
+	err := m.G().LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
+	if err == nil {
+		m.G().IdentifyDispatch.NotifyTrackingSuccess(m, trackee)
+	}
+	return err
 }
 
 func removeLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool) error {

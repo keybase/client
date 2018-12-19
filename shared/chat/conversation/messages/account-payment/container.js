@@ -66,7 +66,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
       const theirUsername = conv.participants.find(p => p !== you) || ''
 
-      const cancelable = paymentInfo.status === 'cancelable'
+      const cancelable = paymentInfo.status === 'claimable'
       const pending = cancelable || paymentInfo.status === 'pending'
       const canceled = paymentInfo.status === 'canceled'
       const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)

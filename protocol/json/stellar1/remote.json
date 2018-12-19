@@ -108,6 +108,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },
@@ -509,6 +516,13 @@
         {
           "type": "string",
           "name": "displayCurrency"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "inflationDestination"
         }
       ]
     },
@@ -898,6 +912,19 @@
         {
           "name": "reqID",
           "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
+    "setInflationDestination": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "signedTransaction",
+          "type": "string"
         }
       ],
       "response": null

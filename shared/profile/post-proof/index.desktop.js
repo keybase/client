@@ -1,8 +1,9 @@
 // @flow
-import * as shared from './shared'
+import * as Shared from './shared'
 import * as React from 'react'
-import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
+import * as Constants from '../../constants/profile'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import type {Props} from '.'
 
 const PostProof = (props: Props) => {
@@ -13,11 +14,11 @@ const PostProof = (props: Props) => {
     proofText,
     platformSubtitle,
     proofActionText,
-  } = shared.propsForPlatform(props)
+  } = Shared.propsForPlatform(props)
   const {proofAction} = props
 
   return (
-    <Box
+    <Kb.Box
       style={styleContainer}
       onCopyCapture={e => {
         // disallow copying the whole screen by accident
@@ -25,58 +26,59 @@ const PostProof = (props: Props) => {
         proofText && props.copyToClipboard(proofText)
       }}
     >
-      <Icon
+      <Kb.Icon
         style={styleClose}
         type="iconfont-close"
-        color={globalColors.black_10}
+        color={Styles.globalColors.black_10}
         onClick={() => props.onLeftAction()}
       />
       {!!props.errorMessage && (
-        <Box style={styleErrorBanner}>
-          <Text style={styleErrorBannerText} type="BodySemibold">
+        <Kb.Box style={styleErrorBanner}>
+          <Kb.Text style={styleErrorBannerText} type="BodySemibold">
             {props.errorMessage}
-          </Text>
-        </Box>
+          </Kb.Text>
+        </Kb.Box>
       )}
-      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        <Box style={styleContentContainer}>
-          <PlatformIcon
+      <Kb.Box style={{...Styles.globalStyles.flexBoxRow, flex: 1}}>
+        <Kb.Box style={styleContentContainer}>
+          <Kb.PlatformIcon
             platform={props.platform}
             overlay="icon-proof-unfinished"
-            overlayColor={globalColors.grey}
+            overlayColor={Styles.globalColors.grey}
           />
-          <Text
+          <Kb.Text
             style={{
               ...stylePlatformUsername,
-              ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium}),
+              ...(stylePlatformSubtitle ? {} : {marginBottom: Styles.globalMargins.medium}),
             }}
             type="Header"
           >
             {props.platformUserName}
-          </Text>
+          </Kb.Text>
           {!!platformSubtitle && (
-            <Text style={stylePlatformSubtitle} type="Body">
+            <Kb.Text style={stylePlatformSubtitle} type="Body">
               {platformSubtitle}
-            </Text>
+            </Kb.Text>
           )}
-          {descriptionView || (props.descriptionText && <Text type="Body">{props.descriptionText}</Text>)}
-          {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
+          {descriptionView ||
+            (props.descriptionText && <Kb.Text type="Body">{props.descriptionText}</Kb.Text>)}
+          {!!proofText && <Kb.CopyableText style={styleProofText} value={proofText} />}
           {!!noteText && (
-            <Text style={styleNoteText} type="Body">
+            <Kb.Text style={styleNoteText} type="Body">
               {noteText}
-            </Text>
+            </Kb.Text>
           )}
-          <Box style={styleButtonsContainer}>
+          <Kb.Box style={styleButtonsContainer}>
             {!!props.leftActionText && (
-              <Button
+              <Kb.Button
                 type="Secondary"
                 onClick={() => props.onLeftAction()}
                 label={props.leftActionText || 'Cancel'}
-                style={{marginRight: globalMargins.tiny}}
+                style={{marginRight: Styles.globalMargins.tiny}}
               />
             )}
             {!!proofAction && !props.allowProofCheck && (
-              <Button
+              <Kb.Button
                 type="Primary"
                 onClick={() => {
                   props.onAllowProofCheck(true)
@@ -86,90 +88,90 @@ const PostProof = (props: Props) => {
               />
             )}
             {props.allowProofCheck && (
-              <Button
+              <Kb.WaitingButton
                 type="Primary"
                 onClick={() => props.onComplete()}
                 label={onCompleteText || ''}
-                waiting={props.isOnCompleteWaiting}
+                waitingKey={Constants.waitingKey}
               />
             )}
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
 const styleContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   flex: 1,
-  paddingBottom: globalMargins.large,
-  paddingTop: globalMargins.large,
+  paddingBottom: Styles.globalMargins.large,
+  paddingTop: Styles.globalMargins.large,
   position: 'relative',
-  ...desktopStyles.scrollable,
+  ...Styles.desktopStyles.scrollable,
 }
 
-const styleClose = collapseStyles([
+const styleClose = Styles.collapseStyles([
   {
     position: 'absolute',
-    right: globalMargins.small,
-    top: globalMargins.small,
+    right: Styles.globalMargins.small,
+    top: Styles.globalMargins.small,
   },
-  desktopStyles.clickable,
+  Styles.desktopStyles.clickable,
 ])
 
 const styleErrorBanner = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
-  backgroundColor: globalColors.red,
+  backgroundColor: Styles.globalColors.red,
   justifyContent: 'center',
-  marginTop: -globalMargins.large,
-  minHeight: globalMargins.large,
-  padding: globalMargins.tiny,
+  marginTop: -Styles.globalMargins.large,
+  minHeight: Styles.globalMargins.large,
+  padding: Styles.globalMargins.tiny,
   width: '100%',
   zIndex: 1,
 }
 
 const styleErrorBannerText = {
-  color: globalColors.white,
+  color: Styles.globalColors.white,
   textAlign: 'center',
 }
 
 const styleContentContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
   justifyContent: 'center',
-  margin: globalMargins.large,
+  margin: Styles.globalMargins.large,
   textAlign: 'center',
   width: '100%',
 }
 
 const stylePlatformUsername = {
-  color: globalColors.blue,
+  color: Styles.globalColors.blue,
 }
 
 const stylePlatformSubtitle = {
-  color: globalColors.black_20,
-  marginBottom: globalMargins.medium,
+  color: Styles.globalColors.black_20,
+  marginBottom: Styles.globalMargins.medium,
 }
 
 const styleProofText = {
   flexGrow: 1,
-  marginTop: globalMargins.small,
+  marginTop: Styles.globalMargins.small,
   minHeight: 116,
   width: '100%',
 }
 
 const styleNoteText = {
-  marginTop: globalMargins.tiny,
+  marginTop: Styles.globalMargins.tiny,
 }
 
 const styleButtonsContainer = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   flexShrink: 0,
-  marginBottom: globalMargins.medium,
-  marginTop: globalMargins.medium,
+  marginBottom: Styles.globalMargins.medium,
+  marginTop: Styles.globalMargins.medium,
 }
 
 export default PostProof

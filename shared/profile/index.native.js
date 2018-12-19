@@ -169,8 +169,6 @@ class Profile extends Component<Props, State> {
         currentlyFollowing={this.props.currentlyFollowing}
         trackerState={this.props.trackerState}
         onClickAvatar={this._onClickAvatar}
-        onClickFollowers={this.props.onClickFollowers}
-        onClickFollowing={this.props.onClickFollowing}
       />
     )
   }

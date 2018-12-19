@@ -123,8 +123,6 @@ const props = {
   onChat: Sb.action('onChat'),
   onClearAddUserToTeamsResults: Sb.action('onClearAddUserToTeamsResults'),
   onClickAvatar: Sb.action('onClickAvatar'),
-  onClickFollowers: Sb.action('onClickFollowers'),
-  onClickFollowing: Sb.action('onClickFollowing'),
   onClickShowcaseOffer: Sb.action('onClickShowcaseOffer'),
   onClickShowcased: Sb.action('onClickShowcased'),
   onCopyStellarAddress: Sb.action('onCopyStellarAddress'),

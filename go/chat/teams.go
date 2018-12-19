@@ -184,20 +184,20 @@ func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
 
 func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, public bool,
 	team *teams.Team) error {
-	impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
 	if err != nil {
 		return err
 	}
-	if impTeamName != tlfName {
+	if impTeamName.String() != tlfName {
 		// Try resolving given name, maybe there has been a resolution
 		resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
 		if err != nil {
 			return err
 		}
-		if impTeamName != resName.String() {
+		if impTeamName.String() != resName.String() {
 			return ImpteamBadteamError{
-				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-					tlfName),
+				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s (resname:%s)",
+					impTeamName, tlfName, resName),
 			}
 		}
 	}

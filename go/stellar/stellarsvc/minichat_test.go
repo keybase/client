@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/stellarnet"
 	"github.com/stretchr/testify/require"
 )
 
@@ -147,5 +148,54 @@ func TestSpecMiniChatPayments(t *testing.T) {
 		}
 		require.NotNil(t, out)
 		require.Equal(t, st.summary, *out)
+	}
+}
+
+// TestPrepareMiniChatRelays checks that a PrepareMiniChatPayments
+// (which is called by SendMiniChatPayments)
+// with a destination username that is a valid user but someone who
+// doesn't have a wallet will succeed and create a relay payment.
+func TestPrepareMiniChatRelays(t *testing.T) {
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+	require.NotNil(t, tc.Srv.walletState)
+
+	tcw, cleanupw := setupDesktopTest(t)
+	defer cleanupw()
+
+	mctx := libkb.NewMetaContext(context.Background(), tc.G)
+
+	acceptDisclaimer(tc)
+	acceptDisclaimer(tcw)
+	payments := []libkb.MiniChatPayment{
+		{Username: libkb.NewNormalizedUsername("t_rebecca"), Amount: "1", Currency: "USD"},
+		{Username: libkb.NewNormalizedUsername(tcw.Fu.Username), Amount: "2", Currency: "XLM"},
+	}
+
+	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx.Ctx(), mctx.G())
+	require.NoError(t, err)
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	require.NoError(t, err)
+
+	prepared, err := stellar.PrepareMiniChatPayments(mctx, tc.Srv.walletState, senderSeed, nil, payments)
+	require.NoError(t, err)
+	require.Len(t, prepared, 2)
+	for i, p := range prepared {
+		t.Logf("result %d: %+v", i, p)
+
+		switch p.Username.String() {
+		case "t_rebecca":
+			require.Nil(t, p.Direct)
+			require.NotNil(t, p.Relay)
+			require.Equal(t, "1", p.Relay.DisplayAmount)
+			require.Equal(t, "USD", p.Relay.DisplayCurrency)
+			require.True(t, p.Relay.QuickReturn)
+		case tcw.Fu.Username:
+			require.NotNil(t, p.Direct)
+			require.Nil(t, p.Relay)
+			require.True(t, p.Direct.QuickReturn)
+		default:
+			t.Fatalf("unknown username in result: %s", p.Username)
+		}
 	}
 }
