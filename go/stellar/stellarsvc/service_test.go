@@ -59,7 +59,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, true)
+	created, err := stellar.CreateWallet(tcs[0].MetaContext(), true)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -170,7 +170,7 @@ func setupWithNewBundle(t *testing.T, tc *TestContext) {
 	require.NoError(t, err)
 	err = stellar.SetMigrationFeatureFlag(ctx, g, true)
 	require.NoError(t, err)
-	_, err = stellar.CreateWallet(ctx, g, true)
+	_, err = stellar.CreateWallet(tc.MetaContext(), true)
 	require.NoError(t, err)
 }
 
@@ -181,7 +181,7 @@ func TestUpkeep(t *testing.T) {
 	g := tcs[0].G
 	setupWithNewBundle(t, tcs[0])
 
-	mctx := libkb.NewMetaContextBackground(tcs[0].G)
+	mctx := tcs[0].MetaContext()
 	bundle, _, pukGen, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	originalID := bundle.OwnHash
@@ -1493,10 +1493,11 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	g := tcs[0].G
 
 	// create a v1 bundle with two accounts
+	mctx := tcs[0].MetaContext()
 	err := stellar.SetMigrationFeatureFlag(ctx, g, false)
 	require.NoError(t, err)
 	acceptDisclaimer(tcs[0])
-	created, err := stellar.CreateWallet(ctx, g, false)
+	created, err := stellar.CreateWallet(mctx, false)
 	require.NoError(t, err)
 	require.False(t, created)
 	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
@@ -1509,8 +1510,6 @@ func TestV2EndpointsAsV1(t *testing.T) {
 	primaryAccount, err := v1Bundle1.PrimaryAccount()
 	require.NoError(t, err)
 	primaryAccountID := primaryAccount.AccountID
-
-	mctx := libkb.NewMetaContextBackground(g)
 
 	// fetch secretless bundle
 	bundle, version, _, err := remote.FetchSecretlessBundle(mctx)

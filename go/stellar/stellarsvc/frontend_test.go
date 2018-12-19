@@ -570,7 +570,8 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
-	_, err = stellar.CreateWallet(context.Background(), tcs[0].G, false)
+	mctx := tcs[0].MetaContext()
+	_, err = stellar.CreateWallet(mctx, false)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 

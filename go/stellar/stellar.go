@@ -76,39 +76,38 @@ type CreateWalletGatedResult struct {
 // CreateWalletGated may create a wallet for the user.
 // Taking into account settings from the server.
 // It should be speedy to call repeatedly _if_ the user gets a wallet.
-func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateWalletGatedResult, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.CreateWalletGated", func() error { return err })()
+func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err error) {
+	defer mctx.CTraceTimed("Stellar.CreateWalletGated", func() error { return err })()
 	defer func() {
-		g.Log.CDebugf(ctx, "CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
+		mctx.CDebugf("CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
-	meUV, err := g.GetMeUV(ctx)
+	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return res, err
 	}
-	if getGlobal(g).CachedHasWallet(ctx, meUV) {
-		g.Log.CDebugf(ctx, "CreateWalletGated: local cache says we already have a wallet")
+	if getGlobal(mctx.G()).CachedHasWallet(mctx.Ctx(), meUV) {
+		mctx.CDebugf("CreateWalletGated: local cache says we already have a wallet")
 		return CreateWalletGatedResult{
 			JustCreated:        false,
 			HasWallet:          true,
 			AcceptedDisclaimer: true, // because it should be impossible to have created a wallet without accepting.
 		}, nil
 	}
-	scr, err := remote.ShouldCreate(ctx, g)
+	scr, err := remote.ShouldCreate(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return res, err
 	}
 	res.HasWallet = scr.HasWallet
 	res.AcceptedDisclaimer = scr.AcceptedDisclaimer
 	if scr.HasWallet {
-		g.Log.CDebugf(ctx, "CreateWalletGated: server says we already have a wallet")
-		getGlobal(g).InformHasWallet(ctx, meUV)
+		mctx.CDebugf("CreateWalletGated: server says we already have a wallet")
+		getGlobal(mctx.G()).InformHasWallet(mctx.Ctx(), meUV)
 		return res, nil
 	}
 	if !scr.ShouldCreate {
-		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
+		mctx.CDebugf("CreateWalletGated: server did not recommend wallet creation")
 		return res, nil
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	mctx.G().FeatureFlags.InvalidateCache(mctx, libkb.FeatureStellarAcctBundles)
 	flaggedForV2 := remote.AcctBundlesEnabled(mctx)
 	justCreated, err := CreateWallet(mctx, flaggedForV2)
@@ -124,14 +123,14 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateW
 
 // CreateWalletSoft creates a user's initial wallet if they don't already have one.
 // Does not get in the way of intentional user actions.
-func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
+func CreateWalletSoft(mctx libkb.MetaContext) {
 	var err error
-	defer g.CTraceTimed(ctx, "CreateWalletSoft", func() error { return err })()
-	if !g.LocalSigchainGuard().IsAvailable(ctx, "CreateWalletSoft") {
+	defer mctx.CTraceTimed("CreateWalletSoft", func() error { return err })()
+	if !mctx.G().LocalSigchainGuard().IsAvailable(mctx.Ctx(), "CreateWalletSoft") {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}
-	_, err = CreateWalletGated(ctx, g)
+	_, err = CreateWalletGated(mctx)
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.

@@ -144,7 +144,7 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 }
 
 func (r *AutoClaimRunner) claim(mctx libkb.MetaContext, kbTxID stellar1.KeybaseTransactionID, token string) (err error) {
-	CreateWalletSoft(mctx.Ctx(), mctx.G())
+	CreateWalletSoft(mctx)
 	into, err := GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return err

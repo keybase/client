@@ -267,12 +267,12 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return err
 	}
 
-	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	err = remote.SetAcceptedDisclaimer(mctx.Ctx(), s.G())
 	if err != nil {
 		return err
 	}
-	stellar.InformAcceptedDisclaimer(ctx, s.G())
-	crg, err := stellar.CreateWalletGated(ctx, s.G())
+	stellar.InformAcceptedDisclaimer(mctx.Ctx(), s.G())
+	crg, err := stellar.CreateWalletGated(mctx)
 	if err != nil {
 		return err
 	}

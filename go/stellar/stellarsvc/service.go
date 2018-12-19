@@ -78,7 +78,7 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.M
 		}
 	}
 	if opts.RequireWallet {
-		cwg, err := stellar.CreateWalletGated(mctx.Ctx(), s.G())
+		cwg, err := stellar.CreateWalletGated(mctx)
 		if err != nil {
 			return mctx, fin, err
 		}
