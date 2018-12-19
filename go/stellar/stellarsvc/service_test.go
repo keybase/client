@@ -130,14 +130,14 @@ func TestV1Upkeep(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 
-	mctx := libkb.NewMetaContextBackground(tcs[0].G)
+	mctx := tcs[0].MetaContext()
 	bundle, _, pukGen, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	originalID := bundle.OwnHash
 	require.NotNil(t, originalID)
 	originalPukGen := pukGen
 
-	err = stellar.Upkeep(context.Background(), tcs[0].G)
+	err = stellar.Upkeep(mctx)
 	require.NoError(t, err)
 
 	bundle, _, pukGen, err = remote.FetchSecretlessBundle(mctx)
@@ -148,12 +148,11 @@ func TestV1Upkeep(t *testing.T) {
 	t.Logf("rotate puk")
 	engArg := &engine.PerUserKeyRollArgs{}
 	eng := engine.NewPerUserKeyRoll(tcs[0].G, engArg)
-	m := libkb.NewMetaContextTODO(tcs[0].G)
-	err = engine.RunEngine2(m, eng)
+	err = engine.RunEngine2(mctx, eng)
 	require.NoError(t, err)
 	require.True(t, eng.DidNewKey)
 
-	err = stellar.Upkeep(context.Background(), tcs[0].G)
+	err = stellar.Upkeep(mctx)
 	require.NoError(t, err)
 
 	bundle, _, pukGen, err = remote.FetchSecretlessBundle(mctx)
@@ -177,7 +176,6 @@ func setupWithNewBundle(t *testing.T, tc *TestContext) {
 func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
-	ctx := context.Background()
 	g := tcs[0].G
 	setupWithNewBundle(t, tcs[0])
 
@@ -188,7 +186,7 @@ func TestUpkeep(t *testing.T) {
 	require.NotNil(t, originalID)
 	originalPukGen := pukGen
 
-	err = stellar.Upkeep(ctx, g)
+	err = stellar.Upkeep(mctx)
 	require.NoError(t, err)
 
 	bundle, _, pukGen, err = remote.FetchSecretlessBundle(mctx)
@@ -203,7 +201,7 @@ func TestUpkeep(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, eng.DidNewKey)
 
-	err = stellar.Upkeep(ctx, g)
+	err = stellar.Upkeep(mctx)
 	require.NoError(t, err)
 
 	bundle, _, pukGen, err = remote.FetchSecretlessBundle(mctx)

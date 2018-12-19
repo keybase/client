@@ -134,27 +134,27 @@ func CreateWalletSoft(mctx libkb.MetaContext) {
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
-func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
-	prevBundle, version, prevPukGen, err := remote.FetchWholeBundle(ctx, g)
+func Upkeep(mctx libkb.MetaContext) (err error) {
+	defer mctx.CTraceTimed("Stellar.Upkeep", func() error { return err })()
+	prevBundle, version, prevPukGen, err := remote.FetchWholeBundle(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return err
 	}
-	pukring, err := g.GetPerUserKeyring(ctx)
+	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return err
 	}
-	err = pukring.Sync(libkb.NewMetaContext(ctx, g))
+	err = pukring.Sync(mctx)
 	if err != nil {
 		return err
 	}
 	pukGen := pukring.CurrentGeneration()
 	if pukGen <= prevPukGen {
-		g.Log.CDebugf(ctx, "Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
+		mctx.CDebugf("Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
 		return nil
 	}
 	nextBundle := acctbundle.AdvanceAll(*prevBundle)
-	return remote.Post(ctx, g, nextBundle, version)
+	return remote.Post(mctx.Ctx(), mctx.G(), nextBundle, version)
 }
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
