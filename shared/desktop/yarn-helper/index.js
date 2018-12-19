@@ -27,7 +27,6 @@ const commands = {
   },
   postinstall: {
     code: () => {
-      // Nothing right now
       // storybook uses react-docgen which really cr*ps itself with flow
       // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
       makeShims()
