@@ -10,7 +10,7 @@ import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import logger from '../../logger'
-import type {TypedState} from '../../util/container'
+import type {TypedState, TypedActions} from '../../util/container'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
@@ -301,16 +301,46 @@ const clearFilter = (
   return Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 }
 
+// Helper to handle incoming inbox updates that piggy back on various calls
+export const chatActivityToMetasAction = (
+  payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
+): Array<TypedActions> => {
+  const conv = payload ? payload.conv : null
+  const meta = conv && Constants.inboxUIItemToConversationMeta(conv)
+  const conversationIDKey = meta
+    ? meta.conversationIDKey
+    : conv && Types.stringToConversationIDKey(conv.convID)
+  const usernameToFullname = (conv && conv.fullNames) || {}
+  // We ignore inbox rows that are ignored/blocked/reported or have no content
+  const isADelete =
+    conv &&
+    ([
+      RPCChatTypes.commonConversationStatus.ignored,
+      RPCChatTypes.commonConversationStatus.blocked,
+      RPCChatTypes.commonConversationStatus.reported,
+    ].includes(conv.status) ||
+      conv.isEmpty)
+
+  // We want to select a different convo if its cause we ignored/blocked/reported. Otherwise sometimes we get that a convo
+  // is empty which we don't want to select something else as sometimes we're in the middle of making it!
+  const selectSomethingElse = conv ? !conv.isEmpty : false
+  return meta
+    ? [
+        isADelete
+          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey, selectSomethingElse})
+          : Chat2Gen.createMetasReceived({metas: [meta]}),
+        UsersGen.createUpdateFullnames({usernameToFullname}),
+      ]
+    : conversationIDKey && isADelete
+    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+    : []
+}
+
 export function* saga(): Saga.SagaGenerator<any, any> {
-  // Refresh the inbox
   yield Saga.actionToAction(Chat2Gen.inboxRefresh, inboxRefresh)
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearFilter)
-  // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
-  // We've scrolled some new inbox rows into view, queue them up
   yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
-  // We have some items in the queue to process
   yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
-  // Actually try and unbox conversations
   yield Saga.actionToAction([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 }

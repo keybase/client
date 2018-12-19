@@ -136,40 +136,7 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
   }
 
   // We need to do things and we need to consume the inbox updates that come along with this data
-  return [...actions, ...chatActivityToMetasAction(incoming)]
-}
-
-// Helper to handle incoming inbox updates that piggy back on various calls
-const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}) => {
-  const conv = payload ? payload.conv : null
-  const meta = conv && Constants.inboxUIItemToConversationMeta(conv)
-  const conversationIDKey = meta
-    ? meta.conversationIDKey
-    : conv && Types.stringToConversationIDKey(conv.convID)
-  const usernameToFullname = (conv && conv.fullNames) || {}
-  // We ignore inbox rows that are ignored/blocked/reported or have no content
-  const isADelete =
-    conv &&
-    ([
-      RPCChatTypes.commonConversationStatus.ignored,
-      RPCChatTypes.commonConversationStatus.blocked,
-      RPCChatTypes.commonConversationStatus.reported,
-    ].includes(conv.status) ||
-      conv.isEmpty)
-
-  // We want to select a different convo if its cause we ignored/blocked/reported. Otherwise sometimes we get that a convo
-  // is empty which we don't want to select something else as sometimes we're in the middle of making it!
-  const selectSomethingElse = conv ? !conv.isEmpty : false
-  return meta
-    ? [
-        isADelete
-          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey, selectSomethingElse})
-          : Chat2Gen.createMetasReceived({metas: [meta]}),
-        UsersGen.createUpdateFullnames({usernameToFullname}),
-      ]
-    : conversationIDKey && isADelete
-    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
-    : []
+  return [...actions, ...Inbox.chatActivityToMetasAction(incoming)]
 }
 
 // We got errors from the service
@@ -508,11 +475,11 @@ const setupEngineListeners = () => {
             : null
         }
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
-          return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.setStatus))
+          return arrayOfActionsToSequentially(Inbox.chatActivityToMetasAction(activity.setStatus))
         case RPCChatTypes.notifyChatChatActivityType.readMessage:
-          return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.readMessage))
+          return arrayOfActionsToSequentially(Inbox.chatActivityToMetasAction(activity.readMessage))
         case RPCChatTypes.notifyChatChatActivityType.newConversation:
-          return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.newConversation))
+          return arrayOfActionsToSequentially(Inbox.chatActivityToMetasAction(activity.newConversation))
         case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
           const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
           const outboxRecords = failedMessage && failedMessage.outboxRecords
