@@ -6,9 +6,9 @@
 
 #include "bridge.h"
 
-void *kbfsLibdokanPtr_RemoveMountPoint;
-void *kbfsLibdokanPtr_OpenRequestorToken;
-void *kbfsLibdokanPtr_Main;
+uintptr_t kbfsLibdokanPtr_RemoveMountPoint;
+uintptr_t kbfsLibdokanPtr_OpenRequestorToken;
+uintptr_t kbfsLibdokanPtr_Main;
 
 extern NTSTATUS kbfsLibdokanCreateFile(LPCWSTR FileName,
 					 PDOKAN_IO_SECURITY_CONTEXT psec,
@@ -329,7 +329,7 @@ error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx) {
 }
 
 error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
-	int __stdcall (*dokanMain)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations) = kbfsLibdokanPtr_Main;
+	int __stdcall (*dokanMain)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations) = (void*)kbfsLibdokanPtr_Main;
 	if(!dokanMain)
 		return kbfsLibDokan_DLL_LOAD_ERROR;
 	if((ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern) != 0) {
@@ -345,7 +345,7 @@ int kbfsLibdokanFill_find(PFillFindData fptr, PWIN32_FIND_DATAW a1, PDOKAN_FILE_
 }
 
 BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint) {
-	BOOL __stdcall (*removeMountPoint)(LPCWSTR MountPoint) = kbfsLibdokanPtr_RemoveMountPoint;
+	BOOL __stdcall (*removeMountPoint)(LPCWSTR MountPoint) = (void*)kbfsLibdokanPtr_RemoveMountPoint;
 	if(!removeMountPoint)
 		return 0;
 	return (*removeMountPoint)(MountPoint);
@@ -353,16 +353,16 @@ BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint) {
 
 
 HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo) {
-	HANDLE __stdcall (*openRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo) = kbfsLibdokanPtr_OpenRequestorToken;
+	HANDLE __stdcall (*openRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo) = (void*)kbfsLibdokanPtr_OpenRequestorToken;
 	if(!openRequestorToken)
 		return INVALID_HANDLE_VALUE;
 	return (*openRequestorToken)(DokanFileInfo);
 }
 
-ULONG kbfsLibDokan_GetVersion(void *proc) {
+ULONG kbfsLibDokan_GetVersion(uintptr_t proc) {
 	if(!proc)
 		return 0;
-	ULONG __stdcall (*fun)() = proc;
+	ULONG __stdcall (*fun)() = (void*)proc;
 	return fun();
 }
 

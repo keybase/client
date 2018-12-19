@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
-	"unsafe"
 
 	"golang.org/x/sys/windows"
 )
@@ -86,10 +85,10 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 	if err != nil {
 		return err
 	}
-	var dokanVersionProc, dokanDriverVersionProc unsafe.Pointer
+	var dokanVersionProc, dokanDriverVersionProc C.uintptr_t
 	for _, v := range []struct {
 		name string
-		ptr  *unsafe.Pointer
+		ptr  *C.uintptr_t
 	}{{`DokanRemoveMountPoint`, &C.kbfsLibdokanPtr_RemoveMountPoint},
 		{`DokanOpenRequestorToken`, &C.kbfsLibdokanPtr_OpenRequestorToken},
 		{`DokanMain`, &C.kbfsLibdokanPtr_Main},
@@ -99,7 +98,7 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 		if err != nil {
 			return fmt.Errorf(`GetProcAddress(%q) -> %v,%v`, v.name, uptr, err)
 		}
-		*v.ptr = unsafe.Pointer(uptr)
+		*v.ptr = C.uintptr_t(uptr)
 	}
 	epc.Printf("Dokan version: %d driver %d\n",
 		C.kbfsLibDokan_GetVersion(dokanVersionProc),
