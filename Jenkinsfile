@@ -367,15 +367,16 @@ def testGo(prefix) {
             def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
             dir(dirPath) {
+                def testName = dirPath.replaceAll('/', '_')
+                def testBinary = "${testName}.test"
                 sh "go test -i"
-                sh "go test -c -o test.test"
+                sh "go test -c -o ${testBinary}"
                 // Only run the test if a test binary should have been produced.
-                if (fileExists("test.test")) {
-                    def testName = dirPath.replaceAll('/', '_')
+                if (fileExists(testBinary)) {
                     def test = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
-                            sh "./test.test -test.timeout 30m"
+                            sh "./${testBinary} -test.timeout 30m"
                         }
                     }
                     if (testName in specialTestFilter) {
