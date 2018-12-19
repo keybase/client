@@ -51,8 +51,6 @@ export type Props = {
   onEditAvatar: (image?: any) => void,
   onFilePickerError: (error: Error) => void,
   onClickAvatar: () => void,
-  onClickFollowers: () => void,
-  onClickFollowing: () => void,
   waiting: boolean,
   youAreInTeams: boolean,
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 // PassphraseChange engine is used for changing the user's passphrase, either
@@ -346,7 +345,7 @@ func (c *PassphraseChange) commonArgs(m libkb.MetaContext, oldClientHalf libkb.L
 
 	payload := make(libkb.JSONPayload)
 	payload["pwh"] = libkb.HexArg(newPWH).String()
-	payload["pwh_version"] = triplesec.Version
+	payload["pwh_version"] = libkb.ClientTriplesecVersion
 	payload["lks_mask"] = mask.EncodeToHex()
 	payload["lks_client_halves"] = lksch
 	payload["pdpka5_kid"] = pdpka5kid.String()

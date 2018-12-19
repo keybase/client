@@ -402,8 +402,6 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
-                onClickFollowers={this.props.onClickFollowers}
-                onClickFollowing={this.props.onClickFollowing}
               />
               {!this.props.isYou && !loading && (
                 <UserActions

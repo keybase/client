@@ -29,6 +29,7 @@ type WalletState struct {
 	refreshGroup *singleflight.Group
 	refreshReqs  chan stellar1.AccountID
 	refreshCount int
+	rateGroup    *singleflight.Group
 	sync.Mutex
 }
 
@@ -42,6 +43,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		rates:        make(map[string]rateEntry),
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  make(chan stellar1.AccountID, 100),
+		rateGroup:    &singleflight.Group{},
 	}
 
 	go ws.backgroundRefresh()
@@ -303,10 +305,24 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 	w.Lock()
 	existing, ok := w.rates[currency]
 	w.Unlock()
-	if ok && time.Since(existing.ctime) < 10*time.Second {
+	age := time.Since(existing.ctime)
+	if ok && age < 1*time.Minute {
+		w.G().Log.CDebugf(ctx, "using cached value for ExchangeRate(%s) => %+v (%s old)", currency, existing.rate, age)
 		return existing.rate, nil
 	}
-	rate, err := w.Remoter.ExchangeRate(ctx, currency)
+	if ok {
+		w.G().Log.CDebugf(ctx, "skipping cache for ExchangeRate(%s) because too old (%s)", currency, age)
+	}
+	w.G().Log.CDebugf(ctx, "ExchangeRate(%s) using remote", currency)
+
+	rateRes, err := w.rateGroup.Do(currency, func() (interface{}, error) {
+		return w.Remoter.ExchangeRate(ctx, currency)
+	})
+	rate, ok := rateRes.(stellar1.OutsideExchangeRate)
+	if !ok {
+		return stellar1.OutsideExchangeRate{}, errors.New("invalid cast")
+	}
+
 	if err == nil {
 		w.Lock()
 		w.rates[currency] = rateEntry{
@@ -315,6 +331,7 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 			ctime:    time.Now(),
 		}
 		w.Unlock()
+		w.G().Log.CDebugf(ctx, "ExchangeRate(%s) => %+v, setting cache", currency, rate)
 	}
 
 	return rate, err

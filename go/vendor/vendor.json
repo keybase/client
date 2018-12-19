@@ -623,6 +623,12 @@
 			"revisionTime": "2018-11-27T16:02:27Z"
 		},
 		{
+			"checksumSHA1": "i26gImRP+UQnxz5sxUupcrh+KNY=",
+			"path": "github.com/keybase/go-crypto/sha3",
+			"revision": "255a5089e85a475b944ad3c159af0de73fbe66b1",
+			"revisionTime": "2018-11-27T16:02:27Z"
+		},
+		{
 			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
 			"path": "github.com/keybase/go-crypto/ssh/terminal",
 			"revision": "c84d7cbef16bcd1cd873e1d5793b18865f443ba0",
@@ -689,16 +695,16 @@
 			"revisionTime": "2016-10-05T17:59:11Z"
 		},
 		{
-			"checksumSHA1": "JUSz7wJaqQkY3aEOUKeof+DhgHU=",
+			"checksumSHA1": "iV9zI5ZScygQda6V2rECRKShc3E=",
 			"path": "github.com/keybase/go-triplesec",
-			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
-			"revisionTime": "2015-06-12T09:33:55-07:00"
+			"revision": "8de83e135dfcf664ab48c9b1cdc635297e604f34",
+			"revisionTime": "2018-12-03T23:04:24Z"
 		},
 		{
-			"checksumSHA1": "qimsruTDK3iB7o2NEtd+lGHj9Tg=",
+			"checksumSHA1": "hl/NMLoE3YhtmWjQ0UBpFDGiTCA=",
 			"path": "github.com/keybase/go-triplesec-insecure",
-			"revision": "41f0316cb8dd9d90b53b9f72caa49dac55577571",
-			"revisionTime": "2016-06-27T11:11:58-04:00"
+			"revision": "17f25e17c9df6b113a0ff90325a9d5842aa70633",
+			"revisionTime": "2018-12-12T21:44:53Z"
 		},
 		{
 			"checksumSHA1": "1ooVUlwDXhGISJAxGqpL3JCCW3o=",
