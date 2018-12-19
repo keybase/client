@@ -14,7 +14,7 @@ import (
 func testTimePacking(t *testing.T, t0 time.Time) {
 	t1 := unpackTime(packTime(t0))
 	if !t0.Equal(t1) {
-		t.Fatal("Time pack+unpack not equal with original: %v => %v", t0, t1)
+		t.Fatalf("Time pack+unpack not equal with original: %v => %v", t0, t1)
 	}
 }
 
