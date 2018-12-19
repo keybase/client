@@ -1155,13 +1155,12 @@ func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err
 	return primary.AccountID, nil
 }
 
-func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	page, err := remoter.RecentPayments(ctx, accountID, nil, 0, false)
+func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
+	defer mctx.CTraceTimed("Stellar.RecentPaymentsCLILocal", func() error { return err })()
+	page, err := remoter.RecentPayments(mctx.Ctx(), accountID, nil, 0, false)
 	if err != nil {
 		return nil, err
 	}
-	mctx := libkb.NewMetaContext(ctx, g)
 	for _, p := range page.Payments {
 		lp, err := localizePayment(mctx, p)
 		if err == nil {

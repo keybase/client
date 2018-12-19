@@ -1273,7 +1273,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 
 	senderSecondaryAccountID, err := tcs[0].Srv.CreateWalletAccountLocal(context.Background(), stellar1.CreateWalletAccountLocalArg{
@@ -1731,7 +1731,7 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -1941,7 +1941,7 @@ func TestReviewPaymentLocal(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -2000,7 +2000,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -2436,7 +2436,7 @@ func TestSetInflation(t *testing.T) {
 
 	// Test to see if RPCs are reaching remote (mocks).
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])

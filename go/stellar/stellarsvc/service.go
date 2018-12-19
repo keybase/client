@@ -259,7 +259,7 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 	} else {
 		selectAccountID = *accountID
 	}
-	return stellar.RecentPaymentsCLILocal(mctx.Ctx(), s.G(), s.remoter, selectAccountID)
+	return stellar.RecentPaymentsCLILocal(mctx, s.remoter, selectAccountID)
 }
 
 func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
