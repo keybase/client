@@ -19,7 +19,7 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 		return dump, errors.New("WalletDump only supported in devel run mode")
 	}
 
-	mctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "WalletDumpLocal",
 		Err:     &err,
 	})
