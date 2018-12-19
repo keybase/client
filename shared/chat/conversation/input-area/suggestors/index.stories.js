@@ -5,7 +5,8 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import AddSuggestors, * as Suggestors from '.'
 
-class _TestArea extends React.Component<Suggestors.PropsWithSuggestor<{somethingElse: 'this'}>> {
+type TestAreaProps = Suggestors.PropsWithSuggestor<{somethingElse: 'this'}>
+class _TestArea extends React.Component<TestAreaProps> {
   render() {
     return (
       <Kb.Box2 direction="vertical" gap="tiny" style={{padding: 10}}>
@@ -78,6 +79,7 @@ const props = {
 const availableTriggers = Object.values(props.suggestorToMarker)
 
 const load = () =>
-  Sb.storiesOf('Chat/Suggestors').add('Basic', () => <TestArea {...props} somethingElse={'this'} />)
+  // $FlowIssue if flow says this is an unused suppression, there's probably something wrong with AddSuggestors typing
+  Sb.storiesOf('Chat/Suggestors').add('Basic', () => <TestArea {...props} somethingElse="not this" />)
 
 export default load

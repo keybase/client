@@ -85,11 +85,14 @@ export type PropsWithSuggestor<P> = {|
 
 const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
   WrappedComponent: Class<React.Component<PropsWithSuggestor<WrappedOwnProps>, WrappedState>>
-): Class<React.Component<PropsWithSuggestorOuter<WrappedOwnProps>, AddSuggestorsState>> => {
-  class SuggestorsComponent extends React.Component<
-    PropsWithSuggestorOuter<WrappedOwnProps>,
-    AddSuggestorsState
-  > {
+): React.AbstractComponent<PropsWithSuggestorOuter<WrappedOwnProps>> => {
+  type SuggestorsComponentProps = {|
+    ...PropsWithSuggestorOuter<WrappedOwnProps>,
+    forwardedRef:
+      | ((instance: React.ElementRef<typeof WrappedComponent> | null) => mixed)
+      | {current: ?WrappedComponent},
+  |}
+  class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
@@ -100,6 +103,15 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
 
     componentWillUnmount() {
       clearTimeout(this._timeoutID)
+    }
+
+    _setAttachmentRef = (r: null | WrappedComponent) => {
+      this._attachmentRef.current = r
+      if (typeof this.props.forwardedRef === 'function') {
+        this.props.forwardedRef(r)
+      } else {
+        this.props.forwardedRef.current = r
+      }
     }
 
     _getInputRef = () => this._inputRef.current
@@ -350,6 +362,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
 
       const {
         dataSources,
+        forwardedRef,
         keyExtractors,
         renderers,
         suggestionListStyle,
@@ -363,7 +376,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
           {overlay}
           <WrappedComponent
             {...wrappedOP}
-            ref={this._attachmentRef}
+            ref={this._setAttachmentRef}
             inputRef={this._inputRef}
             onBlur={this._onBlur}
             onFocus={this._onFocus}
@@ -376,7 +389,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
     }
   }
 
-  return SuggestorsComponent
+  return React.forwardRef((props, ref) => <SuggestorsComponent {...props} forwardedRef={ref} />)
 }
 
 export {standardTransformer}
