@@ -35,6 +35,32 @@ class _TestArea extends React.Component<TestAreaProps> {
 }
 const TestArea = AddSuggestors(_TestArea)
 
+// eslint-disable-next-line no-unused-vars
+const typingTests = () => {
+  // eslint-disable-next-line no-unused-vars
+  let test
+  // $FlowIssue should error (bad other prop)
+  test = <TestArea {...props} somethingElse="not this" />
+  // $FlowIssue should error (bad suggestor prop)
+  test = <TestArea {...props} dataSources={[1, 2]} />
+
+  const missing = {
+    renderers: {},
+    somethingElse: 'this',
+    suggestorToMarker: {},
+    transformers: {},
+  }
+  // $FlowIssue should error (missing suggestor prop)
+  test = <TestArea {...missing} />
+
+  const extraJunk = {
+    ...props,
+    extra: 'oops',
+  }
+  // $FlowIssue should error (extra prop)
+  test = <TestArea {...extraJunk} />
+}
+
 // prettier-ignore
 const fruit = ['apple', 'orange', 'raspberry', 'cantaloupe', 'durian', 'blackberry', 'fruit_generic', 'mango', 'nectarine', 'pineapple', 'lemon']
 // prettier-ignore
@@ -68,6 +94,7 @@ const props = {
       />
     ),
   },
+  somethingElse: 'this', // used for typing tests
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
@@ -78,8 +105,6 @@ const props = {
 
 const availableTriggers = Object.values(props.suggestorToMarker)
 
-const load = () =>
-  // $FlowIssue if flow says this is an unused suppression, there's probably something wrong with AddSuggestors typing
-  Sb.storiesOf('Chat/Suggestors').add('Basic', () => <TestArea {...props} somethingElse="not this" />)
+const load = () => Sb.storiesOf('Chat/Suggestors').add('Basic', () => <TestArea {...props} />)
 
 export default load

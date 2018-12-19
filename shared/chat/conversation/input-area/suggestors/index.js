@@ -88,7 +88,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
 ): React.AbstractComponent<PropsWithSuggestorOuter<WrappedOwnProps>> => {
   type SuggestorsComponentProps = {|
     ...PropsWithSuggestorOuter<WrappedOwnProps>,
-    forwardedRef: React.Ref<typeof WrappedComponent>,
+    forwardedRef: ?React.Ref<typeof WrappedComponent>,
   |}
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
@@ -107,7 +107,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
       this._attachmentRef.current = r
       if (typeof this.props.forwardedRef === 'function') {
         this.props.forwardedRef(r)
-      } else if (typeof this.props.forwardedRef !== 'string') {
+      } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
         this.props.forwardedRef.current = r
       } // intentionally not supporting string refs
     }
