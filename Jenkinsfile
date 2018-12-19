@@ -75,8 +75,8 @@ helpers.rootLinuxNode(env, {
                             env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
                             sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
                             env.COMMIT_HASH = readFile('go/revision')
-                            sh "git fetch origin ${env.CHANGE_TARGET}"
-                            env.BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}")
+                            sh "git fetch origin +refs/heads/${env.CHANGE_TARGET}:refs/remotes/origin/${env.CHANGE_TARGET}"
+                            env.BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse refs/heads/${env.CHANGE_TARGET}")
                         }
                     },
                     pull_glibc: {
