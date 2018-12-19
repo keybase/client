@@ -20,6 +20,7 @@ import PathItemInfo from '../common/path-item-info'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
+import CommaSeparatedName from './comma-separated-name'
 
 type Props = {
   name: string,
@@ -171,11 +172,13 @@ const PathItemActionHeader = (props: Props) => (
   <Box style={styles.header}>
     <PathItemIcon spec={props.itemStyles.iconSpec} style={styles.pathItemIcon} />
     <StaticBreadcrumb pathElements={props.pathElements} />
-    <Box style={styles.nameTextBox}>
-      <Text selectable={true} type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
-        {props.name}
-      </Text>
-    </Box>
+    <Box2 direction="horizontal" style={styles.nameTextBox}>
+      <CommaSeparatedName
+        type="BodySmallSemibold"
+        name={props.name}
+        elementStyle={stylesNameText(props.itemStyles.textColor)}
+      />
+    </Box2>
     {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
     {props.type === 'folder' && (
       <Text type="BodySmall">
@@ -257,6 +260,8 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
       width: '100%',
     },
@@ -274,8 +279,7 @@ const styles = Styles.styleSheetCreate({
   },
   nameTextBox: Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      flexWrap: 'wrap',
     },
     isElectron: {
       textAlign: 'center',

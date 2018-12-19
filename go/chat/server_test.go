@@ -2610,6 +2610,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
+			require.NotNil(t, res.Thread.Pagination)
+			require.False(t, res.Thread.Pagination.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2620,6 +2622,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.Equal(t, chat1.MessageID(6), res.Thread.Messages[0].GetMessageID())
 			p = res.Thread.Pagination
+			require.NotNil(t, p)
+			require.False(t, p.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2650,6 +2654,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
+			require.NotNil(t, res.Thread.Pagination)
+			require.False(t, res.Thread.Pagination.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2659,6 +2665,9 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.True(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.Equal(t, chat1.MessageID(5), res.Thread.Messages[0].GetMessageID())
+			p = res.Thread.Pagination
+			require.NotNil(t, p)
+			require.False(t, p.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2666,6 +2675,66 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case <-cb:
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "GetThread never finished")
+		}
+
+		for i := 0; i < 5; i++ {
+			p.Num = 50
+			cb = make(chan struct{})
+			go func() {
+				_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+					chat1.GetThreadNonblockArg{
+						ConversationID:   conv.Id,
+						IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+						Query:            &query,
+						Pagination:       p,
+						Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
+					},
+				)
+				require.NoError(t, err)
+				close(cb)
+			}()
+			clock.Advance(50 * time.Millisecond)
+			if i == 0 {
+				select {
+				case res := <-ui.ThreadCb:
+					require.False(t, res.Full)
+					require.Equal(t, 3, len(res.Thread.Messages))
+					require.NotNil(t, res.Thread.Pagination)
+					require.True(t, res.Thread.Pagination.Last)
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no thread cb")
+				}
+			} else {
+				select {
+				case <-ui.ThreadCb:
+					require.Fail(t, "no callback expected")
+				default:
+				}
+			}
+			clock.Advance(20 * time.Minute)
+			if i == 0 {
+				select {
+				case res := <-ui.ThreadCb:
+					require.True(t, res.Full)
+					require.Equal(t, 3, len(res.Thread.Messages))
+					require.Equal(t, chat1.MessageID(4), res.Thread.Messages[0].GetMessageID())
+					require.NotNil(t, res.Thread.Pagination.Last)
+					require.True(t, res.Thread.Pagination.Last)
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no thread cb")
+				}
+			} else {
+				select {
+				case <-ui.ThreadCb:
+					require.Fail(t, "no callback expected")
+				default:
+				}
+			}
+			select {
+			case <-cb:
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "GetThread never finished")
+			}
 		}
 	})
 }

@@ -1,13 +1,13 @@
 // @flow
 import {BigTeamsDivider} from '.'
 import {connect} from '../../../../util/container'
-import {memoize2} from '../../../../util/memoize'
+import {memoize} from '../../../../util/memoize'
 
 type OwnProps = {|
   toggle: () => void,
 |}
 
-const getBadgeCount = memoize2((metaMap, badgeMap) =>
+const getBadgeCount = memoize((metaMap, badgeMap) =>
   metaMap.filter(meta => meta.teamType === 'big').reduce((total, map, id) => total + badgeMap.get(id, 0), 0)
 )
 

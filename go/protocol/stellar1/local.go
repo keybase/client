@@ -4,6 +4,7 @@
 package stellar1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -569,6 +570,111 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 	}
 }
 
+type InflationDestinationType int
+
+const (
+	InflationDestinationType_SELF      InflationDestinationType = 1
+	InflationDestinationType_ACCOUNTID InflationDestinationType = 2
+	InflationDestinationType_LUMENAUT  InflationDestinationType = 3
+)
+
+func (o InflationDestinationType) DeepCopy() InflationDestinationType { return o }
+
+var InflationDestinationTypeMap = map[string]InflationDestinationType{
+	"SELF":      1,
+	"ACCOUNTID": 2,
+	"LUMENAUT":  3,
+}
+
+var InflationDestinationTypeRevMap = map[InflationDestinationType]string{
+	1: "SELF",
+	2: "ACCOUNTID",
+	3: "LUMENAUT",
+}
+
+func (e InflationDestinationType) String() string {
+	if v, ok := InflationDestinationTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type InflationDestination struct {
+	Typ__       InflationDestinationType `codec:"typ" json:"typ"`
+	Accountid__ *AccountID               `codec:"accountid,omitempty" json:"accountid,omitempty"`
+}
+
+func (o *InflationDestination) Typ() (ret InflationDestinationType, err error) {
+	switch o.Typ__ {
+	case InflationDestinationType_ACCOUNTID:
+		if o.Accountid__ == nil {
+			err = errors.New("unexpected nil value for Accountid__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o InflationDestination) Accountid() (res AccountID) {
+	if o.Typ__ != InflationDestinationType_ACCOUNTID {
+		panic("wrong case accessed")
+	}
+	if o.Accountid__ == nil {
+		return
+	}
+	return *o.Accountid__
+}
+
+func NewInflationDestinationWithSelf() InflationDestination {
+	return InflationDestination{
+		Typ__: InflationDestinationType_SELF,
+	}
+}
+
+func NewInflationDestinationWithAccountid(v AccountID) InflationDestination {
+	return InflationDestination{
+		Typ__:       InflationDestinationType_ACCOUNTID,
+		Accountid__: &v,
+	}
+}
+
+func NewInflationDestinationWithLumenaut() InflationDestination {
+	return InflationDestination{
+		Typ__: InflationDestinationType_LUMENAUT,
+	}
+}
+
+func (o InflationDestination) DeepCopy() InflationDestination {
+	return InflationDestination{
+		Typ__: o.Typ__.DeepCopy(),
+		Accountid__: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Accountid__),
+	}
+}
+
+type InflationDestinationResultLocal struct {
+	Destination *AccountID `codec:"destination,omitempty" json:"destination,omitempty"`
+	Comment     string     `codec:"comment" json:"comment"`
+}
+
+func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLocal {
+	return InflationDestinationResultLocal{
+		Destination: (func(x *AccountID) *AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Destination),
+		Comment: o.Comment,
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 	TxID   TransactionID        `codec:"txID" json:"txID"`
@@ -945,6 +1051,17 @@ type CancelPaymentLocalArg struct {
 	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
 }
 
+type SetInflationDestinationLocalArg struct {
+	SessionID   int                  `codec:"sessionID" json:"sessionID"`
+	AccountID   AccountID            `codec:"accountID" json:"accountID"`
+	Destination InflationDestination `codec:"destination" json:"destination"`
+}
+
+type GetInflationDestinationLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -1063,6 +1180,8 @@ type LocalInterface interface {
 	SetAccountAllDevicesLocal(context.Context, SetAccountAllDevicesLocalArg) error
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
 	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
+	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
+	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (InflationDestinationResultLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1626,6 +1745,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setInflationDestinationLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SetInflationDestinationLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetInflationDestinationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetInflationDestinationLocalArg)(nil), args)
+						return
+					}
+					err = i.SetInflationDestinationLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getInflationDestinationLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetInflationDestinationLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetInflationDestinationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetInflationDestinationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInflationDestinationLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -2051,6 +2200,16 @@ func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccou
 
 func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg SetInflationDestinationLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setInflationDestinationLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res InflationDestinationResultLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res)
 	return
 }
 

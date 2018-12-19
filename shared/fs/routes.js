@@ -2,13 +2,13 @@
 import * as I from 'immutable'
 import Files from './container'
 import {isMobile} from '../constants/platform'
-import {BarePreview, NormalPreview} from './filepreview'
+import {BarePreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import SecurityPrefs from './common/security-prefs-container'
 import DestinationPicker from './destination-picker/container'
 import SendLinkToChat from './send-link-to-chat/container'
 
-/*
+/* TODO: update examples here
  * Example Fs routes:
  *
  *   Mobile:
@@ -68,29 +68,28 @@ import SendLinkToChat from './send-link-to-chat/container'
  */
 
 const _destinationPicker = {
-  children: isMobile
-    ? {
-        destinationPicker: () => makeRouteDefNode(_destinationPicker),
-      }
-    : undefined,
+  children: {
+    destinationPicker: () => makeRouteDefNode(_destinationPicker),
+  },
   component: DestinationPicker,
   tags: makeLeafTags({
     layerOnTop: !isMobile,
+    renderTopmostOnly: !isMobile,
     title: 'Move or Copy',
   }),
 }
 
 const _commonChildren = {
+  destinationPicker: () => makeRouteDefNode(_destinationPicker),
   securityPrefs: {
     component: SecurityPrefs,
   },
-  ...(isMobile ? {} : {destinationPicker: () => makeRouteDefNode(_destinationPicker)}),
   sendLinkToChat: {
     component: SendLinkToChat,
   },
 }
 
-const _folderRoute = {
+const _mainRoute = {
   children: {
     ..._commonChildren,
     barePreview: () =>
@@ -102,25 +101,13 @@ const _folderRoute = {
           title: 'Preview',
         }),
       }),
-    folder: () => makeRouteDefNode(_folderRoute),
-    preview: () =>
-      makeRouteDefNode({
-        children: _commonChildren,
-        component: NormalPreview,
-        tags: makeLeafTags({
-          title: 'Preview',
-        }),
-      }),
+    main: () => makeRouteDefNode(_mainRoute),
   },
   component: Files,
 }
 
 const routeTree = makeRouteDefNode({
-  children: {
-    folder: () => makeRouteDefNode(_folderRoute),
-    ...(isMobile ? {destinationPicker: () => makeRouteDefNode(_destinationPicker)} : {}),
-  },
-  defaultSelected: 'folder',
+  ..._mainRoute,
   initialState: {expandedSet: I.Set()},
   tags: makeLeafTags({title: 'Files'}),
 })
