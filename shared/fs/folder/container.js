@@ -1,9 +1,9 @@
 // @flow
-import {compose, namedConnect} from '../util/container'
+import {compose, namedConnect} from '../../util/container'
 import Files from '.'
-import * as Types from '../constants/types/fs'
-import * as Constants from '../constants/fs'
-import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
+import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
+import SecurityPrefsPromptingHoc from '../common/security-prefs-prompting-hoc'
 
 const mapStateToProps = (state, {routeProps}) => {
   const path = routeProps.get('path', Constants.defaultPath)
