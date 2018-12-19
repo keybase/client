@@ -59,6 +59,10 @@ const typingTests = () => {
   }
   // $FlowIssue should error (extra prop)
   test = <TestArea {...extraJunk} />
+
+  const testAreaFunc = (props: TestAreaProps) => {}
+  // $FlowIssue should error (not a class)
+  AddSuggestors(testAreaFunc)
 }
 
 // prettier-ignore
