@@ -159,8 +159,8 @@ export const reduceRPCItemToPeopleItem = (
         })
       )
     }
-  } else if (item.data.t === 3) {
-    if (__DEV__ && flags.peopleAnnouncementsEnabled) {
+  } else if (item.data.t === RPCTypes.homeHomeScreenItemType.announcement) {
+    if (flags.peopleAnnouncementsEnabled) {
       const a: any = item.data.announcement
       return list.push(
         makeAnnouncement({
