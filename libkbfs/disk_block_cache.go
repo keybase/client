@@ -859,6 +859,10 @@ func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 			continue
 		}
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
+		if err != nil {
+			cache.log.CWarningf(ctx, "Error getting id from bytes %x", blockIDBytes)
+			continue
+		}
 		lru, err := cache.getLRULocked(blockID)
 		if err != nil {
 			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s",
@@ -907,6 +911,10 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 			continue
 		}
 		blockID, err := kbfsblock.IDFromBytes(key)
+		if err != nil {
+			cache.log.CWarningf(ctx, "Error getting id from bytes %x", key)
+			continue
+		}
 		metadata := DiskBlockCacheMetadata{}
 		err = cache.config.Codec().Decode(iter.Value(), &metadata)
 		if err != nil {
