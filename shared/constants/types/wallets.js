@@ -49,6 +49,7 @@ export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 export type _Account = {
   accountID: AccountID,
   balanceDescription: string,
+  balanceAvailable: string,
   isDefault: boolean,
   name: string,
 }

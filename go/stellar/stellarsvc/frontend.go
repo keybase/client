@@ -447,32 +447,6 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 	return stellar.Claim(ctx, s.G(), s.walletState, relay.KbTxID.String(), relay.FromStellar, &dir, nil)
 }
 
-type balanceList []stellar1.Balance
-
-// Example: "56.0227002 XLM + more"
-func (a balanceList) balanceDescription() (res string, err error) {
-	var more bool
-	for _, b := range a {
-		if b.Asset.IsNativeXLM() {
-			res, err = stellar.FormatAmountDescriptionXLM(b.Amount)
-			if err != nil {
-				return "", err
-			}
-		} else {
-			more = true
-		}
-	}
-	if res == "" {
-		res = "0 XLM"
-	}
-	if more {
-		res += " + more"
-	} else {
-		res += " available"
-	}
-	return res, nil
-}
-
 func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
 	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "ValidateAccountIDLocal",

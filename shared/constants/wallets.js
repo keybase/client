@@ -147,6 +147,7 @@ const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
+  balanceAvailable: '',
   balanceDescription: '',
   isDefault: false,
   name: '',
@@ -157,6 +158,7 @@ const unknownAccount = makeAccount()
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
+    balanceAvailable: w.balanceAvailable,
     balanceDescription: w.balanceDescription,
     isDefault: w.isDefault,
     name: w.name,

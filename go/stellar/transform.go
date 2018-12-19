@@ -461,7 +461,7 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
-	balance, err := balanceList(details.Balances).balanceDescription()
+	balance, available, err := balanceList(details.Balances).balanceDescription()
 	if err != nil {
 		return empty, err
 	}
@@ -475,6 +475,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1
 		IsDefault:          isPrimary,
 		Name:               accountName,
 		BalanceDescription: balance,
+		BalanceAvailable:   available,
 		Seqno:              details.Seqno,
 		CurrencyLocal:      currencyLocal,
 	}
@@ -485,13 +486,13 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1
 type balanceList []stellar1.Balance
 
 // Example: "56.0227002 XLM + more"
-func (a balanceList) balanceDescription() (res string, err error) {
+func (a balanceList) balanceDescription() (res string, available string, err error) {
 	var more bool
 	for _, b := range a {
 		if b.Asset.IsNativeXLM() {
 			res, err = FormatAmountDescriptionXLM(b.Amount)
 			if err != nil {
-				return "", err
+				return "", "", err
 			}
 		} else {
 			more = true
@@ -500,8 +501,9 @@ func (a balanceList) balanceDescription() (res string, err error) {
 	if res == "" {
 		res = "0 XLM"
 	}
+	available = res + " available"
 	if more {
 		res += " + more"
 	}
-	return res, nil
+	return res, available, nil
 }
