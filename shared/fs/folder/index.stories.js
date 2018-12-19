@@ -128,12 +128,7 @@ export default () => {
       />
     ))
     .add('Preview', () => (
-      <NormalPreview
-        routePath={I.List([])}
-        routeProps={I.Map({
-          path: '/keybase/private/foo/bar.jpg',
-        })}
-      />
+      <NormalPreview routePath={I.List([])} path={Types.stringToPath('/keybase/private/foo/bar.jpg')} />
     ))
     .add('Breadcrumbs', () => (
       <Box>

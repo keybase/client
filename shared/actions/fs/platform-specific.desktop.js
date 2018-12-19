@@ -16,7 +16,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import {navigateTo, switchTo} from '../route-tree'
+import {switchTo} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -363,23 +363,7 @@ const loadUserFileEdits = (state: TypedState, action) =>
 const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    ...(path
-      ? [
-          Saga.put(
-            navigateTo([
-              Tabs.fsTab,
-              {
-                props: {path: Types.getPathParent(path)},
-                selected: 'folder',
-              },
-              {
-                props: {path},
-                selected: type === 'folder' ? 'folder' : 'preview',
-              },
-            ])
-          ),
-        ]
-      : [Saga.put(switchTo([Tabs.fsTab]))]),
+    ...(path ? [Saga.put(FsGen.createOpenPathInFilesTab({path}))] : [Saga.put(switchTo([Tabs.fsTab]))]),
   ])
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {

@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import {Box, OverlayParentHOC} from '../../common-adapters'
 import PathItemAction from './path-item-action'
+import Loading from './loading'
 
 const pathItemActionPopupProps = (path: Types.Path) => {
   const pathElements = Types.getPathElements(path)
@@ -71,5 +72,6 @@ const load = () =>
         />
       </Box>
     ))
+    .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
 
 export default load
