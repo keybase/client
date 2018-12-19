@@ -3,14 +3,14 @@ import * as React from 'react'
 import * as Constants from '../../constants/signup'
 import {
   Box2,
-  HeaderHocHeader,
   Avatar,
   WaitingButton,
   Input as CommonInput,
   avatarCastPlatformStyles,
   ButtonBar,
+  StandardScreen,
 } from '../../common-adapters'
-import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
+import {styleSheetCreate, isMobile, globalMargins} from '../../styles'
 
 type Props = {
   children: React.Node,
@@ -18,19 +18,9 @@ type Props = {
 }
 
 export const Wrapper = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      centerChildren={true}
-      style={styles.wrapper}
-      gap={isMobile ? 'xtiny' : 'small'}
-    >
-      {props.children}
-    </Box2>
-    <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-  </Box2>
+  <StandardScreen borderless={true} onLeftAction={props.onBack} style={styles.screen}>
+    {props.children}
+  </StandardScreen>
 )
 
 export const BlankAvatar = () => (
@@ -64,17 +54,9 @@ export const Input = (props: any) => (
 export const styles = styleSheetCreate({
   avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
   buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
-  header: {
-    backgroundColor: globalColors.transparent,
-    borderBottomWidth: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
   input: {maxWidth: 460, width: '100%'},
   inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
   inputErrorStyle: {minHeight: 0},
   inputInnerStyle: {width: '100%'},
-  wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
+  screen: {alignItems: 'center', paddingTop: globalMargins.medium},
 })

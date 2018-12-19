@@ -21,9 +21,8 @@ const People = (props: Props) => (
           label: 'Avatar',
         },
       ]}
-    >
-      <PeoplePageSearchBar {...props} />
-    </Kb.HeaderHocHeader>
+      titleComponent={(<PeoplePageSearchBar {...props} />)}
+    />
     <Kb.ScrollView
       style={styles.scrollView}
       refreshControl={

@@ -431,19 +431,20 @@ class Profile extends Component<Props, State> {
             paddingBottom: Styles.globalMargins.tiny,
           }}
           theme="dark"
-        >
-          <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Kb.Icon
-              color={Styles.globalColors.white_75}
-              fontSize={20}
-              style={styleSearchIcon}
-              type="iconfont-search"
-            />
-            <Kb.Text style={styleSearchText} type="BodySemibold">
-              Search people
-            </Kb.Text>
-          </Kb.ClickableBox>
-        </Kb.HeaderHocHeader>
+          titleComponent={(
+            <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
+              <Kb.Icon
+                color={Styles.globalColors.white_75}
+                fontSize={20}
+                style={styleSearchIcon}
+                type="iconfont-search"
+              />
+              <Kb.Text style={styleSearchText} type="BodySemibold">
+                Search people
+              </Kb.Text>
+            </Kb.ClickableBox>
+          )}
+        />
       )
     } else {
       return (

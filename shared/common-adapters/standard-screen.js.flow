@@ -1,16 +1,17 @@
 // @flow
 import * as React from 'react'
-// import type {LeftActionType} from './header-hoc.types'
+import type {StylesCrossPlatform} from '../styles/css'
 
 export type NotificationType = 'error' | 'success'
 
 export type Props = {
   children?: ?any,
+  borderless?: boolean,
   notification?: ?{
     message: string | React.Node,
     type: NotificationType,
   },
-  style?: ?Object,
+  style?: StylesCrossPlatform,
   theme?: 'light' | 'dark', // defaults to light
   scrollEnabled?: boolean,
   styleBanner?: ?Object,

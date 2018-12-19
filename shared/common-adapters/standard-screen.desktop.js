@@ -3,15 +3,15 @@ import * as React from 'react'
 import Box from './box'
 import Text from './text'
 import HeaderHoc from './header-hoc'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
-import type {Props, NotificationType} from './standard-screen'
+import * as Styles from '../styles'
+import type {Props} from './standard-screen'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
   const topStack = [
     !!props.notification && (
-      <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+      <Box key="banner" style={Styles.collapseStyles([styles.banner, props.notification.type && styles.bannerError, props.styleBanner])}>
         {typeof props.notification.message === 'string' ? (
-          <Text style={styleBannerText} type="BodySmallSemibold">
+          <Text style={styles.bannerText} type="BodySmallSemibold">
             {props.notification.message}
           </Text>
         ) : (
@@ -22,72 +22,71 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
   ]
   const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
-    <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
-      <Box style={styleTopStack}>{topStack}</Box>
-      <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        <Box style={{...styleContentContainer, ...props.style}}>{props.children}</Box>
+    <Box style={Styles.collapseStyles([styles.container, theme === 'dark' && styles.containerDark])}>
+      <Box style={styles.topStack}>{topStack}</Box>
+      <Box style={Styles.collapseStyles([styles.innerContainer, {paddingBottom: topStackCount * Styles.globalMargins.large}])}>
+        <Box style={Styles.collapseStyles([styles.contentContainer, props.style])}>{props.children}</Box>
       </Box>
     </Box>
   )
 }
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...desktopStyles.scrollable,
-  alignItems: 'stretch',
-  flex: 1,
-  position: 'relative',
-}
-
-const styleTopStack = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  position: 'relative',
-  width: '100%',
-}
-
-const backgroundColorThemed = {
-  dark: {
-    backgroundColor: globalColors.darkBlue3,
+const styles = Styles.styleSheetCreate({
+  banner: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.green,
+    justifyContent: 'center',
+    minHeight: Styles.globalMargins.large,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.xlarge,
+    paddingRight: Styles.globalMargins.xlarge,
+    paddingTop: Styles.globalMargins.tiny,
+    textAlign: 'center',
+    width: '100%',
+    zIndex: 1,
   },
-  light: {
-    backgroundColor: globalColors.white,
+  bannerError: {
+    backgroundColor: Styles.globalColors.red,
   },
-}
-
-const styleBanner = (notificationType: NotificationType) => ({
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: notificationType === 'error' ? globalColors.red : globalColors.green,
-  justifyContent: 'center',
-  minHeight: globalMargins.large,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.xlarge,
-  paddingRight: globalMargins.xlarge,
-  paddingTop: globalMargins.tiny,
-  textAlign: 'center',
-  width: '100%',
-  zIndex: 1,
+  bannerText: {
+    color: Styles.globalColors.white,
+  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'stretch',
+      backgroundColor: Styles.globalColors.white,
+      flex: 1,
+      position: 'relative',
+    },
+    isElectron: {
+      ...Styles.desktopStyles.scrollable,
+    },
+  }),
+  containerDark: {
+    backgroundColor: Styles.globalColors.darkBlue3,
+  },
+  contentContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    margin: Styles.globalMargins.large,
+    textAlign: 'center',
+  },
+  innerContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    position: 'relative',
+  },
+  topStack: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    position: 'relative',
+    width: '100%',
+  },
 })
-
-const styleBannerText = {
-  color: globalColors.white,
-}
-
-const styleInnerContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  position: 'relative',
-}
-
-const styleContentContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
-  margin: globalMargins.large,
-  textAlign: 'center',
-}
 
 export default HeaderHoc(StandardScreen)

@@ -3,6 +3,7 @@ import * as React from 'react'
 import type {Props} from './container'
 import {globalMargins, globalStyles} from '../../styles'
 import {Box, HeaderHoc, NativeScrollView} from '../../common-adapters/mobile.native'
+import {withProps} from '../../util/container'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (
@@ -25,4 +26,7 @@ const containerStyle = {
   paddingRight: globalMargins.medium,
 }
 
-export default HeaderHoc(Container)
+export default withProps<_, Props>((props: Props) => ({
+  borderless: true,
+  onLeftAction: props.onBack,
+}))(HeaderHoc(Container))

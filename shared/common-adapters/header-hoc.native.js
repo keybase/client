@@ -25,7 +25,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         style={Styles.collapseStyles([
           styles.header,
           this.props.borderless && styles.borderless,
-          this.props.style,
+          this.props.headerStyle,
         ])}
       >
         {this.props.customComponent}
@@ -53,13 +53,12 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             !this.props.rightActions && styles.titlePadding,
           ])}
         >
-          {!this.props.title && this.props.children
-            ? (this.props.children)
-            : (
-              <Text type="BodySemibold" style={styles.title} lineClamp={1}>
+          {!!this.props.title && !this.props.titleComponent
+            ? (<Text type="BodySemibold" style={styles.title} lineClamp={1}>
                 !{this.props.title}
-              </Text>
-            )}
+              </Text>)
+            : (this.props.titleComponent)
+          }
         </Box>
         <Box style={styles.rightActions}>
           <Box style={styles.rightActionsWrapper}>
