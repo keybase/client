@@ -30,7 +30,6 @@ type WalletState struct {
 	refreshReqs  chan stellar1.AccountID
 	refreshCount int
 	rateGroup    *singleflight.Group
-	shutdown     bool
 	shutdownOnce sync.Once
 	sync.Mutex
 }
@@ -58,10 +57,10 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 func (w *WalletState) Shutdown() error {
 	w.shutdownOnce.Do(func() {
 		mctx := libkb.NewMetaContextBackground(w.G())
-		mctx.CDebugf("shutting down WalletState")
-		w.Reset(mctx)
-
+		mctx.CDebugf("WalletState shutting down")
 		close(w.refreshReqs)
+		w.Reset(mctx)
+		mctx.CDebugf("WalletState shut down complete")
 	})
 	return nil
 }
