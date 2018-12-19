@@ -710,7 +710,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		if err != nil {
 			return nil, err
 		}
-		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), outsideAmount, senderRate.Currency, FmtRound)
+		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, senderRate.Currency, FmtRound)
 		if err != nil {
 			return nil, err
 		}
@@ -733,7 +733,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 			spec.Error = err
 			return spec, 0
 		}
-		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), payment.Amount, exchangeRate.Currency, FmtRound)
+		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx, payment.Amount, exchangeRate.Currency, FmtRound)
 		if err != nil {
 			spec.Error = err
 			return spec, 0
@@ -1385,9 +1385,8 @@ type FmtRounding bool
 const FmtRound = false
 const FmtTruncate = true
 
-func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
-	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return "", err
 	}
@@ -1410,15 +1409,14 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
 
 // FormatCurrencyWithCodeSuffix will return a fiat currency amount formatted with
 // its currency code suffix at the end, like "$123.12 CLP"
-func FormatCurrencyWithCodeSuffix(ctx context.Context, g *libkb.GlobalContext,
-	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
-	pre, err := FormatCurrency(ctx, g, amount, code, rounding)
+func FormatCurrencyWithCodeSuffix(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
+	pre, err := FormatCurrency(mctx, amount, code, rounding)
 	if err != nil {
 		return "", err
 	}
 
 	// some currencies have the same symbol as code (CHF)
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return "", err
 	}
