@@ -288,7 +288,7 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 		return err
 	}
 	flaggedForV2 := remote.AcctBundlesEnabled(mctx)
-	_, err = stellar.CreateWallet(mctx.Ctx(), s.G(), flaggedForV2)
+	_, err = stellar.CreateWallet(mctx, flaggedForV2)
 	return err
 }
 
