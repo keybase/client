@@ -60,6 +60,8 @@ func (w *WalletState) Shutdown() error {
 		mctx := libkb.NewMetaContextBackground(w.G())
 		mctx.CDebugf("shutting down WalletState")
 		w.Reset(mctx)
+
+		close(w.refreshReqs)
 	})
 	return nil
 }
@@ -373,14 +375,11 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	w.Lock()
 	defer w.Unlock()
 
-	close(w.refreshReqs)
-
 	for _, a := range w.accounts {
 		a.Reset(mctx)
 	}
 
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
-	w.refreshReqs = make(chan stellar1.AccountID, 100)
 }
 
 // AccountState holds the current data for a stellar account.
