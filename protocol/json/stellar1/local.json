@@ -664,6 +664,63 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "InflationDestinationType",
+      "symbols": [
+        "SELF_1",
+        "ACCOUNTID_2",
+        "LUMENAUT_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "InflationDestination",
+      "switch": {
+        "type": "InflationDestinationType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SELF",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "ACCOUNTID",
+            "def": false
+          },
+          "body": "AccountID"
+        },
+        {
+          "label": {
+            "name": "LUMENAUT",
+            "def": false
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InflationDestinationResultLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "destination"
+        },
+        {
+          "type": "string",
+          "name": "comment"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
@@ -1476,6 +1533,36 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "setInflationDestinationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "destination",
+          "type": "InflationDestination"
+        }
+      ],
+      "response": null
+    },
+    "getInflationDestinationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "InflationDestinationResultLocal"
     },
     "balancesLocal": {
       "request": [

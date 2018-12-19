@@ -5,13 +5,13 @@ import * as Types from '../../../constants/types/chat2'
 import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
-import {memoize1, memoize2, memoize3} from '../../../util/memoize'
+import {memoize} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const smallTeamsCollapsedMaxShown = 5
 
 // Could make this faster by bookkeeping if this structure changed instead of if any item changed
-const splitMetas = memoize1((metaMap: Types.MetaMap) => {
+const splitMetas = memoize((metaMap: Types.MetaMap) => {
   const bigMetas: Array<Types.ConversationMeta> = []
   const smallMetas: Array<Types.ConversationMeta> = []
   metaMap.forEach((meta: Types.ConversationMeta, id) => {
@@ -30,7 +30,7 @@ const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
     ? a.channelname.localeCompare(b.channelname)
     : a.teamname.localeCompare(b.teamname)
-const getBigRows = memoize1(
+const getBigRows = memoize(
   bigMetas => {
     let lastTeam: ?string
     return bigMetas.sort(sortByTeamChannel).reduce((arr, meta) => {
@@ -50,10 +50,10 @@ const getBigRows = memoize1(
       return arr
     }, [])
   },
-  (newMetas, oldMetas) => shallowEqual(newMetas, oldMetas)
+  ([newMetas], [oldMetas]) => shallowEqual(newMetas, oldMetas)
 )
 
-const smallTeamToRow = memoize2((inboxSmallTeam, showAllSmallRows) =>
+const smallTeamToRow = memoize((inboxSmallTeam, showAllSmallRows) =>
   (showAllSmallRows ? inboxSmallTeam : inboxSmallTeam.take(smallTeamsCollapsedMaxShown))
     .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
     .toArray()
@@ -61,7 +61,7 @@ const smallTeamToRow = memoize2((inboxSmallTeam, showAllSmallRows) =>
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize3<Types.MetaMap, I.List<Types.ConversationIDKey>, boolean, _>(
+const getRowsAndMetadata = memoize<Types.MetaMap, I.List<Types.ConversationIDKey>, boolean, void, _>(
   (metaMap: Types.MetaMap, inboxSmallTeam: I.List<Types.ConversationIDKey>, smallTeamsExpanded: boolean) => {
     const {bigMetas} = splitMetas(metaMap)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
@@ -77,9 +77,7 @@ const getRowsAndMetadata = memoize3<Types.MetaMap, I.List<Types.ConversationIDKe
       rows,
       smallTeamsExpanded: showAllSmallRows, // only collapse if we're actually showing a divider,
     }
-  },
-  undefined,
-  undefined
+  }
 )
 
 export default getRowsAndMetadata

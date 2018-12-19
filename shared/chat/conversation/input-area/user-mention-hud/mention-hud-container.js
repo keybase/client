@@ -7,7 +7,7 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import logger from '../../../../logger'
 import type {MentionHudProps} from '.'
-import {memoize2} from '../../../../util/memoize'
+import {memoize} from '../../../../util/memoize'
 import {MentionHud} from '.'
 import {namedConnect} from '../../../../util/container'
 
@@ -74,7 +74,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const participantsToUsers = memoize2((p, infoMap) =>
+const participantsToUsers = memoize((p, infoMap) =>
   p.map(p => ({fullName: infoMap.getIn([p, 'fullname'], ''), username: p})).toArray()
 )
 

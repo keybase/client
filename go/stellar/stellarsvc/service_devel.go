@@ -44,7 +44,7 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 		return dump, err
 	}
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return dump, err
 	}
