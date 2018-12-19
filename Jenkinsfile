@@ -351,7 +351,8 @@ def testGo(prefix) {
                 packagesToTest[pkg] = 1
             }
         }
-        println "Go packages to test:\n${packagesToTest.keySet().join('\n')}"
+        def packageTestList = packagesToTest.keySet()
+        println "Go packages to test:\n${packageTestList.join('\n')}"
 
         def tests = [:]
         def specialTests = [:]
@@ -359,11 +360,12 @@ def testGo(prefix) {
         packagesToTest.each { pkg, _ ->
             println "Running go vet for ${pkg}"
             sh "go vet ${pkg}"
+
             def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
             if (isUnix()) {
                 // Windows `gofmt` pukes on CRLF, so only run on *nix.
                 println "Check that files are formatted correctly"
-                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
+                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${packageTestList.join(' ')} ))"
             }
             println "Building tests for $dirPath"
             dir(dirPath) {
