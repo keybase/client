@@ -179,6 +179,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
+// $FlowIssue
 const mergeProps = (s, d, o: OwnProps) => ({
   destinationPickerIndex: o.destinationPickerIndex,
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
@@ -188,6 +189,5 @@ const mergeProps = (s, d, o: OwnProps) => ({
 
 export default compose(
   FilesLoadingHoc,
-  // $FlowIssue @jzila/@songgao lots of exposed flow issues here
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedRows')
 )(Rows)

@@ -6,7 +6,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Flow from '../../../../util/flow'
 import * as Styles from '../../../../styles'
 import {TouchableOpacity} from 'react-native'
-import {type Props} from './container'
+import {type Props} from '.'
 
 type RowProps = {|
   children: React.Node,

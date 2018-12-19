@@ -1,5 +1,15 @@
 // @flow
 import * as React from 'react'
-import {type Props} from './container'
+import * as Types from '../../../../constants/types/wallets'
 
-declare export function WalletSwitcher(props: Props): React.Component<Props>
+export type Props = {|
+  accountIDs: Array<Types.AccountID>,
+  getAttachmentRef: () => ?React.Component<any>,
+  hideMenu: () => void,
+  onAddNew: () => void,
+  onLinkExisting: () => void,
+  onWhatIsStellar: () => void,
+  showingMenu: boolean,
+|}
+
+declare export class WalletSwitcher extends React.Component<Props> {}

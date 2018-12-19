@@ -61,6 +61,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
 
+  // $FlowIssue typed poorly and gone soon
   return {
     ...ownProps,
     _generalChannelConversationIDKey,
@@ -102,5 +103,4 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapDispatchToProps,
   mergeProps,
   'UserMentionHud'
-  // $FlowIssue hud uses a ton of not safe recompose stuff
 )(AutoLoadMentionHud)

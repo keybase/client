@@ -33,6 +33,7 @@ type Props = {
   actionIconClassName?: string,
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
+  onHidden: () => void,
   path: Types.Path,
   pathElements: Array<string>,
   // Menu items
@@ -203,6 +204,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       }
       hideMenuCalled = true
       props.toggleShowingMenu()
+      props.onHidden()
     }
   })()
 
