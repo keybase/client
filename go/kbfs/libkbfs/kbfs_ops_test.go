@@ -4550,12 +4550,23 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	checkStatus(aNode, FinishedPrefetch)
 
 	t.Log("Writer adds a file, which gets prefetched")
+	// Disable updates for the reader until after the edit
+	// notification is sent and delivered.  This reflects a real issue
+	// in production where the MD update can be delivered and
+	// processed before the edit notification, and thus the new
+	// activity wouldn't be properly prefetched.  TODO(KBFS-3698): fix
+	// this in production and remove this disabling.
+	c, err := DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 	bNode, _, err := kbfsOps2.CreateFile(ctx, aNode, "b", false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.Write(ctx, bNode, []byte("bdata"), 0)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	c <- struct{}{}
 
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
