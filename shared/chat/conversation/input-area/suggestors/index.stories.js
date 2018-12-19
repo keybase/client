@@ -44,14 +44,23 @@ const typingTests = () => {
   // $FlowIssue should error (bad suggestor prop)
   test = <TestArea {...props} dataSources={[1, 2]} />
 
-  const missing = {
+  const missingSug = {
     renderers: {},
     somethingElse: 'this',
     suggestorToMarker: {},
     transformers: {},
   }
   // $FlowIssue should error (missing suggestor prop)
-  test = <TestArea {...missing} />
+  test = <TestArea {...missingSug} />
+
+  const missingOther = {
+    dataSources: {},
+    renderers: {},
+    suggestorToMarker: {},
+    transformers: {},
+  }
+  // $FlowIssue (missing other prop)
+  test = <TestArea {...missingOther} />
 
   const extraJunk = {
     ...props,
