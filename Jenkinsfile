@@ -318,24 +318,24 @@ def testGo(prefix) {
                 sh 'make -s lint'
             }
         }
-        if (isUnix()) {
-            // Windows `gofmt` pukes on CRLF, so only run on *nix.
-            println "Check that files are formatted correctly"
-            sh 'test -z $(gofmt -l $(go list ./... | sed -e s/github.com.keybase.client.go.// ))'
-        }
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
-        println "Running go vet"
-        // FIXME: once Dokan warnings are fixed, remove it from the filter here.
-        sh 'go list ./... | grep -v "github.com/keybase/client/go/bind\\|github.com/keybase/client/go/kbfs/dokan" | xargs go vet'
 
         // Load list of packages that changed.
 		sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
 		sh "git fetch origin ${env.CHANGE_TARGET}"
 		def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
         def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
-        println "Go packages changed:\n${diffPackageList}"
+        def diffPackagesAsString = diffPackageList.join(' ')
+        println "Go packages changed:\n${diffPackagesAsString}"
+        println "Running go vet"
+        sh "go vet ${diffPackagesAsString}"
+        if (isUnix()) {
+            // Windows `gofmt` pukes on CRLF, so only run on *nix.
+            println "Check that files are formatted correctly"
+            sh "test -z $(gofmt -l $(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
+        }
 
         // Load list of dependencies and mark all dependent packages to test.
         def packagesToTest = [:]
