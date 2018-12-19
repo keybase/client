@@ -8,7 +8,7 @@ import SecurityPrefs from './common/security-prefs-container'
 import DestinationPicker from './destination-picker/container'
 import SendLinkToChat from './send-link-to-chat/container'
 
-/*
+/* TODO: update examples here
  * Example Fs routes:
  *
  *   Mobile:
@@ -68,23 +68,22 @@ import SendLinkToChat from './send-link-to-chat/container'
  */
 
 const _destinationPicker = {
-  children: isMobile
-    ? {
-        destinationPicker: () => makeRouteDefNode(_destinationPicker),
-      }
-    : undefined,
+  children: {
+    destinationPicker: () => makeRouteDefNode(_destinationPicker),
+  },
   component: DestinationPicker,
   tags: makeLeafTags({
     layerOnTop: !isMobile,
+    renderTopmostOnly: !isMobile,
     title: 'Move or Copy',
   }),
 }
 
 const _commonChildren = {
+  destinationPicker: () => makeRouteDefNode(_destinationPicker),
   securityPrefs: {
     component: SecurityPrefs,
   },
-  ...(isMobile ? {} : {destinationPicker: () => makeRouteDefNode(_destinationPicker)}),
   sendLinkToChat: {
     component: SendLinkToChat,
   },
@@ -116,11 +115,7 @@ const _folderRoute = {
 }
 
 const routeTree = makeRouteDefNode({
-  children: {
-    folder: () => makeRouteDefNode(_folderRoute),
-    ...(isMobile ? {destinationPicker: () => makeRouteDefNode(_destinationPicker)} : {}),
-  },
-  defaultSelected: 'folder',
+  ..._folderRoute,
   initialState: {expandedSet: I.Set()},
   tags: makeLeafTags({title: 'Files'}),
 })
