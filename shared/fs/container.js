@@ -51,17 +51,17 @@ const useBare = isMobile
     }
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
-  componentDidMount = () => {
+  componentDidMount() {
     if (useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
     }
   }
-  componentDidUpdate = prevProps => {
+  componentDidUpdate(prevProps) {
     if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
     }
   }
-  render = () => {
+  render() {
     switch (this.props.pathType) {
       case 'folder':
         return <Folder path={this.props.path} routePath={this.props.routePath} />
