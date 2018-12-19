@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/kbfsedits"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
@@ -224,4 +226,45 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 
 	f.AddAsync(ctx, fav1) // should work
 	<-c
+}
+
+func TestFavoritesControlUserHistory(t *testing.T) {
+	mockCtrl, config, ctx := favTestInit(t)
+	f := NewFavorites(config)
+	f.Initialize(ctx)
+	defer favTestShutdown(t, mockCtrl, config, f)
+
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
+		Return(nil)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
+	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	username := "bob"
+	tlfName := "alice,bob"
+	tlfType := tlf.Private
+
+	// Add a favorite.
+	err := f.Add(ctx, favToAdd{Favorite: Favorite{tlfName, tlfType},
+		created: true})
+	require.NoError(t, err)
+
+	// Put a thing in user history.
+	history := kbfsedits.NewTlfHistory()
+	err = history.AddNotifications(username, []string{"hello"})
+	require.NoError(t, err)
+	config.UserHistory().UpdateHistory(tlf.CanonicalName(tlfName), tlfType,
+		history, username)
+
+	// Delete the favorite.
+	err = f.Delete(ctx, Favorite{tlfName, tlfType})
+	require.NoError(t, err)
+
+	// Verify that the user history is now empty.
+	userHistory := config.UserHistory().Get(username)
+	require.Empty(t, userHistory)
 }

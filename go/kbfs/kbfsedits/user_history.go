@@ -203,3 +203,11 @@ func (uh *UserHistory) Clear() {
 	defer uh.lock.Unlock()
 	uh.histories = make(map[tlfKey]writersByRevision)
 }
+
+// ClearTLF removes a TLF from this UserHistory.
+func (uh *UserHistory) ClearTLF(tlfName tlf.CanonicalName, tlfType tlf.Type) {
+	key := tlfKey{tlfName, tlfType}
+	uh.lock.Lock()
+	defer uh.lock.Unlock()
+	delete(uh.histories, key)
+}

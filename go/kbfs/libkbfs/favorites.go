@@ -248,6 +248,17 @@ func (f *Favorites) closeReq(req *favReq, err error) {
 	}
 }
 
+// sendChangesToEditHistory notes any deleted favorites and removes them
+// from this user's kbfsedits.UserHistory.
+func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]bool) {
+	for oldFav := range oldCache {
+		if !f.cache[oldFav] {
+			f.config.UserHistory().ClearTLF(tlf.CanonicalName(oldFav.Name),
+				oldFav.Type)
+		}
+	}
+}
+
 func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer func() { f.closeReq(req, err) }()
 
@@ -273,6 +284,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			return err
 		}
 
+		oldCache := f.cache
 		f.cache = make(map[Favorite]bool)
 		f.cacheExpireTime = libkb.ForceWallClock(f.config.Clock().Now()).Add(
 			favoritesCacheExpirationTime)
@@ -286,6 +298,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			f.cache[Favorite{string(session.Name), tlf.Public}] = true
 			f.writeCacheToDisk(req.ctx)
 		}
+		f.sendChangesToEditHistory(oldCache)
 	} else if req.clear {
 		f.cache = nil
 		return nil
@@ -313,6 +326,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			return err
 		}
 		delete(f.cache, fav)
+		f.config.UserHistory().ClearTLF(tlf.CanonicalName(fav.Name), fav.Type)
 	}
 
 	if req.favs != nil {

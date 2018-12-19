@@ -1849,7 +1849,7 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 	doLogUnblocked := false
 	for {
 		var err error
-		outerSelect:
+	outerSelect:
 		select {
 		case <-c:
 			if doLogUnblocked {
