@@ -73,7 +73,7 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 	default:
 		acc, err := libkb.ParseStellarAccountID(c.destination)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error parsing Stellar address %q: %s", c.destination, err)
 		}
 		destination = stellar1.NewInflationDestinationWithAccountid(acc)
 	}
@@ -87,7 +87,11 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 		AccountID:   accountID,
 		Destination: destination,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	c.G().UI.GetDumbOutputUI().PrintfStderr("Inflation destination address changed.\n")
+	return nil
 }
 
 func (c *cmdWalletSetInflation) GetUsage() libkb.Usage {
