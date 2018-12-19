@@ -20,6 +20,7 @@ const (
 	SaltpackUIKind
 	RekeyUIKind
 	HomeUIKind
+	Identify3UIKind
 )
 
 func (u UIKind) String() string {
@@ -48,6 +49,8 @@ func (u UIKind) String() string {
 		return "RekeyUI"
 	case HomeUIKind:
 		return "HomeUI"
+	case Identify3UIKind:
+		return "Identify3UIKind"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
 }

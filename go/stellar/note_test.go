@@ -56,8 +56,6 @@ func TestNoteLengthLimit(t *testing.T) {
 	tc := libkb.SetupTest(t, "stellar", 2)
 	defer tc.Cleanup()
 
-	ctx := context.Background()
-
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
@@ -69,15 +67,15 @@ func TestNoteLengthLimit(t *testing.T) {
 	pre := sampleNote()
 	pre.Note = strings.Repeat(".", libkb.MaxStellarPaymentNoteLength)
 	expect := pre.DeepCopy()
-	encNote, err := NoteEncryptB64(ctx, tc.G, pre, &uv2)
+	encNote, err := NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
 	require.NoError(t, err)
-	post, err := NoteDecryptB64(ctx, tc.G, encNote)
+	post, err := NoteDecryptB64(libkb.NewMetaContextForTest(tc), encNote)
 	require.NoError(t, err)
 	require.Equal(t, expect, post)
 
 	// encryption fails for content exceeding max length
 	pre.Note = pre.Note + "!"
-	encNote, err = NoteEncryptB64(ctx, tc.G, pre, &uv2)
+	encNote, err = NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
 	require.Error(t, err)
 	require.Equal(t, "", encNote)
 }

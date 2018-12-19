@@ -43,6 +43,12 @@ function createKbfsPathRegex(): ?RegExp {
 
 const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
 
+function createServiceDecorationRegex(): ?RegExp {
+  return new RegExp(`^\\$\\>kb\\$(((?!\\$\\<kb\\$).)*)\\$\\<kb\\$`)
+}
+
+const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(createServiceDecorationRegex())
+
 function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
   return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
 }
@@ -255,6 +261,7 @@ const rules = {
       type: 'kbfsPath',
     }),
   },
+
   link: {
     match: (source, state, lookBehind) => {
       const matches = inlineLinkMatch(source, state, lookBehind)
@@ -360,6 +367,16 @@ const rules = {
       }
     },
   },
+  serviceDecoration: {
+    match: (source, state, lookBehind) => {
+      return serviceDecorationMatcher(source, state, lookBehind)
+    }, // high
+    order: SimpleMarkdown.defaultRules.autolink.order + 1,
+    parse: capture => ({
+      content: capture[1],
+      type: 'serviceDecoration',
+    }),
+  },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
     // original
@@ -426,8 +443,8 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-        ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
-        : reactOutput(parseTree, {allowFontScaling, styleOverride})
+        ? bigEmojiOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
+        : reactOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)

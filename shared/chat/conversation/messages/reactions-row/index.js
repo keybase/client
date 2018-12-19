@@ -100,11 +100,12 @@ class ReactionsRow extends React.Component<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  button: {marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny},
+  button: {marginBottom: globalMargins.tiny},
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',
     paddingRight: 66,
+    paddingTop: globalMargins.tiny,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })

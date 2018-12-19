@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
 import {escapePath} from '../../constants/fs'
@@ -187,6 +188,7 @@ const mockMeta = {
     // $ForceType
     general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
   }),
+  message: ChatConstants.makeMessageText(),
 }
 
 const mocksWithMeta = {

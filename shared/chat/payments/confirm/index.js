@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type LoadingProps = {||}
 
@@ -109,16 +109,9 @@ const PaymentsConfirm = (props: Props) => (
           ))}
         </Kb.ScrollView>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
-            type="Secondary"
-            small={Styles.isMobile}
-            onClick={props.onCancel}
-            style={styles.cancelButton}
-            label="Cancel"
-          />
+          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
           <Kb.WaitingButton
             style={styles.submitButton}
-            small={Styles.isMobile}
             type="PrimaryGreen"
             onClick={props.onAccept}
             waitingKey={null}

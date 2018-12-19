@@ -462,6 +462,7 @@ type UIRouter interface {
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 	GetHomeUI() (keybase1.HomeUIInterface, error)
+	GetIdentify3UIAdapter(MetaContext, keybase1.Identify3GUIID) (IdentifyUI, error)
 
 	Shutdown()
 }
@@ -700,7 +701,7 @@ type Stellar interface {
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	GetMigrationLock() *sync.Mutex
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
-	SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
+	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 }
 

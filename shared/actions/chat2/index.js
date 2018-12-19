@@ -252,7 +252,13 @@ const unboxRows = (
 
 // We get an incoming message streamed to us
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
-  const {message: cMsg, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
+  const {
+    message: cMsg,
+    modifiedMessage,
+    convID,
+    displayDesktopNotification,
+    desktopNotificationSnippet,
+  } = incoming
   const actions = []
 
   if (convID && cMsg) {
@@ -285,13 +291,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       // Types that are mutations
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
-          if (body.edit) {
-            actions.push(
-              Chat2Gen.createMessageWasEdited({
-                conversationIDKey,
-                ...Constants.uiMessageEditToMessage(body.edit, valid),
-              })
-            )
+          if (modifiedMessage) {
+            const modMessage = Constants.uiMessageToMessage(state, conversationIDKey, modifiedMessage)
+            if (modMessage) {
+              actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [modMessage]}))
+            }
           }
           break
         case RPCChatTypes.commonMessageType.delete:
@@ -627,9 +631,6 @@ const arrayOfActionsToSequentially = actions =>
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
-  // TODO clean this up so we don't need this
-  const getState = engine().deprecatedGetGetState()
-
   engine().setIncomingCallMap({
     'chat.1.NotifyChat.ChatAttachmentUploadProgress': ({convID, outboxID, bytesComplete, bytesTotal}) => {
       const conversationIDKey = Types.conversationIDToKey(convID)
@@ -657,13 +658,18 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
       Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
     'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}) =>
-      arrayOfActionsToSequentially(onChatInboxSynced(syncRes, getState())),
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
+        yield arrayOfActionsToSequentially(onChatInboxSynced(syncRes, state))
+      }),
     'chat.1.NotifyChat.ChatJoinedConversation': () =>
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'})),
     'chat.1.NotifyChat.ChatLeftConversation': () =>
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})),
     'chat.1.NotifyChat.ChatPaymentInfo': notif => {
-      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const conversationIDKey = notif.convID
+        ? Types.conversationIDToKey(notif.convID)
+        : Constants.noConversationIDKey
       const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([notif.info])
       if (!paymentInfo) {
         // This should never happen
@@ -763,10 +769,15 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.NewChatActivity': ({activity}) => {
       logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
-        case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
-          return activity.incomingMessage
-            ? arrayOfActionsToSequentially(onIncomingMessage(activity.incomingMessage, getState()))
+        case RPCChatTypes.notifyChatChatActivityType.incomingMessage: {
+          const incomingMessage = activity.incomingMessage
+          return incomingMessage
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(onIncomingMessage(incomingMessage, state))
+              })
             : null
+        }
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
           return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.setStatus))
         case RPCChatTypes.notifyChatChatActivityType.readMessage:
@@ -775,10 +786,12 @@ const setupEngineListeners = () => {
           return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.newConversation))
         case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
           const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
-          return failedMessage && failedMessage.outboxRecords
-            ? arrayOfActionsToSequentially(
-                onErrorMessage(failedMessage.outboxRecords, getState().config.username || '')
-              )
+          const outboxRecords = failedMessage && failedMessage.outboxRecords
+          return outboxRecords
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(onErrorMessage(outboxRecords, state.config.username))
+              })
             : null
         }
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
@@ -806,10 +819,15 @@ const setupEngineListeners = () => {
           )
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return Saga.put(Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'}))
-        case RPCChatTypes.notifyChatChatActivityType.expunge:
-          return activity.expunge
-            ? arrayOfActionsToSequentially(expungeToActions(activity.expunge, getState()))
+        case RPCChatTypes.notifyChatChatActivityType.expunge: {
+          const expunge = activity.expunge
+          return expunge
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(expungeToActions(expunge, state))
+              })
             : null
+        }
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge
             ? arrayOfActionsToSequentially(ephemeralPurgeToActions(activity.ephemeralPurge))
@@ -818,10 +836,15 @@ const setupEngineListeners = () => {
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
             : null
-        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated:
-          return activity.messagesUpdated
-            ? arrayOfActionsToSequentially(messagesUpdatedToActions(activity.messagesUpdated, getState()))
+        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated: {
+          const messagesUpdated = activity.messagesUpdated
+          return messagesUpdated
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(messagesUpdatedToActions(messagesUpdated, state))
+              })
             : null
+        }
         default:
           break
       }
@@ -1363,7 +1386,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
     // We put the addMessage on the back in case the service provides chat thread data in between the
     // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
     // that is in the store on the outboxID has been sent.
-    yield addMessage()
+    yield Saga.sequentially(addMessage())
     stellarConfirmWindowResponse = null
   })
 

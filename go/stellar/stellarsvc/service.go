@@ -289,8 +289,9 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-
-	_, err = stellar.CreateWallet(ctx, s.G(), false)
+	m := libkb.NewMetaContext(ctx, s.G())
+	flaggedForV2 := remote.AcctBundlesEnabled(m)
+	_, err = stellar.CreateWallet(ctx, s.G(), flaggedForV2)
 	return err
 }
 
@@ -345,7 +346,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 
 	mctx := s.mctx(ctx)
 
-	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	currentBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return nil, err
 	}

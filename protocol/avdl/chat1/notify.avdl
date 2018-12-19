@@ -27,6 +27,7 @@ protocol NotifyChat {
 
   record IncomingMessage {
     UIMessage message;
+    union { null, UIMessage } modifiedMessage;
     ConversationID convID;
     boolean displayDesktopNotification;
     string desktopNotificationSnippet;

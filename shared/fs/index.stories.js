@@ -87,14 +87,6 @@ const provider = Sb.createPropProviderWithCommon({
     onViewProfile: () => () => undefined,
     resetParticipants: ['reset1', 'reset2', 'reset3'],
   }),
-  SortBar: ({path}: {path: Types.Path}) => ({
-    folderIsPending: true,
-    sortSetting: {
-      sortBy: 'name',
-      sortOrder: 'asc',
-    },
-    sortSettingToAction: sortSetting => Sb.action(`sortSettingToAction${sortSetting}`),
-  }),
   ViewContainer: () => ({
     isSymlink: false,
     loadMimeType: Sb.action('loadMimeType'),

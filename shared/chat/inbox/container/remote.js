@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import type {TypedState} from '../../../constants/reducer'
-import {memoize2, memoize3} from '../../../util/memoize'
+import {memoize} from '../../../util/memoize'
 
 export const maxShownConversations = 3
 
@@ -17,7 +17,7 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize3(
+const valuesCached = memoize(
   (
     badgeMap,
     unreadMap,
@@ -48,21 +48,11 @@ const valuesCached = memoize3(
       .toArray()
 )
 
-// we only care to rerender if the inboxversion increases so
-// given the same inbox version give back the same metaMap
-const inboxVersionToMetaMap = memoize2(
-  (inboxVersion, metaMap) => metaMap,
-  (oldVersion, newVersion) => oldVersion === newVersion,
-  // custom equality, if inboxVersion is the same, treat it as the same
-  (newMap, oldMap) => true
-)
-
 // A hack to store the username to avoid plumbing.
 let _username: string
 export const conversationsToSend = (state: TypedState) => {
   _username = state.config.username
-  const metaMap = inboxVersionToMetaMap(state.chat2.inboxVersion, state.chat2.metaMap)
-  return valuesCached(state.chat2.badgeMap, state.chat2.unreadMap, metaMap)
+  return valuesCached(state.chat2.badgeMap, state.chat2.unreadMap, state.chat2.metaMap)
 }
 
 export const changeAffectsWidget = (

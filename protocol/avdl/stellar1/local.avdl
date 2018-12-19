@@ -12,6 +12,7 @@ protocol local {
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
     string seqno;               // the stellar sequence number for this account
+    CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -76,14 +77,7 @@ protocol local {
     string worth;                   // "$123.23 CLP" (worth at the time the payment was created)
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-                                    // currentWorth is how much the amount of XLM in
-                                    // amountDescription is currently worth in the
-                                    // display currency preference of the user looking
-                                    // at this payment. Both can be "".
-    string currentWorth;            // "$379.12 USD" (worth at the current viewing time)
-    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
-
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
 
@@ -141,14 +135,7 @@ protocol local {
     string worth;                   // "$123.23 CLP", amount in local currency at the time of sending, or empty if no OutsideCurrency
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
-                                    // currentWorth is how much the amount of XLM in
-                                    // amountDescription is currently worth in the
-                                    // display currency preference of the user looking
-                                    // at this payment. Both can be "".
-    string currentWorth;            // "$379.12 CAD" (worth at the current viewing time)
-    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
-
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name 
+    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
     union{ null, AccountID } issuerAccountID;
 
@@ -462,6 +449,24 @@ protocol local {
   boolean isAccountMobileOnlyLocal(int sessionID, AccountID accountID);
 
   RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);
+
+  enum InflationDestinationType {
+    SELF_1,
+    ACCOUNTID_2,
+    LUMENAUT_3
+  }
+  variant InflationDestination switch (InflationDestinationType typ) {
+    case SELF: void;
+    case ACCOUNTID: AccountID;
+    case LUMENAUT: void;
+  }
+  void setInflationDestinationLocal(int sessionID, AccountID accountID, InflationDestination destination);
+
+  record InflationDestinationResultLocal {
+    union { null, AccountID } destination;
+    string comment;
+  }
+  InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

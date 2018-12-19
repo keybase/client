@@ -40,6 +40,7 @@ export type Props = {|
   decorate: boolean,
   exploded: boolean,
   failureDescription: string,
+  forceAsh: boolean,
   hasUnfurlPrompts: boolean,
   isRevoked: boolean,
   showUsername: string,
@@ -346,8 +347,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(message.type)
         return null
     }
-    const retainHeight =
-      this.props.failureDescription === 'This exploding message is not available to you' || exploded
 
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
@@ -355,7 +354,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         exploding={exploding}
         measure={this.props.measure}
         messageKey={Constants.getMessageKey(message)}
-        retainHeight={retainHeight}
+        retainHeight={this.props.forceAsh || exploded}
       >
         {child}
       </ExplodingHeightRetainer>

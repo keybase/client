@@ -55,6 +55,11 @@ func (t *Team) CanSkipKeyRotation() bool {
 		return false
 	}
 
+	if t.IsOpen() {
+		// Skip all rotations in open teams.
+		return true
+	}
+
 	// If cannot decide because of an error, return default false.
 	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
 	if err != nil {
@@ -427,6 +432,19 @@ func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
 	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
 }
 
+func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) error {
+	if boxes == nil {
+		return nil
+	}
+	bps := boxes.boxPublicSummary
+	if bps == nil || bps.IsEmpty() {
+		return nil
+	}
+	bsh := SCTeamBoxSummaryHash(bps.HashHexEncoded())
+	section.BoxSummaryHash = &bsh
+	return nil
+}
+
 func (t *Team) Rotate(ctx context.Context) (err error) {
 
 	// initialize key manager
@@ -468,6 +486,11 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		return err
 	}
 	section.PerTeamKey = perTeamKeySection
+
+	err = addSummaryHash(&section, secretBoxes)
+	if err != nil {
+		return err
+	}
 
 	// post the change to the server
 	payloadArgs := sigPayloadArgs{
@@ -1232,6 +1255,11 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 	section.PerTeamKey = perTeamKeySection
 
+	err = addSummaryHash(&section, secretBoxes)
+	if err != nil {
+		return SCTeamSection{}, nil, nil, nil, nil, err
+	}
+
 	section.CompletedInvites = req.CompletedInvites
 	section.Implicit = t.IsImplicit()
 	section.Public = t.IsPublic()
@@ -1679,7 +1707,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) 
 	return subteams, nil
 }
 
-func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSettings) error {
+func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSettings, rotate bool) error {
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
 	}
@@ -1702,12 +1730,36 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		Public:   t.IsPublic(),
 	}
 
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+	payloadArgs := sigPayloadArgs{}
+	var maybeEKPayload *teamEKPayload
+	if rotate {
+		// Create empty Members section. We are not changing memberships, but
+		// it's needed for key rotation.
+		memSet := newMemberSet()
+		section.Members, err = memSet.Section()
+		if err != nil {
+			return err
+		}
+		secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+		if err != nil {
+			return err
+		}
+		section.PerTeamKey = perTeamKeySection
+		payloadArgs.secretBoxes = secretBoxes
+		payloadArgs.teamEKPayload = teamEKPayload
+		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
+	}
+	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, payloadArgs)
 	if err != nil {
 		return err
 	}
 
-	t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
+	if rotate {
+		t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true, Misc: true}, latestSeqno)
+		t.storeTeamEKPayload(ctx, maybeEKPayload)
+	} else {
+		t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
+	}
 	return nil
 }
 

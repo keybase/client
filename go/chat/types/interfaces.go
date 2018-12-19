@@ -367,7 +367,8 @@ type StellarSender interface {
 		body string) []ParsedStellarPayment
 	DescribePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		payments []ParsedStellarPayment) (chat1.UIChatPaymentSummary, []ParsedStellarPayment, error)
-	SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
+	DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string
+	SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
 }
 
 type ConversationBackedStorage interface {

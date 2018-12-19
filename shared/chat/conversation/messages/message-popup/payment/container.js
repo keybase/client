@@ -9,7 +9,7 @@ import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 // This file has two connectors and a wrapper. One connector is for sendPayment
@@ -17,7 +17,8 @@ import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 type OwnProps = {|
   attachTo: () => ?React.Component<any>,
-  message: Types.MessageRequestPayment | Types.MessageSendPayment,
+  message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText,
+  paymentID?: WalletTypes.PaymentID,
   onHidden: () => void,
   position: Position,
   style?: StylesCrossPlatform,
@@ -26,7 +27,7 @@ type OwnProps = {|
 
 type SendOwnProps = {|
   ...OwnProps,
-  message: Types.MessageSendPayment,
+  message: Types.MessageSendPayment | Types.MessageText,
 |}
 
 type RequestOwnProps = {
@@ -53,10 +54,18 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
-  _you: state.config.username,
-  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
-})
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => {
+  let paymentInfo = ownProps.paymentID
+    ? state.chat2.getIn(['paymentStatusMap', ownProps.paymentID], null)
+    : null
+  if (!paymentInfo && ownProps.message.type === 'sendPayment') {
+    paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+  }
+  return {
+    _you: state.config.username,
+    paymentInfo,
+  }
+}
 
 const sendMapDispatchToProps = dispatch => ({
   onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
@@ -80,8 +89,18 @@ const sendMapDispatchToProps = dispatch => ({
   },
 })
 
+const getTopLineUser = (paymentInfo, sender, you) => {
+  if (paymentInfo.fromUsername === you) {
+    return 'you sent'
+  } else if (paymentInfo.toUsername === you) {
+    return 'you received'
+  } else {
+    return sender + ' sent'
+  }
+}
+
 const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
-  if (ownProps.message.type !== 'sendPayment') {
+  if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
   }
   const {paymentInfo} = stateProps
@@ -95,7 +114,8 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     }
   }
   const {_you: you} = stateProps
-  const youAreSender = you === ownProps.message.author
+  const youAreSender = you === paymentInfo.fromUsername
+  const youAreReceiver = you === paymentInfo.toUsername
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     attachTo: ownProps.attachTo,
@@ -103,13 +123,23 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
     cancelButtonLabel: 'Cancel',
+    errorDetails:
+      paymentInfo.status === 'error' ||
+      paymentInfo.status === 'canceled' ||
+      paymentInfo.status === 'claimable'
+        ? paymentInfo.statusDetail
+        : undefined,
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
     onCancel: paymentInfo.showCancel ? () => dispatchProps.onCancel(paymentInfo.paymentID) : null,
-    onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
+    onClaimLumens: paymentInfo.status === 'claimable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
     onSeeDetails:
-      paymentInfo.status === 'completed'
+      (paymentInfo.status === 'completed' ||
+        paymentInfo.status === 'error' ||
+        paymentInfo.status === 'claimable' ||
+        paymentInfo.status === 'canceled') &&
+      (youAreSender || youAreReceiver)
         ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
         : null,
     position: ownProps.position,
@@ -117,7 +147,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     senderDeviceName: ownProps.message.deviceName,
     style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
-    topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
+    topLine: `${getTopLineUser(paymentInfo, ownProps.message.author, you)}${
       paymentInfo.worth ? ' Lumens worth' : ''
     }`,
     txVerb: 'sent',
@@ -125,7 +155,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   }
 }
 
-const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
+export const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
   sendMapStateToProps,
   sendMapDispatchToProps,
   sendMergeProps

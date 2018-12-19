@@ -7,7 +7,7 @@ import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as ProfileConstants from '../../constants/profile'
+import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
@@ -306,7 +306,7 @@ const routeToInitialScreen = (state: TypedState) => {
     if (state.config.startupLink) {
       try {
         const url = new URL(state.config.startupLink)
-        const username = ProfileConstants.urlToUsername(url)
+        const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return Saga.sequentially([
@@ -332,7 +332,7 @@ const routeToInitialScreen = (state: TypedState) => {
 
 const handleAppLink = (_: any, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
-  const username = ProfileConstants.urlToUsername(url)
+  const username = Constants.urlToUsername(url)
   if (username) {
     return Saga.sequentially([
       Saga.put(RouteTree.switchTo([Tabs.profileTab])),

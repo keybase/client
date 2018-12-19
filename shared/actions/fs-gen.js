@@ -12,6 +12,7 @@ export const resetStore = 'common:resetStore' // not a part of fs but is handled
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const cancelMoveOrCopy = 'fs:cancelMoveOrCopy'
+export const clearRefreshTag = 'fs:clearRefreshTag'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -79,6 +80,7 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
 type _CancelMoveOrCopyPayload = void
+type _ClearRefreshTagPayload = $ReadOnly<{|refreshTag: Types.RefreshTag|}>
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _CopyPayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
@@ -146,6 +148,7 @@ type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
 export const createCancelMoveOrCopy = (payload: _CancelMoveOrCopyPayload) => ({payload, type: cancelMoveOrCopy})
+export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
@@ -213,6 +216,7 @@ export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) 
 // Action Payloads
 export type CancelDownloadPayload = {|+payload: _CancelDownloadPayload, +type: 'fs:cancelDownload'|}
 export type CancelMoveOrCopyPayload = {|+payload: _CancelMoveOrCopyPayload, +type: 'fs:cancelMoveOrCopy'|}
+export type ClearRefreshTagPayload = {|+payload: _ClearRefreshTagPayload, +type: 'fs:clearRefreshTag'|}
 export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
 export type CopyPayload = {|+payload: _CopyPayload, +type: 'fs:copy'|}
 export type DeleteFilePayload = {|+payload: _DeleteFilePayload, +type: 'fs:deleteFile'|}
@@ -282,6 +286,7 @@ export type UserFileEditsLoadedPayload = {|+payload: _UserFileEditsLoadedPayload
 export type Actions =
   | CancelDownloadPayload
   | CancelMoveOrCopyPayload
+  | ClearRefreshTagPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload

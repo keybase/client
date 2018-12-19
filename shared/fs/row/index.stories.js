@@ -67,6 +67,14 @@ export const rowsProvider = {
       type: 'folder',
     }
   },
+  SortBar: ({path}: {path: Types.Path}) => ({
+    folderIsPending: true,
+    sortSetting: {
+      sortBy: 'name',
+      sortOrder: 'asc',
+    },
+    sortSettingToAction: Sb.action('sortSettingToAction'),
+  }),
 }
 
 const provider = Sb.createPropProviderWithCommon({
