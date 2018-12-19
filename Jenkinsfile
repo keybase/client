@@ -322,31 +322,40 @@ def testGo(prefix) {
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
 
-        // Load list of packages that changed.
-		sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
-		sh "git fetch origin ${env.CHANGE_TARGET}"
-		def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-        def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
-        def diffPackagesAsString = diffPackageList.join(' ')
-        println "Go packages changed:\n${diffPackagesAsString}"
-        println "Running go vet"
-        sh "go vet ${diffPackagesAsString}"
-        if (isUnix()) {
-            // Windows `gofmt` pukes on CRLF, so only run on *nix.
-            println "Check that files are formatted correctly"
-            sh "test -z $(gofmt -l $(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
-        }
-
-        // Load list of dependencies and mark all dependent packages to test.
         def packagesToTest = [:]
-        def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-        def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
-        def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
-        diffPackageList.each { pkg ->
-            // pkg changed; we need to load it from dependencyMap to see
-            // which tests should be run.
-            dependencyMap[pkg].each { dep, _ ->
-                packagesToTest[dep] = 1
+
+        if (env.CHANGE_TARGET) {
+            // Load list of packages that changed.
+            sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
+            sh "git fetch origin ${env.CHANGE_TARGET}"
+            def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+            def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
+            def diffPackagesAsString = diffPackageList.join(' ')
+            println "Go packages changed:\n${diffPackagesAsString}"
+            println "Running go vet"
+            sh "go vet ${diffPackagesAsString}"
+            if (isUnix()) {
+                // Windows `gofmt` pukes on CRLF, so only run on *nix.
+                println "Check that files are formatted correctly"
+                sh "test -z $(gofmt -l $(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
+            }
+
+            // Load list of dependencies and mark all dependent packages to test.
+            def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+            def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
+            def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
+            diffPackageList.each { pkg ->
+                // pkg changed; we need to load it from dependencyMap to see
+                // which tests should be run.
+                dependencyMap[pkg].each { dep, _ ->
+                    packagesToTest[dep] = 1
+                }
+            }
+        } else {
+            println "This is a merge to a branch, so we are running all tests."
+            def diffPackageList = sh(reeturnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+            diffPackageList.each { pkg ->
+                packagesToTest[pkg] = 1
             }
         }
         println "Go packages to test:\n${packagesToTest.keySet().join('\n')}"
