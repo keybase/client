@@ -10,10 +10,20 @@ import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
-type Actions = Chat2Gen.MetasReceivedPayload | Chat2Gen.SetInboxFilterPayload
+type Actions =
+  | Chat2Gen.MessageSendPayload
+  | Chat2Gen.MetasReceivedPayload
+  | Chat2Gen.SelectConversationPayload
+  | Chat2Gen.SetInboxFilterPayload
 
 export default (state: Types.InboxState = initialState, action: Actions): Types.InboxState => {
   switch (action.type) {
+    case Chat2Gen.selectConversation:
+      return action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged'
+        ? state
+        : state.merge({filter: ''})
+    case Chat2Gen.messageSend:
+      return state.merge({filter: ''})
     case Chat2Gen.setInboxFilter:
       return state.merge({filter: action.payload.filter})
     case Chat2Gen.metasReceived: {

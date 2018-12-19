@@ -20,15 +20,12 @@ const inboxRefresh = (
   if (!state.config.loggedIn) {
     return
   }
-
-  const username = state.config.username || ''
-
   const onUnverified = function({inbox}) {
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
     const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
     // We get a subset of meta information from the cache even in the untrusted payload
     const metas = items
-      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, state.config.username))
       .filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     const clearExistingMetas =
@@ -116,35 +113,26 @@ const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.Convers
 
 // We keep a set of conversations to unbox
 let metaQueue = I.OrderedSet()
-const queueMetaToRequest = (action: Chat2Gen.MetaNeedsUpdatingPayload, state: TypedState) => {
-  const old = metaQueue
+const queueUnboxing = (state, action: Chat2Gen.MetaNeedsUpdatingPayload) => {
   metaQueue = metaQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
-  if (old !== metaQueue) {
-    // only unboxMore if something changed
-    return Saga.put(Chat2Gen.createMetaHandleQueue())
-  } else {
-    logger.info('skipping meta queue run, queue unchanged')
-  }
 }
 
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState) => {
+function* unboxLoop(): Generator<any, void, any> {
   const maxToUnboxAtATime = 10
-  const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
-  metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
-
-  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
-  const toUnboxActions = conversationIDKeys.length
-    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))]
-    : []
-  const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
-  const delayBeforeUnboxingMoreActions =
-    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.callUntyped(Saga.delay, 100)] : []
-
-  const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
-
-  if (nextActions.length) {
-    return Saga.sequentially(nextActions)
+  while (true) {
+    // wait for some new ones if there is nothing waiting already
+    if (metaQueue.isEmpty()) {
+      yield Saga.take(Chat2Gen.metaNeedsUpdating)
+    }
+    const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
+    metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
+    const state = yield* Saga.selectState()
+    const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
+    if (conversationIDKeys.length) {
+      yield Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))
+    }
+    yield Saga.delay(100)
   }
 }
 
@@ -190,39 +178,32 @@ const unboxRows = (
     // We allow empty conversations now since we create them and they're empty now
     const allowEmpty = action.type === Chat2Gen.selectConversation
     const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, allowEmpty)
-    const actions = []
-    if (meta) {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createMetasReceived({
-            metas: [meta],
-            neverCreate: action.type === Chat2Gen.metaRequestTrusted,
-          })
-        )
-      )
-    } else {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createMetaReceivedError({
-            conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
-            error: null, // just remove this item, not a real server error
-            username: null,
-          })
-        )
-      )
-    }
+    const actions = [
+      meta
+        ? Saga.put(
+            Chat2Gen.createMetasReceived({
+              metas: [meta],
+              neverCreate: action.type === Chat2Gen.metaRequestTrusted,
+            })
+          )
+        : Saga.put(
+            Chat2Gen.createMetaReceivedError({
+              conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
+              error: null, // just remove this item, not a real server error
+              username: null,
+            })
+          ),
+    ]
 
     const infoMap = state.users.infoMap
-    let added = false
     // We get some info about users also so update that too
     const usernameToFullname = Object.keys(inboxUIItem.fullNames).reduce((map, username) => {
-      if (!infoMap.get(username)) {
-        added = true
+      if (infoMap.get(username, '') !== username) {
         map[username] = inboxUIItem.fullNames[username]
       }
       return map
     }, {})
-    if (added) {
+    if (Object.keys(usernameToFullname).length) {
       actions.push(Saga.put(UsersGen.createUpdateFullnames({usernameToFullname})))
     }
     return Saga.all(actions)
@@ -241,11 +222,7 @@ const unboxRows = (
         return Saga.callUntyped(function*() {
           const state = yield* Saga.selectState()
           yield Saga.put(
-            Chat2Gen.createMetaReceivedError({
-              conversationIDKey: conversationIDKey,
-              error,
-              username: state.config.username || '',
-            })
+            Chat2Gen.createMetaReceivedError({conversationIDKey, error, username: state.config.username})
           )
         })
     }
@@ -264,41 +241,21 @@ const unboxRows = (
         query: Constants.makeInboxQuery(conversationIDKeys),
         skipUnverified: true,
       },
-      waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+      waitingKey: conversationIDKeys.map(Constants.waitingKeyUnboxing),
     })
   })
 }
 
 // When we get info on a team we need to unbox immediately so we can get the channel names
-const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {
-  const conversationIDKeys = action.payload.metas
+const requestTeamsUnboxing = state => {
+  const conversationIDKeys = state.chat2.metaMap
     .filter(meta => meta.trustedState === 'untrusted' && meta.teamType === 'big' && !meta.channelname)
     .map(meta => meta.conversationIDKey)
-  if (conversationIDKeys.length) {
-    return Saga.put(
-      Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys,
-      })
-    )
-  }
-}
-
-const clearFilter = (
-  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload,
-  state: TypedState
-) => {
-  if (!state.chatInbox.filter) {
-    return
-  }
-
-  if (
-    action.type === Chat2Gen.selectConversation &&
-    (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
-  ) {
-    return
-  }
-
-  return Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+    .toList()
+    .toArray()
+  return (
+    !!conversationIDKeys.length && Promise.resolve(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))
+  )
 }
 
 // Helper to handle incoming inbox updates that piggy back on various calls
@@ -337,10 +294,9 @@ export const chatActivityToMetasAction = (
 }
 
 export function* saga(): Saga.SagaGenerator<any, any> {
+  yield Saga.spawn(unboxLoop)
   yield Saga.actionToAction(Chat2Gen.inboxRefresh, inboxRefresh)
-  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearFilter)
-  yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
-  yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
-  yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
+  yield Saga.actionToPromise(Chat2Gen.metasReceived, requestTeamsUnboxing)
+  yield Saga.actionToPromise(Chat2Gen.metaNeedsUpdating, queueUnboxing)
   yield Saga.actionToAction([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 }

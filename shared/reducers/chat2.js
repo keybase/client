@@ -970,7 +970,6 @@ const rootReducer = (
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
     case Chat2Gen.messageSend:
-    case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:
     case Chat2Gen.muteConversation:

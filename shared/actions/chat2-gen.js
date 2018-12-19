@@ -56,7 +56,6 @@ export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
 export const metaDelete = 'chat2:metaDelete'
-export const metaHandleQueue = 'chat2:metaHandleQueue'
 export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
@@ -151,7 +150,6 @@ type _MessagesAddPayload = $ReadOnly<{|context: {type: 'sent'} | {type: 'incomin
 type _MessagesExplodedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageIDs: Array<RPCChatTypes.MessageID>, explodedBy?: string|}>
 type _MessagesWereDeletedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageIDs?: Array<RPCChatTypes.MessageID>, upToMessageID?: RPCChatTypes.MessageID, deletableMessageTypes?: I.Set<Types.MessageType>, ordinals?: Array<Types.Ordinal>|}>
 type _MetaDeletePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, selectSomethingElse: boolean|}>
-type _MetaHandleQueuePayload = void
 type _MetaNeedsUpdatingPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>, reason: string|}>
 type _MetaReceivedErrorPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, error: ?RPCChatTypes.InboxUIItemError, username: ?string|}>
 type _MetaRequestTrustedPayload = $ReadOnly<{|force?: boolean, conversationIDKeys: Array<Types.ConversationIDKey>|}>
@@ -361,7 +359,6 @@ export const createMessageWasEdited = (payload: _MessageWasEditedPayload) => ({p
 export const createMessagesAdd = (payload: _MessagesAddPayload) => ({payload, type: messagesAdd})
 export const createMessagesWereDeleted = (payload: _MessagesWereDeletedPayload) => ({payload, type: messagesWereDeleted})
 export const createMetaDelete = (payload: _MetaDeletePayload) => ({payload, type: metaDelete})
-export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload) => ({payload, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload) => ({payload, type: metaNeedsUpdating})
 export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload) => ({payload, type: metaReceivedError})
 export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload) => ({payload, type: metaRequestTrusted})
@@ -433,7 +430,6 @@ export type MessagesAddPayload = {|+payload: _MessagesAddPayload, +type: 'chat2:
 export type MessagesExplodedPayload = {|+payload: _MessagesExplodedPayload, +type: 'chat2:messagesExploded'|}
 export type MessagesWereDeletedPayload = {|+payload: _MessagesWereDeletedPayload, +type: 'chat2:messagesWereDeleted'|}
 export type MetaDeletePayload = {|+payload: _MetaDeletePayload, +type: 'chat2:metaDelete'|}
-export type MetaHandleQueuePayload = {|+payload: _MetaHandleQueuePayload, +type: 'chat2:metaHandleQueue'|}
 export type MetaNeedsUpdatingPayload = {|+payload: _MetaNeedsUpdatingPayload, +type: 'chat2:metaNeedsUpdating'|}
 export type MetaReceivedErrorPayload = {|+payload: _MetaReceivedErrorPayload, +type: 'chat2:metaReceivedError'|}
 export type MetaRequestTrustedPayload = {|+payload: _MetaRequestTrustedPayload, +type: 'chat2:metaRequestTrusted'|}
@@ -531,7 +527,6 @@ export type Actions =
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload
   | MetaDeletePayload
-  | MetaHandleQueuePayload
   | MetaNeedsUpdatingPayload
   | MetaReceivedErrorPayload
   | MetaRequestTrustedPayload

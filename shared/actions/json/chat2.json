@@ -96,8 +96,6 @@
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
       "reason": "string"
     },
-    // Internal action: pull more metas from the queue to request
-    "metaHandleQueue": {},
     // About to try and unbox some inbox rows
     "metaRequestingTrusted": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
