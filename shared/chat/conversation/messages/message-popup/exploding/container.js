@@ -97,7 +97,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
       ownProps.message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: ownProps.message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
   },
 })
 
