@@ -24,15 +24,18 @@ type WrapProps = {|
 class PickerWrapper extends React.Component<WrapProps> {
   _picker: Picker
 
+  // Setting autoFocus={true} on Picker doesn't work, so focus it
+  // ourselves on mount/update.
+
   componentDidMount = () => {
-    this.focus()
+    this._focus()
   }
 
   componentDidUpdate = () => {
-    this.focus()
+    this._focus()
   }
 
-  focus = () => {
+  _focus = () => {
     if (!this._picker) {
       return
     }
