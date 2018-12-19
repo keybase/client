@@ -337,7 +337,7 @@ def testGo(prefix) {
             if (isUnix()) {
                 // Windows `gofmt` pukes on CRLF, so only run on *nix.
                 println "Check that files are formatted correctly"
-                sh "test -z $(gofmt -l $(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
+                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${diffPackagesAsString} ))"
             }
 
             // Load list of dependencies and mark all dependent packages to test.
