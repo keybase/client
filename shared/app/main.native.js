@@ -56,7 +56,7 @@ class Main extends React.Component<Props> {
     )
   }
 }
-const ViewForGatewayDest = (props: any) => <View {...props} />
+const ViewForGatewayDest = <T>(props: T) => <View {...props} />
 
 const mapStateToProps = state => ({
   routeDef: state.routeTree.routeDef,

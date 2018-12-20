@@ -2318,6 +2318,38 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 	}
 }
 
+type SubteamListEntry struct {
+	Name        TeamName `codec:"name" json:"name"`
+	MemberCount int      `codec:"memberCount" json:"memberCount"`
+}
+
+func (o SubteamListEntry) DeepCopy() SubteamListEntry {
+	return SubteamListEntry{
+		Name:        o.Name.DeepCopy(),
+		MemberCount: o.MemberCount,
+	}
+}
+
+type SubteamListResult struct {
+	Entries []SubteamListEntry `codec:"entries" json:"entries"`
+}
+
+func (o SubteamListResult) DeepCopy() SubteamListResult {
+	return SubteamListResult{
+		Entries: (func(x []SubteamListEntry) []SubteamListEntry {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SubteamListEntry, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Entries),
+	}
+}
+
 type TeamCreateResult struct {
 	TeamID       TeamID `codec:"teamID" json:"teamID"`
 	ChatSent     bool   `codec:"chatSent" json:"chatSent"`
@@ -2774,6 +2806,11 @@ type TeamTreeArg struct {
 	Name      TeamName `codec:"name" json:"name"`
 }
 
+type TeamGetSubteamsArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      TeamName `codec:"name" json:"name"`
+}
+
 type TeamDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -2947,6 +2984,7 @@ type TeamsInterface interface {
 	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
+	TeamGetSubteams(context.Context, TeamGetSubteamsArg) (SubteamListResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (SeitanIKey, error)
@@ -3336,6 +3374,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamTree(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetSubteams": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetSubteamsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetSubteamsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetSubteamsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetSubteams(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -3864,6 +3917,11 @@ func (c TeamsClient) TeamIgnoreRequest(ctx context.Context, __arg TeamIgnoreRequ
 
 func (c TeamsClient) TeamTree(ctx context.Context, __arg TeamTreeArg) (res TeamTreeResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamTree", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamGetSubteams(ctx context.Context, __arg TeamGetSubteamsArg) (res SubteamListResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteams", []interface{}{__arg}, &res)
 	return
 }
 
