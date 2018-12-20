@@ -844,6 +844,15 @@ protocol teams {
     boolean admin; // Whether the user is an admin, explicit or implicit.
   }
 
+  record SubteamListEntry {
+    TeamName name;
+    int memberCount;
+  }
+
+  record SubteamListResult {
+    array<SubteamListEntry> entries;
+  }
+
   record TeamCreateResult {
     TeamID teamID;
     boolean chatSent;
@@ -954,6 +963,12 @@ protocol teams {
   // Sorted alphabetically like a tree.
   // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   TeamTreeResult teamTree(int sessionID, TeamName name);
+
+  // Get a list of all recursive subteams of this team's root team that are visible to the user.
+  // Sorted alphabetically like a tree.
+  // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
+  // This list is generated without loading each team, and is therefore server-trust.
+  SubteamListResult teamGetSubteams(int sessionID, TeamName name);
 
   void teamDelete(int sessionID, string name);
 
