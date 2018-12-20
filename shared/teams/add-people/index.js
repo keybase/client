@@ -95,10 +95,11 @@ const AddPeople = (props: Props) => (
       {!Styles.isMobile && (
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
           <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
-            <Kb.Button
+            <Kb.WaitingButton
               disabled={!props.numberOfUsersSelected}
               onClick={props.onOpenRolePicker}
               label={props.addButtonLabel}
+              waitingKey={null}
               type="Primary"
             />
           </Kb.Box>
