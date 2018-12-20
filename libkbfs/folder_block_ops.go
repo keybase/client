@@ -388,8 +388,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return block, nil
 	}
 
-	if block, prefetchStatus, lifetime, err :=
-		fbo.config.BlockCache().GetWithPrefetch(ptr); err == nil {
+	if block, lifetime, err := fbo.config.BlockCache().GetWithLifetime(ptr); err == nil {
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
@@ -397,6 +396,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		if fbo.config.IsSyncedTlf(fbo.id()) {
 			action = action.AddSync()
 		}
+		prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), ptr)
 		fbo.config.BlockOps().Prefetcher().ProcessBlockForPrefetch(ctx, ptr,
 			block, kmd, defaultOnDemandRequestPriority-1, lifetime,
 			prefetchStatus, action)
@@ -3352,8 +3352,7 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 		// Prefetch the new ref, but only if the old ref already exists in
 		// the block cache. Ideally we'd always prefetch it, but we need
 		// the type of the block so that we can call `NewEmpty`.
-		block, _, lifetime, err :=
-			fbo.config.BlockCache().GetWithPrefetch(oldPtr)
+		block, lifetime, err := fbo.config.BlockCache().GetWithLifetime(oldPtr)
 		if err != nil {
 			return updatedNode
 		}

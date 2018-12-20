@@ -1170,8 +1170,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 			return
 		}
 
-		_, prefetchStatus, _, err := fbo.config.BlockCache().GetWithPrefetch(
-			rootPtr)
+		prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), rootPtr)
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error getting prefetched block: %+v", err)
 			return

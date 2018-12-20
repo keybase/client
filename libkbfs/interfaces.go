@@ -1172,17 +1172,10 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
-	// GetWithPrefetch retrieves a block from the cache, along with the block's
-	// prefetch status.
-	GetWithPrefetch(ptr BlockPointer) (block Block,
-		prefetchStatus PrefetchStatus, lifetime BlockCacheLifetime, err error)
-	// PutWithPrefetch puts a block into the cache, along with whether or not
-	// it has triggered or finished a prefetch.
-	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error
-	// ClearTransientPrefetch clears the cached prefetch status of the
-	// block, if it's transiently cached.
-	ClearTransientPrefetch(id kbfsblock.ID)
+	// GetWithLifetime retrieves a block from the cache, along with
+	// the block's lifetime.
+	GetWithLifetime(ptr BlockPointer) (
+		block Block, lifetime BlockCacheLifetime, err error)
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.

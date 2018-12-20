@@ -569,21 +569,6 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
-
-	t.Log("Remove the block from the disk cache to rule it out for " +
-		"the next step.")
-	numRemoved, _, err := cache.Delete(ctx, []kbfsblock.ID{ptr1.ID})
-	require.NoError(t, err)
-	require.Equal(t, 1, numRemoved)
-
-	block = &FileBlock{}
-	t.Log("Request the same block again to verify the memory cache.")
-	ch = q.Request(
-		ctx, 1, makeKMD(), ptr1, block, TransientEntry,
-		BlockRequestWithPrefetch)
-	err = <-ch
-	require.NoError(t, err)
-	require.Equal(t, block1, block)
 }
 
 func seedDiskBlockCacheForTest(
@@ -747,7 +732,7 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 		ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.UpdateMetadata(ctx, block1Ptr.ID, TriggeredPrefetch)
+	err = cache.UpdateMetadata(ctx, block1Ptr.ID, FinishedPrefetch)
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.workingSetCache.numBlocks)
 	require.Equal(t, 0, cache.syncCache.numBlocks)
@@ -760,12 +745,12 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 	require.Equal(t, 1, cache.syncCache.numBlocks)
 	require.Equal(t, 0, cache.workingSetCache.numBlocks)
 
-	t.Log("After the move, make sure the prefetch status is reset.")
+	t.Log("After the move, make sure the prefetch status is downgraded.")
 	_, _, prefetchStatus, err := cache.Get(
 		ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.syncCache.numBlocks)
-	require.Equal(t, NoPrefetch, prefetchStatus)
+	require.Equal(t, TriggeredPrefetch, prefetchStatus)
 }
 
 func TestDiskBlockCacheMark(t *testing.T) {

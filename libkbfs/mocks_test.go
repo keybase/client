@@ -4773,47 +4773,20 @@ func (mr *MockBlockCacheMockRecorder) DeleteKnownPtr(tlf, block interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKnownPtr", reflect.TypeOf((*MockBlockCache)(nil).DeleteKnownPtr), tlf, block)
 }
 
-// GetWithPrefetch mocks base method
-func (m *MockBlockCache) GetWithPrefetch(ptr BlockPointer) (Block, PrefetchStatus, BlockCacheLifetime, error) {
+// GetWithLifetime mocks base method
+func (m *MockBlockCache) GetWithLifetime(ptr BlockPointer) (Block, BlockCacheLifetime, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWithPrefetch", ptr)
+	ret := m.ctrl.Call(m, "GetWithLifetime", ptr)
 	ret0, _ := ret[0].(Block)
-	ret1, _ := ret[1].(PrefetchStatus)
-	ret2, _ := ret[2].(BlockCacheLifetime)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret1, _ := ret[1].(BlockCacheLifetime)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
-// GetWithPrefetch indicates an expected call of GetWithPrefetch
-func (mr *MockBlockCacheMockRecorder) GetWithPrefetch(ptr interface{}) *gomock.Call {
+// GetWithLifetime indicates an expected call of GetWithLifetime
+func (mr *MockBlockCacheMockRecorder) GetWithLifetime(ptr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithPrefetch", reflect.TypeOf((*MockBlockCache)(nil).GetWithPrefetch), ptr)
-}
-
-// PutWithPrefetch mocks base method
-func (m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutWithPrefetch", ptr, tlf, block, lifetime, prefetchStatus)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PutWithPrefetch indicates an expected call of PutWithPrefetch
-func (mr *MockBlockCacheMockRecorder) PutWithPrefetch(ptr, tlf, block, lifetime, prefetchStatus interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutWithPrefetch", reflect.TypeOf((*MockBlockCache)(nil).PutWithPrefetch), ptr, tlf, block, lifetime, prefetchStatus)
-}
-
-// ClearTransientPrefetch mocks base method
-func (m *MockBlockCache) ClearTransientPrefetch(id kbfsblock.ID) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ClearTransientPrefetch", id)
-}
-
-// ClearTransientPrefetch indicates an expected call of ClearTransientPrefetch
-func (mr *MockBlockCacheMockRecorder) ClearTransientPrefetch(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearTransientPrefetch", reflect.TypeOf((*MockBlockCache)(nil).ClearTransientPrefetch), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithLifetime", reflect.TypeOf((*MockBlockCache)(nil).GetWithLifetime), ptr)
 }
 
 // SetCleanBytesCapacity mocks base method

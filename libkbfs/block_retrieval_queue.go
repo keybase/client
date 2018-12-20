@@ -217,8 +217,7 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
 	prefetchStatus PrefetchStatus) (err error) {
-	err = brq.config.BlockCache().PutWithPrefetch(ptr, tlfID, block, lifetime,
-		prefetchStatus)
+	err = brq.config.BlockCache().Put(ptr, tlfID, block, lifetime)
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
@@ -250,28 +249,19 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
 	PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
-	preferredCacheType := action.CacheType()
-
-	// Attempt to retrieve the block from the cache. This might be a specific
-	// type where the request blocks are CommonBlocks, but that direction can
-	// Set correctly. The cache will never have CommonBlocks.
-	cachedBlock, prefetchStatus, _, err :=
-		brq.config.BlockCache().GetWithPrefetch(ptr)
-	if err == nil && cachedBlock != nil {
-		block.Set(cachedBlock)
-		if preferredCacheType != DiskBlockAnyCache && dbc != nil {
-			// Switch the block's cache if needed.
-			_, _, _, _ = dbc.Get(
-				ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
-		}
-		return prefetchStatus, nil
-	}
-
-	// Check the disk cache.
 	if dbc == nil {
+		// Attempt to retrieve the block from the memory cache, but
+		// only if the disk cache is nil, since if it's not nil we
+		// need to get the prefetch status from the disk anyway.
+		cachedBlock, err := brq.config.BlockCache().Get(ptr)
+		if err == nil {
+			block.Set(cachedBlock)
+			return NoPrefetch, nil
+		}
 		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
 
+	preferredCacheType := action.CacheType()
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
 		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {
@@ -286,8 +276,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		serverHalf)
 	if err == nil {
 		// Cache the block in memory.
-		brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-			TransientEntry, prefetchStatus)
+		brq.config.BlockCache().Put(
+			ptr, kmd.TlfID(), block, TransientEntry)
 	}
 	return prefetchStatus, err
 }

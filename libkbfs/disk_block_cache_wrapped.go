@@ -162,13 +162,19 @@ func (cache *diskBlockCacheWrapped) Get(
 				// The cache will log the non-fatal error, so just return nil.
 				return buf, serverHalf, prefetchStatus, nil
 			}
-			// Note that we're not updating the metadata in the
-			// primary cache, because that metadata needs to reflect
-			// the status of the block with respect to this cache.
-			// That is, if it was FinishedPrefetch, that means all
-			// child blocks must be in THIS cache, which might not be
-			// the case.
-			prefetchStatus = NoPrefetch
+
+			if prefetchStatus == FinishedPrefetch {
+				// Don't propagate a finished status to the primary
+				// cache, since the status needs to be with respect to
+				// that particular cache (i.e., if the primary cache
+				// is the sync cache, all the child blocks must be in
+				// the sync cache, for this block to be considered
+				// synced, and we can't verify that here).
+				prefetchStatus = TriggeredPrefetch
+			}
+			if prefetchStatus != NoPrefetch {
+				_ = primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+			}
 
 			// Remove the block from the non-preferred cache (which is
 			// set to be the secondary cache at this point).
