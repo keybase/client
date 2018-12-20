@@ -216,7 +216,7 @@ helpers.rootLinuxNode(env, {
                     },
                     test_macos: {
                         // TODO: Currently we only run macos tests on master builds.
-                        if (env.BRANCH_NAME == "master") {
+                        if (true) { // env.BRANCH_NAME == "master") {
                             def mountDir='/Volumes/untitled/client'
                             helpers.nodeWithCleanup('macstadium', {}, {
                                     sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
@@ -356,39 +356,84 @@ def testGo(prefix) {
 
         def tests = [:]
         def specialTests = [:]
-        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests']
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan']
+        def testSpecMap = [
+            test_macos_go_: [
+                'github.com/keybase/client/go/kbfs/test': [
+                    name: 'kbfs_test_fuse',
+                    flags: ['-tags fuse'],
+                    timeout: '15m'
+                ],
+                'github.com/keybase/client/go/kbfs/libfuse': [],
+            ],
+            test_linux_go_: [
+                '*': [],
+                // TODO: put all the -race tests here
+            ],
+            test_windows_go_: [
+                '*': [],
+            ],
+        ]
+        def defaultPackageTestSpec(pkg) = {
+            def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
+            def testName = dirPath.replaceAll('/', '_')
+            return [
+                name: testName,
+                flags: [],
+                timeout: '30m',
+            ]
+        }
+        def getPackageTestSpec(pkg) = {
+            if (testSpecMap[prefix].contains(pkg)) {
+                if (testSpecMap[prefix][pkg]) {
+                    def testSpec = testSpecMap[prefix][pkg]
+                    return testSpec << [
+                        dirPath: pkg.replaceAll('github.com/keybase/client/go/', '')
+                    ]
+                }
+                return defaultPackageTestSpec(pkg)
+            }
+            if (testSpecMap[prefix].contains('*')) {
+                return defaultPackageTestSpec(pkg)
+            }
+            return false
+        }
         packagesToTest.each { pkg, _ ->
+            def testSpec = getPackageTestSpec(pkg)
+            if (!testSpec) {
+                continue
+            }
+
             println "Running go vet for ${pkg}"
             sh "go vet ${pkg}"
 
-            def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
             if (isUnix()) {
                 // Windows `gofmt` pukes on CRLF, so only run on *nix.
                 println "Check that files are formatted correctly"
-                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${packageTestList.join(' ')} ))"
+                sh "test -z \$(gofmt -l \$(sed 's/github.com.keybase.client.go.//' ${pkg} ))"
             }
-            println "Building tests for $dirPath"
-            dir(dirPath) {
-                def testName = dirPath.replaceAll('/', '_')
-                def testBinary = "${testName}.test"
+
+            println "Building tests for ${testSpec.dirPath}"
+            dir(testSpec.dirPath) {
+                def testBinary = "${testSpec.name}.test"
                 sh "go test -i"
-                sh "go test -c -o ${testBinary}"
+                sh "go test -c ${testSpec.flags} -o ${testBinary}"
                 // Only run the test if a test binary should have been produced.
                 if (fileExists(testBinary)) {
                     def test = {
                         dir(dirPath) {
-                            println "Running tests for $dirPath"
-                            sh "./${testBinary} -test.timeout 30m"
+                            println "Running tests for ${testSpec.dirPath}"
+                            sh "./${testBinary} -test.timeout ${testSpec.timeout}"
                         }
                     }
-                    if (testName in specialTestFilter) {
-                        specialTests[prefix + testName] = test
+                    if (testSpec.name in specialTestFilter) {
+                        specialTests["${prefix}${testSpec.name}"] = test
                     } else {
-                        tests[prefix + testName] = test
+                        tests["${prefix}${testSpec.name}"] = test
                     }
-                    println "Will run tests for $dirPath"
+                    println "Will run tests for ${testSpec.dirPath}"
                 } else {
-                    println "Skipping tests for $dirPath because no test binary was produced."
+                    println "Skipping tests for ${testSpec.dirPath} because no test binary was produced."
                 }
             }
         }
