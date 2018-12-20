@@ -14,21 +14,15 @@ import com.android.build.OutputFile
  *
  */
 
+// If your android studio fails to find node, make a ~/.gradle/gradle.properties with the line:
+// NODE_PATH=/usr/local/bin/node
+
+// environment "BABEL_PLATFORM", "ReactNative"
+
 project.ext.react = [
+        // bundleConfig: "packager/config.js",
         // whether to bundle JS and assets in debug mode
         bundleInDebug: true,
-
-        // whether to bundle JS and assets in release mode
-        bundleInRelease: true,
-
-        // whether to bundle JS and assets in another build variant (if configured).
-        // See http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Build-Variants
-        // The configuration property can be in the following formats
-        //         'bundleIn${productFlavor}${buildType}'
-        //         'bundleIn${buildType}'
-        // bundleInFreeDebug: true,
-        // bundleInPaidRelease: true,
-        // bundleInBeta: true,
 
         // the root of your project, i.e. where "package.json" lives
         root: "../../../",
@@ -52,16 +46,11 @@ project.ext.react = [
         // date; if you have any other folders that you want to ignore for performance reasons (gradle
         // indexes the entire tree), add them here. Alternatively, if you have JS files in android/
         // for example, you might want to remove it from here.
-        inputExcludes: ["android/**", "ios/**", "__test__/**", "__tests__/**", "**/*.desktop.js", "**/*.ios.js", "**/*.js.flow"]
+        inputExcludes: ["android/**", "ios/**", "__test__/**", "__tests__/**", "**/*.desktop.js", "**/*.ios.js", "**/*.js.flow"],
+        nodeExecutableAndArgs: hasProperty('NODE_PATH')?[NODE_PATH]:null
 ]
 
-// If your android studio fails to find node, make a ~/.gradle/gradle.properties with the line:
-// NODE_PATH=/usr/local/bin/node
-project.ext.react = [
-    nodeExecutableAndArgs: hasProperty('NODE_PATH')?[NODE_PATH]:null
-]
-
-apply from: "react.gradle"
+apply from: "../../../node_modules/react-native/react.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
