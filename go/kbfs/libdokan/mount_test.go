@@ -63,6 +63,8 @@ func makeFSE(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal,
 	defer func() {
 		if !makeSuccess {
 			lock.Unlock()
+		} else {
+			time.Sleep(5 * time.Second)
 		}
 	}()
 
