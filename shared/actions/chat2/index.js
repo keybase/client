@@ -417,60 +417,6 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>, you: st
   return actions
 }
 
-// Service tells us it's done syncing
-const onChatInboxSynced = (syncRes, state) => {
-  const actions = [WaitingGen.createClearWaiting({key: Constants.waitingKeyInboxSyncStarted})]
-
-  switch (syncRes.syncType) {
-    // Just clear it all
-    case RPCChatTypes.commonSyncInboxResType.clear:
-      actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedClear'}))
-      break
-    // We're up to date
-    case RPCChatTypes.commonSyncInboxResType.current:
-      break
-    // We got some new messages appended
-    case RPCChatTypes.commonSyncInboxResType.incremental: {
-      const selectedConversation = Constants.getSelectedConversation(state)
-      const username = state.config.username || ''
-      const items = (syncRes.incremental && syncRes.incremental.items) || []
-      const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
-        if (meta) {
-          if (meta.conversationIDKey === selectedConversation) {
-            // First thing load the messages
-            actions.unshift(
-              Chat2Gen.createMarkConversationsStale({
-                conversationIDKeys: [selectedConversation],
-                updateType: RPCChatTypes.notifyChatStaleUpdateType.newactivity,
-              })
-            )
-          }
-          arr.push(meta)
-        }
-        return arr
-      }, [])
-      // Update new untrusted
-      if (metas.length) {
-        actions.push(Chat2Gen.createMetasReceived({metas}))
-      }
-      // Unbox items
-      actions.push(
-        Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys: items
-            .filter(i => i.shouldUnbox)
-            .map(i => Types.stringToConversationIDKey(i.conv.convID)),
-          force: true,
-        })
-      )
-      break
-    }
-    default:
-      actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedUnknown'}))
-  }
-  return actions
-}
-
 const onChatThreadStale = updates => {
   let actions = []
   Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
@@ -664,61 +610,105 @@ const onChatAttachmentUploadStart = (
   })
 }
 
+const onChatInboxStale = (_, action: EngineGen.Chat1NotifyChatChatInboxStalePayload) =>
+  Chat2Gen.createInboxRefresh({reason: 'inboxStale'})
+
+const onChatInboxSyncStarted = (_, action: EngineGen.Chat1NotifyChatChatInboxSyncStartedPayload) =>
+  WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})
+
+// Service tells us it's done syncing
+const onChatInboxSynced = (state, action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => {
+  const {syncRes} = action.payload.params
+  const actions = [WaitingGen.createClearWaiting({key: Constants.waitingKeyInboxSyncStarted})]
+
+  switch (syncRes.syncType) {
+    // Just clear it all
+    case RPCChatTypes.commonSyncInboxResType.clear:
+      actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedClear'}))
+      break
+    // We're up to date
+    case RPCChatTypes.commonSyncInboxResType.current:
+      break
+    // We got some new messages appended
+    case RPCChatTypes.commonSyncInboxResType.incremental: {
+      const selectedConversation = Constants.getSelectedConversation(state)
+      const username = state.config.username
+      const items = (syncRes.incremental && syncRes.incremental.items) || []
+      const metas = items.reduce((arr, i) => {
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
+        if (meta) {
+          if (meta.conversationIDKey === selectedConversation) {
+            // First thing load the messages
+            actions.unshift(
+              Chat2Gen.createMarkConversationsStale({
+                conversationIDKeys: [selectedConversation],
+                updateType: RPCChatTypes.notifyChatStaleUpdateType.newactivity,
+              })
+            )
+          }
+          arr.push(meta)
+        }
+        return arr
+      }, [])
+      // Update new untrusted
+      if (metas.length) {
+        actions.push(Chat2Gen.createMetasReceived({metas}))
+      }
+      // Unbox items
+      actions.push(
+        Chat2Gen.createMetaRequestTrusted({
+          conversationIDKeys: items
+            .filter(i => i.shouldUnbox)
+            .map(i => Types.stringToConversationIDKey(i.conv.convID)),
+          force: true,
+        })
+      )
+      break
+    }
+    default:
+      actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedUnknown'}))
+  }
+  return Saga.sequentially(actions)
+}
+
+const onChatJoinedConversation = () => Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'})
+const onChatLeftConversation = () => Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})
+const onChatPaymentInfo = (_, action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
+  const {convID, info, msgID} = action.payload.params
+  const conversationIDKey = convID ? Types.conversationIDToKey(convID) : Constants.noConversationIDKey
+  const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([info])
+  if (!paymentInfo) {
+    // This should never happen
+    const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
+    logger.error(errMsg)
+    throw new Error(errMsg)
+  }
+  return Chat2Gen.createPaymentInfoReceived({
+    conversationIDKey,
+    messageID: msgID,
+    paymentInfo,
+  })
+}
+
+const onChatRequestInfo = (_, action: EngineGen.Chat1NotifyChatChatRequestInfoPayload) => {
+  const {convID, info, msgID} = action.payload.params
+  const conversationIDKey = Types.conversationIDToKey(convID)
+  const requestInfo = Constants.uiRequestInfoToChatRequestInfo(info)
+  if (!requestInfo) {
+    // This should never happen
+    const errMsg = `ChatHandler: got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
+    logger.error(errMsg)
+    throw new Error(errMsg)
+  }
+  return Chat2Gen.createRequestInfoReceived({
+    conversationIDKey,
+    messageID: msgID,
+    requestInfo,
+  })
+}
 // Handle calls that come from the service
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
-    'chat.1.NotifyChat.ChatInboxStale': () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'inboxStale'})),
-    'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
-      Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
-    'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}) =>
-      Saga.callUntyped(function*() {
-        const state = yield* Saga.selectState()
-        yield arrayOfActionsToSequentially(onChatInboxSynced(syncRes, state))
-      }),
-    'chat.1.NotifyChat.ChatJoinedConversation': () =>
-      Saga.put(Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'})),
-    'chat.1.NotifyChat.ChatLeftConversation': () =>
-      Saga.put(Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})),
-    'chat.1.NotifyChat.ChatPaymentInfo': notif => {
-      const conversationIDKey = notif.convID
-        ? Types.conversationIDToKey(notif.convID)
-        : Constants.noConversationIDKey
-      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([notif.info])
-      if (!paymentInfo) {
-        // This should never happen
-        const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
-          notif.msgID
-        }. The local version may be absent or out of date.`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      return Saga.put(
-        Chat2Gen.createPaymentInfoReceived({
-          conversationIDKey,
-          messageID: notif.msgID,
-          paymentInfo,
-        })
-      )
-    },
-    'chat.1.NotifyChat.ChatRequestInfo': notif => {
-      const conversationIDKey = Types.conversationIDToKey(notif.convID)
-      const requestInfo = Constants.uiRequestInfoToChatRequestInfo(notif.info)
-      if (!requestInfo) {
-        // This should never happen
-        const errMsg = `ChatHandler: got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${conversationIDKey} messageID: ${
-          notif.msgID
-        }. The local version may be absent or out of date.`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      return Saga.put(
-        Chat2Gen.createRequestInfoReceived({
-          conversationIDKey,
-          messageID: notif.msgID,
-          requestInfo,
-        })
-      )
-    },
     'chat.1.NotifyChat.ChatSetConvRetention': ({conv, convID}) => {
       if (conv) {
         return Saga.put(Chat2Gen.createUpdateConvRetentionPolicy({conv}))
@@ -2995,8 +2985,16 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
     onChatAttachmentUploadProgress
   )
+  /// TODO a bunch of these just do a refresh, instead just make a forceRefresh handler and pull out the reasons
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatInboxStale, onChatInboxStale)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatInboxSyncStarted, onChatInboxSyncStarted)
+  yield Saga.actionToAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatJoinedConversation, onChatJoinedConversation)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatLeftConversation, onChatLeftConversation)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatPaymentInfo, onChatPaymentInfo)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatRequestInfo, onChatRequestInfo)
 }
 
 export default chat2Saga
