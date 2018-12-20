@@ -49,7 +49,6 @@ export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 export type _Account = {
   accountID: AccountID,
   balanceDescription: string,
-  balanceAvailable: string,
   isDefault: boolean,
   name: string,
 }
@@ -79,6 +78,7 @@ export type _LocalCurrency = {
 
 export type _Building = {
   amount: string,
+  bid: string,
   currency: string,
   from: AccountID,
   isRequest: boolean,
@@ -90,6 +90,7 @@ export type _Building = {
 }
 
 export type _BuiltPayment = {
+  amountAvailable: string,
   amountErrMsg: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: AccountID,

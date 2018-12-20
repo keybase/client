@@ -29,10 +29,6 @@
         },
         {
           "type": "string",
-          "name": "balanceAvailable"
-        },
-        {
-          "type": "string",
           "name": "seqno"
         },
         {
@@ -538,6 +534,10 @@
           "type": "boolean",
           "name": "sendingIntentionXLM",
           "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "amountAvailable"
         },
         {
           "type": {

@@ -11,7 +11,6 @@ protocol local {
     boolean isDefault;          // true if this is the default sending/receiving account
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
-    string balanceAvailable;    // example: "56.0227002 XLM available"
     string seqno;               // the stellar sequence number for this account
     CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
   }
@@ -327,6 +326,7 @@ protocol local {
     string displayAmountFiat;            // "$1.23 USD"
     @lint("ignore")
     boolean sendingIntentionXLM;         // true if currency is nil
+    string amountAvailable;              // "3280.435 XLM available"
 
     array<SendBannerLocal> banners;
   }

@@ -38,6 +38,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
+  bid: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   isRequest: false,
@@ -49,6 +50,7 @@ const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
+  amountAvailable: '',
   amountErrMsg: '',
   banners: null,
   displayAmountFiat: '',
@@ -115,6 +117,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
+    amountAvailable: b.amountAvailable,
     amountErrMsg: b.amountErrMsg,
     banners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
@@ -147,7 +150,6 @@ const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
-  balanceAvailable: '',
   balanceDescription: '',
   isDefault: false,
   name: '',
@@ -158,7 +160,6 @@ const unknownAccount = makeAccount()
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
-    balanceAvailable: w.balanceAvailable,
     balanceDescription: w.balanceDescription,
     isDefault: w.isDefault,
     name: w.name,

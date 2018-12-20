@@ -7,7 +7,7 @@ import {stringToAccountID} from '../../../constants/types/wallets'
 const provider = Sb.createPropProviderWithCommon()
 
 const defaultProps = {
-  fromAccountAssets: '2000 XLM available',
+  fromAccountAssets: '2000 XLM',
   fromAccountIsDefault: true,
   fromAccountName: 'Primary Account',
   recipientAccountAssets: '123 XLM',
