@@ -34,7 +34,7 @@ type prefetcherConfig interface {
 
 type prefetchRequest struct {
 	ptr            BlockPointer
-	block          Block
+	newBlock       func() Block
 	kmd            KeyMetadata
 	priority       int
 	lifetime       BlockCacheLifetime
@@ -264,7 +264,7 @@ func (p *blockPrefetcher) completePrefetch(
 			p.clearRescheduleState(blockID)
 			delete(p.rescheduled, blockID)
 			defer pp.Close()
-			b := pp.req.block.NewEmpty()
+			b := pp.req.newBlock()
 			err := <-p.retriever.Request(
 				pp.ctx, defaultOnDemandRequestPriority, pp.req.kmd, pp.req.ptr,
 				b, pp.req.lifetime, BlockRequestSolo)
@@ -360,7 +360,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	if !isPrefetchWaiting {
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
-		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
+		req := &prefetchRequest{ptr, block.NewEmpty, kmd, priority, lifetime,
 			NoPrefetch, action, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
@@ -726,7 +726,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				req.ptr, req.action)
 
 			// Ensure the block is in the right cache.
-			b := req.block.NewEmpty()
+			b := req.newBlock()
 			err := <-p.retriever.Request(
 				ctx, defaultOnDemandRequestPriority, req.kmd,
 				req.ptr, b, req.lifetime, req.action.SoloAction())
@@ -971,7 +971,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
 	action BlockRequestAction) {
-	req := &prefetchRequest{ptr, block.NewEmpty(), kmd, priority, lifetime,
+	req := &prefetchRequest{ptr, block.NewEmpty, kmd, priority, lifetime,
 		prefetchStatus, action, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
