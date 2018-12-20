@@ -20,6 +20,8 @@ export type KeyboardType =
   // Android Only
   | 'visible-password'
 
+export type Selection = {start: number, end: number}
+
 export type Props = {|
   autoFocus?: boolean,
   // Enable if you want this to always have focus (desktop only)
@@ -62,6 +64,9 @@ export type Props = {|
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
   onEndEditing?: () => void,
+  // very flakey, don't rely on this for up to date
+  // selection; only works with multiline={true}
+  onSelectionChange?: (selection: Selection) => void,
 |}
 
 // Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
@@ -84,8 +89,6 @@ export type DefaultProps = {|
   keyboardType: KeyboardType,
   textType: TextType,
 |}
-
-export type Selection = {start: number, end: number}
 
 export type TextInfo = {
   text: string,
