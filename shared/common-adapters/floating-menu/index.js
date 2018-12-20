@@ -8,7 +8,7 @@
 
 import * as React from 'react'
 import Overlay from '../overlay'
-import type {Position} from '../relative-popup-hoc'
+import type {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {type MenuItem} from './menu-layout'
 import {type StylesCrossPlatform} from '../../styles'
 

@@ -49,4 +49,4 @@ const ConnectedFiles = compose(
   })
 )(Files)
 
-export default SecurityPrefsPromptingHoc(ConnectedFiles)
+export default SecurityPrefsPromptingHoc<OwnProps>(ConnectedFiles)

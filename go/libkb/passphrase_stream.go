@@ -11,7 +11,7 @@ import (
 )
 
 func NewSecureTriplesec(passphrase []byte, salt []byte) (Triplesec, error) {
-	return triplesec.NewCipher(passphrase, salt)
+	return triplesec.NewCipher(passphrase, salt, ClientTriplesecVersion)
 }
 
 func StretchPassphrase(g *GlobalContext, passphrase string, salt []byte) (tsec Triplesec, pps *PassphraseStream, err error) {

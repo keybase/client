@@ -1,0 +1,175 @@
+{
+  "protocol": "identify3Ui",
+  "imports": [
+    {
+      "path": "identify3_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "Identify3RowState",
+      "symbols": [
+        "CHECKING_1",
+        "VALID_2",
+        "ERROR_3",
+        "WARNING_4",
+        "REVOKED_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Identify3RowColor",
+      "symbols": [
+        "BLUE_1",
+        "RED_2",
+        "BLACK_3",
+        "GREEN_4"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Identify3ResultType",
+      "symbols": [
+        "OK_0",
+        "BROKEN_1",
+        "NEEDS_UPGRADE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Identify3RowMeta",
+      "fields": [],
+      "typedef": "string"
+    }
+  ],
+  "messages": {
+    "showTracker": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "assertion",
+          "type": "Identify3Assertion"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3UpdateRow": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        },
+        {
+          "name": "siteURL",
+          "type": "string"
+        },
+        {
+          "name": "siteIcon",
+          "type": "string"
+        },
+        {
+          "name": "proofURL",
+          "type": "string"
+        },
+        {
+          "name": "state",
+          "type": "Identify3RowState"
+        },
+        {
+          "name": "metas",
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          }
+        },
+        {
+          "name": "color",
+          "type": "Identify3RowColor"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
+    "identify3UpdateDetails": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "followsYou",
+          "type": "boolean"
+        },
+        {
+          "name": "followThem",
+          "type": "boolean"
+        },
+        {
+          "name": "followersCount",
+          "type": "int"
+        },
+        {
+          "name": "followingCount",
+          "type": "int"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        },
+        {
+          "name": "location",
+          "type": "string"
+        },
+        {
+          "name": "publishedTeams",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3TrackerTimedOut": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3Result": {
+      "request": [
+        {
+          "name": "result",
+          "type": "Identify3ResultType"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

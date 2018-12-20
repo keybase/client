@@ -15,7 +15,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 func clientInfo(m MetaContext) *jsonw.Wrapper {
@@ -682,7 +681,7 @@ func (u *User) UpdatePassphraseProof(m MetaContext, key GenericKey, pwh string, 
 	pp := jsonw.NewDictionary()
 	pp.SetKey("hash", jsonw.NewString(pwh))
 	pp.SetKey("pdpka5_kid", jsonw.NewString(pdpka5kid))
-	pp.SetKey("version", jsonw.NewInt(int(triplesec.Version)))
+	pp.SetKey("version", jsonw.NewInt(int(ClientTriplesecVersion)))
 	pp.SetKey("passphrase_generation", jsonw.NewInt(int(ppGen)))
 	body.SetKey("update_passphrase_hash", pp)
 	return ret, nil

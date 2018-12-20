@@ -26,7 +26,7 @@ const load = () =>
         path={Types.stringToPath('/keybase/private/meatball,songgao,xinyuzhao/yo')}
         routePath={I.List([])}
         onCancel={Sb.action('onCancel')}
-        targetName="Secret treat spot blasjeiofjawiefjksadjflaj"
+        targetName="Secret treat spot blasjeiofjawiefjksadjflaj long name blahblah"
         targetIconSpec={
           Constants.getItemStyles(['keybase', 'private', 'meatball', 'Secret treat spot'], 'folder').iconSpec
         }

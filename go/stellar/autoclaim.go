@@ -144,15 +144,14 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 }
 
 func (r *AutoClaimRunner) claim(mctx libkb.MetaContext, kbTxID stellar1.KeybaseTransactionID, token string) (err error) {
-	CreateWalletSoft(mctx.Ctx(), mctx.G())
-	into, err := GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
+	CreateWalletSoft(mctx)
+	into, err := GetOwnPrimaryAccountID(mctx)
 	if err != nil {
 		return err
 	}
 	// Explicitly CLAIM. We don't want to accidentally auto YANK.
 	dir := stellar1.RelayDirection_CLAIM
 	// Use the user's autoclaim lock that we acquired.
-	_, err = Claim(mctx.Ctx(), mctx.G(), r.walletState,
-		kbTxID.String(), into, &dir, &token)
+	_, err = Claim(mctx, r.walletState, kbTxID.String(), into, &dir, &token)
 	return err
 }

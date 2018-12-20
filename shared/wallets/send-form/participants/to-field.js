@@ -88,16 +88,11 @@ type ToStellarPublicKeyState = {|
 
 class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStellarPublicKeyState> {
   state = {recipientPublicKey: this.props.recipientPublicKey}
-  _input: {current: React$ElementRef<typeof Kb.PlainInput> | null} = React.createRef()
   _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
   _onChangeRecipient = recipientPublicKey => {
     this.setState({recipientPublicKey})
     this.props.setReadyToSend(false)
     this._propsOnChangeRecipient(recipientPublicKey)
-  }
-
-  _onFocus = () => {
-    this._input.current && this._input.current.focus()
   }
 
   render = () => (
@@ -125,16 +120,14 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
               hideBorder={true}
               containerStyle={styles.input}
               multiline={true}
-              // $FlowIssue this is the right type
-              ref={this._input}
               rowsMin={2}
               rowsMax={3}
               value={this.state.recipientPublicKey}
             />
             {!this.state.recipientPublicKey && (
-              <Kb.ClickableBox
+              <Kb.Box
                 activeOpacity={1}
-                onClick={this._onFocus}
+                pointerEvents="none"
                 style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, styles.placeholderContainer])}
               >
                 <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
@@ -143,7 +136,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
                 <Kb.Text type="BodySemibold" style={styles.colorBlack20} lineClamp={1} ellipsizeMode="middle">
                   {placeholderExample}
                 </Kb.Text>
-              </Kb.ClickableBox>
+              </Kb.Box>
             )}
           </Kb.Box2>
           {!this.state.recipientPublicKey && this.props.onScanQRCode && (
@@ -315,7 +308,7 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
     },
     isElectron: {
-      cursor: 'text',
+      pointerEvents: 'none',
     },
   }),
   publicKeyInputContainer: {flexGrow: 1, flexShrink: 1},

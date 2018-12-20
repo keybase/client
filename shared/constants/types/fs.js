@@ -7,7 +7,7 @@ import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
-import {memoize1} from '../../util/memoize'
+import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 
@@ -302,7 +302,7 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
-export const getPathElements = memoize1<Path, _>(
+export const getPathElements = memoize<Path, void, void, void, _>(
   (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 )
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
@@ -550,4 +550,4 @@ export type RowItemWithKey =
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
-export type RefreshTag = 'main' | 'path-item-action-popup'
+export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'

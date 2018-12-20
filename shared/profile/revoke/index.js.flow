@@ -8,7 +8,7 @@ export type Props = {|
   errorMessage?: ?string,
   onCancel: () => void,
   onRevoke: () => void,
-  isWaiting?: boolean,
+  isWaiting: boolean,
 |}
 
 export default class Render extends Component<Props> {}

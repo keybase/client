@@ -97,6 +97,8 @@ class Input extends React.PureComponent<InputProps> {
     if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
       const text = this.props.getUnsentText()
       this._setText(text, true)
+      // TODO: Ideally, we'd also stash and restore the selection.
+      this._inputFocus()
     }
   }
 
