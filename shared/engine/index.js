@@ -38,6 +38,8 @@ type CustomResponseIncomingActionCreator = (
 ) => Effect | null | void | false | Array<Effect | null | void | false>
 
 class Engine {
+  // make calls immediately during bootstrapping
+  _startImmediately: boolean = true
   // Bookkeep old sessions
   _deadSessionsMap: {[key: SessionIDKey]: true} = {}
   // Tracking outstanding sessions
@@ -298,6 +300,10 @@ class Engine {
     return new Constants.EngineChannel(channelMap, sid, configKeys)
   }
 
+  setMakeEngineCallsImmediately(startImmediately: boolean) {
+    this._startImmediately = startImmediately
+  }
+
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
     method: string,
@@ -314,9 +320,13 @@ class Engine {
       waitingKey: p.waitingKey,
     })
     // Don't make outgoing calls immediately since components can do this when they mount
-    setImmediate(() => {
+    if (this._startImmediately) {
       session.start(p.method, p.params, p.callback)
-    })
+    } else {
+      setImmediate(() => {
+        session.start(p.method, p.params, p.callback)
+      })
+    }
     return session.getId()
   }
 
