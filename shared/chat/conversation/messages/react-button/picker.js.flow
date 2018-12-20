@@ -1,0 +1,9 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {|
+  backgroundImageFn: (set: string, sheetSize: string) => string,
+  onClick: ({colons: string}, evt: Event) => void,
+|}
+
+declare export class Picker extends React.Component<Props> {}
