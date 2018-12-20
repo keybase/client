@@ -30,7 +30,7 @@ import {ExplodingMeta} from './shared'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
-import AddSuggestors from '../suggestors'
+import AddSuggestors, {standardTransformer} from '../suggestors'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -144,11 +144,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   _insertMentionMarker = () => {
     if (this._input) {
-      this._input.transformText(({selection: {end, start}, text}) => {
-        const newText = text.substring(0, start) + '@' + text.substring(end)
-        const newPos = start + 1
-        return {selection: {end: newPos, start: newPos}, text: newText}
-      }, true)
+      const input = this._input
+      input.focus()
+      input.transformText(
+        ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
+        true
+      )
     }
   }
 
