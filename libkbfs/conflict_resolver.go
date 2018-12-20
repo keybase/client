@@ -7,6 +7,9 @@ package libkbfs
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/syndtr/goleveldb/leveldb"
+	"os"
+	sysPath "path"
 	"sort"
 	"strings"
 	"sync"
@@ -40,6 +43,12 @@ const (
 	// How long we're allowed to block writes for if we exceed the max
 	// revisions threshold.
 	crMaxWriteLockTime = 10 * time.Second
+
+	// Where in config.StorageRoot() we store information about failed conflict
+	// resolutions.
+	conflictResolverRecordsDir           = "kbfs_conflicts"
+	conflictResolverRecordsVersionString = "v1"
+	conflictResolverRecordsDB            = "kbfsConflicts.leveldb"
 )
 
 // CtxCROpID is the display name for the unique operation
@@ -3183,6 +3192,93 @@ outer:
 	return nil
 }
 
+func (cr *ConflictResolver) logFileName() string {
+	return sysPath.Join(cr.config.StorageRoot(), conflictResolverRecordsDir,
+		conflictResolverRecordsVersionString, conflictResolverRecordsDB)
+}
+
+const conflictRecordVersion = 1
+
+type conflictRecord struct {
+	version int
+	time.Time
+	merged   string
+	unmerged string
+}
+
+func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
+	// Make sure the directory for CR records exists.
+	err := os.MkdirAll(sysPath.Join(cr.config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
+		os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	// TODO: consider keeping the DB open all the time instead of opening it
+	//  for each read, unless crashing while it is open will corrupt the DB
+	db, err := leveldb.OpenFile(cr.logFileName(), leveldbOptions)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	conflictsSoFarSerialized, err := db.Get([]byte(cr.fbo.id().String()), nil)
+	var conflictsSoFar []conflictRecord
+	switch err {
+	case leveldb.ErrNotFound:
+		conflictsSoFar = nil
+	case nil:
+		err = cr.config.Codec().Decode(conflictsSoFarSerialized, conflictsSoFar)
+		if err != nil {
+			return err
+		}
+	default:
+		return err
+	}
+	conflictsSoFar = append(conflictsSoFar, conflictRecord{
+		version:  conflictRecordVersion,
+		Time:     time.Now(),
+		merged:   ci.merged.String(),
+		unmerged: ci.unmerged.String(),
+	})
+	conflictsSerialized, err := cr.config.Codec().Encode(conflictsSoFar)
+	return db.Put([]byte(cr.fbo.id().String()), conflictsSerialized, nil)
+}
+
+// recordFinishResolve deletes the file that recorded conflict resolution
+// attempts for this resolver
+func (cr *ConflictResolver) recordFinishResolve(
+	ctx context.Context, ci conflictInput, err error) {
+	if err != nil {
+		// TODO: consider putting this in the CR records db
+		cr.log.CWarningf(ctx,
+			"Conflict resolution unsuccessful: err=%v", err)
+		return
+	}
+
+	if r := recover(); r != nil {
+		// TODO: consider attempting to put this in the CR records DB
+		cr.log.CWarningf(ctx,
+			"Conflict resolution unsuccessful: panic(%v)", r)
+		panic(r)
+	}
+
+	db, err := leveldb.OpenFile(cr.logFileName(), leveldbOptions)
+	if err != nil {
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution success: %v", err)
+	}
+	defer db.Close()
+
+	err = db.Delete([]byte(cr.fbo.id().String()), nil)
+	if err != nil {
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution success: %v", err)
+	}
+
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -3198,6 +3294,13 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	ctx = cr.config.MaybeStartTrace(ctx, "CR.doResolve",
 		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
+
+	err = cr.recordStartResolve(ci)
+	if err != nil {
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution attempt: %v", err)
+	}
+	defer cr.recordFinishResolve(ctx, ci, err)
 
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
 	lState := makeFBOLockState()
