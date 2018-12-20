@@ -389,7 +389,7 @@ func (s *stellarRetryClient) WalletInitLocal(ctx context.Context) (err error) {
 	return err
 }
 
-func (s *stellarRetryClient) WalletDumpLocal(ctx context.Context) (res stellar1.BundleRestricted, err error) {
+func (s *stellarRetryClient) WalletDumpLocal(ctx context.Context) (res stellar1.Bundle, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.WalletDumpLocal(ctx)
 		if err == nil {

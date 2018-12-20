@@ -1002,9 +1002,10 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 }
 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
-	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
+	mctx := tc.MetaContext()
+	defer mctx.CTraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
-	bundle, _, _, err := remote.FetchWholeBundle(context.Background(), tc.G)
+	bundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(r.T, err)
 	for _, account := range bundle.Accounts {
 		if _, found := r.accounts[account.AccountID]; found {
@@ -1016,7 +1017,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	}
 	r.Unlock()
 
-	tc.Srv.walletState.RefreshAll(tc.MetaContext(), "test")
+	tc.Srv.walletState.RefreshAll(mctx, "test")
 
 	return res
 }
