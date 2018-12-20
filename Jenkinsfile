@@ -353,7 +353,7 @@ def testGo(prefix) {
 
         def tests = [:]
         def specialTests = [:]
-        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan']
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan', 'kbfs_libfuse']
         def testSpecMap = [
             test_macos_go_: [
                 'github.com/keybase/client/go/kbfs/test': [
