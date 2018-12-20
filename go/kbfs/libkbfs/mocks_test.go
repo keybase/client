@@ -1092,6 +1092,20 @@ func (mr *MockBlockMockRecorder) NewEmpty() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmpty", reflect.TypeOf((*MockBlock)(nil).NewEmpty))
 }
 
+// NewEmptier mocks base method
+func (m *MockBlock) NewEmptier() func() Block {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewEmptier")
+	ret0, _ := ret[0].(func() Block)
+	return ret0
+}
+
+// NewEmptier indicates an expected call of NewEmptier
+func (mr *MockBlockMockRecorder) NewEmptier() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmptier", reflect.TypeOf((*MockBlock)(nil).NewEmptier))
+}
+
 // Set mocks base method
 func (m *MockBlock) Set(other Block) {
 	m.ctrl.T.Helper()
@@ -1249,6 +1263,20 @@ func (m *MockBlockWithPtrs) NewEmpty() Block {
 func (mr *MockBlockWithPtrsMockRecorder) NewEmpty() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmpty", reflect.TypeOf((*MockBlockWithPtrs)(nil).NewEmpty))
+}
+
+// NewEmptier mocks base method
+func (m *MockBlockWithPtrs) NewEmptier() func() Block {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewEmptier")
+	ret0, _ := ret[0].(func() Block)
+	return ret0
+}
+
+// NewEmptier indicates an expected call of NewEmptier
+func (mr *MockBlockWithPtrsMockRecorder) NewEmptier() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewEmptier", reflect.TypeOf((*MockBlockWithPtrs)(nil).NewEmptier))
 }
 
 // Set mocks base method

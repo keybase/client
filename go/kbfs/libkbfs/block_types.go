@@ -148,6 +148,11 @@ func (cb *CommonBlock) NewEmpty() Block {
 	return NewCommonBlock()
 }
 
+// NewEmptier implements the Block interface for CommonBlock.
+func (cb *CommonBlock) NewEmptier() func() Block {
+	return NewCommonBlock
+}
+
 // ToCommonBlock implements the Block interface for CommonBlock.
 func (cb *CommonBlock) ToCommonBlock() *CommonBlock {
 	return cb
@@ -224,6 +229,11 @@ func NewDirBlockWithPtrs(isInd bool) BlockWithPtrs {
 // NewEmpty implements the Block interface for DirBlock
 func (db *DirBlock) NewEmpty() Block {
 	return NewDirBlock()
+}
+
+// NewEmptier implements the Block interface for DirBlock.
+func (db *DirBlock) NewEmptier() func() Block {
+	return NewDirBlock
 }
 
 // IsTail implements the Block interface for DirBlock.
@@ -447,6 +457,11 @@ func NewFileBlockWithPtrs(isInd bool) BlockWithPtrs {
 // NewEmpty implements the Block interface for FileBlock
 func (fb *FileBlock) NewEmpty() Block {
 	return &FileBlock{}
+}
+
+// NewEmptier implements the Block interface for FileBlock.
+func (fb *FileBlock) NewEmptier() func() Block {
+	return NewFileBlock
 }
 
 // IsTail implements the Block interface for FileBlock.

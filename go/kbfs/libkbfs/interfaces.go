@@ -142,6 +142,9 @@ type Block interface {
 	SetEncodedSize(size uint32)
 	// NewEmpty returns a new block of the same type as this block
 	NewEmpty() Block
+	// NewEmptier returns a function that creates a new block of the
+	// same type as this block.
+	NewEmptier() func() Block
 	// Set sets this block to the same value as the passed-in block
 	Set(other Block)
 	// ToCommonBlock retrieves this block as a *CommonBlock.
