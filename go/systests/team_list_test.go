@@ -3,6 +3,7 @@ package systests
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -291,28 +292,19 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	check(&list)
 }
 
-func TestTeamTree(t *testing.T) {
-	tt := newTeamTester(t)
-	defer tt.cleanup()
+func setupNestedSubteams(t *testing.T, user *userPlusDevice) (teamNames []keybase1.TeamName) {
+	teamStr := user.createTeam()
+	t.Logf("Team created (%s)", teamStr)
 
-	ann := tt.addUser("ann")
-	t.Logf("Signed up ann (%s)", ann.username)
+	team, err := keybase1.TeamNameFromString(teamStr)
+	require.NoError(t, err)
 
-	team := ann.createTeam()
-	t.Logf("Team created (%s)", team)
-
-	TeamNameFromString := func(str string) keybase1.TeamName {
-		ret, err := keybase1.TeamNameFromString(str)
+	createSubteam := func(parentName keybase1.TeamName, subteamName string) keybase1.TeamName {
+		subteam, err := teams.CreateSubteam(context.Background(), user.tc.G, subteamName, parentName, keybase1.TeamRole_NONE /* addSelfAs */)
 		require.NoError(t, err)
-		return ret
-	}
-
-	createSubteam := func(parentName, subteamName string) string {
-		subteam, err := teams.CreateSubteam(context.Background(), ann.tc.G, subteamName, TeamNameFromString(parentName), keybase1.TeamRole_NONE /* addSelfAs */)
+		subteamObj, err := teams.Load(context.Background(), user.tc.G, keybase1.LoadTeamArg{ID: *subteam})
 		require.NoError(t, err)
-		subteamObj, err := teams.Load(context.Background(), ann.tc.G, keybase1.LoadTeamArg{ID: *subteam})
-		require.NoError(t, err)
-		return subteamObj.Name().String()
+		return subteamObj.Name()
 	}
 
 	subTeam1 := createSubteam(team, "staff")
@@ -325,15 +317,27 @@ func TestTeamTree(t *testing.T) {
 	sub2SubTeam1 := createSubteam(subTeam2, "games")
 	sub2SubTeam2 := createSubteam(subTeam2, "crypto")
 	sub2SubTeam3 := createSubteam(subTeam2, "cryptocurrency")
+	return []keybase1.TeamName{team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3}
+}
 
-	checkTeamTree := func(teamName string, expectedTree ...string) {
+func TestTeamTree(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	allNestedTeamNames := setupNestedSubteams(t, ann)
+
+	checkTeamTree := func(teamName keybase1.TeamName, expectedTree ...keybase1.TeamName) {
 		set := make(map[string]bool)
 		for _, v := range expectedTree {
-			set[v] = false
+			set[v.String()] = false
 		}
 
-		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: TeamNameFromString(teamName)})
+		tree, err := teams.TeamTree(context.Background(), ann.tc.G, keybase1.TeamTreeArg{Name: teamName})
 		require.NoError(t, err)
+		require.Equal(t, len(expectedTree), len(tree.Entries))
 
 		for _, entry := range tree.Entries {
 			name := entry.Name.String()
@@ -344,14 +348,43 @@ func TestTeamTree(t *testing.T) {
 		}
 	}
 
-	tree := []string{team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3}
-	checkTeamTree(team, tree...)
-	checkTeamTree(subTeam1, tree...)
-	checkTeamTree(subTeam2, tree...)
+	for _, teamOrSubteam := range allNestedTeamNames {
+		// TeamTree always shows the whole tree no matter which subteam it starts from
+		checkTeamTree(teamOrSubteam, allNestedTeamNames...)
+	}
+}
 
-	checkTeamTree(sub2SubTeam1, tree...)
-	checkTeamTree(sub2SubTeam2, tree...)
-	checkTeamTree(sub2SubTeam3, tree...)
+func TestTeamGetSubteams(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	bob := tt.addUser("bob")
+	t.Logf("Signed up bob (%s)", bob.username)
+
+	allNestedTeamNames := setupNestedSubteams(t, bob)
+
+	checkTeamSubteams := func(teamName keybase1.TeamName, expectedSubteams []keybase1.TeamName) {
+		set := make(map[string]bool)
+		for _, v := range expectedSubteams {
+			set[v.String()] = false
+		}
+
+		res, err := teams.ListSubteamsUnverified(libkb.NewMetaContext(context.Background(), bob.tc.G), teamName)
+		require.NoError(t, err)
+		require.Equal(t, len(expectedSubteams), len(res.Entries))
+
+		for _, entry := range res.Entries {
+			name := entry.Name.String()
+			alreadyFound, exists := set[name]
+			require.True(t, exists, "Found unexpected team %s in subteam list of %s", name, teamName)
+			require.False(t, alreadyFound, "Duplicate team %s in subteam list of %s", name, teamName)
+			set[name] = true
+		}
+	}
+
+	checkTeamSubteams(allNestedTeamNames[0], allNestedTeamNames[1:])
+	checkTeamSubteams(allNestedTeamNames[1], allNestedTeamNames[3:5])
+	checkTeamSubteams(allNestedTeamNames[2], allNestedTeamNames[5:])
 }
 
 func TestTeamProfileAddList(t *testing.T) {

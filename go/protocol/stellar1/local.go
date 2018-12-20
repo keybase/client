@@ -434,6 +434,7 @@ type BuildPaymentResLocal struct {
 	DisplayAmountXLM    string            `codec:"displayAmountXLM" json:"displayAmountXLM"`
 	DisplayAmountFiat   string            `codec:"displayAmountFiat" json:"displayAmountFiat"`
 	SendingIntentionXLM bool              `codec:"sendingIntentionXLM" json:"sendingIntentionXLM"`
+	AmountAvailable     string            `codec:"amountAvailable" json:"amountAvailable"`
 	Banners             []SendBannerLocal `codec:"banners" json:"banners"`
 }
 
@@ -452,6 +453,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		DisplayAmountXLM:    o.DisplayAmountXLM,
 		DisplayAmountFiat:   o.DisplayAmountFiat,
 		SendingIntentionXLM: o.SendingIntentionXLM,
+		AmountAvailable:     o.AmountAvailable,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil

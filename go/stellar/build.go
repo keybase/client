@@ -211,6 +211,28 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
+				availableToSendFormatted := availableToSendXLM + " XLM"
+				availableToSendXLMFmt, err := FormatAmount(
+					availableToSendXLM, false, FmtTruncate)
+				if err == nil {
+					availableToSendFormatted = availableToSendXLMFmt + " XLM"
+				}
+				if arg.Currency != nil && amountX.rate != nil {
+					// If the user entered an amount in outside currency and an exchange
+					// rate is available, attempt to show them available balance in that currency.
+					availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
+					if err != nil {
+						log("error converting available-to-send", err)
+					} else {
+						formattedATS, err := FormatCurrencyWithCodeSuffix(mctx,
+							availableToSendOutside, amountX.rate.Currency, FmtTruncate)
+						if err != nil {
+							log("error formatting available-to-send", err)
+						} else {
+							availableToSendFormatted = formattedATS
+						}
+					}
+				}
 				cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
 				switch {
 				case err != nil:
@@ -218,30 +240,11 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				case cmp == -1:
 					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
-					availableToSendXLMFmt, err := FormatAmount(
-						availableToSendXLM, false, FmtTruncate)
-					if err == nil {
-						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
-					}
-					if arg.Currency != nil && amountX.rate != nil {
-						// If the user entered an amount in outside currency and an exchange
-						// rate is available, attempt to show them available balance in that currency.
-						availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
-						if err != nil {
-							log("error converting available-to-send", err)
-						} else {
-							formattedATS, err := FormatCurrencyWithCodeSuffix(mctx,
-								availableToSendOutside, amountX.rate.Currency, FmtTruncate)
-							if err != nil {
-								log("error formatting available-to-send", err)
-							} else {
-								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", formattedATS)
-							}
-						}
-					}
+					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", availableToSendFormatted)
+
 				default:
 					// Welcome back. How was your stay at the error handling hotel?
+					res.AmountAvailable = availableToSendFormatted + " available"
 				}
 			}
 		}

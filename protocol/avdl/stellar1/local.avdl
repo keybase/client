@@ -312,6 +312,7 @@ protocol local {
     string displayAmountFiat;            // "$1.23 USD"
     @lint("ignore")
     boolean sendingIntentionXLM;         // true if currency is nil
+    string amountAvailable;              // "3280.435 XLM available"
 
     array<SendBannerLocal> banners;
   }
