@@ -7,6 +7,9 @@ package libkbfs
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	sysPath "path"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
@@ -17,7 +20,10 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
 
@@ -40,6 +46,12 @@ const (
 	// How long we're allowed to block writes for if we exceed the max
 	// revisions threshold.
 	crMaxWriteLockTime = 10 * time.Second
+
+	// Where in config.StorageRoot() we store information about failed conflict
+	// resolutions.
+	conflictResolverRecordsDir           = "kbfs_conflicts"
+	conflictResolverRecordsVersionString = "v1"
+	conflictResolverRecordsDB            = "kbfsConflicts.leveldb"
 )
 
 // CtxCROpID is the display name for the unique operation
@@ -3183,6 +3195,125 @@ outer:
 	return nil
 }
 
+const conflictRecordVersion = 1
+
+type conflictRecord struct {
+	Version     int
+	Time        time.Time
+	Merged      string
+	Unmerged    string
+	ErrorTime   time.Time
+	ErrorString string
+	PanicString string
+	codec.UnknownFieldSetHandler
+}
+
+func (cr *ConflictResolver) getAndDeserializeConflicts(db *leveldb.DB,
+	key []byte) ([]conflictRecord, error) {
+	conflictsSoFarSerialized, err := db.Get(key, nil)
+	var conflictsSoFar []conflictRecord
+	switch err {
+	case leveldb.ErrNotFound:
+		conflictsSoFar = nil
+	case nil:
+		err = cr.config.Codec().Decode(conflictsSoFarSerialized,
+			&conflictsSoFar)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, err
+	}
+	return conflictsSoFar, nil
+}
+
+func (cr *ConflictResolver) serializeAndPutConflicts(db *leveldb.DB,
+	key []byte, conflicts []conflictRecord) error {
+	conflictsSerialized, err := cr.config.Codec().Encode(conflicts)
+	if err != nil {
+		return err
+	}
+	return db.Put(key, conflictsSerialized, nil)
+}
+
+func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
+	db := cr.config.GetConflictResolutionDB()
+	key := cr.fbo.id().Bytes()
+	conflictsSoFar, err := cr.getAndDeserializeConflicts(db, key)
+	if err != nil {
+		return err
+	}
+
+	if len(conflictsSoFar) > 10 {
+		conflictsSoFar = conflictsSoFar[len(conflictsSoFar)-10:]
+	}
+	conflictsSoFar = append(conflictsSoFar, conflictRecord{
+		Version:  conflictRecordVersion,
+		Time:     cr.config.Clock().Now(),
+		Merged:   ci.merged.String(),
+		Unmerged: ci.unmerged.String(),
+	})
+	return cr.serializeAndPutConflicts(db, key, conflictsSoFar)
+}
+
+// recordFinishResolve does one of two things:
+//  - in the event of success, it deletes the DB entry that recorded conflict
+//    resolution attempts for this resolver
+//  - in the event of failure, it logs that CR failed and tries to record the
+//    failure to the DB.
+func (cr *ConflictResolver) recordFinishResolve(
+	ctx context.Context, ci conflictInput, receivedErr error) {
+	db := cr.config.GetConflictResolutionDB()
+	key := cr.fbo.id().Bytes()
+	panicVar := recover()
+
+	// If we neither errored nor panicked, this CR succeeded and we can wipe
+	// the DB entry.
+	if (receivedErr == nil || receivedErr == context.Canceled) &&
+		panicVar == nil {
+		err := db.Delete([]byte(cr.fbo.id().String()), nil)
+		if err != nil {
+			cr.log.CWarningf(ctx,
+				"Could not record conflict resolution success: %v", err)
+		}
+		return
+	}
+
+	var err error
+	defer func() {
+		// If we can't record the failure to the CR DB, at least log it.
+		if err != nil {
+			cr.log.CWarningf(ctx,
+				"Could not record conflict resolution failure [%v/%v]: %v",
+				receivedErr, panicVar, err)
+		}
+		// If we recovered from a panic, keep panicking.
+		if panicVar != nil {
+			panic(panicVar)
+		}
+	}()
+
+	// Otherwise we need to decode the most recent entry, modify it, and put it
+	// back in the DB.
+	var conflictsSoFar []conflictRecord
+	conflictsSoFar, err = cr.getAndDeserializeConflicts(db, key)
+	if err != nil {
+		return
+	}
+
+	thisCR := &conflictsSoFar[len(conflictsSoFar)-1]
+	thisCR.ErrorTime = cr.config.Clock().Now()
+	if receivedErr != nil {
+		thisCR.ErrorString = fmt.Sprintf("%+v", receivedErr)
+	}
+	if panicVar != nil {
+		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %b", panicVar,
+			debug.Stack())
+	}
+
+	err = cr.serializeAndPutConflicts(db, key, conflictsSoFar)
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -3198,6 +3329,14 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	ctx = cr.config.MaybeStartTrace(ctx, "CR.doResolve",
 		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
+
+	err = cr.recordStartResolve(ci)
+	if err != nil {
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution attempt: %v", err)
+	} else {
+		defer func() { cr.recordFinishResolve(ctx, ci, err) }()
+	}
 
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
 	lState := makeFBOLockState()
@@ -3439,4 +3578,28 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// don't count against the quota forever.  (Though of course if we
 	// completely fail, we'll need to rely on a future complete scan
 	// to clean up the quota anyway . . .)
+}
+
+func openCRDBInternal(config Config) (*leveldb.DB, error) {
+	if config.IsTestMode() {
+		return leveldb.Open(storage.NewMemStorage(), leveldbOptions)
+	}
+	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
+		os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	return leveldb.OpenFile(sysPath.Join(config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString,
+		conflictResolverRecordsDB), leveldbOptions)
+}
+
+func openCRDB(config Config) (db *leveldb.DB) {
+	db, err := openCRDBInternal(config)
+	if err != nil {
+		panic(fmt.Sprintf("Could not open conflict resolver DB: %v", err))
+	}
+	return db
 }
