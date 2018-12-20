@@ -217,3 +217,39 @@ All times are in seconds
 
 Not a huge difference. Only a 0.1s. It's not nothing, but in the comparison of
 the 5s startup time anyways, it doesn't seem to matter a whole lot.
+
+## Case Study: Use lodash with babel plugin instead of lodash-es
+
+### Abstract
+
+Lodash is pretty big, and it hurts us in startup when we pull in a very small
+thing. For example we pull in `mapValues` in actions/settings. We could
+minimize the startup time by only importing the specific function we need. It
+would be a little tedious to do this every time, so we can rely on a babel
+plugin to do it for us.
+
+### Prereqs
+
+* [Importing lodash, a benchmark comparison](https://www.blazemeter.com/blog/the-correct-way-to-import-lodash-libraries-a-benchmark)
+  * > The smallest bundle size could also be reached by using the babel-plugin-lodash together with lodash-webpack-plugin for cherry-picking only the used functions.
+  * > Lodash-es modules doesn’t have any positive effect on the build size. Quite opposite, it’s even bigger in all cases.
+
+
+### Test setup
+
+I cherry picked these commits to start the testing process:
+
+* `bd32cdee4c` - Android perf helper files
+* `507f9ab4a8` - Uses the perf helper files and adds a `TTI_COMPLETE` hook.
+
+### Control run
+
+To see what the starting value is, I started the app five times and timed how
+long it would take to load the newest message in a chat. The newest message had
+the `TTI_COMPLETE` hook.
+
+### Test run
+
+After making the same change (commit `770c48bae6`). I ran the app five times again to see the new
+values of `TTI_COMPLETE`.
+
