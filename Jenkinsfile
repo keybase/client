@@ -358,7 +358,7 @@ def testGo(prefix) {
             test_macos_go_: [
                 'github.com/keybase/client/go/kbfs/test': [
                     name: 'kbfs_test_fuse',
-                    flags: ['-tags fuse'],
+                    flags: '-tags fuse',
                     timeout: '15m'
                 ],
                 'github.com/keybase/client/go/kbfs/libfuse': [],
@@ -398,7 +398,7 @@ def testGo(prefix) {
         packagesToTest.each { pkg, _ ->
             def testSpec = getPackageTestSpec(pkg)
             if (!testSpec) {
-                continue
+                return
             }
 
             println "Running go vet for ${pkg}"
