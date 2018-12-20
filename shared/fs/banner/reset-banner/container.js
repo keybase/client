@@ -5,8 +5,6 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {namedConnect} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
-import {fsTab} from '../../../constants/tabs'
-import {navigateTo} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
@@ -25,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
     if (pathElems.length < 3) return
     const filteredPathName = folderNameWithoutUsers(pathElems[2], users)
     const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-    return dispatch(navigateTo([fsTab, {props: {path: filteredPath}, selected: 'folder'}]))
+    return dispatch(FsGen.createOpenPathInFilesTab({path: filteredPath}))
   },
   _onReAddToTeam: (id: RPCTypes.TeamID, username: string) =>
     dispatch(FsGen.createLetResetUserBackIn({id, username})),

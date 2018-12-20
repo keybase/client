@@ -170,6 +170,7 @@ const styles = styleSheetCreate({
       flex: 1,
       fontSize: 14,
       paddingRight: 40,
+      paddingTop: 2, // so the tops of emoji aren't chopped off
     },
   }),
   contentBox: {

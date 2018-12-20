@@ -249,8 +249,10 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 			Endpoint:    fmt.Sprintf("gubble_universe/%s", endpoint),
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
-				"sig_hash":    libkb.S{Val: sigID.String()},
-				"kb_username": libkb.S{Val: fu.Username},
+				"sig_hash":      libkb.S{Val: sigID.String()},
+				"kb_username":   libkb.S{Val: fu.Username},
+				"kb_ua":         libkb.S{Val: libkb.UserAgent},
+				"json_redirect": libkb.B{Val: true},
 			},
 		}
 		_, err := g.API.Post(apiArg)
@@ -325,8 +327,10 @@ func proveGubbleSocialFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libk
 			Endpoint:    "gubble_social",
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
-				"sig_hash":    libkb.S{Val: "deadbeef"},
-				"kb_username": libkb.S{Val: fu.Username},
+				"sig_hash":      libkb.S{Val: "deadbeef"},
+				"kb_username":   libkb.S{Val: fu.Username},
+				"kb_ua":         libkb.S{Val: libkb.UserAgent},
+				"json_redirect": libkb.B{Val: true},
 			},
 		}
 		res, err := g.API.Post(apiArg)

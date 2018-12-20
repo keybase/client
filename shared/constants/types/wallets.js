@@ -78,6 +78,7 @@ export type _LocalCurrency = {
 
 export type _Building = {
   amount: string,
+  bid: string,
   currency: string,
   from: AccountID,
   isRequest: boolean,
