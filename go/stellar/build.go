@@ -688,8 +688,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 		}
 
 		res.displayAmountXLM = xlmAmountFormatted
-		res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(),
-			convertAmountOutside, *arg.Currency, FmtRound)
+		res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, convertAmountOutside, *arg.Currency, FmtRound)
 		if err != nil {
 			log("error converting for displayAmountFiat: %q / %q : %s", convertAmountOutside, arg.Currency, err)
 			res.displayAmountFiat = ""
@@ -742,8 +741,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			log("error converting: %v", err)
 			return res
 		}
-		outsideAmountFormatted, err := FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(),
-			outsideAmount, xrate.Currency, FmtRound)
+		outsideAmountFormatted, err := FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, FmtRound)
 		if err != nil {
 			log("error formatting converted outside amount: %v", err)
 			return res
@@ -762,8 +760,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			res.displayAmountXLM = ""
 		}
 		if arg.Amount != "" {
-			res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(),
-				outsideAmount, xrate.Currency, FmtRound)
+			res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, FmtRound)
 			if err != nil {
 				log("error formatting fiat %q / %v: %s", outsideAmount, xrate.Currency, err)
 				res.displayAmountFiat = ""
@@ -780,7 +777,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 }
 
 func buildPaymentWorthInfo(mctx libkb.MetaContext, rate stellar1.OutsideExchangeRate) (worthInfo string, err error) {
-	oneOutsideFormatted, err := FormatCurrency(mctx.Ctx(), mctx.G(), "1", rate.Currency, FmtRound)
+	oneOutsideFormatted, err := FormatCurrency(mctx, "1", rate.Currency, FmtRound)
 	if err != nil {
 		return "", err
 	}

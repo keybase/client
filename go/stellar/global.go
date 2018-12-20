@@ -77,11 +77,11 @@ func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges
 }
 
 func (s *Stellar) CreateWalletSoft(ctx context.Context) {
-	CreateWalletSoft(ctx, s.G())
+	CreateWalletSoft(libkb.NewMetaContext(ctx, s.G()))
 }
 
 func (s *Stellar) Upkeep(ctx context.Context) error {
-	return Upkeep(ctx, s.G())
+	return Upkeep(libkb.NewMetaContext(ctx, s.G()))
 }
 
 func (s *Stellar) OnLogout() {

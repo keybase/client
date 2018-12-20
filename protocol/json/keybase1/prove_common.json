@@ -225,6 +225,14 @@
           },
           "name": "checkPath",
           "jsonkey": "check_path"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SelectorEntry"
+          },
+          "name": "avatarPath",
+          "jsonkey": "avatar_path"
         }
       ]
     },

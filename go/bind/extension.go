@@ -196,7 +196,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		return err
 	}
 	kbCtx.SetService()
-	uir := service.NewUIRouter(kbCtx)
+	uir := service.NewUIRouter(kbCtx, nil)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.SetupCriticalSubServices()

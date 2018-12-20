@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import BreadcrumbPopup from './breadcrumb-popup.desktop'
+import CommaSeparatedName from '../common/comma-separated-name'
 
 export type Props = {
   dropdownItems?: Array<Types.PathBreadcrumbItem>,
@@ -37,17 +38,7 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
         ) : (
           <Kb.Box style={styles.breadcrumbLastItemBox}>
             <Kb.Text type="BodyBig" selectable={true}>
-              {// We are splitting on ',' here, so it won't work for
-              // long names that don't have comma. If this becomes a
-              // problem, we might have to do smarter splitting that
-              // involve other characters, or just break the long name
-              // apart into 3-character groups.
-              item.name.split(',').map((sub, idx, {length}) => (
-                <Kb.Text key={idx} type={'BodyBig'} style={styles.lastNameText}>
-                  {sub}
-                  {idx !== length - 1 ? ',' : ''}
-                </Kb.Text>
-              ))}
+              <CommaSeparatedName type="BodyBig" name={item.name} elementStyle={styles.lastNameText} />
             </Kb.Text>
           </Kb.Box>
         )}

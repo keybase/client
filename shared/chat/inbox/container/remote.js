@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import type {TypedState} from '../../../constants/reducer'
-import {memoize3} from '../../../util/memoize'
+import {memoize} from '../../../util/memoize'
 
 export const maxShownConversations = 3
 
@@ -17,7 +17,7 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize3(
+const valuesCached = memoize(
   (
     badgeMap,
     unreadMap,

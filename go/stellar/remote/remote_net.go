@@ -105,3 +105,7 @@ func (r *RemoteNet) MakeAccountAllDevices(ctx context.Context, accountID stellar
 func (r *RemoteNet) ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error) {
 	return ServerTimeboundsRecommendation(ctx, r.G())
 }
+
+func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string) error {
+	return SetInflationDestination(ctx, r.G(), signedTx)
+}

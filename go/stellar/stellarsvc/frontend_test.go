@@ -339,7 +339,8 @@ func TestSetAccountAsDefault(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
+	mctx := libkb.NewMetaContextBackground(tcs[0].G)
+	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
@@ -569,7 +570,8 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
-	_, err = stellar.CreateWallet(context.Background(), tcs[0].G, false)
+	mctx := tcs[0].MetaContext()
+	_, err = stellar.CreateWallet(mctx, false)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
@@ -760,8 +762,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 		}
 		require.Equal(t, "$321.87 USD", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
-		require.Equal(t, "$214.49 USD", p.CurrentWorth, "CurrentWorth")
-		require.Equal(t, "USD", p.CurrentWorthCurrency, "CurrentWorthCurrency")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 		require.Equal(t, accountIDSender, p.FromAccountID)
@@ -864,8 +864,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 		}
 		require.Equal(t, "$321.87 USD", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
-		require.Equal(t, "$214.49 USD", p.CurrentWorth, "CurrentWorth")
-		require.Equal(t, "USD", p.CurrentWorthCurrency, "CurrentWorthCurrency")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 		require.Equal(t, accountIDSender, p.FromAccountID)
@@ -1189,8 +1187,6 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
 	require.Equal(t, "$160.93 USD", detailsRes.Worth)
 	require.Equal(t, "USD", detailsRes.WorthCurrency)
-	require.Empty(t, detailsRes.CurrentWorth)
-	require.Empty(t, detailsRes.CurrentWorthCurrency)
 	require.Equal(t, secretNote, detailsRes.Note)
 	require.Equal(t, "", detailsRes.NoteErr)
 }
@@ -1277,7 +1273,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 
 	senderSecondaryAccountID, err := tcs[0].Srv.CreateWalletAccountLocal(context.Background(), stellar1.CreateWalletAccountLocalArg{
@@ -1735,7 +1731,7 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -1945,7 +1941,7 @@ func TestReviewPaymentLocal(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -2004,7 +2000,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -2432,6 +2428,64 @@ func TestSetMobileOnly(t *testing.T) {
 	require.True(t, mobileOnly)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
+}
+
+func TestSetInflation(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	// Test to see if RPCs are reaching remote (mocks).
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "20")
+
+	getInflation := func() stellar1.InflationDestinationResultLocal {
+		res, err := tcs[0].Srv.GetInflationDestinationLocal(context.Background(), stellar1.GetInflationDestinationLocalArg{
+			AccountID: senderAccountID,
+		})
+		require.NoError(t, err)
+		return res
+	}
+	res := getInflation()
+	require.Nil(t, res.Destination)
+	require.Equal(t, "", res.Comment)
+
+	pub, _ := randomStellarKeypair()
+	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
+		AccountID:   senderAccountID,
+		Destination: stellar1.NewInflationDestinationWithAccountid(pub),
+	})
+	require.NoError(t, err)
+
+	res = getInflation()
+	require.NotNil(t, res.Destination)
+	require.Equal(t, pub, *res.Destination)
+	require.Equal(t, "", res.Comment)
+
+	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
+		AccountID:   senderAccountID,
+		Destination: stellar1.NewInflationDestinationWithSelf(),
+	})
+	require.NoError(t, err)
+
+	res = getInflation()
+	require.NotNil(t, res.Destination)
+	require.Equal(t, senderAccountID, *res.Destination)
+	require.Equal(t, "self", res.Comment)
+
+	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
+		AccountID:   senderAccountID,
+		Destination: stellar1.NewInflationDestinationWithLumenaut(),
+	})
+	require.NoError(t, err)
+
+	res = getInflation()
+	require.NotNil(t, res.Destination)
+	require.Equal(t, stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"), *res.Destination)
+	require.Equal(t, "https://pool.lumenaut.net/", res.Comment)
 }
 
 type chatListener struct {
