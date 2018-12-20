@@ -94,6 +94,10 @@ func (tb TestBlock) NewEmpty() Block {
 	return &TestBlock{}
 }
 
+func (tb TestBlock) NewEmptier() func() Block {
+	return tb.NewEmpty
+}
+
 func (tb *TestBlock) Set(other Block) {
 	otherTb := other.(*TestBlock)
 	tb.A = otherTb.A
@@ -394,6 +398,10 @@ func (testBlockArray) DataVersion() DataVer { return FirstValidDataVer }
 
 func (tba testBlockArray) NewEmpty() Block {
 	return &testBlockArray{}
+}
+
+func (tba testBlockArray) NewEmptier() func() Block {
+	return tba.NewEmpty
 }
 
 func (tba testBlockArray) ToCommonBlock() *CommonBlock {
