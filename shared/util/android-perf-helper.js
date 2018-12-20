@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 
-const performanceNow = require('fbjs/lib/performanceNow')
+// const performanceNow = require('fbjs/lib/performanceNow')
 
 // Construct a simple trace record
 const traceRecord = ({name, time: ts, tag = null, instanceKey = 0, tid = 0, pid = 0}) => ({
@@ -60,12 +60,12 @@ const logsToTrace = (logs, epochStart) => {
   // Iterate over each element find its closing event, and add that to the list of traceEvents
   logs.forEach((record, index) => {
     // console.log(JSON.stringify(record));
-    let event = traceRecord({...record, time: record.time - epochStart})
+    let event = traceRecord({...record, time: (record.time - epochStart) * 1e3})
     if (record.name.endsWith('_START')) {
       const endTime = findClosingEventTime(event, index, logs)
       if (typeof endTime !== 'undefined') {
         event.ph = 'X'
-        event.dur = endTime - record.time
+        event.dur = (endTime - record.time) * 1e3
       }
       event.name = record.name.replace(/_START$/, '')
       traceEvents.push(event)
@@ -98,16 +98,41 @@ const getTrace = () => {
 
   // Iterate over the JS components logs, and convert them.
   for (var name in jsTimeSpans) {
-    let {start, end} = jsTimeSpans[name]
+    let {start, end, filename} = jsTimeSpans[name]
     const event = traceRecord({
       name,
-      time: start - jsStartTime,
-      tag: 'JS_EVENT',
+      time: (start - jsStartTime) * 1e3,
+      tag: filename ? `JS_REQUIRE(from ${filename})` : 'JS_EVENT',
     })
     event.ph = 'X'
-    event.dur = end - start
+    event.dur = (end - start) * 1e3
     trace.traceEvents.push(event)
   }
+
+  const entries = global.performance.getEntries()
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i]
+    if (entry.entryType === 'measure' && entry.duration > 10) {
+      const event = traceRecord({
+        name: entry.name,
+        time: (entry.startTime - jsStartTime) * 1e3,
+        tag: 'JS_USER_TIMING',
+      })
+      event.ph = 'X'
+      event.dur = entry.duration * 1e3
+      trace.traceEvents.push(event)
+    } else if (entry.name === 'last message') {
+      const event = traceRecord({
+        name: entry.name,
+        time: (entry.startTime - jsStartTime) * 1e3,
+        tag: 'JS_LAST_MESSAGE',
+      })
+      event.ph = 'X'
+      event.dur = entry.duration * 1e3
+      trace.traceEvents.push(event)
+    }
+  }
+
   return trace
 }
 
@@ -115,12 +140,12 @@ const getTrace = () => {
 const jsTimeSpans = {}
 const TimeSpan = {
   start(name) {
-    jsTimeSpans[name] = {start: performanceNow()}
+    jsTimeSpans[name] = {start: global.performance.now()}
   },
   stop(name) {
     const timespan = jsTimeSpans[name]
     if (typeof timespan !== 'undefined') {
-      jsTimeSpans[name] = {...timespan, end: performanceNow()}
+      jsTimeSpans[name] = {...timespan, end: global.performance.now()}
     }
   },
 }
@@ -161,6 +186,14 @@ module.exports = {
     )
   },
   getTrace,
+}
+
+function postTrace() {
+  fetch('http://localhost:7008', {
+    method: 'POST',
+    body: JSON.stringify(getTrace()),
+  })
+  console.log('---- Uploaded Performance Metrics ----')
 }
 
 // TODO (me) This should not happen on a timeout, but when TTI or loading completes.
