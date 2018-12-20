@@ -69,7 +69,7 @@ if NOT exist Redist\dokan-dev\1.2.1.1000\DokanSetup_redist.exe (
       if NOT exist Redist\ mkdir Redist
       if NOT exist Redist\dokan-dev\ mkdir Redist\dokan-dev\
       if NOT exist Redist\dokan-dev\1.2.1.1000 mkdir Redist\dokan-dev\1.2.1.1000
-      powershell -command "wget https://github.com/dokan-dev/dokany/releases/download/v1.2.1.1000/DokanSetup_redist.exe"
+      powershell -command "wget https://github.com/dokan-dev/dokany/releases/download/v1.2.1.1000/DokanSetup_redist.exe -UseBasicParsing -OutFile Redist\dokan-dev\1.2.1.1000\DokanSetup_redist.exe"
 )
 for /f "usebackq tokens=2%2a" %25%25i in (`powershell Get-FileHash -Algorithm sha1 Redist\dokan-dev\1.2.1.1000\DokanSetup_redist.exe`) do set DOKANLIBHASH=%25%25i
 if NOT %25DOKANLIBHASH%25==61E01538A4E004BAE244F3FC822D77AE44114854 exit /B 1</PreBuildEvent>
