@@ -14,7 +14,6 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: ['Gregor1', 'Keybase1', 'Stellar1'],
-    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-chat-gen',
@@ -25,7 +24,6 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: ['Gregor1'],
-    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-gen',
@@ -36,7 +34,6 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: [],
-    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-gregor-gen',
@@ -47,7 +44,6 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: ['Keybase1'],
-    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-stellar-gen',
@@ -80,6 +76,7 @@ Promise.all(
   })
 ).then(() => {
   writeAll()
+  writeActions()
 })
 
 function jsonOnly(file) {
@@ -227,10 +224,6 @@ function analyzeMessages(json, project) {
       project.incomingMaps[
         methodName
       ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn`
-      project.incomingAction[
-        methodName
-      ] = `$Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>>`
-
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
           methodName
@@ -372,6 +365,36 @@ function parseVariant(t, project) {
   return cases || 'void'
 }
 
+function writeActions() {
+  const toWrite = JSON.stringify(
+    {
+      prelude: Object.keys(projects).map(
+        p => `import * as ${p}Types from '../constants/types/${projects[p].out}'`
+      ),
+      actions: Object.keys(projects).reduce((map, p) => {
+        const callMap = projects[p].incomingMaps
+        callMap &&
+          Object.keys(callMap).reduce((map, method) => {
+            const name = method
+              .replace(/'/g, '')
+              .split('.')
+              .map((p, idx) => (idx ? capitalize(p) : p))
+              .join('')
+            map[name] = {
+              params: `$Exact<$PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'inParam'>>`,
+            }
+            return map
+          }, map)
+        return map
+      }, {}),
+    },
+    null,
+    4
+  )
+  // const formatted = prettier.format(toWrite, prettier.resolveConfig.sync('.'))
+  fs.writeFileSync(`js/engine-gen.json`, toWrite)
+}
+
 function writeAll() {
   const prelude = `
 // @flow strict
@@ -381,9 +404,9 @@ function writeAll() {
       p => `import type {
   CustomResponseIncomingCallMap as ${p}CustomResponseIncomingCallMap,
   IncomingCallMapType as ${p}IncomingCallMap,
-  IncomingActionType as ${p}IncomingActionType,
 } from './${projects[p].out}'
 `
+      // IncomingActionType as ${p}IncomingActionType,
     )
     .join('\n')
 
@@ -398,14 +421,8 @@ function writeAll() {
     .map(p => `...${p}CustomResponseIncomingCallMap,`)
     .join('\n')}
   |}
-  export type IncomingActionType = {|
-  ${Object.keys(projects)
-    .map(p => `...${p}IncomingActionType,`)
-    .join('\n')}
-    |}
   `
   const toWrite = [prelude, imports, exports].join('\n')
-
   const destinationFile = `types/all.js.flow` // Only used by prettier so we can set an override in .prettierrc
   const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(destinationFile))
   fs.writeFileSync(`js/rpc-all-gen.js.flow`, formatted)
@@ -458,12 +475,6 @@ type IncomingReturn = Effect | null | void | false | Array<Effect | null | void 
       .join(',')}
     |}`
 
-  const incomingAction = `\nexport type IncomingActionType = {|
-      ${Object.keys(project.incomingAction)
-        .map(im => `${im}?: ${project.incomingAction[im]}`)
-        .join(',')}
-  |}`
-
   const messageTypesData = Object.keys(typeDefs.messages)
     .map(k => {
       const data = typeDefs.messages[k]
@@ -484,7 +495,6 @@ ${messageTypesData}
     messageTypes,
     ...[...consts, ...types].sort(),
     incomingMap,
-    incomingAction,
     customResponseIncomingMap,
     ...[...messagePromise, ...messageEngineSaga].sort(),
   ]

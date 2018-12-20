@@ -36,6 +36,10 @@ type CustomResponseIncomingActionCreator = (
   state: TypedState
 ) => Effect | null | void | false | Array<Effect | null | void | false>
 
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 class Engine {
   // Bookkeep old sessions
   _deadSessionsMap: {[key: SessionIDKey]: true} = {}
@@ -263,13 +267,16 @@ class Engine {
         // Dispatch as an action
         // Handle it by default
         response && response.result()
-        Engine._dispatch(
-          ConfigGen.createIncomingRPC({
-            rpc: {
-              [method]: param,
-            },
-          })
-        )
+        const type = method
+          .replace(/'/g, '')
+          .split('.')
+          .map((p, idx) => (idx ? capitalize(p) : p))
+          .join('')
+        // $FlowIssue can't really type this easily
+        Engine._dispatch({
+          payload: {param},
+          type: `engine-gen:${type}`,
+        })
 
         if (response && !response.responded) {
           this._handleUnhandled(sessionID, method, seqid, param, response)

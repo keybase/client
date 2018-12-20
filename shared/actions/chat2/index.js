@@ -1,6 +1,7 @@
 // @flow
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
@@ -614,42 +615,28 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 const arrayOfActionsToSequentially = actions =>
   Saga.callUntyped(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
 
-const onTypingUpdate = ({typingUpdates}) => {
-  if (!typingUpdates) {
+const onChatTypingUpdate = (_, action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => {
+  if (!action.payload.params.typingUpdates) {
     return
   }
   const conversationToTypers = I.Map(
-    typingUpdates.reduce((arr, u) => {
+    action.payload.params.typingUpdates.reduce((arr, u) => {
       arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
       return arr
     }, [])
   )
-  return Saga.put(Chat2Gen.createUpdateTypers({conversationToTypers}))
+  return Promise.resolve(Chat2Gen.createUpdateTypers({conversationToTypers}))
 }
 
-const onChatPromptUnfurl = ({convID, msgID, domain}) =>
-  Saga.put(
+const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) =>
+  Promise.resolve(
     Chat2Gen.createUnfurlTogglePrompt({
-      conversationIDKey: Types.conversationIDToKey(convID),
-      domain,
-      messageID: Types.numberToMessageID(msgID),
+      conversationIDKey: Types.conversationIDToKey(action.payload.params.convID),
+      domain: action.payload.params.domain,
+      messageID: Types.numberToMessageID(action.payload.params.msgID),
       show: true,
     })
   )
-
-const incomingRPC = (state, action: ConfigGen.IncomingRPCPayload) => {
-  const rpc = action.payload.rpc
-
-  const chatTypingUpdate = rpc['chat.1.NotifyChat.ChatTypingUpdate']
-  if (chatTypingUpdate) {
-    return onTypingUpdate(chatTypingUpdate)
-  }
-
-  const chatPromptUnfurl = rpc['chat.1.NotifyChat.ChatPromptUnfurl']
-  if (chatPromptUnfurl) {
-    return onChatPromptUnfurl(chatPromptUnfurl)
-  }
-}
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
@@ -2998,7 +2985,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
   yield Saga.spawn(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
-  yield Saga.actionToAction(ConfigGen.incomingRPC, incomingRPC)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatTypingUpdate, onChatTypingUpdate)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
 }
 
 export default chat2Saga
