@@ -82,7 +82,11 @@ class AssetInput extends React.Component<Props> {
           keyboardType="numeric"
           decoration={
             <Kb.Box2 direction="vertical" style={styles.flexEnd}>
-              <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
+              <Kb.Text
+                onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
+                type="HeaderBigExtrabold"
+                style={styles.unit}
+              >
                 {this.props.displayUnit}
               </Kb.Text>
               <Kb.Text
