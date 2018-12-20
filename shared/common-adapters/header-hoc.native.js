@@ -37,7 +37,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         ])}
       >
         {this.props.customComponent}
-        <Box style={styles.leftAction}>
+        <Box style={Styles.collapseStyles([styles.leftAction, this.props.titleComponent && styles.unflex])}>
           {onLeftAction &&
             (leftAction === 'cancel' ? (
               <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
@@ -68,7 +68,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             : (this.props.titleComponent)
           }
         </Box>
-        <Box style={styles.rightActions}>
+        <Box style={Styles.collapseStyles([styles.rightActions, this.props.titleComponent && styles.unflex])}>
           <Box style={styles.rightActionsWrapper}>
             {rightActions &&
               rightActions
@@ -183,7 +183,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
-      // flex: 1, // still thinking about this
+      flex: 1,
       flexShrink: 1,
       justifyContent: 'flex-start',
     },
@@ -195,7 +195,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-end',
-      // flex: 1, // still thinking about this
+      flex: 1,
       flexShrink: 1,
       justifyContent: 'flex-end',
     },
@@ -231,6 +231,9 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.small,
     },
   }),
+  unflex: {
+    flex: 0,
+  },
   wrapper: {
     flexGrow: 1,
   },
