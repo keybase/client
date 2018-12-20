@@ -167,15 +167,22 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     width: '100%',
   },
-  header: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    justifyContent: 'flex-start',
-    minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
-    width: '100%',
-  },
+  header: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      justifyContent: 'flex-start',
+      width: '100%',
+    },
+    isAndroid: {
+      minHeight: 56,
+    },
+    isIOS: {
+      minHeight: 44,
+    },
+  }),
   innerWrapper: {
     ...Styles.globalStyles.fillAbsolute,
   },
@@ -183,11 +190,11 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
-      flex: 1,
       flexShrink: 1,
       justifyContent: 'flex-start',
     },
     isIOS: {
+      flex: 1,
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
@@ -195,11 +202,11 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-end',
-      flex: 1,
       flexShrink: 1,
       justifyContent: 'flex-end',
     },
     isIOS: {
+      flex: 1,
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
@@ -221,7 +228,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
     },
-    isMobile: {
+    isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
