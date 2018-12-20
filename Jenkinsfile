@@ -418,7 +418,7 @@ def testGo(prefix) {
                 // Only run the test if a test binary should have been produced.
                 if (fileExists(testBinary)) {
                     def test = {
-                        dir(dirPath) {
+                        dir(testSpec.dirPath) {
                             println "Running tests for ${testSpec.dirPath}"
                             sh "./${testBinary} -test.timeout ${testSpec.timeout}"
                         }
