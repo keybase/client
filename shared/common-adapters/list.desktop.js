@@ -22,8 +22,9 @@ class List extends PureComponent<Props<any>, void> {
       return <React.Fragment key={String(index)}>{children}</React.Fragment>
     }
     if (item[this.props.keyProperty || 'key']) {
+      const key = item[this.props.keyProperty]
       // otherwise, see if key is set on item directly.
-      return <React.Fragment key={item.key}>{children}</React.Fragment>
+      return <React.Fragment key={key}>{children}</React.Fragment>
     }
     // We still don't have a key. So hopefully renderItem will provide the key.
     logger.info(
