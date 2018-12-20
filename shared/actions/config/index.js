@@ -164,6 +164,8 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
         _firstTimeBootstrapDone = false
         logger.info('First bootstrap ended')
       }
+      // Done bootstrapping, we can lower priority of the engine calls
+      getEngine().setMakeEngineCallsImmediately(false)
       return Saga.put(ConfigGen.createDaemonHandshakeDone())
     }
   }
