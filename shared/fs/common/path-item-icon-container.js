@@ -6,6 +6,7 @@ import {namedConnect} from '../../util/container'
 import PathItemIcon, {type Size} from './path-item-icon'
 
 export type OwnProps = {
+  badge?: ?Types.PathItemBadge,
   path: Types.Path,
   size: Size,
   style?: Styles.StylesCrossPlatform,
@@ -16,10 +17,8 @@ const mapStateToProps = (state, {path}) => ({
   username: state.config.username,
 })
 
-const mergeProps = (stateProps, dispatchProps, {path, size, style}) => ({
-  path,
-  size,
-  style,
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
   type: stateProps._pathItem.type,
   username: stateProps.username,
 })

@@ -550,3 +550,5 @@ export type RowItemWithKey =
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
 export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'
+
+export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number

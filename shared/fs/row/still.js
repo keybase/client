@@ -5,7 +5,7 @@ import * as Constants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
-import {Box, Box2, Icon, Meta, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {PathItemInfo} from '../common'
 
 type StillProps = StillCommonProps & {
@@ -34,49 +34,32 @@ const Still = (props: StillProps) => (
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
+    badge={props.intentIfDownloading ? 'download' : null}
   >
-    {!!props.intentIfDownloading && (
-      <Box style={styles.downloadBadgeContainer}>
-        <Icon type="icon-addon-file-downloading" />
-      </Box>
-    )}
-    <Box style={rowStyles.itemBox}>
-      <Box2 direction="horizontal" fullWidth={true}>
-        <Text
+    <Kb.Box style={rowStyles.itemBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Text
           type={Constants.pathTypeToTextType(props.type)}
           style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
-        </Text>
+        </Kb.Text>
         {props.isEmpty && (
-          <Meta
+          <Kb.Meta
             title="empty"
             backgroundColor={Styles.globalColors.grey}
             style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xxtiny}}
           />
         )}
-      </Box2>
+      </Kb.Box2>
       {props.intentIfDownloading ? (
-        <Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Text>
+        <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
       ) : (
         props.type !== 'folder' && <PathItemInfo path={props.path} />
       )}
-    </Box>
+    </Kb.Box>
   </StillCommon>
 )
-
-const downloadBadgeXOffset = -28
-const downloadBadgeYOffset = Styles.isMobile ? 24 : 20
-const styles = Styles.styleSheetCreate({
-  downloadBadgeContainer: {
-    height: 0,
-    marginLeft: downloadBadgeXOffset,
-    marginRight: -downloadBadgeXOffset,
-    marginTop: downloadBadgeYOffset,
-    width: 0,
-    zIndex: 100,
-  },
-})
 
 export default Still
