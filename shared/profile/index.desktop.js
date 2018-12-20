@@ -106,7 +106,7 @@ class _StellarFederatedAddress extends React.PureComponent<
     }
     return (
       <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
-        <Kb.ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <Kb.ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
