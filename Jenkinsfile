@@ -303,7 +303,6 @@ def testGo(prefix) {
     ].plus(isUnix() ? [] : [
         'CC=C:\\cygwin64\\bin\\x86_64-w64-mingw32-gcc.exe',
         'CPATH=C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
-        // 'CPATH=C:\\cygwin64\\lib\\gcc\\x86_64-w64-mingw32\\6.4.0\\include;C:\\cygwin64\\lib\\gcc\\x86_64-w64-mingw32\\6.4.0\\include\\ssp;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include;C:\\cygwin64\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\include\\ddk',
     ])) {
         def dirs = getTestDirsNix()
         def goversion = sh(returnStdout: true, script: "go version").trim()
@@ -321,9 +320,7 @@ def testGo(prefix) {
         // Make sure we don't accidentally pull in the testing package.
         sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
-
         def packagesToTest = [:]
-
         if (env.CHANGE_TARGET) {
             // Load list of packages that changed.
             sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
@@ -384,7 +381,7 @@ def testGo(prefix) {
             ]
         }
         def getPackageTestSpec = { pkg ->
-            if (testSpecMap[prefix].contains(pkg)) {
+            if (testSpecMap[prefix].containsKey(pkg)) {
                 if (testSpecMap[prefix][pkg]) {
                     def testSpec = testSpecMap[prefix][pkg]
                     return testSpec << [
@@ -393,7 +390,7 @@ def testGo(prefix) {
                 }
                 return defaultPackageTestSpec(pkg)
             }
-            if (testSpecMap[prefix].contains('*')) {
+            if (testSpecMap[prefix].containsKey('*')) {
                 return defaultPackageTestSpec(pkg)
             }
             return false
