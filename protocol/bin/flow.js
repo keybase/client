@@ -406,7 +406,6 @@ function writeAll() {
   IncomingCallMapType as ${p}IncomingCallMap,
 } from './${projects[p].out}'
 `
-      // IncomingActionType as ${p}IncomingActionType,
     )
     .join('\n')
 
