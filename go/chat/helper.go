@@ -505,7 +505,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 		// Attempt to resolve any sbs convs incase the team already exists.
 		var nameInfo *types.NameInfo
-		if strings.Contains(tlfName, "@") {
+		if strings.Contains(tlfName, "@") || strings.Contains(tlfName, ":") {
 			// Fetch the TLF ID from specified name
 			if info, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, vis == keybase1.TLFVisibility_PUBLIC); err == nil {
 				nameInfo = &info
