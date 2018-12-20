@@ -16,7 +16,7 @@ reading.
   * It has a lot of good stuff and ideas. The rest of this will assume you've read
 the prereqs
 
-* [Parashuram's Dive into RN performance](hthp://blog.nparashuram.com/2018/11/react-native-performance-playbook-part-i.html)
+* [Parashuram's Dive into RN performance](http://blog.nparashuram.com/2018/11/react-native-performance-playbook-part-i.html)
   * This is mostly android specific, but still generally useful
   * Shows by example some RN profiling tools that aren't well documented
 
