@@ -376,8 +376,9 @@ def testGo(prefix) {
             def testName = dirPath.replaceAll('/', '_')
             return [
                 name: testName,
-                flags: [],
+                flags: '',
                 timeout: '30m',
+                dirPath: dirPath,
             ]
         }
         def getPackageTestSpec = { pkg ->
