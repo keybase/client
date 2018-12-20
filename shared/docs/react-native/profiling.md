@@ -250,6 +250,31 @@ the `TTI_COMPLETE` hook.
 
 ### Test run
 
-After making the same change (commit `770c48bae6`). I ran the app five times again to see the new
+After making the same change (commit `157347d830`). I ran the app five times again to see the new
 values of `TTI_COMPLETE`.
 
+### Results
+
+#### Master
+
+All times are in seconds
+
+| Run Number | Time  |
+| ---------- | ----- |
+|     1      | 5.107 |
+|     2      | 4.698 |
+|     3      | 4.92  |
+|     4      | 4.893 |
+|     5      | 5.069 |
+|   Average  | 4.937 |
+
+#### With standard lodash and babel plugin
+
+| Run Number | Time  |
+| ---------- | ----- |
+|     1      | 4.679 |
+|     2      | 4.937 |
+|     3      | 4.705 |
+|     4      | 4.784 |
+|     5      | 4.635 |
+|   Average  | 4.748 |
