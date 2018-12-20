@@ -374,7 +374,7 @@ def testGo(prefix) {
                 '*': [],
             ],
         ]
-        def defaultPackageTestSpec(pkg) = {
+        def defaultPackageTestSpec = { pkg ->
             def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
             def testName = dirPath.replaceAll('/', '_')
             return [
@@ -383,7 +383,7 @@ def testGo(prefix) {
                 timeout: '30m',
             ]
         }
-        def getPackageTestSpec(pkg) = {
+        def getPackageTestSpec = { pkg ->
             if (testSpecMap[prefix].contains(pkg)) {
                 if (testSpecMap[prefix][pkg]) {
                     def testSpec = testSpecMap[prefix][pkg]
