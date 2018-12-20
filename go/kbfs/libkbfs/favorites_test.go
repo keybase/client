@@ -5,7 +5,7 @@
 package libkbfs
 
 import (
-	"github.com/keybase/kbfs/kbfsedits"
+	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
