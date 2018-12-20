@@ -360,8 +360,8 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	if !isPrefetchWaiting {
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
-		req := &prefetchRequest{ptr, block.NewEmpty, kmd, priority, lifetime,
-			NoPrefetch, action, nil}
+		req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority,
+			lifetime, NoPrefetch, action, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -971,7 +971,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
 	action BlockRequestAction) {
-	req := &prefetchRequest{ptr, block.NewEmpty, kmd, priority, lifetime,
+	req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority, lifetime,
 		prefetchStatus, action, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
