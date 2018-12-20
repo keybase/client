@@ -102,6 +102,46 @@ const load = () => {
     ))
 
   Sb.storiesOf('Files/PathItemIcon', module)
+    .add('tlf list', () => (
+      <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
+        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
+          <Kb.Text type="Header">private</Kb.Text>
+          {pathItemIconSizes.map(size => (
+            <PathItemIcon
+              key={size.toString()}
+              path={Types.stringToPath('/keybase/private')}
+              size={size}
+              type="folder"
+              username=""
+            />
+          ))}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
+          <Kb.Text type="Header">public</Kb.Text>
+          {pathItemIconSizes.map(size => (
+            <PathItemIcon
+              key={size.toString()}
+              path={Types.stringToPath('/keybase/public')}
+              size={size}
+              type="file"
+              username=""
+            />
+          ))}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
+          <Kb.Text type="Header">team</Kb.Text>
+          {pathItemIconSizes.map(size => (
+            <PathItemIcon
+              key={size.toString()}
+              path={Types.stringToPath('/keybase/team')}
+              size={size}
+              type="folder"
+              username=""
+            />
+          ))}
+        </Kb.Box2>
+      </Kb.Box2>
+    ))
     .add('team', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>

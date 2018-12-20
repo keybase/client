@@ -12,7 +12,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {editID}: OwnProps) => ({
-  _edit: state.fs.edits.get(editID, Constants.makeNewFolder()),
+  _edit: state.fs.edits.get(editID, Constants.emptyFolder),
 })
 
 const mapDispatchToProps = (dispatch, {editID, routePath}: OwnProps) => ({

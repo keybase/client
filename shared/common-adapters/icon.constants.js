@@ -516,6 +516,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-folder-team-32.png'),
   },
+  'icon-folder-team-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-team-48.png'),
+  },
+  'icon-folder-team-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-team-64.png'),
+  },
   'icon-folders-private-success-48': {
     extension: 'png',
     isFont: false,

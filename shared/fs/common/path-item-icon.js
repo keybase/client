@@ -8,6 +8,7 @@ import * as Flow from '../../util/flow'
 import logger from '../../logger'
 
 type RealSize = 64 | 48 | 32 | 16
+type RealSizeString = '64' | '48' | '32' | '16'
 export type Size = 64 | 48 | 32 | 16 | 12
 
 export type Props = {
@@ -20,56 +21,102 @@ export type Props = {
 }
 
 const getIconSize = (size: Size): RealSize => (size === 12 ? 16 : size)
+const getIconSizeString = (size: Size): RealSizeString => {
+  const realSize = getIconSize(size)
+  switch (realSize) {
+    case 16:
+      return '16'
+    case 32:
+      return '32'
+    case 48:
+      return '48'
+    case 64:
+      return '64'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(realSize)
+      return '32'
+  }
+}
 
 const UnknownIcon = (props: Props) => (
   <Kb.Icon type="iconfont-folder-private" color={Styles.globalColors.grey} fontSize={props.size} />
 )
 
-// $FlowIssue
-const i = (s: string): Kb.IconType => s
+const icons = {
+  file: {
+    private: {
+      '16': 'icon-file-private-16',
+      '32': 'icon-file-private-32',
+      '48': 'icon-file-private-48',
+      '64': 'icon-file-private-64',
+    },
+    public: {
+      '16': 'icon-file-public-16',
+      '32': 'icon-file-public-32',
+      '48': 'icon-file-public-48',
+      '64': 'icon-file-public-64',
+    },
+  },
+  folder: {
+    private: {
+      '16': 'icon-folder-private-16',
+      '32': 'icon-folder-private-32',
+      '48': 'icon-folder-private-48',
+      '64': 'icon-folder-private-64',
+    },
+    public: {
+      '16': 'icon-folder-public-16',
+      '32': 'icon-folder-public-32',
+      '48': 'icon-folder-public-48',
+      '64': 'icon-folder-public-64',
+    },
+    team: {
+      '16': 'icon-folder-team-16',
+      '32': 'icon-folder-team-32',
+      '48': 'icon-folder-team-48',
+      '64': 'icon-folder-team-64',
+    },
+  },
+}
 
 const IconOnly = (props: Props) => {
-  const elems = Types.getPathElements(props.path)
+  const parsedPath = Constants.parsePath(props.path)
 
-  if (elems.length === 1) {
-    // /keybase
+  if (parsedPath === Constants.parsedPathRoot) {
     return <UnknownIcon {...props} />
   }
 
-  if (elems.length === 2) {
-    // a tlf list, i.e. /keybase/{private,public,team}
-    switch (elems[1]) {
-      case 'private':
-        return <Kb.Icon type={i(`icon-folder-private-${getIconSize(props.size)}`)} />
-      case 'public':
-        return <Kb.Icon type={i(`icon-folder-public-${getIconSize(props.size)}`)} />
-      case 'team':
-        return <Kb.Icon type={i(`icon-folder-team-${getIconSize(props.size)}`)} />
-      default:
-        return <UnknownIcon {...props} />
-    }
-  }
-
-  if (elems.length === 3) {
-    // a tlf root, e.g. /keybase/team/kbkbfstest
-    switch (elems[1]) {
-      case 'private':
-      // fallthrough
-      case 'public':
-        const usernames = Constants.splitTlfIntoUsernames(elems[2])
-        return (
-          <Kb.Avatar size={getIconSize(props.size)} username={usernames.find(u => u !== props.username)} />
-        )
-      case 'team':
-        return <Kb.Avatar size={getIconSize(props.size)} teamname={elems[2]} isTeam={true} />
-      default:
-        return <UnknownIcon {...props} />
-    }
+  switch (parsedPath) {
+    case Constants.parsedPathPrivateList:
+      return <Kb.Icon type={icons.folder.private[getIconSizeString(props.size)]} />
+    case Constants.parsedPathPublicList:
+      return <Kb.Icon type={icons.folder.public[getIconSizeString(props.size)]} />
+    case Constants.parsedPathTeamList:
+      return <Kb.Icon type={icons.folder.team[getIconSizeString(props.size)]} />
+    default:
+    // must be a TLF root or inside TLF; fallthrough
   }
 
   const iconPathType = props.type === 'folder' ? 'folder' : 'file'
-  const iconTlfType = elems[1] === 'public' ? 'public' : 'private'
-  return <Kb.Icon type={i(`icon-${iconPathType}-${iconTlfType}-${getIconSize(props.size)}`)} />
+  switch (parsedPath.kind) {
+    case 'group-tlf':
+      const usernames = parsedPath.writers.concat(parsedPath.readers)
+      return (
+        <Kb.Avatar
+          size={getIconSize(props.size)}
+          username={usernames.find(w => w !== props.username) || usernames.first()}
+        />
+      )
+    case 'team-tlf':
+      return <Kb.Avatar size={getIconSize(props.size)} teamname={parsedPath.team} isTeam={true} />
+    case 'in-group-tlf':
+      const iconTlfType = parsedPath.tlfType === 'public' ? 'public' : 'private'
+      return <Kb.Icon type={icons[iconPathType][iconTlfType][getIconSizeString(props.size)]} />
+    case 'in-team-tlf':
+      return <Kb.Icon type={icons[iconPathType].private[getIconSizeString(props.size)]} />
+    default:
+      return <UnknownIcon {...props} />
+  }
 }
 
 const Badge = (props: Props) => {

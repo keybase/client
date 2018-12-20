@@ -31,6 +31,7 @@ export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
   status: 'editing',
   type: 'new-folder',
 })
+export const emptyFolder = makeNewFolder()
 
 const pathItemMetadataDefault = {
   badgeCount: 0,
@@ -688,6 +689,112 @@ export const escapePath = (path: Types.Path): string =>
 export const unescapePath = (escaped: string): Types.Path =>
   // turns "\\" into "\", and "\ " into " "
   Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (match, p1, p2) => p1 || p2))
+
+export const parsedPathRoot: Types.ParsedPathRoot = I.Record({kind: 'root'})()
+export const parsedPathPrivateList: Types.ParsedPathTlfList = I.Record({
+  kind: 'tlf-list',
+  tlfType: 'private',
+})()
+export const parsedPathPublicList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-list', tlfType: 'public'})()
+export const parsedPathTeamList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-list', tlfType: 'team'})()
+
+const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Record({
+  kind: 'group-tlf',
+  readers: null,
+  tlfType: 'private',
+  writers: I.List(),
+})
+
+const makeParsedPathTeamTlf: I.RecordFactory<Types._ParsedPathTeamTlf> = I.Record({
+  kind: 'team-tlf',
+  team: '',
+  tlfType: 'team',
+})
+
+const makeParsedPathInGroupTlf: I.RecordFactory<Types._ParsedPathInGroupTlf> = I.Record({
+  kind: 'in-group-tlf',
+  readers: null,
+  rest: I.List(),
+  tlfType: 'private',
+  writers: I.List(),
+})
+
+const makeParsedPathInTeamTlf: I.RecordFactory<Types._ParsedPathInTeamTlf> = I.Record({
+  kind: 'in-team-tlf',
+  rest: I.List(),
+  team: '',
+  tlfType: 'team',
+})
+
+const splitTlfIntoReadersAndWriters = (
+  tlf: string
+): {|readers: ?I.List<string>, writers: I.List<string>|} => {
+  const [w, r] = tlf.split('#')
+  return {
+    readers: r ? I.List(r.split(',').filter(i => !!i)) : null,
+    writers: I.List(w.split(',').filter(i => !!i)),
+  }
+}
+
+// returns parsedPathRoot if unknown
+export const parsePath = (path: Types.Path): Types.ParsedPath => {
+  const elems = Types.getPathElements(path)
+  if (elems.length <= 1) {
+    return parsedPathRoot
+  }
+  switch (elems[1]) {
+    case 'private':
+      switch (elems.length) {
+        case 2:
+          return parsedPathPrivateList
+        case 3:
+          return makeParsedPathGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfType: 'private',
+          })
+        default:
+          return makeParsedPathInGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            rest: I.List(elems.slice(3)),
+            tlfType: 'private',
+          })
+      }
+    case 'public':
+      switch (elems.length) {
+        case 2:
+          return parsedPathPublicList
+        case 3:
+          return makeParsedPathGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfType: 'public',
+          })
+        default:
+          return makeParsedPathInGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            rest: I.List(elems.slice(3)),
+            tlfType: 'public',
+          })
+      }
+    case 'team':
+      switch (elems.length) {
+        case 2:
+          return parsedPathTeamList
+        case 3:
+          return makeParsedPathTeamTlf({
+            team: elems[2],
+            tlfType: 'team',
+          })
+        default:
+          return makeParsedPathInTeamTlf({
+            rest: I.List(elems.slice(3)),
+            team: elems[2],
+            tlfType: 'team',
+          })
+      }
+    default:
+      return parsedPathRoot
+  }
+}
 
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
