@@ -124,7 +124,9 @@ class TransportShared extends RobustTransport {
       const calls = ['cancel', 'error', 'result']
 
       // Can't use {...} here due to react-native not doing object.assign on objects w/ proto chains
-      payload.response = {}
+      payload.response = {
+        responded: false, // keep track if we responded
+      }
       Object.keys(oldResponse).forEach(key => {
         payload.response[key] = oldResponse[key]
       })
@@ -134,6 +136,7 @@ class TransportShared extends RobustTransport {
           enforceOnlyOnce: true,
           extra: response => ({payload, response}),
           handler: (...args) => {
+            payload.response.reponded = true
             oldResponse[call](...args)
           },
           method: payload.method,

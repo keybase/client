@@ -228,7 +228,7 @@ class Engine {
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
       } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
-        // General incoming
+        // General incoming :: TODO deprecate
         rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
 
         let creator = this._incomingActionCreators[method]
@@ -260,8 +260,20 @@ class Engine {
           }
         })
       } else {
-        // Unhandled
-        this._handleUnhandled(sessionID, method, seqid, param, response)
+        // Dispatch as an action
+        // Handle it by default
+        response && response.result()
+        Engine._dispatch(
+          ConfigGen.createIncomingRPC({
+            rpc: {
+              [method]: param,
+            },
+          })
+        )
+
+        if (response && !response.responded) {
+          this._handleUnhandled(sessionID, method, seqid, param, response)
+        }
       }
     }
   }

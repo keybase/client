@@ -227,9 +227,10 @@ export default function(
     case ConfigGen._avatarQueue:
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
+    case ConfigGen.incomingRPC:
       return state
     default:
-     Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-     return state
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      return state
   }
 }

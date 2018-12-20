@@ -14,6 +14,7 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: ['Gregor1', 'Keybase1', 'Stellar1'],
+    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-chat-gen',
@@ -24,6 +25,7 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: ['Gregor1'],
+    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-gen',
@@ -34,6 +36,7 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: [],
+    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-gregor-gen',
@@ -44,6 +47,7 @@ var projects = {
     customResponseIncomingMaps: {},
     enums: {},
     import: ['Keybase1'],
+    incomingAction: {},
     incomingMaps: {},
     notEnabled: [],
     out: 'rpc-stellar-gen',
@@ -55,23 +59,27 @@ var projects = {
 const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
 
 const keys = Object.keys(projects)
-keys.forEach(key => {
-  const project = projects[key]
-  fs
-    .readdirAsync(project.root)
-    .filter(jsonOnly)
-    .map(file => load(file, project))
-    .map(json => analyze(json, project))
-    .reduce((map, next) => {
-      map.consts = {...map.consts, ...next.consts}
-      map.types = {...map.types, ...next.types}
-      map.messages = {...map.messages, ...next.messages}
-      return map
-    }, {})
-    .then(typeDefs => {
-      writeFlow(typeDefs, project)
-      write(typeDefs, project)
-    })
+Promise.all(
+  keys.map(key => {
+    const project = projects[key]
+    return fs
+      .readdirAsync(project.root)
+      .filter(jsonOnly)
+      .map(file => load(file, project))
+      .map(json => analyze(json, project))
+      .reduce((map, next) => {
+        map.consts = {...map.consts, ...next.consts}
+        map.types = {...map.types, ...next.types}
+        map.messages = {...map.messages, ...next.messages}
+        return map
+      }, {})
+      .then(typeDefs => {
+        writeFlow(typeDefs, project)
+        write(typeDefs, project)
+      })
+  })
+).then(() => {
+  writeAll()
 })
 
 function jsonOnly(file) {
@@ -219,6 +227,9 @@ function analyzeMessages(json, project) {
       project.incomingMaps[
         methodName
       ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn`
+      project.incomingAction[
+        methodName
+      ] = `$Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>>`
 
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
@@ -361,6 +372,45 @@ function parseVariant(t, project) {
   return cases || 'void'
 }
 
+function writeAll() {
+  const prelude = `
+// @flow strict
+  `
+  const imports = Object.keys(projects)
+    .map(
+      p => `import type {
+  CustomResponseIncomingCallMap as ${p}CustomResponseIncomingCallMap,
+  IncomingCallMapType as ${p}IncomingCallMap,
+  IncomingActionType as ${p}IncomingActionType,
+} from './${projects[p].out}'
+`
+    )
+    .join('\n')
+
+  const exports = `
+  export type IncomingCallMapType = {|
+  ${Object.keys(projects)
+    .map(p => `...${p}IncomingCallMap,`)
+    .join('\n')}
+  |}
+  export type CustomResponseIncomingCallMapType = {|
+  ${Object.keys(projects)
+    .map(p => `...${p}CustomResponseIncomingCallMap,`)
+    .join('\n')}
+  |}
+  export type IncomingActionType = {|
+  ${Object.keys(projects)
+    .map(p => `...${p}IncomingActionType,`)
+    .join('\n')}
+    |}
+  `
+  const toWrite = [prelude, imports, exports].join('\n')
+
+  const destinationFile = `types/all.js.flow` // Only used by prettier so we can set an override in .prettierrc
+  const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(destinationFile))
+  fs.writeFileSync(`js/rpc-all-gen.js.flow`, formatted)
+}
+
 function writeFlow(typeDefs, project) {
   const importMap = {
     Gregor1: "import * as Gregor1 from './rpc-gregor-gen'",
@@ -393,22 +443,26 @@ type IncomingReturn = Effect | null | void | false | Array<Effect | null | void 
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromiseType)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
   const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
-  const incomingMap =
-    `\nexport type IncomingCallMapType = {|` +
-    Object.keys(project.incomingMaps)
+  const incomingMap = `\nexport type IncomingCallMapType = {|
+    ${Object.keys(project.incomingMaps)
       .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
-      .join(',') +
-    '|}'
+      .join(',')}
+    |}`
 
   const customResponseCallMapType = Object.keys(project.customResponseIncomingMaps).length
     ? 'CustomResponseIncomingCallMap'
     : 'void'
-  const customResponseIncomingMap =
-    `\nexport type CustomResponseIncomingCallMap = {|` +
-    Object.keys(project.customResponseIncomingMaps)
+  const customResponseIncomingMap = `\nexport type CustomResponseIncomingCallMap = {|
+    ${Object.keys(project.customResponseIncomingMaps)
       .map(im => `  ${im}?: ${project.customResponseIncomingMaps[im]}`)
-      .join(',') +
-    '|}'
+      .join(',')}
+    |}`
+
+  const incomingAction = `\nexport type IncomingActionType = {|
+      ${Object.keys(project.incomingAction)
+        .map(im => `${im}?: ${project.incomingAction[im]}`)
+        .join(',')}
+  |}`
 
   const messageTypesData = Object.keys(typeDefs.messages)
     .map(k => {
@@ -430,6 +484,7 @@ ${messageTypesData}
     messageTypes,
     ...[...consts, ...types].sort(),
     incomingMap,
+    incomingAction,
     customResponseIncomingMap,
     ...[...messagePromise, ...messageEngineSaga].sort(),
   ]
@@ -582,7 +637,7 @@ function lintJSON(json) {
 
 function lintError(s, lint) {
   if (lint === 'ignore') {
-    console.log('Ignoring lint error:', colors.yellow(s))
+    // console.log('Ignoring lint error:', colors.yellow(s))
   } else {
     console.log(colors.red(s))
     process.exit(1)

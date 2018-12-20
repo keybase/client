@@ -470,21 +470,6 @@ const onChatInboxSynced = (syncRes, state) => {
   return actions
 }
 
-// Got some new typers
-const onChatTypingUpdate = typingUpdates => {
-  if (!typingUpdates) {
-    return null
-  } else {
-    const conversationToTypers = I.Map(
-      typingUpdates.reduce((arr, u) => {
-        arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
-        return arr
-      }, [])
-    )
-    return [Chat2Gen.createUpdateTypers({conversationToTypers})]
-  }
-}
-
 const onChatThreadStale = updates => {
   let actions = []
   Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
@@ -629,6 +614,43 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 const arrayOfActionsToSequentially = actions =>
   Saga.callUntyped(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
 
+const onTypingUpdate = ({typingUpdates}) => {
+  if (!typingUpdates) {
+    return
+  }
+  const conversationToTypers = I.Map(
+    typingUpdates.reduce((arr, u) => {
+      arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+      return arr
+    }, [])
+  )
+  return Saga.put(Chat2Gen.createUpdateTypers({conversationToTypers}))
+}
+
+const onChatPromptUnfurl = ({convID, msgID, domain}) =>
+  Saga.put(
+    Chat2Gen.createUnfurlTogglePrompt({
+      conversationIDKey: Types.conversationIDToKey(convID),
+      domain,
+      messageID: Types.numberToMessageID(msgID),
+      show: true,
+    })
+  )
+
+const incomingRPC = (state, action: ConfigGen.IncomingRPCPayload) => {
+  const rpc = action.payload.rpc
+
+  const chatTypingUpdate = rpc['chat.1.NotifyChat.ChatTypingUpdate']
+  if (chatTypingUpdate) {
+    return onTypingUpdate(chatTypingUpdate)
+  }
+
+  const chatPromptUnfurl = rpc['chat.1.NotifyChat.ChatPromptUnfurl']
+  if (chatPromptUnfurl) {
+    return onChatPromptUnfurl(chatPromptUnfurl)
+  }
+}
+
 // Handle calls that come from the service
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
@@ -684,19 +706,6 @@ const setupEngineListeners = () => {
           conversationIDKey,
           messageID: notif.msgID,
           paymentInfo,
-        })
-      )
-    },
-    'chat.1.NotifyChat.ChatPromptUnfurl': notif => {
-      const conversationIDKey = Types.conversationIDToKey(notif.convID)
-      const messageID = Types.numberToMessageID(notif.msgID)
-      const domain = notif.domain
-      return Saga.put(
-        Chat2Gen.createUnfurlTogglePrompt({
-          conversationIDKey,
-          domain,
-          messageID,
-          show: true,
         })
       )
     },
@@ -764,8 +773,6 @@ const setupEngineListeners = () => {
       Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})),
     'chat.1.NotifyChat.ChatThreadsStale': ({updates}) =>
       arrayOfActionsToSequentially(onChatThreadStale(updates)),
-    'chat.1.NotifyChat.ChatTypingUpdate': ({typingUpdates}) =>
-      arrayOfActionsToSequentially(onChatTypingUpdate(typingUpdates)),
     'chat.1.NotifyChat.NewChatActivity': ({activity}) => {
       logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
@@ -2991,6 +2998,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
   yield Saga.spawn(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
+  yield Saga.actionToAction(ConfigGen.incomingRPC, incomingRPC)
 }
 
 export default chat2Saga

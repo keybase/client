@@ -3,11 +3,16 @@
     "import * as Types from '../constants/types/config'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
-    "import {RPCError} from '../util/errors'"
+    "import {RPCError} from '../util/errors'",
+    "import type {IncomingActionType} from '../engine'",
   ],
   "actions": {
     "setupEngineListeners": {
-      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
+      "_description": "TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers"
+    },
+    "incomingRPC": {
+      "_description": "We got an incoming (sessionid=0) call. call handled to say you handled it",
+      "rpc": "IncomingActionType",
     },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"

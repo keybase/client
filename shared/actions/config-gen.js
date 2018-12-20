@@ -8,6 +8,7 @@ import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import {RPCError} from '../util/errors'
+import type {IncomingActionType} from '../engine'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
@@ -25,6 +26,7 @@ export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const globalError = 'config:globalError'
+export const incomingRPC = 'config:incomingRPC'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
 export const loadAvatars = 'config:loadAvatars'
@@ -65,6 +67,7 @@ type _DaemonHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, in
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
 type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
+type _IncomingRPCPayload = $ReadOnly<{|rpc: IncomingActionType|}>
 type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
 type _LoadAvatarsPayload = $ReadOnly<{|usernames: Array<string>|}>
@@ -98,6 +101,14 @@ type __avatarQueuePayload = void
  * Sent whenever the mobile file picker encounters an error.
  */
 export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
+/**
+ * TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers
+ */
+export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
+/**
+ * We got an incoming (sessionid=0) call. call handled to say you handled it
+ */
+export const createIncomingRPC = (payload: _IncomingRPCPayload) => ({payload, type: incomingRPC})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -138,10 +149,6 @@ export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) 
  * subsystems that need to do things during logout need to call this to register that we should wait.
  */
 export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({payload, type: logoutHandshakeWait})
-/**
- * when sagas should start creating their incoming handlers / onConnect handlers
- */
-export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({payload, type: bootstrapStatusLoaded})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({payload, type: changedFocus})
@@ -183,6 +190,7 @@ export type DaemonHandshakeWaitPayload = {|+payload: _DaemonHandshakeWaitPayload
 export type DumpLogsPayload = {|+payload: _DumpLogsPayload, +type: 'config:dumpLogs'|}
 export type FilePickerErrorPayload = {|+payload: _FilePickerErrorPayload, +type: 'config:filePickerError'|}
 export type GlobalErrorPayload = {|+payload: _GlobalErrorPayload, +type: 'config:globalError'|}
+export type IncomingRPCPayload = {|+payload: _IncomingRPCPayload, +type: 'config:incomingRPC'|}
 export type InstallerRanPayload = {|+payload: _InstallerRanPayload, +type: 'config:installerRan'|}
 export type LinkPayload = {|+payload: _LinkPayload, +type: 'config:link'|}
 export type LoadAvatarsPayload = {|+payload: _LoadAvatarsPayload, +type: 'config:loadAvatars'|}
@@ -226,6 +234,7 @@ export type Actions =
   | DumpLogsPayload
   | FilePickerErrorPayload
   | GlobalErrorPayload
+  | IncomingRPCPayload
   | InstallerRanPayload
   | LinkPayload
   | LoadAvatarsPayload
