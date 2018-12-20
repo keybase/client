@@ -1,0 +1,44 @@
+// @flow strict
+
+import type {
+  CustomResponseIncomingCallMap as chat1CustomResponseIncomingCallMap,
+  IncomingCallMapType as chat1IncomingCallMap,
+  IncomingActionType as chat1IncomingActionType,
+} from './rpc-chat-gen'
+
+import type {
+  CustomResponseIncomingCallMap as keybase1CustomResponseIncomingCallMap,
+  IncomingCallMapType as keybase1IncomingCallMap,
+  IncomingActionType as keybase1IncomingActionType,
+} from './rpc-gen'
+
+import type {
+  CustomResponseIncomingCallMap as gregor1CustomResponseIncomingCallMap,
+  IncomingCallMapType as gregor1IncomingCallMap,
+  IncomingActionType as gregor1IncomingActionType,
+} from './rpc-gregor-gen'
+
+import type {
+  CustomResponseIncomingCallMap as stellar1CustomResponseIncomingCallMap,
+  IncomingCallMapType as stellar1IncomingCallMap,
+  IncomingActionType as stellar1IncomingActionType,
+} from './rpc-stellar-gen'
+
+export type IncomingCallMapType = {|
+  ...chat1IncomingCallMap,
+  ...keybase1IncomingCallMap,
+  ...gregor1IncomingCallMap,
+  ...stellar1IncomingCallMap,
+|}
+export type CustomResponseIncomingCallMapType = {|
+  ...chat1CustomResponseIncomingCallMap,
+  ...keybase1CustomResponseIncomingCallMap,
+  ...gregor1CustomResponseIncomingCallMap,
+  ...stellar1CustomResponseIncomingCallMap,
+|}
+export type IncomingActionType = {|
+  ...chat1IncomingActionType,
+  ...keybase1IncomingActionType,
+  ...gregor1IncomingActionType,
+  ...stellar1IncomingActionType,
+|}
