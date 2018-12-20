@@ -1037,7 +1037,7 @@ func (fd *fileData) findIPtrsAndClearSize(
 			}
 			infoSeen[parentPtr] = true
 
-			for _, iptr := range pb.pblock.(*FileBlock).IPtrs {
+			for i, iptr := range pb.pblock.(*FileBlock).IPtrs {
 				if ptrs[iptr.BlockPointer] {
 					// Mark this pointer, and all parent blocks, as dirty.
 					parentPtr := fd.rootBlockPointer()
@@ -1052,7 +1052,16 @@ func (fd *fileData) findIPtrsAndClearSize(
 						path[i].pblock = pblock
 						parentPtr = path[i].childBlockPtr()
 					}
-					_, _, err = fd.tree.markParentsDirty(path[:level+1])
+					// Because we only check each parent once, the
+					// `path` we're using here will be the one with a
+					// childIndex of 0.  But, that's not necessarily
+					// the one that matches the pointer that needs to
+					// be dirty.  So make a new path and set the
+					// childIndex to the correct pointer instead.
+					newPath := make([]parentBlockAndChildIndex, level+1)
+					copy(newPath, path[:level+1])
+					newPath[level].childIndex = i
+					_, _, err = fd.tree.markParentsDirty(newPath)
 					if err != nil {
 						return nil, err
 					}
