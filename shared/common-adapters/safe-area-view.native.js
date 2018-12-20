@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {SafeAreaView, View, StatusBar} from 'react-native'
-import type {Props, SafeAreaViewTopBottomProps} from 'react-native'
+import type {Props, SafeAreaViewTopBottomProps} from './safe-area-view'
 import * as Styles from '../styles'
 
 // Android doesn't have an implementation for SafeAreaView, so add a special case for handling the top of the screen
@@ -13,27 +13,30 @@ export const SafeAreaViewTop = ({style, children}: Props) =>
   )
 
 export const SafeAreaViewTopBottom = (props: SafeAreaViewTopBottomProps) => (
-  <SafeAreaView
-    style={Styles.collapseStyles([
-      styles.safeAreaTopBottom,
-      props.topColor && {backgroundColor: props.topColor},
-      props.style,
-    ])}
-  >
-    {Styles.isAndroid && (
-      <View
-        style={Styles.collapseStyles([
-          styles.androidTopSafeArea,
-          props.topColor && {backgroundColor: props.topColor},
-        ])}
+  <>
+    <SafeAreaView
+      style={Styles.collapseStyles([
+        styles.safeAreaTopBottom,
+        props.topColor && {backgroundColor: props.topColor},
+        props.style,
+      ])}
+    >
+      {Styles.isAndroid && (
+        <View
+          style={Styles.collapseStyles([
+            styles.androidTopSafeArea,
+            props.topColor && {backgroundColor: props.topColor},
+          ])}
+        />
+      )}
+      {props.children}
+    </SafeAreaView>
+    {props.bottomColor && (
+      <SafeAreaView
+        style={Styles.collapseStyles([styles.flexShrinkZero, {backgroundColor: props.bottomColor}])}
       />
     )}
-    {props.children}
-    {/* workaround for two background colors from here: https://stackoverflow.com/questions/47725607/react-native-safeareaview-background-color-how-to-assign-two-different-backgro */}
-    {!!props.bottomColor && (
-      <View style={Styles.collapseStyles([styles.bottomSafeArea, {backgroundColor: props.bottomColor}])} />
-    )}
-  </SafeAreaView>
+  </>
 )
 
 const styles = Styles.styleSheetCreate({
@@ -51,6 +54,9 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
     zIndex: -1000,
+  },
+  flexShrinkZero: {
+    flexShrink: 0,
   },
   safeAreaTopBottom: {
     flexGrow: 1,

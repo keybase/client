@@ -27,13 +27,18 @@ const PoweredByStellar = () => (
 
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.SafeAreaViewTopBottom topColor={Styles.globalColors.purple} bottomColor={Styles.globalColors.blue5}>
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header onBack={Styles.isMobile ? props.onClose : null} />
-        {props.children}
-      </Kb.Box2>
-      {!Styles.isMobile && <PoweredByStellar />}
-    </Kb.SafeAreaViewTopBottom>
+    <Kb.KeyboardAvoidingView
+      behavior={Styles.isAndroid ? undefined : 'padding'}
+      style={Styles.globalStyles.fillAbsolute}
+    >
+      <Kb.SafeAreaViewTopBottom topColor={Styles.globalColors.purple} bottomColor={Styles.globalColors.blue5}>
+        <Kb.Box2 direction="vertical" style={styles.container}>
+          <Header onBack={Styles.isMobile ? props.onClose : null} />
+          {props.children}
+        </Kb.Box2>
+        {!Styles.isMobile && <PoweredByStellar />}
+      </Kb.SafeAreaViewTopBottom>
+    </Kb.KeyboardAvoidingView>
   </Kb.MaybePopup>
 )
 

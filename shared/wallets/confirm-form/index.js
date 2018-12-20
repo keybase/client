@@ -25,7 +25,7 @@ type ConfirmSendProps = {|
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.SafeAreaViewTopBottom bottomColor={Styles.globalColors.white} topColor={Styles.globalColors.purple}>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
         <Header
           onBack={props.onBack}
           sendingIntentionXLM={props.sendingIntentionXLM}
