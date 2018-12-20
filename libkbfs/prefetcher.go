@@ -375,7 +375,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// handled.
 		pre.req.action = newAction
 		ch := p.retriever.Request(
-			pre.ctx, priority, kmd, ptr, block, lifetime, action)
+			pre.ctx, priority, kmd, ptr, block.NewEmpty(), lifetime, action)
 		p.inFlightFetches.In() <- ch
 	}
 	_, isParentWaiting := p.prefetches[parentPtr.ID]
