@@ -3,6 +3,7 @@ package stellar
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/engine"
@@ -12,6 +13,7 @@ import (
 	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	stellarAddress "github.com/stellar/go/address"
 )
 
 func StartBuildPaymentLocal(mctx libkb.MetaContext) (res stellar1.BuildPaymentID, err error) {
@@ -375,9 +377,29 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	if data.Frozen.ToIsAccountID {
 		mctx.CDebugf("skipping identify for account ID recipient: %v", data.Frozen.To)
 		data.ReadyToSend = true
-	} else {
-		recipientAssertion := data.Frozen.To
-		recipientUV := data.Frozen.ToUV
+	}
+
+	recipientAssertion := data.Frozen.To
+	// how would you have this before identify?  from LookupRecipient?
+	// does that mean that identify is happening twice?
+	recipientUV := data.Frozen.ToUV
+
+	// check if it is a federation address
+	if strings.Contains(recipientAssertion, stellarAddress.Separator) {
+		name, domain, err := stellarAddress.Split(recipientAssertion)
+		// if there is an error, let this fall through and get identified
+		if err == nil {
+			if domain != "keybase.io" {
+				mctx.CDebugf("skipping identify for federation address recipient: %s", data.Frozen.To)
+				data.ReadyToSend = true
+			} else {
+				mctx.CDebugf("identifying keybase user %s in federation address recipient: %s", name, data.Frozen.To)
+				recipientAssertion = name
+			}
+		}
+	}
+
+	if !data.ReadyToSend {
 		mctx.CDebugf("identifying recipient: %v", recipientAssertion)
 
 		identifySuccessCh := make(chan struct{}, 1)

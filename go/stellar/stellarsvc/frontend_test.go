@@ -1998,6 +1998,68 @@ func TestReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Review a payment where recipient is a keybase.io federation address.
+// - At first the review fails on a tracking failure.
+// - The user reaffirms their tracking of the recipient.
+// - As a result the review succeeds.
+func TestKeybaseFederationReviewPaymentLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "100")
+	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+
+	t.Logf("u1 proves rooter")
+	_, sigID := proveRooter(tcs[1])
+
+	t.Logf("u0 tracks u1")
+	_, err = kbtest.RunTrack(tcs[0].TestContext, tcs[0].Fu, tcs[1].Fu.Username)
+	require.NoError(t, err)
+
+	t.Logf("u1 removes their proof")
+	eng := engine.NewRevokeSigsEngine(tcs[1].G, []string{sigID.String()})
+	err = engine.RunEngine2(tcs[1].MetaContext().WithUIs(libkb.UIs{
+		LogUI:    tcs[1].G.UI.GetLogUI(),
+		SecretUI: &libkb.TestSecretUI{Passphrase: "dummy-passphrase"},
+	}), eng)
+	require.NoError(t, err)
+
+	t.Logf("u0 starts a payment")
+	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
+	require.NoError(t, err)
+	amount := "11.0"
+	buildRes, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username + "*keybase.io",
+		Amount: amount,
+	})
+	require.NoError(t, err)
+	require.Equal(t, true, buildRes.ReadyToReview)
+
+	t.Logf("u0 starts review of a payment, which gets stuck on u1's broken proof")
+	expectSuccess := reviewPaymentExpectBrokenTracking(t, tcs[0], stellar1.ReviewPaymentLocalArg{Bid: bid1})
+
+	t.Logf("u0 affirms tracking of u1, causing the review to complete")
+	_, err = kbtest.RunTrack(tcs[0].TestContext, tcs[0].Fu, tcs[1].Fu.Username)
+	require.NoError(t, err)
+	expectSuccess()
+
+	t.Logf("u0 completes the send")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     tcs[1].Fu.Username + "*keybase.io",
+		Amount: amount,
+		Asset:  stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+}
+
 // Cases where Send is blocked because the build gamut wasn't run.
 func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
