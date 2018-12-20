@@ -32,6 +32,7 @@ func TestEmptyFS(t *testing.T) {
 		t.Fatal("Mount failed:", err)
 	}
 	defer mnt.Close()
+	time.Sleep(5 * time.Second)
 	testShouldNotExist(t)
 	testHelloTxt(t)
 	testRAMFile(t)
