@@ -211,11 +211,11 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
-				availableToSendFormatted := availableToSendXLM
+				availableToSendFormatted := availableToSendXLM + " XLM"
 				availableToSendXLMFmt, err := FormatAmount(
 					availableToSendXLM, false, FmtTruncate)
 				if err == nil {
-					availableToSendFormatted = availableToSendXLMFmt
+					availableToSendFormatted = availableToSendXLMFmt + " XLM"
 				}
 				if arg.Currency != nil && amountX.rate != nil {
 					// If the user entered an amount in outside currency and an exchange
@@ -224,7 +224,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 					if err != nil {
 						log("error converting available-to-send", err)
 					} else {
-						formattedATS, err := FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(),
+						formattedATS, err := FormatCurrencyWithCodeSuffix(mctx,
 							availableToSendOutside, amountX.rate.Currency, FmtTruncate)
 						if err != nil {
 							log("error formatting available-to-send", err)
@@ -240,7 +240,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				case cmp == -1:
 					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendFormatted)
+					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", availableToSendFormatted)
 
 				default:
 					// Welcome back. How was your stay at the error handling hotel?
