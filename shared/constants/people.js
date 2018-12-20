@@ -5,7 +5,6 @@ import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
 import type {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
-import flags from '../util/feature-flags'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -160,15 +159,16 @@ export const reduceRPCItemToPeopleItem = (
       )
     }
   } else if (item.data.t === RPCTypes.homeHomeScreenItemType.announcement) {
-    if (flags.peopleAnnouncementsEnabled) {
-      const a: any = item.data.announcement
+    const a = item.data.announcement
+    if (a) {
       return list.push(
         makeAnnouncement({
           appLink: a.appLink,
-          badged: a.badged,
+          badged,
           confirmLabel: a.confirmLabel,
           dismissable: a.dismissable,
           iconUrl: a.iconUrl,
+          id: a.id,
           text: a.text,
           url: a.url,
         })

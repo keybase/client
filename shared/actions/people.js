@@ -12,7 +12,6 @@ import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
-import flags from '../util/feature-flags'
 
 const getPeopleData = (
   state: TypedState,
@@ -74,6 +73,11 @@ const getPeopleData = (
     })
     .catch(e => {})
 }
+
+const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
+  RPCTypes.homeHomeDismissAnnouncementRpcPromise({
+    i: action.payload.id,
+  })
 
 const markViewed = () =>
   RPCTypes.homeHomeMarkViewedRpcPromise().catch(err => {
@@ -153,6 +157,7 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(PeopleGen.skipTodo, skipTodo)
   yield Saga.actionToPromise(RouteTreeGen.switchTo, onTabChange)
   yield Saga.actionToPromise(RouteTreeGen.navigateTo, onNavigateTo)
+  yield Saga.actionToPromise(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 

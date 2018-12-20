@@ -4,12 +4,12 @@ import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTree from '../../actions/route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
-import * as Types from '../../constants/types/people'
+import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import {namedConnect, isMobile} from '../../util/container'
 
 type OwnProps = {|
-  appLink: ?Types.AppLink,
+  appLink: ?RPCTypes.AppLinkType,
   badged: boolean,
   confirmLabel: ?string,
   dismissable: boolean,
@@ -29,18 +29,6 @@ const mapDispatchToProps = dispatch => ({
       openURL(url)
     }
 
-    // TEMP to test mobile
-    // appLink =
-    // RPCTypes.homeAppLinkType.people
-    // RPCTypes.homeAppLinkType.chat
-    // RPCTypes.homeAppLinkType.files
-    // RPCTypes.homeAppLinkType.wallet
-    // RPCTypes.homeAppLinkType.git
-    // RPCTypes.homeAppLinkType.devices
-    // RPCTypes.homeAppLinkType.settings
-
-    const underSettingsMobile = arr => (isMobile ? [Tabs.settingsTab, ...arr] : arr)
-
     switch (appLink) {
       case RPCTypes.homeAppLinkType.people:
         break
@@ -48,27 +36,38 @@ const mapDispatchToProps = dispatch => ({
         dispatch(RouteTree.createSwitchTo({path: [Tabs.chatTab]}))
         break
       case RPCTypes.homeAppLinkType.files:
-        dispatch(RouteTree.createSwitchTo({path: underSettingsMobile([Tabs.fsTab])}))
+        dispatch(
+          RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.fsTab] : [Tabs.fsTab]})
+        )
         break
       case RPCTypes.homeAppLinkType.wallet:
-        dispatch(RouteTree.createSwitchTo({path: underSettingsMobile([Tabs.walletsTab])}))
+        dispatch(
+          RouteTree.createSwitchTo({
+            path: isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
+          })
+        )
         break
       case RPCTypes.homeAppLinkType.git:
-        dispatch(RouteTree.createSwitchTo({path: underSettingsMobile([Tabs.gitTab])}))
+        dispatch(
+          RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.gitTab] : [Tabs.gitTab]})
+        )
         break
       case RPCTypes.homeAppLinkType.devices:
-        dispatch(RouteTree.createSwitchTo({path: underSettingsMobile([Tabs.devicesTab])}))
+        dispatch(
+          RouteTree.createSwitchTo({
+            path: isMobile ? [Tabs.settingsTab, SettingsTabs.devicesTab] : [Tabs.devicesTab],
+          })
+        )
         break
       case RPCTypes.homeAppLinkType.settings:
         dispatch(RouteTree.createSwitchTo({path: [Tabs.settingsTab]}))
         break
     }
-    // dispatch(PeopleGen.createDismissAnnouncement({id}))
+    dispatch(PeopleGen.createDismissAnnouncement({id}))
     dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
   },
   _onDismiss: id => {
-    console.log('aaa TEMP', id)
-    // dispatch(PeopleGen.createDismissAnnouncement({id}))
+    dispatch(PeopleGen.createDismissAnnouncement({id}))
     dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
   },
 })
