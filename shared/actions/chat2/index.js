@@ -706,24 +706,25 @@ const onChatRequestInfo = (_, action: EngineGen.Chat1NotifyChatChatRequestInfoPa
     requestInfo,
   })
 }
+
+const onChatSetConvRetention = (_, action: EngineGen.Chat1NotifyChatChatSetConvRetentionPayload) => {
+  const {conv, convID} = action.payload.params
+  if (conv) {
+    return Chat2Gen.createUpdateConvRetentionPolicy({conv})
+  }
+  logger.warn(
+    'ChatHandler: got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.'
+  )
+  // force to get the new retention policy
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys: [Types.conversationIDToKey(convID)],
+    force: true,
+  })
+}
+
 // Handle calls that come from the service
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
-    'chat.1.NotifyChat.ChatSetConvRetention': ({conv, convID}) => {
-      if (conv) {
-        return Saga.put(Chat2Gen.createUpdateConvRetentionPolicy({conv}))
-      }
-      logger.warn(
-        'ChatHandler: got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.'
-      )
-      // force to get the new retention policy
-      return Saga.put(
-        Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys: [Types.conversationIDToKey(convID)],
-          force: true,
-        })
-      )
-    },
     'chat.1.NotifyChat.ChatSetConvSettings': ({conv, convID}) => {
       const conversationIDKey = Types.conversationIDToKey(convID)
       const newRole =
@@ -2995,6 +2996,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatLeftConversation, onChatLeftConversation)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatPaymentInfo, onChatPaymentInfo)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatRequestInfo, onChatRequestInfo)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatSetConvRetention, onChatSetConvRetention)
 }
 
 export default chat2Saga
