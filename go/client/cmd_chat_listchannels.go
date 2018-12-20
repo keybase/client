@@ -85,7 +85,6 @@ func (c *CmdChatListChannels) Run() error {
 
 func (c *CmdChatListChannels) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
-		cli.ShowCommandHelp(ctx, "list-channels")
 		return fmt.Errorf("incorrect usage")
 	}
 
