@@ -2,6 +2,7 @@ package stellarsvc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -212,7 +213,7 @@ func TestImportExport(t *testing.T) {
 		require.Error(t, err, "export empty specifier")
 	})
 
-	bundle, err := remote.FetchWholeBundle(m)
+	bundle, err := fetchWholeBundleForTesting(m)
 	require.NoError(t, err)
 
 	mustAskForPassphrase(func() {
@@ -949,8 +950,7 @@ func TestBundleFlows(t *testing.T) {
 	require.NoError(t, err)
 	assertFetchAccountBundles(t, tcs[0], a1)
 
-	// FetchWholeBundle
-	fullBundle, err := remote.FetchWholeBundle(mctx)
+	fullBundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(t, err)
 	err = fullBundle.CheckInvariants()
 	require.NoError(t, err)
@@ -1002,7 +1002,7 @@ func TestBundleFlows(t *testing.T) {
 	require.Equal(t, libkb.SCStellarMissingAccount, aerr.Code)
 	// fetching everything should yield a bundle that
 	// does not include this account
-	bundle, err = remote.FetchWholeBundle(mctx)
+	bundle, err = fetchWholeBundleForTesting(mctx)
 	require.NoError(t, err)
 	for _, acc := range bundle.Accounts {
 		require.False(t, acc.AccountID == a2)
@@ -1452,4 +1452,29 @@ func (ui *mockStellarUI) PaymentReviewed(ctx context.Context, arg stellar1.Payme
 		return ui.PaymentReviewedHandler(ctx, arg)
 	}
 	return fmt.Errorf("mockStellarUI.UiPaymentReview called with no handler")
+}
+
+// fetchWholeBundleForTesting gets the secretless bundle and loops through the accountIDs
+// to get the signers for each of them and build a single, full bundle with all
+// of the information. This will error from any device that does not have access
+// to all of the accounts (e.g. a desktop after mobile-only).
+func fetchWholeBundleForTesting(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err error) {
+	if mctx.G().Env.GetRunMode() == libkb.ProductionRunMode {
+		return nil, errors.New("fetchWholeBundleForTesting is only for test and dev")
+	}
+	bundle, err = remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return nil, err
+	}
+	newAccBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
+	for _, acct := range bundle.Accounts {
+		singleBundle, err := remote.FetchAccountBundle(mctx, acct.AccountID)
+		if err != nil {
+			return nil, err
+		}
+		accBundle := singleBundle.AccountBundles[acct.AccountID]
+		newAccBundles[acct.AccountID] = accBundle
+	}
+	bundle.AccountBundles = newAccBundles
+	return bundle, nil
 }

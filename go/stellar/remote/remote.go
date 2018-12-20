@@ -255,33 +255,6 @@ func FetchBundleWithGens(mctx libkb.MetaContext) (b *stellar1.Bundle, pukGen key
 	return b, pukGen, accountGens, nil
 }
 
-// FetchWholeBundle gets the secretless bundle and loops through the accountIDs
-// to get the signers for each of them and build a single, full bundle with all
-// of the information. This will error from any device that does not have access
-// to all of the accounts (e.g. a desktop after mobile-only). This is only used
-// in tests.
-func FetchWholeBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchWholeBundle", func() error { return err })()
-	if mctx.G().Env.GetRunMode() == libkb.ProductionRunMode {
-		return nil, errors.New("FetchWholeBundle is only for test and dev")
-	}
-	bundle, err = FetchSecretlessBundle(mctx)
-	if err != nil {
-		return nil, err
-	}
-	newAccBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
-	for _, acct := range bundle.Accounts {
-		singleBundle, err := FetchAccountBundle(mctx, acct.AccountID)
-		if err != nil {
-			return nil, err
-		}
-		accBundle := singleBundle.AccountBundles[acct.AccountID]
-		newAccBundles[acct.AccountID] = accBundle
-	}
-	bundle.AccountBundles = newAccBundles
-	return bundle, nil
-}
-
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
 	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
