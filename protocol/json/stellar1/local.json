@@ -520,6 +520,10 @@
           "lint": "ignore"
         },
         {
+          "type": "string",
+          "name": "amountAvailable"
+        },
+        {
           "type": {
             "type": "array",
             "items": "SendBannerLocal"
