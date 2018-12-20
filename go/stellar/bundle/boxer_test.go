@@ -225,10 +225,6 @@ func (c *canned) ring(t *testing.T) *pukRing {
 	}
 }
 
-var validAccounts = []accountCan{
-	{"GAWZ7HVPKRGCH2KP6475XV6HA2CAF44MXWWE5RKV4LMMGB6FNNSEPNPE", "hKFlxKUc3fqMOAYv9m6ycpnpQA4CSriSQoPVNbvsXXEgv4WsixkaTThkKGMlYuWvTJdHeqPdYXo/Mw156xq8MaIbzDTriFplFNcLhNYdi8f1ViHqvVIecX2frU/BOtIsAlqknnhl4+Z1u2kUnZYI5pZRvUV5H1loSWC4tBmEoCgK1S6XrLx1POOIiKkH8EFMXVrB6+BjbieW1w8HTXNp0jWbKkq+QoKz8MCjZ2VuA6FuxBibtfMD40wYqnfPsGePn1RphpzcEqv7mZehdgE="},
-	{"GBPLLHOKPRFSCE6FP6D37AUUNYCJ2TSPOHMHAR54TBDLWWPIZCD4RL3G", "hKFlxKX3zqweGMWyl4vOC8ht0jngDnTEpWqGBePh7okF9S003QStjI9Td1d+urqj/k4etwgLiPO8LHaaQ7o2WAwuSXakHJVJ2xIq+T+MYnoobbx5sArk4wsg7AWTX+uw/rXoyN7P9ZAgDSH+4oZ6/0j8dwR6RAoc9c+dog8xnW3eTkeSlj2KYx6XnEOOlOcCBCKsZePi9eoN92CxvB5MRN6tR7w3PH4yynqjZ2VuA6FuxBha4JmmVyysST3avwMxayHfTExp7tnLwHOhdgE="},
-}
 var cans = []canned{
 	// this one is valid
 	{"R81SkpClcSUPMzch6UAstOhS+hbZi4R43HzbRiLQ46o=",
