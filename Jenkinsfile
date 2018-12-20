@@ -385,9 +385,8 @@ def testGo(prefix) {
             if (testSpecMap[prefix].containsKey(pkg)) {
                 if (testSpecMap[prefix][pkg]) {
                     def testSpec = testSpecMap[prefix][pkg]
-                    return testSpec << [
-                        dirPath: pkg.replaceAll('github.com/keybase/client/go/', '')
-                    ]
+                    testSpec['dirPath'] = pkg.replaceAll('github.com/keybase/client/go/', '')
+                    return testSpec
                 }
                 return defaultPackageTestSpec(pkg)
             }
