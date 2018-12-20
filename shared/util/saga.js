@@ -44,9 +44,13 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
+// (also can return a raw action. this is going to be renamed soon)
 function actionToPromise<A>(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
+  f: (
+    state: TypedState,
+    action: A
+  ) => null | false | void | Promise<TypedActions | null | false | void> | TypedActions
 ) {
   return Effects.takeEvery(pattern, function* actionToPromiseHelper(action: A): RS.Saga<void> {
     try {

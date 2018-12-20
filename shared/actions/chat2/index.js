@@ -525,7 +525,8 @@ const onChatSubteamRename = convs => {
 }
 
 // Some participants are broken/fixed now
-const onChatIdentifyUpdate = update => {
+const onChatIdentifyUpdate = (_, action: EngineGen.Chat1NotifyChatChatIdentifyUpdatePayload) => {
+  const {update} = action.payload.params
   const usernames = update.CanonicalName.split(',')
   const broken = (update.breaks.breaks || []).map(b => b.user.username)
   const newlyBroken = []
@@ -539,7 +540,7 @@ const onChatIdentifyUpdate = update => {
     }
   })
 
-  return Saga.put(UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed}))
+  return UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
@@ -616,53 +617,56 @@ const arrayOfActionsToSequentially = actions =>
   Saga.callUntyped(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
 
 const onChatTypingUpdate = (_, action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => {
-  if (!action.payload.params.typingUpdates) {
+  const {typingUpdates} = action.payload.params
+  if (!typingUpdates) {
     return
   }
   const conversationToTypers = I.Map(
-    action.payload.params.typingUpdates.reduce((arr, u) => {
+    typingUpdates.reduce((arr, u) => {
       arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
       return arr
     }, [])
   )
-  return Promise.resolve(Chat2Gen.createUpdateTypers({conversationToTypers}))
+  return Chat2Gen.createUpdateTypers({conversationToTypers})
 }
 
-const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) =>
-  Promise.resolve(
-    Chat2Gen.createUnfurlTogglePrompt({
-      conversationIDKey: Types.conversationIDToKey(action.payload.params.convID),
-      domain: action.payload.params.domain,
-      messageID: Types.numberToMessageID(action.payload.params.msgID),
-      show: true,
-    })
-  )
+const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
+  const {convID, domain, msgID} = action.payload.params
+  return Chat2Gen.createUnfurlTogglePrompt({
+    conversationIDKey: Types.conversationIDToKey(convID),
+    domain,
+    messageID: Types.numberToMessageID(msgID),
+    show: true,
+  })
+}
+
+const onChatAttachmentUploadProgress = (
+  _,
+  action: EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
+) => {
+  const {convID, outboxID, bytesComplete, bytesTotal} = action.payload.params
+  return Chat2Gen.createAttachmentUploading({
+    conversationIDKey: Types.conversationIDToKey(convID),
+    outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
+    ratio: bytesComplete / bytesTotal,
+  })
+}
+
+const onChatAttachmentUploadStart = (
+  _,
+  action: EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
+) => {
+  const {convID, outboxID} = action.payload.params
+  return Chat2Gen.createAttachmentUploading({
+    conversationIDKey: Types.conversationIDToKey(convID),
+    outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
+    ratio: 0.01,
+  })
+}
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
-    'chat.1.NotifyChat.ChatAttachmentUploadProgress': ({convID, outboxID, bytesComplete, bytesTotal}) => {
-      const conversationIDKey = Types.conversationIDToKey(convID)
-      const ratio = bytesComplete / bytesTotal
-      return Saga.put(
-        Chat2Gen.createAttachmentUploading({
-          conversationIDKey,
-          outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-          ratio,
-        })
-      )
-    },
-    'chat.1.NotifyChat.ChatAttachmentUploadStart': ({convID, outboxID}) => {
-      const conversationIDKey = Types.conversationIDToKey(convID)
-      return Saga.put(
-        Chat2Gen.createAttachmentUploading({
-          conversationIDKey,
-          outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-          ratio: 0.01,
-        })
-      )
-    },
-    'chat.1.NotifyChat.ChatIdentifyUpdate': ({update}) => onChatIdentifyUpdate(update),
     'chat.1.NotifyChat.ChatInboxStale': () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'inboxStale'})),
     'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
       Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
@@ -2987,6 +2991,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatTypingUpdate, onChatTypingUpdate)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
+  yield Saga.actionToPromise(
+    EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
+    onChatAttachmentUploadProgress
+  )
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
+  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
 }
 
 export default chat2Saga

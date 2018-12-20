@@ -274,7 +274,7 @@ class Engine {
           .join('')
         // $FlowIssue can't really type this easily
         Engine._dispatch({
-          payload: {param},
+          payload: {params: param},
           type: `engine-gen:${type}`,
         })
 
