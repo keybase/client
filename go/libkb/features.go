@@ -64,9 +64,8 @@ type FeatureFlagSet struct {
 }
 
 const (
-	FeatureFTL                = Feature("ftl")
-	FeatureStellarAcctBundles = Feature("stellar_acct_bundles")
-	FeatureIMPTOFU            = Feature("imptofu")
+	FeatureFTL     = Feature("ftl")
+	FeatureIMPTOFU = Feature("imptofu")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.

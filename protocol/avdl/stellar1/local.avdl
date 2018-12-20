@@ -522,7 +522,7 @@ protocol local {
 
   void walletInitLocal();
 
-  BundleRestricted walletDumpLocal();
+  Bundle walletDumpLocal();
 
   // Account balance and its current value in selected currency.
   record OwnAccountCLILocal {

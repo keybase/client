@@ -1190,7 +1190,7 @@ type LocalInterface interface {
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
-	WalletDumpLocal(context.Context) (BundleRestricted, error)
+	WalletDumpLocal(context.Context) (Bundle, error)
 	WalletGetAccountsCLILocal(context.Context) ([]OwnAccountCLILocal, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
@@ -2248,7 +2248,7 @@ func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
 	return
 }
 
-func (c LocalClient) WalletDumpLocal(ctx context.Context) (res BundleRestricted, err error) {
+func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res)
 	return
 }
