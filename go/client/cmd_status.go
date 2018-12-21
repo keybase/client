@@ -74,11 +74,12 @@ type fstatus struct {
 		Log     string
 	}
 	KBFS struct {
-		Version string
-		Running bool
-		Pid     string
-		Log     string
-		Mount   string
+		Version          string
+		InstalledVersion string
+		Running          bool
+		Pid              string
+		Log              string
+		Mount            string
 	}
 	Desktop struct {
 		Version string
@@ -174,6 +175,10 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.StoredSecret = extStatus.StoredSecret
 	status.SecretPromptSkip = extStatus.SecretPromptSkip
 
+	kbfsInstalledVersion, err := install.KBFSBundleVersion(c.G(), "")
+	if err == nil {
+		status.KBFS.InstalledVersion = kbfsInstalledVersion
+	}
 	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
 		status.KBFS.Version = kbfs.Version
 		status.KBFS.Running = true
@@ -187,10 +192,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		}
 		status.KBFS.Mount = mountDir
 	} else {
-		kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
-		if err == nil {
-			status.KBFS.Version = kbfsVersion
-		}
+		status.KBFS.Version = kbfsInstalledVersion
 	}
 
 	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
@@ -280,6 +282,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
+	dui.Printf("    installed: %s\n", status.KBFS.InstalledVersion)
 	dui.Printf("    log:       %s\n", status.KBFS.Log)
 	dui.Printf("    mount:     %s\n", status.KBFS.Mount)
 	dui.Printf("\nService:\n")
