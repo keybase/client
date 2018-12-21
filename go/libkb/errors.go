@@ -2068,7 +2068,7 @@ func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {
-	return "stale previous state error"
+	return "Unable to change chat channels. Please submit feedback"
 }
 
 //=============================================================================
