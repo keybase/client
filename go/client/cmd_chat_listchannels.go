@@ -70,18 +70,15 @@ func (c *CmdChatListChannels) Run() error {
 
 	ui.Printf("Listing channels on %s:\n\n", c.tlfName)
 	for _, c := range listRes.Convs {
-		// c.Channel and c.Headline are user generated content and could
-		// technically contain formatting directives so we don't use
-		// fmt.Sprintf to concatenate them.
-		convLine := "#" + c.Channel
+		convLine := fmt.Sprintf("#%s", c.Channel)
 		if c.Headline != "" {
-			convLine += " [" + c.Headline + "]"
+			convLine += fmt.Sprintf(" [%s]", c.Headline)
 		}
 		if c.CreatorInfo != nil {
 			convLine += fmt.Sprintf(" (created by: %s on: %s)", c.CreatorInfo.Username,
 				c.CreatorInfo.Ctime.Time().Format("2006-01-02"))
 		}
-		ui.Printf(convLine + "\n")
+		ui.Printf("%s\n", convLine)
 	}
 	return nil
 }
