@@ -193,7 +193,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     recommendations,
   } = stateProps
 
-  const showRecs = !ownProps.searchString && recommendations
+  const showRecs = !ownProps.searchString && recommendations && ownProps.selectedService === 'keybase'
   const userResultsToShow = showRecs ? recommendations : searchResults
 
   const onChangeText = deriveOnChangeText(
