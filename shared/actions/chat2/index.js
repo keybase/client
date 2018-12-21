@@ -544,20 +544,6 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   return [Saga.put(Chat2Gen.createUpdateReactions({conversationIDKey, updates}))]
 }
 
-const onChatTypingUpdate = (_, action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => {
-  const {typingUpdates} = action.payload.params
-  if (!typingUpdates) {
-    return
-  }
-  const conversationToTypers = I.Map(
-    typingUpdates.reduce((arr, u) => {
-      arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
-      return arr
-    }, [])
-  )
-  return Chat2Gen.createUpdateTypers({conversationToTypers})
-}
-
 const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
   const {convID, domain, msgID} = action.payload.params
   return Chat2Gen.createUnfurlTogglePrompt({
@@ -3030,7 +3016,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
   yield Saga.spawn(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
-  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatTypingUpdate, onChatTypingUpdate)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
   yield Saga.actionToPromise(
     EngineGen.chat1NotifyChatChatAttachmentUploadProgress,

@@ -105,7 +105,6 @@ export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
-export const updateTypers = 'chat2:updateTypers'
 
 // Payload Types
 type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
@@ -204,7 +203,6 @@ type _UpdateMoreToLoadPayload = $ReadOnly<{|conversationIDKey: Types.Conversatio
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, notificationsDesktop: Types.NotificationsType, notificationsMobile: Types.NotificationsType, notificationsGlobalIgnoreMentions: boolean|}>
 type _UpdateReactionsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
-type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
 /**
@@ -387,7 +385,6 @@ export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({p
 export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({payload, type: toggleSmallTeamsExpanded})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
-export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({payload, type: updateTypers})
 
 // Action Payloads
 export type AttachmentDownloadPayload = {|+payload: _AttachmentDownloadPayload, +type: 'chat2:attachmentDownload'|}
@@ -483,7 +480,6 @@ export type UpdateMoreToLoadPayload = {|+payload: _UpdateMoreToLoadPayload, +typ
 export type UpdateNotificationSettingsPayload = {|+payload: _UpdateNotificationSettingsPayload, +type: 'chat2:updateNotificationSettings'|}
 export type UpdateReactionsPayload = {|+payload: _UpdateReactionsPayload, +type: 'chat2:updateReactions'|}
 export type UpdateTeamRetentionPolicyPayload = {|+payload: _UpdateTeamRetentionPolicyPayload, +type: 'chat2:updateTeamRetentionPolicy'|}
-export type UpdateTypersPayload = {|+payload: _UpdateTypersPayload, +type: 'chat2:updateTypers'|}
 
 // All Actions
 // prettier-ignore
@@ -581,5 +577,4 @@ export type Actions =
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
-  | UpdateTypersPayload
   | {type: 'common:resetStore', payload: null}

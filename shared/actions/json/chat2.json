@@ -357,10 +357,6 @@
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment"
     },
-    // Update who's typing in a conversation
-    "updateTypers": {
-      "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
-    },
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",

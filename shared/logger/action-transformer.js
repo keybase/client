@@ -64,7 +64,6 @@ const actionTransformMap = {
   [ConfigGen.loadedAvatars]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
-  [Chat2Gen.updateTypers]: nullTransform,
 
   [Chat2Gen.selectConversation]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,
