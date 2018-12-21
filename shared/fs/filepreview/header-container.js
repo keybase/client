@@ -12,29 +12,21 @@ type OwnProps = {|
   routePath: I.List<string>,
 |}
 
-const mapStateToProps = (state, {path}: OwnProps) => {
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  return {
-    path,
-    pathItem,
-  }
-}
+const mapStateToProps = (state, {path}: OwnProps) => ({
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+})
 
 const mapDispatchToProps = dispatch => ({
   loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const {path, pathItem} = stateProps
-  const {loadFilePreview, onBack} = dispatchProps
-  return {
-    loadFilePreview,
-    onBack,
-    path,
-    pathItem,
-  }
-}
+const mergeProps = (stateProps, dispatchProps, {path}) => ({
+  loadFilePreview: dispatchProps.loadFilePreview,
+  name: stateProps._pathItem.name,
+  onBack: dispatchProps.onBack,
+  path,
+})
 
 export default compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader'),
