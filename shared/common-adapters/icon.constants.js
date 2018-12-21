@@ -226,6 +226,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
   },
+  'icon-fancy-no-access-desktop-96-94': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-no-access-desktop-96-94.png'),
+  },
+  'icon-fancy-no-access-mobile-128-125': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-no-access-mobile-128-125.png'),
+  },
   'icon-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
     isFont: false,
