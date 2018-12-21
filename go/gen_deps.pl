@@ -22,15 +22,25 @@ foreach my $os (@oses) {
 }
 say STDERR "total packages for which to calculate dependencies: $total_packages";
 
-my $i = 0;
+my $forks = 0;
 foreach my $os (@oses) {
-    say STDERR "\rgenerating dependencies for OS: $os";
+    my $pid = fork;
+    if (not defined $pid) {
+        warn "Could not fork for os: $os";
+        next;
+    }
+    if ($pid) {
+        # In the parent process
+        $forks++;
+        next;
+    }
     $ENV{'GOOS'} = $os;
+    my $i = 0;
+    my $num_packages = scalar @{$os_packages->{$os}};
     foreach my $package (@{$os_packages->{$os}}) {
         $i++;
-        my $percent_complete = (($i) * 100) / $total_packages;
-        say STDERR "\rparsing package $package";
-        printf STDERR ("%d of %d complete (%.0f%%)", $i, $total_packages, $percent_complete);
+        my $percent_complete = (($i) * 100) / $num_packages;
+        printf STDERR ("%7s: %3d of %3d complete (%3.0f%%) [%s]\n", $os, $i, $num_packages, $percent_complete, $package);
 
         # This should include vendored dependencies.
         my @deps = split /\n/, `go list -f '{{ printf "%s\\n%s\\n%s" (join .TestImports "\\n") (join .Imports "\\n") "$package" }}' "$package" 2>/dev/null | grep 'vendor\\|github.com/keybase/client' | sort | uniq`;
@@ -46,4 +56,9 @@ foreach my $os (@oses) {
     open(my $fh, '>', ".go_package_deps_$os");
     print $fh "$json_output";
     close($fh);
+    exit;
+}
+
+for (1 .. $forks) {
+    my $pid = wait();
 }
