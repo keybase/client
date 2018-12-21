@@ -102,13 +102,13 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 		}
 		*v.ptr = C.uintptr_t(uptr)
 	}
-	ver := C.kbfsLibdokan_GetVersion(dokanVersionProc)
+	ver := C.kbfsLibDokan_GetVersion(dokanVersionProc)
 	epc.Printf("Dokan version: %d driver %d, required %d\n",
 		ver, C.kbfsLibDokan_GetVersion(dokanDriverVersionProc),
 		firstSafeDokanVersion)
 
 	if ver < firstSafeDokanVersion {
-		hdl.Close()
+		windows.Close(hdl)
 		return fmt.Errorf("Aborting due to too old Dokan: detected %d < required %d",
 			ver, firstSafeDokanVersion)
 	}
