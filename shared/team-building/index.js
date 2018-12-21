@@ -24,6 +24,7 @@ type SearchResult = {
 }
 
 export type Props = {
+  showRecs: boolean,
   onFinishTeamBuilding: () => void,
   onChangeText: (newText: string) => void,
   onEnterKeyDown: () => void,
@@ -54,7 +55,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
     const props = this.props
     const showSearchPending = props.searchString && !props.searchResults
     const showRecPending = !props.searchString && !(props.recommendations && props.recommendations.length)
-    const showRecs = !props.searchString && props.recommendations
+    const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -70,16 +71,15 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           />
           {!!props.teamSoFar.length && <GoButton onClick={props.onFinishTeamBuilding} />}
         </Kb.Box2>
-        {!!props.teamSoFar.length &&
-          flags.newTeamBuildingForChatAllowMakeTeam && (
-            <Kb.Text type="BodySmall">
-              Add up to 14 more people. Need more?
-              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-                {' '}
-                Make it a team.
-              </Kb.Text>
+        {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
+          <Kb.Text type="BodySmall">
+            Add up to 14 more people. Need more?
+            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
+              {' '}
+              Make it a team.
             </Kb.Text>
-          )}
+          </Kb.Text>
+        )}
         <ServiceTabBar
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
@@ -102,9 +102,9 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
             selectedIndex={props.highlightedIndex || 0}
             style={styles.list}
+            keyProperty={'userId'}
             renderItem={(index, result) => (
               <UserResult
-                key={result.userId}
                 fixedHeight={400}
                 username={result.username}
                 prettyName={result.prettyName}

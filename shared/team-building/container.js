@@ -30,7 +30,7 @@ type OwnProps = {
 type LocalState = {
   searchString: string,
   selectedService: ServiceIdWithContact,
-  highlightedIndex: ?number,
+  highlightedIndex: number,
 }
 
 const initialState: LocalState = {
@@ -76,8 +76,11 @@ const deriveServiceResultCount: (
 
 const deriveShowServiceResultCount = memoize(searchString => !!searchString)
 
-const deriveUserFromUserIdFn = memoize((searchResults: ?Array<User>) => (userId: string): ?User =>
-  (searchResults || []).filter(u => u.id === userId)[0] || null
+const deriveUserFromUserIdFn = memoize(
+  (searchResults: ?Array<User>, recommendations: ?Array<User>) => (userId: string): ?User =>
+    (searchResults || []).filter(u => u.id === userId)[0] ||
+    (recommendations || []).filter(u => u.id === userId)[0] ||
+    null
 )
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -105,7 +108,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
-    userFromUserId: deriveUserFromUserIdFn(userResults),
+    userFromUserId: deriveUserFromUserIdFn(userResults, state.chat2.teamBuildingUserRecs),
   }
 }
 
@@ -209,6 +212,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     teamSoFar,
   })
 
+  const showRecs = !ownProps.searchString && recommendations
+
   return {
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
@@ -217,7 +222,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: deriveOnDownArrowKeyDown(searchResults.length - 1, ownProps.incHighlightIndex),
+    onDownArrowKeyDown: deriveOnDownArrowKeyDown(
+      Math.max(showRecs ? recommendations.length : searchResults.length, 1) - 1,
+      ownProps.incHighlightIndex
+    ),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onMakeItATeam: () => console.log('todo'),
@@ -228,6 +236,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
+    showRecs,
     showServiceResultCount,
     teamSoFar,
   }
@@ -247,12 +256,12 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
 
   incHighlightIndex = (maxIndex: number) =>
     this.setState((state: LocalState) => ({
-      highlightedIndex: Math.min(state.highlightedIndex === null ? 0 : state.highlightedIndex + 1, maxIndex),
+      highlightedIndex: Math.min(state.highlightedIndex + 1, maxIndex),
     }))
 
   decHighlightIndex = () =>
     this.setState((state: LocalState) => ({
-      highlightedIndex: !state.highlightedIndex ? 0 : state.highlightedIndex - 1,
+      highlightedIndex: state.highlightedIndex < 1 ? 0 : state.highlightedIndex - 1,
     }))
 
   render() {

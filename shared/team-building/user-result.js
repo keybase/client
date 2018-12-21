@@ -31,46 +31,53 @@ const realCSS = (inTeam: boolean) => `
   Styles.globalColors.white
 } !important;}
     .hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton { background-color: ${
-  Styles.globalColors.blue
+  inTeam ? Styles.globalColors.red : Styles.globalColors.blue
 } !important;}
-    ${
-      inTeam
-        ? `.hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton:hover { background-color: ${
-            Styles.globalColors.red
-          } !important;}`
-        : ``
-    }
-  `
+`
 
-const Row = (props: Props) => (
-  <Kb.ClickableBox onClick={props.onAdd}>
-    <Kb.Box2
-      className={Styles.classNames({
-        hoverRow: !props.inTeam,
-        hoverRowinTeam: props.inTeam,
-      })}
-      direction="horizontal"
-      fullWidth={true}
-      centerChildren={true}
-      style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
-    >
-      <Kb.DesktopStyle style={realCSS(props.inTeam)} />
-      <Kb.Avatar size={32} username={props.username} style={{}} />
-      <Username
-        username={props.username}
-        prettyName={props.prettyName}
-        followingState={props.followingState}
-      />
-      <Services services={props.services} />
-      <ActionButton
-        inTeam={props.inTeam}
-        onAdd={props.onAdd}
-        onRemove={props.onRemove}
-        highlight={props.highlight}
-      />
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
+type LocalState = {
+  isHovering: boolean,
+}
+
+class Row extends React.Component<Props, State> {
+  state = {hovering: false}
+
+  render = () => (
+    <Kb.ClickableBox onClick={this.props.inTeam ? this.props.onRemove : this.props.onAdd}>
+      <Kb.Box2
+        onMouseOver={() => {
+          this.setState({hovering: true})
+        }}
+        onMouseLeave={() => {
+          this.setState({hovering: false})
+        }}
+        className={Styles.classNames({
+          hoverRow: !this.props.inTeam,
+          hoverRowinTeam: this.props.inTeam,
+        })}
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        style={Styles.collapseStyles([styles.rowContainer, this.props.highlight ? styles.highlighted : null])}
+      >
+        <Kb.DesktopStyle style={realCSS(this.props.inTeam)} />
+        <Kb.Avatar size={32} username={this.props.username} style={{}} />
+        <Username
+          username={this.props.username}
+          prettyName={this.props.prettyName}
+          followingState={this.props.followingState}
+        />
+        <Services services={this.props.services} />
+        <ActionButton
+          inTeam={this.props.inTeam}
+          onAdd={this.props.onAdd}
+          onRemove={this.props.onRemove}
+          highlight={this.props.highlight || this.state.hovering}
+        />
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
 
 const Username = (props: {username: string, prettyName: string, followingState: FollowingState}) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
