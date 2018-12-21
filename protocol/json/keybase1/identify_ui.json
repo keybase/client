@@ -119,6 +119,10 @@
         {
           "type": "TrackDiff",
           "name": "diff"
+        },
+        {
+          "type": "boolean",
+          "name": "snoozed"
         }
       ]
     },

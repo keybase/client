@@ -196,7 +196,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		return err
 	}
 	kbCtx.SetService()
-	uir := service.NewUIRouter(kbCtx, nil)
+	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.SetupCriticalSubServices()

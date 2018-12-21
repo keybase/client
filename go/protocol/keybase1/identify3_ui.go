@@ -46,19 +46,25 @@ func (e Identify3RowState) String() string {
 type Identify3RowColor int
 
 const (
-	Identify3RowColor_BLUE  Identify3RowColor = 1
-	Identify3RowColor_RED   Identify3RowColor = 2
-	Identify3RowColor_BLACK Identify3RowColor = 3
-	Identify3RowColor_GREEN Identify3RowColor = 4
+	Identify3RowColor_BLUE   Identify3RowColor = 1
+	Identify3RowColor_RED    Identify3RowColor = 2
+	Identify3RowColor_BLACK  Identify3RowColor = 3
+	Identify3RowColor_GREEN  Identify3RowColor = 4
+	Identify3RowColor_GRAY   Identify3RowColor = 5
+	Identify3RowColor_YELLOW Identify3RowColor = 6
+	Identify3RowColor_ORANGE Identify3RowColor = 7
 )
 
 func (o Identify3RowColor) DeepCopy() Identify3RowColor { return o }
 
 var Identify3RowColorMap = map[string]Identify3RowColor{
-	"BLUE":  1,
-	"RED":   2,
-	"BLACK": 3,
-	"GREEN": 4,
+	"BLUE":   1,
+	"RED":    2,
+	"BLACK":  3,
+	"GREEN":  4,
+	"GRAY":   5,
+	"YELLOW": 6,
+	"ORANGE": 7,
 }
 
 var Identify3RowColorRevMap = map[Identify3RowColor]string{
@@ -66,6 +72,9 @@ var Identify3RowColorRevMap = map[Identify3RowColor]string{
 	2: "RED",
 	3: "BLACK",
 	4: "GREEN",
+	5: "GRAY",
+	6: "YELLOW",
+	7: "ORANGE",
 }
 
 func (e Identify3RowColor) String() string {
@@ -81,6 +90,7 @@ const (
 	Identify3ResultType_OK            Identify3ResultType = 0
 	Identify3ResultType_BROKEN        Identify3ResultType = 1
 	Identify3ResultType_NEEDS_UPGRADE Identify3ResultType = 2
+	Identify3ResultType_CANCELED      Identify3ResultType = 3
 )
 
 func (o Identify3ResultType) DeepCopy() Identify3ResultType { return o }
@@ -89,12 +99,14 @@ var Identify3ResultTypeMap = map[string]Identify3ResultType{
 	"OK":            0,
 	"BROKEN":        1,
 	"NEEDS_UPGRADE": 2,
+	"CANCELED":      3,
 }
 
 var Identify3ResultTypeRevMap = map[Identify3ResultType]string{
 	0: "OK",
 	1: "BROKEN",
 	2: "NEEDS_UPGRADE",
+	3: "CANCELED",
 }
 
 func (e Identify3ResultType) String() string {
@@ -128,15 +140,13 @@ type Identify3UpdateRowArg struct {
 	Color    Identify3RowColor  `codec:"color" json:"color"`
 }
 
-type Identify3UpdateDetailsArg struct {
-	GuiID          Identify3GUIID `codec:"guiID" json:"guiID"`
-	FollowsYou     bool           `codec:"followsYou" json:"followsYou"`
-	FollowThem     bool           `codec:"followThem" json:"followThem"`
-	FollowersCount int            `codec:"followersCount" json:"followersCount"`
-	FollowingCount int            `codec:"followingCount" json:"followingCount"`
-	Bio            string         `codec:"bio" json:"bio"`
-	Location       string         `codec:"location" json:"location"`
-	PublishedTeams []string       `codec:"publishedTeams" json:"publishedTeams"`
+type Identify3UserResetArg struct {
+	GuiID Identify3GUIID `codec:"guiID" json:"guiID"`
+}
+
+type Identify3UpdateUserCardArg struct {
+	GuiID Identify3GUIID `codec:"guiID" json:"guiID"`
+	Card  UserCard       `codec:"card" json:"card"`
 }
 
 type Identify3TrackerTimedOutArg struct {
@@ -150,7 +160,8 @@ type Identify3ResultArg struct {
 type Identify3UiInterface interface {
 	ShowTracker(context.Context, ShowTrackerArg) error
 	Identify3UpdateRow(context.Context, Identify3UpdateRowArg) error
-	Identify3UpdateDetails(context.Context, Identify3UpdateDetailsArg) error
+	Identify3UserReset(context.Context, Identify3GUIID) error
+	Identify3UpdateUserCard(context.Context, Identify3UpdateUserCardArg) error
 	Identify3TrackerTimedOut(context.Context, Identify3GUIID) error
 	Identify3Result(context.Context, Identify3ResultType) error
 }
@@ -189,18 +200,33 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"identify3UpdateDetails": {
+			"identify3UserReset": {
 				MakeArg: func() interface{} {
-					var ret [1]Identify3UpdateDetailsArg
+					var ret [1]Identify3UserResetArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]Identify3UpdateDetailsArg)
+					typedArgs, ok := args.(*[1]Identify3UserResetArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]Identify3UpdateDetailsArg)(nil), args)
+						err = rpc.NewTypeError((*[1]Identify3UserResetArg)(nil), args)
 						return
 					}
-					err = i.Identify3UpdateDetails(ctx, typedArgs[0])
+					err = i.Identify3UserReset(ctx, typedArgs[0].GuiID)
+					return
+				},
+			},
+			"identify3UpdateUserCard": {
+				MakeArg: func() interface{} {
+					var ret [1]Identify3UpdateUserCardArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]Identify3UpdateUserCardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]Identify3UpdateUserCardArg)(nil), args)
+						return
+					}
+					err = i.Identify3UpdateUserCard(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -252,8 +278,14 @@ func (c Identify3UiClient) Identify3UpdateRow(ctx context.Context, __arg Identif
 	return
 }
 
-func (c Identify3UiClient) Identify3UpdateDetails(ctx context.Context, __arg Identify3UpdateDetailsArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateDetails", []interface{}{__arg})
+func (c Identify3UiClient) Identify3UserReset(ctx context.Context, guiID Identify3GUIID) (err error) {
+	__arg := Identify3UserResetArg{GuiID: guiID}
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []interface{}{__arg})
+	return
+}
+
+func (c Identify3UiClient) Identify3UpdateUserCard(ctx context.Context, __arg Identify3UpdateUserCardArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []interface{}{__arg})
 	return
 }
 

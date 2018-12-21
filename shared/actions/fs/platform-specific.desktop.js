@@ -102,8 +102,8 @@ const openLocalPathInSystemFileManager = (
   state: TypedState,
   action: FsGen.OpenLocalPathInSystemFileManagerPayload
 ) =>
-  getPathType(action.payload.path)
-    .then(pathType => _openPathInSystemFileManagerPromise(action.payload.path, pathType === 'directory'))
+  getPathType(action.payload.localPath)
+    .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
     .catch(makeUnretriableErrorHandler(action))
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
