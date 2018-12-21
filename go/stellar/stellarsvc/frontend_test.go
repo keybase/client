@@ -340,7 +340,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.NoError(t, err)
 
 	mctx := libkb.NewMetaContextBackground(tcs[0].G)
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	bundle, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
@@ -570,7 +570,8 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
-	_, err = stellar.CreateWallet(context.Background(), tcs[0].G, false)
+	mctx := tcs[0].MetaContext()
+	_, err = stellar.CreateWallet(mctx)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
@@ -1272,7 +1273,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 
 	senderSecondaryAccountID, err := tcs[0].Srv.CreateWalletAccountLocal(context.Background(), stellar1.CreateWalletAccountLocalArg{
@@ -1730,7 +1731,7 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -1940,7 +1941,7 @@ func TestReviewPaymentLocal(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -1999,7 +2000,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
@@ -2435,7 +2436,7 @@ func TestSetInflation(t *testing.T) {
 
 	// Test to see if RPCs are reaching remote (mocks).
 	acceptDisclaimer(tcs[0])
-	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])

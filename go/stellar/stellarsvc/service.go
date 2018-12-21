@@ -78,7 +78,7 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.M
 		}
 	}
 	if opts.RequireWallet {
-		cwg, err := stellar.CreateWalletGated(mctx.Ctx(), s.G())
+		cwg, err := stellar.CreateWalletGated(mctx)
 		if err != nil {
 			return mctx, fin, err
 		}
@@ -122,7 +122,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(mctx.Ctx(), s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	return stellar.ImportSecretKey(mctx, arg.SecretKey, arg.MakePrimary, arg.Name)
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -149,7 +149,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	if err != nil {
 		return res, err
 	}
-	return stellar.ExportSecretKey(ctx, s.G(), accountID)
+	return stellar.ExportSecretKey(mctx, accountID)
 }
 
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
@@ -162,7 +162,7 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return isOwn, err
 	}
-	isOwn, _, err = stellar.OwnAccount(mctx.Ctx(), s.G(), accountID)
+	isOwn, _, err = stellar.OwnAccount(mctx, accountID)
 	return isOwn, err
 }
 
@@ -231,12 +231,12 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 		into = *arg.Into
 	} else {
 		// Default to claiming into the user's primary wallet.
-		into, err = stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		into, err = stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return res, err
 		}
 	}
-	return stellar.Claim(mctx.Ctx(), s.G(), s.walletState, arg.TxID, into, nil, nil)
+	return stellar.Claim(mctx, s.walletState, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
@@ -252,14 +252,14 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 
 	var selectAccountID stellar1.AccountID
 	if accountID == nil {
-		selectAccountID, err = stellar.GetOwnPrimaryAccountID(mctx.Ctx(), s.G())
+		selectAccountID, err = stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		selectAccountID = *accountID
 	}
-	return stellar.RecentPaymentsCLILocal(mctx.Ctx(), s.G(), s.remoter, selectAccountID)
+	return stellar.RecentPaymentsCLILocal(mctx, s.remoter, selectAccountID)
 }
 
 func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
@@ -287,8 +287,8 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	flaggedForV2 := remote.AcctBundlesEnabled(mctx)
-	_, err = stellar.CreateWallet(mctx.Ctx(), s.G(), flaggedForV2)
+
+	_, err = stellar.CreateWallet(mctx)
 	return err
 }
 
@@ -341,7 +341,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		return ret, err
 	}
 
-	currentBundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	currentBundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -432,7 +432,7 @@ func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.For
 		return res, err
 	}
 
-	return stellar.FormatCurrency(mctx.Ctx(), s.G(), arg.Amount, arg.Code, stellar.FmtRound)
+	return stellar.FormatCurrency(mctx, arg.Amount, arg.Code, stellar.FmtRound)
 }
 
 // check that the display amount is within 1% of current exchange rates

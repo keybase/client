@@ -20,8 +20,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onCancelPayment: (paymentID: Types.PaymentID) =>
-    dispatch(WalletsGen.createCancelPayment({paymentID, showAccount: true})),
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (
     paymentID: Types.PaymentID,
     accountID: Types.AccountID,
@@ -57,8 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyType,
     issuerDescription: tx.issuerDescription,
     memo,
-    onCancelPayment:
-      tx.showCancel ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment: tx.showCancel ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),

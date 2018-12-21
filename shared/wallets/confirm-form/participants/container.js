@@ -29,7 +29,7 @@ const mapStateToProps = state => {
   }
 
   return {
-    fromAccountAssets: fromAccount.balanceDescription,
+    fromAccountAssets: built.amountAvailable,
     fromAccountIsDefault: fromAccount.isDefault,
     fromAccountName: fromAccount.name,
     recipientAccountAssets,

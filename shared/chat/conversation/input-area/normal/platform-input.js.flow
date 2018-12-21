@@ -1,5 +1,12 @@
 // @flow
 import {Component} from 'react'
+import {type OverlayParentProps} from '../../../../common-adapters'
 import {type PlatformInputProps} from './types'
+import {type PropsWithSuggestor, type PropsWithSuggestorOuter} from '../suggestors'
 
-export default class PlatformInput extends Component<PlatformInputProps> {}
+export type PlatformInputPropsInternal = PropsWithSuggestor<{
+  ...$Exact<PlatformInputProps>,
+  ...$Exact<OverlayParentProps>,
+}>
+
+export default class PlatformInput extends Component<PropsWithSuggestorOuter<PlatformInputProps>> {}

@@ -298,7 +298,9 @@ const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
       return daysToLabel(p.days)
     case 'inherit':
       if (!parent) {
-        throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+        // Don't throw an error, as this may happen when deleting a
+        // channel.
+        return 'Team default'
       }
       return policyToInheritLabel(parent)
   }

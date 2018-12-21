@@ -28,6 +28,9 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
+  const meta = Constants.getMeta(state, conversationIDKey)
+  // don't include 'small' here to ditch the single #general suggestion
+  const teamname = meta.teamType === 'big' ? meta.teamname : ''
 
   const _you = state.config.username || ''
 
@@ -47,6 +50,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
+    suggestChannels: Constants.getChannelSuggestions(state, teamname),
+    suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -132,6 +137,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     setUnsentText(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
+  suggestChannels: stateProps.suggestChannels,
+  suggestUsers: stateProps.suggestUsers,
   typing: stateProps.typing,
 })
 

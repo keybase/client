@@ -520,6 +520,10 @@
           "lint": "ignore"
         },
         {
+          "type": "string",
+          "name": "amountAvailable"
+        },
+        {
           "type": {
             "type": "array",
             "items": "SendBannerLocal"
@@ -1663,7 +1667,7 @@
     },
     "walletDumpLocal": {
       "request": [],
-      "response": "BundleRestricted"
+      "response": "Bundle"
     },
     "walletGetAccountsCLILocal": {
       "request": [],

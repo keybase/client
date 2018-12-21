@@ -79,7 +79,7 @@
             "name": "V1",
             "def": false
           },
-          "body": "BundleSecretV1"
+          "body": "BundleSecretUnsupported"
         },
         {
           "label": {
@@ -143,83 +143,6 @@
             "def": false
           },
           "body": "BundleSecretUnsupported"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BundleVisibleV1",
-      "fields": [
-        {
-          "type": "BundleRevision",
-          "name": "revision"
-        },
-        {
-          "type": "Hash",
-          "name": "prev"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "BundleVisibleEntryV1"
-          },
-          "name": "accounts"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BundleSecretV1",
-      "fields": [
-        {
-          "type": "Hash",
-          "name": "visibleHash"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "BundleSecretEntryV1"
-          },
-          "name": "accounts"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BundleVisibleEntryV1",
-      "fields": [
-        {
-          "type": "AccountID",
-          "name": "accountID"
-        },
-        {
-          "type": "AccountMode",
-          "name": "mode"
-        },
-        {
-          "type": "boolean",
-          "name": "isPrimary"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BundleSecretEntryV1",
-      "fields": [
-        {
-          "type": "AccountID",
-          "name": "accountID"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "SecretKey"
-          },
-          "name": "signers"
-        },
-        {
-          "type": "string",
-          "name": "name"
         }
       ]
     },
@@ -468,60 +391,6 @@
             "items": "BundleEntry"
           },
           "name": "accounts"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BundleEntry",
-      "fields": [
-        {
-          "type": "AccountID",
-          "name": "accountID"
-        },
-        {
-          "type": "AccountMode",
-          "name": "mode"
-        },
-        {
-          "type": "boolean",
-          "name": "isPrimary"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "SecretKey"
-          },
-          "name": "signers"
-        },
-        {
-          "type": "string",
-          "name": "name"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BundleRestricted",
-      "fields": [
-        {
-          "type": "BundleRevision",
-          "name": "revision"
-        },
-        {
-          "type": "Hash",
-          "name": "prev"
-        },
-        {
-          "type": "Hash",
-          "name": "ownHash"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "BundleEntryRestricted"
-          },
-          "name": "accounts"
         },
         {
           "type": {
@@ -535,7 +404,7 @@
     },
     {
       "type": "record",
-      "name": "BundleEntryRestricted",
+      "name": "BundleEntry",
       "fields": [
         {
           "type": "AccountID",
