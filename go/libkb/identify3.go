@@ -108,6 +108,9 @@ type Identify3State struct {
 
 	bgThreadTimeMu   sync.Mutex
 	testCompletionCh chan<- time.Time
+
+	shutdownMu sync.Mutex
+	shutdown   bool
 }
 
 func NewIdentify3State(g *GlobalContext) *Identify3State {
@@ -136,7 +139,27 @@ func newIdentify3State(g *GlobalContext, testCompletionCh chan<- time.Time) *Ide
 }
 
 func (s *Identify3State) Shutdown() {
-	close(s.expireCh)
+	if s.markShutdown() {
+		close(s.expireCh)
+	}
+}
+
+func (s *Identify3State) isShutdown() bool {
+	s.shutdownMu.Lock()
+	defer s.shutdownMu.Unlock()
+	return s.shutdown
+}
+
+// markShutdown marks this state as having shutdown. Will return true the first
+// time through, and false every other time.
+func (s *Identify3State) markShutdown() bool {
+	s.shutdownMu.Lock()
+	defer s.shutdownMu.Unlock()
+	if s.shutdown {
+		return false
+	}
+	s.shutdown = true
+	return true
 }
 
 func (s *Identify3State) makeNewCache() {
@@ -287,5 +310,8 @@ func (s *Identify3State) removeFromTableLocked(key keybase1.Identify3GUIID) {
 
 // pokeExpireThread should never be called when holding s.Mutex.
 func (s *Identify3State) pokeExpireThread() {
+	if s.isShutdown() {
+		return
+	}
 	s.expireCh <- struct{}{}
 }
