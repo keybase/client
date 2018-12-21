@@ -184,6 +184,7 @@ export const makeAnnouncement: I.RecordFactory<Types._Announcement> = I.Record({
   badged: false,
   confirmLabel: null,
   dismissable: false,
+  iconUrl: '',
   id: 0,
   text: '',
   type: 'announcement',
