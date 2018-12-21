@@ -23,7 +23,8 @@ type Props = {
 
 const Header = (props: Props) => {
   const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
-  const name = props.walletName ? (
+  const caret = Styles.isMobile && <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} />
+  const nameAndInfo = props.walletName ? (
     <MaybeSwitcher>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2
@@ -36,6 +37,7 @@ const Header = (props: Props) => {
           {backButton}
           {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
           <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+          {caret}
         </Kb.Box2>
         {props.isDefaultWallet && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -61,7 +63,7 @@ const Header = (props: Props) => {
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapStart={true} style={styles.noShrink}>
-      {name}
+      {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
         <SendButton
           onSendToKeybaseUser={props.onSendToKeybaseUser}
@@ -181,6 +183,9 @@ const styles = Styles.styleSheetCreate({
   backButton: {
     left: 0,
     position: 'absolute',
+  },
+  caret: {
+    width: 10,
   },
   dropdownButton: Styles.platformStyles({
     isElectron: {
