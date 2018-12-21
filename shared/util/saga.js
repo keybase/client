@@ -43,6 +43,14 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   return results
 }
 
+function* chainAction<AS>(
+  pattern: AS,
+  f: (
+    state: TypedState,
+    actions: AS
+  ) => Action | Promise<TypedActions> | Array<TypedActions> | Promise<Array<TypedActions>>
+) {}
+
 // Helper that expects a function which returns a promise that resolves to a put
 function actionToPromise<A>(
   pattern: RS.Pattern,
