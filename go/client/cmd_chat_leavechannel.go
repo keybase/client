@@ -64,7 +64,6 @@ func (c *CmdChatLeaveChannel) Run() error {
 
 func (c *CmdChatLeaveChannel) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 2 {
-		cli.ShowCommandHelp(ctx, "leave-channel")
 		return fmt.Errorf("Incorrect usage.")
 	}
 	teamName := ctx.Args().Get(0)
