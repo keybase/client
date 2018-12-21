@@ -5,7 +5,7 @@
 
 // +build windows
 
-package dokan
+package install
 
 import (
 	"errors"
