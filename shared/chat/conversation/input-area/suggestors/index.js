@@ -65,11 +65,11 @@ type AddSuggestorsState = {
 type SuggestorHooks = {
   inputRef: {current: React.ElementRef<typeof Kb.PlainInput> | null},
   onChangeText: string => void,
+  onFocus: () => void,
   // Desktop only
   onKeyDown: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   // Mobile only
   onBlur: () => void,
-  onFocus: () => void,
   onSelectionChange: ({start: number, end: number}) => void,
 }
 

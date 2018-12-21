@@ -229,6 +229,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 placeholder={hintText}
                 style={styles.input}
                 onChangeText={this._onChangeText}
+                onFocus={this.props.onFocus}
                 multiline={true}
                 rowsMin={1}
                 rowsMax={10}
