@@ -24,7 +24,7 @@ func isDokanCurrent(log Log, path string) (bool, error) {
 	result := v.Major > 1 || (v.Major == 1 && (v.Minor > 2 || (v.Minor == 2 && (v.Patch > 1 || (v.Patch == 1 && v.Build >= 2000)))))
 
 	if !result {
-		log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", major, minor, patch, build, result)
+		log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", v.Major, v.Minor, v.Patch, v.Build, result)
 	}
 	return result, nil
 }
