@@ -17,22 +17,19 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_40,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
-  badge: {
-    marginLeft: 6,
-  },
-  check: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
   containerBox: {
+    alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
+    flexDirection: 'row',
     height: 48,
+    justifyContent: 'space-between',
     width: '100%',
   },
   icon: {
-    alignSelf: 'center',
     height: 32,
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
+    minWidth: 32,
   },
   rowContainer: {
     alignItems: 'center',
@@ -47,8 +44,16 @@ const styles = Styles.styleSheetCreate({
 })
 
 const WalletRow = (props: Props) => {
+  // Just needed for alignment.
+  const leftIcon = <Kb.Box2 direction="horizontal" style={styles.icon} />
+  const rightIcon = props.isSelected ? (
+    <Kb.Icon type="iconfont-check" color={Styles.globalColors.blue} style={styles.icon} />
+  ) : props.unreadPayments > 0 ? (
+    <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.icon} />
+  ) : null
   return (
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
+      {leftIcon}
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {!!props.keybaseUser && (
@@ -61,17 +66,12 @@ const WalletRow = (props: Props) => {
           <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
           </Kb.Text>
-          {!!props.unreadPayments && (
-            <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
-          )}
-          {props.isSelected && (
-            <Kb.Icon type="iconfont-check" color={Styles.globalColors.blue} style={styles.check} />
-          )}
         </Kb.Box2>
         <Kb.Text type="BodySmall" style={styles.amount}>
           {props.contents}
         </Kb.Text>
       </Kb.Box2>
+      {rightIcon}
     </Kb.ClickableBox>
   )
 }
