@@ -185,6 +185,7 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
   },
   caret: {
+    marginLeft: Styles.globalMargins.xtiny,
     width: 10,
   },
   dropdownButton: Styles.platformStyles({
