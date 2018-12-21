@@ -145,7 +145,8 @@
     REMOVED_1,     // removed from channel forcibly
     LEFT_2,        // voluntarily left conversation
     PREVIEW_3,     // use is previewing the channel from an @mention
-    RESET_4       // status of having an account reset in an impteam
+    RESET_4,       // status of having an account reset in an impteam
+    NEVER_JOINED_5 // member of the team but never joined the conv
   }
 
   record Pagination {
