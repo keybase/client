@@ -44,14 +44,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fontSemibold,
     color: Styles.globalColors.black_75,
   },
-  unread: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: 6,
-    flexShrink: 0,
-    height: Styles.globalMargins.tiny,
-    marginLeft: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.tiny,
-  },
 })
 
 const WalletRow = (props: Props) => {
@@ -69,7 +61,9 @@ const WalletRow = (props: Props) => {
           <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
           </Kb.Text>
-          {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
+          {!!props.unreadPayments && (
+            <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
+          )}
           {props.isSelected && (
             <Kb.Icon type="iconfont-check" color={Styles.globalColors.blue} style={styles.check} />
           )}
@@ -82,6 +76,5 @@ const WalletRow = (props: Props) => {
   )
 }
 
-const UnreadIcon = (props: {unreadPayments: number}) => <Kb.Box2 direction="vertical" style={styles.unread} />
 export type {Props}
 export {WalletRow}
