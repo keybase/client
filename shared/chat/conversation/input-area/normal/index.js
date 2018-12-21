@@ -181,9 +181,32 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getUserSuggestions = filter => {
     const fil = filter.toLowerCase()
-    return this.props.suggestUsers
-      .filter(user => user.username.toLowerCase().includes(fil) || user.fullName.toLowerCase().includes(fil))
-      .toArray()
+    const results = fil
+      ? this.props.suggestUsers
+          .map(u => {
+            let score = 0
+            const username = u.username.toLowerCase()
+            const fullName = u.fullName.toLowerCase()
+            if (username.includes(fil) || fullName.includes(fil)) {
+              // 1 point for included somewhere
+              score++
+            }
+            if (fullName.startsWith(fil)) {
+              // 1 point for start of fullname
+              score++
+            }
+            if (username.startsWith(fil)) {
+              // 2 points for start of username
+              score += 2
+            }
+            return {score, user: u}
+          })
+          .filter(withScore => !!withScore.score)
+          .sort((a, b) => b.score - a.score)
+          .map(userWithScore => userWithScore.user)
+          .toArray()
+      : this.props.suggestUsers.toArray()
+    return results
   }
 
   _renderUserSuggestion = ({username, fullName}: {username: string, fullName: string}, selected: boolean) => (
