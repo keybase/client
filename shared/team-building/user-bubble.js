@@ -2,6 +2,7 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
@@ -22,7 +23,11 @@ const KeybaseUserBubble = (props: Props) => (
 )
 
 const GeneralServiceBubble = (props: Props) => (
-  <Kb.Box2 className="user" direction="horizontal" style={styles.generalService} />
+  <Kb.Icon
+    fontSize={bubbleSize}
+    type={serviceIdToIconFont(props.service)}
+    style={{color: serviceIdToAccentColor(props.service)}}
+  />
 )
 
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
