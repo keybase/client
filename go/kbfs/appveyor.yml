@@ -15,7 +15,7 @@ install:
   - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
   - set Path=c:\go\bin;%Path%
   # Stock Dokan 1.2
-  - appveyor DownloadFile https://github.com/dokan-dev/dokany/releases/download/v1.2.0.1000/dokan.zip 
+  - appveyor DownloadFile https://github.com/dokan-dev/dokany/releases/download/v1.2.1.2000/dokan.zip 
   - 7z x dokan.zip -o"C:\dokan" -y -aoa > nul
   - copy C:\dokan\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
   - pushd C:\dokan\x64\Release
