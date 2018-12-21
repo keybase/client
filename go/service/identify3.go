@@ -29,7 +29,7 @@ func newIdentify3Handler(xp rpc.Transporter, g *libkb.GlobalContext) *identify3H
 func (i *identify3Handler) Identify3(ctx context.Context, arg keybase1.Identify3Arg) (err error) {
 	mctx := i.newMetaContext(ctx)
 	defer mctx.CTrace(fmt.Sprintf("Identify3(%+v)", arg), func() error { return err })()
-	cli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(mctx.G()), nil)
+	cli := rpc.NewClient(i.xp, libkb.NewContextifiedErrorUnwrapper(mctx.G()), nil)
 	id3cli := keybase1.Identify3UiClient{Cli: cli}
 	return identify3.Identify3(mctx, id3cli, arg)
 }
