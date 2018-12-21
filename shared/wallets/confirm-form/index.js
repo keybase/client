@@ -24,62 +24,63 @@ type ConfirmSendProps = {|
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.SafeAreaViewTopBottom bottomColor={Styles.globalColors.white} topColor={Styles.globalColors.purple}>
-      <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
-        <Header
-          onBack={props.onBack}
-          sendingIntentionXLM={props.sendingIntentionXLM}
-          displayAmountXLM={props.displayAmountXLM}
-          displayAmountFiat={props.displayAmountFiat}
-        />
-        {(props.banners || []).map(banner => (
-          <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-        ))}
-        <Kb.ScrollView style={styles.scrollView}>
-          <Participants />
-          {(!!props.encryptedNote || !!props.publicMemo) && (
-            <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
-          )}
-        </Kb.ScrollView>
-        <Kb.Box2
-          direction="horizontal"
+    <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
+    <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
+      <Header
+        onBack={props.onBack}
+        sendingIntentionXLM={props.sendingIntentionXLM}
+        displayAmountXLM={props.displayAmountXLM}
+        displayAmountFiat={props.displayAmountFiat}
+      />
+      {(props.banners || []).map(banner => (
+        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+      ))}
+      <Kb.ScrollView style={styles.scrollView}>
+        <Participants />
+        {(!!props.encryptedNote || !!props.publicMemo) && (
+          <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
+        )}
+      </Kb.ScrollView>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        gap="small"
+        gapStart={true}
+        gapEnd={true}
+        style={styles.buttonContainer}
+      >
+        <Kb.WaitingButton
+          type="PrimaryGreen"
+          disabled={props.sendFailed}
+          onClick={props.onSendClick}
+          waitingKey={props.waitingKey}
           fullWidth={true}
-          centerChildren={true}
-          gap="small"
-          gapStart={true}
-          gapEnd={true}
-          style={styles.buttonContainer}
-        >
-          <Kb.WaitingButton
-            type="PrimaryGreen"
-            disabled={props.sendFailed}
-            onClick={props.onSendClick}
-            waitingKey={props.waitingKey}
-            fullWidth={true}
-            style={styles.button}
-            children={
-              <React.Fragment>
-                <Kb.Icon
-                  type="iconfont-stellar-send"
-                  style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
-                  color={Styles.globalColors.white}
-                />
-                <Kb.Text type="BodyBig" style={styles.buttonText}>
-                  Send{' '}
-                  <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                    {props.displayAmountXLM}
-                  </Kb.Text>
+          style={styles.button}
+          children={
+            <React.Fragment>
+              <Kb.Icon
+                type="iconfont-stellar-send"
+                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
+                color={Styles.globalColors.white}
+              />
+              <Kb.Text type="BodyBig" style={styles.buttonText}>
+                Send{' '}
+                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
+                  {props.displayAmountXLM}
                 </Kb.Text>
-              </React.Fragment>
-            }
-          />
-        </Kb.Box2>
+              </Kb.Text>
+            </React.Fragment>
+          }
+        />
       </Kb.Box2>
-    </Kb.SafeAreaViewTopBottom>
+    </Kb.Box2>
+    <Kb.SafeAreaView />
   </Kb.MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,

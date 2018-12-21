@@ -31,18 +31,20 @@ const Root = (props: Props) => (
       behavior={Styles.isAndroid ? undefined : 'padding'}
       style={Styles.globalStyles.fillAbsolute}
     >
-      <Kb.SafeAreaViewTopBottom topColor={Styles.globalColors.purple} bottomColor={Styles.globalColors.blue5}>
-        <Kb.Box2 direction="vertical" style={styles.container}>
-          <Header onBack={Styles.isMobile ? props.onClose : null} />
-          {props.children}
-        </Kb.Box2>
-        {!Styles.isMobile && <PoweredByStellar />}
-      </Kb.SafeAreaViewTopBottom>
+      <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        <Header onBack={Styles.isMobile ? props.onClose : null} />
+        {props.children}
+      </Kb.Box2>
+      {!Styles.isMobile && <PoweredByStellar />}
+      <Kb.SafeAreaView style={styles.backgroundColorBlue5} />
     </Kb.KeyboardAvoidingView>
   </Kb.MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
+  backgroundColorBlue5: {backgroundColor: Styles.globalColors.blue5},
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
@@ -56,16 +58,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  safeAreaView: {backgroundColor: Styles.globalColors.purple, flex: 1},
-  safeAreaViewBottom: {
-    backgroundColor: Styles.globalColors.blue5,
-    bottom: 0,
-    height: 100,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    zIndex: -1000,
-  },
   textColor: {
     color: Styles.globalColors.white_40,
   },
