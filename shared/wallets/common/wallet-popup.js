@@ -33,40 +33,36 @@ const backButtonTypeToFcnHandle = {
 
 const WalletPopup = (props: WalletPopupProps) => (
   <Kb.Box2 direction="vertical" style={styles.outerContainer}>
-    <Kb.SafeAreaView>
-      <Kb.ScrollView
-        alwaysBounceVertical={false}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContentContainer}
+    <Kb.ScrollView
+      alwaysBounceVertical={false}
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollViewContentContainer}
+    >
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={!Styles.isMobile}
+        fullWidth={true}
+        centerChildren={true}
+        style={Styles.collapseStyles([
+          styles.container,
+          props.backButtonType === 'back' && !Styles.isMobile ? {paddingTop: Styles.globalMargins.small} : {},
+          props.containerStyle,
+        ])}
       >
-        <Kb.Box2
-          direction="vertical"
-          fullHeight={true}
-          fullWidth={true}
-          centerChildren={true}
-          style={Styles.collapseStyles([
-            styles.container,
-            props.backButtonType === 'back' && !Styles.isMobile
-              ? {paddingTop: Styles.globalMargins.small}
-              : {},
-            props.containerStyle,
-          ])}
-        >
-          {props.children}
-          {props.bottomButtons && props.bottomButtons.length > 0 && (
-            <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-              <Kb.ButtonBar
-                direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
-                fullWidth={Styles.isMobile}
-                style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
-              >
-                {props.bottomButtons}
-              </Kb.ButtonBar>
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </Kb.SafeAreaView>
+        {props.children}
+        {props.bottomButtons && props.bottomButtons.length > 0 && (
+          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+            <Kb.ButtonBar
+              direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
+              fullWidth={Styles.isMobile}
+              style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
+            >
+              {props.bottomButtons}
+            </Kb.ButtonBar>
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
+    </Kb.ScrollView>
   </Kb.Box2>
 )
 
@@ -109,6 +105,7 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
     isMobile: {
+      flex: 1,
       width: '100%',
     },
   }),
@@ -116,13 +113,12 @@ const styles = Styles.styleSheetCreate({
   scrollView: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
-    height: '100%',
     width: '100%',
   },
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 })
 
-export default compose(
+const WalletPopupWrapped = compose(
   withProps<any, any, any>((props: WalletPopupProps) => ({
     [backButtonTypeToFcnHandle[props.backButtonType]]: (props.onExit: any), // cast to any for flow "incompatible with undefined"
     customCancelText: props.backButtonType === 'close' ? 'Close' : '',
@@ -133,3 +129,16 @@ export default compose(
   })),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)
+
+const WithKeyboardAvoidingView = (props: WalletPopupProps) => (
+  <Kb.KeyboardAvoidingView
+    behavior={Styles.isAndroid ? undefined : 'padding'}
+    style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
+  >
+    <Kb.SafeAreaViewTop />
+    <WalletPopupWrapped {...props} />
+    <Kb.SafeAreaView />
+  </Kb.KeyboardAvoidingView>
+)
+
+export default WithKeyboardAvoidingView
