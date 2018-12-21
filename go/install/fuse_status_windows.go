@@ -6,45 +6,27 @@
 package install
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
 
-	"github.com/gonutz/w32"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sys/windows/registry"
 )
 
-func isDokanCurrent(log Log, path string) (bool, error) {
-	size := w32.GetFileVersionInfoSize(path)
-	if size <= 0 {
-		return false, errors.New("GetFileVersionInfoSize failed")
+func isDokanCurrent(path string) error {
+	v, err := GetFileVersion(path)
+	if err != nil {
+		return err
 	}
-
-	info := make([]byte, size)
-	ok := w32.GetFileVersionInfo(path, info)
-	if !ok {
-		return false, errors.New("GetFileVersionInfo failed")
-	}
-
-	fixed, ok := w32.VerQueryValueRoot(info)
-	if !ok {
-		return false, errors.New("VerQueryValueRoot failed")
-	}
-	version := fixed.FileVersion()
-
-	major := version & 0xFFFF000000000000 >> 48
-	minor := version & 0x0000FFFF00000000 >> 32
-	patch := version & 0x00000000FFFF0000 >> 16
-	build := version & 0x000000000000FFFF
-
 	// we're looking for 1.2.1.1000
-	result := major > 1 || (major == 1 && (minor > 2 || (minor == 2 && (patch > 1 || (patch == 1 && build >= 1000)))))
-	log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", major, minor, patch, build, result)
+	result := v.Major > 1 || (v.Major == 1 && (v.Minor > 2 || (v.Minor == 2 && (v.Patch > 1 || (v.Patch == 1 && v.Build >= 1000)))))
 
-	return result, nil
+	if !result {
+		return fmt.Errorf("Dokan version %d.%d.%d.%d (need 1.2.1.1000)", v.Major, v.Minor, v.Patch, v.Build)
+	}
+	return nil
 }
 
 func detectDokanDll(dokanPath string, log Log) bool {
