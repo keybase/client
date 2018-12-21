@@ -3945,13 +3945,6 @@
       "github.com/keybase/client/go/tools/winresource" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
-   "github.com/keybase/client/go/vendor/github.com/gonutz/w32" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/install" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/systests" : 1
-   },
    "github.com/keybase/client/go/vendor/github.com/hashicorp/golang-lru" : {
       "github.com/keybase/client/go/auth" : 1,
       "github.com/keybase/client/go/avatars" : 1,

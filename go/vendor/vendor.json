@@ -401,12 +401,6 @@
 			"revisionTime": "2018-05-18T05:39:59Z"
 		},
 		{
-			"checksumSHA1": "cyYgVi3Yr2kM2IBsx/KbDJ9RP+o=",
-			"path": "github.com/gonutz/w32",
-			"revision": "47c59d9e7169b836c85c980332f6d109b07da3e5",
-			"revisionTime": "2018-12-10T11:33:05Z"
-		},
-		{
 			"checksumSHA1": "4K1LTDKblIXwDEhNQULXcRKMbB0=",
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "20f1fb78b0740ba8c3cb143a61e86ba5c8669768",
