@@ -7,7 +7,7 @@ import * as RouteTree from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
-import {logError} from '../util/errors'
+import {logError, type RPCError} from '../util/errors'
 
 const load = state =>
   state.config.loggedIn
@@ -19,20 +19,22 @@ const load = state =>
         .catch(() => {})
     : false
 
-function* requestPaperKey() {
-  yield RPCTypes.loginPaperKeyRpcSaga({
-    customResponseIncomingCallMap: {
-      'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-        response.result(false)
+function* requestPaperKey(): Generator<any, void, any> {
+  yield* Saga.callRPCs(
+    RPCTypes.loginPaperKeyRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+          response.result(false)
+        },
       },
-    },
-    incomingCallMap: {
-      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
-        Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-    },
-    params: undefined,
-    waitingKey: Constants.waitingKey,
-  })
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
+          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
+      },
+      params: undefined,
+      waitingKey: Constants.waitingKey,
+    })
+  )
 }
 
 const requestEndangeredTLFsLoad = state => {
@@ -46,7 +48,7 @@ const requestEndangeredTLFsLoad = state => {
           tlfs: (tlfs.endangeredTLFs || []).map(t => t.name),
         })
       )
-      .catch(e => {
+      .catch((e: RPCError) => {
         console.error(e)
       })
   }

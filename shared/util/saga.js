@@ -220,6 +220,11 @@ function* callPromise<Args, T>(fn: (...args: Args) => Promise<T>, ...args: Args)
   // $FlowIssue doesn't understand args will be an array
   return yield Effects.call(fn, ...args)
 }
+// Used to delegate in a typed way to what engine saga returns. short term use this but longer term
+// generate generators instead and yield * directly
+function* callRPCs(e: RS.CallEffect<any, any, any>): Generator<any, void, any> {
+  return yield e
+}
 
 function* selectState(): Generator<any, TypedState, any> {
   const state: TypedState = yield Effects.select()
@@ -254,4 +259,5 @@ export {
   callPromise,
   chainAction,
   chainGenerator,
+  callRPCs,
 }
