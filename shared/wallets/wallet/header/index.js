@@ -23,29 +23,29 @@ type Props = {
 
 const Header = (props: Props) => {
   const name = props.walletName ? (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        gap="xtiny"
-        centerChildren={true}
-        style={styles.topContainer}
-      >
-        {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
-        {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
-        <Name>
+    <Name>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          gap="xtiny"
+          centerChildren={true}
+          style={styles.topContainer}
+        >
+          {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
+          {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
           <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
-        </Name>
-      </Kb.Box2>
-      {props.isDefaultWallet && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
         </Kb.Box2>
-      )}
-      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-        <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
+        {props.isDefaultWallet && (
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+            <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </Name>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2
