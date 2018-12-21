@@ -188,7 +188,6 @@ func (i *UIAdapter) checkEldest(key keybase1.IdentifyKey) {
 	if err != nil {
 		i.M().CDebugf("Error sending user reset message: %s", err)
 	}
-	return
 }
 
 func (i *UIAdapter) ReportLastTrack(track *keybase1.TrackSummary) error {
