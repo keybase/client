@@ -9,6 +9,7 @@ import MaybeSwitcher from './maybe-switcher'
 type Props = {
   accountID: Types.AccountID,
   isDefaultWallet: boolean,
+  unreadPayments: number,
   onReceive: () => void,
   onBack: ?() => void,
   onRequest: () => void,
@@ -21,9 +22,20 @@ type Props = {
   walletName: ?string,
 }
 
+const UnreadIcon = (props: {unreadPayments: number}) => (
+  <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
+    <Kb.Box2 direction="vertical" style={styles.unread} />
+  </Kb.Box2>
+)
+
 const Header = (props: Props) => {
   const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+  // Only show caret/unread badge when we have a switcher,
+  // i.e. when isMobile is true.
   const caret = Styles.isMobile && <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} />
+  const unread = Styles.isMobile && !!props.unreadPayments && (
+    <UnreadIcon unreadPayments={props.unreadPayments} />
+  )
   const nameAndInfo = props.walletName ? (
     <MaybeSwitcher>
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -38,6 +50,7 @@ const Header = (props: Props) => {
           {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
           <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
           {caret}
+          {unread}
         </Kb.Box2>
         {props.isDefaultWallet && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -210,6 +223,20 @@ const styles = Styles.styleSheetCreate({
   },
   topContainer: {
     position: 'relative',
+  },
+  unread: {
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: 6,
+    flexShrink: 0,
+    height: Styles.globalMargins.tiny,
+    width: Styles.globalMargins.tiny,
+  },
+  unreadContainer: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingRight: Styles.globalMargins.tiny,
   },
 })
 
