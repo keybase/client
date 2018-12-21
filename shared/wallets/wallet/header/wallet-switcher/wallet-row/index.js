@@ -46,14 +46,8 @@ const styles = Styles.styleSheetCreate({
     borderRadius: 6,
     flexShrink: 0,
     height: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
     width: Styles.globalMargins.tiny,
-  },
-  unreadContainer: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingRight: Styles.globalMargins.tiny,
   },
 })
 
@@ -72,20 +66,16 @@ const WalletRow = (props: Props) => {
           <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
           </Kb.Text>
+          {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
         </Kb.Box2>
         <Kb.Text type="BodySmall" style={styles.amount}>
           {props.contents}
         </Kb.Text>
       </Kb.Box2>
-      {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
     </Kb.ClickableBox>
   )
 }
 
-const UnreadIcon = (props: {unreadPayments: number}) => (
-  <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
-    <Kb.Box2 direction="vertical" style={styles.unread} />
-  </Kb.Box2>
-)
+const UnreadIcon = (props: {unreadPayments: number}) => <Kb.Box2 direction="vertical" style={styles.unread} />
 export type {Props}
 export {WalletRow}
