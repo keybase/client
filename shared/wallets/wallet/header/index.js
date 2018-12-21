@@ -22,6 +22,7 @@ type Props = {
 }
 
 const Header = (props: Props) => {
+  const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
   const name = props.walletName ? (
     <Name>
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -32,7 +33,7 @@ const Header = (props: Props) => {
           centerChildren={true}
           style={styles.topContainer}
         >
-          {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
+          {backButton}
           {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
           <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
         </Kb.Box2>
@@ -55,7 +56,7 @@ const Header = (props: Props) => {
         centerChildren={true}
         style={styles.topContainer}
       >
-        {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
+        {backButton}
         <Kb.ProgressIndicator style={styles.spinner} type="Small" />
       </Kb.Box2>
     </Kb.Box2>
