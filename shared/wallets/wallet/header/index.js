@@ -22,11 +22,7 @@ type Props = {
   walletName: ?string,
 }
 
-const UnreadIcon = (props: {unreadPayments: number}) => (
-  <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
-    <Kb.Box2 direction="vertical" style={styles.unread} />
-  </Kb.Box2>
-)
+const UnreadIcon = (props: {unreadPayments: number}) => <Kb.Box2 direction="vertical" style={styles.unread} />
 
 const Header = (props: Props) => {
   const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
@@ -229,14 +225,9 @@ const styles = Styles.styleSheetCreate({
     borderRadius: 6,
     flexShrink: 0,
     height: Styles.globalMargins.tiny,
+    marginLeft: -Styles.globalMargins.tiny,
+    marginTop: -Styles.globalMargins.xtiny,
     width: Styles.globalMargins.tiny,
-  },
-  unreadContainer: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingRight: Styles.globalMargins.tiny,
   },
 })
 
