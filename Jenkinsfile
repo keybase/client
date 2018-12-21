@@ -359,12 +359,12 @@ def testGo(prefix) {
                 'github.com/keybase/client/go/kbfs/test': [
                     name: 'kbfs_test_fuse',
                     flags: '-tags fuse',
-                    timeout: '15m'
+                    timeout: '15m',
                 ],
                 'github.com/keybase/client/go/kbfs/libfuse': [
                     name: 'kbfs_libfuse',
                     flags: '',
-                    timeout: '3m'
+                    timeout: '3m',
                 ],
             ],
             test_linux_go_: [
@@ -372,7 +372,7 @@ def testGo(prefix) {
                 'github.com/keybase/client/go/kbfs/libfuse': [
                     name: 'kbfs_libfuse',
                     flags: '',
-                    timeout: '3m'
+                    timeout: '3m',
                 ],
                 // TODO: put all the -race tests here
             ],
