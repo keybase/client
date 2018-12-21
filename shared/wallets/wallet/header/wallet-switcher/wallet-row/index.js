@@ -20,6 +20,9 @@ const styles = Styles.styleSheetCreate({
   badge: {
     marginLeft: 6,
   },
+  check: {
+    marginLeft: Styles.globalMargins.tiny,
+  },
   containerBox: {
     backgroundColor: Styles.globalColors.white,
     height: 48,
@@ -67,6 +70,9 @@ const WalletRow = (props: Props) => {
             {props.name}
           </Kb.Text>
           {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
+          {props.isSelected && (
+            <Kb.Icon type="iconfont-check" color={Styles.globalColors.blue} style={styles.check} />
+          )}
         </Kb.Box2>
         <Kb.Text type="BodySmall" style={styles.amount}>
           {props.contents}
