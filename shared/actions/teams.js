@@ -601,17 +601,15 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   }
 
   // Get the subteam map for this team.
-  const teamTree = yield* Saga.callPromise(
-    RPCTypes.teamsTeamTreeRpcPromise,
-    {
-      name: {parts: teamname.split('.')},
-    },
+  const {entries} = yield* Saga.callPromise(
+    RPCTypes.teamsTeamGetSubteamsRpcPromise,
+    {name: {parts: teamname.split('.')}},
     Constants.teamWaitingKey(teamname)
   )
-  const subteams = (teamTree.entries || [])
-    .map(team => (team.name.parts ? team.name.parts.join('.') : ''))
-    .filter(team => team !== teamname && team.startsWith(teamname))
-
+  const subteams = (entries || []).reduce((arr, {name}) => {
+    name.parts && arr.push(name.parts.join('.'))
+    return arr
+  }, [])
   yield Saga.put(
     TeamsGen.createSetTeamDetails({
       invites: I.Set(invites),
