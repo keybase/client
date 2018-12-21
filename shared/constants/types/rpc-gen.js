@@ -355,6 +355,7 @@ export const homeAppLinkType = {
   git: 5,
   devices: 6,
   settings: 7,
+  teams: 8,
 }
 
 export const homeHomeScreenItemType = {
