@@ -15,7 +15,7 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-func isDokanCurrent(log Log, path string) error {
+func isDokanCurrent(log Log, path string) (bool, error) {
 	v, err := GetFileVersion(path)
 	if err != nil {
 		return false, err
