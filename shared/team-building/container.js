@@ -34,7 +34,7 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
-  highlightedIndex: 0,
+  highlightedIndex: -1,
   searchString: '',
   selectedService: 'keybase',
 }
@@ -193,6 +193,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     recommendations,
   } = stateProps
 
+  const showRecs = !ownProps.searchString && recommendations
+  const userResultsToShow = showRecs ? recommendations : searchResults
+
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
     dispatchProps._search,
@@ -207,12 +210,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onAdd,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onRemove: dispatchProps.onRemove,
-    searchResults,
+    searchResults: userResultsToShow,
     searchStringIsEmpty: !ownProps.searchString,
     teamSoFar,
   })
-
-  const showRecs = !ownProps.searchString && recommendations
 
   return {
     fetchUserRecs: dispatchProps.fetchUserRecs,
@@ -222,10 +223,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: deriveOnDownArrowKeyDown(
-      Math.max(showRecs ? recommendations.length : searchResults.length, 1) - 1,
-      ownProps.incHighlightIndex
-    ),
+    onDownArrowKeyDown: deriveOnDownArrowKeyDown(userResultsToShow.length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onMakeItATeam: () => console.log('todo'),
