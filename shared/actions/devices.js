@@ -10,6 +10,7 @@ import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
 import {logError} from '../util/errors'
+import type {TypedActions} from '../actions/typed-actions-gen.js'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -89,8 +90,9 @@ const navigateAfterRevoked = (state: TypedState, action: DevicesGen.RevokedPaylo
 const showRevokePage = () =>
   Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'devicePage', 'revokeDevice']))
 
-const showDevicePage = () =>
-  Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'devicePage']))
+const showDevicePage = (s, a) => {
+  return RouteActions.navigateTo([...Constants.devicesTabLocation, 'devicePage'])
+}
 
 const showPaperKeyPage = () =>
   Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'paperKey']))
@@ -114,6 +116,12 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   return Saga.put(DevicesGen.createBadgeAppForDevices({ids: changed_devices}))
 }
 
+function g(a: TypedActions) {
+  if (a.type === DevicesGen.showDevicePage) {
+    console.log(a.payload)
+  }
+}
+
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
   yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
@@ -122,7 +130,7 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
 
   // Navigation
   yield Saga.actionToAction(DevicesGen.showRevokePage, showRevokePage)
-  yield Saga.actionToAction(DevicesGen.showDevicePage, showDevicePage)
+  yield* Saga.chainAction(DevicesGen.showDevicePage, showDevicePage)
   yield Saga.actionToAction(DevicesGen.showPaperKeyPage, showPaperKeyPage)
   yield Saga.actionToAction(DevicesGen.revoked, navigateAfterRevoked)
 

@@ -44,22 +44,22 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   return results
 }
 
-function* chainAction<A1, A2, A3>(
-  pattern: A1 | Array<A1 | A2 | A3>,
+function* chainAction<AP1: string, A1>(
+  pattern: AP1,
   f: (
     state: TypedState,
-    actions: A1 | A2 | A3
+    action: A1
   ) => TypedActions | Promise<TypedActions> | Array<TypedActions> | Promise<Array<TypedActions>>
-) {
-  return yield Effects.takeEvery(pattern, function* actionToPromiseHelper(
-    action: A1 | A2 | A3
+): Generator<any, void, any> {
+  const te = Effects.takeEvery<A1, void, (A1) => RS.Saga<void>>(pattern, function* chainActionHelper(
+    action: A1
   ): RS.Saga<void> {
     try {
-      const state: TypedState = yield Effects.select()
-      let toPut = yield Effects.call(f, state, action)
+      const state = yield* selectState()
+      let toPut: TypedActions | Array<TypedActions> | void | null = yield Effects.call(f, state, action)
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
-        for (var out in outActions) {
+        for (var out of outActions) {
           yield Effects.put(out)
         }
       }
@@ -76,6 +76,7 @@ function* chainAction<A1, A2, A3>(
       }
     }
   })
+  return yield te
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
