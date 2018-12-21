@@ -44,16 +44,17 @@ const styles = Styles.styleSheetCreate({
 })
 
 const WalletRow = (props: Props) => {
-  // Just needed for alignment.
-  const leftIcon = <Kb.Box2 direction="horizontal" style={styles.icon} />
+  const emptyIcon = <Kb.Box2 direction="horizontal" style={styles.icon} />
   const rightIcon = props.isSelected ? (
     <Kb.Icon type="iconfont-check" color={Styles.globalColors.blue} style={styles.icon} />
   ) : props.unreadPayments > 0 ? (
     <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.icon} />
-  ) : null
+  ) : (
+    emptyIcon
+  )
   return (
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
-      {leftIcon}
+      {/* Just needed for proper centering */ emptyIcon}
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {!!props.keybaseUser && (
