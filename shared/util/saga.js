@@ -58,7 +58,7 @@ function* chainAction<Actions>(
     | $ReadOnlyArray<TypedActions>
     | Promise<void | boolean | TypedActions | $ReadOnlyArray<TypedActions>>
 ): Generator<any, void, any> {
-  const te = Effects.takeEvery<Actions, void, (Actions) => RS.Saga<void>>(
+  return yield Effects.takeEvery<Actions, void, (Actions) => RS.Saga<void>>(
     pattern,
     function* chainActionHelper(action: Actions): RS.Saga<void> {
       try {
@@ -84,7 +84,32 @@ function* chainAction<Actions>(
       }
     }
   )
-  return yield te
+}
+
+function* chainGenerator<Actions>(
+  pattern: RS.Pattern,
+  f: (state: TypedState, action: Actions) => Generator<any, void, any>
+): Generator<any, void, any> {
+  return yield Effects.takeEvery<Actions, void, (Actions) => RS.Saga<void>>(
+    pattern,
+    function* chainActionHelper(action: Actions): RS.Saga<void> {
+      try {
+        const state = yield* selectState()
+        yield* f(state, action)
+      } catch (error) {
+        // Convert to global error so we don't kill the takeEvery loop
+        yield Effects.put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
+      } finally {
+        if (yield Effects.cancelled()) {
+          logger.info('chainGenerator cancelled')
+        }
+      }
+    }
+  )
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
@@ -228,4 +253,5 @@ export {
   sequentially,
   callPromise,
   chainAction,
+  chainGenerator,
 }
