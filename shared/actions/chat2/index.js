@@ -39,13 +39,45 @@ import flags from '../../util/feature-flags'
 // Ask the service to refresh the inbox
 const inboxRefresh = (
   state: TypedState,
-  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload
+  action:
+    | Chat2Gen.InboxRefreshPayload
+    | EngineGen.Chat1NotifyChatChatInboxStalePayload
+    | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
+    | EngineGen.Chat1NotifyChatChatLeftConversationPayload
 ) => {
   if (!state.config.loggedIn) {
     return
   }
 
-  const username = state.config.username || ''
+  const username = state.config.username
+  if (!username) {
+    return
+  }
+
+  let reason
+  let clearExistingMetas = false
+  let clearExistingMessages = false
+  switch (action.type) {
+    case Chat2Gen.inboxRefresh:
+      reason = action.payload.reason
+      clearExistingMetas = reason === 'inboxSyncedClear'
+      clearExistingMessages = reason === 'inboxSyncedClear'
+      break
+    case EngineGen.chat1NotifyChatChatInboxStale:
+      reason = 'inboxStale'
+      break
+    case EngineGen.chat1NotifyChatChatJoinedConversation:
+      reason = 'joinedAConversation'
+      break
+    case EngineGen.chat1NotifyChatChatLeftConversation:
+      clearExistingMetas = true
+      reason = 'leftAConversation'
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
+  }
+
+  logger.info(`Inbox refresh due to ${reason || '???'}`)
 
   const onUnverified = function({inbox}) {
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
@@ -55,11 +87,6 @@ const inboxRefresh = (
       .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
       .filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
-    const clearExistingMetas =
-      action.type === Chat2Gen.inboxRefresh &&
-      ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-    const clearExistingMessages =
-      action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
     return Saga.put(
       Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, fromInboxRefresh: true, metas})
     )
@@ -565,9 +592,6 @@ const onChatAttachmentUploadStart = (
   })
 }
 
-const onChatInboxStale = (_, action: EngineGen.Chat1NotifyChatChatInboxStalePayload) =>
-  Chat2Gen.createInboxRefresh({reason: 'inboxStale'})
-
 const onChatInboxSyncStarted = (_, action: EngineGen.Chat1NotifyChatChatInboxSyncStartedPayload) =>
   WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})
 
@@ -626,8 +650,6 @@ const onChatInboxSynced = (state, action: EngineGen.Chat1NotifyChatChatInboxSync
   return Saga.sequentially(actions)
 }
 
-const onChatJoinedConversation = () => Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'})
-const onChatLeftConversation = () => Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})
 const onChatPaymentInfo = (_, action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
   const {convID, info, msgID} = action.payload.params
   const conversationIDKey = convID ? Types.conversationIDToKey(convID) : Constants.noConversationIDKey
@@ -2875,7 +2897,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changeSelectedConversation
   )
   // Refresh the inbox
-  yield Saga.actionToAction(Chat2Gen.inboxRefresh, inboxRefresh)
+  yield Saga.actionToAction(
+    [
+      Chat2Gen.inboxRefresh,
+      EngineGen.chat1NotifyChatChatInboxStale,
+      EngineGen.chat1NotifyChatChatJoinedConversation,
+      EngineGen.chat1NotifyChatChatLeftConversation,
+    ],
+    inboxRefresh
+  )
   // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
@@ -3006,14 +3036,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
     onChatAttachmentUploadProgress
   )
-  /// TODO a bunch of these just do a refresh, instead just make a forceRefresh handler and pull out the reasons
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
-  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatInboxStale, onChatInboxStale)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatInboxSyncStarted, onChatInboxSyncStarted)
   yield Saga.actionToAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)
-  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatJoinedConversation, onChatJoinedConversation)
-  yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatLeftConversation, onChatLeftConversation)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatPaymentInfo, onChatPaymentInfo)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatRequestInfo, onChatRequestInfo)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatSetConvRetention, onChatSetConvRetention)
@@ -3021,7 +3047,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatSetTeamRetention, onChatSetTeamRetention)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatSubteamRename, onChatSubteamRename)
   yield Saga.actionToPromise(EngineGen.chat1NotifyChatChatTLFFinalize, onChatChatTLFFinalizePayload)
-
   yield Saga.actionToAction(EngineGen.chat1NotifyChatChatThreadsStale, onChatThreadStale)
   yield Saga.actionToAction(EngineGen.chat1NotifyChatNewChatActivity, onNewChatActivity)
 }
