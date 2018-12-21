@@ -8,7 +8,6 @@ import (
 	"context"
 	"math"
 	"runtime"
-	"sync"
 	"testing"
 	"time"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
@@ -81,54 +79,9 @@ func initPrefetcherTestWithDiskCache(t *testing.T, dbc DiskBlockCache) (
 	return q, bg, config
 }
 
-// fakeDiskBlockCacheWithPrefetchStatus is a simple shim of a disk
-// block cache that only stores and retrieves the prefetch status of
-// blocks.  It must be used in conjunction with a `blockGetter` that
-// doesn't require real bytes and server halves to assemble blocks
-// (such as `fakeBlockGetter`).
-type fakeDiskBlockCacheWithPrefetchStatus struct {
-	DiskBlockCache
-
-	lock   sync.Mutex
-	status map[kbfsblock.ID]PrefetchStatus
-}
-
-func (f *fakeDiskBlockCacheWithPrefetchStatus) Get(
-	_ context.Context, _ tlf.ID, blockID kbfsblock.ID,
-	_ DiskBlockCacheType) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, PrefetchStatus, error) {
-	f.lock.Lock()
-	defer f.lock.Unlock()
-	if s, ok := f.status[blockID]; ok {
-		// Return a fake, but non-nil, byte buffer, so that the block
-		// retrieval thinks it found a real block and will pass it to
-		// the assemble function.
-		return []byte{1}, kbfscrypto.BlockCryptKeyServerHalf{}, s, nil
-	}
-	return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch,
-		NoSuchBlockError{blockID}
-}
-
-func (f *fakeDiskBlockCacheWithPrefetchStatus) UpdateMetadata(
-	_ context.Context, blockID kbfsblock.ID,
-	prefetchStatus PrefetchStatus) error {
-	f.lock.Lock()
-	defer f.lock.Unlock()
-	f.status[blockID] = prefetchStatus
-	return nil
-}
-
-func (f *fakeDiskBlockCacheWithPrefetchStatus) DoesCacheHaveSpace(
-	_ context.Context, _ DiskBlockCacheType) (bool, error) {
-	return true, nil
-}
-
 func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
 	*fakeBlockGetter, *testBlockRetrievalConfig) {
-	cache := &fakeDiskBlockCacheWithPrefetchStatus{
-		status: make(map[kbfsblock.ID]PrefetchStatus),
-	}
-	return initPrefetcherTestWithDiskCache(t, cache)
+	return initPrefetcherTestWithDiskCache(t, nil)
 }
 
 func shutdownPrefetcherTest(q *blockRetrievalQueue) {

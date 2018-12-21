@@ -1682,7 +1682,12 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 	ptr BlockPointer) PrefetchStatus {
 	dbc := c.DiskBlockCache()
 	if dbc == nil {
-		return NoPrefetch
+		// We must be in testing mode, so check the block retrieval queue.
+		bops, ok := c.BlockOps().(*BlockOpsStandard)
+		if !ok {
+			return NoPrefetch
+		}
+		return bops.queue.getPrefetchStatus(ptr.ID)
 	}
 
 	_, _, prefetchStatus, err := dbc.Get(
