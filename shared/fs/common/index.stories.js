@@ -262,14 +262,15 @@ const load = () => {
         </Kb.Box2>
       </Kb.Box2>
     ))
-    .add('badged', () => (
+  ;[32, 48].forEach(size =>
+    Sb.storiesOf('Files/PathItemIcon', module).add(`badged - ${size}`, () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true}>
         {['new', 'rekey'].map(badge => (
           <Kb.Box2 key={badge} direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
             <Kb.Text type="Header">{badge}</Kb.Text>
             <PathItemIcon
               path={Types.stringToPath('/keybase/private/foo,bar')}
-              size={32}
+              size={size}
               type="folder"
               username=""
               badge={badge}
@@ -282,7 +283,7 @@ const load = () => {
               <Kb.Text type="Header">{badge} - file</Kb.Text>
               <PathItemIcon
                 path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-                size={32}
+                size={size}
                 type="file"
                 username=""
                 badge={badge}
@@ -292,7 +293,7 @@ const load = () => {
               <Kb.Text type="Header">{badge} - folder</Kb.Text>
               <PathItemIcon
                 path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-                size={32}
+                size={size}
                 type="folder"
                 username=""
                 badge={badge}
@@ -311,7 +312,7 @@ const load = () => {
             <Kb.Text type="Header">{badge}</Kb.Text>
             <PathItemIcon
               path={Types.stringToPath('/keybase/private/foo,bar')}
-              size={32}
+              size={size}
               type="folder"
               username=""
               badge={badge}
@@ -320,6 +321,7 @@ const load = () => {
         ))}
       </Kb.Box2>
     ))
+  )
 }
 
 const pathItemIconSizes: Array<Size> = [12, 16, 32, 48, 64]

@@ -120,24 +120,25 @@ const IconOnly = (props: Props) => {
 }
 
 const Badge = (props: Props) => {
-  if (!!props.badge && props.size !== 32) {
-    logger.warn(`PathItemIcon badges only work with size=32 icons. Got ${props.size}.`)
+  if (!!props.badge && props.size !== 32 && props.size !== 48) {
+    logger.warn(`PathItemIcon badges only work with size=32 and size=48 icons. Got ${props.size}.`)
   }
+  const badgeStyle = props.size === 48 ? badgeStyles['48'] : badgeStyles['32']
   switch (props.badge) {
     case 'upload':
-      return <Kb.Icon type="icon-addon-file-uploading" style={styles.rightBottomBadge} />
+      return <Kb.Icon type="icon-addon-file-uploading" style={badgeStyle.rightBottomBadge} />
     case 'download':
-      return <Kb.Icon type="icon-addon-file-downloading" style={styles.rightBottomBadge} />
+      return <Kb.Icon type="icon-addon-file-downloading" style={badgeStyle.rightBottomBadge} />
     case 'rekey':
-      return <Kb.Meta title="rekey" backgroundColor={Styles.globalColors.red} style={styles.rekeyBadge} />
+      return <Kb.Meta title="rekey" backgroundColor={Styles.globalColors.red} style={badgeStyle.rekeyBadge} />
     case 'new':
-      return <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} style={styles.newBadge} />
+      return <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} style={badgeStyle.newBadge} />
     default:
       if (!props.badge) {
         return null
       }
       if (typeof props.badge === 'number') {
-        return <Kb.Badge badgeNumber={props.badge} badgeStyle={styles.numberBadge} />
+        return <Kb.Badge badgeNumber={props.badge} badgeStyle={badgeStyle.numberBadge} />
       }
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.badge)
       return null
@@ -165,24 +166,51 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     width: 0,
   },
-  newBadge: {
-    left: 16,
-    position: 'absolute',
-    top: -36,
-  },
-  numberBadge: {
-    left: 20,
-    position: 'absolute',
-    top: -36,
-  },
-  rekeyBadge: {
-    left: 14,
-    position: 'absolute',
-    top: -36,
-  },
-  rightBottomBadge: {
-    left: 20,
-    position: 'absolute',
-    top: -14,
-  },
 })
+
+const badgeStyles = {
+  '32': Styles.styleSheetCreate({
+    newBadge: {
+      left: 16,
+      position: 'absolute',
+      top: -36,
+    },
+    numberBadge: {
+      left: 20,
+      position: 'absolute',
+      top: -36,
+    },
+    rekeyBadge: {
+      left: 14,
+      position: 'absolute',
+      top: -36,
+    },
+    rightBottomBadge: {
+      left: 20,
+      position: 'absolute',
+      top: -14,
+    },
+  }),
+  '48': Styles.styleSheetCreate({
+    newBadge: {
+      left: 32,
+      position: 'absolute',
+      top: -48,
+    },
+    numberBadge: {
+      left: 36,
+      position: 'absolute',
+      top: -48,
+    },
+    rekeyBadge: {
+      left: 28,
+      position: 'absolute',
+      top: -48,
+    },
+    rightBottomBadge: {
+      left: 32,
+      position: 'absolute',
+      top: -18,
+    },
+  }),
+}
