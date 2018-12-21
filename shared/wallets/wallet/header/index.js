@@ -48,17 +48,15 @@ const Header = (props: Props) => {
       </Kb.Box2>
     </Name>
   ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        gap="xtiny"
-        centerChildren={true}
-        style={styles.topContainer}
-      >
-        {backButton}
-        <Kb.ProgressIndicator style={styles.spinner} type="Small" />
-      </Kb.Box2>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      gap="xtiny"
+      centerChildren={true}
+      style={styles.topContainer}
+    >
+      {backButton}
+      <Kb.ProgressIndicator style={styles.spinner} type="Small" />
     </Kb.Box2>
   )
   return (
