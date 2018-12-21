@@ -195,29 +195,6 @@ class Engine {
     }
   }
 
-  // Got an incoming request with no handler
-  _handleUnhandled(sessionID: number, method: MethodKey, seqid: number, param: Object, response: ?Object) {
-    const isDead = !!this._deadSessionsMap[String(sessionID)]
-
-    const prefix = isDead ? 'Dead session' : 'Unknown'
-
-    if (__DEV__) {
-      localLog(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${
-          response ? ': Sending back error' : ''
-        }`
-      )
-    }
-    logger.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
-
-    response &&
-      response.error &&
-      response.error({
-        code: constantsStatusCode.scgeneric,
-        desc: `${prefix} incoming RPC ${sessionID} ${method}`,
-      })
-  }
-
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey, param: Array<Object>, response: ?Object}) {
     const {method, param: incomingParam, response} = payload
@@ -231,6 +208,8 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
+        // // TODO deprecate _incomingActionCreators and replace with engine dispatched actions below
+        // _customResponseIncomingActionCreators will just be a set of method strings which engine will rely on listeners to handle themselves
       } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
         // General incoming :: TODO deprecate
         rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
@@ -272,15 +251,8 @@ class Engine {
           .split('.')
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
-        // $FlowIssue can't really type this easily
-        Engine._dispatch({
-          payload: {params: param},
-          type: `engine-gen:${type}`,
-        })
-
-        if (response && !response.responded) {
-          this._handleUnhandled(sessionID, method, seqid, param, response)
-        }
+        // $ForceType can't really type this easily
+        Engine._dispatch({payload: {params: param}, type: `engine-gen:${type}`})
       }
     }
   }

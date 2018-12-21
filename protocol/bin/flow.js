@@ -391,7 +391,6 @@ function writeActions() {
     null,
     4
   )
-  // const formatted = prettier.format(toWrite, prettier.resolveConfig.sync('.'))
   fs.writeFileSync(`js/engine-gen.json`, toWrite)
 }
 
