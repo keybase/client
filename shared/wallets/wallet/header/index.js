@@ -21,8 +21,8 @@ type Props = {
   walletName: ?string,
 }
 
-const Header = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapStart={true} style={styles.noShrink}>
+const Header = (props: Props) => {
+  const name = props.walletName ? (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2
         direction="horizontal"
@@ -33,42 +33,54 @@ const Header = (props: Props) => (
       >
         {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
         {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
-        {props.walletName ? (
-          <Name>
-            <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
-          </Name>
-        ) : (
-          <Kb.ProgressIndicator style={styles.spinner} type="Small" />
-        )}
+        <Name>
+          <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+        </Name>
       </Kb.Box2>
       {props.isDefaultWallet && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
           <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
         </Kb.Box2>
       )}
-      {!!props.walletName && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
-        </Kb.Box2>
-      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+        <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-      <SendButton
-        onSendToKeybaseUser={props.onSendToKeybaseUser}
-        onSendToStellarAddress={props.onSendToStellarAddress}
-        onSendToAnotherAccount={props.onSendToAnotherAccount}
-        disabled={!props.walletName}
-      />
-      <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
-      <DropdownButton
-        onSettings={props.onSettings}
-        onShowSecretKey={props.onShowSecretKey}
-        disabled={!props.walletName}
-      />
+  ) : (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="xtiny"
+        centerChildren={true}
+        style={styles.topContainer}
+      >
+        {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
+        <Kb.ProgressIndicator style={styles.spinner} type="Small" />
+      </Kb.Box2>
     </Kb.Box2>
-    <Kb.Divider />
-  </Kb.Box2>
-)
+  )
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapStart={true} style={styles.noShrink}>
+      {name}
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <SendButton
+          onSendToKeybaseUser={props.onSendToKeybaseUser}
+          onSendToStellarAddress={props.onSendToStellarAddress}
+          onSendToAnotherAccount={props.onSendToAnotherAccount}
+          disabled={!props.walletName}
+        />
+        <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
+        <DropdownButton
+          onSettings={props.onSettings}
+          onShowSecretKey={props.onShowSecretKey}
+          disabled={!props.walletName}
+        />
+      </Kb.Box2>
+      <Kb.Divider />
+    </Kb.Box2>
+  )
+}
 
 type SendProps = {|
   onSendToKeybaseUser: () => void,
