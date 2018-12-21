@@ -121,7 +121,7 @@ const fetchUserRecs = (state: TypedState) =>
       (suggestions || []).map(
         ({username}): TeamBuildingTypes.User => ({
           id: username,
-          prettyName: `${username} on Keybase`,
+          prettyName: ``,
           serviceMap: {},
         })
       )

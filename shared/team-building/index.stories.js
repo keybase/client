@@ -251,6 +251,20 @@ const load = () => {
         onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
+    .add('marcopolo (github)', () => (
+      <UserResult
+        username="marcopolo"
+        prettyName=""
+        highlight={false}
+        services={{github: 'marcopolo'}}
+        inTeam={true}
+        followingState="Following"
+        onAdd={Sb.action('onAdd')}
+        onRemove={Sb.action('onRemove')}
+        onMouseOver={Sb.action('onMouseOver')}
+        onMouseLeave={Sb.action('onMouseLeave')}
+      />
+    ))
     .add('Chris Highlighted (already in team)', () => (
       <UserResult
         username="chris"
