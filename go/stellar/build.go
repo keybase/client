@@ -148,20 +148,22 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
 					})
 				}
+				var sendingToSelf bool
+				var selfSendErr error
 				if recipient.AccountID == nil {
 					// Sending a payment to a target with no account. (relay)
 					minAmountXLM = "2.01"
 					addMinBanner(bannerTheir, minAmountXLM)
 				} else {
+					sendingToSelf, _, selfSendErr = bpc.OwnsAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
 					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()))
 					if err != nil {
 						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
 					} else if !isFunded {
 						// Sending to a non-funded stellar account.
 						minAmountXLM = "1"
-						owns, _, err := bpc.OwnsAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
-						log("OwnsAccount (to) -> owns:%v err:%v", owns, err)
-						if !owns || err != nil {
+						log("OwnsAccount (to) -> owns:%v err:%v", sendingToSelf, selfSendErr)
+						if !sendingToSelf || selfSendErr != nil {
 							// Likely sending to someone else's account.
 							addMinBanner(bannerTheir, minAmountXLM)
 						} else {
@@ -172,6 +174,12 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 							})
 						}
 					}
+				}
+				if !sendingToSelf && !fromPrimaryAccount {
+					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+						Level:   "info",
+						Message: "Your Keybase username will not be linked to this transaction.",
+					})
 				}
 			}
 		}
