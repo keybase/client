@@ -353,7 +353,7 @@ def testGo(prefix) {
 
         def tests = [:]
         def specialTests = [:]
-        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan', 'kbfs_libfuse']
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage', 'systests', 'kbfs_libdokan']
         def testSpecMap = [
             test_macos_go_: [
                 'github.com/keybase/client/go/kbfs/test': [
@@ -361,10 +361,19 @@ def testGo(prefix) {
                     flags: '-tags fuse',
                     timeout: '15m'
                 ],
-                'github.com/keybase/client/go/kbfs/libfuse': [],
+                'github.com/keybase/client/go/kbfs/libfuse': [
+                    name: 'kbfs_libfuse',
+                    flags: '',
+                    timeout: '3m'
+                ],
             ],
             test_linux_go_: [
                 '*': [],
+                'github.com/keybase/client/go/kbfs/libfuse': [
+                    name: 'kbfs_libfuse',
+                    flags: '',
+                    timeout: '3m'
+                ],
                 // TODO: put all the -race tests here
             ],
             test_windows_go_: [
