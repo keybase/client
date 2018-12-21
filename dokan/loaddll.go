@@ -20,6 +20,8 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+const firstSafeDokanVersion = 121
+
 const shortPath = `DOKAN1.DLL`
 const syswow64 = `C:\WINDOWS\SYSWOW64\`
 const system32 = `C:\WINDOWS\SYSTEM32\`
@@ -100,9 +102,16 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 		}
 		*v.ptr = C.uintptr_t(uptr)
 	}
-	epc.Printf("Dokan version: %d driver %d\n",
-		C.kbfsLibDokan_GetVersion(dokanVersionProc),
-		C.kbfsLibDokan_GetVersion(dokanDriverVersionProc))
+	ver := C.kbfsLibdokan_GetVersion(dokanVersionProc)
+	epc.Printf("Dokan version: %d driver %d, required %d\n",
+		ver, C.kbfsLibDokan_GetVersion(dokanDriverVersionProc),
+		firstSafeDokanVersion)
+
+	if ver < firstSafeDokanVersion {
+		hdl.Close()
+		return fmt.Errorf("Aborting due to too old Dokan: detected %d < required %d",
+			ver, firstSafeDokanVersion)
+	}
 	return nil
 }
 
