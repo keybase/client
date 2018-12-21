@@ -12,11 +12,10 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/keybase/go/base/log"
 	"golang.org/x/sys/windows/registry"
 )
 
-func isDokanCurrent(bool current, path string) error {
+func isDokanCurrent(log Log, path string) error {
 	v, err := GetFileVersion(path)
 	if err != nil {
 		return false, err
