@@ -10711,7 +10711,7 @@ react-native-fast-image@5.1.1:
 
 "react-native-image-picker@git://github.com/keybase/react-native-image-picker#v0.27.1-with-keybase-fixes":
   version "0.27.1"
-  resolved "git://github.com/keybase/react-native-image-picker#389b4c1363babf0e2b059c9896836e8a934b468f"
+  resolved "git://github.com/keybase/react-native-image-picker#5c81f1c60de50f8d5a4b883bb42208325bcc2761"
 
 react-native-mime-types@2.2.1:
   version "2.2.1"
