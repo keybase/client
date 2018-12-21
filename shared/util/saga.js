@@ -44,38 +44,46 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   return results
 }
 
-function* chainAction<AP1: string, A1>(
-  pattern: AP1,
+// TODO I couldn't get flow to figure out how to infer this, or even force you to explicitly do it
+// maybe flow-strict fixes this
+function* chainAction<Actions>(
+  pattern: RS.Pattern,
   f: (
     state: TypedState,
-    action: A1
-  ) => TypedActions | Promise<TypedActions> | Array<TypedActions> | Promise<Array<TypedActions>>
+    action: Actions
+  ) =>
+    | void
+    | boolean
+    | TypedActions
+    | $ReadOnlyArray<TypedActions>
+    | Promise<void | boolean | TypedActions | $ReadOnlyArray<TypedActions>>
 ): Generator<any, void, any> {
-  const te = Effects.takeEvery<A1, void, (A1) => RS.Saga<void>>(pattern, function* chainActionHelper(
-    action: A1
-  ): RS.Saga<void> {
-    try {
-      const state = yield* selectState()
-      let toPut: TypedActions | Array<TypedActions> | void | null = yield Effects.call(f, state, action)
-      if (toPut) {
-        const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
-        for (var out of outActions) {
-          yield Effects.put(out)
+  const te = Effects.takeEvery<Actions, void, (Actions) => RS.Saga<void>>(
+    pattern,
+    function* chainActionHelper(action: Actions): RS.Saga<void> {
+      try {
+        const state = yield* selectState()
+        let toPut = yield Effects.call(f, state, action)
+        if (toPut) {
+          const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
+          for (var out of outActions) {
+            yield Effects.put(out)
+          }
+        }
+      } catch (error) {
+        // Convert to global error so we don't kill the takeEvery loop
+        yield Effects.put(
+          ConfigGen.createGlobalError({
+            globalError: convertToError(error),
+          })
+        )
+      } finally {
+        if (yield Effects.cancelled()) {
+          logger.info('chainAction cancelled')
         }
       }
-    } catch (error) {
-      // Convert to global error so we don't kill the takeEvery loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-    } finally {
-      if (yield Effects.cancelled()) {
-        logger.info('chainAction cancelled')
-      }
     }
-  })
+  )
   return yield te
 }
 
