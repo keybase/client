@@ -128,8 +128,8 @@ class Input extends React.Component<InputProps, InputState> {
     throttled(this.props.sendTyping, text)
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey) && !isComposingIME) {
       e.preventDefault()
       if (this._lastText) {
         this._onSubmit(this._lastText)
