@@ -106,7 +106,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	status.InstallStatus = keybase1.InstallStatus_INSTALLED
 	status.InstallAction = keybase1.InstallAction_NONE
 	status.KextStarted = true
-	current, err := isDokanCurrent(log, dokanPath)
+	current, err := isDokanCurrent(dokanPath)
 	if err != nil {
 		log.Errorf(err.Error())
 	} else if !current {

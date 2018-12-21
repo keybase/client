@@ -84,7 +84,7 @@ func VerQueryValueRoot(block []byte) (VS_FIXEDFILEINFO, error) {
 	if ret == 0 {
 		return VS_FIXEDFILEINFO{}, errors.New("VerQueryValueRoot: verQueryValue failed")
 	}
-	start := int(offset) - int(blockStart)
+	start := int(offset) - int(uintptr(blockStart))
 	end := start + int(length)
 	if start < 0 || start >= len(block) || end < start || end > len(block) {
 		return VS_FIXEDFILEINFO{}, errors.New("VerQueryValueRoot: find failed")
