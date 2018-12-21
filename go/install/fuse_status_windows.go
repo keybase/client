@@ -12,21 +12,22 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/keybase/go/base/log"
 	"golang.org/x/sys/windows/registry"
 )
 
-func isDokanCurrent(path string) error {
+func isDokanCurrent(bool current, path string) error {
 	v, err := GetFileVersion(path)
 	if err != nil {
-		return err
+		return false, err
 	}
 	// we're looking for 1.2.1.2000
 	result := v.Major > 1 || (v.Major == 1 && (v.Minor > 2 || (v.Minor == 2 && (v.Patch > 1 || (v.Patch == 1 && v.Build >= 2000)))))
 
 	if !result {
-		return fmt.Errorf("Dokan version %d.%d.%d.%d (need 1.2.1.2000)", v.Major, v.Minor, v.Patch, v.Build)
+		log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", major, minor, patch, build, result)
 	}
-	return nil
+	return result, nil
 }
 
 func detectDokanDll(dokanPath string, log Log) bool {
@@ -106,7 +107,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	status.InstallStatus = keybase1.InstallStatus_INSTALLED
 	status.InstallAction = keybase1.InstallAction_NONE
 	status.KextStarted = true
-	current, err := isDokanCurrent(dokanPath)
+	current, err := isDokanCurrent(log, dokanPath)
 	if err != nil {
 		log.Errorf(err.Error())
 	} else if !current {
