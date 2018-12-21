@@ -7,6 +7,7 @@ import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
+import {isArray} from 'lodash-es'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -43,13 +44,39 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   return results
 }
 
-function* chainAction<AS>(
-  pattern: AS,
+function* chainAction<A1, A2, A3>(
+  pattern: A1 | Array<A1 | A2 | A3>,
   f: (
     state: TypedState,
-    actions: AS
-  ) => Action | Promise<TypedActions> | Array<TypedActions> | Promise<Array<TypedActions>>
-) {}
+    actions: A1 | A2 | A3
+  ) => TypedActions | Promise<TypedActions> | Array<TypedActions> | Promise<Array<TypedActions>>
+) {
+  return yield Effects.takeEvery(pattern, function* actionToPromiseHelper(
+    action: A1 | A2 | A3
+  ): RS.Saga<void> {
+    try {
+      const state: TypedState = yield Effects.select()
+      let toPut = yield Effects.call(f, state, action)
+      if (toPut) {
+        const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
+        for (var out in outActions) {
+          yield Effects.put(out)
+        }
+      }
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('chainAction cancelled')
+      }
+    }
+  })
+}
 
 // Helper that expects a function which returns a promise that resolves to a put
 function actionToPromise<A>(
@@ -191,4 +218,5 @@ export {
   actionToAction,
   sequentially,
   callPromise,
+  chainAction,
 }
