@@ -10,14 +10,6 @@ class Picker extends React.Component<Props> {
   // Setting autoFocus={true} on Picker doesn't work, so focus it
   // ourselves on mount/update.
 
-  componentDidMount = () => {
-    this._focus()
-  }
-
-  componentDidUpdate = () => {
-    this._focus()
-  }
-
   _focus = () => {
     if (!this._picker) {
       return
@@ -34,7 +26,15 @@ class Picker extends React.Component<Props> {
     input.focus()
   }
 
-  render = () => {
+  componentDidMount() {
+    this._focus()
+  }
+
+  componentDidUpdate() {
+    this._focus()
+  }
+
+  render() {
     return (
       <EmojiPicker
         autoFocus={true}
