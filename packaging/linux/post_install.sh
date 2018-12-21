@@ -89,7 +89,8 @@ safe_restart_systemd_services() {
         # and the mountdir is configured (so, it is not a fresh install).
         user="$(ps -o user= -p "$pid")"
 
-        restart_instructions="Aborting Keybase autorestart for $user. Restart manually by running 'run_keybase' as $user."
+        restart_instructions="Restart Keybase manually by running 'run_keybase' as $user."
+        abort_instructions="Aborting Keybase autorestart for $user. $restart_instructions"
 
         if ! systemd_unit_active_for "$user" "keybase.service"; then
             echo "Keybase not running via systemd for $user."
@@ -98,9 +99,12 @@ safe_restart_systemd_services() {
         fi
 
         if systemd_unit_active_for "$user" "kbfs.service"; then
+            # TODO: CORE-9789
+            # We don't pass --direct to keybase config get because it doesn't work on non-root users
+            # It should still work because the service should be running
             if ! mount="$(systemd_exec_as "$user" "/usr/bin/keybase config get --bare mountdir")" || [ -z "$mount" ]; then
                 echo "Could not find mountdir for $user via systemd."
-                echo "$restart_instructions"
+                echo "$abort_instructions"
                 continue
             fi
 
@@ -111,7 +115,7 @@ safe_restart_systemd_services() {
                 programs_accessing_mount="$(echo "$lsof_output" | tail -n +2 | awk '{print $1}' | tr '\n' ', ')"
                 echo "KBFS mount $mount for user $user currently in use by ($programs_accessing_mount)."
                 echo "Please stop these processes before restarting manually."
-                echo "$restart_instructions"
+                echo "$abort_instructions"
                 continue
             fi
         fi
