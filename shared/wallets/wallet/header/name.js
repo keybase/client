@@ -5,14 +5,14 @@ import {isMobile} from '../../../util/container'
 import WalletSwitcher from './wallet-switcher/container'
 
 type Props = {|
-  walletName: string,
+  children: React.Node,
 |}
 
-const PlainName = (props: Props) => <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+const JustChildren = (props: Props) => props.children
 
 const _NameWithSwitcher = (props: Props & Kb.OverlayParentProps) => (
   <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-    <PlainName walletName={props.walletName} />
+    {props.children}
     <WalletSwitcher
       getAttachmentRef={props.getAttachmentRef}
       hideMenu={() => props.setShowingMenu(false)}
@@ -23,6 +23,6 @@ const _NameWithSwitcher = (props: Props & Kb.OverlayParentProps) => (
 
 const NameWithSwitcher = Kb.OverlayParentHOC(_NameWithSwitcher)
 
-const Name = isMobile ? NameWithSwitcher : PlainName
+const Name = isMobile ? NameWithSwitcher : JustChildren
 
 export default Name

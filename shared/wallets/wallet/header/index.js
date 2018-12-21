@@ -34,7 +34,9 @@ const Header = (props: Props) => (
         {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
         {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
         {props.walletName ? (
-          <Name walletName={props.walletName} />
+          <Name>
+            <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+          </Name>
         ) : (
           <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         )}
