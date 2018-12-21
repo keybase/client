@@ -50,7 +50,7 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 
 	switch {
 
-	// The proof worked, and either we tracked it as working, or we tracked it as working
+	// The proof worked, and either we tracked it as working, or we didn't track it at all.
 	case (lcr.ProofResult.State == keybase1.ProofState_OK && (lcr.RemoteDiff == nil || lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE)):
 		arg.Color = keybase1.Identify3RowColor_GREEN
 		arg.State = keybase1.Identify3RowState_VALID
