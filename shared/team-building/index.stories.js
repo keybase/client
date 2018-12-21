@@ -251,14 +251,30 @@ const load = () => {
         onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
-    .add('marcopolo (github)', () => (
+    .add('marcopolo (github) - keybase user. following', () => (
       <UserResult
+        resultForService={'github'}
+        username="marcopolo"
+        prettyName=""
+        highlight={false}
+        services={{github: 'marcopolo', keybase: 'marcopolo'}}
+        inTeam={true}
+        followingState="Following"
+        onAdd={Sb.action('onAdd')}
+        onRemove={Sb.action('onRemove')}
+        onMouseOver={Sb.action('onMouseOver')}
+        onMouseLeave={Sb.action('onMouseLeave')}
+      />
+    ))
+    .add('marcopolo2 (github) - no keybase user', () => (
+      <UserResult
+        resultForService={'github'}
         username="marcopolo"
         prettyName=""
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState="Following"
+        followingState="NoState"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         onMouseOver={Sb.action('onMouseOver')}

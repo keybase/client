@@ -105,6 +105,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             keyProperty={'userId'}
             renderItem={(index, result) => (
               <UserResult
+                resultForService={props.selectedService}
                 fixedHeight={400}
                 username={result.username}
                 prettyName={result.prettyName}

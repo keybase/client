@@ -122,7 +122,7 @@ const fetchUserRecs = (state: TypedState) =>
         ({username}): TeamBuildingTypes.User => ({
           id: username,
           prettyName: ``,
-          serviceMap: {},
+          serviceMap: {keybase: username},
         })
       )
     )
