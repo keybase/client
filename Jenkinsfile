@@ -370,9 +370,7 @@ def testGo(prefix) {
             test_linux_go_: [
                 '*': [],
                 'github.com/keybase/client/go/kbfs/libfuse': [
-                    name: 'kbfs_libfuse',
-                    flags: '',
-                    timeout: '3m',
+                    disable: true,
                 ],
                 // TODO: put all the -race tests here
             ],
@@ -394,6 +392,9 @@ def testGo(prefix) {
             if (testSpecMap[prefix].containsKey(pkg)) {
                 if (testSpecMap[prefix][pkg]) {
                     def testSpec = testSpecMap[prefix][pkg]
+                    if (testSpec['disable']) {
+                        return false
+                    }
                     testSpec['dirPath'] = pkg.replaceAll('github.com/keybase/client/go/', '')
                     return testSpec
                 }
