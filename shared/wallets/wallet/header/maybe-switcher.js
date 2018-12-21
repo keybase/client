@@ -8,9 +8,9 @@ type Props = {|
   children: React.Node,
 |}
 
-const JustChildren = (props: Props) => props.children
+const NoSwitcher = (props: Props) => props.children
 
-const _NameWithSwitcher = (props: Props & Kb.OverlayParentProps) => (
+const _Switcher = (props: Props & Kb.OverlayParentProps) => (
   <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
     {props.children}
     <WalletSwitcher
@@ -21,8 +21,8 @@ const _NameWithSwitcher = (props: Props & Kb.OverlayParentProps) => (
   </Kb.ClickableBox>
 )
 
-const NameWithSwitcher = Kb.OverlayParentHOC(_NameWithSwitcher)
+const Switcher = Kb.OverlayParentHOC(_Switcher)
 
-const Name = isMobile ? NameWithSwitcher : JustChildren
+const MaybeSwitcher = isMobile ? Switcher : NoSwitcher
 
-export default Name
+export default MaybeSwitcher

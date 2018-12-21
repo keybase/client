@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
 import {SmallAccountID} from '../../common'
-import Name from './name'
+import MaybeSwitcher from './maybe-switcher'
 
 type Props = {
   accountID: Types.AccountID,
@@ -24,7 +24,7 @@ type Props = {
 const Header = (props: Props) => {
   const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
   const name = props.walletName ? (
-    <Name>
+    <MaybeSwitcher>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2
           direction="horizontal"
@@ -46,7 +46,7 @@ const Header = (props: Props) => {
           <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
         </Kb.Box2>
       </Kb.Box2>
-    </Name>
+    </MaybeSwitcher>
   ) : (
     <Kb.Box2
       direction="horizontal"
