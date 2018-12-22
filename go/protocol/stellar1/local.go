@@ -434,6 +434,7 @@ type BuildPaymentResLocal struct {
 	DisplayAmountXLM    string            `codec:"displayAmountXLM" json:"displayAmountXLM"`
 	DisplayAmountFiat   string            `codec:"displayAmountFiat" json:"displayAmountFiat"`
 	SendingIntentionXLM bool              `codec:"sendingIntentionXLM" json:"sendingIntentionXLM"`
+	AmountAvailable     string            `codec:"amountAvailable" json:"amountAvailable"`
 	Banners             []SendBannerLocal `codec:"banners" json:"banners"`
 }
 
@@ -452,6 +453,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		DisplayAmountXLM:    o.DisplayAmountXLM,
 		DisplayAmountFiat:   o.DisplayAmountFiat,
 		SendingIntentionXLM: o.SendingIntentionXLM,
+		AmountAvailable:     o.AmountAvailable,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil
@@ -1188,7 +1190,7 @@ type LocalInterface interface {
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentOrErrorCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
-	WalletDumpLocal(context.Context) (BundleRestricted, error)
+	WalletDumpLocal(context.Context) (Bundle, error)
 	WalletGetAccountsCLILocal(context.Context) ([]OwnAccountCLILocal, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
@@ -2246,7 +2248,7 @@ func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
 	return
 }
 
-func (c LocalClient) WalletDumpLocal(ctx context.Context) (res BundleRestricted, err error) {
+func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res)
 	return
 }

@@ -355,6 +355,7 @@ export const homeAppLinkType = {
   git: 5,
   devices: 6,
   settings: 7,
+  teams: 8,
 }
 
 export const homeHomeScreenItemType = {
@@ -389,6 +390,7 @@ export const identify3UiIdentify3ResultType = {
   ok: 0,
   broken: 1,
   needsUpgrade: 2,
+  canceled: 3,
 }
 
 export const identify3UiIdentify3RowColor = {
@@ -396,6 +398,9 @@ export const identify3UiIdentify3RowColor = {
   red: 2,
   black: 3,
   green: 4,
+  gray: 5,
+  yellow: 6,
+  orange: 7,
 }
 
 export const identify3UiIdentify3RowState = {

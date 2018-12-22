@@ -7,7 +7,7 @@ import {globalStyles} from '../../styles'
 
 export default (props: Props) => {
   return (
-    <Gateway into="popup-root">
+    <Gateway into={props.dest || 'popup-root'}>
       <Box pointerEvents="box-none" style={[globalStyles.fillAbsolute, props.containerStyle]}>
         {props.children}
       </Box>

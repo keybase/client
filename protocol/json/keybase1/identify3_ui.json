@@ -25,7 +25,10 @@
         "BLUE_1",
         "RED_2",
         "BLACK_3",
-        "GREEN_4"
+        "GREEN_4",
+        "GRAY_5",
+        "YELLOW_6",
+        "ORANGE_7"
       ]
     },
     {
@@ -34,7 +37,8 @@
       "symbols": [
         "OK_0",
         "BROKEN_1",
-        "NEEDS_UPGRADE_2"
+        "NEEDS_UPGRADE_2",
+        "CANCELED_3"
       ]
     },
     {
@@ -109,42 +113,26 @@
       "oneway": true,
       "lint": "ignore"
     },
-    "identify3UpdateDetails": {
+    "identify3UserReset": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
+    "identify3UpdateUserCard": {
       "request": [
         {
           "name": "guiID",
           "type": "Identify3GUIID"
         },
         {
-          "name": "followsYou",
-          "type": "boolean"
-        },
-        {
-          "name": "followThem",
-          "type": "boolean"
-        },
-        {
-          "name": "followersCount",
-          "type": "int"
-        },
-        {
-          "name": "followingCount",
-          "type": "int"
-        },
-        {
-          "name": "bio",
-          "type": "string"
-        },
-        {
-          "name": "location",
-          "type": "string"
-        },
-        {
-          "name": "publishedTeams",
-          "type": {
-            "type": "array",
-            "items": "string"
-          }
+          "name": "card",
+          "type": "UserCard"
         }
       ],
       "response": null,

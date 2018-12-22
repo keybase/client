@@ -165,8 +165,11 @@
         "keybase1Identify3UiIdentify3UpdateRow": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>>"
         },
-        "keybase1Identify3UiIdentify3UpdateDetails": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateDetails'>, 'inParam'>>"
+        "keybase1Identify3UiIdentify3UserReset": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3UpdateUserCard": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'inParam'>>"
         },
         "keybase1Identify3UiIdentify3TrackerTimedOut": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'inParam'>>"

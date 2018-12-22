@@ -65,8 +65,9 @@ export const keybase1GregorUIPushState = 'engine-gen:keybase1GregorUIPushState'
 export const keybase1HomeUIHomeUIRefresh = 'engine-gen:keybase1HomeUIHomeUIRefresh'
 export const keybase1Identify3UiIdentify3Result = 'engine-gen:keybase1Identify3UiIdentify3Result'
 export const keybase1Identify3UiIdentify3TrackerTimedOut = 'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'
-export const keybase1Identify3UiIdentify3UpdateDetails = 'engine-gen:keybase1Identify3UiIdentify3UpdateDetails'
 export const keybase1Identify3UiIdentify3UpdateRow = 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'
+export const keybase1Identify3UiIdentify3UpdateUserCard = 'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard'
+export const keybase1Identify3UiIdentify3UserReset = 'engine-gen:keybase1Identify3UiIdentify3UserReset'
 export const keybase1Identify3UiShowTracker = 'engine-gen:keybase1Identify3UiShowTracker'
 export const keybase1IdentifyUiCancel = 'engine-gen:keybase1IdentifyUiCancel'
 export const keybase1IdentifyUiConfirm = 'engine-gen:keybase1IdentifyUiConfirm'
@@ -220,8 +221,9 @@ type _Keybase1GregorUIPushStatePayload = $ReadOnly<{|params: $Exact<$PropertyTyp
 type _Keybase1HomeUIHomeUIRefreshPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3ResultPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3TrackerTimedOutPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'inParam'>>|}>
-type _Keybase1Identify3UiIdentify3UpdateDetailsPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateDetails'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3UpdateRowPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>>|}>
+type _Keybase1Identify3UiIdentify3UpdateUserCardPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'inParam'>>|}>
+type _Keybase1Identify3UiIdentify3UserResetPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'inParam'>>|}>
 type _Keybase1Identify3UiShowTrackerPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.showTracker'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiCancelPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>>|}>
@@ -375,8 +377,9 @@ export const createKeybase1GregorUIPushState = (payload: _Keybase1GregorUIPushSt
 export const createKeybase1HomeUIHomeUIRefresh = (payload: _Keybase1HomeUIHomeUIRefreshPayload) => ({payload, type: keybase1HomeUIHomeUIRefresh})
 export const createKeybase1Identify3UiIdentify3Result = (payload: _Keybase1Identify3UiIdentify3ResultPayload) => ({payload, type: keybase1Identify3UiIdentify3Result})
 export const createKeybase1Identify3UiIdentify3TrackerTimedOut = (payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload) => ({payload, type: keybase1Identify3UiIdentify3TrackerTimedOut})
-export const createKeybase1Identify3UiIdentify3UpdateDetails = (payload: _Keybase1Identify3UiIdentify3UpdateDetailsPayload) => ({payload, type: keybase1Identify3UiIdentify3UpdateDetails})
 export const createKeybase1Identify3UiIdentify3UpdateRow = (payload: _Keybase1Identify3UiIdentify3UpdateRowPayload) => ({payload, type: keybase1Identify3UiIdentify3UpdateRow})
+export const createKeybase1Identify3UiIdentify3UpdateUserCard = (payload: _Keybase1Identify3UiIdentify3UpdateUserCardPayload) => ({payload, type: keybase1Identify3UiIdentify3UpdateUserCard})
+export const createKeybase1Identify3UiIdentify3UserReset = (payload: _Keybase1Identify3UiIdentify3UserResetPayload) => ({payload, type: keybase1Identify3UiIdentify3UserReset})
 export const createKeybase1Identify3UiShowTracker = (payload: _Keybase1Identify3UiShowTrackerPayload) => ({payload, type: keybase1Identify3UiShowTracker})
 export const createKeybase1IdentifyUiCancel = (payload: _Keybase1IdentifyUiCancelPayload) => ({payload, type: keybase1IdentifyUiCancel})
 export const createKeybase1IdentifyUiConfirm = (payload: _Keybase1IdentifyUiConfirmPayload) => ({payload, type: keybase1IdentifyUiConfirm})
@@ -530,8 +533,9 @@ export type Keybase1GregorUIPushStatePayload = {|+payload: _Keybase1GregorUIPush
 export type Keybase1HomeUIHomeUIRefreshPayload = {|+payload: _Keybase1HomeUIHomeUIRefreshPayload, +type: 'engine-gen:keybase1HomeUIHomeUIRefresh'|}
 export type Keybase1Identify3UiIdentify3ResultPayload = {|+payload: _Keybase1Identify3UiIdentify3ResultPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3Result'|}
 export type Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {|+payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'|}
-export type Keybase1Identify3UiIdentify3UpdateDetailsPayload = {|+payload: _Keybase1Identify3UiIdentify3UpdateDetailsPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UpdateDetails'|}
 export type Keybase1Identify3UiIdentify3UpdateRowPayload = {|+payload: _Keybase1Identify3UiIdentify3UpdateRowPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'|}
+export type Keybase1Identify3UiIdentify3UpdateUserCardPayload = {|+payload: _Keybase1Identify3UiIdentify3UpdateUserCardPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard'|}
+export type Keybase1Identify3UiIdentify3UserResetPayload = {|+payload: _Keybase1Identify3UiIdentify3UserResetPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UserReset'|}
 export type Keybase1Identify3UiShowTrackerPayload = {|+payload: _Keybase1Identify3UiShowTrackerPayload, +type: 'engine-gen:keybase1Identify3UiShowTracker'|}
 export type Keybase1IdentifyUiCancelPayload = {|+payload: _Keybase1IdentifyUiCancelPayload, +type: 'engine-gen:keybase1IdentifyUiCancel'|}
 export type Keybase1IdentifyUiConfirmPayload = {|+payload: _Keybase1IdentifyUiConfirmPayload, +type: 'engine-gen:keybase1IdentifyUiConfirm'|}
@@ -687,8 +691,9 @@ export type Actions =
   | Keybase1HomeUIHomeUIRefreshPayload
   | Keybase1Identify3UiIdentify3ResultPayload
   | Keybase1Identify3UiIdentify3TrackerTimedOutPayload
-  | Keybase1Identify3UiIdentify3UpdateDetailsPayload
   | Keybase1Identify3UiIdentify3UpdateRowPayload
+  | Keybase1Identify3UiIdentify3UpdateUserCardPayload
+  | Keybase1Identify3UiIdentify3UserResetPayload
   | Keybase1Identify3UiShowTrackerPayload
   | Keybase1IdentifyUiCancelPayload
   | Keybase1IdentifyUiConfirmPayload
