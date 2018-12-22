@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _send: (conversationIDKey: ChatTypes.ConversationIDKey, text: string) => {
     dispatch(ChatGen.createMessageSend({conversationIDKey, text: new HiddenString(text)}))
     dispatch(
-      RouteTreeGen.createPutActionIfOnPath({expectedPath: ownProps.routePath, otherAction: navigateUp()})
+      RouteTreeGen.createPutActionIfOnPath({expectedPath: ownProps.routePath, otherAction: RouteTreeGen.createNavigateUp()})
     )
     dispatch(
       ChatGen.createSelectConversation({
@@ -36,7 +36,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     )
     dispatch(ChatGen.createNavigateToThread())
   },
-  onCancel: () => dispatch(RouteTreeGen.createPutActionIfOnPath({expectedPath: ownProps.routePath, otherAction: navigateUp()})),
+  onCancel: () =>
+    dispatch(
+      RouteTreeGen.createPutActionIfOnPath({expectedPath: ownProps.routePath, otherAction: RouteTreeGen.createNavigateUp()})
+    ),
 })
 
 const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => {

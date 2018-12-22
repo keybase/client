@@ -3,6 +3,7 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Flow from '../../../../util/flow'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {namedConnect, compose, lifecycle, withStateHandlers, withHandlers} from '../../../../util/container'
+import {getPath} from '../../../../route-tree'
 import {
   getTeamRetentionPolicy,
   retentionPolicies,
@@ -106,7 +107,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
 
-  const _path = pathSelector(state)
+  const _path = getPath(state.routeTree.routeState)
   return {
     _path,
     _permissionsLoaded,
@@ -128,15 +129,15 @@ const mapDispatchToProps = (
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
-      navigateTo(
-        [
+      RouteTreeGen.createNavigateTo({
+        path: [
           {
             props: {days, entityType, onCancel, onConfirm},
             selected: 'retentionWarning',
           },
         ],
-        parentPath
-      )
+        parentPath,
+      })
     )
   },
   saveRetentionPolicy: (policy: RetentionPolicy) => {

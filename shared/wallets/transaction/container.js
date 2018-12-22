@@ -27,12 +27,12 @@ const mapDispatchToProps = dispatch => ({
     status: Types.StatusSimplified
   ) =>
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {accountID, paymentID, status},
           selected: 'transactionDetails',
         },
-      ])
+      ]})
     ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })

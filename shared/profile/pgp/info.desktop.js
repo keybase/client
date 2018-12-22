@@ -3,7 +3,8 @@ import * as React from 'react'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RouteTreeGen from '../../actions/route-tree-gen' import {namedConnect} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {namedConnect} from '../../util/container'
 
 type OwnProps = {||}
 type Props = {|

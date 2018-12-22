@@ -65,13 +65,13 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}):
       ])
     ),
   _onLeaveTeam: (teamname: string) => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
+    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
   _onRemoveMember: (teamname: string, username: string) => {
     dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname, username}, selected: 'reallyRemoveMember'}],
-      })
+      navigateAppend(
+        [{props: {teamname, username}, selected: 'reallyRemoveMember'}]
+    )
     )
   },
   onBack: () => dispatch(navigateUp()),

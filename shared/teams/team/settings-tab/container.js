@@ -42,7 +42,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}]})),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {
             allowAdmin: false,
@@ -53,7 +53,7 @@ const mapDispatchToProps = dispatch => ({
           },
           selected: 'controlledRolePicker',
         },
-      ])
+      ]})
     )
   },
 })

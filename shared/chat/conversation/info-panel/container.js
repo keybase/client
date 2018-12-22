@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
-import {connect, isMobile} from '../../../util/container'
+import {connect, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
@@ -131,10 +131,7 @@ const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(InfoPanel)
 
-type SelectorOwnProps = {|
-  routeProps: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>,
-  navigateUp: typeof Route.navigateUp,
-|}
+type SelectorOwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   const conversationIDKey: Types.ConversationIDKey = ownProps.routeProps.get('conversationIDKey')

@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
       ])
     ),
   _onEditName: (accountID: Types.AccountID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})),
+    dispatch(navigateAppend([{props: {accountID}, selected: 'renameAccount'}])),
   _onSetDefault: (accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
