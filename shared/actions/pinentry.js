@@ -16,7 +16,7 @@ const sessionIDToResponse: {
   },
 } = {}
 
-function setupEngineListeners() {
+const setupEngineListeners = () => {
   engine().actionOnConnect('registerSecretUI', () => {
     RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
       .then(response => {
@@ -52,38 +52,31 @@ function setupEngineListeners() {
   })
 }
 
-function _onNewPinentry(action: PinentryGen.NewPinentryPayload) {
-  return Saga.put(
-    PinentryGen.createReplaceEntity({
-      entities: I.Map([[action.payload.sessionID, action.payload]]),
-      keyPath: ['sessionIDToPinentry'],
-    })
-  )
-}
+const onNewPinentry = (_, action) =>
+  PinentryGen.createReplaceEntity({
+    entities: I.Map([[action.payload.sessionID, action.payload]]),
+    keyPath: ['sessionIDToPinentry'],
+  })
 
-function _onSubmit(action: PinentryGen.OnSubmitPayload) {
+const onSubmit = (_, action) => {
   const {sessionID, passphrase} = action.payload
   _respond(sessionID, {passphrase})
-  return Saga.put(
-    PinentryGen.createDeleteEntity({
-      ids: [action.payload.sessionID],
-      keyPath: ['sessionIDToPinentry'],
-    })
-  )
+  return PinentryGen.createDeleteEntity({
+    ids: [action.payload.sessionID],
+    keyPath: ['sessionIDToPinentry'],
+  })
 }
 
-function _onCancel(action: PinentryGen.OnCancelPayload) {
+const onCancel = (_, action) => {
   const {sessionID} = action.payload
   _respond(sessionID, null, {
     code: RPCTypes.constantsStatusCode.scinputcanceled,
     desc: 'Input canceled',
   })
-  return Saga.put(
-    PinentryGen.createDeleteEntity({
-      ids: [action.payload.sessionID],
-      keyPath: ['sessionIDToPinentry'],
-    })
-  )
+  return PinentryGen.createDeleteEntity({
+    ids: [action.payload.sessionID],
+    keyPath: ['sessionIDToPinentry'],
+  })
 }
 
 function _respond(sessionID: number, result: any, err: ?any): void {
@@ -104,10 +97,13 @@ function _respond(sessionID: number, result: any, err: ?any): void {
 }
 
 function* pinentrySaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(PinentryGen.onSubmit, _onSubmit)
-  yield Saga.safeTakeEveryPure(PinentryGen.onCancel, _onCancel)
-  yield Saga.safeTakeEveryPure(PinentryGen.newPinentry, _onNewPinentry)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<PinentryGen.OnSubmitPayload>(PinentryGen.onSubmit, onSubmit)
+  yield* Saga.chainAction<PinentryGen.OnCancelPayload>(PinentryGen.onCancel, onCancel)
+  yield* Saga.chainAction<PinentryGen.NewPinentryPayload>(PinentryGen.newPinentry, onNewPinentry)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default pinentrySaga
