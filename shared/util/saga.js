@@ -46,17 +46,13 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 
 // TODO I couldn't get flow to figure out how to infer this, or even force you to explicitly do it
 // maybe flow-strict fixes this
+type MaybeAction = void | boolean | TypedActions | null
 function* chainAction<Actions>(
   pattern: RS.Pattern,
   f: (
     state: TypedState,
     action: Actions
-  ) =>
-    | void
-    | boolean
-    | TypedActions
-    | $ReadOnlyArray<TypedActions>
-    | Promise<void | boolean | TypedActions | $ReadOnlyArray<TypedActions>>
+  ) => MaybeAction | $ReadOnlyArray<MaybeAction> | Promise<MaybeAction | $ReadOnlyArray<MaybeAction>>
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
   return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
@@ -68,7 +64,9 @@ function* chainAction<Actions>(
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
         for (var out of outActions) {
-          yield Effects.put(out)
+          if (out) {
+            yield Effects.put(out)
+          }
         }
       }
     } catch (error) {
