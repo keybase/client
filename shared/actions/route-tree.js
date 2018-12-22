@@ -11,16 +11,15 @@ function pathSelector(state: TypedState, parentPath?: Path): I.List<string> {
   return getPath(state.routeTree.routeState, parentPath)
 }
 
-function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}) {
-  const state = yield* Saga.selectState()
+const putActionIfOnPath = (state, {payload: {otherAction, expectedPath, parentPath}}) => {
   const currentPath = pathSelector(state, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {
-    yield Saga.put(otherAction)
+    return otherAction
   }
 }
 
 function* routeSaga(): any {
-  yield Saga.safeTakeEvery(RouteTreeGen.putActionIfOnPath, _putActionIfOnPath)
+  yield* Saga.chainAction(RouteTreeGen.putActionIfOnPath, putActionIfOnPath)
 }
 
 export default routeSaga
