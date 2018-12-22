@@ -64,6 +64,8 @@ type GlobalContext struct {
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
 	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
+	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
+	Identify3State   *Identify3State      // keep track of Identify3 sessions
 
 	cacheMu          *sync.RWMutex   // protects all caches
 	ProofCache       *ProofCache     // where to cache proof results
@@ -80,6 +82,7 @@ type GlobalContext struct {
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
 	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
+	iteamCacher      MemLRUer         // In memory cacher for implicit teams
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
@@ -231,6 +234,8 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
 	g.RPCCanceller = NewRPCCanceller()
+	g.IdentifyDispatch = NewIdentifyDispatch()
+	g.Identify3State = NewIdentify3State(g)
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -336,6 +341,10 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	g.NotifyRouter.HandleLogout()
 
 	g.FeatureFlags.Clear()
+
+	g.IdentifyDispatch.OnLogout()
+
+	g.Identify3State.OnLogout()
 
 	return nil
 }
@@ -603,6 +612,18 @@ func (g *GlobalContext) SetImplicitTeamConflictInfoCacher(l LRUer) {
 	g.itciCacher = l
 }
 
+func (g *GlobalContext) GetImplicitTeamCacher() MemLRUer {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.iteamCacher
+}
+
+func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	g.iteamCacher = l
+}
+
 func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -678,6 +699,8 @@ func (g *GlobalContext) Shutdown() error {
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook())
 		}
+
+		g.Identify3State.Shutdown()
 
 		err = epick.Error()
 

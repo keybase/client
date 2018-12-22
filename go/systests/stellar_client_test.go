@@ -279,6 +279,16 @@ func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1
 	return res, err
 }
 
+func (s *stellarRetryClient) ReviewPaymentLocal(ctx context.Context, arg stellar1.ReviewPaymentLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.ReviewPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
 func (s *stellarRetryClient) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.SendPaymentLocal(ctx, arg)
@@ -379,7 +389,7 @@ func (s *stellarRetryClient) WalletInitLocal(ctx context.Context) (err error) {
 	return err
 }
 
-func (s *stellarRetryClient) WalletDumpLocal(ctx context.Context) (res stellar1.BundleRestricted, err error) {
+func (s *stellarRetryClient) WalletDumpLocal(ctx context.Context) (res stellar1.Bundle, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.WalletDumpLocal(ctx)
 		if err == nil {
@@ -532,3 +542,36 @@ func (s *stellarRetryClient) SetAccountMobileOnlyLocal(ctx context.Context, arg 
 	}
 	return err
 }
+
+func (s *stellarRetryClient) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetAccountAllDevicesLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetInflationDestinationLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) GetInflationDestinationLocal(ctx context.Context, arg stellar1.GetInflationDestinationLocalArg) (res stellar1.InflationDestinationResultLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetInflationDestinationLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

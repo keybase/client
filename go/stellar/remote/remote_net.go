@@ -97,3 +97,15 @@ func (r *RemoteNet) IsAccountMobileOnly(ctx context.Context, accountID stellar1.
 func (r *RemoteNet) SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error {
 	return SetAccountMobileOnly(ctx, r.G(), accountID)
 }
+
+func (r *RemoteNet) MakeAccountAllDevices(ctx context.Context, accountID stellar1.AccountID) error {
+	return MakeAccountAllDevices(ctx, r.G(), accountID)
+}
+
+func (r *RemoteNet) ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error) {
+	return ServerTimeboundsRecommendation(ctx, r.G())
+}
+
+func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string) error {
+	return SetInflationDestination(ctx, r.G(), signedTx)
+}

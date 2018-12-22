@@ -8,17 +8,14 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  avatarUploadsEnabled: true,
   chatIndexProfilingEnabled: false,
-  explodingMessagesEnabled: true,
   foldersInProfileTab: false,
-  moveOrCopy: true,
+  kbfsChatIntegration: true,
+  moveOrCopy: false,
   newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
-  peopleAnnouncementsEnabled: false,
   plansEnabled: false,
-  useSimpleMarkdown: true,
   walletsEnabled: false,
 }
 

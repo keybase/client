@@ -9,10 +9,8 @@ class FakeEngine {
   }
   reset() {}
   dispatchWaitingAction() {}
-  cancelRPC() {}
   cancelSession() {}
   rpc() {}
-  setFailOnError() {}
   listenOnConnect() {}
   listenOnDisconnect() {}
   hasEverConnected() {}

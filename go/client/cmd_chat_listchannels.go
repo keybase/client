@@ -78,14 +78,13 @@ func (c *CmdChatListChannels) Run() error {
 			convLine += fmt.Sprintf(" (created by: %s on: %s)", c.CreatorInfo.Username,
 				c.CreatorInfo.Ctime.Time().Format("2006-01-02"))
 		}
-		ui.Printf(convLine + "\n")
+		ui.Printf("%s\n", convLine)
 	}
 	return nil
 }
 
 func (c *CmdChatListChannels) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
-		cli.ShowCommandHelp(ctx, "list-channels")
 		return fmt.Errorf("incorrect usage")
 	}
 

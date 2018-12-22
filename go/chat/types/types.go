@@ -367,10 +367,16 @@ func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, 
 	return nil
 }
 
-func (d DummyStellarSender) DescribePayments(ctx context.Context, payments []ParsedStellarPayment) (*libkb.MiniChatPaymentSummary, error) {
+func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, payments []ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []ParsedStellarPayment, err error) {
+	return res, toSend, nil
+}
+
+func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
 	return nil, nil
 }
 
-func (d DummyStellarSender) SendPayments(ctx context.Context, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
-	return nil, nil
+func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
+	payments []chat1.TextPayment) string {
+	return body
 }

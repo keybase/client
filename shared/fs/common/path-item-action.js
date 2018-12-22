@@ -15,24 +15,22 @@ import {
   iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
-import PathItemInfo from '../common/path-item-info'
+import {PathItemIcon, PathItemInfo} from '../common'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
+import CommaSeparatedName from './comma-separated-name'
 
 type Props = {
   name: string,
   size: number,
   type: Types.PathType,
-  lastModifiedTimestamp: number,
-  lastWriter: string,
   childrenFolders: number,
   childrenFiles: number,
-  itemStyles: Types.ItemStyles,
   actionIconClassName?: string,
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
+  onHidden: () => void,
   path: Types.Path,
   pathElements: Array<string>,
   // Menu items
@@ -168,13 +166,15 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 
 const PathItemActionHeader = (props: Props) => (
   <Box style={styles.header}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={styles.pathItemIcon} />
+    <PathItemIcon path={props.path} size={32} style={styles.pathItemIcon} />
     <StaticBreadcrumb pathElements={props.pathElements} />
-    <Box style={styles.nameTextBox}>
-      <Text selectable={true} type="BodySmallSemibold" style={stylesNameText(props.itemStyles.textColor)}>
-        {props.name}
-      </Text>
-    </Box>
+    <Box2 direction="horizontal" style={styles.nameTextBox}>
+      <CommaSeparatedName
+        type="BodySmallSemibold"
+        name={props.name}
+        elementStyle={stylesNameText(Constants.getPathTextColor(props.path))}
+      />
+    </Box2>
     {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
     {props.type === 'folder' && (
       <Text type="BodySmall">
@@ -186,11 +186,7 @@ const PathItemActionHeader = (props: Props) => (
         {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
       </Text>
     )}
-    <PathItemInfo
-      lastModifiedTimestamp={props.lastModifiedTimestamp}
-      lastWriter={props.lastWriter}
-      wrap={true}
-    />
+    <PathItemInfo path={props.path} wrap={true} />
   </Box>
 )
 
@@ -203,6 +199,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       }
       hideMenuCalled = true
       props.toggleShowingMenu()
+      props.onHidden()
     }
   })()
 
@@ -255,6 +252,8 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
       width: '100%',
     },
@@ -272,8 +271,7 @@ const styles = Styles.styleSheetCreate({
   },
   nameTextBox: Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      flexWrap: 'wrap',
     },
     isElectron: {
       textAlign: 'center',

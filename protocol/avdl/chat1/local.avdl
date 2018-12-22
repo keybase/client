@@ -21,6 +21,7 @@ protocol local {
   }
 
   record TextPayment {
+    string username;
     string paymentText;
     TextPaymentResult result;
   }

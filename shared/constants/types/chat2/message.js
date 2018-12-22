@@ -88,6 +88,7 @@ export type MessageDeleted = I.RecordOf<_MessageDeleted>
 export type _MessageText = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
+  decoratedText: ?HiddenString,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
@@ -98,6 +99,7 @@ export type _MessageText = {
   explodingTime: number,
   explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
+  hasInlinePayments: boolean,
   id: MessageID,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
@@ -166,6 +168,7 @@ export type _ChatRequestInfo = {
   amount: string,
   amountDescription: string,
   asset: WalletTypes.Asset,
+  canceled: boolean,
   currencyCode: string, // set if asset === 'currency'
   type: 'requestInfo',
 }
@@ -194,14 +197,18 @@ export type _ChatPaymentInfo = {
   accountID: WalletTypes.AccountID,
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
+  fromUsername: string,
   note: HiddenString,
   paymentID: WalletTypes.PaymentID,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  statusDetail: string,
   showCancel: boolean,
+  toUsername: string,
   type: 'paymentInfo',
   worth: string,
 }
+
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {

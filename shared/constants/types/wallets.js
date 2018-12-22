@@ -78,6 +78,7 @@ export type _LocalCurrency = {
 
 export type _Building = {
   amount: string,
+  bid: string,
   currency: string,
   from: AccountID,
   isRequest: boolean,
@@ -89,6 +90,7 @@ export type _Building = {
 }
 
 export type _BuiltPayment = {
+  amountAvailable: string,
   amountErrMsg: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: AccountID,
@@ -263,6 +265,7 @@ export type _State = {
   selectedAccount: AccountID,
   sentPaymentError: string,
   unreadPaymentsMap: I.Map<string, number>,
+  mobileOnlyMap: I.Map<AccountID, boolean>,
 }
 
 export type State = I.RecordOf<_State>

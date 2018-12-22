@@ -489,8 +489,20 @@
           "name": "statusDescription"
         },
         {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
           "type": "boolean",
           "name": "showCancel"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
         }
       ]
     },
@@ -568,6 +580,13 @@
           "name": "messageBody"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "decoratedTextBody"
+        },
+        {
           "type": "string",
           "name": "senderUsername"
         },
@@ -578,6 +597,14 @@
         {
           "type": "string",
           "name": "senderDeviceType"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "senderUID"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDeviceID"
         },
         {
           "type": "boolean",
@@ -643,11 +670,11 @@
           "name": "hasPairwiseMacs"
         },
         {
-          "type": [
-            null,
-            "UIPaymentInfo"
-          ],
-          "name": "paymentInfo"
+          "type": {
+            "type": "array",
+            "items": "UIPaymentInfo"
+          },
+          "name": "paymentInfos"
         },
         {
           "type": [
@@ -780,15 +807,31 @@
     },
     {
       "type": "enum",
-      "name": "UIMiniChatPaymentSpecTyp",
+      "name": "UITextDecorationTyp",
       "symbols": [
-        "SUCCESS_0",
-        "ERROR_1"
+        "PAYMENT_0"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UITextDecoration",
+      "switch": {
+        "type": "UITextDecorationTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PAYMENT",
+            "def": false
+          },
+          "body": "TextPayment"
+        }
       ]
     },
     {
       "type": "record",
-      "name": "UIMiniChatPaymentSpecSuccess",
+      "name": "UIChatPayment",
       "fields": [
         {
           "type": "string",
@@ -796,7 +839,18 @@
         },
         {
           "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
           "name": "xlmAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
         },
         {
           "type": [
@@ -808,32 +862,8 @@
       ]
     },
     {
-      "type": "variant",
-      "name": "UIMiniChatPaymentSpec",
-      "switch": {
-        "type": "UIMiniChatPaymentSpecTyp",
-        "name": "typ"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "SUCCESS",
-            "def": false
-          },
-          "body": "UIMiniChatPaymentSpecSuccess"
-        },
-        {
-          "label": {
-            "name": "ERROR",
-            "def": false
-          },
-          "body": "string"
-        }
-      ]
-    },
-    {
       "type": "record",
-      "name": "UIMiniChatPaymentSummary",
+      "name": "UIChatPaymentSummary",
       "fields": [
         {
           "type": "string",
@@ -846,7 +876,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UIMiniChatPaymentSpec"
+            "items": "UIChatPayment"
           },
           "name": "payments"
         }
@@ -1042,6 +1072,15 @@
       ],
       "response": "boolean"
     },
+    "chatPostReadyToSend": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "chatStellarShowConfirm": {
       "request": [
         {
@@ -1059,7 +1098,7 @@
         },
         {
           "name": "summary",
-          "type": "UIMiniChatPaymentSummary"
+          "type": "UIChatPaymentSummary"
         }
       ],
       "response": "boolean"
@@ -1073,6 +1112,15 @@
         {
           "name": "message",
           "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": null

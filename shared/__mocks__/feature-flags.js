@@ -8,17 +8,14 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
-  avatarUploadsEnabled: true,
   chatIndexProfilingEnabled: false,
-  explodingMessagesEnabled: true,
   foldersInProfileTab: true,
+  kbfsChatIntegration: true,
   moveOrCopy: true,
   newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,
-  peopleAnnouncementsEnabled: true,
   plansEnabled: false,
-  useSimpleMarkdown: true,
   walletsEnabled: true,
 }
 

@@ -8,7 +8,8 @@ import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 
 type OwnProps = {
@@ -16,6 +17,7 @@ type OwnProps = {
   message: Types.MessageAttachment,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
@@ -79,7 +81,7 @@ const mapDispatchToProps = dispatch => ({
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
 })
 
@@ -105,6 +107,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     pending: stateProps.pending,
     position: ownProps.position,
+    style: ownProps.style,
     timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,

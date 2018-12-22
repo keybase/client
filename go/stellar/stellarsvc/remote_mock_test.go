@@ -265,8 +265,9 @@ func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamI
 }
 
 func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
-
 		typ, err := tx.Summary.Typ()
 		require.NoError(t.T, err)
 		switch typ {
@@ -291,6 +292,8 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 }
 
 func (t *txlogger) FindFirstUnclaimedFor(uv keybase1.UserVersion) (*stellar1.PaymentDetails, error) {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
 		typ, err := tx.Summary.Typ()
 		if err != nil {
@@ -317,6 +320,7 @@ type FakeAccount struct {
 	balance       stellar1.Balance   // XLM
 	otherBalances []stellar1.Balance // other assets
 	subentries    int
+	inflationDest stellar1.AccountID
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -495,8 +499,20 @@ func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stel
 	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
 }
 
+func (r *RemoteClientMock) MakeAccountAllDevices(ctx context.Context, acctID stellar1.AccountID) error {
+	return r.Backend.MakeAccountAllDevices(ctx, r.Tc, acctID)
+}
+
 func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) (bool, error) {
 	return r.Backend.IsAccountMobileOnly(ctx, r.Tc, acctID)
+}
+
+func (r *RemoteClientMock) ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error) {
+	return r.Backend.ServerTimeboundsRecommendation(ctx, r.Tc)
+}
+
+func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx string) error {
+	return r.Backend.SetInflationDestination(ctx, r.Tc, signedTx)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -622,6 +638,14 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	if !extract.Asset.IsNativeXLM() {
 		return stellar1.PaymentResult{}, errors.New("can only handle native")
+	}
+
+	require.NotNil(tc.T, extract.TimeBounds, "We are expecting TimeBounds in all txs")
+	if extract.TimeBounds != nil {
+		require.NotZero(tc.T, extract.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
+		require.True(tc.T, time.Now().Before(time.Unix(int64(extract.TimeBounds.MaxTime), 0)))
+		// We always send MinTime=0 but this assertion should still hold.
+		require.True(tc.T, time.Now().After(time.Unix(int64(extract.TimeBounds.MinTime), 0)))
 	}
 
 	toIsFunded := false
@@ -866,6 +890,11 @@ func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID 
 	return *p, nil
 }
 
+type accountCurrencyResult struct {
+	libkb.AppStatusEmbed
+	CurrencyDisplayPreference string `json:"currency_display_preference"`
+}
+
 func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
 	defer tc.G.CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
 	r.Lock()
@@ -886,12 +915,35 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	if a.balance.Amount != "" {
 		balances = []stellar1.Balance{a.balance}
 	}
+
+	// fetch the currency display preference for this account
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountcurrency",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+		},
+		NetContext: ctx,
+	}
+	var apiRes accountCurrencyResult
+	err = tc.G.API.GetDecode(apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+
+	var inflationDest *stellar1.AccountID
+	if a.inflationDest != "" {
+		inflationDest = &a.inflationDest
+	}
+
 	return stellar1.AccountDetails{
-		AccountID:     accountID,
-		Seqno:         strconv.FormatUint(r.seqnos[accountID], 10),
-		Balances:      balances,
-		SubentryCount: a.subentries,
-		Available:     a.availableBalance(),
+		AccountID:            accountID,
+		Seqno:                strconv.FormatUint(r.seqnos[accountID], 10),
+		Balances:             balances,
+		SubentryCount:        a.subentries,
+		Available:            a.availableBalance(),
+		DisplayCurrency:      apiRes.CurrencyDisplayPreference,
+		InflationDestination: inflationDest,
 	}, nil
 }
 
@@ -950,10 +1002,10 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 }
 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
-	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
+	mctx := tc.MetaContext()
+	defer mctx.CTraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
-	defer r.Unlock()
-	bundle, _, _, err := remote.FetchWholeBundle(context.Background(), tc.G)
+	bundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(r.T, err)
 	for _, account := range bundle.Accounts {
 		if _, found := r.accounts[account.AccountID]; found {
@@ -963,6 +1015,10 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
 		res = append(res, acc)
 	}
+	r.Unlock()
+
+	tc.Srv.walletState.RefreshAll(mctx, "test")
+
 	return res
 }
 
@@ -1080,6 +1136,40 @@ func (r *BackendMock) IsAccountMobileOnly(ctx context.Context, tc *TestContext, 
 
 func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
 	return remote.SetAccountMobileOnly(ctx, tc.G, accountID)
+}
+
+func (r *BackendMock) MakeAccountAllDevices(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
+	return remote.MakeAccountAllDevices(ctx, tc.G, accountID)
+}
+
+func (r *BackendMock) ServerTimeboundsRecommendation(ctx context.Context, tc *TestContext) (stellar1.TimeboundsRecommendation, error) {
+	// Call real timebounds endpoint for integration testing.
+	return remote.ServerTimeboundsRecommendation(ctx, tc.G)
+}
+
+func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestContext, signedTx string) error {
+	unpackedTx, _, err := unpackTx(signedTx)
+	if err != nil {
+		return err
+	}
+
+	accountID := stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
+	account, ok := r.accounts[accountID]
+	require.True(tc.T, ok)
+	require.True(tc.T, account.availableBalance() != "0", "inflation on empty account won't work")
+
+	require.Len(tc.T, unpackedTx.Tx.Operations, 1)
+	op := unpackedTx.Tx.Operations[0]
+	require.Nil(tc.T, op.SourceAccount)
+	require.Equal(tc.T, xdr.OperationTypeSetOptions, op.Body.Type)
+	setOpt, ok := op.Body.GetSetOptionsOp()
+	require.True(tc.T, ok)
+	require.NotNil(tc.T, setOpt.InflationDest)
+
+	account.inflationDest = stellar1.AccountID(setOpt.InflationDest.Address())
+
+	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)
+	return nil
 }
 
 // Friendbot sends someone XLM

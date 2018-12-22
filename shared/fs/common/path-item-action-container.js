@@ -38,6 +38,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
       })
     )
   },
+  onHidden: () => dispatch(FsGen.createClearRefreshTag({refreshTag: 'path-item-action-popup'})),
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
@@ -174,7 +175,7 @@ const getRootMenuActionsByPathLevel = (pathLevel: number, stateProps, dispatchPr
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {_pathItems, _username} = stateProps
+  const {_pathItems} = stateProps
   const {loadFolderList, loadMimeType} = dispatchProps
   const {path, actionIconClassName, actionIconFontSize, actionIconWhite} = ownProps
   const pathElements = Types.getPathElements(path)
@@ -194,7 +195,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           {childrenFiles: 0, childrenFolders: 0}
         )
       : {childrenFiles: 0, childrenFolders: 0}
-  const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
     showInSystemFileManager,
     ignoreFolder,
@@ -215,9 +215,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     deleteFileOrFolder,
     download,
     ignoreFolder,
-    itemStyles,
-    lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
-    lastWriter: pathItem.lastWriter.username,
     loadFolderList,
     loadMimeType,
     moveOrCopy,
@@ -227,6 +224,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // request it regardless whether we have it or not. The FS saga takes care
     // of preventing the RPC if it's already subscribed.
     needLoadMimeType: type === 'file',
+    onHidden: dispatchProps.onHidden,
     path,
     pathElements,
     saveMedia,

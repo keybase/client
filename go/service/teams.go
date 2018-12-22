@@ -181,6 +181,13 @@ func (h *TeamsHandler) TeamListVerified(ctx context.Context, arg keybase1.TeamLi
 	return *x, nil
 }
 
+func (h *TeamsHandler) TeamGetSubteams(ctx context.Context, arg keybase1.TeamGetSubteamsArg) (res keybase1.SubteamListResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetSubteams(%s)", arg.Name), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.ListSubteamsUnverified(mctx, arg.Name)
+}
+
 func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybase1.TeamListSubteamsRecursiveArg) (res []keybase1.TeamIDAndName, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListSubteamsRecursive(%s)", arg.ParentTeamName), func() error { return err })()
@@ -482,7 +489,7 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
 	var team *teams.Team
 	team, res.Name, res.DisplayName, err =
-		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public, teams.ImplicitTeamOptions{})
 	if err == nil {
 		res.TeamID = team.ID
 		res.TlfID = team.LatestKBFSTLFID()

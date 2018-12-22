@@ -32,7 +32,8 @@ const reducer = (
       return state.update('infoMap', map =>
         map.withMutations(m => {
           newlyFixed.forEach(user => {
-            m.update(user, info => (info || blankUserInfo).set('broken', false))
+            // only make it if one exists already
+            m.update(user, info => (info ? info.set('broken', false) : info))
           })
           newlyBroken.forEach(user => {
             m.update(user, info => (info || blankUserInfo).set('broken', true))

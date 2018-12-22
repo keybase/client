@@ -7,11 +7,10 @@ import {
   Box,
   Box2,
   Icon,
-  Input,
+  PlainInput,
   Text,
   iconCastPlatformStyles,
   OverlayParentHOC,
-  type OverlayParentProps,
 } from '../../../../common-adapters'
 import {
   collapseStyles,
@@ -22,18 +21,16 @@ import {
   styleSheetCreate,
 } from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
-import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
-import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import type {PlatformInputProps} from './types'
-import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
+import type {PlatformInputPropsInternal} from './platform-input'
+import AddSuggestors, {standardTransformer} from '../suggestors'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -41,20 +38,22 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProps, State> {
-  _input: ?Input
+class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
+  _input: null | PlainInput
+  _lastText: ?string
   _whichMenu: menuType
 
-  constructor(props: PlatformInputProps & OverlayParentProps) {
+  constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
       hasText: false,
     }
   }
 
-  _inputSetRef = (ref: ?Input) => {
+  _inputSetRef = (ref: null | PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
+    this.props.inputRef.current = ref
   }
 
   _openFilePicker = () => {
@@ -113,11 +112,12 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
   }
 
   _getText = () => {
-    return this._input ? this._input.getValue() : ''
+    return this._lastText || ''
   }
 
   _onChangeText = (text: string) => {
     this.setState({hasText: !!text})
+    this._lastText = text
     this.props.onChangeText(text)
   }
 
@@ -136,6 +136,23 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
     this.props.toggleShowingMenu()
   }
 
+  _onLayout = ({
+    nativeEvent: {
+      layout: {x, y, width, height},
+    },
+  }) => this.props.setHeight(height)
+
+  _insertMentionMarker = () => {
+    if (this._input) {
+      const input = this._input
+      input.focus()
+      input.transformText(
+        ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
+        true
+      )
+    }
+  }
+
   render = () => {
     let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
@@ -147,31 +164,7 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
     }
 
     return (
-      <Box>
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.insertMention}
-            filter={this.props.mentionFilter}
-            setMentionHudIsShowing={this.props.setMentionHudIsShowing}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.insertChannelMention}
-            filter={this.props.channelMentionFilter}
-            setChannelMentionHudIsShowing={this.props.setChannelMentionHudIsShowing}
-          />
-        )}
+      <Box onLayout={this._onLayout}>
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
@@ -196,22 +189,19 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
               </Text>
             </Box>
           )}
-          <Input
+          <PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            autoFocus={false}
-            hideUnderline={true}
-            hintText={hintText}
+            placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
             onChangeText={this._onChangeText}
+            onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
-            small={true}
             style={styles.input}
-            uncontrolled={true}
             rowsMax={3}
             rowsMin={1}
           />
@@ -223,7 +213,7 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
             isEditing={this.props.isEditing}
             openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
-            insertMentionMarker={this.props.insertMentionMarker}
+            insertMentionMarker={this._insertMentionMarker}
             isExploding={this.props.isExploding}
             isExplodingNew={this.props.isExplodingNew}
             showWalletsIcon={this.props.showWalletsIcon}
@@ -234,22 +224,7 @@ class PlatformInput extends PureComponent<PlatformInputProps & OverlayParentProp
     )
   }
 }
-
-const MentionHud = props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-    </Box>
-  </Box>
-)
-
-const ChannelMentionHud = props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-    </Box>
-  </Box>
-)
+const PlatformInput = AddSuggestors(_PlatformInput)
 
 const Action = ({
   explodingModeSeconds,
@@ -265,7 +240,7 @@ const Action = ({
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled && isExploding && !isEditing && (
+      {isExploding && !isEditing && (
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
@@ -279,17 +254,15 @@ const Action = ({
     </Box2>
   ) : (
     <Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      {flags.explodingMessagesEnabled && (
-        <>
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-          {smallGap}
-        </>
-      )}
+      <>
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          isExplodingNew={isExplodingNew}
+          openExplodingPicker={openExplodingPicker}
+        />
+        {smallGap}
+      </>
       {showWalletsIcon && (
         <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
@@ -367,6 +340,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.xtiny,
   },
   input: {
+    flex: 1,
     marginLeft: globalMargins.tiny,
     marginRight: globalMargins.tiny,
     ...(isIOS

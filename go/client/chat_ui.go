@@ -115,7 +115,7 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 	if err != nil {
 		return false, err
 	}
-	return strings.TrimSpace(response) == confirm, nil
+	return response == confirm, nil
 }
 
 func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearchHit) error {
@@ -266,17 +266,12 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStell
 	term.Printf("Confirm Stellar Payments:\n\n")
 	term.Printf("Total: %s (%s)\n", arg.Summary.XlmTotal, arg.Summary.DisplayTotal)
 	for _, p := range arg.Summary.Payments {
-		typ, err := p.Typ()
-		if err != nil {
-			continue
-		}
-		switch typ {
-		case chat1.UIMiniChatPaymentSpecTyp_ERROR:
-			term.Printf("Payment Error: %s\n", p.Error())
-		case chat1.UIMiniChatPaymentSpecTyp_SUCCESS:
-			out := fmt.Sprintf("-> %s %s", p.Success().Username, p.Success().XlmAmount)
-			if p.Success().DisplayAmount != nil {
-				out += fmt.Sprintf(" (%s)", *p.Success().DisplayAmount)
+		if p.Error != nil {
+			term.Printf("Payment Error: %s\n", *p.Error)
+		} else {
+			out := fmt.Sprintf("-> %s %s", p.Username, p.XlmAmount)
+			if p.DisplayAmount != nil {
+				out += fmt.Sprintf(" (%s)", *p.DisplayAmount)
 			}
 			term.Printf(out + "\n")
 		}
@@ -290,9 +285,17 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStell
 	return strings.TrimSpace(response) == confirm, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) error {
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
 	w := c.terminal.ErrorWriter()
 	msg := "Failed to obtain Stellar payment information, aborting send"
 	fmt.Fprintf(w, msg+"\n")
-	return errors.New(msg)
+	return false, errors.New(msg)
+}
+
+func (c *ChatUI) ChatStellarDone(ctx context.Context, sessionID int) error {
+	return nil
+}
+
+func (c *ChatUI) ChatPostReadyToSend(ctx context.Context, sessionID int) error {
+	return nil
 }

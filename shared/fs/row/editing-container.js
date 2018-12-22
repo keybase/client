@@ -11,14 +11,9 @@ type OwnProps = {
   routePath: I.List<string>,
 }
 
-const mapStateToProps = (state, {editID}: OwnProps) => {
-  const _edit = state.fs.edits.get(editID, Constants.makeNewFolder()) // TODO make missing get better
-  const _username = state.config.username
-  return {
-    _edit,
-    _username,
-  }
-}
+const mapStateToProps = (state, {editID}: OwnProps) => ({
+  _edit: state.fs.edits.get(editID, Constants.emptyFolder),
+})
 
 const mapDispatchToProps = (dispatch, {editID, routePath}: OwnProps) => ({
   onCancel: () => dispatch(FsGen.createDiscardEdit({editID})),
@@ -29,15 +24,11 @@ const mapDispatchToProps = (dispatch, {editID, routePath}: OwnProps) => ({
 const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
   hint: _edit.hint,
   isCreate: _edit.type === 'new-folder',
-  itemStyles: Constants.getItemStyles(
-    Types.getPathElements(Types.pathConcat(_edit.parentPath, _edit.name)),
-    Constants.editTypeToPathType(_edit.type),
-    _username
-  ),
   name: _edit.name,
   onCancel,
   onSubmit,
   onUpdate,
+  projectedPath: Types.pathConcat(_edit.parentPath, _edit.name),
   status: _edit.status,
 })
 

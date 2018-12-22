@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
@@ -183,20 +184,20 @@ func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
 
 func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, public bool,
 	team *teams.Team) error {
-	impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
 	if err != nil {
 		return err
 	}
-	if impTeamName != tlfName {
+	if impTeamName.String() != tlfName {
 		// Try resolving given name, maybe there has been a resolution
 		resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
 		if err != nil {
 			return err
 		}
-		if impTeamName != resName.String() {
+		if impTeamName.String() != resName.String() {
 			return ImpteamBadteamError{
-				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-					tlfName),
+				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s (resname:%s)",
+					impTeamName, tlfName, resName),
 			}
 		}
 	}
@@ -431,7 +432,8 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfNam
 }
 
 func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	if public {
 		return teamEK, NewPublicTeamEphemeralKeyError()
 	}
@@ -440,7 +442,7 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
 }
 
 func (t *TeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -615,7 +617,8 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 		return t.lookupInternalName(ctx, name, public)
 	}
 
-	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
+	// This is on the critical path of sends, so don't force a repoll.
+	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public, teams.ImplicitTeamOptions{NoForceRepoll: true})
 	if err != nil {
 		return res, t.transformTeamDoesNotExist(ctx, err, name)
 	}
@@ -667,6 +670,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 	if err != nil {
 		return res, err
 	}
+	t.Debug(ctx, "LookupName: got name: %s", impTeamName.String())
 	idFailures, err := t.identify(ctx, tlfID, impTeamName)
 	if err != nil {
 		return res, err
@@ -760,12 +764,12 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
 }
 
 func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,

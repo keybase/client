@@ -39,3 +39,7 @@ func (h *walletHandler) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Se
 func (h *walletHandler) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
 	return h.NewRemoteIdentifyUI(sessionID, g)
 }
+
+func (h *walletHandler) StellarUI() stellar1.UiInterface {
+	return stellar1.UiClient{Cli: h.rpcClient()}
+}

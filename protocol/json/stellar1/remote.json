@@ -14,6 +14,12 @@
   "types": [
     {
       "type": "record",
+      "name": "ChatConversationID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "PaymentDirectPost",
       "fields": [
         {
@@ -46,6 +52,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },
@@ -95,6 +108,13 @@
         {
           "type": "boolean",
           "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
         }
       ]
     },
@@ -492,6 +512,17 @@
         {
           "type": "int",
           "name": "unreadPayments"
+        },
+        {
+          "type": "string",
+          "name": "displayCurrency"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "inflationDestination"
         }
       ]
     },
@@ -615,6 +646,22 @@
         {
           "type": "RequestStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TimeboundsRecommendation",
+      "fields": [
+        {
+          "type": "keybase1.UnixTime",
+          "name": "timeNow",
+          "jsonkey": "time_now"
+        },
+        {
+          "type": "int64",
+          "name": "timeout",
+          "jsonkey": "timeout"
         }
       ]
     }
@@ -865,6 +912,19 @@
         {
           "name": "reqID",
           "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
+    "setInflationDestination": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "signedTransaction",
+          "type": "string"
         }
       ],
       "response": null

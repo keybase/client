@@ -12,8 +12,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
-func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestricted, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
+	_, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        "WalletDumpLocal",
 		Err:            &err,
 		AllowLoggedOut: true,

@@ -8,7 +8,8 @@ import * as Route from '../../../../../actions/route-tree'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Text from '.'
 
 type OwnProps = {
@@ -16,6 +17,7 @@ type OwnProps = {
   message: Types.MessageText,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
@@ -124,6 +126,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onViewProfile: message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : null,
     position: ownProps.position,
     showDivider: !message.deviceRevokedAt,
+    style: ownProps.style,
     timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,

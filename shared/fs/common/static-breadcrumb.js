@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Icon, Text, type IconType} from '../../common-adapters'
+import CommaSeparatedName from './comma-separated-name'
 
 const getIcon = (tlfType: string): IconType => {
   switch (tlfType) {
@@ -36,33 +37,18 @@ const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) =
       <Text key="text" type="BodySmallSemibold">
         {pathElements[1]}
       </Text>,
-      ...pathElements.slice(2, includeLast ? undefined : pathElements.length - 1).map((elem, idx) => [
-        <Icon
-          key={`icon-${idx}`}
-          type="iconfont-arrow-right"
-          style={stylesIconArrow}
-          color={globalColors.black_20}
-          fontSize={12}
-        />,
-
-        // TODO: make this into a component.
-        // We are splitting on ',' here, so it won't work for
-        // long names that don't have comma. If this becomes a
-        // problem, we might have to do smarter splitting that
-        // involve other characters, or just break the long name
-        // apart into 3-character groups.
-        ...elem.split(',').map((sub, idxSub, {length}) => (
-          <Text key={`text-${idx}-${idxSub}`} type="BodySmallSemibold">
-            {sub}
-            {idxSub !== length - 1 ? ',' : ''}
-          </Text>
-        )),
-        /*
-        <Text key={`text-${idx}`} type="BodySmallSemibold">
-          {elem}
-        </Text>,
-        */
-      ]),
+      ...pathElements
+        .slice(2, includeLast ? undefined : pathElements.length - 1)
+        .map((elem, idx) => [
+          <Icon
+            key={`icon-${idx}`}
+            type="iconfont-arrow-right"
+            style={stylesIconArrow}
+            color={globalColors.black_20}
+            fontSize={12}
+          />,
+          <CommaSeparatedName key={`name-${idx}`} type="BodySmallSemibold" name={elem} />,
+        ]),
     ]}
   </Box>
 )

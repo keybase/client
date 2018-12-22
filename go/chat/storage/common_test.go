@@ -20,7 +20,7 @@ func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
 		isProduction := func() bool {
 			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 	ctc := kbtest.ChatTestContext{
 		TestContext: tc,

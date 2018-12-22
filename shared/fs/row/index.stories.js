@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import {Box} from '../../common-adapters'
 import {WrapRow} from './rows'
@@ -62,16 +61,29 @@ export const rowsProvider = {
     return {
       destinationPickerIndex,
       isEmpty: pathStr.includes('empty'),
-      itemStyles: folderItemStyles,
       name: Types.getPathName(path),
       type: 'folder',
     }
   },
+  SortBar: ({path}: {path: Types.Path}) => ({
+    folderIsPending: true,
+    sortSetting: {
+      sortBy: 'name',
+      sortOrder: 'asc',
+    },
+    sortSettingToAction: Sb.action('sortSettingToAction'),
+  }),
 }
 
 const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
   ...rowsProvider,
+})
+
+const makeEditingRowNameProps = (name: string) => ({
+  hint: name,
+  name,
+  projectedPath: Types.stringToPath(`/keybase/team/kbkbfstest/${name}`),
 })
 
 const load = () =>
@@ -90,48 +102,41 @@ const load = () =>
         </WrapRow>
         <WrapRow key="2">
           <EditingRow
-            name="New Folder (editing)"
-            hint="New Folder (editing)"
+            {...makeEditingRowNameProps('New Folder (editing)')}
             status="editing"
-            itemStyles={folderItemStyles}
             isCreate={true}
             {...commonRowProps}
           />
         </WrapRow>
         <WrapRow key="3">
           <EditingRow
-            name="From Dropbox (rename) (editing)"
-            hint="From Dropbox (rename) (editing)"
+            {...makeEditingRowNameProps('From Dropbox (rename) (editing)')}
             status="editing"
-            itemStyles={folderItemStyles}
             isCreate={false}
             {...commonRowProps}
           />
         </WrapRow>
         <WrapRow key="4">
           <EditingRow
-            name="New Folder (saving)"
-            hint="New Folder (saving)"
+            {...makeEditingRowNameProps('New Folder (saving)')}
             status="saving"
-            itemStyles={folderItemStyles}
             isCreate={true}
             {...commonRowProps}
           />
         </WrapRow>
         <WrapRow key="5">
           <EditingRow
-            name="New Folder (failed)"
-            hint="New Folder (failed)"
+            {...makeEditingRowNameProps('New Folder (failed)')}
             status="failed"
-            itemStyles={folderItemStyles}
             isCreate={true}
             {...commonRowProps}
           />
         </WrapRow>
         <WrapRow key="6">
           <UploadingRow
+            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            type="folder"
             name="foo"
-            itemStyles={folderItemStyles}
             writingToJournal={true}
             syncing={false}
             error={false}
@@ -139,8 +144,9 @@ const load = () =>
         </WrapRow>
         <WrapRow key="7">
           <UploadingRow
+            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            type="file"
             name="foo"
-            itemStyles={fileItemStyles}
             writingToJournal={true}
             syncing={false}
             error={false}
@@ -148,8 +154,9 @@ const load = () =>
         </WrapRow>
         <WrapRow key="8">
           <UploadingRow
+            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            type="file"
             name="foo"
-            itemStyles={fileItemStyles}
             writingToJournal={true}
             syncing={true}
             error={false}
@@ -157,8 +164,9 @@ const load = () =>
         </WrapRow>
         <WrapRow key="9">
           <UploadingRow
+            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            type="file"
             name="foo"
-            itemStyles={fileItemStyles}
             writingToJournal={false}
             syncing={true}
             error={false}
@@ -166,8 +174,9 @@ const load = () =>
         </WrapRow>
         <WrapRow key="10">
           <UploadingRow
+            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            type="file"
             name="foo"
-            itemStyles={fileItemStyles}
             writingToJournal={false}
             syncing={false}
             error={false}
@@ -175,8 +184,9 @@ const load = () =>
         </WrapRow>
         <WrapRow key="11">
           <UploadingRow
+            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            type="file"
             name="foo"
-            itemStyles={fileItemStyles}
             writingToJournal={false}
             syncing={false}
             error={true}
@@ -187,9 +197,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private/foo/bar')}
             name="bar"
             type="file"
-            lastModifiedTimestamp={Date.now()}
-            lastWriter="alice"
-            itemStyles={fileItemStyles}
             intentIfDownloading="none"
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
@@ -201,9 +208,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private/foo/bar')}
             name="bar"
             type="file"
-            lastModifiedTimestamp={Date.now()}
-            lastWriter="alice"
-            itemStyles={fileItemStyles}
             intentIfDownloading="camera-roll"
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
@@ -215,9 +219,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private/foo/bar')}
             name="bar"
             type="file"
-            lastModifiedTimestamp={Date.now()}
-            lastWriter="alice"
-            itemStyles={fileItemStyles}
             intentIfDownloading="share"
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
@@ -243,9 +244,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private/foo/bar/baz')}
             name="qux"
             type="file"
-            lastModifiedTimestamp={Date.now()}
-            lastWriter="bob"
-            itemStyles={fileItemStyles}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
@@ -255,7 +253,6 @@ const load = () =>
           <TlfTypeRow
             name="private"
             path={Types.stringToPath('/keybase/private')}
-            itemStyles={folderItemStyles}
             badgeCount={0}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
@@ -265,7 +262,6 @@ const load = () =>
           <TlfTypeRow
             name="private"
             path={Types.stringToPath('/keybase/private')}
-            itemStyles={folderItemStyles}
             badgeCount={3}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
@@ -275,12 +271,10 @@ const load = () =>
           <TlfRow
             name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            itemStyles={folderItemStyles}
             needsRekey={false}
             isIgnored={false}
             isNew={true}
-            isUserReset={false}
-            resetParticipants={[]}
+            needPathItemInfo={false}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
           />
@@ -289,12 +283,10 @@ const load = () =>
           <TlfRow
             name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            itemStyles={folderItemStyles}
             needsRekey={false}
             isIgnored={false}
             isNew={true}
-            isUserReset={true}
-            resetParticipants={['charlie']}
+            needPathItemInfo={true}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
           />
@@ -303,52 +295,16 @@ const load = () =>
           <TlfRow
             name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            itemStyles={folderItemStyles}
             needsRekey={false}
             isIgnored={false}
             isNew={true}
-            isUserReset={false}
-            resetParticipants={['alice', 'bob']}
-            onOpen={Sb.action('onOpen')}
-            onAction={Sb.action('onAction')}
-          />
-        </WrapRow>
-        <WrapRow key="22">
-          <TlfRow
-            name="alice,bob,charlie"
-            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
-            itemStyles={folderItemStyles}
-            needsRekey={false}
-            isIgnored={false}
-            isNew={true}
-            isUserReset={false}
-            resetParticipants={[]}
+            needPathItemInfo={false}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
           />
         </WrapRow>
       </Box>
     ))
-
-const folderItemStyles = {
-  iconSpec: {
-    iconColor: Styles.globalColors.darkBlue2,
-    iconType: 'icon-folder-private-32',
-    type: 'basic',
-  },
-  textColor: Styles.globalColors.black_75,
-  textType: 'BodySemibold',
-}
-
-const fileItemStyles = {
-  iconSpec: {
-    iconColor: Styles.globalColors.darkBlue2,
-    iconType: 'icon-file-private-32',
-    type: 'basic',
-  },
-  textColor: Styles.globalColors.black_75,
-  textType: 'Body',
-}
 
 const commonRowProps = {
   onCancel: Sb.action('onCancel'),

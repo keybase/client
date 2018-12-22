@@ -2,7 +2,7 @@
 import {Rnd} from '../../../../stories/storybook'
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
-import {emojiIndexByName} from '../../../../markdown/parser'
+import {emojiIndexByName} from '../../../../common-adapters/markdown/emoji-gen'
 import type {OwnProps} from './container'
 import type {Props as ViewProps} from '.'
 

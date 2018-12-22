@@ -38,9 +38,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		tc1 := ctc.as(t, u1)
 		tc2 := ctc.as(t, u2)
 
-		searchHitCb := make(chan chat1.ChatSearchHitArg, 100)
-		searchDoneCb := make(chan chat1.ChatSearchDoneArg, 100)
-		chatUI := kbtest.NewChatUI(nil, nil, searchHitCb, searchDoneCb, nil, nil)
+		chatUI := kbtest.NewChatUI()
 		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
@@ -88,7 +86,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 			}
 			_verifyHit(searchHit)
 			select {
-			case searchHitRes := <-searchHitCb:
+			case searchHitRes := <-chatUI.SearchHitCb:
 				_verifyHit(searchHitRes.SearchHit)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no search result received")
@@ -96,7 +94,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		}
 		verifySearchDone := func(numHits int) {
 			select {
-			case searchDone := <-searchDoneCb:
+			case searchDone := <-chatUI.SearchDoneCb:
 				require.Equal(t, numHits, searchDone.NumHits)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no search result received")
@@ -233,8 +231,8 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		timeout := 20 * time.Second
 		for i := 0; i < 8+4; i++ {
 			select {
-			case <-searchHitCb:
-			case <-searchDoneCb:
+			case <-chatUI.SearchHitCb:
+			case <-chatUI.SearchDoneCb:
 			case <-time.After(timeout):
 				require.Fail(t, "no search result received")
 			}
@@ -385,9 +383,7 @@ func TestChatSearchInbox(t *testing.T) {
 		g1 := ctc.world.Tcs[u1.Username].Context()
 		g2 := ctc.world.Tcs[u2.Username].Context()
 
-		searchInboxHitCb := make(chan chat1.ChatSearchInboxHitArg, 100)
-		searchInboxDoneCb := make(chan chat1.ChatSearchInboxDoneArg, 100)
-		chatUI := kbtest.NewChatUI(nil, nil, nil, nil, searchInboxHitCb, searchInboxDoneCb)
+		chatUI := kbtest.NewChatUI()
 		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
@@ -459,7 +455,7 @@ func TestChatSearchInbox(t *testing.T) {
 		}
 		verifySearchDone := func(numHits int) {
 			select {
-			case searchDone := <-searchInboxDoneCb:
+			case searchDone := <-chatUI.InboxSearchDoneCb:
 				require.Equal(t, numHits, searchDone.Res.NumHits)
 				numConvs := 1
 				if numHits == 0 {
@@ -699,8 +695,8 @@ func TestChatSearchInbox(t *testing.T) {
 		timeout := 20 * time.Second
 		for i := 0; i < 8+4; i++ {
 			select {
-			case <-searchInboxHitCb:
-			case <-searchInboxDoneCb:
+			case <-chatUI.InboxSearchHitCb:
+			case <-chatUI.InboxSearchDoneCb:
 			case <-time.After(timeout):
 				require.Fail(t, "no search result received")
 			}

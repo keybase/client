@@ -124,11 +124,11 @@ const props = {
   onChat: Sb.action('onChat'),
   onClearAddUserToTeamsResults: Sb.action('onClearAddUserToTeamsResults'),
   onClickAvatar: Sb.action('onClickAvatar'),
-  onClickFollowers: Sb.action('onClickFollowers'),
-  onClickFollowing: Sb.action('onClickFollowing'),
   onClickShowcaseOffer: Sb.action('onClickShowcaseOffer'),
   onClickShowcased: Sb.action('onClickShowcased'),
+  onCopyStellarAddress: Sb.action('onCopyStellarAddress'),
   onEditAvatar: Sb.action('onEditAvatar'),
+  onFilePickerError: Sb.action('onFilePickerError'),
   onFolderClick: Sb.action('onFolderClick'),
   onFollow: Sb.action('onFollow'),
   onMissingProofClick: Sb.action(`Prove`),
@@ -139,6 +139,7 @@ const props = {
   onRevokeProof: Sb.action('onRevokeProof'),
   onSearch: Sb.action('onSearch'),
   onSendLumens: Sb.action('onSendLumens'),
+  onSendOrRequestStellarAddress: Sb.action('onSendOrRequestStellarAddress'),
   onUnfollow: Sb.action('onUnfollow'),
   onUserClick: Sb.action('showUserProfile'),
   onViewProof: Sb.action('onViewProof'),
@@ -248,6 +249,9 @@ const load = () => {
     ))
     .add('Followed - Changed - Scrolled', () => (
       <Profile {...props} proofs={proofsDeleted} trackerState={error} currentlyFollowing={true} />
+    ))
+    .add('Your Profile - Stellar Address', () => (
+      <Profile {...props} stellarAddress={'coyne*keybase.io'} bioEditFns={bioEditFns} isYou={true} />
     ))
 }
 export default load

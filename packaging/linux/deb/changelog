@@ -1,0 +1,9 @@
+keybase (2.11.0-20181115195458.06d3f3f3c4) stable; urgency=medium
+  * Chat. URL previews, performance improvement updates.
+    Other. Team creation flow UI upgrades, bugfixes.
+ -- Keybase Developers <code@keybase.io>  Tue, 04 Dec 2018 12:00:00 +0000
+
+keybase (2.8.0-20181023124437.06221a8264) stable; urgency=critical
+  * Fixes KB002: Local Privilege Escalation on Linux via keybase-redirector.
+    See MITRE CVE-2018-18629, and https://keybase.io/docs/secadv/kb002.
+ -- Keybase Developers <code@keybase.io>  Tue, 17 Dec 2018 12:00:00 +0000

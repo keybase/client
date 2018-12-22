@@ -2,6 +2,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
@@ -27,6 +28,9 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
+  const meta = Constants.getMeta(state, conversationIDKey)
+  // don't include 'small' here to ditch the single #general suggestion
+  const teamname = meta.teamType === 'big' ? meta.teamname : ''
 
   const _you = state.config.username || ''
 
@@ -48,6 +52,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteText: quoteInfo ? quoteInfo.text : '',
     showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
     showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey) || false,
+    suggestChannels: Constants.getChannelSuggestions(state, teamname),
+    suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -91,7 +97,7 @@ const mapDispatchToProps = dispatch => ({
     conversationIDKey &&
     dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
-  onFilePickerError: (error: Error) => dispatch(Chat2Gen.createFilePickerError({error})),
+  onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
@@ -99,7 +105,6 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   clearInboxFilter: dispatchProps.clearInboxFilter,
-  clearUnsentText: stateProps.clearUnsentText,
   conversationIDKey: stateProps.conversationIDKey,
   editText: stateProps.editText,
   explodingModeSeconds: stateProps.explodingModeSeconds,
@@ -126,9 +131,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   sendTyping: (text: string) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, text)
   },
-  unsentTextChanged: (text: string) => {
-    dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
-  },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0
     if (stateProps._isExplodingModeLocked ? unset : !unset) {
@@ -139,7 +141,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     setUnsentText(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
+  suggestChannels: stateProps.suggestChannels,
+  suggestUsers: stateProps.suggestUsers,
   typing: stateProps.typing,
+  unsentTextChanged: (text: string) => {
+    dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
+  },
 })
 
 export default connect<OwnProps, _, _, _, _>(

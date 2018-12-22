@@ -2,12 +2,16 @@ package stellar
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/slotctx"
@@ -42,7 +46,7 @@ type Stellar struct {
 	federationClient federation.ClientInterface
 
 	bidLock sync.Mutex
-	bids    []buildPaymentEntry
+	bids    []*buildPaymentEntry
 
 	bpcLock sync.Mutex
 	bpc     BuildPaymentCache
@@ -50,6 +54,7 @@ type Stellar struct {
 	disclaimerLock     sync.Mutex
 	disclaimerAccepted *keybase1.UserVersion // A UV who has accepted the disclaimer.
 
+	// Slot for build payments that do not use BuildPaymentID.
 	buildPaymentSlot *slotctx.PrioritySlot
 
 	migrationLock sync.Mutex
@@ -72,11 +77,11 @@ func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges
 }
 
 func (s *Stellar) CreateWalletSoft(ctx context.Context) {
-	CreateWalletSoft(ctx, s.G())
+	CreateWalletSoft(libkb.NewMetaContext(ctx, s.G()))
 }
 
 func (s *Stellar) Upkeep(ctx context.Context) error {
-	return Upkeep(ctx, s.G())
+	return Upkeep(libkb.NewMetaContext(ctx, s.G()))
 }
 
 func (s *Stellar) OnLogout() {
@@ -109,8 +114,12 @@ func (s *Stellar) deleteDisclaimer() {
 }
 
 func (s *Stellar) clearBids() {
+	s.buildPaymentSlot.Stop()
 	s.bidLock.Lock()
 	defer s.bidLock.Unlock()
+	for _, bid := range s.bids {
+		bid.Slot.Stop()
+	}
 	s.bids = nil
 }
 
@@ -200,8 +209,8 @@ func (s *Stellar) UpdateUnreadCount(ctx context.Context, accountID stellar1.Acco
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
-	return SendMiniChatPayments(mctx, s.walletState, payments)
+func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
+	return SendMiniChatPayments(mctx, s.walletState, convID, payments)
 }
 
 // SpecMiniChatPayments creates a summary of the amounts that a list of MiniChatPayments will
@@ -210,11 +219,98 @@ func (s *Stellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []libkb.
 	return SpecMiniChatPayments(mctx, s.walletState, payments)
 }
 
-// RefreshWalletState refreshes the WalletState.
-func (s *Stellar) RefreshWalletState(ctx context.Context) {
-	if err := s.walletState.RefreshAll(ctx); err != nil {
-		s.G().Log.CDebugf(ctx, "stellar global RefreshWalletState error: %s", err)
+// HandleOobm will handle any out of band gregor messages for stellar.
+func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
+	if obm.System() == nil {
+		return false, errors.New("nil system in out of band message")
 	}
+
+	switch obm.System().String() {
+	case "internal.reconnect":
+		s.handleReconnect(ctx)
+		// returning false, nil here so that others can handle this one too
+		return false, nil
+	case stellar1.PushPaymentStatus:
+		return true, s.handlePaymentStatus(ctx, obm)
+	case stellar1.PushPaymentNotification:
+		return true, s.handlePaymentNotification(ctx, obm)
+	case stellar1.PushRequestStatus:
+		return true, s.handleRequestStatus(ctx, obm)
+	}
+
+	return false, nil
+}
+
+func (s *Stellar) handleReconnect(ctx context.Context) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
+	go func() {
+		mctx := libkb.NewMetaContextBackground(s.G())
+		if s.walletState.Primed() {
+			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing delayed wallet refresh")
+			time.Sleep(4 * time.Second)
+			mctx.CDebugf("stellar reconnect msg delay complete, refreshing wallet state")
+		} else {
+			mctx.CDebugf("stellar received reconnect msg, doing wallet refresh on unprimed wallet")
+		}
+		if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
+			mctx.CDebugf("Stellar.handleReconnect RefreshAll error: %s", err)
+		}
+	}()
+}
+
+func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentStatus", func() error { return err })()
+	var msg stellar1.PaymentStatusMsg
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentStatusMsg: %s", err)
+		return err
+	}
+
+	paymentID := stellar1.NewPaymentID(msg.TxID)
+	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, paymentID); err != nil {
+		return err
+	}
+	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, paymentID)
+
+	return nil
+}
+
+func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentNotification", func() error { return err })()
+	var msg stellar1.PaymentNotificationMsg
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentNotificationMsg: %s", err)
+		return err
+	}
+
+	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, msg.PaymentID); err != nil {
+		return err
+	}
+	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, msg.PaymentID)
+
+	return nil
+}
+
+func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	s.walletState.Refresh(mctx, accountID, "notification received")
+	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
+
+	return nil
+}
+
+func (s *Stellar) handleRequestStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.handleRequestStatus", func() error { return err })()
+	var msg stellar1.RequestStatusMsg
+	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
+		s.G().Log.CDebugf(ctx, "error unmarshaling obm RequestStatusMsg: %s", err)
+		return err
+	}
+
+	s.G().NotifyRouter.HandleWalletRequestStatusNotification(ctx, msg.ReqID)
+	DefaultLoader(s.G()).UpdateRequest(ctx, msg.ReqID)
+
+	return nil
 }
 
 type hasAcceptedDisclaimerDBEntry struct {
@@ -308,65 +404,108 @@ func (s *Stellar) startBuildPayment(mctx libkb.MetaContext) (bid stellar1.BuildP
 	}
 	s.bidLock.Lock()
 	defer s.bidLock.Unlock()
-	s.bids = append(s.bids, buildPaymentEntry{
-		Bid:         bid,
-		ReadyToSend: false,
-	})
-	if len(s.bids) > 20 {
+	s.bids = append(s.bids, newBuildPaymentEntry(bid))
+	const maxConcurrentBuilds = 20
+	if len(s.bids) > maxConcurrentBuilds {
 		// Too many open payment builds. Drop the oldest ones.
-		s.bids = s.bids[len(s.bids)-20:]
+		for i := maxConcurrentBuilds; i < len(s.bids); i++ {
+			entry := s.bids[i]
+			entry.Slot.Shutdown()
+		}
+		s.bids = s.bids[len(s.bids)-maxConcurrentBuilds:]
 	}
 	return bid, nil
 }
 
-// updateBuildPayment updates the state of an in-progress payment.
-// If frozen values are provided the payment is assumed to be ready to send.
-// No-op if the bid does not exist.
-func (s *Stellar) updateBuildPayment(mctx libkb.MetaContext, bid stellar1.BuildPaymentID, frozen *frozenPayment) {
-	mctx.CDebugf("Stellar.updateBuildPayment(%v)", bid)
-	s.bidLock.Lock()
-	defer s.bidLock.Unlock()
-	var bids []buildPaymentEntry
-	for _, entry := range s.bids {
-		if entry.Stopped {
-			mctx.CDebugf("blocking attempt to update stopped payment %v", bid)
-		}
-		if entry.Bid.Eq(bid) && !entry.Stopped {
-			bids = append(bids, buildPaymentEntry{
-				Bid:         bid,
-				ReadyToSend: frozen != nil,
-				frozen:      frozen,
-			})
-		} else {
-			bids = append(bids, entry)
-		}
-	}
-	s.bids = bids
-}
-
-// stopBuildPayment removes a bid.
-// Returns the previous value of the entry.
-func (s *Stellar) stopBuildPayment(mctx libkb.MetaContext, bid stellar1.BuildPaymentID) (res *buildPaymentEntry) {
+// stopBuildPayment stops a bid forever.
+func (s *Stellar) stopBuildPayment(mctx libkb.MetaContext, bid stellar1.BuildPaymentID) {
 	mctx.CDebugf("Stellar.stopBuildPayment(%v)", bid)
-	s.buildPaymentSlot.Stop()
+	if bid.IsNil() {
+		s.buildPaymentSlot.Stop()
+		return
+	}
 	s.bidLock.Lock()
 	defer s.bidLock.Unlock()
-	// Remove bid from s.bids.
-	var bids []buildPaymentEntry
 	for _, entry := range s.bids {
 		if entry.Bid.Eq(bid) {
-			entry := entry
-			res = &entry
-			bids = append(bids, buildPaymentEntry{
-				Bid:     bid,
-				Stopped: true,
-			})
-		} else {
-			bids = append(bids, entry)
+			if entry.Stopped {
+				mctx.CDebugf("payment already stopped")
+				return
+			}
+			entry.Slot.Shutdown()
+			entry.Stopped = true
+			mctx.CDebugf("payment shutdown")
+			return
 		}
 	}
-	s.bids = bids
-	return res
+	mctx.CDebugf("payment not found to stop")
+}
+
+// acquireBuildPayment takes ownership of a payment build.
+// Returns a new `mctx` that the caller should switch to. Because it runs within the slot.
+// When err=nil the caller owns `data` and must release it with `release` when finished.
+// When err!=nil data is nil.
+// `release` can be called even when err!=nil.
+// `mctx` can also be used if err!=nil.
+// Callers should `release` soon after their context is canceled.
+func (s *Stellar) acquireBuildPayment(mctx1 libkb.MetaContext, bid stellar1.BuildPaymentID, sessionID int) (
+	mctx libkb.MetaContext, data *buildPaymentData, release func(), err error) {
+	mctx = mctx1
+	mctx.CDebugf("Stellar.acquireBuildPayment(%v)", bid)
+	release = func() {}
+	s.bidLock.Lock()
+	defer s.bidLock.Unlock()
+	for _, entry := range s.bids {
+		entry := entry
+		if !entry.Bid.Eq(bid) {
+			continue
+		}
+		if entry.Stopped {
+			return mctx, nil, release, fmt.Errorf("this payment has been stopped")
+		}
+		mctx = mctx.WithCtx(entry.Slot.Use(mctx.Ctx(), sessionID))
+		if err = mctx.Ctx().Err(); err != nil {
+			return mctx, nil, release, err
+		}
+		err = libkb.AcquireWithContextAndTimeout(mctx.Ctx(), &entry.DataLock, 5*time.Second)
+		if err != nil {
+			mctx.CDebugf("error while attempting to acquire data lock: %v", err)
+			return mctx, nil, release, err
+		}
+		release = libkb.Once(func() {
+			entry.DataLock.Unlock()
+		})
+		return mctx, &entry.Data, release, nil
+	}
+	return mctx, nil, release, fmt.Errorf("payment build not found")
+}
+
+// finalizeBuildPayment stops a bid forever and returns its data.
+func (s *Stellar) finalizeBuildPayment(mctx libkb.MetaContext, bid stellar1.BuildPaymentID) (res *buildPaymentData, err error) {
+	mctx.CDebugf("Stellar.finalizeBuildPayment(%v)", bid)
+	s.bidLock.Lock()
+	defer s.bidLock.Unlock()
+	for _, entry := range s.bids {
+		entry := entry
+		if !entry.Bid.Eq(bid) {
+			continue
+		}
+		if entry.Stopped {
+			return nil, fmt.Errorf("this payment has been stopped")
+		}
+		entry.Slot.Shutdown()
+		entry.Stopped = true
+		err = libkb.AcquireWithContextAndTimeout(mctx.Ctx(), &entry.DataLock, 5*time.Second)
+		if err != nil {
+			// This likely means something in the Slot is not yielding to its context or forgot to release the lock.
+			mctx.CDebugf("error while attempting to acquire data lock: %v", err)
+			return nil, err
+		}
+		res = &entry.Data
+		entry.DataLock.Unlock()
+		return res, nil
+	}
+	return nil, fmt.Errorf("payment build not found")
 }
 
 // getFederationClient is a helper function used during

@@ -180,6 +180,21 @@ func TestExtractorExemptions(t *testing.T) {
 	require.Equal(t, 1, len(res))
 	require.Equal(t, ExtractorHitPrompt, res[0].Typ)
 
+	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitPrompt, res[0].Typ)
+	extractor.AddWhitelistExemption(context.TODO(), uid,
+		NewSingleMessageWhitelistExemption(convID, msgID, "google.com"))
+	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://google.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+
 	require.NoError(t, settingsMod.Set(context.TODO(), uid, settings))
 	res, err = extractor.Extract(context.TODO(), uid, convID, msgID, "http://amazon.com", settingsMod)
 	require.NoError(t, err)

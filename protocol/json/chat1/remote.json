@@ -869,7 +869,7 @@
         }
       ],
       "response": "SyncAllResult",
-      "compression_type": "none"
+      "compression_type": "msgpackzip"
     },
     "tlfFinalize": {
       "request": [
@@ -1155,6 +1155,19 @@
         {
           "name": "outboxID",
           "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
+    "broadcastGregorMessageToConv": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msg",
+          "type": "gregor1.Message"
         }
       ],
       "response": null

@@ -29,7 +29,7 @@ import logger from '../../logger'
 import type {TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
-import {switchTo} from '../route-tree'
+import {switchTo, navigateUp} from '../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -252,7 +252,13 @@ const unboxRows = (
 
 // We get an incoming message streamed to us
 const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
-  const {message: cMsg, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
+  const {
+    message: cMsg,
+    modifiedMessage,
+    convID,
+    displayDesktopNotification,
+    desktopNotificationSnippet,
+  } = incoming
   const actions = []
 
   if (convID && cMsg) {
@@ -285,13 +291,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       // Types that are mutations
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
-          if (body.edit) {
-            actions.push(
-              Chat2Gen.createMessageWasEdited({
-                conversationIDKey,
-                ...Constants.uiMessageEditToMessage(body.edit, valid),
-              })
-            )
+          if (modifiedMessage) {
+            const modMessage = Constants.uiMessageToMessage(state, conversationIDKey, modifiedMessage)
+            if (modMessage) {
+              actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [modMessage]}))
+            }
           }
           break
         case RPCChatTypes.commonMessageType.delete:
@@ -549,7 +553,7 @@ const onChatIdentifyUpdate = update => {
     }
   })
 
-  return [UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})]
+  return Saga.put(UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed}))
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
@@ -627,9 +631,6 @@ const arrayOfActionsToSequentially = actions =>
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
-  // TODO clean this up so we don't need this
-  const getState = engine().deprecatedGetGetState()
-
   engine().setIncomingCallMap({
     'chat.1.NotifyChat.ChatAttachmentUploadProgress': ({convID, outboxID, bytesComplete, bytesTotal}) => {
       const conversationIDKey = Types.conversationIDToKey(convID)
@@ -652,20 +653,24 @@ const setupEngineListeners = () => {
         })
       )
     },
-    'chat.1.NotifyChat.ChatIdentifyUpdate': ({update}) =>
-      arrayOfActionsToSequentially(onChatIdentifyUpdate(update)),
+    'chat.1.NotifyChat.ChatIdentifyUpdate': ({update}) => onChatIdentifyUpdate(update),
     'chat.1.NotifyChat.ChatInboxStale': () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'inboxStale'})),
     'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
       Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
     'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}) =>
-      arrayOfActionsToSequentially(onChatInboxSynced(syncRes, getState())),
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
+        yield arrayOfActionsToSequentially(onChatInboxSynced(syncRes, state))
+      }),
     'chat.1.NotifyChat.ChatJoinedConversation': () =>
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'})),
     'chat.1.NotifyChat.ChatLeftConversation': () =>
       Saga.put(Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})),
     'chat.1.NotifyChat.ChatPaymentInfo': notif => {
-      const conversationIDKey = Types.conversationIDToKey(notif.convID)
-      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo(notif.info)
+      const conversationIDKey = notif.convID
+        ? Types.conversationIDToKey(notif.convID)
+        : Constants.noConversationIDKey
+      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([notif.info])
       if (!paymentInfo) {
         // This should never happen
         const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
@@ -764,10 +769,15 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.NewChatActivity': ({activity}) => {
       logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
-        case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
-          return activity.incomingMessage
-            ? arrayOfActionsToSequentially(onIncomingMessage(activity.incomingMessage, getState()))
+        case RPCChatTypes.notifyChatChatActivityType.incomingMessage: {
+          const incomingMessage = activity.incomingMessage
+          return incomingMessage
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(onIncomingMessage(incomingMessage, state))
+              })
             : null
+        }
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
           return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.setStatus))
         case RPCChatTypes.notifyChatChatActivityType.readMessage:
@@ -776,10 +786,12 @@ const setupEngineListeners = () => {
           return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.newConversation))
         case RPCChatTypes.notifyChatChatActivityType.failedMessage: {
           const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
-          return failedMessage && failedMessage.outboxRecords
-            ? arrayOfActionsToSequentially(
-                onErrorMessage(failedMessage.outboxRecords, getState().config.username || '')
-              )
+          const outboxRecords = failedMessage && failedMessage.outboxRecords
+          return outboxRecords
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(onErrorMessage(outboxRecords, state.config.username))
+              })
             : null
         }
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
@@ -807,10 +819,15 @@ const setupEngineListeners = () => {
           )
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return Saga.put(Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'}))
-        case RPCChatTypes.notifyChatChatActivityType.expunge:
-          return activity.expunge
-            ? arrayOfActionsToSequentially(expungeToActions(activity.expunge, getState()))
+        case RPCChatTypes.notifyChatChatActivityType.expunge: {
+          const expunge = activity.expunge
+          return expunge
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(expungeToActions(expunge, state))
+              })
             : null
+        }
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge
             ? arrayOfActionsToSequentially(ephemeralPurgeToActions(activity.ephemeralPurge))
@@ -819,10 +836,15 @@ const setupEngineListeners = () => {
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
             : null
-        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated:
-          return activity.messagesUpdated
-            ? arrayOfActionsToSequentially(messagesUpdatedToActions(activity.messagesUpdated, getState()))
+        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated: {
+          const messagesUpdated = activity.messagesUpdated
+          return messagesUpdated
+            ? Saga.callUntyped(function*() {
+                const state = yield* Saga.selectState()
+                yield arrayOfActionsToSequentially(messagesUpdatedToActions(messagesUpdated, state))
+              })
             : null
+        }
         default:
           break
       }
@@ -1271,64 +1293,102 @@ const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) =
   )
 }
 
-const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => {
-  const {conversationIDKey, text} = action.payload
-  const outboxID = Constants.generateOutboxID()
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const tlfName = meta.tlfname
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
+  Saga.callUntyped(function*() {
+    const {conversationIDKey, text} = action.payload
+    const outboxID = Constants.generateOutboxID()
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const tlfName = meta.tlfname
+    const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+    // disable sending exploding messages if flag is false
+    const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+    const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+    const newMsg = Constants.makePendingTextMessage(
+      state,
+      conversationIDKey,
+      text,
+      Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+      ephemeralLifetime
+    )
 
-  // Inject pending message and make the call
-  const newMsg = Constants.makePendingTextMessage(
-    state,
-    conversationIDKey,
-    text,
-    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-    ephemeralLifetime
-  )
-  const addMessage = Saga.put(
-    Chat2Gen.createMessagesAdd({
-      context: {type: 'sent'},
-      messages: [newMsg],
+    const routeName = 'paymentsConfirm'
+    const addMessage = (p, response) => [
+      Saga.put(
+        Chat2Gen.createMessagesAdd({
+          context: {type: 'sent'},
+          messages: [newMsg],
+        })
+      ),
+      // We need to make extra certain that the message is added into the store before
+      // we get any callbacks from the service for that same message. Currently, it seems possible
+      // that with a mixed custom and vanilla call map those actions generated from the
+      // service can interleave, and cause a duplicate message.
+      Saga.callUntyped(function() {
+        response && response.result()
+      }),
+    ]
+    const onShowConfirm = () => [
+      Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
+      Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [routeName],
+        })
+      ),
+    ]
+    const onHideConfirm = () =>
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
+        if (getPath(state.routeTree.routeState).last() === routeName) {
+          yield Saga.put(navigateUp())
+        }
+      })
+    const onDataConfirm = ({summary}, response) => {
+      stellarConfirmWindowResponse = response
+      return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
+    }
+    const onDataError = ({message}, response) => {
+      stellarConfirmWindowResponse = response
+      return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
+    }
+    yield RPCChatTypes.localPostTextNonblockRpcSaga({
+      customResponseIncomingCallMap: {
+        'chat.1.chatUi.chatPostReadyToSend': addMessage,
+        'chat.1.chatUi.chatStellarDataConfirm': onDataConfirm,
+        'chat.1.chatUi.chatStellarDataError': onDataError,
+      },
+      incomingCallMap: {
+        'chat.1.chatUi.chatStellarDone': onHideConfirm,
+        'chat.1.chatUi.chatStellarShowConfirm': onShowConfirm,
+      },
+      params: {
+        ...ephemeralData,
+        body: text.stringValue(),
+        clientPrev,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        outboxID,
+        tlfName,
+        tlfPublic: false,
+      },
+      waitingKey: Constants.waitingKeyPost,
     })
-  )
 
-  const postText = Saga.callUntyped(
-    RPCChatTypes.localPostTextNonblockRpcPromise,
-    {
-      ...ephemeralData,
-      body: text.stringValue(),
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      outboxID,
-      tlfName,
-      tlfPublic: false,
-    },
-    Constants.waitingKeyPost
-  )
+    // Do some logging to track down the root cause of a bug causing
+    // messages to not send. Do this after creating the objects above to
+    // narrow down the places where the action can possibly stop.
+    logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
-  // Do some logging to track down the root cause of a bug causing
-  // messages to not send. Do this after creating the objects above to
-  // narrow down the places where the action can possibly stop.
-
-  logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-
-  // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
-  // the action to add the pending message fires. This would cause a pending message to be stuck
-  // (with a duplicate sent message in there too).
-  //
-  // We put the addMessage on the back in case the service provides chat thread data in between the
-  // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
-  // that is in the store on the outboxID has been sent.
-  return Saga.sequentially([addMessage, postText, addMessage])
-}
+    // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
+    // the action to add the pending message fires. This would cause a pending message to be stuck
+    // (with a duplicate sent message in there too).
+    //
+    // We put the addMessage on the back in case the service provides chat thread data in between the
+    // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
+    // that is in the store on the outboxID has been sent.
+    yield Saga.sequentially(addMessage())
+    stellarConfirmWindowResponse = null
+  })
 
 const messageSendWithResult = (result, action) => {
   logger.info('[MessageSend] success')
@@ -1336,6 +1396,13 @@ const messageSendWithResult = (result, action) => {
 
 const messageSendWithError = (result, action) => {
   logger.info('[MessageSend] error')
+}
+
+let stellarConfirmWindowResponse = null
+
+const confirmScreenResponse = (state: TypedState, action: Chat2Gen.ConfirmScreenResponsePayload) => {
+  stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
+  stellarConfirmWindowResponse = null
 }
 
 const previewConversationAfterFindExisting = (
@@ -1856,9 +1923,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   }
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   // disable sending exploding messages if flag is false
-  const ephemeralLifetime = flags.explodingMessagesEnabled
-    ? Constants.getConversationExplodingMode(state, conversationIDKey)
-    : 0
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
@@ -2615,11 +2680,6 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   ])
 }
 
-const handleFilePickerError = (action: Chat2Gen.FilePickerErrorPayload) => {
-  // Just show a black bar for now.
-  throw action.payload.error
-}
-
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   Saga.put(Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []}))
 
@@ -2680,7 +2740,7 @@ const textHasGiphySearch = (text: string) => {
   return text.indexOf('!giphy ') === 0
 }
 
-const giphyRunSearch = (state: TypedState, action: Chat2Gen.UnsetTextChangedPayload) => {
+const giphyRunSearch = (state: TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey} = action.payload
   const text = action.payload.text.stringValue()
   const showingGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey)
@@ -2878,6 +2938,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
+  yield Saga.actionToAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
@@ -2971,7 +3032,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
-  yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)

@@ -1,11 +1,13 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
+import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
+import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 
@@ -61,6 +63,57 @@ export type _Tlf = {
   youCanUnlock?: I.List<Device>,
 }
 export type Tlf = I.RecordOf<_Tlf>
+
+export type _ParsedPathRoot = {
+  kind: 'root',
+}
+export type ParsedPathRoot = I.RecordOf<_ParsedPathRoot>
+
+export type _ParsedPathTlfList = {
+  kind: 'tlf-list',
+  tlfType: TlfType,
+}
+export type ParsedPathTlfList = I.RecordOf<_ParsedPathTlfList>
+
+export type _ParsedPathGroupTlf = {
+  kind: 'group-tlf',
+  tlfType: 'private' | 'public',
+  writers: I.List<string>,
+  readers: ?I.List<string>,
+}
+export type ParsedPathGroupTlf = I.RecordOf<_ParsedPathGroupTlf>
+
+export type _ParsedPathTeamTlf = {
+  kind: 'team-tlf',
+  tlfType: 'team',
+  team: string,
+}
+export type ParsedPathTeamTlf = I.RecordOf<_ParsedPathTeamTlf>
+
+export type _ParsedPathInGroupTlf = {
+  kind: 'in-group-tlf',
+  tlfType: 'private' | 'public',
+  writers: I.List<string>,
+  readers: ?I.List<string>,
+  rest: I.List<string>,
+}
+export type ParsedPathInGroupTlf = I.RecordOf<_ParsedPathInGroupTlf>
+
+export type _ParsedPathInTeamTlf = {
+  kind: 'in-team-tlf',
+  tlfType: 'team',
+  team: string,
+  rest: I.List<string>,
+}
+export type ParsedPathInTeamTlf = I.RecordOf<_ParsedPathInTeamTlf>
+
+export type ParsedPath =
+  | ParsedPathRoot
+  | ParsedPathTlfList
+  | ParsedPathGroupTlf
+  | ParsedPathTeamTlf
+  | ParsedPathInGroupTlf
+  | ParsedPathInTeamTlf
 
 // name -> Tlf
 export type TlfList = I.Map<string, Tlf>
@@ -236,6 +289,17 @@ export type _MoveOrCopy = {
 }
 export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
 
+export type _SendLinkToChat = {
+  path: Path,
+  // This is the convID that we are sending into. So for group chats or small
+  // teams, this is the conversation. For big teams, this is the selected
+  // channel.
+  convID: ChatTypes.ConversationIDKey,
+  // populated for teams only
+  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
+}
+export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
@@ -250,6 +314,7 @@ export type _State = {
   errors: I.Map<string, FsError>,
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,
+  sendLinkToChat: SendLinkToChat,
 }
 export type State = I.RecordOf<_State>
 
@@ -288,7 +353,9 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
-export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+export const getPathElements = memoize<Path, void, void, void, _>(
+  (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+)
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
@@ -432,7 +499,6 @@ export type PathBreadcrumbItem = {
   isLastItem: boolean,
   name: string,
   path: Path,
-  iconSpec: PathItemIconSpec,
   onClick: (evt?: SyntheticEvent<>) => void,
 }
 
@@ -534,4 +600,6 @@ export type RowItemWithKey =
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
-export type RefreshTag = 'main' | 'path-item-action-popup'
+export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'
+
+export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number

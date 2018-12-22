@@ -1,6 +1,12 @@
 {
-  "prelude": ["import * as Types from '../constants/types/fs'"],
+  "prelude": [
+    "import * as Types from '../constants/types/fs'",
+    "import * as ChatTypes from '../constants/types/chat2'"
+  ],
   "actions": {
+    "clearRefreshTag": {
+      "refreshTag": "Types.RefreshTag"
+    },
     "folderListLoad": {
       "path": "Types.Path",
       "refreshTag?": "Types.RefreshTag"
@@ -91,7 +97,7 @@
       "endEstimate?": "?number"
     },
     "openLocalPathInSystemFileManager": {
-      "path": "string"
+      "localPath": "string"
     },
     "openPathInSystemFileManager": {
       "path": "Types.Path"
@@ -203,6 +209,16 @@
     },
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
+    "showSendLinkToChat": {
+      "path": "Types.Path",
+      "routePath?": "?I.List<string>"
+    },
+    "setSendLinkToChatConvID": {
+      "convID": "ChatTypes.ConversationIDKey"
+    },
+    "setSendLinkToChatChannels": {
+      "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
+    },
 
     "placeholderAction": {}
   }

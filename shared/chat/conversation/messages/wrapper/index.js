@@ -40,6 +40,7 @@ export type Props = {|
   decorate: boolean,
   exploded: boolean,
   failureDescription: string,
+  forceAsh: boolean,
   hasUnfurlPrompts: boolean,
   isRevoked: boolean,
   showUsername: string,
@@ -199,6 +200,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         message={this.props.message}
         onHidden={this.props.toggleShowingMenu}
         position="top right"
+        style={styles.messagePopupContainer}
         visible={this.props.showingMenu}
       />
     )
@@ -253,26 +255,27 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
   }
 
+  _showCoinsIcon = () => this.props.message.type === 'text' && this.props.message.hasInlinePayments
+
   _cachedMenuStyles = {}
-  _menuAreaStyle = () => {
-    // $ForceType
-    const exploding = this.props.message.exploding
+  _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
-      Styles.isMobile ? 0 : 16, // reactji
-      Styles.isMobile ? 0 : 16, // ... menu
+      this._showCoinsIcon() ? 16 : 0, // coin stack
+      exploded || Styles.isMobile ? 0 : 16, // reactji
+      exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
     const padding = 8
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
 
-    const key = `${width}:${this.props.showUsername ? 1 : 0}`
+    const key = `${width}:${this.props.showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
 
     if (!this._cachedMenuStyles[key]) {
       this._cachedMenuStyles[key] = Styles.collapseStyles([
         styles.menuButtons,
-        {width},
+        !exploded && {width},
         !!this.props.showUsername && styles.menuButtonsWithAuthor,
       ])
     }
@@ -347,8 +350,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(message.type)
         return null
     }
-    const retainHeight =
-      this.props.failureDescription === 'This exploding message is not available to you' || exploded
 
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
@@ -356,7 +357,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         exploding={exploding}
         measure={this.props.measure}
         messageKey={Constants.getMessageKey(message)}
-        retainHeight={retainHeight}
+        retainHeight={this.props.forceAsh || exploded}
       >
         {child}
       </ExplodingHeightRetainer>
@@ -373,7 +374,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
-          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle()}>
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
             {exploding && (
               <ExplodingMeta
                 conversationIDKey={this.props.conversationIDKey}
@@ -386,8 +387,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 type="iconfont-exclamation"
                 color={Styles.globalColors.blue}
                 fontSize={14}
-                style={styles.revoked}
+                style={styles.marginLeftTiny}
               />
+            )}
+            {this._showCoinsIcon() && (
+              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.marginLeftTiny} />
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
@@ -419,6 +423,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
+          <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
+            <ExplodingMeta
+              conversationIDKey={this.props.conversationIDKey}
+              onClick={this.props.toggleShowingMenu}
+              ordinal={message.ordinal}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       )
     } else {
@@ -510,6 +521,7 @@ const styles = Styles.styleSheetCreate({
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,
+  marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
   menuButtons: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -521,6 +533,9 @@ const styles = Styles.styleSheetCreate({
     isMobile: {height: 21},
   }),
   menuButtonsWithAuthor: {marginTop: -16},
+  messagePopupContainer: {
+    marginRight: Styles.globalMargins.small,
+  },
   orangeLine: {
     // don't push down content due to orange line
     backgroundColor: Styles.globalColors.orange,
@@ -534,7 +549,6 @@ const styles = Styles.styleSheetCreate({
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
   }),
-  revoked: {marginLeft: Styles.globalMargins.tiny},
   send: Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {

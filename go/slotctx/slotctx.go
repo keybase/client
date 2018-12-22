@@ -43,6 +43,7 @@ type PrioritySlot struct {
 	mu       sync.Mutex
 	cancel   context.CancelFunc
 	priority int
+	shutdown bool
 }
 
 func NewPriority() *PrioritySlot {
@@ -56,6 +57,11 @@ func (s *PrioritySlot) Use(ctx context.Context, priority int) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.shutdown {
+		// Not accepting new processes.
+		cancel()
+		return ctx
+	}
 	if s.cancel == nil {
 		// First use
 		s.cancel = cancel
@@ -83,4 +89,16 @@ func (s *PrioritySlot) Stop() {
 		s.cancel = nil
 		s.priority = 0
 	}
+}
+
+// Shutdown disables the slot forever.
+func (s *PrioritySlot) Shutdown() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		s.cancel = nil
+		s.priority = 0
+	}
+	s.shutdown = true
 }

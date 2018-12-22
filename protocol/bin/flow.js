@@ -229,8 +229,6 @@ function analyzeMessages(json, project) {
 
     const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
     const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true)
-    const rpcChannelMap = isUIMethod ? '' : rpcChannelMapGen(methodName, name, false)
-    const rpcChannelMapType = isUIMethod ? '' : rpcChannelMapGen(methodName, name, true)
     const engineSaga = isUIMethod ? '' : engineSagaGen(methodName, name, false)
     const engineSagaType = isUIMethod ? '' : engineSagaGen(methodName, name, true)
 
@@ -240,14 +238,12 @@ function analyzeMessages(json, project) {
     }
 
     // Must be an rpc we use
-    if (rpcPromiseType || rpcChannelMapType || engineSagaType || isUIMethod) {
+    if (rpcPromiseType || engineSagaType || isUIMethod) {
       map[methodName] = {
         inParam,
         outParam: outParam === 'null' ? 'void' : outParam,
         rpcPromise,
         rpcPromiseType,
-        rpcChannelMap,
-        rpcChannelMapType,
         engineSaga,
         engineSagaType,
       }
@@ -266,17 +262,8 @@ function engineSagaGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void, () => void, Array<void>>`
+    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>`
     : `export const ${name}RpcSaga = (p) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
-}
-
-function rpcChannelMapGen(methodName, name, justType) {
-  if (!enabledCall(methodName, 'channelMap')) {
-    return ''
-  }
-  return justType
-    ? `declare export function ${name}RpcChannelMap (configKeys: Array<string>, request: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>): void /* not void but this is deprecated */`
-    : `export const ${name}RpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
 }
 
 function rpcPromiseGen(methodName, name, justType) {
@@ -284,7 +271,7 @@ function rpcPromiseGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
+    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
     : `export const ${name}RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error, result) => error ? reject(error) : resolve(result), waitingKey}))`
 }
 
@@ -397,13 +384,13 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
+type WaitingKey = string | Array<string>
 type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromiseType)
-  const messageChannelMap = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcChannelMapType)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
   const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
   const incomingMap =
@@ -444,7 +431,7 @@ ${messageTypesData}
     ...[...consts, ...types].sort(),
     incomingMap,
     customResponseIncomingMap,
-    ...[...messagePromise, ...messageChannelMap, ...messageEngineSaga].sort(),
+    ...[...messagePromise, ...messageEngineSaga].sort(),
   ]
     .filter(Boolean)
     .join('\n')
@@ -474,9 +461,8 @@ import {getEngine as engine, getEngineSaga} from '../../engine/require'
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromise)
-  const messageChannelMap = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcChannelMap)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSaga)
-  const data = [...consts, ...messagePromise, ...messageChannelMap, ...messageEngineSaga]
+  const data = [...consts, ...messagePromise, ...messageEngineSaga]
     .filter(Boolean)
     .sort()
     .join('\n')

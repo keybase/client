@@ -38,6 +38,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
+  bid: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   isRequest: false,
@@ -49,6 +50,7 @@ const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
+  amountAvailable: '',
   amountErrMsg: '',
   banners: null,
   displayAmountFiat: '',
@@ -97,6 +99,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   lastSentXLM: false,
   linkExistingAccountError: '',
+  mobileOnlyMap: I.Map(),
   newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
@@ -114,13 +117,14 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
+    amountAvailable: b.amountAvailable,
     amountErrMsg: b.amountErrMsg,
     banners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
     from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
-    readyToSend: b.readyToSend,
+    readyToSend: b.readyToReview, // DESKTOP-8556
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     sendingIntentionXLM: b.sendingIntentionXLM,
     toErrMsg: b.toErrMsg,

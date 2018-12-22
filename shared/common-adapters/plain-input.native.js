@@ -59,7 +59,7 @@ class PlainInput extends Component<InternalProps, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
+  transformText = (fn: TextInfo => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
         'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
@@ -75,6 +75,9 @@ class PlainInput extends Component<InternalProps, State> {
     this.setNativeProps({text: newTextInfo.text})
     this._lastNativeText = newTextInfo.text
     this._setSelection(newTextInfo.selection)
+    if (reflectChange) {
+      this._onChangeText(newTextInfo.text)
+    }
   }
 
   getSelection = () => this._lastNativeSelection || {end: 0, start: 0}
@@ -120,6 +123,7 @@ class PlainInput extends Component<InternalProps, State> {
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
     this._lastNativeSelection = {end, start}
+    this.props.onSelectionChange && this.props.onSelectionChange(this._lastNativeSelection)
   }
 
   _onContentSizeChange = (event: ContentSizeChangeEvent) => {

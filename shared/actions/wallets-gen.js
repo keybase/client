@@ -14,17 +14,20 @@ export const resetStore = 'common:resetStore' // not a part of wallets but is ha
 export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
+export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addNewPayment = 'wallets:addNewPayment'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
+export const buildingPaymentIDReceived = 'wallets:buildingPaymentIDReceived'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
 export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
+export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
 export const checkDisclaimer = 'wallets:checkDisclaimer'
 export const clearBuilding = 'wallets:clearBuilding'
@@ -46,16 +49,20 @@ export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
+export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const loadRequestDetail = 'wallets:loadRequestDetail'
 export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
 export const loadWalletDisclaimer = 'wallets:loadWalletDisclaimer'
+export const loadedMobileOnlyMode = 'wallets:loadedMobileOnlyMode'
 export const markAsRead = 'wallets:markAsRead'
 export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
+export const pendingPaymentsReceived = 'wallets:pendingPaymentsReceived'
+export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestDetailReceived = 'wallets:requestDetailReceived'
@@ -88,17 +95,20 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 // Payload Types
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
+type _AccountUpdateReceivedPayload = $ReadOnly<{|account: Types.Account|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AddNewPaymentPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _AssetsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, assets: Array<Types.Assets>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
 type _BuildPaymentPayload = void
+type _BuildingPaymentIDReceivedPayload = $ReadOnly<{|bid: string|}>
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment, forBuildCounter: number|}>
 type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBuildCounter: number|}>
 type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
 type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
+type _ChangeMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _ChangedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
 type _CheckDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
@@ -123,16 +133,20 @@ type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
+type _LoadMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _LoadSendAssetChoicesPayload = $ReadOnly<{|from: Types.AccountID, to: string|}>
 type _LoadWalletDisclaimerPayload = void
+type _LoadedMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: Types.PaymentID|}>
 type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
 type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
+type _PendingPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pending: Array<Types.PaymentResult>|}>
+type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>|}>
 type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
@@ -187,6 +201,10 @@ export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload) => ({p
  */
 export const createCreateNewAccount = (payload: _CreateNewAccountPayload) => ({payload, type: createNewAccount})
 /**
+ * Ask the service for current mobile only mode for Stellar account.
+ */
+export const createLoadMobileOnlyMode = (payload: _LoadMobileOnlyModePayload) => ({payload, type: loadMobileOnlyMode})
+/**
  * Ask the service to validate an account name.
  */
 export const createValidateAccountName = (payload: _ValidateAccountNamePayload) => ({payload, type: validateAccountName})
@@ -206,6 +224,10 @@ export const createCancelRequest = (payload: _CancelRequestPayload) => ({payload
  * Change display currency for an account
  */
 export const createChangeDisplayCurrency = (payload: _ChangeDisplayCurrencyPayload) => ({payload, type: changeDisplayCurrency})
+/**
+ * Change mobile only mode for Stellar account.
+ */
+export const createChangeMobileOnlyMode = (payload: _ChangeMobileOnlyModePayload) => ({payload, type: changeMobileOnlyMode})
 /**
  * Change the default account
  */
@@ -303,6 +325,14 @@ export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type
  */
 export const createSendPayment = (payload: _SendPaymentPayload) => ({payload, type: sendPayment})
 /**
+ * Received a fresh first page of recent payments
+ */
+export const createRecentPaymentsReceived = (payload: _RecentPaymentsReceivedPayload) => ({payload, type: recentPaymentsReceived})
+/**
+ * Received a new set of pending payments; replace existing ones with these
+ */
+export const createPendingPaymentsReceived = (payload: _PendingPaymentsReceivedPayload) => ({payload, type: pendingPaymentsReceived})
+/**
  * Received wallet disclaimer
  */
 export const createWalletDisclaimerReceived = (payload: _WalletDisclaimerReceivedPayload) => ({payload, type: walletDisclaimerReceived})
@@ -395,6 +425,10 @@ export const createRequestedPayment = (payload: _RequestedPaymentPayload) => ({p
  */
 export const createSentPayment = (payload: _SentPaymentPayload) => ({payload, type: sentPayment})
 /**
+ * The service has responded with mobile only mode for Stellar account.
+ */
+export const createLoadedMobileOnlyMode = (payload: _LoadedMobileOnlyModePayload) => ({payload, type: loadedMobileOnlyMode})
+/**
  * The service responded with an error or that the account name is valid.
  */
 export const createValidatedAccountName = (payload: _ValidatedAccountNamePayload) => ({payload, type: validatedAccountName})
@@ -447,6 +481,10 @@ export const createBuiltPaymentReceived = (payload: _BuiltPaymentReceivedPayload
  */
 export const createBuiltRequestReceived = (payload: _BuiltRequestReceivedPayload) => ({payload, type: builtRequestReceived})
 /**
+ * Update our store with an ID for a new building payment
+ */
+export const createBuildingPaymentIDReceived = (payload: _BuildingPaymentIDReceivedPayload) => ({payload, type: buildingPaymentIDReceived})
+/**
  * Update our store with an exported secret key
  */
 export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({payload, type: secretKeyReceived})
@@ -458,21 +496,28 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
+/**
+ * We received an updated account record
+ */
+export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
 
 // Action Payloads
 export type AbandonPaymentPayload = {|+payload: _AbandonPaymentPayload, +type: 'wallets:abandonPayment'|}
 export type AcceptDisclaimerPayload = {|+payload: _AcceptDisclaimerPayload, +type: 'wallets:acceptDisclaimer'|}
+export type AccountUpdateReceivedPayload = {|+payload: _AccountUpdateReceivedPayload, +type: 'wallets:accountUpdateReceived'|}
 export type AccountsReceivedPayload = {|+payload: _AccountsReceivedPayload, +type: 'wallets:accountsReceived'|}
 export type AddNewPaymentPayload = {|+payload: _AddNewPaymentPayload, +type: 'wallets:addNewPayment'|}
 export type AssetsReceivedPayload = {|+payload: _AssetsReceivedPayload, +type: 'wallets:assetsReceived'|}
 export type BadgesUpdatedPayload = {|+payload: _BadgesUpdatedPayload, +type: 'wallets:badgesUpdated'|}
 export type BuildPaymentPayload = {|+payload: _BuildPaymentPayload, +type: 'wallets:buildPayment'|}
+export type BuildingPaymentIDReceivedPayload = {|+payload: _BuildingPaymentIDReceivedPayload, +type: 'wallets:buildingPaymentIDReceived'|}
 export type BuiltPaymentReceivedPayload = {|+payload: _BuiltPaymentReceivedPayload, +type: 'wallets:builtPaymentReceived'|}
 export type BuiltRequestReceivedPayload = {|+payload: _BuiltRequestReceivedPayload, +type: 'wallets:builtRequestReceived'|}
 export type CancelPaymentPayload = {|+payload: _CancelPaymentPayload, +type: 'wallets:cancelPayment'|}
 export type CancelRequestPayload = {|+payload: _CancelRequestPayload, +type: 'wallets:cancelRequest'|}
 export type ChangeAccountNamePayload = {|+payload: _ChangeAccountNamePayload, +type: 'wallets:changeAccountName'|}
 export type ChangeDisplayCurrencyPayload = {|+payload: _ChangeDisplayCurrencyPayload, +type: 'wallets:changeDisplayCurrency'|}
+export type ChangeMobileOnlyModePayload = {|+payload: _ChangeMobileOnlyModePayload, +type: 'wallets:changeMobileOnlyMode'|}
 export type ChangedAccountNamePayload = {|+payload: _ChangedAccountNamePayload, +type: 'wallets:changedAccountName'|}
 export type ChangedAccountNamePayloadError = {|+error: true, +payload: _ChangedAccountNamePayloadError, +type: 'wallets:changedAccountName'|}
 export type CheckDisclaimerPayload = {|+payload: _CheckDisclaimerPayload, +type: 'wallets:checkDisclaimer'|}
@@ -497,16 +542,20 @@ export type LoadAccountsPayload = {|+payload: _LoadAccountsPayload, +type: 'wall
 export type LoadAssetsPayload = {|+payload: _LoadAssetsPayload, +type: 'wallets:loadAssets'|}
 export type LoadDisplayCurrenciesPayload = {|+payload: _LoadDisplayCurrenciesPayload, +type: 'wallets:loadDisplayCurrencies'|}
 export type LoadDisplayCurrencyPayload = {|+payload: _LoadDisplayCurrencyPayload, +type: 'wallets:loadDisplayCurrency'|}
+export type LoadMobileOnlyModePayload = {|+payload: _LoadMobileOnlyModePayload, +type: 'wallets:loadMobileOnlyMode'|}
 export type LoadMorePaymentsPayload = {|+payload: _LoadMorePaymentsPayload, +type: 'wallets:loadMorePayments'|}
 export type LoadPaymentDetailPayload = {|+payload: _LoadPaymentDetailPayload, +type: 'wallets:loadPaymentDetail'|}
 export type LoadPaymentsPayload = {|+payload: _LoadPaymentsPayload, +type: 'wallets:loadPayments'|}
 export type LoadRequestDetailPayload = {|+payload: _LoadRequestDetailPayload, +type: 'wallets:loadRequestDetail'|}
 export type LoadSendAssetChoicesPayload = {|+payload: _LoadSendAssetChoicesPayload, +type: 'wallets:loadSendAssetChoices'|}
 export type LoadWalletDisclaimerPayload = {|+payload: _LoadWalletDisclaimerPayload, +type: 'wallets:loadWalletDisclaimer'|}
+export type LoadedMobileOnlyModePayload = {|+payload: _LoadedMobileOnlyModePayload, +type: 'wallets:loadedMobileOnlyMode'|}
 export type MarkAsReadPayload = {|+payload: _MarkAsReadPayload, +type: 'wallets:markAsRead'|}
 export type OpenSendRequestFormPayload = {|+payload: _OpenSendRequestFormPayload, +type: 'wallets:openSendRequestForm'|}
 export type PaymentDetailReceivedPayload = {|+payload: _PaymentDetailReceivedPayload, +type: 'wallets:paymentDetailReceived'|}
 export type PaymentsReceivedPayload = {|+payload: _PaymentsReceivedPayload, +type: 'wallets:paymentsReceived'|}
+export type PendingPaymentsReceivedPayload = {|+payload: _PendingPaymentsReceivedPayload, +type: 'wallets:pendingPaymentsReceived'|}
+export type RecentPaymentsReceivedPayload = {|+payload: _RecentPaymentsReceivedPayload, +type: 'wallets:recentPaymentsReceived'|}
 export type RefreshPaymentsPayload = {|+payload: _RefreshPaymentsPayload, +type: 'wallets:refreshPayments'|}
 export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +type: 'wallets:rejectDisclaimer'|}
 export type RequestDetailReceivedPayload = {|+payload: _RequestDetailReceivedPayload, +type: 'wallets:requestDetailReceived'|}
@@ -543,17 +592,20 @@ export type WalletDisclaimerReceivedPayload = {|+payload: _WalletDisclaimerRecei
 export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
+  | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddNewPaymentPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload
+  | BuildingPaymentIDReceivedPayload
   | BuiltPaymentReceivedPayload
   | BuiltRequestReceivedPayload
   | CancelPaymentPayload
   | CancelRequestPayload
   | ChangeAccountNamePayload
   | ChangeDisplayCurrencyPayload
+  | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
   | CheckDisclaimerPayload
@@ -578,16 +630,20 @@ export type Actions =
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
+  | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
   | LoadRequestDetailPayload
   | LoadSendAssetChoicesPayload
   | LoadWalletDisclaimerPayload
+  | LoadedMobileOnlyModePayload
   | MarkAsReadPayload
   | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
+  | PendingPaymentsReceivedPayload
+  | RecentPaymentsReceivedPayload
   | RefreshPaymentsPayload
   | RejectDisclaimerPayload
   | RequestDetailReceivedPayload

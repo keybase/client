@@ -221,7 +221,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 					require.NoError(t, err)
 					require.Equal(t, chat1.UnfurlType_GENERIC, typ)
 					generic := mu.Updates[0].Valid().Unfurls[0].Unfurl.Generic()
-					require.Nil(t, generic.Image)
+					require.Nil(t, generic.Media)
 					require.NotNil(t, generic.Favicon)
 					require.NotZero(t, len(generic.Favicon.Url))
 					resp, err := http.Get(generic.Favicon.Url)

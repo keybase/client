@@ -1,7 +1,6 @@
 // @flow
 // Handles sending requests to the daemon
 import logger from '../logger'
-import * as Constants from '../constants/engine'
 import Session from './session'
 import * as ConfigGen from '../actions/config-gen'
 import {initEngine, initEngineSaga} from './require'
@@ -11,19 +10,21 @@ import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
-import {createChangeWaiting} from '../actions/waiting-gen'
+import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
-import {isArray} from 'lodash-es'
+import {isArray, throttle} from 'lodash-es'
 import {sagaMiddleware} from '../store/configure-store'
 import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
+import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
+import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
 type TypedActions = {type: any, error: boolean, payload: any}
+type WaitingKey = string | Array<string>
 
 type IncomingActionCreator = (
   param: Object,
@@ -53,8 +54,6 @@ class Engine {
   _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
   _onConnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
-  // Set to true to throw on errors. Used in testing
-  _failOnError: boolean = false
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -64,9 +63,17 @@ class Engine {
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
 
-  dispatchWaitingAction = (key: string, waiting: boolean) => {
-    Engine._dispatch(createChangeWaiting({increment: waiting, key}))
+  _queuedChanges = []
+  dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
+    this._queuedChanges.push({error, increment: waiting, key})
+    this._throttledDispatchWaitingAction()
   }
+
+  _throttledDispatchWaitingAction = throttle(() => {
+    const changes = this._queuedChanges
+    this._queuedChanges = []
+    Engine._dispatch(createBatchChangeWaiting({changes}))
+  }, 500)
 
   // TODO deprecate
   deprecatedGetDispatch = () => {
@@ -199,14 +206,6 @@ class Engine {
     }
     logger.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
-    if (__DEV__ && this._failOnError) {
-      throw new Error(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${
-          response ? '. has response' : ''
-        }`
-      )
-    }
-
     response &&
       response.error &&
       response.error({
@@ -268,34 +267,13 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): any {
-    const params = paramsIn || {}
-    const channelConfig = Constants.singleFixedChannelConfig(configKeys)
-    const channelMap = Constants.createChannelMap(channelConfig)
-    const empty = {}
-    const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
-      acc[k] = (params, response) => {
-        Constants.putOnChannelMap(channelMap, k, {params, response})
-      }
-      return acc
-    }, empty)
-    const callback = (error, params) => {
-      channelMap['finished'] && Constants.putOnChannelMap(channelMap, 'finished', {error, params})
-      Constants.closeChannelMap(channelMap)
-    }
-
-    const sid = this._rpcOutgoing({callback, incomingCallMap, method, params})
-    return new Constants.EngineChannel(channelMap, sid, configKeys)
-  }
-
-  // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
     method: string,
     params: Object,
     callback: (...args: Array<any>) => void,
     incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
     customResponseIncomingCallMap?: any,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }) {
     // Make a new session and start the request
     const session = this.createSession({
@@ -316,7 +294,7 @@ class Engine {
     customResponseIncomingCallMap?: ?CustomResponseIncomingCallMapType,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
   }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
@@ -367,22 +345,6 @@ class Engine {
     this._deadSessionsMap[String(session.getId())] = true
   }
 
-  // Cancel an rpc
-  cancelRPC(response: ?ResponseType, error: any) {
-    if (response) {
-      if (response.error) {
-        const cancelError = {
-          code: constantsStatusCode.scgeneric,
-          desc: 'Canceling RPC',
-        }
-
-        response.error(error || cancelError)
-      }
-    } else {
-      localLog('Invalid response sent to cancelRPC')
-    }
-  }
-
   // Reset the engine
   reset() {
     // TODO not working on mobile yet
@@ -429,11 +391,6 @@ class Engine {
       })
       this._customResponseIncomingActionCreators[method] = customResponseIncomingCallMap[method]
     })
-  }
-
-  // Test want to fail on any error
-  setFailOnError() {
-    this._failOnError = true
   }
 
   // Register a named callback when we disconnect from the server. Call if we're already disconnected. Callback should produce an action
@@ -498,7 +455,6 @@ class FakeEngine {
     this._sessionsMap = {}
   }
   reset() {}
-  cancelRPC() {}
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}

@@ -6,11 +6,13 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"hash"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -820,8 +822,16 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"reported": ConversationStatus_REPORTED,
 }
 
+var sha256Pool = sync.Pool{
+	New: func() interface{} {
+		return sha256.New()
+	},
+}
+
 func (t ConversationIDTriple) Hash() []byte {
-	h := sha256.New()
+	h := sha256Pool.Get().(hash.Hash)
+	defer sha256Pool.Put(h)
+	h.Reset()
 	h.Write(t.Tlfid)
 	h.Write(t.TopicID)
 	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
@@ -1142,6 +1152,26 @@ func (c Conversation) GetMaxMessageID() MessageID {
 
 func (c Conversation) IsSelfFinalized(username string) bool {
 	return c.GetMembersType() == ConversationMembersType_KBFS && c.GetFinalizeInfo().IsResetForUser(username)
+}
+
+func (c Conversation) MaxVisibleMsgID() MessageID {
+	visibleTyps := VisibleChatMessageTypes()
+	visibleTypsMap := map[MessageType]bool{}
+	for _, typ := range visibleTyps {
+		visibleTypsMap[typ] = true
+	}
+	maxMsgID := MessageID(0)
+	for _, msg := range c.MaxMsgSummaries {
+		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+	return maxMsgID
+}
+
+func (c Conversation) IsUnread() bool {
+	maxMsgID := c.MaxVisibleMsgID()
+	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
 }
 
 func (m MessageSummary) GetMessageID() MessageID {
@@ -1921,8 +1951,9 @@ SiteName: %s
 PublishTime: %s
 Description: %s
 ImageUrl: %s
+Video: %s
 FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yieldStr(g.Description),
-		yieldStr(g.ImageUrl), yieldStr(g.FaviconUrl))
+		yieldStr(g.ImageUrl), g.Video, yieldStr(g.FaviconUrl))
 }
 
 func (g UnfurlGiphyRaw) UnsafeDebugString() string {
@@ -1933,8 +1964,8 @@ ImageUrl: %s
 Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
 }
 
-func (v UnfurlGiphyVideo) String() string {
-	return fmt.Sprintf("[url: %s width: %d height: %d]", v.Url, v.Width, v.Height)
+func (v UnfurlVideo) String() string {
+	return fmt.Sprintf("[url: %s width: %d height: %d mime: %s]", v.Url, v.Width, v.Height, v.MimeType)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

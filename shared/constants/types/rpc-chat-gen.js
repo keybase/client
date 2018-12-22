@@ -13,9 +13,8 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
-export const chatUiUIMiniChatPaymentSpecTyp = {
-  success: 0,
-  error: 1,
+export const chatUiUITextDecorationTyp = {
+  payment: 0,
 }
 
 export const commonAssetMetadataType = {
@@ -331,7 +330,7 @@ export const localPostHeadlineNonblockRpcPromise = (params, waitingKey) => new P
 export const localPostHeadlineRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postHeadline', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostMetadataRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postMetadata', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostReactionNonblockRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postReactionNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localPostTextNonblockRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postTextNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localPostTextNonblockRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveUnfurlPromptRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveUnfurlPrompt', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -20,7 +20,7 @@ const Joined = (props: Props) =>
   props.authorIsYou ? (
     <JoinedUserNotice {...props} />
   ) : (
-    <Kb.Text type="BodySmall">
+    <Kb.Text type="BodySmall" style={styles.text}>
       joined {props.isBigTeam ? `#${props.channelname}` : props.teamname}
       {'. '}
       {props.authorIsYou && props.isBigTeam && (
@@ -88,5 +88,9 @@ const JoinedUserNotice = (props: Props) => (
     )}
   </UserNotice>
 )
+
+const styles = Styles.styleSheetCreate({
+  text: {flexGrow: 1},
+})
 
 export default Joined

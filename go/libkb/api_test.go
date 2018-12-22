@@ -126,9 +126,9 @@ func checkX509Err(t *testing.T, err error) {
 		return
 	}
 
-	b, ok := a.err.(*url.Error)
+	b, ok := a.Err.(*url.Error)
 	if !ok {
-		t.Errorf("APINetError err field type: %T, expected *url.Error", a.err)
+		t.Errorf("APINetError err field type: %T, expected *url.Error", a.Err)
 		return
 	}
 

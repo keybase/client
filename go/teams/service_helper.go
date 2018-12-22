@@ -1170,7 +1170,7 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, userna
 	if err != nil {
 		return err
 	}
-	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
 }
 
@@ -1196,7 +1196,10 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 }
 
 func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	var rotateKey bool
+	var teamID keybase1.TeamID
+
+	err := RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 		if err != nil {
 			return err
@@ -1213,8 +1216,21 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 			return nil
 		}
 
-		return t.PostTeamSettings(ctx, settings)
+		teamID = t.ID
+		rotateKey = t.IsOpen() && !settings.Open
+		// Even if rotateKey is true, we are rotating as separate link right now.
+		// This is because rotation in TeamSettings link used to not be allowed,
+		// so not every client in the wild can parse a team with that.
+		return t.PostTeamSettings(ctx, settings, false /* rotate */)
 	})
+	if err != nil {
+		return err
+	}
+	if rotateKey {
+		g.Log.CDebugf(ctx, "ChangeTeamSettings will rotate key after posting settings (team ID: %s)", teamID)
+		err = RotateKey(ctx, g, teamID)
+	}
+	return err
 }
 
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {
@@ -1623,7 +1639,7 @@ func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if _, err := g.API.Post(arg); err != nil {
 		return err
 	}
-	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
+	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
 }
 

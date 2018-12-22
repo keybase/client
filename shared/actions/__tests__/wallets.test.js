@@ -35,13 +35,14 @@ const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, sta
 const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.walletsTab])
 
 const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
+  amountAvailable: '',
   amountErrMsg: '',
   banners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   from: 'fake account ID',
   publicMemoErrMsg: '',
-  readyToSend: false,
+  readyToReview: false,
   secretNoteErrMsg: '',
   sendingIntentionXLM: false,
   toErrMsg: '',

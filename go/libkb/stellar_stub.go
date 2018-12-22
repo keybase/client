@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/protocol/chat1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 )
 
@@ -42,7 +43,7 @@ func (n *nullStellar) UpdateUnreadCount(context.Context, stellar1.AccountID, int
 
 func (n *nullStellar) GetMigrationLock() *sync.Mutex { return new(sync.Mutex) }
 
-func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
+func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
 	return nil, errors.New("nullStellar SendMiniChatPayments")
 }
 
@@ -50,4 +51,6 @@ func (n *nullStellar) SpecMiniChatPayments(mctx MetaContext, payments []MiniChat
 	return nil, errors.New("nullStellar SpecMiniChatPayments")
 }
 
-func (n *nullStellar) RefreshWalletState(ctx context.Context) {}
+func (n *nullStellar) HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error) {
+	return false, errors.New("nullStellar HandleOobm")
+}

@@ -11,7 +11,7 @@ import {
   EmojiIfExists,
 } from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {Picker} from 'emoji-mart'
+import {Picker} from './picker'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import DelayInterval from './delay-interval'
 
@@ -216,13 +216,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             position="top right"
             onHidden={() => this._setShowingPicker(false)}
           >
-            <Picker
-              autoFocus={true}
-              emoji="star-struck"
-              title="reacjibase"
-              onClick={this._onAddReaction}
-              backgroundImageFn={backgroundImageFn}
-            />
+            <Picker onClick={this._onAddReaction} backgroundImageFn={backgroundImageFn} />
           </FloatingBox>
         )}
       </ButtonBox>
@@ -259,6 +253,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderRadius: 4,
       boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
+      marginRight: Styles.globalMargins.small,
     },
   }),
   emojiIconWrapper: Styles.platformStyles({

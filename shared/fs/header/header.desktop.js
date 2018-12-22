@@ -7,7 +7,7 @@ import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import {PathItemAction, OpenInSystemFileManager} from '../common'
+import {OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
 
 const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
   <Box style={styles.headerContainer}>
@@ -32,18 +32,16 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
               <OpenInSystemFileManager path={path} />
             </WithTooltip>
             {onChat && (
-              <Box style={styles.headerIcon}>
-                <Icon
-                  type="iconfont-chat"
-                  color={Styles.globalColors.black_40}
-                  fontSize={16}
-                  onClick={onChat}
-                />
-              </Box>
+              <Icon
+                type="iconfont-chat"
+                color={Styles.globalColors.black_40}
+                fontSize={16}
+                onClick={onChat}
+                style={styles.headerIcon}
+              />
             )}
-            <Box style={styles.headerIcon}>
-              <PathItemAction path={path} actionIconClassName="fs-path-item-hover-icon" />
-            </Box>
+            <SendInAppAction path={path} sendIconClassName="" />
+            <PathItemAction path={path} actionIconClassName="" />
           </Box>
         </Box>
       )}
@@ -94,7 +92,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   headerIcon: {
-    marginLeft: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
   },
 })
 

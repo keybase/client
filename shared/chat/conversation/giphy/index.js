@@ -35,11 +35,12 @@ class GiphySearch extends React.Component<Props> {
             <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
               <Kb.ClickableBox onClick={() => this.props.onClick(p.targetUrl)}>
                 <UnfurlImage
-                  url={p.previewUrl}
+                  autoplayVideo={true}
                   height={gridWidth}
-                  width={this._scaledWidth(p.previewWidth)}
                   isVideo={p.previewIsVideo}
                   style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}, styles.image])}
+                  url={p.previewUrl}
+                  width={this._scaledWidth(p.previewWidth)}
                 />
               </Kb.ClickableBox>
             </Kb.Box2>
@@ -52,20 +53,20 @@ class GiphySearch extends React.Component<Props> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    minHeight: 200,
     flexWrap: 'wrap',
     justifyContent: 'center',
-  },
-  imageContainer: {
-    alignSelf: 'flex-start',
-    borderStyle: 'solid',
-    borderWidth: 2,
-    borderColor: Styles.globalColors.black,
-    overflow: 'hidden',
-    margin: -1,
+    minHeight: 200,
   },
   image: {
     borderRadius: 0,
+  },
+  imageContainer: {
+    alignSelf: 'flex-start',
+    borderColor: Styles.globalColors.black,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    margin: -1,
+    overflow: 'hidden',
   },
 })
 

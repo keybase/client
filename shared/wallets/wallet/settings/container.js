@@ -22,6 +22,7 @@ const mapStateToProps = (state, {routeProps}) => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+  const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
 
   return {
     accountID,
@@ -29,6 +30,7 @@ const mapStateToProps = (state, {routeProps}) => {
     currency,
     currencyWaiting,
     isDefault: account.isDefault,
+    mobileOnlyMode,
     name,
     saveCurrencyWaiting,
     user,
@@ -40,6 +42,8 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
     dispatch(navigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
+  _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
+    dispatch(WalletsGen.createChangeMobileOnlyMode({accountID, enabled})),
   _onDelete: (accountID: Types.AccountID) =>
     dispatch(
       navigateAppend([
@@ -65,6 +69,7 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
+    dispatch(WalletsGen.createLoadMobileOnlyMode({accountID: routeProps.get('accountID')}))
   },
 })
 
@@ -75,6 +80,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onEditName: () => dispatchProps._onEditName(stateProps.accountID),
+  onMobileOnlyModeChange: (enabled: boolean) =>
+    dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   refresh: () => dispatchProps._refresh(),
 })

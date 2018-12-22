@@ -17,6 +17,13 @@ const (
 	KeybaseRequestIDSuffixHex = "31"
 )
 
+const (
+	PushAutoClaim           = "stellar.autoclaim"
+	PushPaymentStatus       = "stellar.payment_status"
+	PushPaymentNotification = "stellar.payment_notification"
+	PushRequestStatus       = "stellar.request_status"
+)
+
 func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 	if len(s) != hex.EncodedLen(KeybaseTransactionIDLen) {
 		return "", fmt.Errorf("bad KeybaseTransactionID %q: must be %d bytes long", s, KeybaseTransactionIDLen)
@@ -118,44 +125,13 @@ func (s SecretKey) SecureNoLogString() string {
 	return string(s)
 }
 
-// CheckInvariants checks that the bundle satisfies
+// CheckInvariants checks that the Bundle satisfies
 // 1. No duplicate account IDs
 // 2. Exactly one primary account
 // 3. Non-negative revision numbers
-func (s Bundle) CheckInvariants() error {
-	accountIDs := make(map[AccountID]bool)
-	var foundPrimary bool
-	for _, entry := range s.Accounts {
-		_, found := accountIDs[entry.AccountID]
-		if found {
-			return fmt.Errorf("duplicate account ID: %v", entry.AccountID)
-		}
-		accountIDs[entry.AccountID] = true
-		if entry.IsPrimary {
-			if foundPrimary {
-				return errors.New("multiple primary accounts")
-			}
-			foundPrimary = true
-		}
-		if entry.Mode == AccountMode_NONE {
-			return errors.New("account missing mode")
-		}
-	}
-	if !foundPrimary {
-		return errors.New("missing primary account")
-	}
-	if s.Revision < 1 {
-		return fmt.Errorf("revision %v < 1", s.Revision)
-	}
-	return nil
-}
-
-// CheckInvariants checks that the BundleRestricted satisfies
-// 1. No duplicate account IDs
-// 2. Exactly one primary account
-// 3. Non-negative revision numbers
-// 4. Account Bundle maps to Accounts
-func (r BundleRestricted) CheckInvariants() error {
+// 4. Account Bundle accountIDs are consistent
+// 5. every account in AccountBundles is also in Accounts
+func (r Bundle) CheckInvariants() error {
 	accountIDs := make(map[AccountID]bool)
 	var foundPrimary bool
 	for _, entry := range r.Accounts {
@@ -187,6 +163,15 @@ func (r BundleRestricted) CheckInvariants() error {
 		if accID != accBundle.AccountID {
 			return fmt.Errorf("account ID mismatch in bundle for %v", accID)
 		}
+		var AccountBundleInAccounts bool
+		for _, accountListAccount := range r.Accounts {
+			if accountListAccount.AccountID == accID {
+				AccountBundleInAccounts = true
+			}
+		}
+		if !AccountBundleInAccounts {
+			return fmt.Errorf("account in AccountBundles not in Accounts %v", accID)
+		}
 	}
 	return nil
 }
@@ -200,15 +185,6 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 	return BundleEntry{}, errors.New("primary stellar account not found")
 }
 
-func (s BundleRestricted) PrimaryAccount() (BundleEntryRestricted, error) {
-	for _, entry := range s.Accounts {
-		if entry.IsPrimary {
-			return entry, nil
-		}
-	}
-	return BundleEntryRestricted{}, errors.New("primary stellar account not found")
-}
-
 func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 	for _, entry := range s.Accounts {
 		if entry.AccountID == acctID {
@@ -216,15 +192,6 @@ func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 		}
 	}
 	return BundleEntry{}, errors.New("stellar account not found")
-}
-
-func (s BundleRestricted) Lookup(acctID AccountID) (BundleEntryRestricted, error) {
-	for _, entry := range s.Accounts {
-		if entry.AccountID == acctID {
-			return entry, nil
-		}
-	}
-	return BundleEntryRestricted{}, errors.New("stellar account not found")
 }
 
 // Eq compares assets strictly.
@@ -329,6 +296,24 @@ func (p *PaymentSummary) TransactionID() (TransactionID, error) {
 	return "", errors.New("unknown payment summary type")
 }
 
+func (p *PaymentSummary) TransactionStatus() (TransactionStatus, error) {
+	t, err := p.Typ()
+	if err != nil {
+		return TransactionStatus_NONE, err
+	}
+
+	switch t {
+	case PaymentSummaryType_STELLAR:
+		return TransactionStatus_SUCCESS, nil
+	case PaymentSummaryType_DIRECT:
+		return p.Direct().TxStatus, nil
+	case PaymentSummaryType_RELAY:
+		return p.Relay().TxStatus, nil
+	}
+
+	return TransactionStatus_NONE, errors.New("unknown payment summary type")
+}
+
 func (c *ClaimSummary) ToPaymentStatus() PaymentStatus {
 	txStatus := c.TxStatus.ToPaymentStatus()
 	switch txStatus {
@@ -373,4 +358,15 @@ func (b BuildPaymentID) IsNil() bool {
 
 func (b BuildPaymentID) Eq(other BuildPaymentID) bool {
 	return b == other
+}
+
+func NewChatConversationID(b []byte) *ChatConversationID {
+	cid := ChatConversationID(hex.EncodeToString(b))
+	return &cid
+}
+
+func (a *AccountDetails) SetDefaultDisplayCurrency() {
+	if a.DisplayCurrency == "" {
+		a.DisplayCurrency = "USD"
+	}
 }

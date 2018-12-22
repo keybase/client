@@ -4,9 +4,12 @@ import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
 import {getEngine} from './require'
 import {sequentially} from '../util/saga'
-import type {CommonResponseHandler, RPCError} from './types'
+import type {CommonResponseHandler} from './types'
+import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
 import {isArray} from 'lodash-es'
+
+type WaitingKey = string | Array<string>
 
 type EmittedCall = {
   method: string,
@@ -32,7 +35,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.error = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        getEngine().dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true, null)
       }
       r.error(...args)
     }
@@ -42,7 +45,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.result = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        getEngine().dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true, null)
       }
       r.result(...args)
     }
@@ -57,7 +60,7 @@ function* call(p: {
   params: ?Object,
   incomingCallMap?: {[method: string]: any}, // this is typed by the generated helpers
   customResponseIncomingCallMap?: {[method: string]: any},
-  waitingKey?: string,
+  waitingKey?: WaitingKey,
 }): Generator<any, any, any> {
   const {method, params, waitingKey} = p
   const incomingCallMap = p.incomingCallMap || {}
@@ -79,7 +82,7 @@ function* call(p: {
 
   // Waiting on the server
   if (waitingKey) {
-    getEngine().dispatchWaitingAction(waitingKey, true)
+    getEngine().dispatchWaitingAction(waitingKey, true, null)
   }
 
   const buffer = RS.buffers.expanding(10)
@@ -91,7 +94,7 @@ function* call(p: {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
-          getEngine().dispatchWaitingAction(waitingKey, false)
+          getEngine().dispatchWaitingAction(waitingKey, false, null)
         }
 
         let response = makeWaitingResponse(_response, waitingKey)
@@ -205,7 +208,7 @@ function* call(p: {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {
       // No longer waiting
-      getEngine().dispatchWaitingAction(waitingKey, false)
+      getEngine().dispatchWaitingAction(waitingKey, false, finalError instanceof RPCError ? finalError : null)
     }
 
     if (finalError) {

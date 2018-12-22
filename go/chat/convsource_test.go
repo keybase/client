@@ -702,6 +702,12 @@ func (f failingRemote) FailSharePost(ctx context.Context, _ chat1.FailSharePostA
 	return nil
 }
 
+func (f failingRemote) BroadcastGregorMessageToConv(ctx context.Context,
+	arg chat1.BroadcastGregorMessageToConvArg) error {
+	require.Fail(f.t, "BroadcastGregorMessageToConv")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
@@ -767,7 +773,7 @@ func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, 
 
 func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
 	panic("unimplemented")
 }
 

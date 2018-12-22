@@ -430,6 +430,12 @@ const rootReducer = (
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
         }
       })
+    case Chat2Gen.setPaymentConfirmInfo:
+      return action.error
+        ? state.set('paymentConfirmInfo', {error: action.payload.error})
+        : state.set('paymentConfirmInfo', {summary: action.payload.summary})
+    case Chat2Gen.clearPaymentConfirmInfo:
+      return state.set('paymentConfirmInfo', null)
     case Chat2Gen.setPendingStatus:
       return state.set('pendingStatus', action.payload.pendingStatus)
     case Chat2Gen.createConversation:
@@ -458,8 +464,12 @@ const rootReducer = (
         ])
       )
       return state.withMutations(s => {
-        s.set('badgeMap', badgeMap)
-        s.set('unreadMap', unreadMap)
+        if (!s.badgeMap.equals(badgeMap)) {
+          s.set('badgeMap', badgeMap)
+        }
+        if (!s.unreadMap.equals(unreadMap)) {
+          s.set('unreadMap', unreadMap)
+        }
       })
     }
     case Chat2Gen.messageSetEditing:
@@ -881,7 +891,10 @@ const rootReducer = (
     }
     case Chat2Gen.paymentInfoReceived: {
       const {conversationIDKey, messageID, paymentInfo} = action.payload
-      return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], paymentInfo))
+      let nextState = state.update('accountsInfoMap', old =>
+        old.setIn([conversationIDKey, messageID], paymentInfo)
+      )
+      return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload
@@ -983,7 +996,6 @@ const rootReducer = (
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
-    case Chat2Gen.filePickerError:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:
     case Chat2Gen.prepareFulfillRequestForm:
@@ -991,6 +1003,7 @@ const rootReducer = (
     case Chat2Gen.unfurlRemove:
     case Chat2Gen.giphySend:
     case Chat2Gen.unsentTextChanged:
+    case Chat2Gen.confirmScreenResponse:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

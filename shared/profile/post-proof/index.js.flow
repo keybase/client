@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import type {ProvablePlatformsType} from '../../constants/types/more'
-import type {IconType} from '../../common-adapters'
 
 export type Props = {
   allowProofCheck: boolean,
@@ -15,7 +14,6 @@ export type Props = {
   onCancel: () => void,
   onCancelText?: ?string,
   onComplete: () => void,
-  isOnCompleteWaiting?: boolean,
   errorMessage?: ?string,
   copyToClipboard: string => void,
 }

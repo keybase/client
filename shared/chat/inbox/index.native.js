@@ -174,6 +174,7 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
+  _onEnsureSelection = () => this.props.onEnsureSelection()
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 
@@ -197,6 +198,7 @@ class Inbox extends React.PureComponent<Props, State> {
         filterFocusCount={this.props.filterFocusCount}
         focusFilter={this.props.focusFilter}
         onNewChat={this.props.onNewChat}
+        onEnsureSelection={this._onEnsureSelection}
         onSelectUp={this._onSelectUp}
         onSelectDown={this._onSelectDown}
       />

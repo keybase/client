@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import * as Sb from '../../../../stories/storybook'
 import I from 'immutable'
 import * as React from 'react'
@@ -11,6 +12,7 @@ const props = {
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map({}),
+  message: Constants.makeMessageText(),
   text: 'hello',
   type: 'sent',
 }

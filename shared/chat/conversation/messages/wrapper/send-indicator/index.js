@@ -79,7 +79,7 @@ class SendIndicator extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.failed && !prevProps.failed) {
       this._onFailed()
     } else if (this.props.sent && !prevProps.sent) {
