@@ -15,8 +15,6 @@ import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
 
-import type {TypedState} from '../../constants/reducer'
-
 let lastCount = -1
 const updateAppBadge = (_, action) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
@@ -145,16 +143,6 @@ function* handleLoudMessage(notification) {
       logger.info('[Push] failed to unbox message form payload')
     }
   }
-}
-
-const handleFollow = notification => {
-  // We only care if the user clicked while in session
-  if (!notification.userInteraction) {
-    return
-  }
-  const {username} = notification
-  logger.info('[Push] follower: ', username)
-  return Saga.put(ProfileGen.createShowUserProfile({username}))
 }
 
 // on iOS the go side handles a lot of push details

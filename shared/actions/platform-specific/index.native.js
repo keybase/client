@@ -1,6 +1,5 @@
 // @flow
 import logger from '../../logger'
-import {type TypedState} from '../../constants/reducer'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
