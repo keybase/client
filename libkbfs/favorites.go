@@ -275,6 +275,11 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]bool) {
 				oldFav.Type)
 		}
 	}
+	for newFav := range f.cache {
+		if !oldCache[newFav] {
+			f.config.KBFSOps().RefreshEditHistory(newFav)
+		}
+	}
 }
 
 func (f *Favorites) handleReq(req *favReq) (err error) {

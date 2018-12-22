@@ -337,6 +337,9 @@ type KBFSOps interface {
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
 	DeleteFavorite(ctx context.Context, fav Favorite) error
+	// RefreshEditHistory asks the FBO for the given favorite to reload its
+	// edit history.
+	RefreshEditHistory(fav Favorite)
 
 	// GetTLFCryptKeys gets crypt key of all generations as well as
 	// TLF ID for tlfHandle. The returned keys (the keys slice) are ordered by

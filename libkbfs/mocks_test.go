@@ -1812,6 +1812,18 @@ func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(ctx, fav interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), ctx, fav)
 }
 
+// RefreshEditHistory mocks base method
+func (m *MockKBFSOps) RefreshEditHistory(fav Favorite) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RefreshEditHistory", fav)
+}
+
+// RefreshEditHistory indicates an expected call of RefreshEditHistory
+func (mr *MockKBFSOpsMockRecorder) RefreshEditHistory(fav interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshEditHistory", reflect.TypeOf((*MockKBFSOps)(nil).RefreshEditHistory), fav)
+}
+
 // GetTLFCryptKeys mocks base method
 func (m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]kbfscrypto.TLFCryptKey, tlf.ID, error) {
 	m.ctrl.T.Helper()

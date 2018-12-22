@@ -303,6 +303,14 @@ func (fs *KBFSOpsStandard) getOpsByFav(fav Favorite) *folderBranchOps {
 	return fs.opsByFav[fav]
 }
 
+// RefreshEditHistory implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) RefreshEditHistory(fav Favorite) {
+	fbo := fs.getOpsByFav(fav)
+	if fbo != nil {
+		fbo.refreshEditHistory()
+	}
+}
+
 // DeleteFavorite implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
