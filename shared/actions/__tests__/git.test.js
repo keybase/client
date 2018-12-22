@@ -128,8 +128,8 @@ const loadedStore = {
 }
 
 const startOnGitTab = dispatch => {
-  dispatch(RouteTree.createSwitchRouteDef({routeDef: appRouteTree}))
-  dispatch(RouteTree.createNavigateTo({path: [Tabs.gitTab]}))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.gitTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(gitSaga, initialStore, startOnGitTab)

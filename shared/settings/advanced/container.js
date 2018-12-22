@@ -25,7 +25,7 @@ const mapDispatchToProps = dispatch => ({
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   onBack: () => dispatch(navigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
-  onDBNuke: () => dispatch(navigateAppend(['dbNukeConfirm'])),
+  onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),

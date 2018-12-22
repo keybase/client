@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-  onRequestInvite: () => dispatch(navigateAppend(['requestInvite'])),
+  onRequestInvite: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['requestInvite']})),
   onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),
 })
 

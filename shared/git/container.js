@@ -40,15 +40,15 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
   onBack: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'newRepo'}]}))
   },
   onNewTeamRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'newRepo'}]}))
   },
   onShowDelete: (id: string) => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'deleteRepo'}]}))
   },
   onToggleExpand: (id: string) => {
     const old = routeState.get('expandedSet')

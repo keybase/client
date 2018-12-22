@@ -22,7 +22,7 @@ const mapDispatchToProps = dispatch => ({
   onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
   onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
   onSelectPendingInvite: (invite: Types.PendingInvite) =>
-    dispatch(navigateAppend([{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}]})),
   onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 

@@ -33,11 +33,11 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     if (!you) {
       return
     }
-    dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-  onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
+  onEditDescription: () => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})),
   onEditIcon: (image?: Response) =>
     dispatch(
       navigateAppend([{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}])

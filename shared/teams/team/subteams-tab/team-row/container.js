@@ -21,11 +21,11 @@ const mapStateToProps = (state, {teamname}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onManageChat: (teamname: Types.Teamname) =>
-    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`)})),
   _onViewTeam: (teamname: Types.Teamname) => {
-    dispatch(navigateAppend([{props: {teamname}, selected: 'team'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
   },
 })
 

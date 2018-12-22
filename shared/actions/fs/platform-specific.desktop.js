@@ -363,7 +363,7 @@ const loadUserFileEdits = (state: TypedState, action) =>
 const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    ...(path ? [Saga.put(FsGen.createOpenPathInFilesTab({path}))] : [Saga.put(switchTo([Tabs.fsTab]))]),
+    ...(path ? [Saga.put(FsGen.createOpenPathInFilesTab({path}))] : [Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]}))]),
   ])
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {

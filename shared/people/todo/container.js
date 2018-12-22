@@ -30,7 +30,7 @@ const mapStateToProps = state => ({myUsername: state.config.username || ''})
 const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => dispatch(switchTo([Tabs.teamsTab])),
+    onConfirm: () => dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]})),
     onDismiss: () => {},
   }),
   (stateProps, dispatchProps, ownProps) => ({
@@ -46,7 +46,7 @@ const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
     onConfirm: () => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
-      dispatch(switchTo([Tabs.profileTab, 'editAvatar']))
+      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.profileTab, 'editAvatar']}))
     },
     onDismiss: () => {},
   }),
@@ -63,7 +63,7 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
-      dispatch(navigateAppend(['editProfile'], [Tabs.peopleTab]))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['editProfile'], parentPath: [Tabs.peopleTab]}))
     },
     onDismiss: () => {},
   }),
@@ -99,7 +99,8 @@ const DeviceConnector = connect<TodoOwnProps, _, _, _, _>(
 const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
+    onConfirm: () =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['search'], parentPath: [Tabs.peopleTab]})),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
@@ -108,7 +109,7 @@ const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
 const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
-    onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
+    onConfirm: () => dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
@@ -119,12 +120,12 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
   dispatch => ({
     onConfirm: () => {
       if (!isMobile) {
-        dispatch(switchTo([Tabs.devicesTab]))
+        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.devicesTab]}))
       } else {
         dispatch(
           RouteTreeGen.createNavigateTo({path: [SettingsTabs.devicesTab], parentPath: [Tabs.settingsTab]})
         )
-        dispatch(switchTo([Tabs.settingsTab]))
+        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
       }
     },
     onDismiss: () => {},
@@ -136,8 +137,8 @@ const TeamConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      dispatch(navigateAppend(['showNewTeamDialog'], [Tabs.teamsTab]))
-      dispatch(switchTo([Tabs.teamsTab]))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['showNewTeamDialog'],parentPath:  [Tabs.teamsTab]}))
+      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]}))
     },
     onDismiss: onSkipTodo('team', dispatch),
   }),
@@ -150,7 +151,7 @@ const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
     onConfirm: () => {
       if (!isMobile) {
         dispatch(RouteTreeGen.createNavigateTo({path: ['private'], parentPath: [Tabs.folderTab]}))
-        dispatch(switchTo([Tabs.folderTab]))
+        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.folderTab]}))
       } else {
         dispatch(
           RouteTreeGen.createNavigateTo({
@@ -158,7 +159,7 @@ const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
             parentPath: [Tabs.settingsTab],
           })
         )
-        dispatch(switchTo([Tabs.settingsTab]))
+        dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
       }
     },
     onDismiss: onSkipTodo('folder', dispatch),
@@ -176,7 +177,7 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
           parentPath: [Tabs.gitTab],
         })
       )
-      dispatch(switchTo([Tabs.gitTab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.gitTab]}))
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),
   }),
@@ -189,7 +190,7 @@ const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
     onConfirm: () => {
       // TODO find a team that the current user is an admin of and nav there?
       dispatch(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.teamsTab]}))
-      dispatch(switchTo([Tabs.teamsTab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]}))
     },
     onDismiss: onSkipTodo('teamShowcase', dispatch),
   }),

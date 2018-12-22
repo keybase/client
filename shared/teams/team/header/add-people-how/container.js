@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
           [teamsTab]
         )
       )
-      dispatch(switchTo([teamsTab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
     onInvite: () => {
       dispatch(
@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
           [teamsTab]
         )
       )
-      dispatch(switchTo([teamsTab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
   }
 }

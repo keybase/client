@@ -39,7 +39,7 @@ const mapDispatchToProps = dispatch => ({
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: RetentionPolicy) =>
     dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname})),
   _showRetentionWarning: (days: number, onConfirm: () => void, entityType: 'big team' | 'small team') =>
-    dispatch(navigateAppend([{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}]})),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([

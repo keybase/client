@@ -76,7 +76,7 @@ const mapDispatchToProps = dispatch => ({
   _onHotkey: (cmd: string) => {
     const tab = hotkeyTabMap[cmd.replace(/(command|ctrl)\+/, '')]
     if (tab) {
-      dispatch(switchTo([tab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
     }
   },
 })

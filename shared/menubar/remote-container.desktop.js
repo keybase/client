@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
   },
   openApp: (tab?: Tab) => {
     dispatch(ConfigGen.createShowMain())
-    tab && dispatch(switchTo([tab]))
+    tab && dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
   },
   quit: () => {
     closeWindow()

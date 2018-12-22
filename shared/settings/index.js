@@ -18,7 +18,7 @@ const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
   onLogout: () => dispatch(ConfigGen.createLogout()),
-  onTabChange: (tab: Types.Tab) => dispatch(switchTo(routePath.push(tab))),
+  onTabChange: (tab: Types.Tab) => dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

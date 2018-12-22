@@ -4,19 +4,19 @@ import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as RouteTree from '../../actions/route-tree-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 
 const dropPgpSaga = (_, action: ProfileGen.DropPgpPayload) =>
   RPCTypes.revokeRevokeKeyRpcPromise({keyID: action.payload.kid}, Constants.waitingKey)
-    .then(() => RouteTree.createNavigateTo({parentPath: [peopleTab], path: []}))
+    .then(() => RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []}))
     .catch(e => {
       logger.info('error in dropping pgp key', e)
       return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
     })
 
-const navBack = Saga.put(RouteTree.createNavigateTo({path: [peopleTab, 'profile']}))
+const navBack = Saga.put(RouteTreeGen.createNavigateTo({path: [peopleTab, 'profile']}))
 
 const generatePgp = (state: TypedState) => {
   let canceled = false
@@ -42,7 +42,7 @@ const generatePgp = (state: TypedState) => {
   const onShouldPushPrivate = (_, response) => {
     return Saga.callUntyped(function*() {
       yield Saga.put(
-        RouteTree.createNavigateTo({
+        RouteTreeGen.createNavigateTo({
           path: [peopleTab, 'profile', 'pgp', 'provideInfo', 'generate', 'finished'],
         })
       )
@@ -55,7 +55,7 @@ const generatePgp = (state: TypedState) => {
 
   return Saga.callUntyped(function*() {
     yield Saga.put(
-      RouteTree.createNavigateTo({path: [peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']})
+      RouteTreeGen.createNavigateTo({path: [peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']})
     )
     // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
     const cancelTask = yield Saga._fork(function*() {

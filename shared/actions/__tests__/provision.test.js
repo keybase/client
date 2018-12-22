@@ -66,8 +66,8 @@ const startReduxSaga = (initialStore = undefined) => {
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTree.createSwitchRouteDef({routeDef: loginRouteTree}))
-  dispatch(RouteTree.createNavigateTo({path: [Tabs.loginTab]}))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}))
 
   return {
     dispatch,

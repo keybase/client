@@ -2742,7 +2742,7 @@ const openChatFromWidget = (
 ) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    Saga.put(switchTo([Tabs.chatTab])),
+    Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
     ...(conversationIDKey
       ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
       : []),

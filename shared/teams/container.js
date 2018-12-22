@@ -38,10 +38,10 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   },
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onJoinTeam: () => {
-    dispatch(navigateAppend(['showJoinTeamDialog']))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
   },
   onManageChat: (teamname: Teamname) =>
-    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
       FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
@@ -49,7 +49,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
-  onViewTeam: (teamname: Teamname) => dispatch(navigateAppend([{props: {teamname}, selected: 'team'}])),
+  onViewTeam: (teamname: Teamname) => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

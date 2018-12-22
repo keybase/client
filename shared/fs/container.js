@@ -17,7 +17,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   _emitBarePreview: (path: Types.Path) => {
     dispatch(navigateUp()) // pop this route node before appending barePreview
-    dispatch(navigateAppend([{props: {path}, selected: 'barePreview'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'barePreview'}]}))
   },
 })
 

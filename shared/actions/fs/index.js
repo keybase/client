@@ -771,7 +771,7 @@ const moveOrCopyOpen = (state, action) =>
   ])
 
 const showMoveOrCopy = (state, action) =>
-  Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
+  Saga.put(RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]}))
 
 const cancelMoveOrCopy = (state, action) => {
   const currentRoutes = getPathProps(state.routeTree.routeState)

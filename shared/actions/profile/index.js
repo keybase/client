@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTree from '../../actions/route-tree-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as TrackerGen from '../tracker-gen'
@@ -20,19 +20,19 @@ const editProfile = (_, action: ProfileGen.EditProfilePayload) =>
     bio: action.payload.bio,
     fullName: action.payload.fullname,
     location: action.payload.location,
-  }).then(() => RouteTree.createNavigateUp())
+  }).then(() => RouteTreeGen.createNavigateUp())
 
 const uploadAvatar = (_, action: ProfileGen.UploadAvatarPayload) =>
   RPCTypes.userUploadUserAvatarRpcPromise({
     crop: action.payload.crop,
     filename: action.payload.filename,
-  }).then(() => RouteTree.createNavigateUp())
+  }).then(() => RouteTreeGen.createNavigateUp())
 
 const finishRevoking = () =>
   Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true})),
     Saga.put(ProfileGen.createRevokeFinish()),
-    Saga.put(RouteTree.createNavigateUp()),
+    Saga.put(RouteTreeGen.createNavigateUp()),
   ])
 
 const showUserProfile = (state: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
@@ -46,7 +46,7 @@ const showUserProfile = (state: TypedState, action: ProfileGen.ShowUserProfilePa
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)
   // $FlowIssue
-  return path ? Promise.resolve(RouteTree.createNavigateTo({path})) : null
+  return path ? Promise.resolve(RouteTreeGen.createNavigateTo({path})) : null
 }
 
 const onClickAvatar = (_, action: ProfileGen.OnClickAvatarPayload) => {
@@ -108,7 +108,7 @@ const outputInstructionsActionLink = (
 const backToProfile = () =>
   Saga.sequentially([
     Saga.put(TrackerGen.createGetMyProfile({})),
-    Saga.put(RouteTree.createNavigateTo({parentPath: [peopleTab], path: ['profile']})),
+    Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profile']})),
   ])
 
 function* _profileSaga() {

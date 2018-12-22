@@ -6,7 +6,7 @@ import {connect} from '../../util/container'
 type OwnProps = {||}
 const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({
-  onDelete: () => dispatch(navigateAppend(['deleteConfirm'])),
+  onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
 })
 
 export default connect<OwnProps, _, _, _, _>(
