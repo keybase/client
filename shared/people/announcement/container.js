@@ -62,6 +62,9 @@ const mapDispatchToProps = dispatch => ({
       case RPCTypes.homeAppLinkType.settings:
         dispatch(RouteTree.createSwitchTo({path: [Tabs.settingsTab]}))
         break
+      case RPCTypes.homeAppLinkType.teams:
+        dispatch(RouteTree.createSwitchTo({path: [Tabs.teamsTab]}))
+        break
     }
     dispatch(PeopleGen.createDismissAnnouncement({id}))
     dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
