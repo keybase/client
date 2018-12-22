@@ -2,7 +2,15 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNode, type RouteDefNode} from '.'
+import {
+  type Path,
+  type LeafTags,
+  pathToString,
+  makeLeafTags,
+  type RouteStateNode,
+  type RouteDefNode,
+  type PropsPath,
+} from '.'
 import Box from '../common-adapters/box'
 
 import type {Tab} from '../constants/tabs'
@@ -54,7 +62,7 @@ export type RouteProps<P, S> = {
 
   // Navigation if your path hasn't changed underneath you
   navigateUp: () => any,
-  navigateAppend: (...Array<any>) => any,
+  navigateAppend: (PropsPath<any>) => any,
 }
 
 type RenderRouteNodeProps<S> = {
@@ -78,10 +86,10 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any
       expectedPath: this.props.path,
       otherAction: RouteTreeGen.createNavigateUp(),
     })
-  _navigateAppend = (...args) =>
+  _navigateAppend = path =>
     RouteTreeGen.createPutActionIfOnPath({
       expectedPath: this.props.path,
-      otherAction: RouteTreeGen.createNavigateAppend(...args),
+      otherAction: RouteTreeGen.createNavigateAppend({path}),
     })
 
   static defaultProps: any
