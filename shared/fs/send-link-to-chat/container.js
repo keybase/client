@@ -8,7 +8,7 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as ChatGen from '../../actions/chat2-gen'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, putActionIfOnPath} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import SendLinkToChat from '.'
 
 type OwnProps = {

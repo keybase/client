@@ -6,7 +6,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
-import * as Route from '../../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
@@ -47,12 +47,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onAddReaction: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
-          selected: 'chooseEmoji',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
+            selected: 'chooseEmoji',
+          },
+        ],
+      })
     )
   },
   _onCopy: () => {

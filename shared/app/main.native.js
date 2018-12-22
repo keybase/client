@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
+import* as RouteTreeGen from '../actions/route-tree-gen'
 import PushPrompt from './push-prompt.native'
 import RenderRoute from '../route-tree/render-route'
 import {connect} from '../util/container'
-import {navigateUp, setRouteState} from '../actions/route-tree'
 import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
 import {View} from 'react-native'

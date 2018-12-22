@@ -5,7 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
 import {connect} from '../../../util/container'
-import {navigateUp} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
 

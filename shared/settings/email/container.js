@@ -1,7 +1,7 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
 import UpdateEmail from './index'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 
 type OwnProps = {||}

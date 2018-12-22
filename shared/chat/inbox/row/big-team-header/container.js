@@ -1,7 +1,7 @@
 // @flow
 import {connect} from '../../../../util/container'
 import {isTeamWithChosenChannels} from '../../../../constants/teams'
-import {navigateTo} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 import {BigTeamHeader} from '.'
 

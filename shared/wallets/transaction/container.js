@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export type OwnProps = {
   accountID: Types.AccountID,

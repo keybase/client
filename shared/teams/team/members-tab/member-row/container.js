@@ -7,7 +7,7 @@ import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
-import {navigateAppend} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {connect, isMobile} from '../../../../util/container'
 import {anyWaiting} from '../../../../constants/waiting'
 

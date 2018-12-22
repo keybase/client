@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as Types from '../constants/types/settings'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import SettingsContainer from './render'
 import {connect} from '../util/container'
-import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}

@@ -1,6 +1,6 @@
 // @flow
 import {namedConnect} from '../../util/container'
-import * as Route from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'

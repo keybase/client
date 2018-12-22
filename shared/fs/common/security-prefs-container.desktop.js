@@ -2,7 +2,7 @@
 import {connect, compose, lifecycle} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import InstallSecurityPrefs from './security-prefs.desktop'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isLinux} from '../../constants/platform'
 
 type OwnProps = {||}

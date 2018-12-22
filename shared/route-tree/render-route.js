@@ -1,8 +1,8 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import * as RouteTreeGen  from '../actions/route-tree-gen'
 import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNode, type RouteDefNode} from '.'
-import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 import Box from '../common-adapters/box'
 
 import type {Tab} from '../constants/tabs'

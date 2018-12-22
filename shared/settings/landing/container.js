@@ -4,7 +4,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {connect, compose} from '../../util/container'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {||}
 

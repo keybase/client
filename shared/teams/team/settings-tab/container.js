@@ -6,7 +6,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {connect} from '../../../util/container'
 import {Settings} from '.'
 import {anyWaiting} from '../../../constants/waiting'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 export type OwnProps = {
   teamname: string,

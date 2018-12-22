@@ -1,5 +1,5 @@
 // @flow
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import DBNukeConfirm from './index'
 import {createDbNuke} from '../../actions/settings-gen'
 import {connect} from '../../util/container'

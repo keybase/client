@@ -2,7 +2,7 @@
 import EnterPaperkey from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
 import {connect} from '../../../util/container'
-import {navigateUp} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = {||}
 

@@ -2,7 +2,7 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {compose, connect} from '../../util/container'
 

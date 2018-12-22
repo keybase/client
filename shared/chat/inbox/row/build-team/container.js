@@ -1,5 +1,5 @@
 // @flow
-import * as Route from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 import {namedConnect} from '../../../../util/container'
 import BuildTeam from '.'

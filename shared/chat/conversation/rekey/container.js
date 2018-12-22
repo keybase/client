@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/chat2'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import {connect} from '../../../util/container'
-import {navigateAppend, navigateUp} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createOpenPopup} from '../../../actions/unlock-folders-gen'
 

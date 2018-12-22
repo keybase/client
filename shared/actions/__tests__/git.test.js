@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as Tabs from '../../constants/tabs'
 import * as GitGen from '../git-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import gitSaga from '../git'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
@@ -128,8 +128,8 @@ const loadedStore = {
 }
 
 const startOnGitTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.gitTab]))
+  dispatch(RouteTree.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTree.createNavigateTo({path: [Tabs.gitTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(gitSaga, initialStore, startOnGitTab)

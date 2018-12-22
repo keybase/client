@@ -13,7 +13,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
 import {HeaderOnMobile} from '../../common-adapters'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type {TeamRoleType} from '../../constants/types/teams'
 
 type OwnProps = RouteProps<{username: string}, {}>

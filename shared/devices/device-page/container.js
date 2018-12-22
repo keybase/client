@@ -4,7 +4,7 @@ import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DevicePage from '.'
 import {namedConnect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {||}
 

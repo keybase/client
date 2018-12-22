@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
 import {connect, isMobile} from '../../../util/container'
@@ -54,31 +54,43 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   _onEditChannel: (teamname: string) =>
-    dispatch(Route.navigateAppend([{props: {conversationIDKey, teamname}, selected: 'editChannel'}])),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, teamname}, selected: 'editChannel'}],
+      })
+    ),
   _onShowClearConversationDialog: () => {
     dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(Route.navigateAppend([{props: {conversationIDKey}, selected: 'deleteHistoryWarning'}]))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey}, selected: 'deleteHistoryWarning'}],
+      })
+    )
   },
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onShowBlockConversationDialog: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey},
-          selected: 'showBlockConversationDialog',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey},
+            selected: 'showBlockConversationDialog',
+          },
+        ],
+      })
     )
   },
   onShowNewTeamDialog: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey},
-          selected: 'showNewTeamDialog',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey},
+            selected: 'showNewTeamDialog',
+          },
+        ],
+      })
     )
   },
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),

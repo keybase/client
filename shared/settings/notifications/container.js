@@ -3,7 +3,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as Types from '../../constants/types/settings'
 import {connect, lifecycle, compose} from '../../util/container'
 import Notifications from './index'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {||}

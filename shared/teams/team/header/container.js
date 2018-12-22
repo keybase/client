@@ -6,7 +6,7 @@ import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
 import type {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {TeamHeader} from '.'
 
 export type OwnProps = {

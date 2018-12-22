@@ -7,7 +7,7 @@ import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
-import {navigateTo, switchTo} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
 import {isWindows, isDarwin} from '../constants/platform'
@@ -26,7 +26,7 @@ const mapDispatchToProps = dispatch => ({
   },
   logIn: () => {
     dispatch(ConfigGen.createShowMain())
-    dispatch(navigateTo([loginTab]))
+    dispatch(RouteTreeGen.createNavigateTo({path: [loginTab]}))
   },
   onRekey: () => {
     dispatch(createOpenRekeyPopup())

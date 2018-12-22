@@ -4,7 +4,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
 import {connect, compose, lifecycle} from '../../util/container'
 import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {|
   shouldPromptSecurityPrefs: boolean,

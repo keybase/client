@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import {namedConnect, type RouteProps} from '../util/container'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'

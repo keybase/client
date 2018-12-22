@@ -9,7 +9,7 @@ import {
   connect,
   type RouteProps,
 } from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
 
 type OwnProps = RouteProps<{teamname: string}, {}>

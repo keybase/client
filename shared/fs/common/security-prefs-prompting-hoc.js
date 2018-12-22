@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import {connect} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // On desktop, SecurityPrefsPromptingHoc prompts user about going to security
 // preferences to allow the kext if needed. It prompts at most once per

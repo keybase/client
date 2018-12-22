@@ -4,7 +4,7 @@ import * as Constants from '../../constants/git'
 import * as TeamsGen from '../../actions/teams-gen'
 import NewRepo from '.'
 import {connect, type RouteProps} from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
 

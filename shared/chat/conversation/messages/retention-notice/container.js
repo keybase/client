@@ -6,7 +6,7 @@ import {makeRetentionNotice} from '../../../../util/teams'
 import {getCanPerform, hasCanPerform} from '../../../../constants/teams'
 import {createGetTeamOperations} from '../../../../actions/teams-gen'
 import RetentionNotice from '.'
-import {navigateAppend} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey,

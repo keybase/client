@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {connect} from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
 import {teamsTab} from '../../constants/tabs'

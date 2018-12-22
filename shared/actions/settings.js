@@ -10,7 +10,7 @@ import * as Saga from '../util/saga'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {type TypedState} from '../constants/reducer'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 

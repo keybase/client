@@ -2,7 +2,7 @@
 import * as TeamsGen from '../../../actions/teams-gen'
 import {connect, type RouteProps} from '../../../util/container'
 import ReallyLeaveTeam from '.'
-import {navigateTo} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {teamsTab} from '../../../constants/tabs'
 
 type OwnProps = RouteProps<{username: string, teamname: string, email: string}, {}>

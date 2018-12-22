@@ -4,7 +4,7 @@
 import routeTreeReducer from '../route-tree'
 import {makeState} from '../../constants/route-tree'
 import {makeRouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 import type {PropsPath} from '../../route-tree'
 

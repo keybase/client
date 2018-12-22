@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {connect, isMobile} from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
 import openURL from '../../../../util/open-url'

@@ -2,7 +2,7 @@
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {namedConnect} from '../../../util/container'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import {anyWaiting} from '../../../constants/waiting'
 

@@ -6,7 +6,7 @@ import {
   createLoadLockdownMode,
   createOnChangeLockdownMode,
 } from '../../actions/settings-gen'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import {compose} from 'recompose'

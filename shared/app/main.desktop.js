@@ -1,5 +1,6 @@
 // @flow
 import {hot} from 'react-hot-loader/root'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import {connect} from '../util/container'
@@ -7,7 +8,6 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
-import {navigateUp, setRouteState} from '../actions/route-tree'
 import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
 // Uncomment to get more info on hot loading
 // import {setConfig} from 'react-hot-loader'

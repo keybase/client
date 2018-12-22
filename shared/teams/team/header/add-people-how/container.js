@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
-import {navigateTo, switchTo} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 
 type OwnProps = {

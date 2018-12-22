@@ -5,7 +5,7 @@ import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
 import {TeamRow} from '../../../main/team-list'
 import {connect} from '../../../../util/container'
-import {navigateAppend} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as FsGen from '../../../../actions/fs-gen'
 
 type OwnProps = {

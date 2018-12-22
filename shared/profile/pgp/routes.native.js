@@ -3,7 +3,7 @@ import * as React from 'react'
 import {makeRouteDefNode} from '../../route-tree'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 
 type OwnProps = {||}

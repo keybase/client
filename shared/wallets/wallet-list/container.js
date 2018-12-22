@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
-import * as RouteTree from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {connect, isMobile} from '../../util/container'

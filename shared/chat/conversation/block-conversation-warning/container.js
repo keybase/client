@@ -3,7 +3,7 @@ import RenderBlockConversationWarning from './'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {connect} from '../../../util/container'
-import {navigateUp} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type ConversationIDKey} from '../../../constants/types/chat2'
 

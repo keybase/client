@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
-import {putActionIfOnPath, navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import FolderHeader from './header'
 

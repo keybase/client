@@ -3,7 +3,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as Types from '../../constants/types/settings'
 import Invites from '.'
 import {createShowUserProfile} from '../../actions/profile-gen'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect, lifecycle, compose} from '../../util/container'
 
 type OwnProps = {||}

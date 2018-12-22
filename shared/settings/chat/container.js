@@ -2,7 +2,7 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {namedConnect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../styles'
 import Chat from '.'
 

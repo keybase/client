@@ -11,7 +11,7 @@ import {
 } from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
-import {navigateTo, pathSelector} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'

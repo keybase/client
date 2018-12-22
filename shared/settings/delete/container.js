@@ -1,5 +1,5 @@
 // @flow
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Delete from './index'
 import {connect} from '../../util/container'
 
