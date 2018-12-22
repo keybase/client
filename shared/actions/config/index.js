@@ -62,20 +62,18 @@ function* loadDaemonBootstrapStatus(state, action) {
   }
 
   function* makeCall() {
-    const loadedAction = yield RPCTypes.configGetBootstrapStatusRpcPromise().then(
-      (s: RPCTypes.BootstrapStatus) =>
-        ConfigGen.createBootstrapStatusLoaded({
-          deviceID: s.deviceID,
-          deviceName: s.deviceName,
-          followers: s.followers ?? [],
-          following: s.following ?? [],
-          loggedIn: s.loggedIn,
-          registered: s.registered,
-          uid: s.uid,
-          username: s.username,
-        })
-    )
-    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn}`)
+    const s = yield* Saga.callPromise(RPCTypes.configGetBootstrapStatusRpcPromise)
+    const loadedAction = ConfigGen.createBootstrapStatusLoaded({
+      deviceID: s.deviceID,
+      deviceName: s.deviceName,
+      followers: s.followers ?? [],
+      following: s.following ?? [],
+      loggedIn: s.loggedIn,
+      registered: s.registered,
+      uid: s.uid,
+      username: s.username,
+    })
+    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
 
     // if we're logged in act like getAccounts is done already
@@ -102,7 +100,7 @@ function* loadDaemonBootstrapStatus(state, action) {
           version: action.payload.version,
         })
       )
-      yield makeCall
+      yield* makeCall()
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
           increment: false,
@@ -113,7 +111,7 @@ function* loadDaemonBootstrapStatus(state, action) {
       break
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
-      yield makeCall
+      yield* makeCall()
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
@@ -191,12 +189,12 @@ function* loadDaemonAccounts(state, action) {
         })
       )
     }
-    const loadedAction = yield RPCTypes.configGetAllProvisionedUsernamesRpcPromise().then(result => {
-      let usernames = result.provisionedUsernames || []
-      let defaultUsername = result.defaultUsername
-      usernames = usernames.sort()
-      return ConfigGen.createSetAccounts({defaultUsername, usernames})
-    })
+
+    const result = yield* Saga.callPromise(RPCTypes.configGetAllProvisionedUsernamesRpcPromise)
+    let usernames = result.provisionedUsernames || []
+    let defaultUsername = result.defaultUsername
+    usernames = usernames.sort()
+    const loadedAction = ConfigGen.createSetAccounts({defaultUsername, usernames})
     yield Saga.put(loadedAction)
     if (handshakeWait) {
       // someone dismissed this already?
@@ -355,9 +353,14 @@ const updateServerConfig = (state: TypedState) =>
     endpoint: 'user/features',
   })
     .then(str => {
-      const obj = JSON.parse(str.body)
+      const obj: {
+        features: {
+          admin?: {value: boolean},
+          stellar?: {value: boolean},
+        },
+      } = JSON.parse(str.body)
       const features = Object.keys(obj.features).reduce((map, key) => {
-        map[key] = obj.features[key].value
+        map[key] = obj.features[key]?.value
         return map
       }, {})
 
