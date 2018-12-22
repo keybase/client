@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   // Route to the teams tab and open the NewTeamDialog component
-  _onBuildTeam: () => dispatch(Route.navigateTo([teamsTab])),
+  _onBuildTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab]})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

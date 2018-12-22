@@ -32,12 +32,12 @@ const mapDispatchToProps = dispatch => ({
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
   onChangeDisplayUnit: () => {
     dispatch(
-      Route.navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {},
           selected: Constants.chooseAssetFormRouteKey,
         },
-      ])
+      ]})
     )
   },
 })

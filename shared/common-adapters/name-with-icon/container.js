@@ -18,7 +18,9 @@ const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   onOpenTeamProfile: (teamname: string) =>
-    dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
+    dispatch(
+      RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname: teamname}, selected: 'team'}]})
+    ),
   onOpenTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),

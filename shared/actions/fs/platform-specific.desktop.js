@@ -16,7 +16,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import {switchTo} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 
 type pathType = 'file' | 'directory'
 

@@ -35,12 +35,12 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickSend: () => {
     dispatch(WalletsGen.createBuildPayment())
     dispatch(
-      Route.navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {},
           selected: Constants.confirmFormRouteKey,
         },
-      ])
+      ]})
     )
   },
 })

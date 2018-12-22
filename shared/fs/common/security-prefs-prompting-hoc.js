@@ -34,12 +34,14 @@ const mapDispatchToProps = dispatch => ({
       })
     )
     dispatch(
-      navigateAppend([
-        {
-          props: {},
-          selected: 'securityPrefs',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: 'securityPrefs',
+          },
+        ],
+      })
     )
   },
 })

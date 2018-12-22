@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
   addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onBack: () => dispatch(RouteTree.navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const sortDevices = (a, b) => {

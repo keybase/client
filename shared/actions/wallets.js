@@ -527,7 +527,7 @@ const createdOrLinkedAccount = (
   if (action.payload.setBuildingTo) {
     return Saga.put(WalletsGen.createSetBuildingTo({to: action.payload.accountID}))
   }
-  return Saga.put(Route.navigateUp())
+  return Saga.put(RouteTreeGen.createNavigateUp())
 }
 
 const navigateUp = (
@@ -538,7 +538,7 @@ const navigateUp = (
     // we don't want to nav on error
     return
   }
-  return Saga.put(Route.navigateUp())
+  return Saga.put(RouteTreeGen.createNavigateUp())
 }
 
 const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPayload) => {

@@ -33,7 +33,7 @@ function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
       newEmail,
     })
     yield Saga.put(SettingsGen.createLoadSettings())
-    yield Saga.put(navigateUp())
+    yield Saga.put(RouteTreeGen.createNavigateUp())
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdateEmailError({error}))
   } finally {
@@ -56,7 +56,7 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
       oldPassphrase: '',
       passphrase: newPassphrase.stringValue(),
     })
-    yield Saga.put(navigateUp())
+    yield Saga.put(RouteTreeGen.createNavigateUp())
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
   } finally {
@@ -230,7 +230,7 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
       )
       // TODO: if the user changes their route while working, this may lead to an invalid route
       yield Saga.put(
-        navigateAppend([
+        RouteTreeGen.createNavigateAppend({path: [
           {
             props: {
               email,
@@ -238,7 +238,7 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
             },
             selected: 'inviteSent',
           },
-        ])
+        ]})
       )
     }
   } catch (e) {

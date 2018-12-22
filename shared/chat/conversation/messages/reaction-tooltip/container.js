@@ -43,12 +43,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
     ownProps.onHidden()
     dispatch(
-      Route.navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
           selected: 'chooseEmoji',
         },
-      ])
+      ]})
     )
   },
 })

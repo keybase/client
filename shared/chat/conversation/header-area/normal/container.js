@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) =>
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
-  onBack: () => dispatch(RouteTree.navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })

@@ -17,7 +17,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   _getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
-  back: () => dispatch(navigateUp()),
+  back: () => dispatch(RouteTreeGen.createNavigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
 

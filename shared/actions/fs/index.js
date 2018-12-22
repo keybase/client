@@ -18,7 +18,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 

@@ -7,7 +7,7 @@ import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, navigateAppend} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
@@ -36,7 +36,7 @@ describe('goBackAndClearErrors', () => {
     expect(nextState.signup.passphraseError.stringValue()).toEqual('')
     expect(nextState.signup.signupError.stringValue()).toEqual('')
     expect(nextState.signup.usernameError).toEqual('')
-    expect(_testing.goBackAndClearErrors()).toEqual(Saga.put(navigateUp()))
+    expect(_testing.goBackAndClearErrors()).toEqual(Saga.put(RouteTreeGen.createNavigateUp()))
   })
 })
 
@@ -53,7 +53,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({path: ['inviteCode'], parentPath: [loginTab]})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
     )
   })
 
@@ -62,7 +62,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({path: ['inviteCode'], parentPath: [loginTab]})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab]path: ['inviteCode']})
     )
   })
 })
@@ -82,7 +82,7 @@ describe('requestInvite', () => {
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.name).toEqual(action.payload.name)
     expect(_testing.showInviteSuccessOnNoErrors(nextState)).toEqual(
-      navigateAppend(['requestInviteSuccess'], [loginTab])
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
     )
   })
 

@@ -8,9 +8,9 @@ import {getPath} from '../route-tree'
 import type {RouteDefParams, Path, PropsPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
 
-// export function pathSelector(state: TypedState, parentPath?: Path): I.List<string> {
-// return getPath(state.routeTree.routeState, parentPath)
-// }
+function pathSelector(state: TypedState, parentPath?: Path): I.List<string> {
+  return getPath(state.routeTree.routeState, parentPath)
+}
 
 // Set the tree of route definitions. Dispatched at initialization
 // time.

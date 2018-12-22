@@ -36,18 +36,20 @@ const mapDispatchToProps = dispatch => ({
       path: p,
     }))
     dispatch(
-      RouteTree.navigateAppend([
-        {props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      })
     )
   },
   _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
     dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   _onToggleInfoPanel: (isOpen: boolean, conversationIDKey: Types.ConversationIDKey) => {
     if (isOpen) {
-      dispatch(RouteTree.navigateTo(['conversation'], [chatTab]))
+      dispatch(RouteTreeGen.createNavigateTo({path: ['conversation'], parentPath: [chatTab]}))
     } else {
-      dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}]))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'infoPanel'}]})
+      )
     }
   },
   onCancelSearch: () =>

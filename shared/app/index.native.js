@@ -8,7 +8,7 @@ import {AppRegistry, AppState, Linking} from 'react-native'
 import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
-import * as RouteTreeGen  from '../actions/route-tree-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 
 module.hot &&
   module.hot.accept(() => {
