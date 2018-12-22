@@ -10,6 +10,7 @@ import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
+import type {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
@@ -62,7 +63,7 @@ const onClickAvatar = (_, action) => {
 const submitRevokeProof = (_, action) =>
   RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
     .then(() => ProfileGen.createFinishRevoking())
-    .catch(error => {
+    .catch((error: RPCError) => {
       logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
       return ProfileGen.createRevokeFinishError({
         error: 'There was an error revoking your proof. You can click the button to try again.',
