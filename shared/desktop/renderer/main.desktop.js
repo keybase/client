@@ -191,7 +191,7 @@ function setupHMR(store) {
   const refreshRoutes = () => {
     const appRouteTree = require('../../app/routes-app').default
     const loginRouteTree = require('../../app/routes-login').default
-    store.dispatch(RouteTreeGen.createRefreshRouteDef({loginRouteTree, appRouteTree}))
+    store.dispatch(RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree}))
     try {
       const NewMain = require('../../app/main.desktop').default
       render(store, NewMain)

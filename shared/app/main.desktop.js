@@ -74,7 +74,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
   setRouteState: (path, partialState) => {
-    dispatch(RouteTreeGen.createSetRouteState({path, partialState}))
+    dispatch(RouteTreeGen.createSetRouteState({partialState, path}))
   },
 })
 

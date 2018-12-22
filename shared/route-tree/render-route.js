@@ -73,8 +73,16 @@ type RenderRouteNodeProps<S> = {
 // shouldComponentUpdate (via PureComponent).
 class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any> {
   _setRouteState = partialState => this.props.setRouteState(this.props.path, partialState)
-  _navigateUp = () => RouteTreeGen.createPutActionIfOnPath({expectedPath: this.props.path, otherAction:RouteTreeGen.createNavigateUp()})
-  _navigateAppend = (...args) => RouteTreeGen.createPutActionIfOnPath({expectedPath: this.props.path, otherAction:RouteTreeGen.createNavigateAppend(...args)})
+  _navigateUp = () =>
+    RouteTreeGen.createPutActionIfOnPath({
+      expectedPath: this.props.path,
+      otherAction: RouteTreeGen.createNavigateUp(),
+    })
+  _navigateAppend = (...args) =>
+    RouteTreeGen.createPutActionIfOnPath({
+      expectedPath: this.props.path,
+      otherAction: RouteTreeGen.createNavigateAppend(...args),
+    })
 
   static defaultProps: any
   render() {

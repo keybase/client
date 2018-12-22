@@ -3,7 +3,6 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Flow from '../../../../util/flow'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {namedConnect, compose, lifecycle, withStateHandlers, withHandlers} from '../../../../util/container'
-import {getPath} from '../../../../route-tree'
 import {
   getTeamRetentionPolicy,
   retentionPolicies,
@@ -13,7 +12,7 @@ import {
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {type Path} from '../../../../route-tree'
+import {getPath, type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import RetentionPicker, {type RetentionEntityType} from './'
@@ -130,13 +129,13 @@ const mapDispatchToProps = (
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
       RouteTreeGen.createNavigateTo({
+        parentPath,
         path: [
           {
             props: {days, entityType, onCancel, onConfirm},
             selected: 'retentionWarning',
           },
         ],
-        parentPath,
       })
     )
   },

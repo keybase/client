@@ -33,7 +33,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
   _onSetChannelCreationError: error => {
     dispatch(TeamsGen.createSetChannelCreationError({error}))
   },
-  onBack: () => dispatch(RouteTreeGen.createNavigateTo({path: ['manageChannels'], parentPath: routePath.butLast()})),
+  onBack: () =>
+    dispatch(RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['manageChannels']})),
   onClose: () => dispatch(navigateUp()),
 })
 
