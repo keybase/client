@@ -12,7 +12,6 @@ import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
-import flags from '../util/feature-flags'
 
 const getPeopleData = (
   state: TypedState,
@@ -47,45 +46,6 @@ const getPeopleData = (
         .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
-      // TEMP until core works
-      if (__DEV__ && flags.peopleAnnouncementsEnabled) {
-        newItems = [
-          {
-            badged: true,
-            data: {
-              announcement: {
-                appLink: 'tab:Chat',
-                badged: true,
-                confirmLabel: 'I went to chat',
-                dismissable: true,
-                text: '[mock] Chat is a thing',
-                type: 'announcement',
-                url: null,
-              },
-              t: 3,
-            },
-          },
-          {
-            badged: true,
-            data: {
-              announcement: {
-                appLink: null,
-                badged: false,
-                confirmLabel: null,
-                dismissable: false,
-                iconUrl: 'https://keybase.io/images/blog/exploding/cherry_sm.png',
-                text: '[mock] Go to keybase',
-                type: 'announcement',
-                url: 'keybase.io',
-              },
-              t: 3,
-            },
-          },
-          // $FlowIssue type doesn't exist yet
-        ].reduce(Constants.reduceRPCItemToPeopleItem, newItems)
-      }
-      //
-
       const followSuggestions: I.List<Types.FollowSuggestion> = (data.followSuggestions || []).reduce(
         (list, suggestion) => {
           const followsMe = followers.has(suggestion.username)
@@ -113,6 +73,11 @@ const getPeopleData = (
     })
     .catch(e => {})
 }
+
+const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
+  RPCTypes.homeHomeDismissAnnouncementRpcPromise({
+    i: action.payload.id,
+  })
 
 const markViewed = () =>
   RPCTypes.homeHomeMarkViewedRpcPromise().catch(err => {
@@ -192,6 +157,7 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(PeopleGen.skipTodo, skipTodo)
   yield Saga.actionToPromise(RouteTreeGen.switchTo, onTabChange)
   yield Saga.actionToPromise(RouteTreeGen.navigateTo, onNavigateTo)
+  yield Saga.actionToPromise(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
