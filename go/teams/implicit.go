@@ -196,7 +196,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	var teamID keybase1.TeamID
 	var hitCache bool
 	conflicts, teamID, hitCache, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, false /* force */)
-	if _, ok := err.(TeamDoesNotExistError); ok && hitCache && impTeamName.ConflictInfo.IsConflict() {
+	if _, dne := err.(TeamDoesNotExistError); dne && hitCache {
 		// We are looking for conflict team that we didn't find. Maybe we have the team
 		// cached from before another team was resolved and this team became conflicted.
 		// Try again skipping cache.
