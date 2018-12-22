@@ -330,14 +330,11 @@ const routeToInitialScreen = (state: TypedState) => {
   }
 }
 
-const handleAppLink = (_: any, action: ConfigGen.LinkPayload) => {
+const handleAppLink = (_, action) => {
   const url = new URL(action.payload.link)
   const username = Constants.urlToUsername(url)
   if (username) {
-    return Saga.sequentially([
-      Saga.put(RouteTree.switchTo([Tabs.profileTab])),
-      Saga.put(ProfileGen.createShowUserProfile({username})),
-    ])
+    return [RouteTree.switchTo([Tabs.profileTab]), ProfileGen.createShowUserProfile({username})]
   }
 }
 
@@ -428,7 +425,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
-  yield Saga.actionToAction(ConfigGen.link, handleAppLink)
+  yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
