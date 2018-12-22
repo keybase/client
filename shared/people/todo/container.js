@@ -121,7 +121,9 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
       if (!isMobile) {
         dispatch(switchTo([Tabs.devicesTab]))
       } else {
-        dispatch(navigateTo([SettingsTabs.devicesTab], [Tabs.settingsTab]))
+        dispatch(
+          RouteTreeGen.createNavigateTo({path: [SettingsTabs.devicesTab], parentPath: [Tabs.settingsTab]})
+        )
         dispatch(switchTo([Tabs.settingsTab]))
       }
     },
@@ -147,10 +149,15 @@ const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
   dispatch => ({
     onConfirm: () => {
       if (!isMobile) {
-        dispatch(navigateTo(['private'], [Tabs.folderTab]))
+        dispatch(RouteTreeGen.createNavigateTo({path: ['private'], parentPath: [Tabs.folderTab]}))
         dispatch(switchTo([Tabs.folderTab]))
       } else {
-        dispatch(navigateTo([SettingsTabs.foldersTab, 'private'], [Tabs.settingsTab]))
+        dispatch(
+          RouteTreeGen.createNavigateTo({
+            path: [SettingsTabs.foldersTab, 'private'],
+            parentPath: [Tabs.settingsTab],
+          })
+        )
         dispatch(switchTo([Tabs.settingsTab]))
       }
     },
@@ -163,7 +170,12 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      dispatch(navigateTo([{props: {isTeam: false}, selected: 'newRepo'}], [Tabs.gitTab]))
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          path: [{props: {isTeam: false}, selected: 'newRepo'}],
+          parentPath: [Tabs.gitTab],
+        })
+      )
       dispatch(switchTo([Tabs.gitTab]))
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),
@@ -176,7 +188,7 @@ const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
   dispatch => ({
     onConfirm: () => {
       // TODO find a team that the current user is an admin of and nav there?
-      dispatch(navigateTo([], [Tabs.teamsTab]))
+      dispatch(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.teamsTab]}))
       dispatch(switchTo([Tabs.teamsTab]))
     },
     onDismiss: onSkipTodo('teamShowcase', dispatch),

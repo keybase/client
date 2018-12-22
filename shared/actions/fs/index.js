@@ -784,7 +784,7 @@ const cancelMoveOrCopy = (state, action) => {
   )
   return Saga.all([
     Saga.put(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'})),
-    Saga.put(navigateTo(newRoute)),
+    Saga.put(RouteTreeGen.createNavigateTo({path: newRoute})),
   ])
 }
 

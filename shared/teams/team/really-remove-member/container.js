@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         username: routeProps.get('username'),
       })
     )
-    dispatch(navigateTo([teamsTab, {props: {teamname: routeProps.get('teamname')}, selected: 'team'}]))
+    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname: routeProps.get('teamname')}, selected: 'team'}]}))
     dispatch(TeamsGen.createGetDetails({teamname: routeProps.get('teamname')}))
   },
 })

@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
         : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
   },
-  onNewTeam: () => dispatch(navigateTo([teamsTab, 'showNewTeamDialog'])),
+  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'showNewTeamDialog']})),
 })
 
 export default connect<OwnProps, _, _, _, _>(

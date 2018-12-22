@@ -34,9 +34,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
       )
     ),
   onLeaveTeam: () =>
-    dispatch(navigateTo([{props: {teamname}, selected: 'reallyLeaveTeam'}], [teamsTab, 'team'])),
+    dispatch(RouteTreeGen.createNavigateTo({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}], parentPath: [teamsTab, 'team']})),
   onManageChat: () =>
-    dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [teamsTab, 'team'])),
+    dispatch(RouteTreeGen.createNavigateTo({path: [{props: {teamname}, selected: 'manageChannels'}], parentPath: [teamsTab, 'team']})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
