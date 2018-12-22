@@ -351,7 +351,7 @@ func TestImplicitSBSPukless(t *testing.T) {
 	require.Equal(t, teamID, teamID3)
 }
 
-func TestResolveIdentifyImpteamsWithConflicts(t *testing.T) {
+func TestResolveSBSTeamWithConflict(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -433,7 +433,7 @@ func TestResolveIdentifyImpteamsWithConflicts(t *testing.T) {
 	require.Equal(t, teamid2, lookupTeamID)
 }
 
-func TestSBSConsolidationWithConflict(t *testing.T) {
+func TestResolveSBSConsolidatedTeamWithConflict(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

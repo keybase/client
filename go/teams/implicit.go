@@ -60,7 +60,7 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
 	public bool) (res keybase1.TeamID, err error) {
-	imp, err := loadImpteam(ctx, g, displayName, public, false)
+	imp, err := loadImpteam(ctx, g, displayName, public, false /* force */)
 	if err != nil {
 		return res, err
 	}
@@ -115,8 +115,12 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 
 // attemptLoadImpteamAndConflits attempts to lead the implicit team with conflict, but it might hit the cache based on
 // the force flag being true. In that case, the caller ought to recall this function with the force flag set to true.
-func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, nameWithoutConflict string, preResolveDisplayName string, force bool) (conflicts []keybase1.ImplicitTeamConflictInfo, teamID keybase1.TeamID, err error) {
+func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName,
+	nameWithoutConflict string, preResolveDisplayName string, force bool) (conflicts []keybase1.ImplicitTeamConflictInfo, teamID keybase1.TeamID, err error) {
 
+	defer g.CTraceTimed(ctx,
+		fmt.Sprintf("attemptLoadImpteamAndConflict(impName=%q,woConflict=%q,preResolve=%q,force=%t)", impTeamName, nameWithoutConflict, preResolveDisplayName, force),
+		func() error { return err })()
 	imp, err := loadImpteam(ctx, g, nameWithoutConflict, impTeamName.IsPublic, force)
 	if err != nil {
 		return conflicts, teamID, err
@@ -127,6 +131,9 @@ func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, 
 	// We will use this team. Changed later if we selected a conflict.
 	var foundSelectedConflict bool
 	teamID = imp.TeamID
+	// We still need to iterate over Conflicts because we are returning parsed
+	// conflict list. So even if caller is not requesting a conflict team, go
+	// through this loop.
 	for i, conflict := range imp.Conflicts {
 		g.Log.CDebugf(ctx, "| checking conflict: %+v (iter %d)", conflict, i)
 		conflictInfo, err := conflict.parse()
@@ -187,9 +194,13 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 	// Try the load first -- once with a cache, and once nameWithoutConflict.
 	var teamID keybase1.TeamID
-	conflicts, teamID, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, false)
-	if _, ok := err.(TeamDoesNotExistError); ok {
-		conflicts, teamID, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, true)
+	conflicts, teamID, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, false /* force */)
+	if _, ok := err.(TeamDoesNotExistError); ok && impTeamName.ConflictInfo.IsConflict() {
+		// We are looking for conflict team that we didn't find. Maybe we have the team
+		// cached from before another team was resolved and this team became conflicted.
+		// Try again skipping cache.
+		g.Log.CDebugf(ctx, "attemptLoadImpteamAndConflict failed to load team %q from cache, trying again skipping cache", preResolveDisplayName)
+		conflicts, teamID, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, true /* force */)
 	}
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
