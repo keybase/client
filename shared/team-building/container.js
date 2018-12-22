@@ -6,6 +6,7 @@ import {debounce, trim} from 'lodash-es'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {compose, namedConnect} from '../util/container'
+import {requestIdleCallback} from '../util/idle-callback'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
@@ -14,7 +15,7 @@ import type {ServiceIdWithContact, User, SearchResults} from '../constants/types
 
 // TODO
 // * there's a lot of render thrashing going on. using keyboard arrows is kinda slow becuase of it.
-// * Limit the highlight index to the max lenght of the list
+// * Limit the highlight index to the max length of the list
 
 type OwnProps = {
   // Supplied by StateComponent
@@ -115,8 +116,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
-  _search: debounce((query: string, service: ServiceIdWithContact) => {
-    dispatch(TeamBuildingGen.createSearch({query, service}))
+  _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
+    requestIdleCallback(() => dispatch(TeamBuildingGen.createSearch({limit, query, service})))
   }, 500),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
   onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
@@ -153,6 +154,14 @@ const deriveOnEnterKeyDown = memoizeShallow(
       // They hit enter with an empty search string and a teamSoFar
       // We'll Finish the team building
       onFinishTeamBuilding()
+    }
+  }
+)
+
+const deriveOnSearchForMore = memoizeShallow(
+  ({search, searchResults, searchString, selectedService}) => () => {
+    if (searchResults.length >= 10) {
+      search(searchString, selectedService, searchResults.length + 20)
     }
   }
 )
@@ -202,6 +211,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ownProps.selectedService
   )
 
+  const onSearchForMore = deriveOnSearchForMore({
+    search: dispatchProps._search,
+    searchResults,
+    searchString: ownProps.searchString,
+    selectedService: ownProps.selectedService,
+  })
+
   const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
 
   const onEnterKeyDown = deriveOnEnterKeyDown({
@@ -219,6 +235,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
+    onSearchForMore,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,

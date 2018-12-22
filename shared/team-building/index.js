@@ -24,26 +24,27 @@ type SearchResult = {
 }
 
 export type Props = {
-  showRecs: boolean,
-  onFinishTeamBuilding: () => void,
-  onChangeText: (newText: string) => void,
-  onEnterKeyDown: () => void,
-  onDownArrowKeyDown: () => void,
-  onUpArrowKeyDown: () => void,
-  teamSoFar: Array<{userId: string, prettyName: string, service: ServiceIdWithContact, username: string}>,
-  onRemove: (userId: string) => void,
-  onBackspace: () => void,
-  selectedService: ServiceIdWithContact,
-  onChangeService: (newService: ServiceIdWithContact) => void,
-  serviceResultCount: {[key: ServiceIdWithContact]: ?number},
-  showServiceResultCount: boolean,
-  searchResults: ?Array<SearchResult>,
+  fetchUserRecs: () => void,
   highlightedIndex: ?number,
   onAdd: (userId: string) => void,
-  searchString: string,
+  onBackspace: () => void,
+  onChangeService: (newService: ServiceIdWithContact) => void,
+  onChangeText: (newText: string) => void,
+  onDownArrowKeyDown: () => void,
+  onEnterKeyDown: () => void,
+  onFinishTeamBuilding: () => void,
   onMakeItATeam: () => void,
+  onRemove: (userId: string) => void,
+  onSearchForMore: () => void,
+  onUpArrowKeyDown: () => void,
   recommendations: ?Array<SearchResult>,
-  fetchUserRecs: () => void,
+  searchResults: ?Array<SearchResult>,
+  searchString: string,
+  selectedService: ServiceIdWithContact,
+  serviceResultCount: {[key: ServiceIdWithContact]: ?number},
+  showRecs: boolean,
+  showServiceResultCount: boolean,
+  teamSoFar: Array<{userId: string, prettyName: string, service: ServiceIdWithContact, username: string}>,
 }
 
 class TeamBuilding extends React.PureComponent<Props, void> {
@@ -103,6 +104,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             selectedIndex={props.highlightedIndex || 0}
             style={styles.list}
             keyProperty={'userId'}
+            onEndReached={props.onSearchForMore}
             renderItem={(index, result) => (
               <UserResult
                 resultForService={props.selectedService}
