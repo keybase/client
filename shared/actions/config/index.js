@@ -131,7 +131,7 @@ const dispatchSetupEngineListeners = () => {
     return
   }
   dispatchSetupEngineListenersOnce = true
-  return Saga.put(ConfigGen.createSetupEngineListeners())
+  return ConfigGen.createSetupEngineListeners()
 }
 
 let _firstTimeConnecting = true
@@ -141,9 +141,10 @@ const startHandshake = (state: TypedState) => {
   if (firstTimeConnecting) {
     logger.info('First bootstrap started')
   }
-  return Saga.put(
-    ConfigGen.createDaemonHandshake({firstTimeConnecting, version: state.config.daemonHandshakeVersion + 1})
-  )
+  return ConfigGen.createDaemonHandshake({
+    firstTimeConnecting,
+    version: state.config.daemonHandshakeVersion + 1,
+  })
 }
 
 let _firstTimeBootstrapDone = true
@@ -388,42 +389,61 @@ const updateServerConfig = (state: TypedState) =>
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
-  yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
+  yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, dispatchSetupEngineListeners)
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
-  yield Saga.actionToAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
+  yield* Saga.chainAction<ConfigGen.RestartHandshakePayload | ConfigGen.StartHandshakePayload>(
+    [ConfigGen.restartHandshake, ConfigGen.startHandshake],
+    startHandshake
+  )
   // When there are no more waiters, we can show the actual app
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeWaitPayload>(
+    ConfigGen.daemonHandshakeWait,
+    maybeDoneWithDaemonHandshake
+  )
   // Re-get info about our account if you log in/out/we're done handshaking
-  yield Saga.actionToAction(
-    [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
-    loadDaemonBootstrapStatus
-  )
+  yield* Saga.chainAction<
+    ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload | ConfigGen.DaemonHandshakePayload
+  >([ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake], loadDaemonBootstrapStatus)
   // Load the known accounts if you revoke / handshake / logout
-  yield Saga.actionToAction(
-    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut],
-    loadDaemonAccounts
-  )
+  yield* Saga.chainAction<
+    DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
+  >([DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut], loadDaemonAccounts)
   // Switch between login or app routes
-  yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload>(
+    [ConfigGen.loggedIn, ConfigGen.loggedOut],
+    switchRouteDef
+  )
   // Go to the correct starting screen
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, routeToInitialScreen)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+    ConfigGen.daemonHandshakeDone,
+    routeToInitialScreen
+  )
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+    ConfigGen.daemonHandshakeDone,
+    emitInitialLoggedIn
+  )
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
+  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshake)
   // Give time for all waiters to register and allow the case where there are no waiters
-  yield Saga.actionToAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
-  yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
+  yield* Saga.chainAction<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
+  yield* Saga.chainAction<ConfigGen.LogoutHandshakeWaitPayload>(
+    ConfigGen.logoutHandshakeWait,
+    maybeDoneWithLogoutHandshake
+  )
   // When we're all done lets clean up
-  yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
+  yield* Saga.chainAction<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield Saga.actionToAction(ConfigGen.loggedIn, updateServerConfig)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, updateServerConfig)
 
-  yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
+  yield* Saga.chainAction<ConfigGen.SetDeletedSelfPayload>(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
 
