@@ -742,6 +742,31 @@ const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobile
   return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
 }
 
+const writeLastSentXLM = (state: TypedState, action: WalletsGen.SetLastSentXLMPayload) => {
+  if (action.payload.writeFile) {
+    logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
+    return RPCTypes.configSetValueRpcPromise({
+      path: 'stellar.lastSentXLM',
+      value: {b: state.wallets.lastSentXLM, isNull: false},
+    }).catch(err => logger.error(`Error writing config stellar.lastSentXLM: ${err.message}`))
+  }
+}
+
+const readLastSentXLM = () => {
+  logger.info(`Reading config stellar.lastSentXLM`)
+  return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+    .then(result => {
+      const value = !result.isNull && !!result.b
+      logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
+      return WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false})
+    })
+    .catch(err => {
+      err.message.includes('no such key')
+        ? null
+        : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
+    })
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -862,6 +887,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(WalletsGen.loadMobileOnlyMode, loadMobileOnlyMode)
   yield Saga.actionToPromise(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
+  yield* Saga.chainAction<WalletsGen.SetLastSentXLMPayload>(WalletsGen.setLastSentXLM, writeLastSentXLM)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+    ConfigGen.daemonHandshakeDone,
+    readLastSentXLM
+  )
 }
 
 export default walletsSaga

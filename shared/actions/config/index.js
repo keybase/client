@@ -20,7 +20,7 @@ import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
-import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
+import * as WalletsGen from '../wallets-gen'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -389,31 +389,6 @@ const updateServerConfig = (state: TypedState) =>
     }
   })
 
-const writeLastSentXLM = (state: TypedState, action: SetLastSentXLMPayload) => {
-  if (action.payload.writeFile) {
-    logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
-    return RPCTypes.configSetValueRpcPromise({
-      path: 'stellar.lastSentXLM',
-      value: {b: state.wallets.lastSentXLM, isNull: false},
-    }).catch(err => logger.error(`Error writing config stellar.lastSentXLM: ${err.message}`))
-  }
-}
-
-const readLastSentXLM = () => {
-  logger.info(`Reading config stellar.lastSentXLM`)
-  return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
-    .then(result => {
-      const value = !result.isNull && !!result.b
-      logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
-      return createSetLastSentXLM({lastSentXLM: value, writeFile: false})
-    })
-    .catch(err =>
-      err.message.includes('no such key')
-        ? null
-        : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
-    )
-}
-
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -454,9 +429,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.actionToAction(ConfigGen.link, handleAppLink)
-
-  yield Saga.actionToPromise(setLastSentXLM, writeLastSentXLM)
-  yield Saga.actionToPromise(ConfigGen.daemonHandshakeDone, readLastSentXLM)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
