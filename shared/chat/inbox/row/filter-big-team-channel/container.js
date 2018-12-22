@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxBig'}))
     if (isMobile) {
-      dispatch(RouteTreeGen.createNvigateAppend({path: ['conversation']}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['conversation']}))
     }
   },
 })

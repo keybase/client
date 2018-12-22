@@ -73,7 +73,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     onComplete: (string, boolean) => void
   ) => {
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {
             addButtonLabel: 'Add',
@@ -86,7 +86,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
           },
           selected: 'controlledRolePicker',
         },
-      ])
+      ]})
     )
   },
 })

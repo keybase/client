@@ -12,7 +12,7 @@ import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, {onBack}, {routeProps, routePath}) => ({

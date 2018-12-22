@@ -28,12 +28,14 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(
-      navigateAppend([
-        {
-          props: {},
-          selected: 'showNewTeamDialog',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: 'showNewTeamDialog',
+          },
+        ],
+      })
     )
   },
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
@@ -49,7 +51,8 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
-  onViewTeam: (teamname: Teamname) => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
+  onViewTeam: (teamname: Teamname) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

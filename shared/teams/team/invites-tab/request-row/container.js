@@ -16,12 +16,12 @@ const mapStateToProps = state => ({})
 const mapDispatchToProps = dispatch => ({
   _onAccept: (name: string, username: string) =>
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {teamname: name, username},
           selected: 'rolePicker',
         },
-      ])
+      ]})
     ),
   _onChat: username => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))

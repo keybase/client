@@ -17,7 +17,7 @@ module.hot &&
       console.log('updating route defs due to hot reload')
       const appRouteTree = require('./routes-app').default
       const loginRouteTree = require('./routes-login').default
-      global.store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+      global.store.dispatch(RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree}))
     }
   })
 
@@ -37,7 +37,7 @@ class Keybase extends Component<any> {
       }
       makeEngine(this.store.dispatch, this.store.getState)
       runSagas()
-      this.store.dispatch(setInitialRouteDef(loginRouteTree))
+      this.store.dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
 
       // On mobile there is no installer
       this.store.dispatch(ConfigGen.createInstallerRan())

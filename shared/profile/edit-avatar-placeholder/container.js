@@ -21,7 +21,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onAck: () => dispatch(navigateUp()),
+  onAck: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default connect<OwnProps, _, _, _, _>(

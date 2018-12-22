@@ -28,7 +28,7 @@ const mapStateToProps = (state, {conversationIDKey}) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onEnterPaperkey: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['enterPaperkey']})),
   onRekey: () => dispatch(createOpenPopup()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),

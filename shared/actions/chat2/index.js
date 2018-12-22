@@ -29,7 +29,6 @@ import logger from '../../logger'
 import type {TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
-import * as RouteTreeGen from '../route-tree-gen'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -1340,7 +1339,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) =>
       Saga.callUntyped(function*() {
         const state = yield* Saga.selectState()
         if (getPath(state.routeTree.routeState).last() === routeName) {
-          yield Saga.put(navigateUp())
+          yield Saga.put(RouteTreeGen.createNavigateUp())
         }
       })
     const onDataConfirm = ({summary}, response) => {

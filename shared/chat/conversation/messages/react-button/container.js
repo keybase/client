@@ -89,7 +89,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnPr
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal})),
   onOpenEmojiPicker: () =>
     dispatch(
-      RouteTree.createNavigateAppend({path: [{props: {conversationIDKey, ordinal}, selected: 'chooseEmoji'}]})
+      RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey, ordinal}, selected: 'chooseEmoji'}]})
     ),
 })
 

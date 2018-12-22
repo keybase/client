@@ -8,10 +8,10 @@ type OwnProps = {||}
 const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({
   onCancel: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onDBNuke: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(createDbNuke())
   },
 })

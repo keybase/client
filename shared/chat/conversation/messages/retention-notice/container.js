@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _loadPermissions: (teamname: string) => dispatch(createGetTeamOperations({teamname})),
   onChange: () =>
     dispatch(
-      navigateAppend([{props: {conversationIDKey: ownProps.conversationIDKey}, selected: 'infoPanel'}])
+      RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey: ownProps.conversationIDKey}, selected: 'infoPanel'}]})
     ),
 })
 

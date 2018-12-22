@@ -26,12 +26,14 @@ const mapDispatchToProps = dispatch => {
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
     showSecurityPrefs: () =>
       dispatch(
-        navigateAppend([
-          {
-            props: {},
-            selected: 'securityPrefs',
-          },
-        ])
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {},
+              selected: 'securityPrefs',
+            },
+          ],
+        })
       ),
   }
 }

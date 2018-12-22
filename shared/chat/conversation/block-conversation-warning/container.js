@@ -27,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
         reportUser,
       })
     ),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

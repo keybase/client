@@ -39,7 +39,7 @@ export default connect<OwnProps, _, _, _, _>(
     }
   },
   (dispatch: any, ownProps: {}) => ({
-    onBack: () => dispatch(navigateUp()),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps) => ({
     ...stateProps,

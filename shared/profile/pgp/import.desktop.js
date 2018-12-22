@@ -66,7 +66,7 @@ const styleTerminal = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

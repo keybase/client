@@ -21,7 +21,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
   _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
-      RouteTreeGen.crateNavigateAppend({
+      RouteTreeGen.createNavigateAppend({
         path: [{props: {conversationIDKey}, selected: 'showNewTeamDialog'}],
       })
     )

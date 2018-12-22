@@ -62,7 +62,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab]path: ['inviteCode']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab],path: ['inviteCode']})
     )
   })
 })

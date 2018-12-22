@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import * as RouteTreeGen  from '../actions/route-tree-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNode, type RouteDefNode} from '.'
 import Box from '../common-adapters/box'
 
@@ -73,8 +73,8 @@ type RenderRouteNodeProps<S> = {
 // shouldComponentUpdate (via PureComponent).
 class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any> {
   _setRouteState = partialState => this.props.setRouteState(this.props.path, partialState)
-  _navigateUp = () => putActionIfOnPath(this.props.path, navigateUp())
-  _navigateAppend = (...args) => putActionIfOnPath(this.props.path, navigateAppend(...args))
+  _navigateUp = () => RouteTreeGen.createPutActionIfOnPath({expectedPath: this.props.path, otherAction:RouteTreeGen.createNavigateUp()})
+  _navigateAppend = (...args) => RouteTreeGen.createPutActionIfOnPath({expectedPath: this.props.path, otherAction:RouteTreeGen.createNavigateAppend(...args)})
 
   static defaultProps: any
   render() {

@@ -80,8 +80,11 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
         }
 
         // otherwise, back out to the default route of the tab.
-        const action = routeSelected === tab ? navigateTo : switchTo
-        dispatch(action(routePath.push(tab)))
+        if (routeSelected === tab) {
+          dispatch(RouteTreeGen.createNavigateTo({path: routePath.push(tab)}))
+        } else {
+          dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)}))
+        }
       },
 })
 

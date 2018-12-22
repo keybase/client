@@ -179,7 +179,7 @@ function render(store, MainComponent) {
 }
 
 function setupRoutes(store) {
-  store.dispatch(setInitialRouteDef(loginRouteTree))
+  store.dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
 }
 
 function setupHMR(store) {
@@ -191,7 +191,7 @@ function setupHMR(store) {
   const refreshRoutes = () => {
     const appRouteTree = require('../../app/routes-app').default
     const loginRouteTree = require('../../app/routes-login').default
-    store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+    store.dispatch(RouteTreeGen.createRefreshRouteDef({loginRouteTree, appRouteTree}))
     try {
       const NewMain = require('../../app/main.desktop').default
       render(store, NewMain)

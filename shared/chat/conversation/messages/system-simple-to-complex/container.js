@@ -15,11 +15,11 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
-    dispatch(RouteTeeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   onViewTeam: (teamname: string) => {
     dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
     dispatch(
-      RouteTreeGen.createSetRouteState({path: [teamsTab, 'team'], partialState: {selectedTab: 'members'}})
+      RouteTreeGen.createSetRouteState({partialState: {selectedTab: 'members'}, path: [teamsTab, 'team']})
     )
   },
 })

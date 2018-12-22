@@ -41,8 +41,9 @@ const styleCancelButton = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(navigateUp()),
-  onOptionClick: (type: 'import' | 'provideInfo') => dispatch(RouteTreeGen.createNavigateAppend({path: [type]})),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onOptionClick: (type: 'import' | 'provideInfo') =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [type]})),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

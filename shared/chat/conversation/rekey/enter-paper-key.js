@@ -13,11 +13,11 @@ const mapStateToProps = () => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSubmit: (paperKey: string) => {
     dispatch(createCheckPaperKey({paperKey}))
-    dispatch(navigateUp())
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

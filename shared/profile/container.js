@@ -102,7 +102,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   },
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
@@ -117,17 +117,15 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
   onRevokeProof: (proof: TrackerTypes.Proof) =>
     dispatch(
-      RouteTreeGen.createNavigateAppend(
-      {
+      RouteTreeGen.createNavigateAppend({
         parentPath: [peopleTab],
-      path: [
+        path: [
           {
             props: {platform: proof.type, platformHandle: proof.name, proofId: proof.id},
             selected: 'revoke',
           },
         ],
-      }
-      )
+      })
     ),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))

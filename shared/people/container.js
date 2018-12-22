@@ -65,7 +65,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
+    dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
 })
 

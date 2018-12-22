@@ -15,7 +15,7 @@ const mapStateToProps = (state, ownProps: {}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
   onToggle: (group: Types.NotificationGroups, name?: string) =>
     dispatch(SettingsGen.createNotificationsToggle({group, name})),

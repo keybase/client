@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import* as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import PushPrompt from './push-prompt.native'
 import RenderRoute from '../route-tree/render-route'
 import {connect} from '../util/container'
@@ -65,8 +65,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(navigateUp()),
-  setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+  setRouteState: (path, partialState) => dispatch(RouteTreeGen.createSetRouteState({path, partialState})),
 })
 
 const Connected = connect<OwnProps, _, _, _, _>(

@@ -21,7 +21,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateAppend}: OwnProps) => ({
-  _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
+  _onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onLogin: () => dispatch(ProvisionGen.createStartProvision()),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
 })

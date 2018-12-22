@@ -22,7 +22,7 @@ const mapStateToProps = (state, {path}: OwnProps) => {
 
 const mapDispatchToProps = dispatch => ({
   loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

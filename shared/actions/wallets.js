@@ -128,7 +128,7 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
     : Saga.put(
         isMobile
           ? RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, SettingsConstants.walletsTab]})
-          : Route.switchTo([Tabs.walletsTab])
+          : RouteTreeGen.createSwitchTo({path: [Tabs.walletsTab]})
       )
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
