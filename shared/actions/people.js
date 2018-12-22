@@ -10,14 +10,10 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
-import {type TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 import flags from '../util/feature-flags'
 
-const getPeopleData = (
-  state: TypedState,
-  action: PeopleGen.GetPeopleDataPayload | ConfigGen.LoggedInPayload
-) => {
+const getPeopleData = (state, action) => {
   // more logging to understand why this fails so much
   logger.info(
     'getPeopleData: appFocused:',
@@ -123,7 +119,7 @@ const markViewed = () =>
     }
   })
 
-const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
+const skipTodo = (_, action) =>
   RPCTypes.homeHomeSkipTodoTypeRpcPromise({
     t: RPCTypes.homeHomeScreenTodoType[action.payload.type],
   }).then(() =>
@@ -154,18 +150,17 @@ const setupEngineListeners = () => {
   })
 }
 
-const onNavigateTo = (state: TypedState, action: RouteTreeGen.NavigateAppendPayload) => {
+const onNavigateTo = (state, action) => {
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
   if (root === peopleTab && peoplePath.size === 2 && peoplePath.get(1) === 'profile' && _wasOnPeopleTab) {
     // Navigating away from the people tab root to a profile page.
-    return Promise.resolve(PeopleGen.createMarkViewed())
+    return PeopleGen.createMarkViewed()
   }
-  return false
 }
 
-const onTabChange = (state: TypedState, action: RouteTreeGen.SwitchToPayload) => {
+const onTabChange = (state, action) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()
@@ -177,7 +172,6 @@ const onTabChange = (state: TypedState, action: RouteTreeGen.SwitchToPayload) =>
   } else if (root === peopleTab && !_wasOnPeopleTab) {
     _wasOnPeopleTab = true
   }
-  return false
 }
 
 const networkErrors = [
@@ -187,12 +181,15 @@ const networkErrors = [
 ]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(PeopleGen.getPeopleData, getPeopleData)
-  yield Saga.actionToPromise(PeopleGen.markViewed, markViewed)
-  yield Saga.actionToPromise(PeopleGen.skipTodo, skipTodo)
-  yield Saga.actionToPromise(RouteTreeGen.switchTo, onTabChange)
-  yield Saga.actionToPromise(RouteTreeGen.navigateTo, onNavigateTo)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<PeopleGen.GetPeopleDataPayload>(PeopleGen.getPeopleData, getPeopleData)
+  yield* Saga.chainAction<PeopleGen.MarkViewedPayload>(PeopleGen.markViewed, markViewed)
+  yield* Saga.chainAction<PeopleGen.SkipTodoPayload>(PeopleGen.skipTodo, skipTodo)
+  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
+  yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, onNavigateTo)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default peopleSaga
