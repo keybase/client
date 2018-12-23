@@ -7,14 +7,15 @@ import {imgMaxWidth} from '../../../attachment/image/image-render'
 import {Video} from './video'
 
 export type Props = {
+  autoplayVideo: boolean,
   height: number,
+  isVideo: boolean,
+  maxSize?: number,
+  onClick?: () => void,
+  url: string,
+  style?: Object,
   width: number,
   widthPadding?: number,
-  url: string,
-  isVideo: boolean,
-  autoplayVideo: boolean,
-  style?: Object,
-  maxSize?: number,
 }
 
 const clampImageSize = ({width = 0, height = 0}, maxSize) =>
@@ -47,9 +48,17 @@ class UnfurlImage extends React.Component<Props> {
     const dims = this._getDimensions()
     const style = Styles.collapseStyles([dims, styles.image, this.props.style])
     return this.props.isVideo ? (
-      <Video {...dims} autoPlay={this.props.autoplayVideo} style={style} url={this.props.url} />
+      <Video
+        {...dims}
+        onClick={this.props.onClick}
+        autoPlay={this.props.autoplayVideo}
+        style={style}
+        url={this.props.url}
+      />
     ) : (
-      <Kb.Image {...dims} src={this.props.url} style={style} />
+      <Kb.ClickableBox onClick={this.props.onClick} {...dims}>
+        <Kb.Image {...dims} src={this.props.url} style={style} />
+      </Kb.ClickableBox>
     )
   }
 }

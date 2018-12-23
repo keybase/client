@@ -28,35 +28,40 @@ class GiphySearch extends React.Component<Props> {
   }
   render() {
     return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        {(this.props.previews || []).map(p => {
-          const margin = this._getMargin(p.previewWidth)
-          return (
-            <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
-              <Kb.ClickableBox onClick={() => this.props.onClick(p.targetUrl)}>
-                <UnfurlImage
-                  autoplayVideo={true}
-                  height={gridWidth}
-                  isVideo={p.previewIsVideo}
-                  style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}, styles.image])}
-                  url={p.previewUrl}
-                  width={this._scaledWidth(p.previewWidth)}
-                />
-              </Kb.ClickableBox>
-            </Kb.Box2>
-          )
-        })}
-      </Kb.Box2>
+      <Kb.ScrollView style={styles.scrollContainer} horizontal={Styles.isMobile}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+          {(this.props.previews || []).map(p => {
+            const margin = this._getMargin(p.previewWidth)
+            return (
+              <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
+                <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                  <UnfurlImage
+                    autoplayVideo={true}
+                    height={gridWidth}
+                    isVideo={p.previewIsVideo}
+                    onClick={() => this.props.onClick(p.targetUrl)}
+                    style={styles.image}
+                    url={p.previewUrl}
+                    width={this._scaledWidth(p.previewWidth)}
+                  />
+                </Kb.Box>
+              </Kb.Box2>
+            )
+          })}
+        </Kb.Box2>
+      </Kb.ScrollView>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    minHeight: 200,
-  },
+  container: Styles.platformStyles({
+    isElectron: {
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      minHeight: 200,
+    },
+  }),
   image: {
     borderRadius: 0,
   },
@@ -68,6 +73,14 @@ const styles = Styles.styleSheetCreate({
     margin: -1,
     overflow: 'hidden',
   },
+  scrollContainer: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 300,
+    },
+    isMobile: {
+      maxHeight: 100,
+    },
+  }),
 })
 
 export default GiphySearch

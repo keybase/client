@@ -324,6 +324,7 @@ type AttachmentURLSrv interface {
 		preview bool) string
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
+	GetGiphyURL(ctx context.Context, giphyURL string) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 
