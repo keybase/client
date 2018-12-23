@@ -17,14 +17,16 @@ export type Props = {
   onClick: string => void,
 }
 
-const gridWidth = 100
+const gridHeight = 100
+const gridWidthMax = 130
 
 class GiphySearch extends React.Component<Props> {
   _scaledWidth(width: number) {
     return width * 0.5
   }
   _getMargin(width: number) {
-    return -((this._scaledWidth(width) - gridWidth) / 2)
+    const m = -((this._scaledWidth(width) - gridWidthMax) / 2)
+    return m > 0 ? 0 : m
   }
   render() {
     return (
@@ -37,7 +39,7 @@ class GiphySearch extends React.Component<Props> {
                 <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
                   <UnfurlImage
                     autoplayVideo={true}
-                    height={gridWidth}
+                    height={gridHeight}
                     isVideo={p.previewIsVideo}
                     onClick={() => this.props.onClick(p.targetUrl)}
                     style={styles.image}
