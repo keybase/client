@@ -363,30 +363,47 @@ const loadUserFileEdits = (state: TypedState, action) =>
 const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    ...(path ? [Saga.put(FsGen.createOpenPathInFilesTab({path}))] : [Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]}))]),
+    ...(path
+      ? [Saga.put(FsGen.createOpenPathInFilesTab({path}))]
+      : [Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]}))]),
   ])
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
-  yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
-  yield Saga.safeTakeEvery([ConfigGen.setupEngineListeners, FsGen.fuseStatus], fuseStatusSaga)
-  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
-  yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
-  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
-  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
+  yield Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
+    FsGen.openLocalPathInSystemFileManager,
+    openLocalPathInSystemFileManager
+  )
+  yield Saga.chainAction<FsGen.OpenPathInSystemFileManagerPayload>(
+    FsGen.openPathInSystemFileManager,
+    openPathInSystemFileManager
+  )
+  yield Saga.chainAction<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
+    [ConfigGen.setupEngineListeners, FsGen.fuseStatus],
+    fuseStatusSaga
+  )
+  yield Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield Saga.chainAction<FsGen.InstallKBFSPayload>(FsGen.installKBFS, installKBFS)
+  yield Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
+  yield Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
+    yield Saga.chainAction<FsGen.InstallFusePayload>(FsGen.installFuse, installDokanSaga)
+    yield Saga.chainAction<FsGen.UninstallKBFSConfirmPayload>(
+      FsGen.uninstallKBFSConfirm,
+      uninstallDokanPromise
+    )
   } else {
-    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
-    yield Saga.safeTakeEveryPure(
+    yield Saga.chainAction<FsGen.InstallFusePayload>(FsGen.installFuse, installFuseSaga)
+    yield Saga.chainAction<FsGen.UninstallKBFSConfirmPayload>(
       FsGen.uninstallKBFSConfirm,
       uninstallKBFSConfirm,
       uninstallKBFSConfirmSuccess
     )
   }
-  yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+  yield Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+    FsGen.openSecurityPreferences,
+    openSecurityPreferences
+  )
 }
 
 export default platformSpecificSaga
