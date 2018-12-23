@@ -86,7 +86,7 @@ class ProvisioningManager {
     )
   }
 
-  submitDeviceSelect = (state: TypedState) => {
+  submitDeviceSelect = state => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitDeviceSelect called')
       return
@@ -146,7 +146,7 @@ class ProvisioningManager {
     )
   }
 
-  submitDeviceName = (state: TypedState) => {
+  submitDeviceName = state => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitDeviceName called')
       return
@@ -185,7 +185,7 @@ class ProvisioningManager {
     )
   }
 
-  submitTextCode = (state: TypedState) => {
+  submitTextCode = state => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitTextCode called')
       return
@@ -218,7 +218,7 @@ class ProvisioningManager {
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
 
-  submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethodPayload) => {
+  submitGPGMethod = (state, action) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitGPGMethod called')
       return
@@ -252,7 +252,7 @@ class ProvisioningManager {
     ])
   }
 
-  submitGPGSignOK = (state: TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) => {
+  submitGPGSignOK = (state, action) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitGPGSignOK called')
       return
