@@ -11,8 +11,6 @@ import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24} from '../util/platforms'
-
-import type {TypedState} from '../constants/reducer'
 import type {ServiceId} from '../util/platforms'
 
 type RawResult = {
