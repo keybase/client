@@ -105,7 +105,7 @@ const queueMetaToRequest = (state, action) => {
 }
 
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-function * requestMeta (state, action) {
+function* requestMeta(state, action) {
   const maxToUnboxAtATime = 10
   const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
   metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
@@ -149,7 +149,7 @@ const rpcMetaRequestConversationIDKeys = (
 }
 
 // We want to unbox rows that have scroll into view
-function * unboxRows ( state, action) {
+function* unboxRows(state, action) {
   if (!state.config.loggedIn) {
     return
   }
@@ -225,20 +225,20 @@ function * unboxRows ( state, action) {
     }
   }
 
-    yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
-    yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatInboxConversation': onUnboxed,
-        'chat.1.chatUi.chatInboxFailed': onFailed,
-        'chat.1.chatUi.chatInboxUnverified': () => {},
-      },
-      params: {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        query: Constants.makeInboxQuery(conversationIDKeys),
-        skipUnverified: true,
-      },
-      waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
-    })
+  yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
+  yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+    incomingCallMap: {
+      'chat.1.chatUi.chatInboxConversation': onUnboxed,
+      'chat.1.chatUi.chatInboxFailed': onFailed,
+      'chat.1.chatUi.chatInboxUnverified': () => {},
+    },
+    params: {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: Constants.makeInboxQuery(conversationIDKeys),
+      skipUnverified: true,
+    },
+    waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+  })
 }
 
 // We get an incoming message streamed to us
@@ -873,7 +873,7 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
 }
 
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
-function * loadMoreMessages = ( state, action) => {
+function* loadMoreMessages(state, action) {
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
@@ -1018,43 +1018,43 @@ function * loadMoreMessages = ( state, action) => {
     return actions
   }
 
-    try {
-      const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
-        incomingCallMap: {
-          'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
-          'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
+  try {
+    const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
+        'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
+      },
+      params: {
+        cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
+        conversationID,
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        pagination: {
+          last: false,
+          next: isScrollingBack ? 'deadbeef' : '', // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
+          num: numberOfMessagesToLoad,
+          previous: '',
         },
-        params: {
-          cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
-          conversationID,
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          pagination: {
-            last: false,
-            next: isScrollingBack ? 'deadbeef' : '', // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
-            num: numberOfMessagesToLoad,
-            previous: '',
-          },
-          pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
-          query: {
-            disablePostProcessThread: false,
-            disableResolveSupersedes: false,
-            enableDeletePlaceholders: true,
-            markAsRead: false,
-            messageTypes: loadThreadMessageTypes,
-          },
-          reason: reasonToRPCReason(reason),
+        pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
+        query: {
+          disablePostProcessThread: false,
+          disableResolveSupersedes: false,
+          enableDeletePlaceholders: true,
+          markAsRead: false,
+          messageTypes: loadThreadMessageTypes,
         },
-        waitingKey: loadingKey,
-      })
-      yield Saga.put(
-        Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
-      )
-    } finally {
-      yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKeyPushLoad(conversationIDKey)}))
-    }
+        reason: reasonToRPCReason(reason),
+      },
+      waitingKey: loadingKey,
+    })
+    yield Saga.put(
+      Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
+    )
+  } finally {
+    yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKeyPushLoad(conversationIDKey)}))
+  }
 }
 
-const clearInboxFilter = ( state, action) => {
+const clearInboxFilter = (state, action) => {
   if (!state.chat2.inboxFilter) {
     return
   }
@@ -1141,9 +1141,9 @@ const messageDelete = (state, action) => {
   if (!message.id) {
     if (message.outboxID) {
       return RPCChatTypes.localCancelPostRpcPromise(
-          {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
-          Constants.waitingKeyCancelPost
-      ).then(() => Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
+        {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
+        Constants.waitingKeyCancelPost
+      ).then(() => Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]}))
     } else {
       logger.warn('Delete of no message id and no outboxid')
     }
@@ -1164,16 +1164,16 @@ const messageDelete = (state, action) => {
 }
 
 const clearMessageSetEditing = (state, action) =>
-    Chat2Gen.createMessageSetEditing({
-      conversationIDKey: action.payload.conversationIDKey,
-      ordinal: null,
-    })
+  Chat2Gen.createMessageSetEditing({
+    conversationIDKey: action.payload.conversationIDKey,
+    ordinal: null,
+  })
 
 const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
 }
 
-function * messageReplyPrivately (state, action) {
+function* messageReplyPrivately(state, action) {
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
@@ -1181,24 +1181,24 @@ function * messageReplyPrivately (state, action) {
     return
   }
 
-    const result: RPCChatTypes.NewConversationLocalRes = yield createConversation(
-      Chat2Gen.createCreateConversation({participants: [message.author]}),
-      state
-    )
-    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-    yield Saga.sequentially([
-      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
-      Saga.put(
-        Chat2Gen.createMessageSetQuoting({
-          ordinal: action.payload.ordinal,
-          sourceConversationIDKey: action.payload.sourceConversationIDKey,
-          targetConversationIDKey: conversationIDKey,
-        })
-      ),
-    ])
+  const result: RPCChatTypes.NewConversationLocalRes = yield createConversation(
+    Chat2Gen.createCreateConversation({participants: [message.author]}),
+    state
+  )
+  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+  yield Saga.sequentially([
+    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
+    Saga.put(
+      Chat2Gen.createMessageSetQuoting({
+        ordinal: action.payload.ordinal,
+        sourceConversationIDKey: action.payload.sourceConversationIDKey,
+        targetConversationIDKey: conversationIDKey,
+      })
+    ),
+  ])
 }
 
-function * messageEdit (state, action) {
+function* messageEdit(state, action) {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -1250,69 +1250,69 @@ function * messageEdit (state, action) {
 
 const messageRetry = (state, action) => {
   const {outboxID} = action.payload
-    return RPCChatTypes.localRetryPostRpcPromise(
-    { outboxID: Types.outboxIDToRpcOutboxID(outboxID), },
+  return RPCChatTypes.localRetryPostRpcPromise(
+    {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
     Constants.waitingKeyRetryPost
   )
 }
 
-function * messageSend (state, action) {
-    const {conversationIDKey, text} = action.payload
-    const outboxID = Constants.generateOutboxID()
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const tlfName = meta.tlfname
-    const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+function* messageSend(state, action) {
+  const {conversationIDKey, text} = action.payload
+  const outboxID = Constants.generateOutboxID()
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const tlfName = meta.tlfname
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
-    // disable sending exploding messages if flag is false
-    const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
-    const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-    const newMsg = Constants.makePendingTextMessage(
-      state,
-      conversationIDKey,
-      text,
-      Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-      ephemeralLifetime
-    )
+  // disable sending exploding messages if flag is false
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+  const newMsg = Constants.makePendingTextMessage(
+    state,
+    conversationIDKey,
+    text,
+    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+    ephemeralLifetime
+  )
 
-    const routeName = 'paymentsConfirm'
-    const addMessage = (p, response) => [
-      Saga.put(
-        Chat2Gen.createMessagesAdd({
-          context: {type: 'sent'},
-          messages: [newMsg],
-        })
-      ),
-      // We need to make extra certain that the message is added into the store before
-      // we get any callbacks from the service for that same message. Currently, it seems possible
-      // that with a mixed custom and vanilla call map those actions generated from the
-      // service can interleave, and cause a duplicate message.
-      Saga.callUntyped(function() {
-        response && response.result()
-      }),
-    ]
-    const onShowConfirm = () => [
-      Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
-      Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: [routeName],
-        })
-      ),
-    ]
-    const onHideConfirm = () =>
-      Saga.callUntyped(function*() {
-        const state = yield* Saga.selectState()
-        if (getPath(state.routeTree.routeState).last() === routeName) {
-          yield Saga.put(RouteTreeGen.createNavigateUp())
-        }
+  const routeName = 'paymentsConfirm'
+  const addMessage = (p, response) => [
+    Saga.put(
+      Chat2Gen.createMessagesAdd({
+        context: {type: 'sent'},
+        messages: [newMsg],
       })
-    const onDataConfirm = ({summary}, response) => {
-      stellarConfirmWindowResponse = response
-      return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
-    }
-    const onDataError = ({message}, response) => {
-      stellarConfirmWindowResponse = response
-      return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
-    }
+    ),
+    // We need to make extra certain that the message is added into the store before
+    // we get any callbacks from the service for that same message. Currently, it seems possible
+    // that with a mixed custom and vanilla call map those actions generated from the
+    // service can interleave, and cause a duplicate message.
+    Saga.callUntyped(function() {
+      response && response.result()
+    }),
+  ]
+  const onShowConfirm = () => [
+    Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
+    Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [routeName],
+      })
+    ),
+  ]
+  const onHideConfirm = () =>
+    Saga.callUntyped(function*() {
+      const state = yield* Saga.selectState()
+      if (getPath(state.routeTree.routeState).last() === routeName) {
+        yield Saga.put(RouteTreeGen.createNavigateUp())
+      }
+    })
+  const onDataConfirm = ({summary}, response) => {
+    stellarConfirmWindowResponse = response
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
+  }
+  const onDataError = ({message}, response) => {
+    stellarConfirmWindowResponse = response
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
+  }
   try {
     yield RPCChatTypes.localPostTextNonblockRpcSaga({
       customResponseIncomingCallMap: {
@@ -1336,25 +1336,25 @@ function * messageSend (state, action) {
       },
       waitingKey: Constants.waitingKeyPost,
     })
-  logger.info('[MessageSend] success')
-  } catch() {
-  logger.info('[MessageSend] error')
+    logger.info('[MessageSend] success')
+  } catch (e) {
+    logger.info('[MessageSend] error')
   }
 
-    // Do some logging to track down the root cause of a bug causing
-    // messages to not send. Do this after creating the objects above to
-    // narrow down the places where the action can possibly stop.
-    logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
+  // Do some logging to track down the root cause of a bug causing
+  // messages to not send. Do this after creating the objects above to
+  // narrow down the places where the action can possibly stop.
+  logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
-    // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
-    // the action to add the pending message fires. This would cause a pending message to be stuck
-    // (with a duplicate sent message in there too).
-    //
-    // We put the addMessage on the back in case the service provides chat thread data in between the
-    // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
-    // that is in the store on the outboxID has been sent.
-    yield Saga.sequentially(addMessage())
-    stellarConfirmWindowResponse = null
+  // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
+  // the action to add the pending message fires. This would cause a pending message to be stuck
+  // (with a duplicate sent message in there too).
+  //
+  // We put the addMessage on the back in case the service provides chat thread data in between the
+  // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
+  // that is in the store on the outboxID has been sent.
+  yield Saga.sequentially(addMessage())
+  stellarConfirmWindowResponse = null
 }
 
 let stellarConfirmWindowResponse = null
@@ -1364,9 +1364,7 @@ const confirmScreenResponse = (_, action) => {
   stellarConfirmWindowResponse = null
 }
 
-function * previewConversationAfterFindExisting = (
-  results, users
-) => {
+function* previewConversationAfterFindExisting(state, action, results, users) {
   // still looking for this result?
   if (
     // If action.type === Chat2Gen.setPendingConversationUsers, then
@@ -1409,28 +1407,28 @@ function * previewConversationAfterFindExisting = (
       throw new Error('Tried to preview a non-existant channel?')
     }
     yield Saga.callUntyped(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
-        convID: Types.keyToConversationID(existingConversationIDKey),
+      convID: Types.keyToConversationID(existingConversationIDKey),
+    })
+    yield Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: existingConversationIDKey,
+        reason: 'previewResolved',
       })
-      yield Saga.put(
-        Chat2Gen.createSelectConversation({
-          conversationIDKey: existingConversationIDKey,
-          reason: 'previewResolved',
-        })
-      )
-      yield Saga.put(Chat2Gen.createNavigateToThread())
+    )
+    yield Saga.put(Chat2Gen.createNavigateToThread())
   } else {
     yield Saga.put(
-        Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-          conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
-        })
-      )
-      yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
-      yield Saga.put(Chat2Gen.createNavigateToThread())
+      Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+        conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
+      })
+    )
+    yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
+    yield Saga.put(Chat2Gen.createNavigateToThread())
   }
 }
 
 // Start a conversation, or select an existing one
-function * previewConversationFindExisting ( state, action)  {
+function* previewConversationFindExisting(state, action) {
   let participants
   let teamname
   let channelname
@@ -1457,7 +1455,7 @@ function * previewConversationFindExisting ( state, action)  {
   const you = state.config.username || ''
 
   let params
-  let users
+  let users = []
   let setUsers
 
   // we handled participants or teams
@@ -1488,19 +1486,19 @@ function * previewConversationFindExisting ( state, action)  {
 
   if (conversationIDKey) {
     const results = yield Saga.callUntyped(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-        oneChatPerTLF: true,
-        topicName: '',
-        topicType: RPCChatTypes.commonTopicType.chat,
-        visibility: RPCTypes.commonTLFVisibility.private,
-        ...params,
-      })
-    yield * previewConversationAfterFindExisting(results, users)
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      oneChatPerTLF: true,
+      topicName: '',
+      topicType: RPCChatTypes.commonTopicType.chat,
+      visibility: RPCTypes.commonTLFVisibility.private,
+      ...params,
+    })
+    yield* previewConversationAfterFindExisting(state, action, results, users)
   }
 }
 
-const startupInboxLoad = (state) =>
+const startupInboxLoad = state =>
   state.config.username ? Chat2Gen.createInboxRefresh({reason: 'bootstrap'}) : undefined
 
 const changeSelectedConversation = (state, action) => {
@@ -1539,7 +1537,7 @@ const changeSelectedConversation = (state, action) => {
   }
 
   if (!isMobile) {
-    return _maybeAutoselectNewestConversation(state, action, state)
+    return _maybeAutoselectNewestConversation(state, action)
   }
 }
 
@@ -1638,7 +1636,7 @@ const openFolder = (state, action) => {
   return FsGen.createOpenPathInFilesTab({path})
 }
 
-const getRecommendations = ( state, action) => {
+const getRecommendations = (state, action) => {
   if (
     action.type === Chat2Gen.selectConversation &&
     action.payload.conversationIDKey !== Constants.pendingConversationIDKey
@@ -1652,13 +1650,9 @@ const getRecommendations = ( state, action) => {
   }
 }
 
-const clearSearchResults = () =>
-  SearchGen.createClearSearchResults({searchKey: 'chatSearch'})
+const clearSearchResults = () => SearchGen.createClearSearchResults({searchKey: 'chatSearch'})
 
-const updatePendingParticipants = (
-  state,
-  action
-) => {
+const updatePendingParticipants = (state, action) => {
   let users
   if (action.type === Chat2Gen.setPendingMode) {
     // Ignore the pendingMode changes other than the clear
@@ -1671,8 +1665,8 @@ const updatePendingParticipants = (
   }
 
   return [
-    Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users})
-    SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: users})
+    Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}),
+    SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: users}),
   ]
 }
 
@@ -1733,50 +1727,50 @@ function* attachmentDownload(_, action) {
   yield Saga.callUntyped(downloadAttachment, destPath, message)
 }
 
-function* attachmentFullscreenNext  (state, action) {
-    const {conversationIDKey, messageID, backInTime} = action.payload
-    const blankMessage = Constants.makeMessageAttachment({})
-    if (conversationIDKey === blankMessage.conversationIDKey) {
-      return
-    }
-    const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
-    yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
-    const nextAttachmentRes = yield* Saga.callPromise(
-      RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise,
-      {
-        assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
-        backInTime,
-        convID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        messageID,
-      }
-    )
-
-    let nextMsg = currentFullscreen
-    if (nextAttachmentRes.message) {
-      const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
-      if (uiMsg) {
-        nextMsg = uiMsg
-      }
-    }
-    yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: nextMsg}))
+function* attachmentFullscreenNext(state, action) {
+  const {conversationIDKey, messageID, backInTime} = action.payload
+  const blankMessage = Constants.makeMessageAttachment({})
+  if (conversationIDKey === blankMessage.conversationIDKey) {
+    return
   }
+  const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
+  const nextAttachmentRes = yield* Saga.callPromise(
+    RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise,
+    {
+      assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
+      backInTime,
+      convID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      messageID,
+    }
+  )
 
-  const attachmentPreviewSelect(_, action) => {
+  let nextMsg = currentFullscreen
+  if (nextAttachmentRes.message) {
+    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
+    if (uiMsg) {
+      nextMsg = uiMsg
+    }
+  }
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: nextMsg}))
+}
+
+const attachmentPreviewSelect = (_, action) => {
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
     // Start up the fullscreen video view
-      return RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-            selected: 'attachmentVideoFullscreen',
-          },
-        ],
-      })
+    return RouteTreeGen.createNavigateAppend({
+      path: [
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'attachmentVideoFullscreen',
+        },
+      ],
+    })
   } else {
     return [
-      Chat2Gen.createAttachmentFullscreenSelection({ message, }),
+      Chat2Gen.createAttachmentFullscreenSelection({message}),
       RouteTreeGen.createNavigateAppend({
         path: [
           {
@@ -1784,27 +1778,27 @@ function* attachmentFullscreenNext  (state, action) {
             selected: 'attachmentFullscreen',
           },
         ],
-      })
+      }),
     ]
   }
 }
 
 // Handle an image pasted into a conversation
-const attachmentPasted = (_, action)=> {
+const attachmentPasted = (_, action) => {
   const {conversationIDKey, data} = action.payload
   const outboxID = Constants.generateOutboxID()
   RPCChatTypes.localMakeUploadTempFileRpcPromise({
     data,
     filename: 'paste.png',
     outboxID,
-  }).then(path =>  {
-  const pathAndOutboxIDs = [
-    {
-      outboxID,
-      path,
-    },
-  ]
-  return RouteTreeGen.createNavigateAppend({
+  }).then(path => {
+    const pathAndOutboxIDs = [
+      {
+        outboxID,
+        path,
+      },
+    ]
+    return RouteTreeGen.createNavigateAppend({
       path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
     })
   })
@@ -1929,18 +1923,19 @@ const resetChatWithoutThem = (state, action) => {
   // remove all bad people
   const goodParticipants = meta.participants.toSet().subtract(meta.resetParticipants)
   return Chat2Gen.createPreviewConversation({
-      participants: goodParticipants.toArray(),
-      reason: 'resetChatWithoutThem',
-    })
+    participants: goodParticipants.toArray(),
+    reason: 'resetChatWithoutThem',
+  })
 }
 
 // let them back in after they reset
-const resetLetThemIn = (_, action) => RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
+const resetLetThemIn = (_, action) =>
+  RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     username: action.payload.username,
   })
 
-const markThreadAsRead = ( state, action) => {
+const markThreadAsRead = (state, action) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
 
   if (!conversationIDKey) {
@@ -1999,14 +1994,13 @@ const deleteMessageHistory = (state, action) => {
     return
   }
 
-    return RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise( {
+  return RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise({
     age: 0,
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     tlfName: meta.tlfname,
     tlfPublic: false,
-  }
-    )
+  })
 }
 
 // Get the rights a user has on certain actions in a team
@@ -2023,11 +2017,13 @@ const loadCanUserPerform = (state, action) => {
 }
 
 // Helpers to nav you to the right place
-const navigateToInbox = ( state, action) => {
+const navigateToInbox = (state, action) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  const resetRouteAction = RouteTreeGen.createNavigateTo({path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}]})
+  const resetRouteAction = RouteTreeGen.createNavigateTo({
+    path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
+  })
   if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
     const {context, teamname} = action.payload
     switch (action.type) {
@@ -2051,7 +2047,7 @@ const navigateToInbox = ( state, action) => {
   }
   const actions = [resetRouteAction]
   if (action.type === Chat2Gen.navigateToInbox && action.payload.findNewConversation && !isMobile) {
-    actions.push(_maybeAutoselectNewestConversation(action, state))
+    actions.push(_maybeAutoselectNewestConversation(state, action))
   }
   return actions
 }
@@ -2132,18 +2128,18 @@ function* mobileMessageAttachmentSave(state, action) {
 }
 
 const joinConversation = (_, action) =>
-    RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
-    { convID: Types.keyToConversationID(action.payload.conversationIDKey), },
+  RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
+    {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
     Constants.waitingKeyJoinConversation
   )
 
 const leaveConversation = (_, action) =>
-  RPCChatTypes.localLeaveConversationLocalRpcPromise( {
+  RPCChatTypes.localLeaveConversationLocalRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
   })
 
 const muteConversation = (_, action) =>
-  RPCChatTypes.localSetConversationStatusLocalRpcPromise( {
+  RPCChatTypes.localSetConversationStatusLocalRpcPromise({
     conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     status: action.payload.muted
@@ -2152,7 +2148,7 @@ const muteConversation = (_, action) =>
   })
 
 const updateNotificationSettings = (_, action) =>
-  RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise( {
+  RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
     channelWide: action.payload.notificationsGlobalIgnoreMentions,
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     settings: [
@@ -2179,17 +2175,16 @@ const updateNotificationSettings = (_, action) =>
     ],
   })
 
-function*  blockConversation  (_, action) {
-    yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
-    yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-      conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      status: action.payload.reportUser
-        ? RPCChatTypes.commonConversationStatus.reported
-        : RPCChatTypes.commonConversationStatus.blocked,
-    })
-
-  }
+function* blockConversation(_, action) {
+  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
+  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: action.payload.reportUser
+      ? RPCChatTypes.commonConversationStatus.reported
+      : RPCChatTypes.commonConversationStatus.blocked,
+  })
+}
 
 const setConvRetentionPolicy = (_, action) => {
   const {conversationIDKey, policy} = action.payload
@@ -2212,8 +2207,7 @@ const setConvRetentionPolicy = (_, action) => {
   }
 }
 
-const changePendingMode = ( state, action
-) => {
+const changePendingMode = (state, action) => {
   switch (action.type) {
     case Chat2Gen.previewConversation:
       // We decided to make a team instead of start a convo, so no resolution will take place
@@ -2226,8 +2220,8 @@ const changePendingMode = ( state, action
       } else {
         // Otherwise, we're starting a chat with some users.
         return Chat2Gen.createSetPendingMode({
-            pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
-          })
+          pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
+        })
       }
     case Chat2Gen.selectConversation: {
       if (state.chat2.pendingMode === 'none') {
@@ -2268,46 +2262,46 @@ const removePendingConversation = function*() {
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
-function * createConversation2  (state, action) {
+function* createConversation2(state, action) {
   if (!flags.newTeamBuildingForChat) {
     return
   }
-    const username = state.config.username
-    if (!username) {
-      logger.error('Making a convo while logged out?')
-      return
+  const username = state.config.username
+  if (!username) {
+    logger.error('Making a convo while logged out?')
+    return
+  }
+
+  const {
+    payload: {participants},
+  } = action
+  yield createPendingConversation(participants)
+  try {
+    const result: RPCChatTypes.NewConversationLocalRes = yield* Saga.callPromise(
+      RPCChatTypes.localNewConversationLocalRpcPromise,
+      {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        tlfName: I.Set([username])
+          .concat(action.payload.participants)
+          .join(','),
+        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        topicType: RPCChatTypes.commonTopicType.chat,
+      },
+      Constants.waitingKeyCreating
+    )
+
+    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+    if (!conversationIDKey) {
+      logger.warn("Couldn't make a new conversation?")
+    } else {
+      yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
+  } catch (e) {
+    logger.error(`Failed to create new conversation: ${e.message}`)
+  }
 
-    const {
-      payload: {participants},
-    } = action
-    yield createPendingConversation(participants)
-    try {
-      const result: RPCChatTypes.NewConversationLocalRes = yield* Saga.callPromise(
-        RPCChatTypes.localNewConversationLocalRpcPromise,
-        {
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-          tlfName: I.Set([username])
-            .concat(action.payload.participants)
-            .join(','),
-          tlfVisibility: RPCTypes.commonTLFVisibility.private,
-          topicType: RPCChatTypes.commonTopicType.chat,
-        },
-        Constants.waitingKeyCreating
-      )
-
-      const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-      if (!conversationIDKey) {
-        logger.warn("Couldn't make a new conversation?")
-      } else {
-        yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
-      }
-    } catch (e) {
-      logger.error(`Failed to create new conversation: ${e.message}`)
-    }
-
-    yield removePendingConversation()
+  yield removePendingConversation()
 }
 
 const createConversation = (state, action) => {
@@ -2329,17 +2323,19 @@ const createConversation = (state, action) => {
       topicType: RPCChatTypes.commonTopicType.chat,
     },
     Constants.waitingKeyCreating
-  ).then(result => {
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  if (!conversationIDKey) {
-    logger.warn("Couldn't make a new conversation?")
-    return
-  }
-  return [
-    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
-    Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
-  ]
-  }).catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
+  )
+    .then(result => {
+      const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+      if (!conversationIDKey) {
+        logger.warn("Couldn't make a new conversation?")
+        return
+      }
+      return [
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
+        Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
+      ]
+    })
+    .catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -2348,7 +2344,7 @@ const ignoreErrors = [
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
 ]
-function * setConvExplodingMode (_, action) {
+function* setConvExplodingMode(_, action) {
   const {conversationIDKey, seconds} = action.payload
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
 
@@ -2367,37 +2363,37 @@ function * setConvExplodingMode (_, action) {
         category,
         dtime: {offset: 0, time: 0},
       })
-  const {conversationIDKey, seconds} = action.payload
-  if (seconds !== 0) {
-    logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-  } else {
-    logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
-  }
+      const {conversationIDKey, seconds} = action.payload
+      if (seconds !== 0) {
+        logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+      } else {
+        logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
+      }
     } catch (e) {
-  const {conversationIDKey, seconds} = action.payload
-  if (seconds !== 0) {
-    logger.error(
-      `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${
-        e.message
-      }`
-    )
-  } else {
-    logger.error(
-      `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${
-        e.message
-      }`
-    )
-  }
-  if (ignoreErrors.includes(e.code)) {
-    return
-  }
-  throw e
+      const {conversationIDKey, seconds} = action.payload
+      if (seconds !== 0) {
+        logger.error(
+          `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${
+            e.message
+          }`
+        )
+      } else {
+        logger.error(
+          `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${
+            e.message
+          }`
+        )
+      }
+      if (ignoreErrors.includes(e.code)) {
+        return
+      }
+      throw e
     }
   }
 }
 
 const handleSeeingExplodingMessages = (_, action) => {
-  const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
+  const gregorState = yield * Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenExplodingMessages =
     gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
   let body = Date.now().toString()
@@ -2417,7 +2413,7 @@ const handleSeeingExplodingMessages = (_, action) => {
   }).then(() => {})
 }
 
-function * handleSeeingWallets (_, action)  {
+function* handleSeeingWallets(_, action) {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenWallets =
     gregorState.items && gregorState.items.some(i => i.item?.category === Constants.seenWalletsGregorKey)
@@ -2442,46 +2438,46 @@ function * handleSeeingWallets (_, action)  {
   }
 }
 
-function * loadStaticConfig  (state, action) {
-  if(state.chat2.staticConfig) {
+function* loadStaticConfig(state, action) {
+  if (state.chat2.staticConfig) {
     return
   }
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: true,
-        name: 'chat.loadStatic',
-        version: action.payload.version,
-      })
-    )
-      const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(res => {
-        if (!res.deletableByDeleteHistory) {
-          logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-          return
-        }
-        const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
-          const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-          if (ourTypes) {
-            res.push(...ourTypes)
-          }
-          return res
-        }, [])
-        return Chat2Gen.createStaticConfigLoaded({
-          staticConfig: Constants.makeStaticConfig({
-            deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
-          }),
-        })
-      })
-
-      if (loadAction) {
-        yield Saga.put(loadAction)
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: 'chat.loadStatic',
+      version: action.payload.version,
+    })
+  )
+  const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(res => {
+    if (!res.deletableByDeleteHistory) {
+      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+      return
+    }
+    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+      const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+      if (ourTypes) {
+        res.push(...ourTypes)
       }
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: false,
-        name: 'chat.loadStatic',
-        version: action.payload.version,
-      })
-    )
+      return res
+    }, [])
+    return Chat2Gen.createStaticConfigLoaded({
+      staticConfig: Constants.makeStaticConfig({
+        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+      }),
+    })
+  })
+
+  if (loadAction) {
+    yield Saga.put(loadAction)
+  }
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: false,
+      name: 'chat.loadStatic',
+      version: action.payload.version,
+    })
+  )
 }
 
 const toggleMessageReaction = (state, action) => {
@@ -2506,22 +2502,22 @@ const toggleMessageReaction = (state, action) => {
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
   return RPCChatTypes.localPostReactionNonblockRpcPromise({
-      body: emoji,
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-      outboxID,
-      supersedes: messageID,
-      tlfName: meta.tlfname,
-      tlfPublic: false,
+    body: emoji,
+    clientPrev,
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+    outboxID,
+    supersedes: messageID,
+    tlfName: meta.tlfname,
+    tlfPublic: false,
   }).finally(() =>
-      Chat2Gen.createToggleLocalReaction({
-        conversationIDKey,
-        emoji,
-        targetOrdinal: ordinal,
-        username: state.config.username || '',
-      })
-    )
+    Chat2Gen.createToggleLocalReaction({
+      conversationIDKey,
+      emoji,
+      targetOrdinal: ordinal,
+      username: state.config.username || '',
+    })
+  )
 }
 
 const receivedBadgeState = (_, action) =>
@@ -2530,7 +2526,7 @@ const receivedBadgeState = (_, action) =>
 const setMinWriterRole = (_, action) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
-  return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise( {
+  return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.teamsTeamRole[role],
   }).then(() => {})
@@ -2560,11 +2556,11 @@ const unfurlRemove = (state, action) => {
 const unfurlDismissPrompt = (state, action) => {
   const {conversationIDKey, messageID, domain} = action.payload
   return Chat2Gen.createUnfurlTogglePrompt({
-      conversationIDKey,
-      domain,
-      messageID,
-      show: false,
-    })
+    conversationIDKey,
+    domain,
+    messageID,
+    show: false,
+  })
 }
 
 const unfurlResolvePrompt = (state, action) => {
@@ -2577,14 +2573,13 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
-const openChatFromWidget = ( state, {payload: {conversationIDKey}}) =>
-  [
-    ConfigGen.createShowMain(),
-    RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
-    ...(conversationIDKey
-      ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
-      : []),
-  ]
+const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
+  ConfigGen.createShowMain(),
+  RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
+  ...(conversationIDKey
+    ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
+    : []),
+]
 
 const gregorPushState = (state, action) => {
   const actions = []
@@ -2661,13 +2656,13 @@ const prepareFulfillRequestForm = (state, action) => {
     )
   }
   return WalletsGen.createOpenSendRequestForm({
-      amount: requestInfo.amount,
-      currency: requestInfo.currencyCode || 'XLM',
-      from: WalletTypes.noAccountID,
-      recipientType: 'keybaseUser',
-      secretNote: message.note,
-      to: message.author,
-    })
+    amount: requestInfo.amount,
+    currency: requestInfo.currencyCode || 'XLM',
+    from: WalletTypes.noAccountID,
+    recipientType: 'keybaseUser',
+    secretNote: message.note,
+    to: message.author,
+  })
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -2759,10 +2754,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<Chat2Gen.MessageRetryPayload>(Chat2Gen.messageRetry, messageRetry)
-  yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(
-    Chat2Gen.messageSend,
-    messageSend,
-  )
+  yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
   yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit)
   yield* Saga.chainAction<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield* Saga.chainAction<Chat2Gen.MessageDeletePayload>(Chat2Gen.messageDelete, messageDelete)
@@ -2792,10 +2784,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<Chat2Gen.UnfurlRemovePayload>(Chat2Gen.unfurlRemove, unfurlRemove)
 
-  yield* Saga.chainGenerator<Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload>(
-    [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],
-    previewConversationFindExisting,
-  )
+  yield* Saga.chainGenerator<
+    Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
+  >([Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers], previewConversationFindExisting)
   yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
@@ -2819,7 +2810,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.attachmentPreviewSelect,
     attachmentPreviewSelect
   )
-  yield* Saga.chainGenerator<Chat2Gen.AttachmentDownloadPayload>(Chat2Gen.attachmentDownload, attachmentDownload)
+  yield* Saga.chainGenerator<Chat2Gen.AttachmentDownloadPayload>(
+    Chat2Gen.attachmentDownload,
+    attachmentDownload
+  )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
   yield* Saga.chainAction<Chat2Gen.AttachmentPastedPayload>(Chat2Gen.attachmentPasted, attachmentPasted)
   yield* Saga.chainGenerator<Chat2Gen.AttachmentFullscreenNextPayload>(
@@ -2886,10 +2880,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.createConversation,
     createConversation2
   )
-  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload>(
-    Chat2Gen.createConversation,
-    createConversation,
-  )
+  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload>(Chat2Gen.createConversation, createConversation)
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
     changePendingMode
@@ -2899,7 +2890,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
     Chat2Gen.setConvExplodingMode,
-    setConvExplodingMode,
+    setConvExplodingMode
   )
   yield* Saga.chainAction<Chat2Gen.HandleSeeingExplodingMessagesPayload>(
     Chat2Gen.handleSeeingExplodingMessages,
