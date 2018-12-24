@@ -1828,7 +1828,7 @@ export const uiPromptDefault = {
 }
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 export type AllProvisionedUsernames = $ReadOnly<{defaultUsername: String, provisionedUsernames?: ?Array<String>, hasProvisionedUser: Boolean}>
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, allowProfilePromote: Boolean, isMemberShowcased: Boolean, status: TeamMemberStatus}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, impTeamDisplayName: String, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, allowProfilePromote: Boolean, isMemberShowcased: Boolean, status: TeamMemberStatus}>
 export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, status: TeamMemberStatus}>
 export type AnnotatedTeamList = $ReadOnly<{teams?: ?Array<AnnotatedMemberInfo>, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}>
 export type AppLinkType =
