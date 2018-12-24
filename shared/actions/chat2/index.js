@@ -121,7 +121,7 @@ function* requestMeta(state, action) {
   const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
 
   if (nextActions.length) {
-    return Saga.sequentially(nextActions)
+    yield Saga.sequentially(nextActions)
   }
 }
 
@@ -1159,7 +1159,7 @@ const messageDelete = (state, action) => {
         tlfPublic: false,
       },
       Constants.waitingKeyDeletePost
-    )
+    ).then(() => {})
   }
 }
 
@@ -1171,31 +1171,6 @@ const clearMessageSetEditing = (state, action) =>
 
 const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
-}
-
-function* messageReplyPrivately(state, action) {
-  const {sourceConversationIDKey, ordinal} = action.payload
-  const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
-  if (!message) {
-    logger.warn("Can't find message to reply to", ordinal)
-    return
-  }
-
-  const result: RPCChatTypes.NewConversationLocalRes = yield createConversation(
-    Chat2Gen.createCreateConversation({participants: [message.author]}),
-    state
-  )
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  yield Saga.sequentially([
-    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'})),
-    Saga.put(
-      Chat2Gen.createMessageSetQuoting({
-        ordinal: action.payload.ordinal,
-        sourceConversationIDKey: action.payload.sourceConversationIDKey,
-        targetConversationIDKey: conversationIDKey,
-      })
-    ),
-  ])
 }
 
 function* messageEdit(state, action) {
@@ -1981,7 +1956,7 @@ const markThreadAsRead = (state, action) => {
   return RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: readMsgID,
-  })
+  }).then(() => {})
 }
 
 // Delete a message and any older
@@ -2000,7 +1975,7 @@ const deleteMessageHistory = (state, action) => {
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     tlfName: meta.tlfname,
     tlfPublic: false,
-  })
+  }).then(() => {})
 }
 
 // Get the rights a user has on certain actions in a team
@@ -2085,7 +2060,6 @@ const mobileChangeSelection = state => {
 // Native share sheet for attachments
 function* mobileMessageAttachmentShare(state, action) {
   const {conversationIDKey, ordinal} = action.payload
-  let state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
@@ -2131,12 +2105,12 @@ const joinConversation = (_, action) =>
   RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
     {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
     Constants.waitingKeyJoinConversation
-  )
+  ).then(() => {})
 
 const leaveConversation = (_, action) =>
   RPCChatTypes.localLeaveConversationLocalRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
+  }).then(() => {})
 
 const muteConversation = (_, action) =>
   RPCChatTypes.localSetConversationStatusLocalRpcPromise({
@@ -2145,7 +2119,7 @@ const muteConversation = (_, action) =>
     status: action.payload.muted
       ? RPCChatTypes.commonConversationStatus.muted
       : RPCChatTypes.commonConversationStatus.unfiled,
-  })
+  }).then(() => {})
 
 const updateNotificationSettings = (_, action) =>
   RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
@@ -2173,7 +2147,7 @@ const updateNotificationSettings = (_, action) =>
         kind: RPCChatTypes.commonNotificationKind.generic,
       },
     ],
-  })
+  }).then(() => {})
 
 function* blockConversation(_, action) {
   yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
@@ -2190,7 +2164,6 @@ const setConvRetentionPolicy = (_, action) => {
   const {conversationIDKey, policy} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
-  let ret
   try {
     servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
   } catch (err) {
@@ -2304,10 +2277,34 @@ function* createConversation2(state, action) {
   yield removePendingConversation()
 }
 
-const createConversation = (state, action) => {
+const createConversation = (state, action, afterActionCreator) => {
   if (flags.newTeamBuildingForChat) {
     return
   }
+
+  let participants
+
+  switch (action.type) {
+    case Chat2Gen.createConversation:
+      participants = action.payload.participants
+      break
+    case Chat2Gen.messageReplyPrivately:
+      {
+        const {sourceConversationIDKey, ordinal} = action.payload
+        const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
+        if (!message) {
+          logger.warn("Can't find message to reply to", ordinal)
+          return
+        }
+        participants = [message.author]
+      }
+      break
+  }
+
+  if (!participants) {
+    return
+  }
+
   const username = state.config.username
   if (!username) {
     throw new Error('Making a convo while logged out?')
@@ -2317,7 +2314,7 @@ const createConversation = (state, action) => {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
       tlfName: I.Set([username])
-        .concat(action.payload.participants)
+        .concat(participants)
         .join(','),
       tlfVisibility: RPCTypes.commonTLFVisibility.private,
       topicType: RPCChatTypes.commonTopicType.chat,
@@ -2330,10 +2327,24 @@ const createConversation = (state, action) => {
         logger.warn("Couldn't make a new conversation?")
         return
       }
-      return [
-        Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
-        Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
-      ]
+
+      switch (action.type) {
+        case Chat2Gen.createConversation:
+          return [
+            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
+            Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
+          ]
+        case Chat2Gen.messageReplyPrivately: {
+          return [
+            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
+            Chat2Gen.createMessageSetQuoting({
+              ordinal: action.payload.ordinal,
+              sourceConversationIDKey: action.payload.sourceConversationIDKey,
+              targetConversationIDKey: conversationIDKey,
+            }),
+          ]
+        }
+      }
     })
     .catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
 }
@@ -2363,14 +2374,12 @@ function* setConvExplodingMode(_, action) {
         category,
         dtime: {offset: 0, time: 0},
       })
-      const {conversationIDKey, seconds} = action.payload
       if (seconds !== 0) {
         logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
       } else {
         logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
       }
     } catch (e) {
-      const {conversationIDKey, seconds} = action.payload
       if (seconds !== 0) {
         logger.error(
           `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${
@@ -2392,26 +2401,26 @@ function* setConvExplodingMode(_, action) {
   }
 }
 
-const handleSeeingExplodingMessages = (_, action) => {
-  const gregorState = yield * Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
-  const seenExplodingMessages =
-    gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
-  let body = Date.now().toString()
-  if (seenExplodingMessages) {
-    const contents = seenExplodingMessages.item && seenExplodingMessages.item.body.toString()
-    if (isNaN(parseInt(contents, 10))) {
-      logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
-    } else {
-      // do nothing
-      return
+const handleSeeingExplodingMessages = (_, action) =>
+  RPCTypes.gregorGetStateRpcPromise().then(gregorState => {
+    const seenExplodingMessages =
+      gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
+    let body = Date.now().toString()
+    if (seenExplodingMessages) {
+      const contents = seenExplodingMessages.item && seenExplodingMessages.item.body.toString()
+      if (isNaN(parseInt(contents, 10))) {
+        logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
+      } else {
+        // do nothing
+        return
+      }
     }
-  }
-  return RPCTypes.gregorUpdateCategoryRpcPromise({
-    body,
-    category: Constants.seenExplodingGregorKey,
-    dtime: {offset: 0, time: 0},
-  }).then(() => {})
-}
+    return RPCTypes.gregorUpdateCategoryRpcPromise({
+      body,
+      category: Constants.seenExplodingGregorKey,
+      dtime: {offset: 0, time: 0},
+    }).then(() => {})
+  })
 
 function* handleSeeingWallets(_, action) {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
@@ -2510,14 +2519,23 @@ const toggleMessageReaction = (state, action) => {
     supersedes: messageID,
     tlfName: meta.tlfname,
     tlfPublic: false,
-  }).finally(() =>
-    Chat2Gen.createToggleLocalReaction({
-      conversationIDKey,
-      emoji,
-      targetOrdinal: ordinal,
-      username: state.config.username || '',
-    })
-  )
+  })
+    .then(() =>
+      Chat2Gen.createToggleLocalReaction({
+        conversationIDKey,
+        emoji,
+        targetOrdinal: ordinal,
+        username: state.config.username || '',
+      })
+    )
+    .catch(() =>
+      Chat2Gen.createToggleLocalReaction({
+        conversationIDKey,
+        emoji,
+        targetOrdinal: ordinal,
+        username: state.config.username || '',
+      })
+    )
 }
 
 const receivedBadgeState = (_, action) =>
@@ -2550,7 +2568,7 @@ const unfurlRemove = (state, action) => {
       tlfPublic: false,
     },
     Constants.waitingKeyDeletePost
-  )
+  ).then(() => {})
 }
 
 const unfurlDismissPrompt = (state, action) => {
@@ -2723,7 +2741,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction<Chat2Gen.MetaNeedsUpdatingPayload>(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
-  yield* Saga.chainAction<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
+  yield* Saga.chainGenerator<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
   yield* Saga.chainGenerator<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
@@ -2793,7 +2811,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad)
 
   // Search handling
-  yield* Saga.chainAction<Chat2Gen.setPendingModePayload | SearchGen.UserInputItemsUpdatedPayload>(
+  yield* Saga.chainAction<Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload>(
     [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     updatePendingParticipants
   )
@@ -2872,15 +2890,14 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.setConvRetentionPolicy,
     setConvRetentionPolicy
   )
-  yield* Saga.chainGenerator<Chat2Gen.MessageReplyPrivatelyPayload>(
-    Chat2Gen.messageReplyPrivately,
-    messageReplyPrivately
-  )
   yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,
     createConversation2
   )
-  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload>(Chat2Gen.createConversation, createConversation)
+  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload | Chat2Gen.MessageReplyPrivatelyPayload>(
+    [Chat2Gen.messageReplyPrivately, Chat2Gen.createConversation],
+    createConversation
+  )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
     changePendingMode
@@ -2920,7 +2937,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     prepareFulfillRequestForm
   )
 
-  yield* Saga.spawn(chatTeamBuildingSaga)
+  yield Saga.spawn(chatTeamBuildingSaga)
 }
 
 export default chat2Saga
