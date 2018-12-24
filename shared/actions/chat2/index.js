@@ -2212,26 +2212,22 @@ const setConvRetentionPolicy = (_, action) => {
   }
 }
 
-const changePendingMode = (
-  action: Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload,
-  state: TypedState
+const changePendingMode = ( state, action
 ) => {
   switch (action.type) {
     case Chat2Gen.previewConversation:
       // We decided to make a team instead of start a convo, so no resolution will take place
       if (action.payload.reason === 'convertAdHoc') {
-        return Saga.put(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'}))
+        return Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})
       }
       // We're selecting a team so we never want to show the row, we'll instead make the rpc call to add it to the inbox
       if (action.payload.teamname || action.payload.channelname) {
-        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+        return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
       } else {
         // Otherwise, we're starting a chat with some users.
-        return Saga.put(
-          Chat2Gen.createSetPendingMode({
+        return Chat2Gen.createSetPendingMode({
             pendingMode: action.payload.reason === 'fromAReset' ? 'startingFromAReset' : 'fixedSetOfUsers',
           })
-        )
       }
     case Chat2Gen.selectConversation: {
       if (state.chat2.pendingMode === 'none') {
@@ -2247,12 +2243,12 @@ const changePendingMode = (
       // Selected another conversation and the pending users are empty
       const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
       if (meta.participants.isEmpty()) {
-        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+        return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
       }
 
       // Selected the resolved pending conversation? Exit pendingMode
       if (meta.conversationIDKey === action.payload.conversationIDKey) {
-        return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+        return Chat2Gen.createSetPendingMode({pendingMode: 'none'})
       }
     }
   }
@@ -2346,51 +2342,38 @@ const createConversation = (state, action) => {
   }).catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
 }
 
-const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
-  const {conversationIDKey, seconds} = action.payload
-  const actions = []
-  logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-
-  // unset a conversation exploding lock for this convo so we accept the new one
-  actions.push(Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true})))
-
-  const category = Constants.explodingModeGregorKey(conversationIDKey)
-  if (seconds === 0) {
-    // dismiss the category so we don't leave cruft in the push state
-    actions.push(Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category}))
-  } else {
-    // update the category with the exploding time
-    actions.push(
-      Saga.callUntyped(RPCTypes.gregorUpdateCategoryRpcPromise, {
-        body: seconds.toString(),
-        category,
-        dtime: {offset: 0, time: 0},
-      })
-    )
-  }
-
-  return Saga.sequentially(actions)
-}
-
-const setConvExplodingModeSuccess = (
-  res: RPCGregorTypes.MsgID | void,
-  action: Chat2Gen.SetConvExplodingModePayload
-) => {
-  const {conversationIDKey, seconds} = action.payload
-  if (seconds !== 0) {
-    logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-  } else {
-    logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
-  }
-}
-
 // don't bug the users with black bars for network errors. chat isn't going to work in general
 const ignoreErrors = [
   RPCTypes.constantsStatusCode.scgenericapierror,
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
 ]
-const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePayload) => {
+function * setConvExplodingMode (_, action) {
+  const {conversationIDKey, seconds} = action.payload
+  logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+
+  // unset a conversation exploding lock for this convo so we accept the new one
+  yield Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true}))
+
+  const category = Constants.explodingModeGregorKey(conversationIDKey)
+  if (seconds === 0) {
+    // dismiss the category so we don't leave cruft in the push state
+    yield Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category})
+  } else {
+    // update the category with the exploding time
+    try {
+      const res = yield Saga.callUntyped(RPCTypes.gregorUpdateCategoryRpcPromise, {
+        body: seconds.toString(),
+        category,
+        dtime: {offset: 0, time: 0},
+      })
+  const {conversationIDKey, seconds} = action.payload
+  if (seconds !== 0) {
+    logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+  } else {
+    logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
+  }
+    } catch (e) {
   const {conversationIDKey, seconds} = action.payload
   if (seconds !== 0) {
     logger.error(
@@ -2409,9 +2392,11 @@ const setConvExplodingModeFailure = (e, action: Chat2Gen.SetConvExplodingModePay
     return
   }
   throw e
+    }
+  }
 }
 
-function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMessagesPayload) {
+const handleSeeingExplodingMessages = (_, action) => {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenExplodingMessages =
     gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
@@ -2425,14 +2410,14 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
       return
     }
   }
-  yield* Saga.callPromise(RPCTypes.gregorUpdateCategoryRpcPromise, {
+  return RPCTypes.gregorUpdateCategoryRpcPromise({
     body,
     category: Constants.seenExplodingGregorKey,
     dtime: {offset: 0, time: 0},
-  })
+  }).then(() => {})
 }
 
-function* handleSeeingWallets(action: Chat2Gen.HandleSeeingWalletsPayload) {
+function * handleSeeingWallets (_, action)  {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenWallets =
     gregorState.items && gregorState.items.some(i => i.item?.category === Constants.seenWalletsGregorKey)
@@ -2500,12 +2485,12 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePa
     ),
   ])
 
-const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
+const toggleMessageReaction = (state, action) => {
   // The service translates this to a delete if an identical reaction already exists
   // so we only need to call this RPC to toggle it on & off
   const {conversationIDKey, emoji, ordinal} = action.payload
   if (!emoji) {
-    return state
+    return
   }
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -2521,8 +2506,7 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
   const meta = Constants.getMeta(state, conversationIDKey)
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
-  return Saga.sequentially([
-    Saga.callUntyped(RPCChatTypes.localPostReactionNonblockRpcPromise, {
+  return RPCChatTypes.localPostReactionNonblockRpcPromise({
       body: emoji,
       clientPrev,
       conversationID: Types.keyToConversationID(conversationIDKey),
@@ -2531,16 +2515,14 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
       supersedes: messageID,
       tlfName: meta.tlfname,
       tlfPublic: false,
-    }),
-    Saga.put(
+  }).finally(() =>
       Chat2Gen.createToggleLocalReaction({
         conversationIDKey,
         emoji,
         targetOrdinal: ordinal,
         username: state.config.username || '',
       })
-    ),
-  ])
+    )
 }
 
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
@@ -2596,17 +2578,14 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
-const openChatFromWidget = (
-  state: TypedState,
-  {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
-) =>
-  Saga.sequentially([
-    Saga.put(ConfigGen.createShowMain()),
-    Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
+const openChatFromWidget = ( state, {payload: {conversationIDKey}}) =>
+  [
+    ConfigGen.createShowMain(),
+    RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
     ...(conversationIDKey
-      ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
+      ? [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})]
       : []),
-  ])
+  ]
 
 const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) => {
   const actions = []
@@ -2921,17 +2900,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   // Exploding things
-  yield* Saga.chainAction<Chat2Gen.SetConvExplodingModePayload>(
+  yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
     Chat2Gen.setConvExplodingMode,
     setConvExplodingMode,
-    setConvExplodingModeSuccess,
-    setConvExplodingModeFailure
   )
   yield* Saga.chainAction<Chat2Gen.HandleSeeingExplodingMessagesPayload>(
     Chat2Gen.handleSeeingExplodingMessages,
     handleSeeingExplodingMessages
   )
-  yield* Saga.chainAction<Chat2Gen.HandleSeeingWalletsPayload>(
+  yield* Saga.chainGenerator<Chat2Gen.HandleSeeingWalletsPayload>(
     Chat2Gen.handleSeeingWallets,
     handleSeeingWallets
   )
