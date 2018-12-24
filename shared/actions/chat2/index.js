@@ -2442,17 +2442,17 @@ function * handleSeeingWallets (_, action)  {
   }
 }
 
-const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
-  !state.chat2.staticConfig &&
-  Saga.sequentially([
-    Saga.put(
+function * loadStaticConfig  (state, action) {
+  if(state.chat2.staticConfig) {
+    return
+  }
+    yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: true,
         name: 'chat.loadStatic',
         version: action.payload.version,
       })
-    ),
-    Saga.callUntyped(function*() {
+    )
       const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(res => {
         if (!res.deletableByDeleteHistory) {
           logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
@@ -2475,15 +2475,14 @@ const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePa
       if (loadAction) {
         yield Saga.put(loadAction)
       }
-    }),
-    Saga.put(
+    yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
         increment: false,
         name: 'chat.loadStatic',
         version: action.payload.version,
       })
-    ),
-  ])
+    )
+}
 
 const toggleMessageReaction = (state, action) => {
   // The service translates this to a delete if an identical reaction already exists
@@ -2525,16 +2524,16 @@ const toggleMessageReaction = (state, action) => {
     )
 }
 
-const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  Saga.put(Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []}))
+const receivedBadgeState = (_, action) =>
+  Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []})
 
-const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
+const setMinWriterRole = (_, action) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
-  return Saga.callUntyped(RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise, {
+  return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise( {
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.teamsTeamRole[role],
-  })
+  }).then(() => {})
 }
 
 const unfurlRemove = (state, action) => {
@@ -2587,14 +2586,14 @@ const openChatFromWidget = ( state, {payload: {conversationIDKey}}) =>
       : []),
   ]
 
-const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) => {
+const gregorPushState = (state, action) => {
   const actions = []
   const items = action.payload.state
 
   const explodingItems = items.filter(i => i.item.category.startsWith(Constants.explodingModeGregorKeyPrefix))
   if (!explodingItems.length) {
     // No conversations have exploding modes, clear out what is set
-    actions.push(Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes: []})))
+    actions.push(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
   } else {
     logger.info('Got push state with some exploding modes')
     const modes = explodingItems.reduce((current, i) => {
@@ -2610,7 +2609,7 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) 
       current.push({conversationIDKey, seconds})
       return current
     }, [])
-    actions.push(Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes})))
+    actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
 
   const seenExploding = items.find(i => i.item.category === Constants.seenExplodingGregorKey)
@@ -2622,18 +2621,18 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) 
       isNew = Date.now() - when < Constants.newExplodingGregorOffset
     }
   }
-  actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew})))
+  actions.push(Chat2Gen.createSetExplodingMessagesNew({new: isNew}))
 
   const seenWallets = items.some(i => i.item.category === Constants.seenWalletsGregorKey)
   if (seenWallets && state.chat2.isWalletsNew) {
     logger.info('chat.gregorPushState: got seenWallets and we thought they were new, updating store.')
-    actions.push(Saga.put(Chat2Gen.createSetWalletsOld()))
+    actions.push(Chat2Gen.createSetWalletsOld())
   }
 
-  return Saga.sequentially(actions)
+  return actions
 }
 
-const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFulfillRequestFormPayload) => {
+const prepareFulfillRequestForm = (state, action) => {
   const {conversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -2661,8 +2660,7 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  return Saga.put(
-    WalletsGen.createOpenSendRequestForm({
+  return WalletsGen.createOpenSendRequestForm({
       amount: requestInfo.amount,
       currency: requestInfo.currencyCode || 'XLM',
       from: WalletTypes.noAccountID,
@@ -2670,7 +2668,6 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       secretNote: message.note,
       to: message.author,
     })
-  )
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -2916,7 +2913,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.toggleMessageReaction,
     toggleMessageReaction
   )
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,
     setupEngineListeners
@@ -2927,11 +2924,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<Chat2Gen.SetMinWriterRolePayload>(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
-  yield* Saga.spawn(chatTeamBuildingSaga)
   yield* Saga.chainAction<Chat2Gen.PrepareFulfillRequestFormPayload>(
     Chat2Gen.prepareFulfillRequestForm,
     prepareFulfillRequestForm
   )
+
+  yield* Saga.spawn(chatTeamBuildingSaga)
 }
 
 export default chat2Saga
