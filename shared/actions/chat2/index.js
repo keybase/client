@@ -36,10 +36,7 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
-const inboxRefresh = (
-  state: TypedState,
-  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload
-) => {
+function* inboxRefresh(state, action) {
   if (!state.config.loggedIn) {
     return
   }
@@ -64,29 +61,29 @@ const inboxRefresh = (
     )
   }
 
-  return RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-    params: {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      maxUnbox: 0,
-      query: Constants.makeInboxQuery([]),
-      skipUnverified: false,
-    },
-    waitingKey: Constants.waitingKeyInboxRefresh,
-  })
+  yield Saga.callRPCs(
+    RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+      incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
+      params: {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        maxUnbox: 0,
+        query: Constants.makeInboxQuery([]),
+        skipUnverified: false,
+      },
+      waitingKey: Constants.waitingKeyInboxRefresh,
+    })
+  )
 }
 
 // When we get info on a team we need to unbox immediately so we can get the channel names
-const requestTeamsUnboxing = (action: Chat2Gen.MetasReceivedPayload) => {
+const requestTeamsUnboxing = (_, action) => {
   const conversationIDKeys = action.payload.metas
     .filter(meta => meta.trustedState === 'untrusted' && meta.teamType === 'big' && !meta.channelname)
     .map(meta => meta.conversationIDKey)
   if (conversationIDKeys.length) {
-    return Saga.put(
-      Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys,
-      })
-    )
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys,
+    })
   }
 }
 
@@ -96,19 +93,19 @@ const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.Convers
 
 // We keep a set of conversations to unbox
 let metaQueue = I.OrderedSet()
-const queueMetaToRequest = (action: Chat2Gen.MetaNeedsUpdatingPayload, state: TypedState) => {
+const queueMetaToRequest = (state, action) => {
   const old = metaQueue
   metaQueue = metaQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
   if (old !== metaQueue) {
     // only unboxMore if something changed
-    return Saga.put(Chat2Gen.createMetaHandleQueue())
+    return Chat2Gen.createMetaHandleQueue()
   } else {
     logger.info('skipping meta queue run, queue unchanged')
   }
 }
 
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState) => {
+function * requestMeta (state, action) {
   const maxToUnboxAtATime = 10
   const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
   metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
@@ -151,6 +148,7 @@ const rpcMetaRequestConversationIDKeys = (
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
+aaaaa
 // We want to unbox rows that have scroll into view
 const unboxRows = (
   state: TypedState,
@@ -1093,7 +1091,7 @@ const clearInboxFilter = (
 }
 
 // Show a desktop notification
-const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPayload) => {
+function* desktopNotify(state, action) {
   const {conversationIDKey, author, body} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -1111,35 +1109,33 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
     title += `#${meta.channelname}`
   }
 
-  return Saga.callUntyped(function*() {
-    const actions = yield Saga.callUntyped(
-      () =>
-        new Promise(resolve => {
-          const onClick = () => {
-            resolve(
-              Saga.sequentially([
-                Saga.put(
-                  Chat2Gen.createSelectConversation({
-                    conversationIDKey,
-                    reason: 'desktopNotification',
-                  })
-                ),
-                Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
-                Saga.put(ConfigGen.createShowMain()),
-              ])
-            )
-          }
-          const onClose = () => {
-            resolve()
-          }
-          logger.info('desktopNotify: invoking NotifyPopup for chat notification')
-          NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
-        })
-    )
-    if (actions) {
-      yield actions
-    }
-  })
+  const actions = yield Saga.callUntyped(
+    () =>
+      new Promise(resolve => {
+        const onClick = () => {
+          resolve(
+            Saga.sequentially([
+              Saga.put(
+                Chat2Gen.createSelectConversation({
+                  conversationIDKey,
+                  reason: 'desktopNotification',
+                })
+              ),
+              Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
+              Saga.put(ConfigGen.createShowMain()),
+            ])
+          )
+        }
+        const onClose = () => {
+          resolve()
+        }
+        logger.info('desktopNotify: invoking NotifyPopup for chat notification')
+        NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
+      })
+  )
+  if (actions) {
+    yield actions
+  }
 }
 
 // Delete a message. We cancel pending messages
@@ -1561,37 +1557,24 @@ const previewConversationFindExisting = (
 const startupInboxLoad = (_, state: TypedState) =>
   state.config.username && Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
-const changeSelectedConversation = (
-  action:
-    | Chat2Gen.MetasReceivedPayload
-    | Chat2Gen.LeaveConversationPayload
-    | Chat2Gen.MetaDeletePayload
-    | Chat2Gen.MessageSendPayload
-    | Chat2Gen.SetPendingModePayload
-    | Chat2Gen.AttachmentsUploadPayload
-    | Chat2Gen.BlockConversationPayload
-    | TeamsGen.LeaveTeamPayload,
-  state: TypedState
-) => {
+const changeSelectedConversation = (state, action) => {
   const selected = Constants.getSelectedConversation(state)
   switch (action.type) {
     case Chat2Gen.setPendingMode: {
       if (action.payload.pendingMode === 'newChat') {
       } else if (action.payload.pendingMode !== 'none') {
-        return Saga.sequentially([
-          Saga.put(
-            Chat2Gen.createSelectConversation({
-              conversationIDKey: Constants.pendingConversationIDKey,
-              reason: 'setPendingMode',
-            })
-          ),
-          Saga.put(navigateToThreadRoute),
-        ])
+        return [
+          Chat2Gen.createSelectConversation({
+            conversationIDKey: Constants.pendingConversationIDKey,
+            reason: 'setPendingMode',
+          }),
+          navigateToThreadRoute,
+        ]
       } else if (action.payload.noneDestination === 'inbox') {
-        return Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
+        return Chat2Gen.createNavigateToInbox({findNewConversation: true})
       } else if (action.payload.noneDestination === 'thread') {
         // don't allow check of isValidConversationIDKey
-        return Saga.put(navigateToThreadRoute)
+        return navigateToThreadRoute
       }
       break
     }
@@ -1601,34 +1584,20 @@ const changeSelectedConversation = (
       if (selected === Constants.pendingConversationIDKey) {
         const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
         if (resolvedPendingConversationIDKey !== Constants.noConversationIDKey) {
-          return Saga.put(
-            Chat2Gen.createSelectConversation({
-              conversationIDKey: resolvedPendingConversationIDKey,
-              reason: 'sendingToPending',
-            })
-          )
+          return Chat2Gen.createSelectConversation({
+            conversationIDKey: resolvedPendingConversationIDKey,
+            reason: 'sendingToPending',
+          })
         }
       }
   }
 
   if (!isMobile) {
-    return _maybeAutoselectNewestConversation(action, state)
+    return _maybeAutoselectNewestConversation(state, action, state)
   }
 }
 
-const _maybeAutoselectNewestConversation = (
-  action:
-    | Chat2Gen.MetasReceivedPayload
-    | Chat2Gen.LeaveConversationPayload
-    | Chat2Gen.MetaDeletePayload
-    | Chat2Gen.MessageSendPayload
-    | Chat2Gen.SetPendingModePayload
-    | Chat2Gen.AttachmentsUploadPayload
-    | Chat2Gen.BlockConversationPayload
-    | Chat2Gen.NavigateToInboxPayload
-    | TeamsGen.LeaveTeamPayload,
-  state: TypedState
-) => {
+const _maybeAutoselectNewestConversation = (state, action) => {
   // If there is a team we should avoid when selecting a new conversation (e.g.
   // on team leave) put the name in `avoidTeam` and `isEligibleConvo` below will
   // take it into account
@@ -1696,24 +1665,20 @@ const _maybeAutoselectNewestConversation = (
   const meta = state.chat2.metaMap.maxBy(meta => (isEligibleConvo(meta) ? meta.timestamp : 0))
 
   if (meta) {
-    return Saga.put(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey: meta.conversationIDKey,
-        reason: 'findNewestConversation',
-      })
-    )
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey: meta.conversationIDKey,
+      reason: 'findNewestConversation',
+    })
   } else if (avoidTeam) {
     // No conversations besides in the team we're trying to avoid. Select
     // nothing
     logger.info(
       `AutoselectNewestConversation: no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
     )
-    return Saga.put(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey: Constants.noConversationIDKey,
-        reason: 'clearSelected',
-      })
-    )
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey: Constants.noConversationIDKey,
+      reason: 'clearSelected',
+    })
   }
 }
 
@@ -2192,27 +2157,25 @@ const navigateToThread = (action: Chat2Gen.NavigateToThreadPayload, state: Typed
   return Saga.put(navigateToThreadRoute)
 }
 
-const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+const mobileNavigateOnSelect = (state, action) => {
   if (Constants.isValidConversationIDKey(action.payload.conversationIDKey)) {
-    return Saga.put(navigateToThreadRoute)
+    return navigateToThreadRoute
   }
 }
 
-const mobileChangeSelection = (_, state: TypedState) => {
+const mobileChangeSelection = state => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
-    return Saga.put(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey: Constants.noConversationIDKey,
-        reason: 'clearSelected',
-      })
-    )
+    return Chat2Gen.createSelectConversation({
+      conversationIDKey: Constants.noConversationIDKey,
+      reason: 'clearSelected',
+    })
   }
 }
 
 // Native share sheet for attachments
-function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
+function* mobileMessageAttachmentShare(state, action) {
   const {conversationIDKey, ordinal} = action.payload
   let state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
@@ -2228,9 +2191,8 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
 }
 
 // Native save to camera roll
-function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
+function* mobileMessageAttachmentSave(state, action) {
   const {conversationIDKey, ordinal} = action.payload
-  const state = yield* Saga.selectState()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
@@ -2837,20 +2799,41 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, mobileNavigateOnSelect)
-    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
-    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
+    yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(
+      Chat2Gen.selectConversation,
+      mobileNavigateOnSelect
+    )
+    yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
+      Chat2Gen.messageAttachmentNativeShare,
+      mobileMessageAttachmentShare
+    )
+    yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSavePayload>(
+      Chat2Gen.messageAttachmentNativeSave,
+      mobileMessageAttachmentSave
+    )
     // Unselect the conversation when we go to the inbox
-    yield Saga.safeTakeEveryPure(
+    yield* Saga.chainAction<any>(
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
       mobileChangeSelection
     )
   } else {
-    yield Saga.actionToAction(Chat2Gen.desktopNotification, desktopNotify)
+    yield* Saga.chainGenerator<Chat2Gen.DesktopNotificationPayload>(
+      Chat2Gen.desktopNotification,
+      desktopNotify
+    )
   }
 
   // Sometimes change the selection
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<
+    | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.LeaveConversationPayload
+    | Chat2Gen.MetaDeletePayload
+    | Chat2Gen.SetPendingModePayload
+    | Chat2Gen.MessageSendPayload
+    | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
+    | TeamsGen.LeaveTeamPayload
+  >(
     [
       Chat2Gen.metasReceived,
       Chat2Gen.leaveConversation,
@@ -2864,19 +2847,30 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changeSelectedConversation
   )
   // Refresh the inbox
-  yield Saga.actionToAction(Chat2Gen.inboxRefresh, inboxRefresh)
+  yield* Saga.chainGenerator<Chat2Gen.InboxRefreshPayload>(Chat2Gen.inboxRefresh, inboxRefresh)
   // Load teams
-  yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
+  yield* Saga.chainAction<Chat2Gen.MetasReceivedPayload>(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
-  yield Saga.safeTakeEveryPure(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
+  yield* Saga.chainAction<Chat2Gen.MetaNeedsUpdatingPayload>(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
-  yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
+  yield* Saga.chainAction<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
-  yield Saga.actionToAction([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
+  yield* Saga.chainAction<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
+    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
+    unboxRows
+  )
 
   // Load the selected thread
-  yield Saga.actionToAction(
+  yield* Saga.chainAction<
+    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
+    | Chat2Gen.LoadOlderMessagesDueToScrollPayload
+    | Chat2Gen.SetPendingConversationUsersPayload
+    | Chat2Gen.MarkConversationsStalePayload
+    | Chat2Gen.MetasReceivedPayload
+    | ConfigGen.ChangedFocusPayload
+  >(
     [
       Chat2Gen.selectConversation,
       Chat2Gen.setPendingConversationExistingConversationIDKey,
@@ -2889,54 +2883,93 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     loadMoreMessages
   )
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageRetry, messageRetry)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageSend, messageSend, messageSendWithResult, messageSendWithError)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, messageEdit)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
-  yield Saga.actionToAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
+  yield* Saga.chainAction<Chat2Gen.MessageRetryPayload>(Chat2Gen.messageRetry, messageRetry)
+  yield* Saga.chainAction<Chat2Gen.MessageSendPayload>(
+    Chat2Gen.messageSend,
+    messageSend,
+    messageSendWithResult,
+    messageSendWithError
+  )
+  yield* Saga.chainAction<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit)
+  yield* Saga.chainAction<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, clearMessageSetEditing)
+  yield* Saga.chainAction<Chat2Gen.MessageDeletePayload>(Chat2Gen.messageDelete, messageDelete)
+  yield* Saga.chainAction<Chat2Gen.MessageDeleteHistoryPayload>(
+    Chat2Gen.messageDeleteHistory,
+    deleteMessageHistory
+  )
+  yield* Saga.chainAction<Chat2Gen.ConfirmScreenResponsePayload>(
+    Chat2Gen.confirmScreenResponse,
+    confirmScreenResponse
+  )
 
-  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload>(
+    [Chat2Gen.selectConversation, Chat2Gen.messageSend],
+    clearInboxFilter
+  )
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
 
   // Unfurl
-  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
-  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
-  yield Saga.actionToAction(Chat2Gen.unfurlRemove, unfurlRemove)
+  yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
+    Chat2Gen.unfurlResolvePrompt,
+    unfurlResolvePrompt
+  )
+  yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
+    Chat2Gen.unfurlResolvePrompt,
+    unfurlDismissPrompt
+  )
+  yield* Saga.chainAction<Chat2Gen.UnfurlRemovePayload>(Chat2Gen.unfurlRemove, unfurlRemove)
 
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainACtion<Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload>(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],
     previewConversationFindExisting,
     previewConversationAfterFindExisting
   )
-  yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
+  yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
-  yield Saga.safeTakeEveryPure(ConfigGen.loggedIn, startupInboxLoad)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad)
 
   // Search handling
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<Chat2Gen.setPendingModePayload | SearchGen.UserInputItemsUpdatedPayload>(
     [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     updatePendingParticipants
   )
-  yield Saga.safeTakeEveryPure(SearchConstants.isUserInputItemsUpdated('chatSearch'), clearSearchResults)
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
+    SearchConstants.isUserInputItemsUpdated('chatSearch'),
+    clearSearchResults
+  )
+  yield* Saga.chainAction<Chat2Gen.SetPendingConversationUsersPayload | Chat2Gen.SelectConversationPayload>(
     [Chat2Gen.setPendingConversationUsers, Chat2Gen.selectConversation],
     getRecommendations
   )
 
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
-  yield Saga.actionToAction(Chat2Gen.attachmentFullscreenNext, attachmentFullscreenNext)
+  yield* Saga.chainAction<Chat2Gen.AttachmentPreviewSelectPayload>(
+    Chat2Gen.attachmentPreviewSelect,
+    attachmentPreviewSelect
+  )
+  yield* Saga.chainAction<Chat2Gen.AttachmentDownloadPayload>(Chat2Gen.attachmentDownload, attachmentDownload)
+  yield* Saga.chainAction<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield* Saga.chainAction<Chat2Gen.AttachmentPastedPayload>(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield* Saga.chainAction<Chat2Gen.AttachmentFullscreenNextPayload>(
+    Chat2Gen.attachmentFullscreenNext,
+    attachmentFullscreenNext
+  )
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
-  yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
-  yield Saga.safeTakeEveryPure(Chat2Gen.resetLetThemIn, resetLetThemIn)
+  yield* Saga.chainAction<Chat2Gen.SendTypingPayload>(Chat2Gen.sendTyping, sendTyping)
+  yield* Saga.chainAction<Chat2Gen.ResetChatWithoutThemPayload>(
+    Chat2Gen.resetChatWithoutThem,
+    resetChatWithoutThem
+  )
+  yield* Saga.chainAction<Chat2Gen.ResetLetThemInPayload>(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<
+    | Chat2Gen.MessagesAddPayload
+    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
+    | Chat2Gen.UpdateReactionsPayload
+    | ConfigGen.ChangedFocusPayload
+    | RouteTreeGen.Actions
+  >(
     [
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
@@ -2948,48 +2981,86 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     markThreadAsRead
   )
 
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<
+    | Chat2Gen.NavigateToInboxPayload
+    | Chat2Gen.LeaveConversationPayload
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.LeftTeamPayload
+  >(
     [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
     navigateToInbox
   )
-  yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
+  yield* Saga.chainAction<Chat2Gen.NavigateToThreadPayload>(Chat2Gen.navigateToThread, navigateToThread)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.joinConversation, joinConversation)
-  yield Saga.safeTakeEveryPure(Chat2Gen.leaveConversation, leaveConversation)
+  yield* Saga.chainAction<Chat2Gen.JoinConversationPayload>(Chat2Gen.joinConversation, joinConversation)
+  yield* Saga.chainAction<Chat2Gen.LeaveConversationPayload>(Chat2Gen.leaveConversation, leaveConversation)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
-  yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
-  yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
+  yield* Saga.chainAction<Chat2Gen.MuteConversationPayload>(Chat2Gen.muteConversation, muteConversation)
+  yield* Saga.chainAction<Chat2Gen.UpdateNotificationSettingsPayload>(
+    Chat2Gen.updateNotificationSettings,
+    updateNotificationSettings
+  )
+  yield* Saga.chainAction<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
-  yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
-  yield Saga.actionToAction(Chat2Gen.createConversation, createConversation2)
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<Chat2Gen.SetConvRetentionPolicyPayload>(
+    Chat2Gen.setConvRetentionPolicy,
+    setConvRetentionPolicy
+  )
+  yield* Saga.chainAction<Chat2Gen.MessageReplyPrivatelyPayload>(
+    Chat2Gen.messageReplyPrivately,
+    messageReplyPrivately
+  )
+  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload>(
+    Chat2Gen.createConversation,
+    createConversation2
+  )
+  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,
     createConversation,
     createConversationSelectIt,
     createConversationError
   )
-  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
-  yield Saga.actionToAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
+    [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
+    changePendingMode
+  )
+  yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   // Exploding things
-  yield Saga.safeTakeEveryPure(
+  yield* Saga.chainAction<Chat2Gen.SetConvExplodingModePayload>(
     Chat2Gen.setConvExplodingMode,
     setConvExplodingMode,
     setConvExplodingModeSuccess,
     setConvExplodingModeFailure
   )
-  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
-  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingWallets, handleSeeingWallets)
-  yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
-  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
-  yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
-  yield Saga.spawn(chatTeamBuildingSaga)
-  yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
+  yield* Saga.chainAction<Chat2Gen.HandleSeeingExplodingMessagesPayload>(
+    Chat2Gen.handleSeeingExplodingMessages,
+    handleSeeingExplodingMessages
+  )
+  yield* Saga.chainAction<Chat2Gen.HandleSeeingWalletsPayload>(
+    Chat2Gen.handleSeeingWallets,
+    handleSeeingWallets
+  )
+  yield* Saga.chainAction<Chat2Gen.ToggleMessageReactionPayload>(
+    Chat2Gen.toggleMessageReaction,
+    toggleMessageReaction
+  )
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
+  yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
+    NotificationsGen.receivedBadgeState,
+    receivedBadgeState
+  )
+  yield* Saga.chainAction<Chat2Gen.SetMinWriterRolePayload>(Chat2Gen.setMinWriterRole, setMinWriterRole)
+  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
+  yield* Saga.spawn(chatTeamBuildingSaga)
+  yield* Saga.chainAction<Chat2Gen.PrepareFulfillRequestFormPayload>(
+    Chat2Gen.prepareFulfillRequestForm,
+    prepareFulfillRequestForm
+  )
 }
 
 export default chat2Saga
