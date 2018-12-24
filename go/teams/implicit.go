@@ -60,17 +60,17 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
 	public bool) (res keybase1.TeamID, err error) {
-	imp, _, err := loadImpteam(ctx, g, displayName, public, false /* force */)
+	imp, _, err := loadImpteam(ctx, g, displayName, public, false /* skipCache */)
 	if err != nil {
 		return res, err
 	}
 	return imp.TeamID, nil
 }
 
-func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, force bool) (imp implicitTeam, hitCache bool, err error) {
+func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, skipCache bool) (imp implicitTeam, hitCache bool, err error) {
 	cacheKey := impTeamCacheKey(displayName, public)
 	cacher := g.GetImplicitTeamCacher()
-	if !force && cacher != nil {
+	if !skipCache && cacher != nil {
 		if cv, ok := cacher.Get(cacheKey); ok {
 			if imp, ok := cv.(implicitTeam); ok {
 				g.Log.CDebugf(ctx, "using cached iteam")
@@ -83,7 +83,7 @@ func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string
 	if err != nil {
 		return imp, false, err
 	}
-	// If the team has any assertions just skip caching
+	// If the team has any assertions skip caching.
 	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
 		cacher.Put(cacheKey, imp)
 	}
@@ -113,15 +113,17 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 	return imp, nil
 }
 
-// attemptLoadImpteamAndConflits attempts to lead the implicit team with conflict, but it might hit the cache based on
-// the force flag being false. In that case, the caller ought to recall this function with the force flag set to true.
+// attemptLoadImpteamAndConflits attempts to lead the implicit team with
+// conflict, but it might find the team but not the specific conflict if the
+// conflict was not in cache. This can be detected with `hitCache` return
+// value, and mitigated by passing skipCache=false argument.
 func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName,
-	nameWithoutConflict string, preResolveDisplayName string, force bool) (conflicts []keybase1.ImplicitTeamConflictInfo, teamID keybase1.TeamID, hitCache bool, err error) {
+	nameWithoutConflict string, preResolveDisplayName string, skipCache bool) (conflicts []keybase1.ImplicitTeamConflictInfo, teamID keybase1.TeamID, hitCache bool, err error) {
 
 	defer g.CTraceTimed(ctx,
-		fmt.Sprintf("attemptLoadImpteamAndConflict(impName=%q,woConflict=%q,preResolve=%q,force=%t)", impTeamName, nameWithoutConflict, preResolveDisplayName, force),
+		fmt.Sprintf("attemptLoadImpteamAndConflict(impName=%q,woConflict=%q,preResolve=%q,skipCache=%t)", impTeamName, nameWithoutConflict, preResolveDisplayName, skipCache),
 		func() error { return err })()
-	imp, hitCache, err := loadImpteam(ctx, g, nameWithoutConflict, impTeamName.IsPublic, force)
+	imp, hitCache, err := loadImpteam(ctx, g, nameWithoutConflict, impTeamName.IsPublic, skipCache)
 	if err != nil {
 		return conflicts, teamID, hitCache, err
 	}
@@ -195,13 +197,13 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	// Try the load first -- once with a cache, and once nameWithoutConflict.
 	var teamID keybase1.TeamID
 	var hitCache bool
-	conflicts, teamID, hitCache, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, false /* force */)
+	conflicts, teamID, hitCache, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, false /* skipCache */)
 	if _, dne := err.(TeamDoesNotExistError); dne && hitCache {
 		// We are looking for conflict team that we didn't find. Maybe we have the team
 		// cached from before another team was resolved and this team became conflicted.
 		// Try again skipping cache.
 		g.Log.CDebugf(ctx, "attemptLoadImpteamAndConflict failed to load team %q from cache, trying again skipping cache", preResolveDisplayName)
-		conflicts, teamID, _, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, true /* force */)
+		conflicts, teamID, _, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, true /* skipCache */)
 	}
 	if err != nil {
 		return team, teamName, impTeamName, conflicts, err
