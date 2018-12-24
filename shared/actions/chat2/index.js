@@ -8,7 +8,6 @@ import * as FsGen from '../fs-gen'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as WalletsGen from '../wallets-gen'
@@ -26,7 +25,6 @@ import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import engine from '../../engine'
 import logger from '../../logger'
-import type {TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
@@ -88,7 +86,7 @@ const requestTeamsUnboxing = (_, action) => {
 }
 
 // Only get the untrusted conversations out
-const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
+const untrustedConversationIDKeys = (state, ids) =>
   ids.filter(id => state.chat2.metaMap.getIn([id, 'trustedState'], 'untrusted') === 'untrusted')
 
 // We keep a set of conversations to unbox
@@ -126,10 +124,7 @@ function* requestMeta(state, action) {
 }
 
 // Get valid keys that we aren't already loading or have loaded
-const rpcMetaRequestConversationIDKeys = (
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
-  state: TypedState
-) => {
+const rpcMetaRequestConversationIDKeys = (state, action) => {
   let keys
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
@@ -154,7 +149,7 @@ function* unboxRows(state, action) {
     return
   }
 
-  const conversationIDKeys = rpcMetaRequestConversationIDKeys(action, state)
+  const conversationIDKeys = rpcMetaRequestConversationIDKeys(state, action)
   if (!conversationIDKeys.length) {
     return
   }
@@ -242,7 +237,7 @@ function* unboxRows(state, action) {
 }
 
 // We get an incoming message streamed to us
-const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedState) => {
+const onIncomingMessage = (state, incoming) => {
   const {
     message: cMsg,
     modifiedMessage,
@@ -548,7 +543,7 @@ const onChatIdentifyUpdate = update => {
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
-const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) => {
+const expungeToActions = (state, expunge) => {
   const actions = []
   const meta = !!expunge.conv && Constants.inboxUIItemToConversationMeta(expunge.conv)
   if (meta) {
@@ -566,7 +561,7 @@ const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) 
 }
 
 // Get actions to update messagemap / metamap when ephemeral messages expire
-const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
+const ephemeralPurgeToActions = info => {
   const actions = []
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   const messageIDs =
@@ -582,7 +577,7 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
-const messagesUpdatedToActions = (info: RPCChatTypes.MessagesUpdated, state: TypedState) => {
+const messagesUpdatedToActions = (state, info) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   const messages = (info.updates || []).reduce((l, msg) => {
     const messageID = Constants.getMessageID(msg)
@@ -765,7 +760,7 @@ const setupEngineListeners = () => {
           return incomingMessage
             ? Saga.callUntyped(function*() {
                 const state = yield* Saga.selectState()
-                yield arrayOfActionsToSequentially(onIncomingMessage(incomingMessage, state))
+                yield arrayOfActionsToSequentially(onIncomingMessage(state, incomingMessage))
               })
             : null
         }
@@ -815,7 +810,7 @@ const setupEngineListeners = () => {
           return expunge
             ? Saga.callUntyped(function*() {
                 const state = yield* Saga.selectState()
-                yield arrayOfActionsToSequentially(expungeToActions(expunge, state))
+                yield arrayOfActionsToSequentially(expungeToActions(state, expunge))
               })
             : null
         }
@@ -832,7 +827,7 @@ const setupEngineListeners = () => {
           return messagesUpdated
             ? Saga.callUntyped(function*() {
                 const state = yield* Saga.selectState()
-                yield arrayOfActionsToSequentially(messagesUpdatedToActions(messagesUpdated, state))
+                yield arrayOfActionsToSequentially(messagesUpdatedToActions(state, messagesUpdated))
               })
             : null
         }
@@ -1169,7 +1164,7 @@ const clearMessageSetEditing = (state, action) =>
     ordinal: null,
   })
 
-const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+const getIdentifyBehavior = (state, conversationIDKey) => {
   return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
 }
 
@@ -1431,7 +1426,6 @@ function* previewConversationFindExisting(state, action) {
 
   let params
   let users = []
-  let setUsers
 
   // we handled participants or teams
   if (participants) {
@@ -1440,7 +1434,7 @@ function* previewConversationFindExisting(state, action) {
     users = I.Set(participants)
       .subtract([you])
       .toArray()
-    setUsers = Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
+    yield Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users}))
   } else if (teamname) {
     params = {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -2166,17 +2160,16 @@ const setConvRetentionPolicy = (_, action) => {
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
   try {
     servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
-  } catch (err) {
-    // should never happen
-    logger.error(`Unable to parse retention policy: ${err.message}`)
-    throw err
-  } finally {
     if (servicePolicy) {
       return RPCChatTypes.localSetConvRetentionLocalRpcPromise({
         convID,
         policy: servicePolicy,
       })
     }
+  } catch (err) {
+    // should never happen
+    logger.error(`Unable to parse retention policy: ${err.message}`)
+    throw err
   }
 }
 
@@ -2369,7 +2362,7 @@ function* setConvExplodingMode(_, action) {
   } else {
     // update the category with the exploding time
     try {
-      const res = yield Saga.callUntyped(RPCTypes.gregorUpdateCategoryRpcPromise, {
+      yield Saga.callUntyped(RPCTypes.gregorUpdateCategoryRpcPromise, {
         body: seconds.toString(),
         category,
         dtime: {offset: 0, time: 0},
