@@ -59,7 +59,7 @@ function* inboxRefresh(state, action) {
     )
   }
 
-  yield Saga.callRPCs(
+  yield* Saga.callRPCs(
     RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
       incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
       params: {
