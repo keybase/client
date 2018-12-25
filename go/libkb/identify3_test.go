@@ -23,7 +23,7 @@ func (i *id3FakeUIRouter) GetSecretUI(sessionID int) (SecretUI, error)          
 func (i *id3FakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)       { return nil, 0, nil }
 func (i *id3FakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
 func (i *id3FakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
-func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext, keybase1.Identify3GUIID) (IdentifyUI, error) {
+func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }
 func (i *id3FakeUIRouter) Shutdown() {}

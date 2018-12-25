@@ -294,7 +294,7 @@ func (e *Identify2WithUID) Prereqs() Prereqs {
 }
 
 func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
-	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
+	return (k == libkb.IdentifyUIKind || k == libkb.Identify3UIKind) && e.arg.UseDelegateUI
 }
 
 func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr error) {

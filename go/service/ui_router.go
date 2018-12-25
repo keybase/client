@@ -109,12 +109,12 @@ func (u *UIRouter) GetIdentify3UI(m libkb.MetaContext) (keybase1.Identify3UiInte
 	return u.getIdentify3UIClient(m)
 }
 
-func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext, id keybase1.Identify3GUIID) (libkb.IdentifyUI, error) {
+func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI, error) {
 	id3cli, err := u.getIdentify3UIClient(m)
 	if err != nil {
 		return nil, err
 	}
-	return identify3.NewUIAdapter(m, id3cli)
+	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3cli)
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

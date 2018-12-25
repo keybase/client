@@ -49,7 +49,7 @@
     }
   ],
   "messages": {
-    "showTracker": {
+    "identify3ShowTracker": {
       "request": [
         {
           "name": "guiID",
@@ -61,7 +61,12 @@
         },
         {
           "name": "reason",
-          "type": "string"
+          "type": "IdentifyReason"
+        },
+        {
+          "name": "forceDisplay",
+          "type": "boolean",
+          "default": false
         }
       ],
       "response": null,
@@ -150,6 +155,10 @@
     },
     "identify3Result": {
       "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
         {
           "name": "result",
           "type": "Identify3ResultType"
