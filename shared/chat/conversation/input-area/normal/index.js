@@ -46,7 +46,7 @@ const searchUsers = memoize((users, filter) => {
 const suggestorToMarker = {
   channels: '#',
   emoji: ':',
-  users: '@',
+  users: /^(\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@/,
 }
 
 const suggestorKeyExtractors = {
