@@ -200,9 +200,9 @@ const setupEngineListeners = () => {
         console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       })
     },
-    'keybase.1.NotifyService.shutdown': code => {
-      if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
-        console.log('Quitting due to service shutdown')
+    'keybase.1.NotifyService.shutdown': request => {
+      if (isWindows && request.code !== RPCTypes.ctlExitCode.restart) {
+        console.log('Quitting due to service shutdown with code: ', request.code)
         // Quit just the app, not the service
         SafeElectron.getApp().quit()
       }
