@@ -3,6 +3,7 @@ export type FeatureFlags = {|
   admin: boolean,
   chatIndexProfilingEnabled: boolean,
   foldersInProfileTab: boolean,
+  identify3: boolean,
   kbfsChatIntegration: boolean,
   moveOrCopy: boolean,
   newTeamBuildingForChat: boolean,
