@@ -23,15 +23,15 @@ const standardTransformer = (
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
-const matchesMarker = (word: string, marker: string | RegExp): {length: number, matches: boolean} => {
+const matchesMarker = (word: string, marker: string | RegExp): {marker: string, matches: boolean} => {
   if (typeof marker === 'string') {
-    return {length: marker.length, matches: word.startsWith(marker)}
+    return {marker, matches: word.startsWith(marker)}
   }
   const match = word.match(marker)
   if (!match) {
-    return {length: 0, matches: false}
+    return {marker: '', matches: false}
   }
-  return {length: match[0]?.length || 0, matches: true}
+  return {marker: match[0] || '', matches: true}
 }
 
 // For better performance, try not to recreate these objects on every render
@@ -58,6 +58,7 @@ type AddSuggestorsProps = {
   transformers: {
     [key: string]: (
       item: any,
+      marker: string,
       tData: TransformerData,
       preview: boolean
     ) => {
@@ -168,7 +169,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
             // not active anymore
             this._setInactive()
           } else {
-            this.setState({filter: word.substring(matchInfo.length)}, this._stabilizeSelection)
+            this.setState({filter: word.substring(matchInfo.marker.length)}, this._stabilizeSelection)
             return
           }
         }
@@ -178,7 +179,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         )) {
           const matchInfo = matchesMarker(word, marker)
           if (matchInfo.matches) {
-            this.setState({active: suggestor, filter: word.substring(matchInfo.length)})
+            this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})
           }
         }
       }, 0)
@@ -292,8 +293,10 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         if (!cursorInfo) {
           return
         }
+        const matchInfo = matchesMarker(cursorInfo.word, this.props.suggestorToMarker[active])
         const transformedText = this.props.transformers[active](
           value,
+          matchInfo.marker,
           {
             position: cursorInfo.position,
             text: this._lastText || '',
