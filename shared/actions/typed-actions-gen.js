@@ -14,6 +14,7 @@ import type {Actions as notificationsActions} from './notifications-gen'
 import type {Actions as peopleActions} from './people-gen'
 import type {Actions as pinentryActions} from './pinentry-gen'
 import type {Actions as profileActions} from './profile-gen'
+import type {Actions as profile2Actions} from './profile2-gen'
 import type {Actions as provisionActions} from './provision-gen'
 import type {Actions as pushActions} from './push-gen'
 import type {Actions as routetreeActions} from './route-tree-gen'
@@ -28,4 +29,4 @@ import type {Actions as usersActions} from './users-gen'
 import type {Actions as waitingActions} from './waiting-gen'
 import type {Actions as walletsActions} from './wallets-gen'
 
-export type TypedActions = chat2Actions | configActions | devActions | devicesActions | entitiesActions | fsActions | gitActions | gregorActions | loginActions | notificationsActions | peopleActions | pinentryActions | profileActions | provisionActions | pushActions | routetreeActions | searchActions | settingsActions | signupActions | teambuildingActions | teamsActions | trackerActions | unlockfoldersActions | usersActions | waitingActions | walletsActions
+export type TypedActions = chat2Actions | configActions | devActions | devicesActions | entitiesActions | fsActions | gitActions | gregorActions | loginActions | notificationsActions | peopleActions | pinentryActions | profileActions | profile2Actions | provisionActions | pushActions | routetreeActions | searchActions | settingsActions | signupActions | teambuildingActions | teamsActions | trackerActions | unlockfoldersActions | usersActions | waitingActions | walletsActions

@@ -1,40 +1,40 @@
 // @flow strict
 import * as I from 'immutable'
-import * as RPCTypes from './rpc-gen'
+// import * as RPCTypes from './rpc-gen'
 
-type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked'
-type _AssertionMeta = {|
-  label: string, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
+export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked'
+export type _AssertionMeta = {|
   color: 'blue' | 'red' | 'black' | 'green',
+  label: string, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
 |}
 type AssertionMeta = I.RecordOf<_AssertionMeta>
 
-type _Assertion = {
-  site: string, // twitter
-  username: string, // bob
-  siteURL: string, // https://twitter.com/bob
-  siteIcon: string, // https://keybase.io/_/icons/twitter.png
+export type _Assertion = {
+  metas: $ReadOnlyArray<AssertionMeta>,
   proofURL: string, // http://twitter.com/bob/post/1234
+  site: string, // twitter
+  siteIcon: string, // https://keybase.io/_/icons/twitter.png
+  siteURL: string, // https://twitter.com/bob
   state: AssertionState,
-  metas: $ReadonlyArray<AssertionMeta>,
+  username: string, // bob
 }
-type Assertion = I.RecordOf<_Assertion>
+export type Assertion = I.RecordOf<_Assertion>
 
-type _Details = {
-  followsYou: boolean,
-  followThem: boolean,
-  followersCount: number,
-  followingCount: number,
-  bio: string,
-  location: string,
-  publishedTeams: $ReadonlyArray<string>,
+export type _Details = {
+  assertions: ?I.Map<string, Assertion>,
+  bio: ?string,
+  followThem: ?boolean,
+  followersCount: ?number,
+  followingCount: ?number,
+  followsYou: ?boolean,
+  guiID: string,
+  location: ?string,
+  publishedTeams: ?$ReadOnlyArray<string>,
 }
-type Details = I.RecordOf<_Details>
+export type Details = I.RecordOf<_Details>
 
 export type _State = {
   usernameToDetails: I.Map<string, Details>,
-  // TDOO make this one thing 'info' or split maps?
-  usernameToSiteToAssertion: I.Map<string,
 }
 
 export type State = I.RecordOf<_State>

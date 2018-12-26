@@ -13,6 +13,7 @@ import provision from './provision'
 import people from './people'
 import pinentry from './pinentry'
 import profile from './profile'
+import profile2 from './profile2'
 import push from './push'
 import routeTree from './route-tree'
 import settings from './settings'
@@ -42,6 +43,7 @@ const reducers = {
   people,
   pinentry,
   profile,
+  profile2,
   provision,
   push,
   routeTree,

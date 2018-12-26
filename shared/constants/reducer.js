@@ -12,6 +12,7 @@ import type {State as Provision} from '../constants/types/provision'
 import type {State as Notification} from '../constants/types/notifications'
 import type {State as Pinentry} from '../constants/types/pinentry'
 import type {State as Profile} from '../constants/types/profile'
+import type {State as Profile2} from '../constants/types/profile2'
 import type {State as Push} from '../constants/types/push'
 import type {State as RouteTree} from '../constants/types/route-tree'
 import type {State as Settings} from '../constants/types/settings'
@@ -39,6 +40,7 @@ export type TypedState = $ReadOnly<{|
   people: People,
   pinentry: Pinentry,
   profile: Profile,
+  profile2: Profile2,
   push: Push,
   routeTree: RouteTree,
   settings: Settings,
