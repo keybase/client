@@ -185,7 +185,7 @@ func (dd *dirData) createIndirectBlock(ctx context.Context, dver DataVer) (
 	dd.tree.log.CDebugf(ctx, "Creating new level of indirection for dir %v, "+
 		"new block id for old top level is %v", dd.rootBlockPointer(), newID)
 
-	err = dd.tree.cacher(dd.rootBlockPointer(), dblock)
+	err = dd.tree.cacher(ctx, dd.rootBlockPointer(), dblock)
 	if err != nil {
 		return nil, err
 	}
@@ -199,12 +199,12 @@ func (dd *dirData) processModifiedBlock(
 	unrefs []BlockInfo, err error) {
 	newBlocks, newOffset := dd.tree.bsplit.SplitDirIfNeeded(block)
 
-	err = dd.tree.cacher(ptr, block)
+	err = dd.tree.cacher(ctx, ptr, block)
 	if err != nil {
 		return nil, err
 	}
 
-	_, newUnrefs, err := dd.tree.markParentsDirty(parentBlocks)
+	_, newUnrefs, err := dd.tree.markParentsDirty(ctx, parentBlocks)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +226,7 @@ func (dd *dirData) processModifiedBlock(
 			// case `newRightBlock` doesn't cache the old top block,
 			// so we should do it here.
 			err = dd.tree.cacher(
-				rightParents[0].pblock.(*DirBlock).IPtrs[0].BlockPointer,
+				ctx, rightParents[0].pblock.(*DirBlock).IPtrs[0].BlockPointer,
 				newBlocks[0])
 			if err != nil {
 				return nil, err
@@ -236,7 +236,7 @@ func (dd *dirData) processModifiedBlock(
 		// Cache the split block in place of the blank one made by
 		// `newRightBlock`.
 		pb := rightParents[len(rightParents)-1]
-		err = dd.tree.cacher(pb.childBlockPtr(), newBlocks[1])
+		err = dd.tree.cacher(ctx, pb.childBlockPtr(), newBlocks[1])
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +333,7 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) (
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (dd *dirData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
 	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
 	return dd.tree.ready(
 		ctx, id, bcache, dirtyBcache, bops, bps, topBlock, nil)

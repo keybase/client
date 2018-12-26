@@ -1097,7 +1097,7 @@ func (j *tlfJournal) flushBlockEntries(
 	}
 
 	j.log.CDebugf(ctx, "Flushing %d blocks, up to rev %d",
-		len(entries.puts.blockStates), maxMDRevToFlush)
+		entries.puts.numBlocks(), maxMDRevToFlush)
 
 	// Mark these blocks as flushing, and clear when done.
 	err = j.markFlushingBlockIDs(entries)

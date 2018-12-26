@@ -20,22 +20,24 @@ type journalDirtyBlockCache struct {
 
 var _ DirtyBlockCache = journalDirtyBlockCache{}
 
-func (j journalDirtyBlockCache) Get(tlfID tlf.ID, ptr BlockPointer,
+func (j journalDirtyBlockCache) Get(
+	ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
 	branch BranchName) (Block, error) {
 	if j.jServer.hasTLFJournal(tlfID) {
-		return j.journalCache.Get(tlfID, ptr, branch)
+		return j.journalCache.Get(ctx, tlfID, ptr, branch)
 	}
 
-	return j.syncCache.Get(tlfID, ptr, branch)
+	return j.syncCache.Get(ctx, tlfID, ptr, branch)
 }
 
-func (j journalDirtyBlockCache) Put(tlfID tlf.ID, ptr BlockPointer,
+func (j journalDirtyBlockCache) Put(
+	ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
 	branch BranchName, block Block) error {
 	if j.jServer.hasTLFJournal(tlfID) {
-		return j.journalCache.Put(tlfID, ptr, branch, block)
+		return j.journalCache.Put(ctx, tlfID, ptr, branch, block)
 	}
 
-	return j.syncCache.Put(tlfID, ptr, branch, block)
+	return j.syncCache.Put(ctx, tlfID, ptr, branch, block)
 }
 
 func (j journalDirtyBlockCache) Delete(tlfID tlf.ID, ptr BlockPointer,

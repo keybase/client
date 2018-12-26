@@ -187,8 +187,9 @@ func simpleDirtyBlockCacheStandard() *DirtyBlockCacheStandard {
 
 // Get implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) Get(_ tlf.ID, ptr BlockPointer,
-	branch BranchName) (Block, error) {
+func (d *DirtyBlockCacheStandard) Get(
+	_ context.Context, _ tlf.ID, ptr BlockPointer, branch BranchName) (
+	Block, error) {
 	block := func() Block {
 		dirtyID := dirtyBlockID{
 			id:       ptr.ID,
@@ -208,8 +209,9 @@ func (d *DirtyBlockCacheStandard) Get(_ tlf.ID, ptr BlockPointer,
 
 // Put implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) Put(_ tlf.ID, ptr BlockPointer,
-	branch BranchName, block Block) error {
+func (d *DirtyBlockCacheStandard) Put(
+	_ context.Context, _ tlf.ID, ptr BlockPointer, branch BranchName,
+	block Block) error {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
 		refNonce: ptr.RefNonce,

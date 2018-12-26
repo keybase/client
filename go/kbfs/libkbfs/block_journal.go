@@ -586,8 +586,8 @@ type blockEntriesToFlush struct {
 	all   []blockJournalEntry
 	first journalOrdinal
 
-	puts  *blockPutState
-	adds  *blockPutState
+	puts  blockPutState
+	adds  blockPutState
 	other []blockJournalEntry
 }
 
@@ -609,14 +609,14 @@ func (be blockEntriesToFlush) revIsLocalSquash(rev kbfsmd.Revision) bool {
 }
 
 func (be blockEntriesToFlush) markFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
-	for _, bs := range be.puts.blockStates {
-		ids[bs.blockPtr.ID] = true
+	for _, ptr := range be.puts.ptrs() {
+		ids[ptr.ID] = true
 	}
 }
 
 func (be blockEntriesToFlush) clearFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
-	for _, bs := range be.puts.blockStates {
-		delete(ids, bs.blockPtr.ID)
+	for _, ptr := range be.puts.ptrs() {
+		delete(ids, ptr.ID)
 	}
 }
 
@@ -658,8 +658,8 @@ func (j *blockJournal) getNextEntriesToFlush(
 				"end of the journal (realEnd=%d, end=%d)", realEnd, end)
 	}
 
-	entries.puts = newBlockPutState(int(end - first))
-	entries.adds = newBlockPutState(int(end - first))
+	entries.puts = newBlockPutStateMemory(int(end - first))
+	entries.adds = newBlockPutStateMemory(int(end - first))
 	maxMDRevToFlush = kbfsmd.RevisionUninitialized
 
 	loopEnd := end
@@ -700,10 +700,14 @@ func (j *blockJournal) getNextEntriesToFlush(
 			}
 			bytesToFlush += int64(len(data))
 
-			entries.puts.addNewBlock(
-				BlockPointer{ID: id, Context: bctx},
+			err = entries.puts.addNewBlock(
+				ctx, BlockPointer{ID: id, Context: bctx},
 				nil, /* only used by folderBranchOps */
 				ReadyBlockData{data, serverHalf}, nil)
+			if err != nil {
+				return blockEntriesToFlush{}, 0,
+					kbfsmd.RevisionUninitialized, err
+			}
 
 		case addRefOp:
 			id, bctx, err := entry.getSingleContext()
@@ -712,10 +716,14 @@ func (j *blockJournal) getNextEntriesToFlush(
 					kbfsmd.RevisionUninitialized, err
 			}
 
-			entries.adds.addNewBlock(
-				BlockPointer{ID: id, Context: bctx},
+			err = entries.adds.addNewBlock(
+				ctx, BlockPointer{ID: id, Context: bctx},
 				nil, /* only used by folderBranchOps */
 				ReadyBlockData{}, nil)
+			if err != nil {
+				return blockEntriesToFlush{}, 0,
+					kbfsmd.RevisionUninitialized, err
+			}
 
 		case mdRevMarkerOp:
 			if entry.Revision < maxMDRevToFlush {
@@ -786,9 +794,9 @@ func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	// Do all the put state stuff first, in parallel.  We need to do
 	// the puts strictly before the addRefs, since the latter might
 	// reference the former.
-	log.CDebugf(ctx, "Putting %d blocks", len(entries.puts.blockStates))
+	log.CDebugf(ctx, "Putting %d blocks", entries.puts.numBlocks())
 	blocksToRemove, err := doBlockPuts(ctx, bserver, bcache, reporter,
-		log, deferLog, tlfID, tlfName, *entries.puts, cacheType)
+		log, deferLog, tlfID, tlfName, entries.puts, cacheType)
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			log.CWarningf(ctx,
@@ -799,10 +807,9 @@ func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	}
 
 	// Next, do the addrefs.
-	log.CDebugf(ctx, "Adding %d block references",
-		len(entries.adds.blockStates))
+	log.CDebugf(ctx, "Adding %d block references", entries.adds.numBlocks())
 	blocksToRemove, err = doBlockPuts(ctx, bserver, bcache, reporter,
-		log, deferLog, tlfID, tlfName, *entries.adds, cacheType)
+		log, deferLog, tlfID, tlfName, entries.adds, cacheType)
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			log.CWarningf(ctx,

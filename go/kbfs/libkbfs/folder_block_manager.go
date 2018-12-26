@@ -275,7 +275,7 @@ func (fbm *folderBlockManager) shutdown() {
 // failed blocks should be built up in a separate data structure, and
 // this should be called when the operation finally succeeds.
 func (fbm *folderBlockManager) cleanUpBlockState(
-	md ReadOnlyRootMetadata, bps *blockPutState, bdType blockDeleteType) {
+	md ReadOnlyRootMetadata, bps blockPutState, bdType blockDeleteType) {
 	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision(),
 		md.MergedStatus(), bdType)
 	expBackoff := backoff.NewExponentialBackOff()
@@ -288,9 +288,7 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 		bdType:  bdType,
 		backoff: expBackoff,
 	}
-	for _, bs := range bps.blockStates {
-		toDelete.blocks = append(toDelete.blocks, bs.blockPtr)
-	}
+	toDelete.blocks = append(toDelete.blocks, bps.ptrs()...)
 	fbm.enqueueBlocksToDelete(toDelete)
 }
 

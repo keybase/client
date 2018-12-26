@@ -1203,6 +1203,15 @@ func setLimiterLimits(
 	limiter.diskCacheByteTracker.limit = workingLimit
 }
 
+func testPrefetcherGetCacheBytes(
+	ctx context.Context, syncCache, workingCache *DiskBlockCacheLocal) (
+	syncBytes, workingBytes int64) {
+	syncBytes = int64(syncCache.Status(ctx)[syncCacheName].BlockBytes)
+	workingBytes = int64(
+		workingCache.Status(ctx)[workingSetCacheName].BlockBytes)
+	return syncBytes, workingBytes
+}
+
 func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	t.Log("Test synced TLF prefetching with the disk cache.")
 	cache, dbcConfig := initDiskBlockCacheTest(t)
@@ -1281,8 +1290,8 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 		TransientEntry)
 
 	t.Log("Set the cache maximum bytes to the current total.")
-	syncBytes := int64(syncCache.currBytes)
-	workingBytes := int64(workingCache.currBytes)
+	syncBytes, workingBytes := testPrefetcherGetCacheBytes(
+		ctx, syncCache, workingCache)
 	limiter := dbcConfig.DiskLimiter().(*backpressureDiskLimiter)
 	setLimiterLimits(limiter, syncBytes, workingBytes)
 
@@ -1811,8 +1820,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Set the cache maximum bytes to the current total.")
-	syncBytes := int64(syncCache.currBytes)
-	workingBytes := int64(workingCache.currBytes)
+	syncBytes, workingBytes := testPrefetcherGetCacheBytes(
+		ctx, syncCache, workingCache)
 	limiter := dbcConfig.DiskLimiter().(*backpressureDiskLimiter)
 	setLimiterLimits(limiter, syncBytes, workingBytes)
 
@@ -1863,8 +1872,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 		FinishedPrefetch, TransientEntry)
 
 	t.Log("Set the cache maximum bytes to the current total again.")
-	syncBytes = int64(syncCache.currBytes)
-	workingBytes = int64(workingCache.currBytes)
+	syncBytes, workingBytes = testPrefetcherGetCacheBytes(
+		ctx, syncCache, workingCache)
 	setLimiterLimits(limiter, syncBytes, workingBytes)
 
 	t.Log("Release reschedule requests of two more children.")
