@@ -36,7 +36,6 @@ var _ keybase1.Identify3UiInterface = (*delegateID3UI)(nil)
 func (d *delegateID3UI) Identify3ShowTracker(_ context.Context, arg keybase1.Identify3ShowTrackerArg) error {
 	d.Lock()
 	defer d.Unlock()
-
 	d.guiid = arg.GuiID
 	require.Equal(d.T, string(arg.Assertion), "t_alice")
 	return nil
@@ -159,7 +158,7 @@ func TestDelegateIdentify3UI(t *testing.T) {
 
 	// We should get a close on this channel when the UI is read to go.
 	_, eof := <-dui.ch
-	require.True(t, eof)
+	require.False(t, eof)
 	dui.checkSuccess()
 
 	err = client.CtlServiceStop(tc1.G)
