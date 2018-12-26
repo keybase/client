@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -37,22 +37,15 @@ type delegateID3UI struct {
 var _ keybase1.Identify3UiInterface = (*delegateID3UI)(nil)
 
 func (d *delegateID3UI) Identify3ShowTracker(_ context.Context, arg keybase1.Identify3ShowTrackerArg) error {
-	d.G().Log.Debug("FOO 1A")
-	time.Sleep(time.Second)
-	d.G().Log.Debug("FOO 1B")
 	d.Lock()
-	d.G().Log.Debug("FOO 1C")
 	defer d.Unlock()
 	d.guiid = arg.GuiID
 	require.Equal(d.T, string(arg.Assertion), "t_alice")
-	d.G().Log.Debug("FOO 1D")
 	return nil
 }
 
 func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Identify3UpdateRowArg) error {
-	d.G().Log.Debug("FOO 2A")
 	d.Lock()
-	d.G().Log.Debug("FOO 2B")
 	defer d.Unlock()
 	require.Equal(d.T, d.guiid, arg.GuiID)
 
@@ -76,7 +69,6 @@ func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Ident
 	case "github":
 		poke(&d.launchedGithub, &d.foundGithub)
 	}
-	d.G().Log.Debug("FOO 2C")
 	return nil
 }
 
@@ -86,13 +78,10 @@ func (d *delegateID3UI) Identify3UserReset(context.Context, keybase1.Identify3GU
 }
 
 func (d *delegateID3UI) Identify3UpdateUserCard(_ context.Context, arg keybase1.Identify3UpdateUserCardArg) error {
-	d.G().Log.Debug("FOO 3A")
 	d.Lock()
-	d.G().Log.Debug("FOO 3B")
 	defer d.Unlock()
 	require.Equal(d.T, d.guiid, arg.GuiID)
 	d.displayedCard = true
-	d.G().Log.Debug("FOO 3C")
 	return nil
 }
 
@@ -102,35 +91,28 @@ func (d *delegateID3UI) Identify3TrackerTimedOut(context.Context, keybase1.Ident
 }
 
 func (d *delegateID3UI) Identify3Result(_ context.Context, arg keybase1.Identify3ResultArg) error {
-	d.G().Log.Debug("FOO 4A")
 	d.Lock()
-	d.G().Log.Debug("FOO 4B")
 	require.Equal(d.T, arg.GuiID, d.guiid)
 	require.Equal(d.T, arg.Result, keybase1.Identify3ResultType_OK)
 	d.Unlock()
-	d.G().Log.Debug("FOO 4C")
 	close(d.ch)
-	d.G().Log.Debug("FOO 4D")
 	return nil
 }
 
 func newDelegateID3UI(g *libkb.GlobalContext, t *testing.T) *delegateID3UI {
 	return &delegateID3UI{
-		Contextified : libkb.NewContextified(g),
-		T:  t,
-		ch: make(chan struct{}),
+		Contextified: libkb.NewContextified(g),
+		T:            t,
+		ch:           make(chan struct{}),
 	}
 }
 
 func (d *delegateID3UI) checkSuccess() {
-	d.G().Log.Debug("FOO 5A")
 	d.Lock()
-	d.G().Log.Debug("FOO 5B")
 	defer d.Unlock()
 	require.True(d.T, d.foundTwitter)
 	require.True(d.T, d.foundGithub)
 	require.True(d.T, d.displayedCard)
-	d.G().Log.Debug("FOO 5C")
 }
 
 func TestDelegateIdentify3UI(t *testing.T) {
@@ -179,9 +161,7 @@ func TestDelegateIdentify3UI(t *testing.T) {
 	require.NoError(t, err)
 
 	// We should get a close on this channel when the UI is read to go.
-	tc.G.Log.Debug("FOO 6A")
 	_, eof := <-dui.ch
-	tc.G.Log.Debug("FOO 6B")
 	require.False(t, eof)
 	dui.checkSuccess()
 

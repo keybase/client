@@ -796,11 +796,9 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	iui := m.UIs().IdentifyUI
 
 	m.CDebugf("| IdentifyUI.Start(%s)", e.them.GetName())
-	m.CDebugf("FOO 0A")
 	if err = iui.Start(e.them.GetName(), e.arg.Reason, e.arg.ForceDisplay); err != nil {
 		return err
 	}
-	m.CDebugf("FOO 0B")
 	for _, k := range e.identifyKeys {
 		if err = iui.DisplayKey(k); err != nil {
 			return err
