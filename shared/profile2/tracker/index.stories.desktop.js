@@ -72,7 +72,7 @@ const props = {
 
 const provider = Sb.createPropProviderWithCommon({
   Assertion: p => {
-    const a = allAssertions.find(a => a.assertion === p.site)
+    const a = allAssertions.find(a => a.assertion === p.assertion)
     if (!a) {
       throw new Error('cant happen')
     }
