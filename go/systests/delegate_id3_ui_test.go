@@ -6,7 +6,6 @@ package systests
 import (
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
