@@ -466,7 +466,7 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 // future local accesses to this MD (from the cache) can directly
 // access the ops without needing to re-embed the block changes.
 func (md *RootMetadata) loadCachedBlockChanges(
-	ctx context.Context, bps *blockPutState, log logger.Logger) {
+	ctx context.Context, bps blockPutState, log logger.Logger) {
 	if md.data.Changes.Ops != nil {
 		return
 	}
@@ -493,9 +493,11 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	// Prepare a map of all FileBlocks for easy access by fileData
 	// below.
 	fileBlocks := make(map[BlockPointer]*FileBlock)
-	for _, bs := range bps.blockStates {
-		if fblock, ok := bs.block.(*FileBlock); ok {
-			fileBlocks[bs.blockPtr] = fblock
+	for _, ptr := range bps.ptrs() {
+		if block, err := bps.getBlock(ctx, ptr); err == nil {
+			if fblock, ok := block.(*FileBlock); ok {
+				fileBlocks[ptr] = fblock
+			}
 		}
 	}
 
@@ -519,7 +521,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 			}
 			return fblock, false, nil
 		},
-		func(ptr BlockPointer, block Block) error {
+		func(_ context.Context, ptr BlockPointer, block Block) error {
 			return nil
 		}, log)
 

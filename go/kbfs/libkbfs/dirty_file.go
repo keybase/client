@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
@@ -155,7 +156,8 @@ func (df *dirtyFile) isBlockOrphaned(ptr BlockPointer) bool {
 	return df.fileBlockStates[ptr].orphaned
 }
 
-func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
+func (df *dirtyFile) setBlockSyncing(
+	ctx context.Context, ptr BlockPointer) error {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	state := df.fileBlockStates[ptr]
@@ -164,7 +166,7 @@ func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	}
 	state.copy = blockNeedsCopy
 	state.sync = blockSyncing
-	block, err := df.dirtyBcache.Get(df.path.Tlf, ptr, df.path.Branch)
+	block, err := df.dirtyBcache.Get(ctx, df.path.Tlf, ptr, df.path.Branch)
 	if err != nil {
 		// The dirty block cache must always contain the dirty block
 		// until the full sync is completely done.  If the block is

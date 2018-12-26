@@ -1196,6 +1196,21 @@ type BlockCache interface {
 // struct{}.
 type DirtyPermChan <-chan struct{}
 
+// DirtyBlockCacheSimple is a bare-bones interface for a dirty block
+// cache.
+type DirtyBlockCacheSimple interface {
+	// Get gets the block associated with the given block ID.  Returns
+	// the dirty block for the given ID, if one exists.
+	Get(
+		ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
+		branch BranchName) (Block, error)
+	// Put stores a dirty block currently identified by the
+	// given block pointer and branch name.
+	Put(
+		ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName,
+		block Block) error
+}
+
 type isDirtyProvider interface {
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
@@ -1211,13 +1226,8 @@ type isDirtyProvider interface {
 // they must be deleted explicitly.
 type DirtyBlockCache interface {
 	isDirtyProvider
+	DirtyBlockCacheSimple
 
-	// Get gets the block associated with the given block ID.  Returns
-	// the dirty block for the given ID, if one exists.
-	Get(tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error)
-	// Put stores a dirty block currently identified by the
-	// given block pointer and branch name.
-	Put(tlfID tlf.ID, ptr BlockPointer, branch BranchName, block Block) error
 	// Delete removes the dirty block associated with the given block
 	// pointer and branch from the cache.  No error is returned if no
 	// block exists for the given ID.
@@ -2664,4 +2674,24 @@ type Chat interface {
 	// ClearCache is called to force this instance to forget
 	// everything it might have cached, e.g. when a user logs out.
 	ClearCache()
+}
+
+type blockPutState interface {
+	addNewBlock(
+		ctx context.Context, blockPtr BlockPointer, block Block,
+		readyBlockData ReadyBlockData, syncedCb func() error) error
+	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
+	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
+	mergeOtherBps(ctx context.Context, other blockPutState) error
+	removeOtherBps(ctx context.Context, other blockPutState) error
+	ptrs() []BlockPointer
+	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
+	getReadyBlockData(
+		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
+	synced(blockPtr BlockPointer) error
+	numBlocks() int
+	deepCopy(ctx context.Context) (blockPutState, error)
+	deepCopyWithBlacklist(
+		ctx context.Context, blacklist map[BlockPointer]bool) (
+		blockPutState, error)
 }

@@ -35,10 +35,10 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := simpleDirtyBlockCacheStandard()
-	getter := func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, _ KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*DirBlock, bool, error) {
 		isDirty := true
-		block, err := dirtyBcache.Get(id, ptr, MasterBranch)
+		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
 		if err != nil {
 			// Check the clean cache.
 			block, err = cleanCache.Get(ptr)
@@ -54,9 +54,8 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 		}
 		return dblock, isDirty, nil
 	}
-	cacher := func(ptr BlockPointer, block Block) error {
-		t.Logf("Caching %v", ptr)
-		return dirtyBcache.Put(id, ptr, MasterBranch, block)
+	cacher := func(ctx context.Context, ptr BlockPointer, block Block) error {
+		return dirtyBcache.Put(ctx, id, ptr, MasterBranch, block)
 	}
 
 	dd := newDirData(
@@ -217,8 +216,9 @@ func testDirDataCheckLeafs(
 	dirtyBcache DirtyBlockCache, expectedLeafs []testDirDataLeaf,
 	maxPtrsPerBlock, numDirEntries int) {
 	// Top block should always be dirty.
+	ctx := context.Background()
 	cacheBlock, err := dirtyBcache.Get(
-		dd.tree.file.Tlf, dd.tree.rootBlockPointer(), MasterBranch)
+		ctx, dd.tree.file.Tlf, dd.tree.rootBlockPointer(), MasterBranch)
 	require.NoError(t, err)
 	topBlock := cacheBlock.(*DirBlock)
 	require.True(t, topBlock.IsIndirect())
@@ -238,7 +238,7 @@ func testDirDataCheckLeafs(
 			}
 
 			cacheBlock, err = dirtyBcache.Get(
-				dd.tree.file.Tlf, iptr.BlockPointer, MasterBranch)
+				ctx, dd.tree.file.Tlf, iptr.BlockPointer, MasterBranch)
 			wasDirty := err == nil
 			if wasDirty {
 				dirtyBlocks[cacheBlock.(*DirBlock)] = true

@@ -516,7 +516,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		}
 		return block, false, nil
 	}
-	cacher := func(ptr BlockPointer, block Block) error {
+	cacher := func(_ context.Context, ptr BlockPointer, block Block) error {
 		return nil
 	}
 	// Reading doesn't use crypto or the block splitter, so for now
