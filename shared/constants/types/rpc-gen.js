@@ -355,6 +355,7 @@ export const homeAppLinkType = {
   git: 5,
   devices: 6,
   settings: 7,
+  teams: 8,
 }
 
 export const homeHomeScreenItemType = {
@@ -912,6 +913,7 @@ export const gregorGetStateRpcPromise = (params, waitingKey) => new Promise((res
 export const gregorInjectItemRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.gregor.injectItem', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gregorUpdateCategoryRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.gregor.updateCategory', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gregorUpdateItemRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.gregor.updateItem', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const homeHomeDismissAnnouncementRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeDismissAnnouncement', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeGetScreenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeGetScreen', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeMarkViewedRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeMarkViewed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeSkipTodoTypeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeSkipTodoType', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

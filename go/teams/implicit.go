@@ -60,34 +60,34 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 func LookupImplicitTeamIDUntrusted(ctx context.Context, g *libkb.GlobalContext, displayName string,
 	public bool) (res keybase1.TeamID, err error) {
-	imp, err := loadImpteam(ctx, g, displayName, public)
+	imp, _, err := loadImpteam(ctx, g, displayName, public, false /* skipCache */)
 	if err != nil {
 		return res, err
 	}
 	return imp.TeamID, nil
 }
 
-func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
+func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool, skipCache bool) (imp implicitTeam, hitCache bool, err error) {
 	cacheKey := impTeamCacheKey(displayName, public)
 	cacher := g.GetImplicitTeamCacher()
-	if cacher != nil {
+	if !skipCache && cacher != nil {
 		if cv, ok := cacher.Get(cacheKey); ok {
 			if imp, ok := cv.(implicitTeam); ok {
 				g.Log.CDebugf(ctx, "using cached iteam")
-				return imp, nil
+				return imp, true, nil
 			}
 			g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
 		}
 	}
 	imp, err = loadImpteamFromServer(ctx, g, displayName, public)
 	if err != nil {
-		return imp, err
+		return imp, false, err
 	}
-	// If the team has any assertions just skip caching
+	// If the team has any assertions skip caching.
 	if cacher != nil && !strings.Contains(imp.DisplayName, "@") {
 		cacher.Put(cacheKey, imp)
 	}
-	return imp, nil
+	return imp, false, nil
 }
 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
@@ -113,35 +113,29 @@ func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayN
 	return imp, nil
 }
 
-// Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
-// Does not resolve social assertions.
-// preResolveDisplayName is used for logging and errors
-func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
-	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName, opts ImplicitTeamOptions) (
-	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
+// attemptLoadImpteamAndConflits attempts to lead the implicit team with
+// conflict, but it might find the team but not the specific conflict if the
+// conflict was not in cache. This can be detected with `hitCache` return
+// value, and mitigated by passing skipCache=false argument.
+func attemptLoadImpteamAndConflict(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName,
+	nameWithoutConflict string, preResolveDisplayName string, skipCache bool) (conflicts []keybase1.ImplicitTeamConflictInfo, teamID keybase1.TeamID, hitCache bool, err error) {
 
-	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,opts=%+v)", preResolveDisplayName, opts), func() error { return err })()
-
-	impTeamName = impTeamNameInput
-
-	// Use a copy without the conflict info to hit the api endpoint
-	var impTeamNameWithoutConflict keybase1.ImplicitTeamDisplayName
-	impTeamNameWithoutConflict = impTeamName
-	impTeamNameWithoutConflict.ConflictInfo = nil
-	lookupNameWithoutConflict, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
+	defer g.CTraceTimed(ctx,
+		fmt.Sprintf("attemptLoadImpteamAndConflict(impName=%q,woConflict=%q,preResolve=%q,skipCache=%t)", impTeamName, nameWithoutConflict, preResolveDisplayName, skipCache),
+		func() error { return err })()
+	imp, hitCache, err := loadImpteam(ctx, g, nameWithoutConflict, impTeamName.IsPublic, skipCache)
 	if err != nil {
-		return team, teamName, impTeamName, conflicts, err
-	}
-	imp, err := loadImpteam(ctx, g, lookupNameWithoutConflict, impTeamName.IsPublic)
-	if err != nil {
-		return team, teamName, impTeamName, conflicts, err
+		return conflicts, teamID, hitCache, err
 	}
 	if len(imp.Conflicts) > 0 {
 		g.Log.CDebugf(ctx, "LookupImplicitTeam found %v conflicts", len(imp.Conflicts))
 	}
 	// We will use this team. Changed later if we selected a conflict.
 	var foundSelectedConflict bool
-	teamID := imp.TeamID
+	teamID = imp.TeamID
+	// We still need to iterate over Conflicts because we are returning parsed
+	// conflict list. So even if caller is not requesting a conflict team, go
+	// through this loop.
 	for i, conflict := range imp.Conflicts {
 		g.Log.CDebugf(ctx, "| checking conflict: %+v (iter %d)", conflict, i)
 		conflictInfo, err := conflict.parse()
@@ -174,9 +168,47 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	}
 	if impTeamName.ConflictInfo != nil && !foundSelectedConflict {
 		// We got the team but didn't find the specific conflict requested.
-		return team, teamName, impTeamName, conflicts, NewTeamDoesNotExistError(
+		return conflicts, teamID, hitCache, NewTeamDoesNotExistError(
 			impTeamName.IsPublic, "could not find team with suffix: %v", preResolveDisplayName)
 	}
+	return conflicts, teamID, hitCache, nil
+}
+
+// Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted copy 2017-03-04 #1)"
+// Does not resolve social assertions.
+// preResolveDisplayName is used for logging and errors
+func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
+	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName, opts ImplicitTeamOptions) (
+	team *Team, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
+
+	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v,opts=%+v)", preResolveDisplayName, opts), func() error { return err })()
+
+	impTeamName = impTeamNameInput
+
+	// Use a copy without the conflict info to hit the api endpoint
+	var impTeamNameWithoutConflict keybase1.ImplicitTeamDisplayName
+	impTeamNameWithoutConflict = impTeamName
+	impTeamNameWithoutConflict.ConflictInfo = nil
+	lookupNameWithoutConflict, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
+	if err != nil {
+		return team, teamName, impTeamName, conflicts, err
+	}
+
+	// Try the load first -- once with a cache, and once nameWithoutConflict.
+	var teamID keybase1.TeamID
+	var hitCache bool
+	conflicts, teamID, hitCache, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, false /* skipCache */)
+	if _, dne := err.(TeamDoesNotExistError); dne && hitCache {
+		// We are looking for conflict team that we didn't find. Maybe we have the team
+		// cached from before another team was resolved and this team became conflicted.
+		// Try again skipping cache.
+		g.Log.CDebugf(ctx, "attemptLoadImpteamAndConflict failed to load team %q from cache, trying again skipping cache", preResolveDisplayName)
+		conflicts, teamID, _, err = attemptLoadImpteamAndConflict(ctx, g, impTeamName, lookupNameWithoutConflict, preResolveDisplayName, true /* skipCache */)
+	}
+	if err != nil {
+		return team, teamName, impTeamName, conflicts, err
+	}
+
 	team, err = Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      impTeamName.IsPublic,
