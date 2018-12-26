@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import Tracker from './index.desktop'
+import Tracker from './container.desktop'
 
 const assertion = {
   assertion: '',
@@ -70,13 +70,15 @@ const props = {
 }
 
 const provider = Sb.createPropProviderWithCommon({
-  Tracker2: p => ({}),
+  Tracker2: p => ({
+    ...props,
+  }),
 })
 
 const load = () => {
   Sb.storiesOf('Tracker2', module)
     .addDecorator(provider)
-    .add('New User', () => <Tracker {...props} />)
+    .add('New User', () => <Tracker username="darksim905" />)
 }
 
 export default load
