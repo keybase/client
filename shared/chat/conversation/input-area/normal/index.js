@@ -46,7 +46,7 @@ const searchUsers = memoize((users, filter) => {
 const suggestorToMarker = {
   channels: '#',
   emoji: ':',
-  users: /^(\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@/,
+  users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
