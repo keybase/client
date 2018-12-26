@@ -1,0 +1,12 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/profile2'"
+  ],
+  "actions": {
+    "load": {
+      "assertion": "string",
+      "guiID": "number",
+      "ignoreCache?": "boolean"
+    },
+  }
+}
