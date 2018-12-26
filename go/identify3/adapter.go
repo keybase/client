@@ -77,11 +77,10 @@ func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force boo
 		ForceDisplay: force,
 	}
 
+	i.M().CDebugf("FOO 7A")
 	err := i.ui.Identify3ShowTracker(i.M().Ctx(), arg)
-	if err != nil {
-		i.M().CDebugf("Error sending upcall message: %s", err)
-	}
-	return nil
+	i.M().CDebugf("FOO 7B")
+	return err
 }
 
 // return true if we need an upgrade

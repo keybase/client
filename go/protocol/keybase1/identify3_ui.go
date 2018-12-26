@@ -271,7 +271,7 @@ type Identify3UiClient struct {
 }
 
 func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Identify3ShowTrackerArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil)
 	return
 }
 

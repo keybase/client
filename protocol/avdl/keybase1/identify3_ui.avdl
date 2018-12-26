@@ -12,7 +12,7 @@ protocol identify3Ui {
     Identify3Assertion assertion, // username or bob@twitter etc
     IdentifyReason reason,
     boolean forceDisplay=false
-  ) oneway;
+  );
 
   enum Identify3RowState {
     CHECKING_1,
