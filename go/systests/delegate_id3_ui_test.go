@@ -105,6 +105,8 @@ func newDelegateID3UI(t *testing.T) *delegateID3UI {
 }
 
 func (d *delegateID3UI) checkSuccess() {
+	d.Lock()
+	defer d.Unlock()
 	require.True(d.T, d.foundTwitter)
 	require.True(d.T, d.foundGithub)
 	require.True(d.T, d.displayedCard)
