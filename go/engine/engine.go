@@ -130,7 +130,7 @@ func delegateUIs(m libkb.MetaContext, e Engine2) (libkb.MetaContext, error) {
 	}
 
 	delegateIdentifyUI := func(m libkb.MetaContext, uik libkb.UIKind, f func() (libkb.IdentifyUI, error)) (libkb.MetaContext, bool, error) {
-		if !wantsDelegateUI(e, uik) {
+		if uidw, ok := e.(UIDelegateWanter); !ok || !uidw.WantDelegate(uik) {
 			return m, false, nil
 		}
 		m.CDebugf("IdentifyUI (%s) wanted for engine %q", uik, e.Name())
@@ -146,11 +146,17 @@ func delegateUIs(m libkb.MetaContext, e Engine2) (libkb.MetaContext, error) {
 		return m, true, nil
 	}
 
-	m, didIt, err := delegateIdentifyUI(m, libkb.Identify3UIKind, func() (libkb.IdentifyUI, error) {
+	var didIt bool
+	var err error
+	m.CDebugf("FOOBIE 1")
+	m, didIt, err = delegateIdentifyUI(m, libkb.Identify3UIKind, func() (libkb.IdentifyUI, error) {
+		m.CDebugf("FOOBIE 2")
 		return m.G().UIRouter.GetIdentify3UIAdapter(m)
 	})
 	if err == nil && !didIt {
+		m.CDebugf("FOOBIE 3")
 		m, didIt, err = delegateIdentifyUI(m, libkb.IdentifyUIKind, func() (libkb.IdentifyUI, error) {
+			m.CDebugf("FOOBIE 4")
 			return m.G().UIRouter.GetIdentifyUI()
 		})
 	}

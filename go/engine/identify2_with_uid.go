@@ -294,6 +294,7 @@ func (e *Identify2WithUID) Prereqs() Prereqs {
 }
 
 func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
+	e.G().Log.Debug("Shit %d %d %d\n", k, libkb.IdentifyUIKind, libkb.Identify3UIKind)
 	return (k == libkb.IdentifyUIKind || k == libkb.Identify3UIKind) && e.arg.UseDelegateUI
 }
 
@@ -922,7 +923,7 @@ func (e *Identify2WithUID) createIdentifyState(m libkb.MetaContext) (err error) 
 func (e *Identify2WithUID) RequiredUIs() []libkb.UIKind {
 	ret := []libkb.UIKind{}
 	if e.arg == nil || !e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
-		ret = append(ret, libkb.IdentifyUIKind)
+		ret = append(ret, libkb.IdentifyUIKind, libkb.Identify3UIKind)
 	}
 	return ret
 }
