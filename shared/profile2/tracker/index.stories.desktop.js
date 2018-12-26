@@ -39,23 +39,24 @@ const web3 = shorter(web2)
 const web4 = shorter(web3)
 const web5 = shorter(web4)
 
+const allAssertions = [
+  github,
+  twitter,
+  facebook,
+  hackernews,
+  rooter,
+  reddit,
+  pgp,
+  https,
+  dns,
+  web1,
+  web2,
+  web3,
+  web4,
+  web5,
+]
 const props = {
-  assertions: [
-    github,
-    twitter,
-    facebook,
-    hackernews,
-    rooter,
-    reddit,
-    pgp,
-    https,
-    dns,
-    web1,
-    web2,
-    web3,
-    web4,
-    web5,
-  ],
+  assertions: allAssertions.map(a => a.assertion),
   bio:
     'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch.',
   followThem: false,
@@ -70,6 +71,21 @@ const props = {
 }
 
 const provider = Sb.createPropProviderWithCommon({
+  Assertion: p => {
+    const a = allAssertions.find(a => a.assertion === p.site)
+    if (!a) {
+      throw new Error('cant happen')
+    }
+    return {
+      metas: a.metas,
+      proofURL: a.proofURL,
+      site: a.assertion,
+      siteIcon: a.siteIcon,
+      siteURL: a.siteURL,
+      state: a.state,
+      username: p.username,
+    }
+  },
   Tracker2: p => ({
     ...props,
   }),

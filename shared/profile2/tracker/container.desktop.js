@@ -32,6 +32,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   guiID: stateProps.guiID,
   location: stateProps.location,
   publishedTeams: stateProps.publishedTeams,
+  username: ownProps.username,
 })
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(

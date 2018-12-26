@@ -18,3 +18,5 @@ const Assertion = (p: Props) => (
     <Kb.Text type="Body">JSON.stringify(p)</Kb.Text>
   </Kb.Box2>
 )
+
+export default Assertion

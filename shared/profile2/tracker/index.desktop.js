@@ -15,12 +15,13 @@ type Props = {|
   guiID: ?string,
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
+  username: string,
 |}
 
 const Tracker = (props: Props) => {
   let assertions
   if (props.assertions) {
-    assertions = props.assertions.map(a => <Assertion key={a} site={a} />)
+    assertions = props.assertions.map(a => <Assertion key={a} username={props.username} assertion={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null

@@ -29,3 +29,4 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
 })
 
 export const noDetails = makeDetails({})
+export const noAssertion = makeAssertion({})
