@@ -29,6 +29,16 @@ export class Video extends React.Component<Props, State> {
     }
     this.setState({playingVideo: !this.state.playingVideo})
   }
+  playVideo = () => {
+    if (this.videoRef && this.videoRef.current) {
+      this.videoRef.current.play()
+    }
+  }
+  pauseVideo = () => {
+    if (this.videoRef && this.videoRef.current) {
+      this.videoRef.current.pause()
+    }
+  }
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.container}>
@@ -41,7 +51,7 @@ export class Video extends React.Component<Props, State> {
             },
           ])}
         >
-          {!this.state.playingVideo && (
+          {!this.state.playingVideo && !this.props.hidePlayButton && (
             <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>

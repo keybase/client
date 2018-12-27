@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
+import PreviewList from './preview-list'
+import {getMargin, scaledWidth} from './width'
 
 export type GifPreview = {
   targetUrl: string,
@@ -21,35 +23,21 @@ const gridHeight = 100
 const gridWidthMax = 130
 
 class GiphySearch extends React.Component<Props> {
-  _scaledWidth(width: number) {
+  _scaledWidth = (width: number) => {
     return width * 0.5
   }
-  _getMargin(width: number) {
-    const m = -((this._scaledWidth(width) - gridWidthMax) / 2)
+  _getMargin = (width: number) => {
+    const m = -((scaledWidth(width) - gridWidthMax) / 2)
     return m > 0 ? 0 : m
   }
+
   render() {
-    return (
+    return Styles.isMobile ? (
+      <PreviewList previews={this.props.previews} onClick={this.props.onClick} />
+    ) : (
       <Kb.ScrollView style={styles.scrollContainer} horizontal={Styles.isMobile}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-          {(this.props.previews || []).map(p => {
-            const margin = this._getMargin(p.previewWidth)
-            return (
-              <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
-                <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
-                  <UnfurlImage
-                    autoplayVideo={true}
-                    height={gridHeight}
-                    isVideo={p.previewIsVideo}
-                    onClick={() => this.props.onClick(p.targetUrl)}
-                    style={styles.image}
-                    url={p.previewUrl}
-                    width={this._scaledWidth(p.previewWidth)}
-                  />
-                </Kb.Box>
-              </Kb.Box2>
-            )
-          })}
+          <PreviewList previews={this.props.previews} onClick={this.props.onClick} />
         </Kb.Box2>
       </Kb.ScrollView>
     )

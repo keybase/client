@@ -9,7 +9,7 @@ import {noop} from 'lodash-es'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
-// console.disableYellowBox = true
+console.disableYellowBox = true
 //
 // Ignore some yellowboxes on 3rd party libs we can't control
 YellowBox.ignoreWarnings([
@@ -53,13 +53,13 @@ let config = {
 }
 
 // Developer settings
+config.isDevApplePushToken = true
 if (__DEV__) {
   config.enableActionLogging = true
   config.enableStoreLogging = true
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
-  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false

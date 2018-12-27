@@ -284,16 +284,26 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 				<head>
 					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
 					<title>Keybase Video Viewer</title>
+					<script>
+						window.togglePlay = function(data) {
+							var vid = document.getElementById("vid");
+							if (data === "play") {
+								vid.play();
+							} else {
+								vid.pause();
+							}
+						}
+					</script>
 				</head>
 				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" preload="auto" style="width: 100%%; height: 100%%; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
+					<video id="vid" preload="none" style="width: 100%%; height: 100%%; object-fit:fill" src="%s" playsinline webkit-playsinline loop muted />
 				</body>
 			</html>
 		`, req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serveGiphyLink: failed to write HTML video player: %s", err)
 		}
+		return
 	}
-
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
 	client := &http.Client{}
