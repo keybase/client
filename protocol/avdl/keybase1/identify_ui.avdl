@@ -38,6 +38,7 @@ protocol identifyUi {
   record RevokedProof {
     RemoteProof proof;
     TrackDiff diff;
+    boolean snoozed;
   }
 
   record Identity {

@@ -43,6 +43,7 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
           confirmLabel={item.confirmLabel}
           dismissable={item.dismissable}
           iconUrl={item.iconUrl}
+          id={item.id}
           key={item.text}
           text={item.text}
           url={item.url}
