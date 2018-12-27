@@ -17,6 +17,7 @@ type UIAdapter struct {
 	ui          keybase1.Identify3UiInterface
 	iFollowThem bool
 	sentResult  bool
+	isUpcall    bool
 }
 
 var _ libkb.IdentifyUI = (*UIAdapter)(nil)
@@ -29,6 +30,33 @@ func NewUIAdapter(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (*UI
 	return ret, nil
 }
 
+func NewUIAdapterMakeSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface, guiid keybase1.Identify3GUIID) (ret *UIAdapter, err error) {
+	sess := libkb.NewIdentify3SessionWithID(mctx, guiid)
+	err = mctx.G().Identify3State.Put(sess)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err = NewUIAdapterWithSession(mctx, ui, sess)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func NewUIAdapterMakeSessionForUpcall(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (ret *UIAdapter, err error) {
+	guiid, err := libkb.NewIdentify3GUIID()
+	if err != nil {
+		return nil, err
+	}
+	ret, err = NewUIAdapterMakeSession(mctx, ui, guiid)
+	if err != nil {
+		return nil, err
+	}
+	ret.isUpcall = true
+	return ret, nil
+}
+
 func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface, sess *libkb.Identify3Session) (*UIAdapter, error) {
 	ret, err := NewUIAdapter(mctx, ui)
 	if err != nil {
@@ -38,8 +66,22 @@ func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInte
 	return ret, nil
 }
 
-func (i *UIAdapter) Start(string, keybase1.IdentifyReason, bool) error {
-	return nil
+func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force bool) error {
+	if !i.isUpcall {
+		return nil
+	}
+	arg := keybase1.Identify3ShowTrackerArg{
+		GuiID:        i.session.ID(),
+		Assertion:    keybase1.Identify3Assertion(user),
+		Reason:       reason,
+		ForceDisplay: force,
+	}
+
+	err := i.ui.Identify3ShowTracker(i.M().Ctx(), arg)
+	if err != nil {
+		i.M().CDebugf("Failed to call Identify3ShowTracker: %s", err)
+	}
+	return err
 }
 
 // return true if we need an upgrade
@@ -233,10 +275,14 @@ func (i *UIAdapter) shouldSkipSendResult() bool {
 	return false
 }
 
-func (i *UIAdapter) sendResult(arg keybase1.Identify3ResultType) error {
+func (i *UIAdapter) sendResult(typ keybase1.Identify3ResultType) error {
 	if i.shouldSkipSendResult() {
 		i.M().CDebugf("Skipping send result, already done")
 		return nil
+	}
+	arg := keybase1.Identify3ResultArg{
+		GuiID:  i.session.ID(),
+		Result: typ,
 	}
 
 	err := i.ui.Identify3Result(i.M().Ctx(), arg)
