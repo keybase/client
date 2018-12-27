@@ -3,7 +3,7 @@ import * as Constants from '../constants/devices'
 import * as DevicesGen from './devices-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RouteTree from './route-tree-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
@@ -80,18 +80,18 @@ const revoke = (state, action) => {
 }
 
 const navigateAfterRevoked = (state, action) =>
-  RouteTree.createNavigateTo({
+  RouteTreeGen.createNavigateTo({
     path: action.payload.wasCurrentDevice ? [Tabs.loginTab] : [...Constants.devicesTabLocation],
   })
 
 const showRevokePage = () =>
-  RouteTree.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'revokeDevice']})
+  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'revokeDevice']})
 
 const showDevicePage = () =>
-  RouteTree.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})
+  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})
 
 const showPaperKeyPage = () =>
-  RouteTree.createNavigateTo({path: [...Constants.devicesTabLocation, 'paperKey']})
+  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'paperKey']})
 
 let _wasOnDeviceTab = false
 const clearBadgesAfterNav = (state, action) => {
@@ -128,7 +128,7 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
   )
-  yield* Saga.chainAction<RouteTree.SwitchToPayload>(RouteTree.switchTo, clearBadgesAfterNav)
+  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
 
   // Loading data
   yield* Saga.chainAction<DevicesGen.ShowRevokePagePayload>(

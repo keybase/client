@@ -14,7 +14,7 @@ import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import type {IconType} from '../common-adapters'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
-import {putActionIfOnPath, navigateAppend, navigateTo} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -819,7 +819,12 @@ export const destinationPickerGoToPathAction = (
   destinationParentPath: Types.Path
 ) => {
   const to = {props: {destinationParentPath}, selected: 'destinationPicker'}
-  return putActionIfOnPath(routePath, isMobile ? navigateAppend([to]) : navigateTo([to]))
+  return RouteTreeGen.createPutActionIfOnPath({
+    expectedPath: routePath,
+    otherAction: isMobile
+      ? RouteTreeGen.createNavigateAppend({path: [to]})
+      : RouteTreeGen.createNavigateTo({path: [to]}),
+  })
 }
 
 export const escapePath = (path: Types.Path): string =>
