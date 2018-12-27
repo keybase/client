@@ -87,7 +87,7 @@
     alertText = @"New Keybase feature: multiple users in macOS";
     // Use a division slash instead of a regular / to avoid weird line breaks.
     infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
-  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.32"]]) {
+  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.32"]] || [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.33"]]) {
     alertText = @"Keybase helper update";
     infoText = @"This Keybase release contains security updates to the helper tool.\n\nYou may need to enter your password for this update.";
   }
@@ -113,6 +113,10 @@
   [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
+      // If we couldn't run this, just act like it is a very old version running that we don't know how to
+      // talk to so we can still run checks on the bundle version
+      KBSemVersion *runningVersion = [KBSemVersion version:@"1.0.0" build:nil];
+      [self doInstallAlert:bundleVersion runningVersion:runningVersion];
       completion(self.componentStatus);
     } else {
       DDLogDebug(@"Helper version: %@", versions);
