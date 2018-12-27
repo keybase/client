@@ -16,6 +16,7 @@ export type NameWithIconProps = {|
   avatarStyle?: Styles.StylesCrossPlatform,
   colorBroken?: boolean,
   colorFollowing?: boolean,
+  notFollowingColorOverride?: string,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
   horizontal?: boolean,
@@ -98,6 +99,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         usernames={[this.props.username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
+        notFollowingColorOverride={this.props.notFollowingColorOverride}
       />
     ) : (
       <Text

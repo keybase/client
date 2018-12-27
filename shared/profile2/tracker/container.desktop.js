@@ -22,18 +22,38 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = dispatch => ({})
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  assertions: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
-  bio: stateProps.bio,
-  followThem: stateProps.followThem,
-  followersCount: stateProps.followersCount,
-  followingCount: stateProps.followingCount,
-  followsYou: stateProps.followsYou,
-  guiID: stateProps.guiID,
-  location: stateProps.location,
-  publishedTeams: stateProps.publishedTeams,
-  username: ownProps.username,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const map = (stateProps._assertions || []).reduce((map, a) => {
+    if (!map[a.state]) {
+      map[a.state] = 0
+    }
+    map[a.state]++
+    return map
+  }, {})
+
+  let state
+  if (map.error) {
+    state = 'error'
+  } else if (map.checking) {
+    state = 'checking'
+  } else {
+    state = 'valid'
+  }
+
+  return {
+    assertions: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
+    bio: stateProps.bio,
+    followThem: stateProps.followThem,
+    followersCount: stateProps.followersCount,
+    followingCount: stateProps.followingCount,
+    followsYou: stateProps.followsYou,
+    guiID: stateProps.guiID,
+    location: stateProps.location,
+    publishedTeams: stateProps.publishedTeams,
+    username: ownProps.username,
+    state,
+  }
+}
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,

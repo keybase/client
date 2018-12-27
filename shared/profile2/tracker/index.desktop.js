@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-// import * as Types from '../constants/types/profile2'
+import * as Types from '../../constants/types/profile2'
+import * as Styles from '../../styles'
 import Assertion from '../assertion/container'
-// import * as Styles from '../styles'
 
 type Props = {|
   assertions: ?$ReadOnlyArray<string>,
@@ -15,6 +15,7 @@ type Props = {|
   guiID: ?string,
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
+  state: Types.AssertionState,
   username: string,
 |}
 
@@ -26,12 +27,46 @@ const Tracker = (props: Props) => {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null
   }
+
+  let backgroundColor
+  if (props.state === 'error') {
+    backgroundColor = Styles.globalColors.red
+  } else {
+    backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
+  }
+
   return (
-    <Kb.Box2 direction="vertical">
-      <Kb.Text type="Body">TODO</Kb.Text>
-      {assertions}
+    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.container, {backgroundColor}])}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.avatarContainer}>
+        <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
+        <Kb.ConnectedNameWithIcon
+          onClick="profile"
+          username={props.username}
+          colorFollowing={true}
+          notFollowingColorOverride={Styles.globalColors.orange}
+        />
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.assertions}>
+        {assertions}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
+
+const styles = Styles.styleSheetCreate({
+  avatarBackground: {
+    backgroundColor: Styles.globalColors.white,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 96 / 2,
+  },
+  assertions: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+  avatarContainer: {flexShrink: 0, position: 'relative'},
+  container: Styles.platformStyles({
+    isElectron: {overflowY: 'auto'},
+  }),
+})
 
 export default Tracker

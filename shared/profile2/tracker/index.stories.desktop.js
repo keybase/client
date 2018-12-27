@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Kb from '../../common-adapters'
 import Tracker from './container.desktop'
 
 const assertion = {
@@ -67,6 +68,7 @@ const props = {
   location: 'San Francisco, California, USA, Earth, Milky Way',
   publishedTeams: [],
   reason: 'You accessed a private folder with gabrielh.',
+  state: 'valid',
   username: 'darksim905',
 }
 
@@ -107,7 +109,17 @@ const provider = Sb.createPropProviderWithCommon({
 const load = () => {
   Sb.storiesOf('Tracker2', module)
     .addDecorator(provider)
+    .addDecorator(story => (
+      <Kb.Box2 direction="vertical" style={wrapper}>
+        {story()}
+      </Kb.Box2>
+    ))
     .add('New User', () => <Tracker username="darksim905" />)
+}
+
+const wrapper = {
+  height: 470,
+  width: 320,
 }
 
 export default load

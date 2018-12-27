@@ -44,7 +44,7 @@ const Assertion = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {minHeight: 24},
+  container: {flexShrink: 0, minHeight: 24},
   icon: {marginTop: 5},
   site: {color: Styles.globalColors.black_20},
   textContainer: {marginTop: 4},
