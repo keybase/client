@@ -309,6 +309,10 @@ func IsNotFoundError(err error) bool {
 	return ok
 }
 
+func NewNotFoundError(s string) error {
+	return NotFoundError{s}
+}
+
 //=============================================================================
 
 type MissingDelegationTypeError struct{}

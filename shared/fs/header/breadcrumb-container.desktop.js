@@ -1,7 +1,6 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import Breadcrumb, {type Props as BreadcrumbProps} from './breadcrumb.desktop'
@@ -27,7 +26,6 @@ export const makeBreadcrumbProps = (
       const itemPath = Types.pathConcat(previousPath, elem)
       return {
         items: items.concat({
-          iconSpec: Constants.getItemStyles(elems.slice(0, i + 1), 'folder', _username).iconSpec,
           isLastItem: i === elems.length - 1,
           isTeamTlf: i === 2 && elems[i - 1] === 'team',
           name: elem,
