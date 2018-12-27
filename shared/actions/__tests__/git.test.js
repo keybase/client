@@ -123,7 +123,6 @@ const loadedStore = {
   ...initialStore,
   git: initialStore.git.merge({
     idToInfo: gitRepos.reduce((acc, r) => acc.set(r.id, I.Record(r)()), I.Map()),
-    lastLoad: nowTimestamp,
   }),
 }
 
