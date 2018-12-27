@@ -56,6 +56,7 @@ const rowText_30 = Styles.platformStyles({
 const leftBox = {
   ...Styles.globalStyles.flexBoxRow,
   flex: 1,
+  lineHeight: undefined, // unset this explicitly otherwise it messes up the badging
 }
 
 const leftBoxDisabled = {
@@ -74,35 +75,8 @@ const pathItemActionIcon = {
   padding: Styles.globalMargins.tiny,
 }
 
-const badgeContainer = {
-  left: Styles.isMobile ? -28 : 24,
-  position: 'absolute',
-  top: Styles.isMobile ? -4 : -1,
-  zIndex: 200,
-}
-
-const badgeContainerNew = {
-  ...badgeContainer,
-  left: Styles.isMobile ? -32 : 16,
-}
-
-const badgeContainerRekey = {
-  ...badgeContainer,
-  left: Styles.isMobile ? -40 : 16,
-  top: Styles.isMobile ? 5 : 24,
-}
-
-const badgeCount = {
-  marginLeft: 0,
-  marginRight: 0,
-}
-
 export const rowStyles = {
   ...Styles.styleSheetCreate({
-    badgeContainer,
-    badgeContainerNew,
-    badgeContainerRekey,
-    badgeCount,
     itemBox,
     leftBox,
     leftBoxDisabled,
@@ -127,7 +101,6 @@ const HoverBox = Styles.isMobile
     })
 
 export type StillCommonProps = {
-  itemStyles: Types.ItemStyles,
   name: string,
   path: Types.Path,
   inDestinationPicker?: boolean,
@@ -137,6 +110,7 @@ export type StillCommonProps = {
 export const StillCommon = (
   props: StillCommonProps & {
     children: React.Node,
+    badge?: ?Types.PathItemBadge,
   }
 ) => (
   <HoverBox style={rowStyles.rowBox}>
@@ -144,9 +118,7 @@ export const StillCommon = (
       onClick={props.onOpen}
       style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}
     >
-      <Kb.Box2 direction="vertical">
-        <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-      </Kb.Box2>
+      <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />
       {props.children}
     </Kb.ClickableBox>
     {!props.inDestinationPicker && (

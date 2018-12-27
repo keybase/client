@@ -255,10 +255,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
   }
 
+  _showCoinsIcon = () => this.props.message.type === 'text' && this.props.message.hasInlinePayments
+
   _cachedMenuStyles = {}
   _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
+      this._showCoinsIcon() ? 16 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // reactji
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
@@ -384,8 +387,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 type="iconfont-exclamation"
                 color={Styles.globalColors.blue}
                 fontSize={14}
-                style={styles.revoked}
+                style={styles.marginLeftTiny}
               />
+            )}
+            {this._showCoinsIcon() && (
+              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.marginLeftTiny} />
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
@@ -515,6 +521,7 @@ const styles = Styles.styleSheetCreate({
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,
+  marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
   menuButtons: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -542,7 +549,6 @@ const styles = Styles.styleSheetCreate({
   reactButton: Styles.platformStyles({
     isElectron: {width: 16},
   }),
-  revoked: {marginLeft: Styles.globalMargins.tiny},
   send: Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {

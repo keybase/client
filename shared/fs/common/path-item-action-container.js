@@ -175,7 +175,7 @@ const getRootMenuActionsByPathLevel = (pathLevel: number, stateProps, dispatchPr
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {_pathItems, _username} = stateProps
+  const {_pathItems} = stateProps
   const {loadFolderList, loadMimeType} = dispatchProps
   const {path, actionIconClassName, actionIconFontSize, actionIconWhite} = ownProps
   const pathElements = Types.getPathElements(path)
@@ -195,7 +195,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           {childrenFiles: 0, childrenFolders: 0}
         )
       : {childrenFiles: 0, childrenFolders: 0}
-  const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
     showInSystemFileManager,
     ignoreFolder,
@@ -216,9 +215,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     deleteFileOrFolder,
     download,
     ignoreFolder,
-    itemStyles,
-    lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
-    lastWriter: pathItem.lastWriter.username,
     loadFolderList,
     loadMimeType,
     moveOrCopy,

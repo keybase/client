@@ -58,15 +58,6 @@ function SettingsNav(props: Props) {
                   }
                 : {}),
             },
-            {
-              ...(__DEV__
-                ? {
-                    icon: 'iconfont-nav-settings',
-                    onClick: () => props.onTabChange(Constants.devMenuTab),
-                    text: 'Dev menu',
-                  }
-                : {}),
-            },
           ],
           title: '',
         },
