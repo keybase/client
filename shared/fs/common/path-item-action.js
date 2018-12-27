@@ -15,8 +15,7 @@ import {
   iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
-import PathItemInfo from '../common/path-item-info'
+import {PathItemIcon, PathItemInfo} from '../common'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
@@ -26,11 +25,8 @@ type Props = {
   name: string,
   size: number,
   type: Types.PathType,
-  lastModifiedTimestamp: number,
-  lastWriter: string,
   childrenFolders: number,
   childrenFiles: number,
-  itemStyles: Types.ItemStyles,
   actionIconClassName?: string,
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
@@ -170,13 +166,13 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 
 const PathItemActionHeader = (props: Props) => (
   <Box style={styles.header}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={styles.pathItemIcon} />
+    <PathItemIcon path={props.path} size={32} style={styles.pathItemIcon} />
     <StaticBreadcrumb pathElements={props.pathElements} />
     <Box2 direction="horizontal" style={styles.nameTextBox}>
       <CommaSeparatedName
         type="BodySmallSemibold"
         name={props.name}
-        elementStyle={stylesNameText(props.itemStyles.textColor)}
+        elementStyle={stylesNameText(Constants.getPathTextColor(props.path))}
       />
     </Box2>
     {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
@@ -190,11 +186,7 @@ const PathItemActionHeader = (props: Props) => (
         {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
       </Text>
     )}
-    <PathItemInfo
-      lastModifiedTimestamp={props.lastModifiedTimestamp}
-      lastWriter={props.lastWriter}
-      wrap={true}
-    />
+    <PathItemInfo path={props.path} wrap={true} />
   </Box>
 )
 
