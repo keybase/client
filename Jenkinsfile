@@ -157,18 +157,17 @@ helpers.rootLinuxNode(env, {
                                             testGo("test_linux_go_")
                                         }
                                     }},
-                                    // FIXME: re-enable
-                                    //test_linux_js: { withEnv([
-                                    //    "PATH=${env.HOME}/.node/bin:${env.PATH}",
-                                    //    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                    //    "NODE_OPTIONS=--max-old-space-size=4096",
-                                    //]) {
-                                    //    dir("shared") {
-                                    //        stage("JS Tests") {
-                                    //            sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                    //        }
-                                    //    }
-                                    //}},
+                                    test_linux_js: { withEnv([
+                                        "PATH=${env.HOME}/.node/bin:${env.PATH}",
+                                        "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                        "NODE_OPTIONS=--max-old-space-size=4096",
+                                    ]) {
+                                        dir("shared") {
+                                            stage("JS Tests") {
+                                                sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                            }
+                                        }
+                                    }},
                                 )
                             },
                         )
@@ -215,53 +214,50 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_macos: {
-                        // TODO: Currently we only run macos tests on master builds.
-                        if (true) { // env.BRANCH_NAME == "master") {
-                            def mountDir='/Volumes/untitled/client'
-                            helpers.nodeWithCleanup('macstadium', {}, {
-                                    sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
-                                }) {
-                                def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                                def GOPATH="${BASEDIR}/go"
-                                dir(mountDir) {
-                                    // Ensure that the mountDir exists
-                                    sh "touch test.txt"
-                                }
-                                withEnv([
-                                    "GOPATH=${GOPATH}",
-                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                    "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                    "TMPDIR=${mountDir}",
-                                ]) {
-                                ws("$GOPATH/src/github.com/keybase/client") {
-                                    println "Checkout OS X"
-                                    retry(3) {
-                                        checkout scm
-                                    }
-
-                                    parallel (
-                                        //test_react_native: {
-                                        //    println "Test React Native"
-                                        //    dir("react-native") {
-                                        //        sh "npm i"
-                                        //        lock("iossimulator_${env.NODE_NAME}") {
-                                        //            sh "npm run test-ios"
-                                        //        }
-                                        //    }
-                                        //},
-                                        test_macos_go: {
-                                            if (hasGoChanges) {
-                                                dir("go/keybase") {
-                                                    sh "go build --tags=production"
-                                                }
-                                                testGo("test_macos_go_")
-                                            }
-                                        }
-                                    )
-                                }}
+                        def mountDir='/Volumes/untitled/client'
+                        helpers.nodeWithCleanup('macstadium', {}, {
+                                sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
+                            }) {
+                            def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
+                            def GOPATH="${BASEDIR}/go"
+                            dir(mountDir) {
+                                // Ensure that the mountDir exists
+                                sh "touch test.txt"
                             }
+                            withEnv([
+                                "GOPATH=${GOPATH}",
+                                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                "TMPDIR=${mountDir}",
+                            ]) {
+                            ws("$GOPATH/src/github.com/keybase/client") {
+                                println "Checkout OS X"
+                                retry(3) {
+                                    checkout scm
+                                }
+
+                                parallel (
+                                    //test_react_native: {
+                                    //    println "Test React Native"
+                                    //    dir("react-native") {
+                                    //        sh "npm i"
+                                    //        lock("iossimulator_${env.NODE_NAME}") {
+                                    //            sh "npm run test-ios"
+                                    //        }
+                                    //    }
+                                    //},
+                                    test_macos_go: {
+                                        if (hasGoChanges) {
+                                            dir("go/keybase") {
+                                                sh "go build --tags=production"
+                                            }
+                                            testGo("test_macos_go_")
+                                        }
+                                    }
+                                )
+                            }}
                         }
                     },
                 )
