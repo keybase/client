@@ -13,7 +13,7 @@ export default function(state: Types.State = initialState, action: GitGen.Action
       return initialState
     case GitGen.loaded:
       return state.merge({
-        idToInfo: I.Map(action.payload.repos),
+        idToInfo: state.idToInfo.merge(action.payload.repos),
         lastLoad: Date.now(),
       })
     case GitGen.setError:
