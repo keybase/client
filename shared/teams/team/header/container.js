@@ -6,7 +6,7 @@ import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
 import type {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {TeamHeader} from '.'
 
 export type OwnProps = {
@@ -33,14 +33,17 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     if (!you) {
       return
     }
-    dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-  onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
+  onEditDescription: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})
+    ),
   onEditIcon: (image?: Response) =>
     dispatch(
-      navigateAppend([{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}])
+      RouteTreeGen.createNavigateAppend({path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}]})
     ),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
 })

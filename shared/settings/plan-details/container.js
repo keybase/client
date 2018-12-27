@@ -2,7 +2,7 @@
 import logger from '../../logger'
 import PlanDetails from '.'
 import {connect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {priceToString, planToStars} from '../../constants/plan-billing'
 import {type AvailablePlan} from '../../constants/types/plan-billing'
 import {type PlanLevel} from '../../constants/types/settings'
@@ -39,7 +39,7 @@ export default connect<OwnProps, _, _, _, _>(
     }
   },
   (dispatch: any, ownProps: {}) => ({
-    onBack: () => dispatch(navigateUp()),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps) => ({
     ...stateProps,

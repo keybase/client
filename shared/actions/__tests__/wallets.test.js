@@ -6,7 +6,7 @@ import * as Tabs from '../../constants/tabs'
 import * as WalletsGen from '../wallets-gen'
 import * as RPCStellarTypes from '../../constants/types/rpc-stellar-gen'
 import * as Types from '../../constants/types/wallets'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import walletsSaga from '../wallets'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
@@ -26,8 +26,8 @@ const initialStore = {
 }
 
 const startOnWalletsTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.walletsTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.walletsTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
