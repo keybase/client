@@ -14,7 +14,6 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.loaded:
       return state.merge({
         idToInfo: state.idToInfo.merge(action.payload.repos),
-        lastLoad: Date.now(),
       })
     case GitGen.setError:
       return state.merge({error: action.payload.error})
