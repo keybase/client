@@ -259,6 +259,11 @@ const styles = Styles.styleSheetCreate({
   highlighted: {
     backgroundColor: Styles.globalColors.blue4,
   },
+  keybaseServiceIcon: Styles.platformStyles({
+    common: {
+      marginRight: Styles.globalMargins.xtiny,
+    },
+  }),
   removeButton: {
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
@@ -276,11 +281,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       height: 50,
-    },
-  }),
-  keybaseServiceIcon: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.xtiny,
     },
   }),
   serviceIcon: Styles.platformStyles({
