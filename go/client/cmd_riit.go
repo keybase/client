@@ -38,6 +38,14 @@ func NewCmdRIIT(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 				Name:  "i, identify",
 				Usage: "Identify the users too",
 			},
+			cli.StringFlag{
+				Name:  "s, suffix",
+				Usage: "Conflict info goes here",
+			},
+			cli.BoolFlag{
+				Name:  "kbfs",
+				Usage: "Use KBFS identify behavior",
+			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdRIIT{Contextified: libkb.NewContextified(g)}, "riit", c)
@@ -59,12 +67,13 @@ func (c *cmdRIIT) Run() error {
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("Calling ResolveIdentifyImplicitTeam(%+v)\n", c.arg)
 	res, err := cli.ResolveIdentifyImplicitTeam(context.TODO(), c.arg)
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Printf("%+v\n", res)
+	ui.Printf("Return value: %+v\n", res)
 	return nil
 }
 
@@ -73,6 +82,7 @@ func (c *cmdRIIT) ParseArgv(ctx *cli.Context) error {
 		return errors.New("need a name argument")
 	}
 	c.arg.Assertions = ctx.Args()[0]
+	c.arg.Suffix = ctx.String("suffix")
 	if ctx.Bool("create") {
 		c.arg.Create = true
 	}
@@ -81,6 +91,9 @@ func (c *cmdRIIT) ParseArgv(ctx *cli.Context) error {
 	}
 	if ctx.Bool("identify") {
 		c.arg.DoIdentifies = true
+	}
+	if ctx.Bool("kbfs") {
+		c.arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_DEFAULT_KBFS
 	}
 	return nil
 }

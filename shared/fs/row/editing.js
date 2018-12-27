@@ -4,13 +4,13 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {rowStyles} from './common'
-import {PathItemIcon} from '../common'
+import PathItemIcon from '../common/path-item-icon'
 
 type EditingProps = {
   name: string,
+  projectedPath: Types.Path,
   hint: string,
   status: Types.EditStatusType,
-  itemStyles: Types.ItemStyles,
   isCreate: boolean,
   onSubmit: () => void,
   onUpdate: (name: string) => void,
@@ -26,7 +26,13 @@ const HoverClickableBox = Styles.isMobile
 
 const Editing = (props: EditingProps) => (
   <Kb.Box style={rowStyles.rowBox}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
+    <PathItemIcon
+      path={props.projectedPath}
+      size={32}
+      type="folder"
+      username=""
+      style={rowStyles.pathItemIcon}
+    />
     <Kb.Box key="main" style={rowStyles.itemBox}>
       <Kb.Input
         hideUnderline={true}

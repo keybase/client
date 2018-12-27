@@ -14,6 +14,7 @@ const mapStateToProps = state => {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
+    unreadPayments: state.wallets.unreadPaymentsMap.get(selectedAccount.accountID, 0),
     walletName: selectedAccount.name,
   }
 }
