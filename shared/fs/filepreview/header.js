@@ -8,7 +8,7 @@ import {isMobile} from '../../constants/platform'
 
 type HeaderProps = {
   path: Types.Path,
-  pathItem: Types.PathItemMetadata,
+  name: string,
 
   onBack: () => void,
 }
@@ -18,15 +18,9 @@ const Header = (props: HeaderProps) => (
     <BackButton key="back" onClick={props.onBack} style={stylesClose} />
     <Box style={filePreviewHeaderStyle}>
       <Text type="BodyBig" selectable={true}>
-        {props.pathItem.name}
+        {props.name}
       </Text>
-      {!isMobile && (
-        <PathItemInfo
-          lastModifiedTimestamp={props.pathItem.lastModifiedTimestamp}
-          lastWriter={props.pathItem.lastWriter.username}
-          startWithLastModified={true}
-        />
-      )}
+      {!isMobile && <PathItemInfo path={props.path} startWithLastModified={true} />}
     </Box>
     <Box style={stylesHeaderIcons}>
       <OpenInSystemFileManager path={props.path} />

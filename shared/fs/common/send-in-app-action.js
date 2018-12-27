@@ -7,6 +7,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {namedConnect} from '../../util/container'
 import features from '../../util/feature-flags'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   path: Types.Path,
@@ -32,7 +33,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default (features.kbfsChatIntegration
+export default (features.kbfsChatIntegration && !isMobile
   ? namedConnect<OwnProps, _, _, _, _>(
       () => ({}),
       mapDispatchToProps,
