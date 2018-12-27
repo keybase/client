@@ -1,36 +1,38 @@
 // @flow
-import CodePage from '../provision/code-page/container'
-import DevicePage from './device-page/container'
-import Devices from './container'
-import ErrorPage from '../provision/error/container'
-import PaperKey from './paper-key/container'
-import RevokeDevice from './device-revoke/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
-const routeTree = makeRouteDefNode({
-  children: {
-    codePage: {
-      component: CodePage,
-      tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
-    },
-    devicePage: {
-      children: {
-        revokeDevice: {
-          component: RevokeDevice,
-          title: 'Device Revoke',
-        },
+const routeTree = () => {
+  const CodePage = require('../provision/code-page/container').default
+  const DevicePage = require('./device-page/container').default
+  const Devices = require('./container').default
+  const ErrorPage = require('../provision/error/container').default
+  const PaperKey = require('./paper-key/container').default
+  const RevokeDevice = require('./device-revoke/container').default
+  return makeRouteDefNode({
+    children: {
+      codePage: {
+        component: CodePage,
+        tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
       },
-      component: DevicePage,
+      devicePage: {
+        children: {
+          revokeDevice: {
+            component: RevokeDevice,
+            title: 'Device Revoke',
+          },
+        },
+        component: DevicePage,
+      },
+      error: {
+        component: ErrorPage,
+        tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
+      },
+      paperKey: {component: PaperKey},
     },
-    error: {
-      component: ErrorPage,
-      tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
-    },
-    paperKey: {component: PaperKey},
-  },
-  component: Devices,
-  initialState: {showingRevoked: false},
-  tags: makeLeafTags({title: 'Devices'}),
-})
+    component: Devices,
+    initialState: {showingRevoked: false},
+    tags: makeLeafTags({title: 'Devices'}),
+  })
+}
 
 export default routeTree

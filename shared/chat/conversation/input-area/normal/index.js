@@ -46,7 +46,7 @@ const searchUsers = memoize((users, filter) => {
 const suggestorToMarker = {
   channels: '#',
   emoji: ':',
-  users: '@',
+  users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
@@ -71,7 +71,7 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (emoji: {colons: string, native: string}, tData, preview) => {
+const emojiTransformer = (emoji: {colons: string, native: string}, marker, tData, preview) => {
   const toInsert = Styles.isMobile ? emoji.native : emoji.colons
   return standardTransformer(toInsert, tData, preview)
 }
@@ -240,8 +240,8 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformUserSuggestion = (input: {fullName: string, username: string}, tData, preview: boolean) =>
-    standardTransformer(`@${input.username}`, tData, preview)
+  _transformUserSuggestion = (input: {fullName: string, username: string}, marker, tData, preview: boolean) =>
+    standardTransformer(`${marker}${input.username}`, tData, preview)
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
@@ -264,8 +264,8 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformChannelSuggestion = (channelname, tData, preview) =>
-    standardTransformer(`#${channelname}`, tData, preview)
+  _transformChannelSuggestion = (channelname, marker, tData, preview) =>
+    standardTransformer(`${marker}${channelname}`, tData, preview)
 
   render = () => {
     const {suggestUsers, suggestChannels, ...platformInputProps} = this.props
