@@ -31,7 +31,7 @@ const shorter = a => ({
 })
 const web1 = {
   ...assertion,
-  assertion: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+  assertion: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com@https',
   siteIcon: 'iconfont-identity-website',
 }
 const web2 = shorter(web1)
@@ -76,14 +76,27 @@ const provider = Sb.createPropProviderWithCommon({
     if (!a) {
       throw new Error('cant happen')
     }
+    const parts = a.assertion.split('@')
+    let prefix = '@'
+    switch (parts[1]) {
+      case 'dns':
+      case 'http':
+      case 'https':
+        prefix = ''
+        break
+    }
+    const site = `${prefix}${parts[1]}`
     return {
       metas: a.metas,
+      onShowProof: Sb.action('onShowProof'),
+      onShowSite: Sb.action('onShowSite'),
+      onShowUserOnSite: Sb.action('onShowUserOnSite'),
       proofURL: a.proofURL,
-      site: a.assertion,
+      site,
       siteIcon: a.siteIcon,
       siteURL: a.siteURL,
       state: a.state,
-      username: p.username,
+      username: parts[0],
     }
   },
   Tracker2: p => ({

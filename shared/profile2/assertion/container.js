@@ -21,9 +21,19 @@ const mapStateToProps = (state, ownProps) => {
     username: a.username,
   }
 }
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = dispatch => ({
+  // TODO
+  onShowProof: () => {},
+  // TODO
+  onShowSite: () => {},
+  // TODO
+  onShowUserOnSite: () => {},
+})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   metas: stateProps._metas.map(m => ({color: m.color, label: m.label})),
+  onShowProof: dispatchProps.onShowProof,
+  onShowSite: dispatchProps.onShowSite,
+  onShowUserOnSite: dispatchProps.onShowUserOnSite,
   proofURL: stateProps.proofURL,
   site: stateProps.site,
   siteIcon: stateProps.siteIcon,
