@@ -7,7 +7,7 @@ import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, navigateAppend} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
@@ -36,7 +36,7 @@ describe('goBackAndClearErrors', () => {
     expect(nextState.signup.passphraseError.stringValue()).toEqual('')
     expect(nextState.signup.signupError.stringValue()).toEqual('')
     expect(nextState.signup.usernameError).toEqual('')
-    expect(_testing.goBackAndClearErrors()).toEqual(Saga.put(navigateUp()))
+    expect(_testing.goBackAndClearErrors()).toEqual(Saga.put(RouteTreeGen.createNavigateUp()))
   })
 })
 
@@ -52,14 +52,18 @@ describe('requestAutoInvite', () => {
     const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
-    expect(_testing.showInviteScreen()).toEqual(navigateAppend(['inviteCode'], [loginTab]))
+    expect(_testing.showInviteScreen()).toEqual(
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+    )
   })
 
   it('goes to invite page on error', () => {
     const action = SignupGen.createRequestedAutoInviteError()
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
-    expect(_testing.showInviteScreen()).toEqual(navigateAppend(['inviteCode'], [loginTab]))
+    expect(_testing.showInviteScreen()).toEqual(
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+    )
   })
 })
 
@@ -78,7 +82,7 @@ describe('requestInvite', () => {
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.name).toEqual(action.payload.name)
     expect(_testing.showInviteSuccessOnNoErrors(nextState)).toEqual(
-      navigateAppend(['requestInviteSuccess'], [loginTab])
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
     )
   })
 
@@ -128,7 +132,7 @@ describe('checkInviteCode', () => {
     // leaves state alone
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
-      Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
+      Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']}))
     )
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
@@ -230,7 +234,7 @@ describe('checkedUsernameEmail', () => {
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
     expect(_testing.showPassphraseOnNoErrors(nextState)).toEqual(
-      Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
+      Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']}))
     )
   })
 })
@@ -362,7 +366,7 @@ describe('actually sign up', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.signupError.stringValue()).toEqual(action.payload.error.stringValue())
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(
-      Saga.put(navigateAppend(['signupError'], [loginTab]))
+      Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']}))
     )
   })
 

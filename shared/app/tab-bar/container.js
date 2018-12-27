@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, walletsTab, type Tab} from '../../constants/tabs'
-import {navigateTo, switchTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
 type OwnProps = {|
@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
   _onTabClick: isMobile
     ? (tab: Tab, me: ?string, isWalletsNew: boolean) => {
         if (tab === chatTab && routeSelected === tab) {
-          dispatch(navigateTo(routePath.push(tab)))
+          dispatch(RouteTreeGen.createNavigateTo({path: routePath.push(tab)}))
           return
         }
 
@@ -38,14 +38,17 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
         if (tab === peopleTab) {
           if (routeSelected === tab) {
             // clicking on profile tab when already selected should back out to root profile page
-            dispatch(navigateTo([], [peopleTab]))
+            dispatch(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []}))
           }
-          dispatch(switchTo([peopleTab]))
+          dispatch(RouteTreeGen.createSwitchTo({path: [peopleTab]}))
           return
         }
 
-        const action = routeSelected === tab ? navigateTo : switchTo
-        dispatch(action(routePath.push(tab)))
+        if (routeSelected === tab) {
+          dispatch(RouteTreeGen.createNavigateTo({path: routePath.push(tab)}))
+        } else {
+          dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)}))
+        }
       }
     : (tab: Tab, me: ?string, isWalletsNew: boolean) => {
         if (tab === chatTab && routeSelected === tab) {
@@ -58,9 +61,9 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
         if (tab === peopleTab) {
           if (routeSelected === tab) {
             // clicking on people tab when already selected should back out to root people page
-            dispatch(navigateTo([], [peopleTab]))
+            dispatch(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []}))
           }
-          dispatch(switchTo([peopleTab]))
+          dispatch(RouteTreeGen.createSwitchTo({path: [peopleTab]}))
           return
         }
 
@@ -77,8 +80,11 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
         }
 
         // otherwise, back out to the default route of the tab.
-        const action = routeSelected === tab ? navigateTo : switchTo
-        dispatch(action(routePath.push(tab)))
+        if (routeSelected === tab) {
+          dispatch(RouteTreeGen.createNavigateTo({path: routePath.push(tab)}))
+        } else {
+          dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)}))
+        }
       },
 })
 

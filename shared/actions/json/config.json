@@ -104,7 +104,6 @@
     "loggedIn": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
-    "_avatarQueue": {},
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
     "updateNow": {}

@@ -16,7 +16,6 @@ import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
-import type {TypedState} from '../../constants/reducer'
 
 export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -24,11 +23,9 @@ export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any
 export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
   throw new Error('Show Share Action - unsupported on this platform')
 }
-
 export function saveAttachmentDialog(filePath: string): Promise<void> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
-
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
@@ -73,11 +70,11 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_: any, action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (_, action) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
-const writeElectronSettingsNotifySound = (_: any, action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (_, action) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
 
@@ -111,71 +108,69 @@ export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
       }
     })
 
-const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
-  Saga.callUntyped(function*() {
-    const waitKey = 'pipeCheckFail'
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
-    )
-    try {
-      logger.info('Checking RPC ownership')
+function* checkRPCOwnership(_, action) {
+  const waitKey = 'pipeCheckFail'
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
+  )
+  try {
+    logger.info('Checking RPC ownership')
 
-      const localAppData = String(process.env.LOCALAPPDATA)
-      var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-      const args = ['pipeowner', socketPath]
-      yield Saga.callUntyped(
-        () =>
-          new Promise((resolve, reject) => {
-            execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
-              if (error) {
-                logger.info(`pipeowner check result: ${stdout.toString()}`)
-                // error will be logged in bootstrap check
-                getEngine().reset()
-                reject(error)
-                return
-              }
-              const result = JSON.parse(stdout.toString())
-              if (result.isOwner) {
-                resolve()
-                return
-              }
+    const localAppData = String(process.env.LOCALAPPDATA)
+    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const args = ['pipeowner', socketPath]
+    yield Saga.callUntyped(
+      () =>
+        new Promise((resolve, reject) => {
+          execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
+            if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
-              reject(new Error('pipeowner check failed'))
-            })
+              // error will be logged in bootstrap check
+              getEngine().reset()
+              reject(error)
+              return
+            }
+            const result = JSON.parse(stdout.toString())
+            if (result.isOwner) {
+              resolve()
+              return
+            }
+            logger.info(`pipeowner check result: ${stdout.toString()}`)
+            reject(new Error('pipeowner check failed'))
           })
-      )
-      yield Saga.put(
-        ConfigGen.createDaemonHandshakeWait({
-          increment: false,
-          name: waitKey,
-          version: action.payload.version,
         })
-      )
-    } catch (e) {
-      yield Saga.put(
-        ConfigGen.createDaemonHandshakeWait({
-          failedFatal: true,
-          failedReason: e.message || 'windows pipe owner fail',
-          increment: false,
-          name: waitKey,
-          version: action.payload.version,
-        })
-      )
-    }
-  })
+    )
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: waitKey,
+        version: action.payload.version,
+      })
+    )
+  } catch (e) {
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        failedFatal: true,
+        failedReason: e.message || 'windows pipe owner fail',
+        increment: false,
+        name: waitKey,
+        version: action.payload.version,
+      })
+    )
+  }
+}
 
-const setupReachabilityWatcher = () =>
-  Saga.callUntyped(function*() {
-    const channel = Saga.eventChannel(emitter => {
-      window.addEventListener('online', () => emitter('online'))
-      window.addEventListener('offline', () => emitter('offline'))
-      return () => {}
-    }, Saga.buffers.dropping(1))
-    while (true) {
-      yield Saga.take(channel)
-      yield Saga.put(GregorGen.createCheckReachability())
-    }
-  })
+function* setupReachabilityWatcher() {
+  const channel = Saga.eventChannel(emitter => {
+    window.addEventListener('online', () => emitter('online'))
+    window.addEventListener('offline', () => emitter('offline'))
+    return () => {}
+  }, Saga.buffers.dropping(1))
+  while (true) {
+    yield Saga.take(channel)
+    yield Saga.put(GregorGen.createCheckReachability())
+  }
+}
 
 const setupEngineListeners = () => {
   getEngine().setCustomResponseIncomingCallMap({
@@ -229,11 +224,11 @@ function* loadStartupDetails() {
   )
 }
 
-const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_, action) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
-const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const sendKBServiceCheck = (state, action) => {
   if (
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&
@@ -243,19 +238,18 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
   }
 }
 
-const startOutOfDateCheckLoop = () =>
-  Saga.callUntyped(function*() {
-    while (1) {
-      try {
-        const toPut = yield* Saga.callPromise(checkForUpdate)
-        yield Saga.put(toPut)
-        yield Saga.delay(3600 * 1000) // 1 hr
-      } catch (err) {
-        logger.warn('error getting update info: ', err)
-        yield Saga.delay(3600 * 1000) // 1 hr
-      }
+function* startOutOfDateCheckLoop() {
+  while (1) {
+    try {
+      const toPut = yield* Saga.callPromise(checkForUpdate)
+      yield Saga.put(toPut)
+      yield Saga.delay(3600 * 1000) // 1 hr
+    } catch (err) {
+      logger.warn('error getting update info: ', err)
+      yield Saga.delay(3600 * 1000) // 1 hr
     }
-  })
+  }
+}
 
 const checkForUpdate = () =>
   RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
@@ -282,23 +276,41 @@ const updateNow = () =>
   )
 
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
-  yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
-  yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
-  yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, startOutOfDateCheckLoop)
-  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
-  yield Saga.actionToPromise(ConfigGen.checkForUpdate, checkForUpdate)
-  yield Saga.spawn(initializeAppSettingsState)
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
+  yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
+    ConfigGen.setOpenAtLogin,
+    writeElectronSettingsOpenAtLogin
+  )
+  yield* Saga.chainAction<ConfigGen.SetNotifySoundPayload>(
+    ConfigGen.setNotifySound,
+    writeElectronSettingsNotifySound
+  )
+  yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
+  yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupReachabilityWatcher
+  )
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    startOutOfDateCheckLoop
+  )
+  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
+  yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeWaitPayload>(
+    ConfigGen.daemonHandshakeWait,
+    sendKBServiceCheck
+  )
 
   if (isWindows) {
-    yield Saga.actionToAction(ConfigGen.daemonHandshake, checkRPCOwnership)
+    yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
 
+  yield Saga.spawn(initializeAppSettingsState)
   // Start this immediately
   yield Saga.spawn(loadStartupDetails)
 }

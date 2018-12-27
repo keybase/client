@@ -5,7 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
 import * as ProvisionGen from '../provision-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import HiddenString from '../../util/hidden-string'
 import provisionSaga, {_testing} from '../provision'
 import {RPCError} from '../../util/errors'
@@ -66,8 +66,8 @@ const startReduxSaga = (initialStore = undefined) => {
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTree.switchRouteDef(loginRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.loginTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}))
 
   return {
     dispatch,
@@ -620,7 +620,7 @@ describe('canceling provision', () => {
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
       payload: {phrase: 'aaa'},
     })
-    dispatch(RouteTree.navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
       code: RPCTypes.constantsStatusCode.scinputcanceled,
@@ -637,7 +637,7 @@ describe('canceling provision', () => {
     })
     const error = new HiddenString('generic error')
     dispatch(ProvisionGen.createProvisionError({error}))
-    dispatch(RouteTree.navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     expect(getState().provision.error).toEqual(noError)
     expect(getState().provision.finalError).toEqual(null)
   })
@@ -689,8 +689,8 @@ describe('final errors show', () => {
 
   it('shows the final error page (devices add)', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
-    dispatch(RouteTree.switchRouteDef(appRouteTree))
-    dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+    dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
     expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
     const error = new RPCError('something bad happened', 1, [])
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
@@ -700,8 +700,8 @@ describe('final errors show', () => {
 
   it('ignore cancel (devices add)', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
-    dispatch(RouteTree.switchRouteDef(appRouteTree))
-    dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+    dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
     const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
     expect(getState().provision.finalError).toEqual(null)
@@ -711,7 +711,7 @@ describe('final errors show', () => {
 
 describe('reset works', () => {
   const {getState, dispatch} = startReduxSaga()
-  dispatch(RouteTree.setInitialRouteDef(loginRouteTree))
+  dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
   dispatch({type: 'common:resetStore'})
   expect(getState().provision).toEqual(Constants.makeState())
 })

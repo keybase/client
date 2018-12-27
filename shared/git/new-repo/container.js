@@ -4,7 +4,7 @@ import * as Constants from '../../constants/git'
 import * as TeamsGen from '../../actions/teams-gen'
 import NewRepo from '.'
 import {connect, type RouteProps} from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
 
@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
         : GitGen.createCreatePersonalRepo({name})
     dispatch(createAction)
   },
-  onNewTeam: () => dispatch(navigateTo([teamsTab, 'showNewTeamDialog'])),
+  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'showNewTeamDialog']})),
 })
 
 export default connect<OwnProps, _, _, _, _>(

@@ -7,7 +7,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 import {loginTab} from '../constants/tabs'
-import {navigateAppend, navigateTo, navigateUp} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 
@@ -24,28 +24,33 @@ const noErrors = (state: TypedState) =>
 
 // Navigation side effects ///////////////////////////////////////////////////////////
 // When going back we clear all errors so we can fix things and move forward
-const goBackAndClearErrors = () => Saga.put(navigateUp())
+const goBackAndClearErrors = () => Saga.put(RouteTreeGen.createNavigateUp())
 
 const showUserEmailOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
+  noErrors(state) &&
+  Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']}))
 
-const showInviteScreen = () => navigateAppend(['inviteCode'], [loginTab])
+const showInviteScreen = () =>
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab])
+  noErrors(state) &&
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
 
-const goToLoginRoot = () => Saga.put(navigateTo([], [loginTab]))
+const goToLoginRoot = () => Saga.put(RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []}))
 
 const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
+  noErrors(state) &&
+  Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']}))
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab]))
+  noErrors(state) &&
+  Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['deviceName']}))
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? Saga.put(SignupGen.createRestartSignup())
-    : Saga.put(navigateAppend(['signupError'], [loginTab]))
+    : Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']}))
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>

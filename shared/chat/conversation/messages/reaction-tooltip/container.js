@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
-import * as Route from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {ReactionTooltip} from '.'
 
 /**
@@ -43,12 +43,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
     ownProps.onHidden()
     dispatch(
-      Route.navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
           selected: 'chooseEmoji',
         },
-      ])
+      ]})
     )
   },
 })
