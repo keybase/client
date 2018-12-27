@@ -65,6 +65,7 @@ type GlobalContext struct {
 	ChatHelper       ChatHelper           // conveniently send chat messages
 	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
 	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
+	Identify3State   *Identify3State      // keep track of Identify3 sessions
 
 	cacheMu          *sync.RWMutex   // protects all caches
 	ProofCache       *ProofCache     // where to cache proof results
@@ -234,6 +235,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.AppState = NewAppState(g)
 	g.RPCCanceller = NewRPCCanceller()
 	g.IdentifyDispatch = NewIdentifyDispatch()
+	g.Identify3State = NewIdentify3State(g)
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -341,6 +343,8 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	g.FeatureFlags.Clear()
 
 	g.IdentifyDispatch.OnLogout()
+
+	g.Identify3State.OnLogout()
 
 	return nil
 }
@@ -695,6 +699,8 @@ func (g *GlobalContext) Shutdown() error {
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook())
 		}
+
+		g.Identify3State.Shutdown()
 
 		err = epick.Error()
 

@@ -21,6 +21,7 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
     case PeopleGen.getPeopleData:
     case PeopleGen.markViewed:
     case PeopleGen.skipTodo:
+    case PeopleGen.dismissAnnouncement:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

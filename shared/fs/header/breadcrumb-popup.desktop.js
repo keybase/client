@@ -32,12 +32,12 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
       attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
-      items={props.items.map(({onClick, name, iconSpec}) => ({
+      items={props.items.map(({onClick, name, path, iconSpec}) => ({
         onClick,
         title: name,
         view: (
           <Box style={stylesRow}>
-            <PathItemIcon spec={iconSpec} style={pathItemIconStyle} size={16} />
+            <PathItemIcon path={path} style={pathItemIconStyle} size={16} />
             <Text type="Body" lineClamp={1}>
               {name}
             </Text>

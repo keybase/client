@@ -801,6 +801,8 @@ protocol teams {
     string fqName;
     @jsonkey("is_implicit_team")
     boolean isImplicitTeam;
+    @jsonkey("implicit_team_display_name")
+    string impTeamDisplayName;
     @jsonkey("is_open_team")
     boolean isOpenTeam;
     TeamRole role;

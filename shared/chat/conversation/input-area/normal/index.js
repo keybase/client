@@ -8,14 +8,45 @@ import PlatformInput from './platform-input'
 import {standardTransformer} from '../suggestors'
 import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
+import {memoize} from '../../../../util/memoize'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
 
+const searchUsers = memoize((users, filter) => {
+  if (!filter) {
+    return users.toArray()
+  }
+  const fil = filter.toLowerCase()
+  return users
+    .map(u => {
+      let score = 0
+      const username = u.username.toLowerCase()
+      const fullName = u.fullName.toLowerCase()
+      if (username.includes(fil) || fullName.includes(fil)) {
+        // 1 point for included somewhere
+        score++
+      }
+      if (fullName.startsWith(fil)) {
+        // 1 point for start of fullname
+        score++
+      }
+      if (username.startsWith(fil)) {
+        // 2 points for start of username
+        score += 2
+      }
+      return {score, user: u}
+    })
+    .filter(withScore => !!withScore.score)
+    .sort((a, b) => b.score - a.score)
+    .map(userWithScore => userWithScore.user)
+    .toArray()
+})
+
 const suggestorToMarker = {
   channels: '#',
   emoji: ':',
-  users: '@',
+  users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
@@ -40,7 +71,7 @@ const emojiRenderer = (item, selected: boolean) => (
     <Kb.Text type="BodySmallSemibold">{item.colons}</Kb.Text>
   </Kb.Box2>
 )
-const emojiTransformer = (emoji: {colons: string, native: string}, tData, preview) => {
+const emojiTransformer = (emoji: {colons: string, native: string}, marker, tData, preview) => {
   const toInsert = Styles.isMobile ? emoji.native : emoji.colons
   return standardTransformer(toInsert, tData, preview)
 }
@@ -97,8 +128,8 @@ class Input extends React.Component<InputProps, InputState> {
     throttled(this.props.sendTyping, text)
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey) && !isComposingIME) {
       e.preventDefault()
       if (this._lastText) {
         this._onSubmit(this._lastText)
@@ -179,12 +210,7 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _getUserSuggestions = filter => {
-    const fil = filter.toLowerCase()
-    return this.props.suggestUsers
-      .filter(user => user.username.toLowerCase().includes(fil) || user.fullName.toLowerCase().includes(fil))
-      .toArray()
-  }
+  _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
   _renderUserSuggestion = ({username, fullName}: {username: string, fullName: string}, selected: boolean) => (
     <Kb.Box2
@@ -214,8 +240,8 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformUserSuggestion = (input: {fullName: string, username: string}, tData, preview: boolean) =>
-    standardTransformer(`@${input.username}`, tData, preview)
+  _transformUserSuggestion = (input: {fullName: string, username: string}, marker, tData, preview: boolean) =>
+    standardTransformer(`${marker}${input.username}`, tData, preview)
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
@@ -238,8 +264,8 @@ class Input extends React.Component<InputProps, InputState> {
     </Kb.Box2>
   )
 
-  _transformChannelSuggestion = (channelname, tData, preview) =>
-    standardTransformer(`#${channelname}`, tData, preview)
+  _transformChannelSuggestion = (channelname, marker, tData, preview) =>
+    standardTransformer(`${marker}${channelname}`, tData, preview)
 
   render = () => {
     const {suggestUsers, suggestChannels, ...platformInputProps} = this.props
