@@ -52,28 +52,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (!n) {
       return
     }
-
-    // Smart auto resize algorithm from `Input`, use it by default here
-    const rect = n.getBoundingClientRect()
-    const value = n.value
-    // width changed so throw out our data
-    if (rect.width !== this._smartAutoresize.width) {
-      this._smartAutoresize.width = rect.width
-      this._smartAutoresize.pivotLength = -1
-    }
-
-    // See if we've gone up in size, if so keep track of the input at that point
-    if (n.scrollHeight > rect.height) {
-      this._smartAutoresize.pivotLength = value.length
-      n.style.height = `${n.scrollHeight}px`
-    } else {
-      // see if we went back down in height
-      if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
-        this._smartAutoresize.pivotLength = value.length
-        n.style.height = '1px'
-        n.style.height = `${n.scrollHeight}px`
-      }
-    }
+    n.style.height = '1px'
+    n.style.height = `${n.scrollHeight}px`
   }
 
   focus = () => {

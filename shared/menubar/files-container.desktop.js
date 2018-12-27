@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as FsUtil from '../util/kbfs'
-import * as FsConstants from '../constants/fs'
 import * as TimestampUtil from '../util/timestamp'
 import {type RemoteTlfUpdates} from '../fs/remote-container'
 import {FilesPreview, type UserTlfUpdateRowProps} from './files.desktop'
@@ -18,7 +17,7 @@ type State = {|
 
 const mapStateToProps = (state: State) => ({
   _userTlfUpdates: state.fileRows,
-  _username: state.username,
+  username: state.username,
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -32,12 +31,11 @@ const mergeProps = (stateProps, dispatchProps) => ({
   userTlfUpdates: stateProps._userTlfUpdates.map(c => {
     const tlf = FsTypes.pathToString(c.tlf)
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
-    const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     const tlfType = FsTypes.getPathVisibility(c.tlf) || 'private'
     return {
-      iconSpec,
       onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
       participants: participants || [],
+      path: c.tlf,
       teamname: teamname || '',
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
       tlf,
@@ -49,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
         tlfType,
         uploading,
       })),
+      username: stateProps.username,
       writer: c.writer,
     }
   }),

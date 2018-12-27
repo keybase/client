@@ -5,7 +5,6 @@ import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
 import type {IconType} from '../common-adapters'
 import {isMobile} from '../constants/platform'
-import flags from '../util/feature-flags'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -159,16 +158,17 @@ export const reduceRPCItemToPeopleItem = (
         })
       )
     }
-  } else if (item.data.t === 3) {
-    if (__DEV__ && flags.peopleAnnouncementsEnabled) {
-      const a: any = item.data.announcement
+  } else if (item.data.t === RPCTypes.homeHomeScreenItemType.announcement) {
+    const a = item.data.announcement
+    if (a) {
       return list.push(
         makeAnnouncement({
           appLink: a.appLink,
-          badged: a.badged,
+          badged,
           confirmLabel: a.confirmLabel,
           dismissable: a.dismissable,
           iconUrl: a.iconUrl,
+          id: a.id,
           text: a.text,
           url: a.url,
         })
@@ -184,6 +184,8 @@ export const makeAnnouncement: I.RecordFactory<Types._Announcement> = I.Record({
   badged: false,
   confirmLabel: null,
   dismissable: false,
+  iconUrl: '',
+  id: 0,
   text: '',
   type: 'announcement',
   url: null,

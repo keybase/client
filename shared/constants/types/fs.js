@@ -64,6 +64,57 @@ export type _Tlf = {
 }
 export type Tlf = I.RecordOf<_Tlf>
 
+export type _ParsedPathRoot = {
+  kind: 'root',
+}
+export type ParsedPathRoot = I.RecordOf<_ParsedPathRoot>
+
+export type _ParsedPathTlfList = {
+  kind: 'tlf-list',
+  tlfType: TlfType,
+}
+export type ParsedPathTlfList = I.RecordOf<_ParsedPathTlfList>
+
+export type _ParsedPathGroupTlf = {
+  kind: 'group-tlf',
+  tlfType: 'private' | 'public',
+  writers: I.List<string>,
+  readers: ?I.List<string>,
+}
+export type ParsedPathGroupTlf = I.RecordOf<_ParsedPathGroupTlf>
+
+export type _ParsedPathTeamTlf = {
+  kind: 'team-tlf',
+  tlfType: 'team',
+  team: string,
+}
+export type ParsedPathTeamTlf = I.RecordOf<_ParsedPathTeamTlf>
+
+export type _ParsedPathInGroupTlf = {
+  kind: 'in-group-tlf',
+  tlfType: 'private' | 'public',
+  writers: I.List<string>,
+  readers: ?I.List<string>,
+  rest: I.List<string>,
+}
+export type ParsedPathInGroupTlf = I.RecordOf<_ParsedPathInGroupTlf>
+
+export type _ParsedPathInTeamTlf = {
+  kind: 'in-team-tlf',
+  tlfType: 'team',
+  team: string,
+  rest: I.List<string>,
+}
+export type ParsedPathInTeamTlf = I.RecordOf<_ParsedPathInTeamTlf>
+
+export type ParsedPath =
+  | ParsedPathRoot
+  | ParsedPathTlfList
+  | ParsedPathGroupTlf
+  | ParsedPathTeamTlf
+  | ParsedPathInGroupTlf
+  | ParsedPathInTeamTlf
+
 // name -> Tlf
 export type TlfList = I.Map<string, Tlf>
 
@@ -448,7 +499,6 @@ export type PathBreadcrumbItem = {
   isLastItem: boolean,
   name: string,
   path: Path,
-  iconSpec: PathItemIconSpec,
   onClick: (evt?: SyntheticEvent<>) => void,
 }
 
@@ -551,3 +601,5 @@ export type RowItemWithKey =
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
 export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'
+
+export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number
