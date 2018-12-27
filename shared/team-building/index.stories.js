@@ -35,7 +35,7 @@ const load = () => {
     .add('Team Building', () => (
       <OutlineWrapper style={{height: 434, marginTop: 20, width: 460}}>
         <TeamBuilding
-          searchString=""
+          searchString="chris"
           selectedService="keybase"
           onChangeService={Sb.action('onChangeService')}
           onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
@@ -46,8 +46,12 @@ const load = () => {
           onBackspace={Sb.action('onBackspace')}
           onRemove={Sb.action('onRemove')}
           onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
           recommendations={[]}
           fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
           teamSoFar={[
             {
               prettyName: 'max (Max Krohn)',
@@ -215,6 +219,7 @@ const load = () => {
         username="chris"
         prettyName="Chris Coyne"
         highlight={false}
+        resultForService={'keybase'}
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -236,6 +241,7 @@ const load = () => {
         username="chris"
         prettyName="Chris Coyne"
         highlight={false}
+        resultForService={'keybase'}
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -297,6 +303,7 @@ const load = () => {
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
+        resultForService={'keybase'}
       />
     ))
 }

@@ -54,7 +54,6 @@ class TeamBuilding extends React.PureComponent<Props, void> {
 
   render = () => {
     const props = this.props
-    const showSearchPending = props.searchString && !props.searchResults
     const showRecPending = !props.searchString && !(props.recommendations && props.recommendations.length)
     const showRecs = props.showRecs
     return (
@@ -92,9 +91,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             Recommendations
           </Kb.Text>
         )}
-        {showSearchPending ? (
-          <Kb.Text type="Body"> TODO: Add Pending state of searching</Kb.Text>
-        ) : showRecPending ? (
+        {showRecPending ? (
           <Kb.Text type="BodyTinySemibold" style={styles.recText}>
             ...
           </Kb.Text>

@@ -22,6 +22,11 @@ export type Props = {
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
+  // External services use custom colors which aren't defined in the stylesheet
+  // So they break the css optimizations. We have this extra prop so we can set
+  // the color without messing with the existing color code.
+  // TODO would be nice to not have to do this.
+  externalServiceColor?: Color,
   color?: Color,
   hoverColor?: string,
   fontSize?: number,
