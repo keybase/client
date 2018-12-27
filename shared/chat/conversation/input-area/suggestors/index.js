@@ -23,6 +23,17 @@ const standardTransformer = (
   return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
+const matchesMarker = (word: string, marker: string | RegExp): {marker: string, matches: boolean} => {
+  if (typeof marker === 'string') {
+    return {marker, matches: word.startsWith(marker)}
+  }
+  const match = word.match(marker)
+  if (!match) {
+    return {marker: '', matches: false}
+  }
+  return {marker: match[0] || '', matches: true}
+}
+
 // For better performance, try not to recreate these objects on every render
 // i.e. don't instantiate the objects inline (like dataSources={{...}})
 type AddSuggestorsProps = {
@@ -42,11 +53,12 @@ type AddSuggestorsProps = {
     // Avoid this by either:
     // 1. Having a marker that disables iOS's autocorrect
     // 2. Making sure your replacement text doesn't start with the filter
-    [key: string]: string,
+    [key: string]: string | RegExp,
   },
   transformers: {
     [key: string]: (
       item: any,
+      marker: string,
       tData: TransformerData,
       preview: boolean
     ) => {
@@ -152,17 +164,22 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         const {word} = cursorInfo
         if (this.state.active) {
           const activeMarker = this.props.suggestorToMarker[this.state.active]
-          if (!word.startsWith(activeMarker)) {
+          const matchInfo = matchesMarker(word, activeMarker)
+          if (!matchInfo.matches) {
             // not active anymore
             this._setInactive()
           } else {
-            this.setState({filter: word.substring(activeMarker.length)}, this._stabilizeSelection)
+            this.setState({filter: word.substring(matchInfo.marker.length)}, this._stabilizeSelection)
             return
           }
         }
-        for (let marker of Object.keys(this._markerToSuggestor)) {
-          if (word.startsWith(marker)) {
-            this.setState({active: this._markerToSuggestor[marker], filter: word.substring(marker.length)})
+        // $FlowIssue we know entries will give this type
+        for (let [suggestor, marker]: [string, string | RegExp] of Object.entries(
+          this.props.suggestorToMarker
+        )) {
+          const matchInfo = matchesMarker(word, marker)
+          if (matchInfo.matches) {
+            this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})
           }
         }
       }, 0)
@@ -276,8 +293,10 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
         if (!cursorInfo) {
           return
         }
+        const matchInfo = matchesMarker(cursorInfo.word, this.props.suggestorToMarker[active])
         const transformedText = this.props.transformers[active](
           value,
+          matchInfo.marker,
           {
             position: cursorInfo.position,
             text: this._lastText || '',

@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   openDownloadFolder: isMobile
     ? undefined
-    : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: downloadFolder})),
+    : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder})),
 })
 
 const maxNumCards = isMobile ? 1 : 3

@@ -69,7 +69,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 
 		// A proof that was previously tracked as GOOD
 		// is missing, so it has been REVOKED.
-		s.res.RevokedDetails = append(s.res.RevokedDetails, ExportTrackIDComponentToRevokedProof(e))
+		revokedDetail := ExportTrackIDComponentToRevokedProof(e)
 		var td TrackDiff
 		if s.tmpTrack == nil {
 			td = &TrackDiffRevoked{e}
@@ -83,6 +83,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 			} else {
 				// proof wasn't in snooze, so revoked proof already snoozed.
 				td = &TrackDiffSnoozedRevoked{e}
+				revokedDetail.Snoozed = true
 			}
 		}
 		if td != nil {
@@ -91,6 +92,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 				rhook(e, td)
 			}
 		}
+		s.res.RevokedDetails = append(s.res.RevokedDetails, revokedDetail)
 	}
 }
 

@@ -13,6 +13,7 @@ import {
   collapseStyles,
   globalColors,
   globalMargins,
+  isMobile,
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
@@ -27,7 +28,7 @@ export type Props = {|
   cancelButtonLabel: string, // empty string if disabled
   canceled: boolean,
   claimButtonLabel: string, // empty string if disabled
-  icon: IconType,
+  icon: ?IconType,
   loading: boolean,
   memo: string,
   onCancel: () => void,
@@ -38,8 +39,11 @@ export type Props = {|
 |}
 
 const ButtonText = (props: {text: string, amount: string}) => (
-  <Text style={styles.buttonText} type="BodySemibold">{props.text}{' '}
-    <Text style={styles.buttonText} type="BodyExtrabold">{props.amount}</Text>
+  <Text style={styles.buttonText} type="BodySemibold">
+    {props.text}{' '}
+    <Text style={styles.buttonText} type="BodyExtrabold">
+      {props.amount}
+    </Text>
   </Text>
 )
 
@@ -61,7 +65,7 @@ const AccountPayment = (props: Props) => {
         ])}
       >
         <Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
-          <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
+          {!!props.icon && <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />}
           <Text
             type="BodySmall"
             style={collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
@@ -74,39 +78,23 @@ const AccountPayment = (props: Props) => {
           </Text>
         </Box2>
         {props.canceled && <Text type="BodySmall">CANCELED</Text>}
-        {!!props.balanceChange && (
-          <Box2 direction="horizontal" style={styles.marginLeftAuto}>
-            <Text
-              type="BodyExtrabold"
-              selectable={true}
-              style={collapseStyles([
-                {color: props.balanceChangeColor},
-                props.canceled && styles.lineThrough,
-              ])}
-            >
+        <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
+          {!!props.balanceChange && (
+            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
               {props.balanceChange}
             </Text>
-          </Box2>
-        )}
+          )}
+          <Icon type="icon-stellar-coins-stacked-16" />
+        </Box2>
       </Box2>
       <MarkdownMemo memo={props.memo} />
       {!!props.sendButtonLabel && (
-        <Button
-          type="Wallet"
-          onClick={props.onSend}
-          small={true}
-          style={styles.button}
-        >
+        <Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
           <ButtonText text={props.sendButtonLabel} amount={props.amount} />
         </Button>
       )}
       {!!props.claimButtonLabel && (
-        <Button
-          type="Wallet"
-          onClick={props.onClaim}
-          small={true}
-          style={styles.button}
-        >
+        <Button type="Wallet" onClick={props.onClaim} small={true} style={styles.button}>
           <ButtonText text={props.claimButtonLabel} amount={props.amount} />
         </Button>
       )}
@@ -136,6 +124,10 @@ const styles = styleSheetCreate({
   alignItemsCenter: {
     alignItems: 'center',
   },
+  amountContainer: {
+    alignItems: 'center',
+    marginLeft: 'auto',
+  },
   button: {
     alignSelf: 'flex-start',
     marginTop: globalMargins.xtiny,
@@ -148,9 +140,6 @@ const styles = styleSheetCreate({
   },
   lineThrough: {
     textDecorationLine: 'line-through',
-  },
-  marginLeftAuto: {
-    marginLeft: 'auto',
   },
   progressIndicator: platformStyles({
     // Match height of a line of text

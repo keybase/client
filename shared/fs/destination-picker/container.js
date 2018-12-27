@@ -94,12 +94,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onNewFolder: canWrite(stateProps, ownProps)
     ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
     : null,
-  path: getDestinationParentPath(stateProps, ownProps),
+  parentPath: getDestinationParentPath(stateProps, ownProps),
   routePath: ownProps.routePath,
-  targetIconSpec: Constants.getItemStyles(
-    Types.getPathElements(stateProps._moveOrCopy.sourceItemPath),
-    stateProps._pathItems.get(stateProps._moveOrCopy.sourceItemPath, Constants.unknownPathItem).type
-  ).iconSpec,
   targetName: Types.getPathName(stateProps._moveOrCopy.sourceItemPath),
 })
 
