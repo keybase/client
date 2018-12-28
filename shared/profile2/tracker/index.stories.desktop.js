@@ -119,13 +119,29 @@ const provider = Sb.createPropProviderWithCommon({
       siteURL: a.siteURL,
       state: a.state,
       username: parts[0],
+      ...p.storyProps,
     }
   },
   Bio: p => ({
     ...props,
+    ...p,
+    bio:
+      p.username === 'longbio'
+        ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long bio'
+        : props.bio,
+    fullname:
+      p.username === 'longfullname'
+        ? 'mr longlonlonglonlonglonlonglonlonglonggggglonglonglongnarm squire the third'
+        : props.fullname,
+    location:
+      p.username === 'longlocation'
+        ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long location'
+        : props.location,
   }),
   Tracker2: p => ({
     ...props,
+    ...p,
+    ...p.storyProps,
   }),
 })
 
@@ -137,7 +153,20 @@ const load = () => {
         {story()}
       </Kb.Box2>
     ))
-    .add('New User', () => <Tracker username="darksim905" />)
+    .add('Normal', () => <Tracker username="darksim905" />)
+    .add('Long reason', () => (
+      <Tracker
+        username="darksim905"
+        {...Sb.propOverridesForStory({
+          reason:
+            'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason',
+        })}
+      />
+    ))
+    .add('Long bio', () => <Tracker username="longbio" />)
+    .add('Long location', () => <Tracker username="longlocation" />)
+    .add('Long username', () => <Tracker username="a23456789012345" />)
+    .add('Long fullanme', () => <Tracker username="longfullname" />)
 }
 
 const wrapper = {

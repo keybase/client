@@ -17,7 +17,9 @@ type Props = {|
 
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
-    <Kb.Text type="BodyBig">{p.fullname}</Kb.Text>
+    <Kb.Text type="BodyBig" lineClamp={1} style={styles.text}>
+      {p.fullname}
+    </Kb.Text>
     {p.followersCount !== null && (
       <Kb.Text type="BodySmall">
         <Kb.Text type="BodySmall">{p.followersCount} Followers </Kb.Text>
@@ -40,11 +42,16 @@ const Bio = (p: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
-  text: {
-    paddingLeft: Styles.globalMargins.mediumLarge,
-    paddingRight: Styles.globalMargins.mediumLarge,
-    textAlign: 'center',
-  },
+  text: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.mediumLarge,
+      paddingRight: Styles.globalMargins.mediumLarge,
+      textAlign: 'center',
+    },
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
 })
 
 export default Bio

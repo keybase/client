@@ -16,6 +16,7 @@ type Props = {|
   guiID: ?string,
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
+  reason: string,
   state: Types.AssertionState,
   username: string,
 |}
@@ -38,6 +39,9 @@ const Tracker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.container, {backgroundColor}])}>
+      <Kb.Text type="BodySmallSemibold" style={styles.reason}>
+        {props.reason}
+      </Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.avatarContainer}>
         <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
         <Kb.ConnectedNameWithIcon
@@ -74,9 +78,16 @@ const styles = Styles.styleSheetCreate({
     top: avatarSize / 2,
   },
   avatarContainer: {flexShrink: 0, position: 'relative'},
-  container: Styles.platformStyles({
-    isElectron: {overflowY: 'auto'},
-  }),
+  container: Styles.platformStyles({isElectron: {overflowY: 'auto'}}),
+  reason: {
+    alignSelf: 'center',
+    color: Styles.globalColors.white,
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.small,
+    textAlign: 'center',
+  },
 })
 
 export default Tracker

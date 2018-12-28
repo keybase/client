@@ -31,6 +31,7 @@ export type _Details = {
   guiID: string,
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
+  reason: string,
 }
 export type Details = I.RecordOf<_Details>
 
