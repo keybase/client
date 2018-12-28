@@ -142,6 +142,12 @@ const provider = Sb.createPropProviderWithCommon({
     ...props,
     ...p,
     ...p.storyProps,
+    followThem: p.username === 'green' ? true : props.followThem,
+    reason:
+      p.username === 'longreason'
+        ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
+        : props.reason,
+    state: p.username === 'red' ? 'error' : props.state,
   }),
 })
 
@@ -154,19 +160,13 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('Normal', () => <Tracker username="darksim905" />)
-    .add('Long reason', () => (
-      <Tracker
-        username="darksim905"
-        {...Sb.propOverridesForStory({
-          reason:
-            'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason',
-        })}
-      />
-    ))
+    .add('Long reason', () => <Tracker username="longreason" />)
     .add('Long bio', () => <Tracker username="longbio" />)
     .add('Long location', () => <Tracker username="longlocation" />)
     .add('Long username', () => <Tracker username="a23456789012345" />)
     .add('Long fullanme', () => <Tracker username="longfullname" />)
+    .add('Green', () => <Tracker username="green" />)
+    .add('Red', () => <Tracker username="red" />)
 }
 
 const wrapper = {
