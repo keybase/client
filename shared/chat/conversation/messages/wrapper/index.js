@@ -122,7 +122,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       result = children
     }
     return this.props.isPendingPayment ? (
-      <PendingPaymentBackground>{result}</PendingPaymentBackground>
+      <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
     ) : (
       result
     )
