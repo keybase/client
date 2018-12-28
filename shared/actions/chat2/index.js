@@ -1904,9 +1904,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       })
     )
   )
-
-  // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
-  // These messages will not send until the upload has both been started and completed.
+  // Send the messages with the generated previews
   yield Saga.sequentially(
     paths.map((p, i) =>
       Saga.callUntyped(RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise, {
