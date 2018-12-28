@@ -130,9 +130,13 @@ const provider = Sb.createPropProviderWithCommon({
       p.username === 'longbio'
         ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long bio'
         : props.bio,
+    followersCount: p.username === 'nofollowcounts' ? null : props.followersCount,
+    followingCount: p.username === 'nofollowcounts' ? null : props.followingCount,
     fullname:
       p.username === 'longfullname'
         ? 'mr longlonlonglonlonglonlonglonlonglonggggglonglonglongnarm squire the third'
+        : p.username === 'nofullname'
+        ? null
         : props.fullname,
     location:
       p.username === 'longlocation'
@@ -143,6 +147,8 @@ const provider = Sb.createPropProviderWithCommon({
     ...props,
     ...p,
     ...p.storyProps,
+    assertions:
+      p.username === 'noProofs' ? [] : p.username === 'oneProof' ? [props.assertions[0]] : props.assertions,
     followThem: p.username === 'green' ? true : props.followThem,
     reason:
       p.username === 'longreason'
@@ -166,6 +172,10 @@ const load = () => {
     .add('Long location', () => <Tracker username="longlocation" />)
     .add('Long username', () => <Tracker username="a23456789012345" />)
     .add('Long fullanme', () => <Tracker username="longfullname" />)
+    .add('No fullanme', () => <Tracker username="nofullname" />)
+    .add('No followcounts', () => <Tracker username="nofollowcounts" />)
+    .add('OneProof', () => <Tracker username="oneProof" />)
+    .add('NoProofs', () => <Tracker username="noProofs" />)
     .add('Green', () => <Tracker username="green" />)
     .add('Red', () => <Tracker username="red" />)
 }

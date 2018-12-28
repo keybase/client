@@ -52,7 +52,7 @@ const Tracker = (props: Props) => {
         />
       </Kb.Box2>
       <Bio username={props.username} />
-      <Kb.Box2 direction="vertical" style={styles.assertions}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assertions}>
         {assertions}
       </Kb.Box2>
     </Kb.Box2>
