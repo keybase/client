@@ -817,7 +817,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.signup.signup': {|
-    inParam: $ReadOnly<{|email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean|}>,
+    inParam: $ReadOnly<{|email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean, randomPw: Boolean|}>,
     outParam: SignupRes,
   |},
   'keybase.1.streamUi.close': {|
