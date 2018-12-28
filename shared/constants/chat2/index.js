@@ -257,6 +257,7 @@ export {
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
+  isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,

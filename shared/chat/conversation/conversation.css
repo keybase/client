@@ -23,12 +23,12 @@
   width: 100%;
   margin-left: 8px;
 }
+.WrapperMessage-hoverColor:hover {
+  background-color: #f7f9fc;
+}
 .WrapperMessage-decorated {
 }
 .WrapperMessage-decorated:active {
-  background-color: #f7f9fc;
-}
-.WrapperMessage-decorated:hover {
   background-color: #f7f9fc;
 }
 .WrapperMessage-author {

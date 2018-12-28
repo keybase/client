@@ -43,6 +43,7 @@ export type Props = {|
   failureDescription: string,
   forceAsh: boolean,
   hasUnfurlPrompts: boolean,
+  isPendingPayment: boolean,
   isRevoked: boolean,
   showUsername: string,
   measure: ?() => void,
@@ -83,8 +84,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _onAuthorClick = () => this.props.onAuthorClick()
 
   _authorAndContent = children => {
+    let result
     if (this.props.showUsername) {
-      return (
+      result = (
         <React.Fragment key="authorAndContent">
           <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
             <Kb.Avatar
@@ -101,7 +103,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               type="BodySmallSemibold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
-              containerStyle={styles.fast}
             />
             <Kb.Text type="BodyTiny" style={styles.timestamp}>
               {formatTimeForChat(this.props.message.timestamp)}
@@ -118,8 +119,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         </React.Fragment>
       )
     } else {
-      return children
+      result = children
     }
+    return this.props.isPendingPayment ? (
+      <PendingPaymentBackground>{result}</PendingPaymentBackground>
+    ) : (
+      result
+    )
   }
 
   _isEdited = () =>
@@ -209,7 +215,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _containerProps = () => {
     if (Styles.isMobile) {
       const props = {
-        style: this.props.showUsername ? null : styles.containerNoUsername,
+        style: Styles.collapseStyles([
+          styles.container,
+          !this.props.showUsername && styles.containerNoUsername,
+        ]),
       }
       return this.props.decorate
         ? {
@@ -225,6 +234,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           {
             'WrapperMessage-author': this.props.showUsername,
             'WrapperMessage-decorated': this.props.decorate,
+            'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             active: this.props.showingMenu || this.state.showingPicker,
           },
           'WrapperMessage-hoverBox'
@@ -371,9 +381,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     // 1. Haven't mounted it yet
     // 2. Have mounted but its hidden w/ css
     // TODO cleaner way to do this, or speedup react button maybe
-    let result
     if (this.props.decorate && !exploded) {
-      result = (
+      return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
           <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
@@ -422,7 +431,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       )
     } else if (exploding) {
       // extra box so the hierarchy stays the same when exploding or you'll remount
-      result = (
+      return (
         <Kb.Box2 key="messageAndButtons" direction="horizontal" fullWidth={true}>
           {maybeExplodedChild}
           <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
@@ -435,11 +444,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         </Kb.Box2>
       )
     } else {
-      result = maybeExplodedChild
+      return maybeExplodedChild
     }
-
-    const resultWrapped = <PendingPaymentBackground>{result}</PendingPaymentBackground>
-    return resultWrapped
   }
 
   render() {
@@ -481,15 +487,10 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginTop: 8},
   }),
-  avatar: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-    },
-    isMobile: {
-      ...fast,
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
+  avatar: {
+    marginLeft: Styles.globalMargins.small,
+  },
+  container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
       paddingBottom: 3,
@@ -564,7 +565,6 @@ const styles = Styles.styleSheetCreate({
   }),
   timestamp: Styles.platformStyles({
     isMobile: {
-      ...fast,
       position: 'relative',
       top: 2,
     },
