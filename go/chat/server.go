@@ -140,10 +140,6 @@ func (h *Server) suspendInboxSource(ctx context.Context) func() {
 	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
 }
 
-func (h *Server) getUID() gregor1.UID {
-	return gregor1.UID(h.G().Env.GetUID().ToBytes())
-}
-
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
@@ -1494,42 +1490,35 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 	return res, ioutil.WriteFile(res, arg.Data, 0644)
 }
 
-func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
-	arg chat1.PostFileAttachmentMessageLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
+	arg chat1.PostFileAttachmentLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentMessageLocalNonblock")()
+	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
 
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, arg.OutboxID, arg.Filename, arg.Title, arg.Metadata,
-		arg.ClientPrev, arg.EphemeralLifetime)
+		arg.Arg.ConversationID, arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename,
+		arg.Arg.Title, arg.Arg.Metadata, arg.ClientPrev, arg.Arg.EphemeralLifetime,
+		arg.Arg.CallerPreview)
 	if err != nil {
+		return res, err
+	}
+	if _, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
+		arg.Arg.Filename, nil, arg.Arg.CallerPreview); err != nil {
 		return res, err
 	}
 	return chat1.PostLocalNonblockRes{
 		OutboxID:         outboxID,
 		IdentifyFailures: identBreaks,
 	}, nil
-}
-
-func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
-	arg chat1.PostFileAttachmentUploadLocalNonblockArg) (err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err },
-		fmt.Sprintf("PostFileAttachmentUploadLocalNonblock(%s)", arg.OutboxID))()
-	defer h.suspendConvLoader(ctx)()
-
-	uid := h.getUID()
-	if _, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConvID, arg.OutboxID, arg.Title,
-		arg.Filename, arg.Metadata, arg.CallerPreview); err != nil {
-		return err
-	}
-	return nil
 }
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
@@ -1539,9 +1528,12 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
 
 	// Get base of message we are going to send
-	uid := h.getUID()
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	_, msgID, err := attachments.NewSender(h.G()).PostFileAttachment(ctx, sender, uid, arg.Arg.ConversationID,
 		arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename, arg.Arg.Title,

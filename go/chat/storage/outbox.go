@@ -23,13 +23,16 @@ type outboxStorage interface {
 	name() string
 }
 
+type OutboxPendingPreviewFn func(context.Context, *chat1.OutboxRecord) error
+
 type Outbox struct {
 	globals.Contextified
 	utils.DebugLabeler
 	outboxStorage
 
-	clock clockwork.Clock
-	uid   gregor1.UID
+	clock            clockwork.Clock
+	uid              gregor1.UID
+	pendingPreviewer OutboxPendingPreviewFn
 }
 
 const outboxVersion = 4
@@ -70,7 +73,13 @@ func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
 
 var storageReportOnce sync.Once
 
-func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
+func PendingPreviewer(p OutboxPendingPreviewFn) func(*Outbox) {
+	return func(o *Outbox) {
+		o.SetPendingPreviewer(p)
+	}
+}
+
+func NewOutbox(g *globals.Context, uid gregor1.UID, config ...func(*Outbox)) *Outbox {
 	st := createOutboxStorage(g, uid)
 	o := &Outbox{
 		Contextified:  globals.NewContextified(g),
@@ -79,10 +88,17 @@ func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
 		uid:           uid,
 		clock:         clockwork.NewRealClock(),
 	}
+	for _, c := range config {
+		c(o)
+	}
 	storageReportOnce.Do(func() {
 		o.Debug(context.Background(), "NewOutbox: using storage engine: %s", st.name())
 	})
 	return o
+}
+
+func (o *Outbox) SetPendingPreviewer(p OutboxPendingPreviewFn) {
+	o.pendingPreviewer = p
 }
 
 func (o *Outbox) GetUID() gregor1.UID {
@@ -152,6 +168,13 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		Ordinal:          prevOrdinal,
 	}
 	obox.Records = append(obox.Records, rec)
+
+	// Add any pending attachment previews for the notification and return value
+	if o.pendingPreviewer != nil {
+		if err := o.pendingPreviewer(ctx, &rec); err != nil {
+			o.Debug(ctx, "PushMessage: failed to add pending preview: %s", err)
+		}
+	}
 
 	// Write out diskbox
 	obox.Version = outboxVersion

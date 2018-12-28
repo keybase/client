@@ -1890,35 +1890,10 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-
-  // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
-  // These messages will not send until the upload has both been started and completed.
-  const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
-    paths.map((p, i) =>
-      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise, {
-        ...ephemeralData,
-        clientPrev,
-        convID: Types.keyToConversationID(conversationIDKey),
-        filename: p.path,
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        metadata: Buffer.from([]),
-        outboxID: p.outboxID,
-        title: titles[i],
-        tlfName: meta.tlfname,
-        visibility: RPCTypes.commonTLFVisibility.private,
-      })
-    )
-  )
-  const outboxIDs = messageResults.reduce((obids, r) => {
-    if (r) {
-      obids.push(r.outboxID)
-    }
+  const outboxIDs = paths.reduce((obids, p) => {
+    obids.push(p.outboxID ? p.outboxID : Constants.generateOutboxID())
     return obids
   }, [])
-  if (outboxIDs.length === 0) {
-    logger.info('all outbox IDs filtered on null results')
-    return
-  }
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
@@ -1930,52 +1905,24 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
     )
   )
 
-  // Collect preview information
-  const previewURLs = previews.map(preview =>
-    preview &&
-    preview.location &&
-    preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
-    preview.location.url
-      ? preview.location.url
-      : ''
-  )
-  const previewSpecs = previews.map(preview =>
-    Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
-  )
-
-  let lastOrdinal = null
-  const messages = outboxIDs.map((o, i) => {
-    const m = Constants.makePendingAttachmentMessage(
-      state,
-      conversationIDKey,
-      titles[i],
-      FsTypes.getLocalPathName(paths[i].path),
-      previewURLs[i],
-      previewSpecs[i],
-      Types.rpcOutboxIDToOutboxID(outboxIDs[i]),
-      lastOrdinal,
-      null,
-      ephemeralLifetime
-    )
-    lastOrdinal = Constants.nextFractionalOrdinal(m.ordinal)
-    return m
-  })
-  yield Saga.put(
-    Chat2Gen.createMessagesAdd({
-      context: {type: 'sent'},
-      messages,
-    })
-  )
+  // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
+  // These messages will not send until the upload has both been started and completed.
   yield Saga.sequentially(
-    paths.map((path, i) =>
-      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
-        callerPreview: previews[i],
-        convID: Types.keyToConversationID(conversationIDKey),
-        filename: path.path,
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        metadata: Buffer.from([]),
-        outboxID: outboxIDs[i],
-        title: titles[i],
+    paths.map((p, i) =>
+      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise, {
+        arg: {
+          ...ephemeralData,
+          callerPreview: previews[i],
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          filename: p.path,
+          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+          metadata: Buffer.from([]),
+          outboxID: outboxIDs[i],
+          title: titles[i],
+          tlfName: meta.tlfname,
+          visibility: RPCTypes.commonTLFVisibility.private,
+        },
+        clientPrev,
       })
     )
   )

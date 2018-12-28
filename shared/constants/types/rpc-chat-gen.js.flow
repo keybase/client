@@ -292,13 +292,9 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, target: EditTarget, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
-  'chat.1.local.postFileAttachmentMessageLocalNonblock': {|
-    inParam: $ReadOnly<{|convID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, outboxID?: ?OutboxID, clientPrev: MessageID, filename: String, title: String, metadata: Bytes, ephemeralLifetime?: ?Gregor1.DurationSec, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+  'chat.1.local.postFileAttachmentLocalNonblock': {|
+    inParam: $ReadOnly<{|arg: PostFileAttachmentArg, clientPrev: MessageID|}>,
     outParam: PostLocalNonblockRes,
-  |},
-  'chat.1.local.postFileAttachmentUploadLocalNonblock': {|
-    inParam: $ReadOnly<{|convID: ConversationID, outboxID: OutboxID, filename: String, title: String, metadata: Bytes, callerPreview?: ?MakePreviewRes, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
-    outParam: void,
   |},
   'chat.1.local.postHeadline': {|
     inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
@@ -1199,8 +1195,7 @@ declare export function localNewConversationLocalRpcPromise(params: $PropertyTyp
 declare export function localPostDeleteHistoryByAgeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postDeleteHistoryByAge'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postDeleteHistoryByAge'>, 'outParam'>>
 declare export function localPostDeleteNonblockRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postDeleteNonblock'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postDeleteNonblock'>, 'outParam'>>
 declare export function localPostEditNonblockRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postEditNonblock'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postEditNonblock'>, 'outParam'>>
-declare export function localPostFileAttachmentMessageLocalNonblockRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postFileAttachmentMessageLocalNonblock'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postFileAttachmentMessageLocalNonblock'>, 'outParam'>>
-declare export function localPostFileAttachmentUploadLocalNonblockRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postFileAttachmentUploadLocalNonblock'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postFileAttachmentUploadLocalNonblock'>, 'outParam'>>
+declare export function localPostFileAttachmentLocalNonblockRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postFileAttachmentLocalNonblock'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postFileAttachmentLocalNonblock'>, 'outParam'>>
 declare export function localPostHeadlineNonblockRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postHeadlineNonblock'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postHeadlineNonblock'>, 'outParam'>>
 declare export function localPostHeadlineRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postHeadline'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postHeadline'>, 'outParam'>>
 declare export function localPostMetadataRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postMetadata'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postMetadata'>, 'outParam'>>

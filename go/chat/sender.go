@@ -927,7 +927,10 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 
 	<-s.doStop(ctx)
 
-	s.outbox = storage.NewOutbox(s.G(), uid)
+	s.outbox = storage.NewOutbox(s.G(), uid,
+		storage.PendingPreviewer(func(ctx context.Context, obr *chat1.OutboxRecord) error {
+			return attachments.AddPendingPreview(ctx, s.G(), obr)
+		}))
 	s.outbox.SetClock(s.clock)
 
 	s.delivering = true
@@ -1006,7 +1009,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	if err != nil {
 		return obr, err
 	}
-	s.Debug(ctx, "queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
+	s.Debug(ctx, "Queue: queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
 		obr.OutboxID, s.outbox.GetUID(), identifyBehavior)
 
 	// Alert the deliver loop it should wake up
