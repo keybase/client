@@ -42,6 +42,10 @@ const (
 	// The delay to wait for before trying a failed block deletion
 	// again. Used by enqueueBlocksToDeleteAfterShortDelay().
 	deleteBlocksRetryDelay = 10 * time.Millisecond
+
+	// maxParallelChunkOps is the maximum number of parallel chunks we
+	// can request from the bserver.
+	maxParallelChunkOps = 100
 )
 
 type blockDeleteType int
@@ -460,8 +464,8 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
 		numPointersToDowngradePerChunk
 	numWorkers := numChunks
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
+	if numWorkers > maxParallelChunkOps {
+		numWorkers = maxParallelChunkOps
 	}
 	chunks := make(chan []BlockPointer, numChunks)
 
@@ -1316,8 +1320,8 @@ func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
 	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
 		numPointersToDowngradePerChunk
 	numWorkers := numChunks
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
+	if numWorkers > maxParallelChunkOps {
+		numWorkers = maxParallelChunkOps
 	}
 	chunks := make(chan []BlockPointer, numChunks)
 
@@ -1455,6 +1459,8 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 				return err
 			}
 
+			// This call blocks, but that's ok since this is done in a
+			// background goroutine.
 			ids, err = fbm.doChunkedGetNonLiveBlocks(ctx, ptrs)
 			if err != nil {
 				return err
