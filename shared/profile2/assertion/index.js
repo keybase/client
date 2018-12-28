@@ -44,10 +44,10 @@ const Assertion = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {flexShrink: 0, minHeight: 24},
-  icon: {marginTop: 5},
+  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+  // icon: {marginTop: 1},
   site: {color: Styles.globalColors.black_20},
-  textContainer: {marginTop: 4},
+  textContainer: {marginTop: -1},
   username: Styles.platformStyles({
     isElectron: {display: 'inline-block', wordBreak: 'break-all'},
   }),

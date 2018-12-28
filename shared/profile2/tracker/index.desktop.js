@@ -53,16 +53,18 @@ const Tracker = (props: Props) => {
   )
 }
 
+const avatarSize = 96
+
 const styles = Styles.styleSheetCreate({
+  assertions: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
   avatarBackground: {
     backgroundColor: Styles.globalColors.white,
     bottom: 0,
     left: 0,
     position: 'absolute',
     right: 0,
-    top: 96 / 2,
+    top: avatarSize / 2,
   },
-  assertions: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
   avatarContainer: {flexShrink: 0, position: 'relative'},
   container: Styles.platformStyles({
     isElectron: {overflowY: 'auto'},
