@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
@@ -15,7 +16,6 @@ import {chatTab, loginTab, peopleTab} from '../constants/tabs'
 import {connect} from '../util/container'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {makeLeafTags} from '../route-tree'
-import {navigateUp} from '../actions/route-tree'
 import {tabBarHeight} from './tab-bar/index.native'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
 import {GatewayDest} from 'react-gateway'
@@ -381,7 +381,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(navigateUp()),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

@@ -5,13 +5,13 @@ import * as FsGen from '../fs-gen'
 import type {TypedActions} from '../typed-actions-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
-import {navigateTo} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
 const fsRootRoute = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
 const _getRouteChangeActionForPermissionError = (path: Types.Path) =>
-  navigateTo([...fsRootRoute, {props: {path}, selected: 'oopsNoAccess'}])
+  RouteTreeGen.createNavigateTo({path: [...fsRootRoute, {props: {path}, selected: 'oopsNoAccess'}]})
 
 const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: any): TypedActions => {
   if (

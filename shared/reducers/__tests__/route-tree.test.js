@@ -4,7 +4,7 @@
 import routeTreeReducer from '../route-tree'
 import {makeState} from '../../constants/route-tree'
 import {makeRouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 import type {PropsPath} from '../../route-tree'
 
@@ -42,7 +42,7 @@ describe('routeTree reducer', () => {
       const routeDef = demoRouteDef
       const routeState = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
 
-      const action = navigateUp()
+      const action = RouteTreeGen.createNavigateUp()
       const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo']: Array<string>)))
@@ -54,7 +54,7 @@ describe('routeTree reducer', () => {
       const routeDef = demoRouteDef
       const routeState = routeSetProps(routeDef, null, (['foo']: Array<string>))
 
-      const action = navigateAppend(['bar'])
+      const action = RouteTreeGen.createNavigateAppend({path: ['bar']})
       const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>)))
@@ -65,7 +65,7 @@ describe('routeTree reducer', () => {
       const routeStatePre = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
       const routeState = routeNavigate(routeDef, routeStatePre, (['etc']: Array<string>))
 
-      const action = navigateAppend(['baz'], ['foo'])
+      const action = RouteTreeGen.createNavigateAppend({parentPath: ['foo'], path: ['baz']})
       const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       const expectedStatePre = routeSetProps(routeDef, null, (['foo', 'bar', 'baz']: PropsPath<*>))
@@ -91,7 +91,7 @@ describe('routeTree reducer', () => {
       const routeDef = demoRouteDef
       const routeState = routeSetProps(routeDef, null, [])
 
-      const action = navigateAppend(['baz'], ['foo', 'bar'])
+      const action = RouteTreeGen.createNavigateAppend({parentPath: ['foo', 'bar'], path: ['baz']})
       const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(

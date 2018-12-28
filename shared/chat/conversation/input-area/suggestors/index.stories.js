@@ -111,8 +111,9 @@ const props = {
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
-    fruit: (fruit, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
-    users: (username, tData, preview) => Suggestors.standardTransformer(`@${username}`, tData, preview),
+    fruit: (fruit, marker, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
+    users: (username, marker, tData, preview) =>
+      Suggestors.standardTransformer(`@${username}`, tData, preview),
   },
 }
 

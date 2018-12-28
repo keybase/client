@@ -9,7 +9,7 @@ import {
   connect,
   type RouteProps,
 } from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
@@ -33,7 +33,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
   _onSetChannelCreationError: error => {
     dispatch(TeamsGen.createSetChannelCreationError({error}))
   },
-  onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
+  onBack: () =>
+    dispatch(RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['manageChannels']})),
   onClose: () => dispatch(navigateUp()),
 })
 

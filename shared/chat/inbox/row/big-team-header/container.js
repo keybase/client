@@ -1,7 +1,7 @@
 // @flow
 import {connect} from '../../../../util/container'
 import {isTeamWithChosenChannels} from '../../../../constants/teams'
-import {navigateTo} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 import {BigTeamHeader} from '.'
 
@@ -15,7 +15,8 @@ const mapStateToProps = (state, {teamname}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
-  onClick: () => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
+  onClick: () =>
+    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

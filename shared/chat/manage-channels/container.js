@@ -14,7 +14,7 @@ import {
   withPropsOnChange,
   type RouteProps,
 } from '../../util/container'
-import {navigateTo, navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 
@@ -98,9 +98,18 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
     onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
     onCreate: () =>
-      dispatch(navigateTo([{props: {teamname}, selected: 'createChannel'}], routePath.butLast())),
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          parentPath: routePath.butLast(),
+          path: [{props: {teamname}, selected: 'createChannel'}],
+        })
+      ),
     onEdit: conversationIDKey =>
-      dispatch(navigateAppend([{props: {conversationIDKey, teamname}, selected: 'editChannel'}])),
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, teamname}, selected: 'editChannel'}],
+        })
+      ),
   }
 }
 
