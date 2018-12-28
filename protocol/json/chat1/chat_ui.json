@@ -1072,15 +1072,6 @@
       ],
       "response": "boolean"
     },
-    "chatPostReadyToSend": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "chatStellarShowConfirm": {
       "request": [
         {

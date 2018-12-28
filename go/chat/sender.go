@@ -1445,6 +1445,17 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	}
 	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, identifyBehavior)
+	if err != nil {
+		return obr.OutboxID, nil, err
+	}
+	uid := obr.Msg.ClientHeader.Sender
+	act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+		Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
+			uid, convID),
+		ConvID: convID,
+	})
+	s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, &act,
+		chat1.ChatActivitySource_LOCAL)
 	return obr.OutboxID, nil, err
 }
 

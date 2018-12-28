@@ -1257,9 +1257,6 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	if err != nil {
 		return res, err
 	}
-	if err = h.getChatUI(arg.SessionID).ChatPostReadyToSend(ctx); err != nil {
-		return res, err
-	}
 
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
@@ -1429,6 +1426,11 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	if err != nil {
 		return res, err
 	}
+	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
+		return res, err
+	}
+	defer h.G().ConvSource.ReleaseConversationLock(ctx, uid, arg.ConversationID)
+	h.Debug(ctx, "PostLocalNonblock: conversation lock obtained")
 
 	// Sanity check that we have a TLF name here
 	if len(arg.Msg.ClientHeader.TlfName) == 0 {
