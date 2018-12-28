@@ -11,7 +11,7 @@ const bgScroll = Styles.styledKeyframes({
 })
 
 const BackgroundBox = Styles.styled.div({
-  animation: `${bgScroll} 1s linear infinite`,
+  animation: `${bgScroll} 2s linear infinite`,
   backgroundImage: patternImage,
   backgroundRepeat: 'repeat',
   backgroundSize: '80px 80px',

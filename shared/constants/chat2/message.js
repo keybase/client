@@ -72,7 +72,7 @@ export const isPendingPaymentMessage = (state: TypedState, message: Types.Messag
     return false
   }
   const paymentInfo = getPaymentMessageInfo(state, message)
-  return !paymentInfo || ['claimable', 'pending'].includes(paymentInfo.status)
+  return !!(paymentInfo && ['claimable', 'pending'].includes(paymentInfo.status))
 }
 
 // Map service message types to our message types.
