@@ -930,6 +930,17 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.outbox = storage.NewOutbox(s.G(), uid,
 		storage.PendingPreviewer(func(ctx context.Context, obr *chat1.OutboxRecord) error {
 			return attachments.AddPendingPreview(ctx, s.G(), obr)
+		}),
+		storage.NewMessageNotifier(func(ctx context.Context, obr chat1.OutboxRecord) {
+			uid := obr.Msg.ClientHeader.Sender
+			convID := obr.ConvID
+			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
+					uid, convID),
+				ConvID: convID,
+			})
+			s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, &act,
+				chat1.ChatActivitySource_LOCAL)
 		}))
 	s.outbox.SetClock(s.clock)
 
@@ -1451,15 +1462,7 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return obr.OutboxID, nil, err
 	}
-	uid := obr.Msg.ClientHeader.Sender
-	act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-		Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
-			uid, convID),
-		ConvID: convID,
-	})
-	s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, &act,
-		chat1.ChatActivitySource_LOCAL)
-	return obr.OutboxID, nil, err
+	return obr.OutboxID, nil, nil
 }
 
 func (s *NonblockingSender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,

@@ -24,15 +24,17 @@ type outboxStorage interface {
 }
 
 type OutboxPendingPreviewFn func(context.Context, *chat1.OutboxRecord) error
+type OutboxNewMessageNotifierFn func(context.Context, chat1.OutboxRecord)
 
 type Outbox struct {
 	globals.Contextified
 	utils.DebugLabeler
 	outboxStorage
 
-	clock            clockwork.Clock
-	uid              gregor1.UID
-	pendingPreviewer OutboxPendingPreviewFn
+	clock              clockwork.Clock
+	uid                gregor1.UID
+	pendingPreviewer   OutboxPendingPreviewFn
+	newMessageNotifier OutboxNewMessageNotifierFn
 }
 
 const outboxVersion = 4
@@ -79,6 +81,12 @@ func PendingPreviewer(p OutboxPendingPreviewFn) func(*Outbox) {
 	}
 }
 
+func NewMessageNotifier(n OutboxNewMessageNotifierFn) func(*Outbox) {
+	return func(o *Outbox) {
+		o.SetNewMessageNotifier(n)
+	}
+}
+
 func NewOutbox(g *globals.Context, uid gregor1.UID, config ...func(*Outbox)) *Outbox {
 	st := createOutboxStorage(g, uid)
 	o := &Outbox{
@@ -99,6 +107,10 @@ func NewOutbox(g *globals.Context, uid gregor1.UID, config ...func(*Outbox)) *Ou
 
 func (o *Outbox) SetPendingPreviewer(p OutboxPendingPreviewFn) {
 	o.pendingPreviewer = p
+}
+
+func (o *Outbox) SetNewMessageNotifier(n OutboxNewMessageNotifierFn) {
+	o.newMessageNotifier = n
 }
 
 func (o *Outbox) GetUID() gregor1.UID {
@@ -174,6 +186,11 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		if err := o.pendingPreviewer(ctx, &rec); err != nil {
 			o.Debug(ctx, "PushMessage: failed to add pending preview: %s", err)
 		}
+	}
+	// Run the notification before we write to the disk so that it is guaranteed to beat
+	// any notifications from the message being sent
+	if o.newMessageNotifier != nil {
+		o.newMessageNotifier(ctx, rec)
 	}
 
 	// Write out diskbox
