@@ -5,7 +5,7 @@ import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DeviceRevoke from '.'
 import {connect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {||}
 
@@ -17,7 +17,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {routeProps}) => ({
   _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

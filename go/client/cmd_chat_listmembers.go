@@ -73,7 +73,6 @@ func (c *CmdChatListMembers) Run() error {
 
 func (c *CmdChatListMembers) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 2 {
-		cli.ShowCommandHelp(ctx, "list-members")
 		return fmt.Errorf("Incorrect usage.")
 	}
 

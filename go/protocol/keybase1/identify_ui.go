@@ -95,14 +95,16 @@ func (o Cryptocurrency) DeepCopy() Cryptocurrency {
 }
 
 type RevokedProof struct {
-	Proof RemoteProof `codec:"proof" json:"proof"`
-	Diff  TrackDiff   `codec:"diff" json:"diff"`
+	Proof   RemoteProof `codec:"proof" json:"proof"`
+	Diff    TrackDiff   `codec:"diff" json:"diff"`
+	Snoozed bool        `codec:"snoozed" json:"snoozed"`
 }
 
 func (o RevokedProof) DeepCopy() RevokedProof {
 	return RevokedProof{
-		Proof: o.Proof.DeepCopy(),
-		Diff:  o.Diff.DeepCopy(),
+		Proof:   o.Proof.DeepCopy(),
+		Diff:    o.Diff.DeepCopy(),
+		Snoozed: o.Snoozed,
 	}
 }
 

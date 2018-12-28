@@ -18,7 +18,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
@@ -609,36 +609,40 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
 
 const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
   isMobile
-    ? navigateTo([
-        Tabs.settingsTab,
-        SettingsConstants.fsTab,
-        // Construct all parent folders so back button works all the way back
-        // to /keybase
-        ...Types.getPathElements(action.payload.path)
-          .slice(1, -1) // fsTab default to /keybase, so we skip one here
-          .reduce(
-            (routes, elem) => [
-              ...routes,
-              {
-                props: {
-                  path: routes.length
-                    ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                    : Types.stringToPath(`/keybase/${elem}`),
+    ? RouteTreeGen.createNavigateTo({
+        path: [
+          Tabs.settingsTab,
+          SettingsConstants.fsTab,
+          // Construct all parent folders so back button works all the way back
+          // to /keybase
+          ...Types.getPathElements(action.payload.path)
+            .slice(1, -1) // fsTab default to /keybase, so we skip one here
+            .reduce(
+              (routes, elem) => [
+                ...routes,
+                {
+                  props: {
+                    path: routes.length
+                      ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                      : Types.stringToPath(`/keybase/${elem}`),
+                  },
+                  selected: 'main',
                 },
-                selected: 'main',
-              },
-            ],
-            []
-          ),
-        finalRoute,
-      ])
-    : navigateTo([
-        Tabs.fsTab,
-        // Prepend the parent folder so when user clicks the back button they'd
-        // go back to the parent folder.
-        {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
-        finalRoute,
-      ])
+              ],
+              []
+            ),
+          finalRoute,
+        ],
+      })
+    : RouteTreeGen.createNavigateTo({
+        path: [
+          Tabs.fsTab,
+          // Prepend the parent folder so when user clicks the back button they'd
+          // go back to the parent folder.
+          {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
+          finalRoute,
+        ],
+      })
 
 const _getRouteChangeActionForOpen = (
   action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
@@ -646,9 +650,11 @@ const _getRouteChangeActionForOpen = (
 ) => {
   const routeChange =
     action.type === FsGen.openPathItem
-      ? navigateAppend([finalRoute])
+      ? RouteTreeGen.createNavigateAppend({path: [finalRoute]})
       : _getRouteChangeForOpenPathInFilesTab(action, finalRoute)
-  return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
+  return action.payload.routePath
+    ? RouteTreeGen.createPutActionIfOnPath({expectedPath: action.payload.routePath, otherAction: routeChange})
+    : routeChange
 }
 
 const openPathItem = (
@@ -763,15 +769,17 @@ const moveOrCopyOpen = (state, action) =>
       })
     ),
     Saga.put(
-      putActionIfOnPath(
-        action.payload.routePath,
-        navigateAppend([{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}])
-      )
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: action.payload.routePath,
+        otherAction: RouteTreeGen.createNavigateAppend({path: [
+          {props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'},
+        ]}),
+      })
     ),
   ])
 
 const showMoveOrCopy = (state, action) =>
-  Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
+  Saga.put(RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]}))
 
 const cancelMoveOrCopy = (state, action) => {
   const currentRoutes = getPathProps(state.routeTree.routeState)
@@ -784,7 +792,7 @@ const cancelMoveOrCopy = (state, action) => {
   )
   return Saga.all([
     Saga.put(FsGen.createClearRefreshTag({refreshTag: 'destination-picker'})),
-    Saga.put(navigateTo(newRoute)),
+    Saga.put(RouteTreeGen.createNavigateTo({path: newRoute})),
   ])
 }
 
@@ -792,8 +800,11 @@ const showSendLinkToChat = (state, action) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
   const routeChange = Saga.put(
     action.payload.routePath
-      ? putActionIfOnPath(action.payload.routePath, navigateAppend(['sendLinkToChat']))
-      : navigateAppend(['sendLinkToChat'])
+      ? RouteTreeGen.createPutActionIfOnPath({
+          expectedPath: action.payload.routePath,
+          otherAction: RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']}),
+        })
+      : RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']})
   )
   if (elems.length < 3) {
     // Not a TLF; so just show the modal and let user copy the path.

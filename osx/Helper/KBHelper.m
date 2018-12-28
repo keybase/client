@@ -11,6 +11,8 @@
 #import "KBKext.h"
 #import "KBLogger.h"
 #import <MPMessagePack/MPXPCProtocol.h>
+#include <pwd.h>
+#include <grp.h>
 
 @interface KBHelper ()
 @property NSTask *redirector;
@@ -30,7 +32,7 @@
     return EXIT_FAILURE;
   }
 
-  NSString *codeRequirement = @"anchor apple generic and (identifier \"keybase.Installer\" or identifier \"keybase.Keybase\") and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")";
+  NSString *codeRequirement = @"anchor apple generic and (identifier \"keybase.Installer2\" or identifier \"keybase.Keybase\") and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")";
 
   @try {
     KBHelper *helper = [[KBHelper alloc] init];
@@ -46,7 +48,7 @@
 
 - (void)handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId remote:(xpc_connection_t)remote completion:(void (^)(NSError *error, id value))completion {
   @try {
-    [self _handleRequestWithMethod:method params:params messageId:messageId completion:completion];
+    [self _handleRequestWithMethod:method params:params messageId:messageId remote:remote completion:completion];
   } @catch (NSException *e) {
     KBLog(@"Exception: %@", e);
     completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Exception: %@", e), nil);
@@ -61,13 +63,19 @@
   return nil;
 }
 
-- (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
+- (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId remote:(xpc_connection_t)remote completion:(void (^)(NSError *error, id value))completion {
   NSDictionary *args = [params count] == 1 ? params[0] : @{};
 
   KBLog(@"Request: %@(%@)", method, args);
 
   if (![args isKindOfClass:NSDictionary.class]) {
     completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid args"), nil);
+    return;
+  }
+
+  if (![self _checkRemoteIsAdmin:remote]) {
+    KBLog(@"Remote caller into Helper process didn't have admin permissions");
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid admin permissions"), nil);
     return;
   }
 
@@ -107,6 +115,36 @@
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
+}
+
+- (BOOL)_checkRemoteIsAdmin:(xpc_connection_t)remote {
+  char getpwuid_buf[1024];
+  char getgrnam_buf[8192];
+
+  uid_t uid = xpc_connection_get_euid(remote);
+  struct passwd pwentry;
+  struct passwd *pwentryp;
+  int tmp = getpwuid_r(uid, &pwentry, getpwuid_buf, sizeof(getpwuid_buf), &pwentryp);
+  if (tmp != 0 || pwentryp == NULL) {
+    KBLog(@"Failed to get PW entry for uid %@", uid);
+    return NO;
+  }
+  struct group admin_group;
+  struct group *admin_group_p;
+  tmp = getgrnam_r("admin", &admin_group, getgrnam_buf, sizeof(getgrnam_buf), &admin_group_p);
+  if (tmp != 0 || admin_group_p == NULL) {
+    KBLog(@"Could not call getgrnam on the 'admin' group, so can't tell if remote is an admin");
+    return NO;
+  }
+  int n = 0;
+  for (char **p = admin_group_p->gr_mem; *p; p++, n++) {
+    if (strcmp(pwentryp->pw_name, *p) == 0) {
+      KBLog(@"Yes, the calling user '%s' is an 'admin'", pwentryp->pw_name);
+      return YES;
+    }
+  }
+  KBLog(@"The 'admin' group had %d members but '%s' wasn't one", n, pwentryp->pw_name);
+  return NO;
 }
 
 - (void)version:(void (^)(NSError *error, id value))completion {
@@ -157,6 +195,15 @@
     NSURL *dstURL = [directoryURL URLByAppendingPathComponent:name isDirectory:NO];
     if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:error]) {
       return nil;
+    }
+
+    // Once it's copied into the root-only area, make sure it's not a
+    // symlink, since then a non-root user could change the binary
+    // after we check the signature.
+    NSString *dstPath = [dstURL path];
+    if (![self isRegularFile:dstPath]) {
+        *error = KBMakeError(-1, @"Redirector must be a regular file");
+        return nil;
     }
 
     return dstURL;
@@ -259,6 +306,15 @@
   }
   return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
 }
+
+- (BOOL)isRegularFile:(NSString *)linkPath {
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (!attributes) {
+    return NO;
+  }
+  return [attributes[NSFileType] isEqual:NSFileTypeRegular];
+}
+
 
 - (NSString *)resolveLinkPath:(NSString *)linkPath {
   if (![self linkExists:linkPath]) {

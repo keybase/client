@@ -11,8 +11,8 @@ import {
 } from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
-import {navigateTo, pathSelector} from '../../../../actions/route-tree'
-import {type Path} from '../../../../route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {getPath, type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import RetentionPicker, {type RetentionEntityType} from './'
@@ -106,7 +106,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
 
-  const _path = pathSelector(state)
+  const _path = getPath(state.routeTree.routeState)
   return {
     _path,
     _permissionsLoaded,
@@ -128,15 +128,15 @@ const mapDispatchToProps = (
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
-      navigateTo(
-        [
+      RouteTreeGen.createNavigateTo({
+        parentPath,
+        path: [
           {
             props: {days, entityType, onCancel, onConfirm},
             selected: 'retentionWarning',
           },
         ],
-        parentPath
-      )
+      })
     )
   },
   saveRetentionPolicy: (policy: RetentionPolicy) => {

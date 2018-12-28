@@ -9,7 +9,6 @@ import loginRoutes from '../login/routes'
 // root.
 const loginRouteTree = makeRouteDefNode({
   children: {
-    // $FlowIssue TODO have clean flow with new route tree
     [loginTab]: loginRoutes,
   },
   containerComponent: Nav,

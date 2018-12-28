@@ -21,7 +21,9 @@ class Wrapper extends React.PureComponent<Props> {
       onClose,
       publishTime: unfurl.publishTime ? unfurl.publishTime * 1000 : undefined,
       showImageOnSide: unfurl.media
-        ? unfurl.media.height >= unfurl.media.width && !unfurl.media.isVideo
+        ? unfurl.media.height >= unfurl.media.width &&
+          !unfurl.media.isVideo &&
+          (unfurl.title.length > 0 && !!unfurl.description)
         : false,
       siteName: unfurl.siteName,
       title: unfurl.title,

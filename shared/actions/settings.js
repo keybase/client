@@ -1,4 +1,5 @@
 // @flow
+// TODO use WaitingGen which will allow more chainAction handlers
 import logger from '../logger'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
@@ -10,30 +11,23 @@ import * as Saga from '../util/saga'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {type TypedState} from '../constants/reducer'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
-function* _onUpdatePGPSettings(): Saga.SagaGenerator<any, any> {
-  try {
-    const {hasServerKeys} = yield* Saga.callPromise(RPCTypes.accountHasServerKeysRpcPromise)
-    yield Saga.put(SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
-  } catch (error) {
-    yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
-  }
-}
+const onUpdatePGPSettings = () =>
+  RPCTypes.accountHasServerKeysRpcPromise()
+    .then(({hasServerKeys}) => SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
+    .catch(error => SettingsGen.createOnUpdatePassphraseError({error}))
 
-function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
+function* onSubmitNewEmail(state) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-
-    const state = yield* Saga.selectState()
     const newEmail = state.settings.email.newEmail
     yield* Saga.callPromise(RPCTypes.accountEmailChangeRpcPromise, {
       newEmail,
     })
     yield Saga.put(SettingsGen.createLoadSettings())
-    yield Saga.put(navigateUp())
+    yield Saga.put(RouteTreeGen.createNavigateUp())
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdateEmailError({error}))
   } finally {
@@ -41,11 +35,9 @@ function* _onSubmitNewEmail(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
+function* onSubmitNewPassphrase(state) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-
-    const state = yield* Saga.selectState()
     const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
     if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
       yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error: new Error("Passphrases don't match")}))
@@ -56,7 +48,7 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
       oldPassphrase: '',
       passphrase: newPassphrase.stringValue(),
     })
-    yield Saga.put(navigateUp())
+    yield Saga.put(RouteTreeGen.createNavigateUp())
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
   } finally {
@@ -64,10 +56,9 @@ function* _onSubmitNewPassphrase(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
+function* toggleNotifications(state) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const state = yield* Saga.selectState()
     const current = state.settings.notifications
 
     if (!current || !current.groups.email) {
@@ -123,90 +114,75 @@ function* _toggleNotificationsSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function* _reclaimInviteSaga(
-  invitesReclaimAction: SettingsGen.InvitesReclaimPayload
-): Saga.SagaGenerator<any, any> {
-  const {inviteId} = invitesReclaimAction.payload
-  try {
-    yield* Saga.callPromise(RPCTypes.apiserverPostRpcPromise, {
-      args: [{key: 'invitation_id', value: inviteId}],
-      endpoint: 'cancel_invitation',
+const reclaimInvite = (_, action) =>
+  RPCTypes.apiserverPostRpcPromise({
+    args: [{key: 'invitation_id', value: action.payload.inviteId}],
+    endpoint: 'cancel_invitation',
+  })
+    .then(() => [SettingsGen.createInvitesReclaimed(), SettingsGen.createInvitesRefresh()])
+    .catch(e => {
+      logger.warn('Error reclaiming an invite:', e)
+      return [
+        SettingsGen.createInvitesReclaimedError({errorText: e.desc + e.name}),
+        SettingsGen.createInvitesRefresh(),
+      ]
     })
-    yield Saga.put(SettingsGen.createInvitesReclaimed())
-  } catch (e) {
-    logger.warn('Error reclaiming an invite:', e)
-    yield Saga.put(
-      SettingsGen.createInvitesReclaimedError({
-        errorText: e.desc + e.name,
-      })
-    )
-  }
-  yield Saga.put(SettingsGen.createInvitesRefresh())
-}
 
-function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
-  const json = yield* Saga.callPromise(RPCTypes.apiserverGetWithSessionRpcPromise, {
+const refreshInvites = () =>
+  RPCTypes.apiserverGetWithSessionRpcPromise({
     args: [],
     endpoint: 'invitations_sent',
-  })
+  }).then(json => {
+    const results: {
+      invitations: Array<{
+        assertion: ?string,
+        ctime: number,
+        email: string,
+        invitation_id: string,
+        short_code: string,
+        type: string,
+        uid: string,
+        username: string,
+      }>,
+    } = JSON.parse((json && json.body) || '')
 
-  const results: {
-    invitations: Array<{
-      assertion: ?string,
-      ctime: number,
-      email: string,
-      invitation_id: string,
-      short_code: string,
-      type: string,
-      uid: string,
-      username: string,
-    }>,
-  } = JSON.parse((json && json.body) || '')
+    const acceptedInvites = []
+    const pendingInvites = []
 
-  const acceptedInvites = []
-  const pendingInvites = []
-
-  results.invitations.forEach(i => {
-    const invite: Types.Invitation = {
-      created: i.ctime,
-      email: i.email,
-      id: i.invitation_id,
-      key: i.invitation_id,
-      // type will get filled in later
-      type: '',
-      uid: i.uid,
-      // First ten chars of invite code is sufficient
-      url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
-      username: i.username,
-    }
-    // Here's an algorithm for interpreting invitation entries.
-    // 1: username+uid => accepted invite, else
-    // 2: email set => pending email invite, else
-    // 3: pending invitation code invite
-    if (i.username && i.uid) {
-      invite.type = 'accepted'
-      acceptedInvites.push(invite)
-    } else {
-      pendingInvites.push(invite)
-    }
-  })
-  yield Saga.put(
-    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
-    SettingsGen.createInvitesRefreshed({
-      invites: {
-        acceptedInvites,
-        error: null,
-        pendingInvites,
-      },
+    results.invitations.forEach(i => {
+      const invite: Types.Invitation = {
+        created: i.ctime,
+        email: i.email,
+        id: i.invitation_id,
+        key: i.invitation_id,
+        // type will get filled in later
+        type: '',
+        uid: i.uid,
+        // First ten chars of invite code is sufficient
+        url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
+        username: i.username,
+      }
+      // Here's an algorithm for interpreting invitation entries.
+      // 1: username+uid => accepted invite, else
+      // 2: email set => pending email invite, else
+      // 3: pending invitation code invite
+      if (i.username && i.uid) {
+        invite.type = 'accepted'
+        acceptedInvites.push(invite)
+      } else {
+        pendingInvites.push(invite)
+      }
     })
-  )
-}
+    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
+    return SettingsGen.createInvitesRefreshed({
+      invites: {acceptedInvites, error: null, pendingInvites},
+    })
+  })
 
-function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Saga.SagaGenerator<any, any> {
+function* sendInvite(_, action) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-
-    const {email, message} = invitesSendAction.payload
+    const {email, message} = action.payload
     const args = [{key: 'email', value: trim(email)}]
     if (message) {
       args.push({key: 'invitation_message', value: message})
@@ -230,15 +206,17 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
       )
       // TODO: if the user changes their route while working, this may lead to an invalid route
       yield Saga.put(
-        navigateAppend([
-          {
-            props: {
-              email,
-              link,
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                email,
+                link,
+              },
+              selected: 'inviteSent',
             },
-            selected: 'inviteSent',
-          },
-        ])
+          ],
+        })
       )
     }
   } catch (e) {
@@ -250,7 +228,7 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
   yield Saga.put(SettingsGen.createInvitesRefresh())
 }
 
-function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
+function* refreshNotifications() {
   // If the rpc is fast don't clear it out first
   const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
     yield Saga.callUntyped(delay, 500)
@@ -340,9 +318,9 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-const _dbNukeSaga = () => Saga.callUntyped(RPCTypes.ctlDbNukeRpcPromise)
+const dbNuke = () => RPCTypes.ctlDbNukeRpcPromise()
 
-function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPayload, state: TypedState) {
+const deleteAccountForever = (state, action) => {
   const username = state.config.username
   const allowDeleteAccount = state.settings.allowDeleteAccount
 
@@ -354,10 +332,9 @@ function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPaylo
     throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
   }
 
-  return Saga.sequentially([
-    Saga.callUntyped(RPCTypes.loginAccountDeleteRpcPromise),
-    Saga.put(ConfigGen.createSetDeletedSelf({deletedUsername: username})),
-  ])
+  return RPCTypes.loginAccountDeleteRpcPromise().then(() =>
+    ConfigGen.createSetDeletedSelf({deletedUsername: username})
+  )
 }
 
 const loadSettings = () =>
@@ -365,65 +342,51 @@ const loadSettings = () =>
     SettingsGen.createLoadedSettings({emails: settings.emails})
   )
 
-const _getRememberPassphrase = () => Saga.callUntyped(RPCTypes.configGetRememberPassphraseRpcPromise)
-const _getRememberPassphraseSuccess = (remember: boolean) =>
-  Saga.put(SettingsGen.createLoadedRememberPassphrase({remember}))
+const getRememberPassphrase = () =>
+  RPCTypes.configGetRememberPassphraseRpcPromise().then(remember =>
+    SettingsGen.createLoadedRememberPassphrase({remember})
+  )
 
-const _traceSaga = (action: SettingsGen.TracePayload) => {
+function* trace(_, action) {
   const durationSeconds = action.payload.durationSeconds
-  return Saga.sequentially([
-    Saga.callUntyped(RPCTypes.pprofLogTraceRpcPromise, {
-      logDirForMobile: pprofDir,
-      traceDurationSeconds: durationSeconds,
-    }),
-    Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey})),
-    Saga.delay(durationSeconds * 1000),
-    Saga.put(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey})),
-  ])
-}
-
-const _processorProfileSaga = (action: SettingsGen.ProcessorProfilePayload) => {
-  const durationSeconds = action.payload.durationSeconds
-  return Saga.sequentially([
-    Saga.callUntyped(RPCTypes.pprofLogProcessorProfileRpcPromise, {
-      logDirForMobile: pprofDir,
-      profileDurationSeconds: durationSeconds,
-    }),
-    Saga.put(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey})),
-    Saga.delay(durationSeconds * 1000),
-    Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey})),
-  ])
-}
-
-const _rememberPassphraseSaga = (action: SettingsGen.OnChangeRememberPassphrasePayload) => {
-  const {remember} = action.payload
-  return Saga.callUntyped(RPCTypes.configSetRememberPassphraseRpcPromise, {
-    remember,
+  yield Saga.callUntyped(RPCTypes.pprofLogTraceRpcPromise, {
+    logDirForMobile: pprofDir,
+    traceDurationSeconds: durationSeconds,
   })
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey}))
+  yield Saga.delay(durationSeconds * 1000)
+  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
 }
 
-const loadLockdownMode = (state: TypedState) =>
+function* processorProfile(_, action) {
+  const durationSeconds = action.payload.durationSeconds
+  yield Saga.callUntyped(RPCTypes.pprofLogProcessorProfileRpcPromise, {
+    logDirForMobile: pprofDir,
+    profileDurationSeconds: durationSeconds,
+  })
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey}))
+  yield Saga.delay(durationSeconds * 1000)
+  yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
+}
+
+const rememberPassphrase = (_, action) =>
+  RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
+
+const loadLockdownMode = state =>
   state.config.loggedIn &&
   RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.waitingKey)
-    .then((result: RPCTypes.GetLockdownResponse) => {
-      const status = result.status
-      return SettingsGen.createLoadedLockdownMode({status})
-    })
-    .catch(() => {
-      return SettingsGen.createLoadedLockdownMode({status: null})
-    })
+    .then((result: RPCTypes.GetLockdownResponse) =>
+      SettingsGen.createLoadedLockdownMode({status: result.status})
+    )
+    .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
-const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) =>
+const setLockdownMode = (state, action) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise({enabled: action.payload.enabled}, Constants.waitingKey)
-    .then(() => {
-      return SettingsGen.createLoadedLockdownMode({status: action.payload.enabled})
-    })
-    .catch(() => {
-      return SettingsGen.createLoadLockdownMode()
-    })
+    .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
+    .catch(() => SettingsGen.createLoadLockdownMode())
 
-const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
+const unfurlSettingsRefresh = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
@@ -435,7 +398,7 @@ const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSett
       })
     )
 
-const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettingsSavedPayload) =>
+const unfurlSettingsSaved = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
@@ -452,29 +415,61 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
     )
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
-  yield Saga.safeTakeEvery(SettingsGen.invitesRefresh, _refreshInvitesSaga)
-  yield Saga.safeTakeEvery(SettingsGen.invitesSend, _sendInviteSaga)
-  yield Saga.safeTakeEvery(SettingsGen.notificationsRefresh, _refreshNotificationsSaga)
-  yield Saga.safeTakeEvery(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
-  yield Saga.safeTakeEveryPure(SettingsGen.dbNuke, _dbNukeSaga)
-  yield Saga.safeTakeEveryPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
-  yield Saga.actionToPromise(SettingsGen.loadSettings, loadSettings)
-  yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
-  yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
-  yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
-  yield Saga.safeTakeEveryPure(SettingsGen.trace, _traceSaga)
-  yield Saga.safeTakeEveryPure(SettingsGen.processorProfile, _processorProfileSaga)
-  yield Saga.safeTakeEveryPure(
-    SettingsGen.loadRememberPassphrase,
-    _getRememberPassphrase,
-    _getRememberPassphraseSuccess
+  yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
+  yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
+  yield* Saga.chainGenerator<SettingsGen.InvitesSendPayload>(SettingsGen.invitesSend, sendInvite)
+  yield* Saga.chainGenerator<SettingsGen.NotificationsRefreshPayload>(
+    SettingsGen.notificationsRefresh,
+    refreshNotifications
   )
-  yield Saga.safeTakeEveryPure(SettingsGen.onChangeRememberPassphrase, _rememberPassphraseSaga)
-  yield Saga.actionToPromise(SettingsGen.loadLockdownMode, loadLockdownMode)
-  yield Saga.actionToPromise(SettingsGen.onChangeLockdownMode, setLockdownMode)
-  yield Saga.actionToPromise(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
-  yield Saga.actionToPromise(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
+  yield* Saga.chainGenerator<SettingsGen.NotificationsTogglePayload>(
+    SettingsGen.notificationsToggle,
+    toggleNotifications
+  )
+  yield* Saga.chainAction<SettingsGen.DbNukePayload>(SettingsGen.dbNuke, dbNuke)
+  yield* Saga.chainAction<SettingsGen.DeleteAccountForeverPayload>(
+    SettingsGen.deleteAccountForever,
+    deleteAccountForever
+  )
+  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
+    SettingsGen.onSubmitNewEmail,
+    onSubmitNewEmail
+  )
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPassphrasePayload>(
+    SettingsGen.onSubmitNewPassphrase,
+    onSubmitNewPassphrase
+  )
+  yield* Saga.chainAction<SettingsGen.OnUpdatePGPSettingsPayload>(
+    SettingsGen.onUpdatePGPSettings,
+    onUpdatePGPSettings
+  )
+  yield* Saga.chainGenerator<SettingsGen.TracePayload>(SettingsGen.trace, trace)
+  yield* Saga.chainGenerator<SettingsGen.ProcessorProfilePayload>(
+    SettingsGen.processorProfile,
+    processorProfile
+  )
+  yield* Saga.chainAction<SettingsGen.LoadRememberPassphrasePayload>(
+    SettingsGen.loadRememberPassphrase,
+    getRememberPassphrase
+  )
+  yield* Saga.chainAction<SettingsGen.OnChangeRememberPassphrasePayload>(
+    SettingsGen.onChangeRememberPassphrase,
+    rememberPassphrase
+  )
+  yield* Saga.chainAction<SettingsGen.LoadLockdownModePayload>(SettingsGen.loadLockdownMode, loadLockdownMode)
+  yield* Saga.chainAction<SettingsGen.OnChangeLockdownModePayload>(
+    SettingsGen.onChangeLockdownMode,
+    setLockdownMode
+  )
+  yield* Saga.chainAction<SettingsGen.UnfurlSettingsRefreshPayload>(
+    SettingsGen.unfurlSettingsRefresh,
+    unfurlSettingsRefresh
+  )
+  yield* Saga.chainAction<SettingsGen.UnfurlSettingsSavedPayload>(
+    SettingsGen.unfurlSettingsSaved,
+    unfurlSettingsSaved
+  )
 }
 
 export default settingsSaga
