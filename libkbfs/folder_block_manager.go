@@ -1364,30 +1364,9 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 		}
 
 		ptrs := getUnrefPointersFromMD(rmd)
-
-		ids := make([]kbfsblock.ID, 0, len(ptrs))
-		if cacheType == DiskBlockSyncCache {
-			// For sync caches, we need to make sure that all of the
-			// references to this block are really gone.
-			liveCounts, err := fbm.config.BlockOps().GetLiveCount(
-				ctx, fbm.id, ptrs)
-			if err != nil {
-				return err
-			}
-
-			for id, count := range liveCounts {
-				if count == 0 {
-					ids = append(ids, id)
-				} else {
-					fbm.log.CDebugf(ctx,
-						"Skipping deletion of %s; still has %d live references",
-						id, count)
-				}
-			}
-		} else {
-			for _, ptr := range ptrs {
-				ids = append(ids, ptr.ID)
-			}
+		ids := make([]kbfsblock.ID, len(ptrs))
+		for i, ptr := range ptrs {
+			ids[i] = ptr.ID
 		}
 		_, _, err = dbc.Delete(ctx, ids)
 		if err != nil {
