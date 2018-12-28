@@ -110,6 +110,7 @@ const provider = Sb.createPropProviderWithCommon({
     const site = `${prefix}${parts[1]}`
     return {
       metas: a.metas,
+      onClickBadge: Sb.action('onClickBadge'),
       onShowProof: Sb.action('onShowProof'),
       onShowSite: Sb.action('onShowSite'),
       onShowUserOnSite: Sb.action('onShowUserOnSite'),

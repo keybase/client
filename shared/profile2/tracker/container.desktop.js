@@ -19,6 +19,7 @@ const mapStateToProps = (state, ownProps) => {
     guiID: d.guiID,
     location: d.location,
     publishedTeams: d.publishedTeams,
+    reason: d.reason,
   }
 }
 const mapDispatchToProps = dispatch => ({})
@@ -51,6 +52,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     location: stateProps.location,
     publishedTeams: stateProps.publishedTeams,
     username: ownProps.username,
+    reason: stateProps.reason,
     state,
   }
 }

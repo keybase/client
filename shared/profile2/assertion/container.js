@@ -31,6 +31,7 @@ const mapDispatchToProps = dispatch => ({
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   metas: stateProps._metas.map(m => ({color: m.color, label: m.label})),
+  onClickBadge: dispatchProps.onShowProof, // TODO your own profile override
   onShowProof: dispatchProps.onShowProof,
   onShowSite: dispatchProps.onShowSite,
   onShowUserOnSite: dispatchProps.onShowUserOnSite,

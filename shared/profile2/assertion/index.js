@@ -10,6 +10,7 @@ type Props = {|
   username: string,
   siteURL: string,
   siteIcon: string, // TODO handle actual urls, for now just use iconfont
+  onClickBadge: () => void,
   onShowProof: () => void,
   onShowSite: () => void,
   onShowUserOnSite: () => void,
@@ -54,8 +55,6 @@ const stateToColor = state => {
   }
 }
 
-const TODO = () => {}
-
 const Assertion = (p: Props) => (
   <Kb.Box2
     direction="horizontal"
@@ -74,7 +73,13 @@ const Assertion = (p: Props) => (
         {p.site}
       </Kb.Text>
     </Kb.Text>
-    <Kb.Icon type={stateToIcon(p.state)} fontSize={20} onClick={TODO} color={stateToColor(p.state)} />
+    <Kb.Icon
+      type={stateToIcon(p.state)}
+      fontSize={20}
+      onClick={p.onClickBadge}
+      hoverColor={stateToColor(p.state)}
+      color={stateToColor(p.state)}
+    />
   </Kb.Box2>
 )
 
@@ -82,8 +87,6 @@ const styles = Styles.styleSheetCreate({
   container: {flexShrink: 0, paddingBottom: 2, paddingTop: 2},
   site: {color: Styles.globalColors.black_20},
   textContainer: {flexGrow: 1, marginTop: -1},
-  // menuIconBox: {height: 20, width: 20},
-  // menuIcon: {},
   username: Styles.platformStyles({
     isElectron: {display: 'inline-block', wordBreak: 'break-all'},
   }),
