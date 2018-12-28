@@ -56,7 +56,13 @@ const Tracker = (props: Props) => {
 const avatarSize = 96
 
 const styles = Styles.styleSheetCreate({
-  assertions: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+  assertions: {
+    backgroundColor: Styles.globalColors.white,
+    flexShrink: 0,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
+  },
   avatarBackground: {
     backgroundColor: Styles.globalColors.white,
     bottom: 0,

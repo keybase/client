@@ -14,10 +14,30 @@ const assertion = {
 }
 
 const github = {...assertion, assertion: 'githubuser@github', siteIcon: 'iconfont-identity-github'}
-const twitter = {...assertion, assertion: 'twitteruser@twitter', siteIcon: 'iconfont-identity-twitter'}
-const facebook = {...assertion, assertion: 'facebookuser@facebook', siteIcon: 'iconfont-identity-facebook'}
-const hackernews = {...assertion, assertion: 'hackernewsuser@hackernews', siteIcon: 'iconfont-identity-hn'}
-const reddit = {...assertion, assertion: 'reddituser@reddit', siteIcon: 'iconfont-identity-reddit'}
+const twitter = {
+  ...assertion,
+  assertion: 'twitteruser@twitter',
+  siteIcon: 'iconfont-identity-twitter',
+  state: 'checking',
+}
+const facebook = {
+  ...assertion,
+  assertion: 'facebookuser@facebook',
+  siteIcon: 'iconfont-identity-facebook',
+  state: 'error',
+}
+const hackernews = {
+  ...assertion,
+  assertion: 'hackernewsuser@hackernews',
+  siteIcon: 'iconfont-identity-hn',
+  state: 'warning',
+}
+const reddit = {
+  ...assertion,
+  assertion: 'reddituser@reddit',
+  siteIcon: 'iconfont-identity-reddit',
+  state: 'revoked',
+}
 const pgp = {...assertion, assertion: 'pgpuser@pgp', siteIcon: 'iconfont-identity-pgp'}
 const https = {...assertion, assertion: 'httpsuser@https', siteIcon: 'iconfont-identity-website'}
 const rooter = {...assertion, assertion: 'rooteruser@rooter', siteIcon: 'iconfont-thunderbolt'}
