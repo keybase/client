@@ -1894,23 +1894,12 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
     obids.push(p.outboxID ? p.outboxID : Constants.generateOutboxID())
     return obids
   }, [])
-
-  // Make the previews
-  const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map((p, i) =>
-      Saga.callUntyped(RPCChatTypes.localMakePreviewRpcPromise, {
-        filename: p.path,
-        outboxID: outboxIDs[i],
-      })
-    )
-  )
   // Send the messages with the generated previews
   yield Saga.sequentially(
     paths.map((p, i) =>
       Saga.callUntyped(RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise, {
         arg: {
           ...ephemeralData,
-          callerPreview: previews[i],
           conversationID: Types.keyToConversationID(conversationIDKey),
           filename: p.path,
           identifyBehavior: getIdentifyBehavior(state, conversationIDKey),

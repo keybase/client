@@ -48,6 +48,14 @@ func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat
 	return pre.Export(func() *chat1.PreviewLocation { return nil })
 }
 
+func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview *chat1.MakePreviewRes) (res Preprocess, err error) {
+	src, err := NewFileReadResetter(filename)
+	if err != nil {
+		return res, err
+	}
+	return PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
+}
+
 func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
 	inOutboxID *chat1.OutboxID, filename, title string, md []byte, ephemeralLifetime *gregor1.DurationSec,
 	callerPreview *chat1.MakePreviewRes) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
@@ -78,15 +86,13 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			Lifetime: *ephemeralLifetime,
 		}
 	}
-	if callerPreview != nil {
-		if pre, err := processCallerPreview(ctx, *callerPreview); err != nil {
-			// If we can't generate a preview here, let's not blow the whole thing up, we can try
-			// again when we are actually uploading the attachment
-			s.Debug(ctx, "makeBaseAttachmentMessage: failed to process caller preview, skipping: %s", err)
-		} else {
-			if err := NewPendingPreviews(s.G()).Put(ctx, outboxID, pre); err != nil {
-				s.Debug(ctx, "makeBaseAttachmentMessage: failed to save pending preview: %s", err)
-			}
+	if pre, err := s.preprocess(ctx, filename, callerPreview); err != nil {
+		// If we can't generate a preview here, let's not blow the whole thing up, we can try
+		// again when we are actually uploading the attachment
+		s.Debug(ctx, "makeBaseAttachmentMessage: failed to process caller preview, skipping: %s", err)
+	} else {
+		if err := NewPendingPreviews(s.G()).Put(ctx, outboxID, pre); err != nil {
+			s.Debug(ctx, "makeBaseAttachmentMessage: failed to save pending preview: %s", err)
 		}
 	}
 
