@@ -563,15 +563,6 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	return err
 }
 
-// GetLiveBlockReferences implements the BlockServer interface for
-// BlockServerRemote.
-func (b *BlockServerRemote) GetLiveBlockReferences(
-	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
-	return kbfsblock.GetReferenceCount(
-		ctx, tlfID, contexts, keybase1.BlockStatus_LIVE, b.getConn.getClient())
-}
-
 // IsUnflushed implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) IsUnflushed(
 	_ context.Context, _ tlf.ID, _ kbfsblock.ID) (

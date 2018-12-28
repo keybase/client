@@ -186,18 +186,6 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 	return b.config.BlockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
 }
 
-// GetLiveCount implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) GetLiveCount(
-	ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (
-	liveCounts map[kbfsblock.ID]int, err error) {
-	contexts := make(kbfsblock.ContextMap)
-	for _, ptr := range ptrs {
-		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.Context)
-	}
-
-	return b.config.BlockServer().GetLiveBlockReferences(ctx, tlfID, contexts)
-}
-
 // TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) TogglePrefetcher(enable bool) <-chan struct{} {
 	return b.queue.TogglePrefetcher(enable, nil)

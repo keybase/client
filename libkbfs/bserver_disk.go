@@ -399,43 +399,6 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 	return tlfStorage.store.archiveReferences(contexts, "")
 }
 
-// GetLiveBlockReferences implements the BlockServer interface for
-// BlockServerDisk.
-func (b *BlockServerDisk) GetLiveBlockReferences(
-	ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (
-	liveCounts map[kbfsblock.ID]int, err error) {
-	if err := checkContext(ctx); err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		err = translateToBlockServerError(err)
-	}()
-	b.log.CDebugf(ctx, "BlockServerDisk.GetLiveBlockReferences "+
-		"tlfID=%s contexts=%v", tlfID, contexts)
-	tlfStorage, err := b.getStorage(tlfID)
-	if err != nil {
-		return nil, err
-	}
-
-	tlfStorage.lock.Lock()
-	defer tlfStorage.lock.Unlock()
-	if tlfStorage.store == nil {
-		return nil, errBlockServerDiskShutdown
-	}
-
-	liveCounts = make(map[kbfsblock.ID]int)
-	for id := range contexts {
-		liveCount, err := tlfStorage.store.getLiveCount(id)
-		if err != nil {
-			return nil, err
-		}
-		liveCounts[id] = liveCount
-	}
-
-	return liveCounts, nil
-}
-
 // getAllRefsForTest implements the blockServerLocal interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (

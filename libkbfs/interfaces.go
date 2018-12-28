@@ -1738,12 +1738,6 @@ type BlockOps interface {
 	// than folder writers.
 	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
 
-	// GetLiveCount returns the number of "live"
-	// (non-archived, non-deleted) references for each given block.
-	GetLiveCount(
-		ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (
-		liveCounts map[kbfsblock.ID]int, err error)
-
 	// TogglePrefetcher activates or deactivates the prefetcher.
 	TogglePrefetcher(enable bool) <-chan struct{}
 
@@ -2044,12 +2038,6 @@ type BlockServer interface {
 	// calls with the same ID/refnonce pair.
 	ArchiveBlockReferences(ctx context.Context, tlfID tlf.ID,
 		contexts kbfsblock.ContextMap) error
-
-	// GetLiveBlockReferences returns the number of "live"
-	// (non-archived, non-deleted) references for each given block.
-	GetLiveBlockReferences(ctx context.Context, tlfID tlf.ID,
-		contexts kbfsblock.ContextMap) (
-		liveCounts map[kbfsblock.ID]int, err error)
 
 	// IsUnflushed returns whether a given block is being queued
 	// locally for later flushing to another block server.  If the
