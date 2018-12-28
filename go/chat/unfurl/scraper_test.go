@@ -95,12 +95,17 @@ func TestScraper(t *testing.T) {
 	defer srv.Stop()
 	forceGiphy := new(chat1.UnfurlType)
 	*forceGiphy = chat1.UnfurlType_GIPHY
-	testCase := func(name string, expected chat1.UnfurlRaw, contentType *string, forceTyp *chat1.UnfurlType) {
+	testCase := func(name string, expected chat1.UnfurlRaw, success bool, contentType *string,
+		forceTyp *chat1.UnfurlType) {
 		uri := fmt.Sprintf("http://%s/?name=%s", addr, name)
 		if contentType != nil {
 			uri += fmt.Sprintf("&content_type=%s", *contentType)
 		}
 		res, err := scraper.Scrape(context.TODO(), uri, forceTyp)
+		if !success {
+			require.Error(t, err)
+			return
+		}
 		require.NoError(t, err)
 		etyp, err := expected.UnfurlType()
 		require.NoError(t, err)
@@ -174,7 +179,7 @@ func TestScraper(t *testing.T) {
 		PublishTime: intPtr(1540941044),
 		ImageUrl:    strPtr("https://cdn.cnn.com/cnnnext/dam/assets/181011162312-11-week-in-photos-1011-super-tease.jpg"),
 		FaviconUrl:  strPtr("http://cdn.cnn.com/cnn/.e/img/3.0/global/misc/apple-touch-icon.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("wsj0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "U.S. Stocks Jump as Tough Month Sets to Wrap",
 		Url:         "https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261",
@@ -183,7 +188,7 @@ func TestScraper(t *testing.T) {
 		PublishTime: intPtr(1541004540),
 		ImageUrl:    strPtr("https://images.wsj.net/im-33925/social"),
 		FaviconUrl:  strPtr("https://s.wsj.net/media/wsj_apple-touch-icon-180x180.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("nytimes0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "First Up if Democrats Win: Campaign and Ethics Changes, Infrastructure and Drug Prices",
 		Url:         "https://www.nytimes.com/2018/10/31/us/politics/democrats-midterm-elections.html",
@@ -192,7 +197,7 @@ func TestScraper(t *testing.T) {
 		PublishTime: intPtr(1540990881),
 		ImageUrl:    strPtr("https://static01.nyt.com/images/2018/10/31/us/politics/31dc-dems/31dc-dems-facebookJumbo.jpg"),
 		FaviconUrl:  strPtr("http://127.0.0.1/vi-assets/static-assets/apple-touch-icon-319373aaf4524d94d38aa599c56b8655.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	srv.shouldServeAppleTouchIcon = true
 	testCase("github0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "keybase/client",
@@ -201,7 +206,7 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client"),
 		ImageUrl:    strPtr("https://avatars1.githubusercontent.com/u/5400834?s=400&v=4"),
 		FaviconUrl:  strPtr(fmt.Sprintf("http://%s/apple-touch-icon.png", addr)),
-	}), nil, nil)
+	}), true, nil, nil)
 	srv.shouldServeAppleTouchIcon = false
 	testCase("youtube0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Mario Kart Wii: The History of the Ultra Shortcut",
@@ -210,7 +215,7 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("https://www.twitch.tv/summoningsalt https://twitter.com/summoningsalt Music List- https://docs.google.com/document/d/1p2qV31ZhtNuP7AAXtRjGNZr2QwMSolzuz2wX6wu..."),
 		ImageUrl:    strPtr("https://i.ytimg.com/vi/mmJ_LT8bUj0/hqdefault.jpg"),
 		FaviconUrl:  strPtr("https://s.ytimg.com/yts/img/favicon-vfl8qSV2F.ico"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("twitter0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Ars Technica on Twitter",
 		Url:         "https://twitter.com/arstechnica/status/1057679097869094917",
@@ -218,7 +223,7 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("“Nintendo recommits to “keep the business going” for 3DS https://t.co/wTIJxmGTJH by @KyleOrl”"),
 		ImageUrl:    strPtr("https://pbs.twimg.com/profile_images/2215576731/ars-logo_400x400.png"),
 		FaviconUrl:  strPtr("https://abs.twimg.com/icons/apple-touch-icon-192x192.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("pinterest0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Halloween",
 		Url:         "https://www.pinterest.com/pinterest/halloween/",
@@ -226,14 +231,14 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("Dracula dentures, kitten costumes, no-carve pumpkins—find your next killer idea on Pinterest."),
 		ImageUrl:    strPtr("https://i.pinimg.com/custom_covers/200x150/424605139807203572_1414340303.jpg"),
 		FaviconUrl:  strPtr("https://s.pinimg.com/webapp/style/images/logo_trans_144x144-642179a1.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("wikipedia0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Merkle tree - Wikipedia",
 		SiteName:    "0.1",
 		Description: nil,
 		ImageUrl:    strPtr("https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/1200px-Hash_Tree.svg.png"),
 		FaviconUrl:  strPtr("http://127.0.0.1/static/apple-touch/wikipedia.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("reddit0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "r/Stellar",
 		Url:         "https://www.reddit.com/r/Stellar/",
@@ -241,7 +246,7 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("r/Stellar: Stellar is a decentralized protocol that enables you to send money to anyone in the world, for fractions of a penny, instantly, and in any currency.  \n\n/r/Stellar is for news, announcements and discussion related to Stellar.\n\nPlease focus on community-oriented content, such as news and discussions, instead of individual-oriented content, such as questions and help. Follow the [Stellar Community Guidelines](https://www.stellar.org/community-guidelines/) ."),
 		ImageUrl:    strPtr("https://b.thumbs.redditmedia.com/D857u25iiE2ORpt8yVx7fCuiMlLVP-b5fwSUjaw4lVU.png"),
 		FaviconUrl:  strPtr("https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-180x180.png"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("etsy0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "The Beatles - Minimalist Poster - Sgt Pepper",
 		Url:         "https://www.etsy.com/listing/602032869/the-beatles-minimalist-poster-sgt-pepper?utm_source=OpenGraph&utm_medium=PageTools&utm_campaign=Share",
@@ -249,7 +254,7 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("The Beatles Sgt Peppers Lonely Hearts Club Ban  Created using mixed media  Fits a 10 x 8 inch frame aperture - photograph shows item framed in a 12 x 10 inch frame  Choose from: high lustre paper - 210g which produces very vibrant colours; textured watercolour paper - 190g - which looks"),
 		ImageUrl:    strPtr("https://i.etsystatic.com/12686588/r/il/c3b4bc/1458062296/il_570xN.1458062296_rary.jpg"),
 		FaviconUrl:  strPtr("http://127.0.0.1/images/favicon.ico"),
-	}), nil, nil)
+	}), true, nil, nil)
 	testCase("giphy0.html", chat1.NewUnfurlRawWithGiphy(chat1.UnfurlGiphyRaw{
 		ImageUrl:   "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif",
 		FaviconUrl: strPtr("https://giphy.com/static/img/icons/apple-touch-icon-180px.png"),
@@ -258,7 +263,7 @@ func TestScraper(t *testing.T) {
 			Height: 480,
 			Width:  480,
 		},
-	}), nil, forceGiphy)
+	}), true, nil, forceGiphy)
 	testCase("imgur0.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Amazing Just Cause 4 Easter egg",
 		Url:         "https://i.imgur.com/lXDyzHY.gifv",
@@ -271,12 +276,14 @@ func TestScraper(t *testing.T) {
 			Height: 408,
 			Width:  728,
 		},
-	}), nil, nil)
+	}), true, nil, nil)
 	srv.shouldServeAppleTouchIcon = false
 	testCase("nytogimage.jpg", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		SiteName:   "0.1",
 		FaviconUrl: strPtr(fmt.Sprintf("http://%s/favicon.ico", addr)),
 		ImageUrl:   strPtr(fmt.Sprintf("http://%s/?name=nytogimage.jpg&content_type=image/jpeg", addr)),
-	}), strPtr("image/jpeg"), nil)
+	}), true, strPtr("image/jpeg"), nil)
 	srv.shouldServeAppleTouchIcon = true
+	testCase("slim.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{}), false, nil, nil)
+
 }
