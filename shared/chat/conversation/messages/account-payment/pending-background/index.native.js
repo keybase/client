@@ -18,8 +18,8 @@ class PendingBackground extends React.Component<Props, State> {
         easing: Kb.NativeEasing.linear,
         toValue: -80,
         useNativeDriver: true,
-      }).start()
-    )
+      })
+    ).start()
   }
 
   render() {
@@ -30,11 +30,13 @@ class PendingBackground extends React.Component<Props, State> {
           source={patternImage}
           style={{
             bottom: -80,
+            height: 'auto',
             left: 0,
             position: 'absolute',
             right: 0,
             top: 0,
             transform: [{translateY: this.state.yOffset}],
+            width: 'auto',
           }}
         />
         {this.props.children}
