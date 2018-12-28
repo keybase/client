@@ -1325,10 +1325,8 @@ type DiskBlockCache interface {
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		cacheType DiskBlockCacheType) error
 	// Delete deletes some blocks from the disk cache.
-	Delete(
-		ctx context.Context, blockIDs []kbfsblock.ID,
-		cacheType DiskBlockCacheType) (
-		numRemoved int, sizeRemoved int64, err error)
+	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
+		sizeRemoved int64, err error)
 	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
 		prefetchStatus PrefetchStatus) error

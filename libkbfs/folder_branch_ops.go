@@ -5655,6 +5655,12 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
 			}
 		}
+		diskCache := fbo.config.DiskBlockCache()
+		if diskCache != nil {
+			// Delete from the working set cache.  (The sync cache is
+			// managed by `folderBlockManager`.)
+			go diskCache.Delete(ctx, idsToDelete)
+		}
 	case *resolutionOp:
 		// If there are any unrefs of blocks that have a node, this is an
 		// implied rmOp (see KBFS-1424).
