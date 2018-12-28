@@ -227,39 +227,3 @@ func ParseGetQuotaInfoRes(codec kbfscodec.Codec, res []byte, resErr error) (
 	}
 	return QuotaInfoDecode(res, codec)
 }
-
-// GetReferenceCount returns the number of live references (at least
-// as "live" as `refStatus`) for each block ID.
-func GetReferenceCount(
-	ctx context.Context, tlfID tlf.ID, contexts ContextMap,
-	refStatus keybase1.BlockStatus, server keybase1.BlockInterface) (
-	liveCounts map[ID]int, err error) {
-	arg := keybase1.GetReferenceCountArg{
-		Ids:    make([]keybase1.BlockIdCombo, 0, len(contexts)),
-		Folder: tlfID.String(),
-		Status: refStatus,
-	}
-	for id, idContexts := range contexts {
-		if len(idContexts) < 1 {
-			return nil, errors.New("Each ID must have at least one context")
-		}
-		context := idContexts[0]
-		arg.Ids = append(arg.Ids, makeIDCombo(id, context))
-	}
-
-	res, err := server.GetReferenceCount(ctx, arg)
-	if err != nil {
-		return nil, err
-	}
-
-	liveCounts = make(map[ID]int, len(res.Counts))
-	for _, count := range res.Counts {
-		id, err := IDFromString(count.Id.BlockHash)
-		if err != nil {
-			return nil, err
-		}
-
-		liveCounts[id] = count.LiveCount
-	}
-	return liveCounts, nil
-}
