@@ -13,6 +13,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   followersCount: null,
   followingCount: null,
   followsYou: null,
+  fullname: null,
   guiID: null,
   location: null,
   publishedTeams: null,

@@ -121,6 +121,9 @@ const provider = Sb.createPropProviderWithCommon({
       username: parts[0],
     }
   },
+  Bio: p => ({
+    ...props,
+  }),
   Tracker2: p => ({
     ...props,
   }),

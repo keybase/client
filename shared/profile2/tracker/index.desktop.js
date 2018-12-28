@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/profile2'
 import * as Styles from '../../styles'
 import Assertion from '../assertion/container'
+import Bio from '../bio/container'
 
 type Props = {|
   assertions: ?$ReadOnlyArray<string>,
@@ -46,6 +47,7 @@ const Tracker = (props: Props) => {
           notFollowingColorOverride={Styles.globalColors.orange}
         />
       </Kb.Box2>
+      <Bio username={props.username} />
       <Kb.Box2 direction="vertical" style={styles.assertions}>
         {assertions}
       </Kb.Box2>
