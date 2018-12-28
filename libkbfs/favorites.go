@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/syndtr/goleveldb/leveldb"
 	"os"
 	"strings"
@@ -80,6 +81,7 @@ type favReq struct {
 type Favorites struct {
 	config   Config
 	disabled bool
+	log      logger.Logger
 
 	// Channels for interacting with the favorites cache
 	reqChan chan *favReq
@@ -104,14 +106,16 @@ type Favorites struct {
 
 func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	disableVal := strings.ToLower(os.Getenv(disableFavoritesEnvVar))
+	log := config.MakeLogger("FAV")
 	if len(disableVal) > 0 && disableVal != "0" && disableVal != "false" &&
 		disableVal != "no" {
-		config.MakeLogger("").CDebugf(nil,
+		log.CDebugf(nil,
 			"Disable favorites due to env var %s=%s",
 			disableFavoritesEnvVar, disableVal)
 		return &Favorites{
 			config:   config,
 			disabled: true,
+			log:      log,
 		}
 	}
 
@@ -119,6 +123,7 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 		config:       config,
 		reqChan:      reqChan,
 		inFlightAdds: make(map[favToAdd]*favReq),
+		log:          log,
 	}
 
 	return f
@@ -139,9 +144,8 @@ type favoritesCacheEncryptedForDisk struct {
 }
 
 func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
-	log := f.config.MakeLogger("Favorites")
 	// Read the encrypted cache from disk
-	db, err := openVersionedLevelDB(log, f.config.StorageRoot(),
+	db, err := openVersionedLevelDB(f.log, f.config.StorageRoot(),
 		kbfsFavoritesCacheSubfolder, favoritesDiskCacheStorageVersion,
 		favoritesDiskCacheFilename)
 	if err != nil {
@@ -155,7 +159,7 @@ func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	user := []byte(string(session.UID))
 	data, err := db.Get(user, nil)
 	if err == leveldb.ErrNotFound {
-		log.CInfof(ctx, "No favorites cache found for user %v", user)
+		f.log.CInfof(ctx, "No favorites cache found for user %v", user)
 		return nil
 	} else if err != nil {
 		return err
@@ -244,7 +248,7 @@ func (f *Favorites) Initialize(ctx context.Context) {
 	// load cache from disk
 	err := f.readCacheFromDisk(ctx)
 	if err != nil {
-		f.config.MakeLogger("favorites").CWarningf(nil,
+		f.log.CWarningf(nil,
 			"Failed to read cached favorites from disk: %v", err)
 	}
 
@@ -298,7 +302,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			}
 			// If we weren't explicitly asked to refresh, we can return possibly
 			// stale favorites rather than return nothing.
-			f.config.MakeLogger("").CDebugf(req.ctx,
+			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+
 					" fetched: %v", err)
 		} else { // Successfully got new favorites from server.
@@ -316,7 +320,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				f.cache[Favorite{string(session.Name), tlf.Public}] = true
 				err = f.writeCacheToDisk(req.ctx)
 				if err != nil {
-					f.config.MakeLogger("").CWarningf(req.ctx,
+					f.log.CWarningf(req.ctx,
 						"Could not write favorites to disk cache: %v", err)
 				}
 			}
@@ -335,7 +339,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		}
 		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
 		if err != nil {
-			f.config.MakeLogger("").CDebugf(req.ctx,
+			f.log.CDebugf(req.ctx,
 				"Failure adding favorite %v: %v", fav, err)
 			return err
 		}
@@ -385,7 +389,7 @@ func (f *Favorites) Shutdown() error {
 	if f.diskCache != nil {
 		err := f.diskCache.Close()
 		if err != nil {
-			f.config.MakeLogger("").CWarningf(context.Background(),
+			f.log.CWarningf(context.Background(),
 				"Could not close disk favorites cache: %v", err)
 		}
 	}

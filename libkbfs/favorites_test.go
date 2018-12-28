@@ -194,7 +194,7 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	// Call Add twice in a row, but only get one Add KBPKI call
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
 
-	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(1)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 
 	// Cancel the first list request
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
