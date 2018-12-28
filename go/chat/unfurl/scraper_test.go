@@ -272,4 +272,11 @@ func TestScraper(t *testing.T) {
 			Width:  728,
 		},
 	}), nil, nil)
+	srv.shouldServeAppleTouchIcon = false
+	testCase("nytogimage.jpg", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		SiteName:   "0.1",
+		FaviconUrl: strPtr(fmt.Sprintf("http://%s/favicon.ico", addr)),
+		ImageUrl:   strPtr(fmt.Sprintf("http://%s/?name=nytogimage.jpg&content_type=image/jpeg", addr)),
+	}), strPtr("image/jpeg"), nil)
+	srv.shouldServeAppleTouchIcon = true
 }
