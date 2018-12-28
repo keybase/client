@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -135,6 +136,12 @@ func (s *Scraper) addGenericScraperToCollector(ctx context.Context, c *colly.Col
 	generic.setSiteName(domain, 0)
 	generic.setFaviconURL(&defaultFaviconURL, 0)
 
+	c.OnResponse(func(r *colly.Response) {
+		contentType := r.Headers.Get("content-type")
+		if contentType == "image/jpeg" || contentType == "image/png" || contentType == "image/gif" {
+			generic.ImageUrl = &uri
+		}
+	})
 	// Run the Colly scraper
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
 		s.setAttr(ctx, "title", hostname, domain, generic, e)
@@ -161,6 +168,19 @@ func (s *Scraper) addGenericScraperToCollector(ctx context.Context, c *colly.Col
 	return nil
 }
 
+func (s *Scraper) isValidGenericScrape(generic chat1.UnfurlGenericRaw) bool {
+	return len(generic.Title) > 0 || (generic.Description != nil && len(*generic.Description) > 0) ||
+		generic.ImageUrl != nil || generic.Video != nil
+}
+
+func (s *Scraper) exportGenericResult(generic *scoredGenericRaw) (res chat1.UnfurlRaw, err error) {
+	// Check to make sure we have a legit unfurl that is useful
+	if !s.isValidGenericScrape(generic.UnfurlGenericRaw) {
+		return res, errors.New("not enough information to display")
+	}
+	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
+}
+
 func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
 	// setup some defaults with score 0 and hope we can find better info.
 	generic := new(scoredGenericRaw)
@@ -176,5 +196,5 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		s.Debug(ctx, "scrapeGeneric: favicon score below Apple touch score, trying to find it")
 		s.tryAppleTouchIcon(ctx, generic, uri, domain)
 	}
-	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
+	return s.exportGenericResult(generic)
 }

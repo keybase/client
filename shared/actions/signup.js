@@ -117,7 +117,6 @@ const checkDevicename = (state: TypedState) =>
 
 // Actually sign up ///////////////////////////////////////////////////////////
 function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any> {
-  console.error('aaa being called')
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return
