@@ -217,7 +217,8 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 }
 
 func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
-	if !brq.config.IsTestMode() {
+	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
+		// Only panic if we're not using SingleOp mode.
 		panic("A disk block cache is required outside of tests")
 	}
 	if brq.prefetchStatusForTest != nil {
