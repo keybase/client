@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -28,8 +30,35 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 	return h.G().GetConfiguredAccounts(context)
 }
 
-func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
+type canLogoutRet struct {
+	libkb.AppStatusEmbed
+	CanLogout bool   `json:"can_logout"`
+	Reason    string `json:"reason,omitempty"`
+}
+
+// canLogout asks API server whether we should allow logging out or not.
+func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
+	err = mctx.G().API.GetDecode(libkb.APIArg{
+		Endpoint:    "user/can_logout",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}, &res)
+	return res, err
+}
+
+func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
 	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
+	res, err := canLogout(libkb.NewMetaContext(ctx, h.G()))
+	if err != nil {
+		return err
+	}
+	if !res.CanLogout {
+		if !arg.Force {
+			return fmt.Errorf("Cannot logout: %s", res.Reason)
+		}
+		// Log the reason, logot anyway.
+		h.G().Log.CWarningf(ctx, "Server advised not to logout because: %s", res.Reason)
+		h.G().Log.CWarningf(ctx, "Logging out anyway (`force` argument is set)")
+	}
 	return h.G().Logout(ctx)
 }
 

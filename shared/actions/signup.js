@@ -157,6 +157,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
         genPaper: false,
         inviteCode,
         passphrase: passphrase.stringValue(),
+        randomPw: false,
         skipMail: false,
         storeSecret: true,
         username,
