@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import PushPrompt from './push-prompt.native'
-import RenderRoute from '../route-tree/render-route'
+import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
 import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
@@ -41,10 +41,12 @@ class Main extends React.Component<Props> {
 
     return (
       <React.Fragment>
-        <RenderRoute
-          routeDef={this.props.routeDef}
-          routeState={this.props.routeState}
-          setRouteState={this.props.setRouteState}
+        <RouterSwitcheroo
+          useNewRouter={false}
+          newRoutePath={[]}
+          oldRouteDef={this.props.routeDef}
+          oldRouteState={this.props.routeState}
+          oldSetRouteState={this.props.setRouteState}
         />
         <GatewayDest
           name="popup-root"
