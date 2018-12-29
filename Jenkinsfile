@@ -201,7 +201,7 @@ helpers.rootLinuxNode(env, {
                             },
                             integrate: {
                                 build([
-                                    job: "/kbfs-server/master",
+                                    job: "/kbfs-server/PR-609",
                                     parameters: [
                                         [$class: 'StringParameterValue',
                                             name: 'kbfsProjectName',
