@@ -21,6 +21,17 @@
   return self;
 }
 
+- (NSError *)_moveFromSource:(NSString *)source destination:(NSString *)destination {
+  NSError *error = nil;
+  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
+    return error;
+  }
+  if (![NSFileManager.defaultManager moveItemAtPath:source toPath:destination error:&error]) {
+    return error;
+  }
+  return nil;
+}
+
 - (void)validate:(NSString *)sourcePath completion:(KBCompletion)completion {
   // Check bundle security/requirement (for source path)
   CFURLRef fileRef = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, (const UInt8 *)[sourcePath UTF8String], [sourcePath length], YES);
@@ -33,7 +44,7 @@
 
   /**
     The app must satisfy the following codesigning requirements:
-   
+
     1. The root certificate must be an "apple generic" certificate
     2. The leaf of the Mac App Store certificate must have the field "field.1.2.840.113635.100.6.1.9", or
     3. Certificate 1 corresponds to the "Developer ID Certification Authority" certificate and must have the field "1.2.840.113635.100.6.2.6"
@@ -42,7 +53,7 @@
     6. The identifier be "keybase.Keybase" or "keybase.Electron"
 
     This requirement is the standard one issued by Xcode when signing with developer ID certificate.
-   
+
     You can view designated requirements for an app by running: codesign -d -r- /Applications/Keybase.app
 
     References:
@@ -69,7 +80,7 @@
 - (void)install:(KBCompletion)completion {
   NSString *sourcePath = self.config.sourcePath;
   if (!sourcePath || ![NSFileManager.defaultManager fileExistsAtPath:sourcePath]) {
-    completion(KBMakeError(-1, @"Invalid source path"));
+    completion(KBMakeError(-1, [NSString stringWithFormat:@"Invalid source path: %@", sourcePath]));
     return;
   }
 
@@ -79,25 +90,25 @@
     return;
   }
 
+  DDLogInfo(@"Installing %@ -> %@", sourcePath, destinationPath);
   DDLogInfo(@"Checking security requirements");
   [self validate:sourcePath completion:^(NSError *error) {
     if (error) {
       completion(error);
       return;
     }
+    NSString *sourceContents = [NSString stringWithFormat:@"%@/%@", sourcePath, @"Contents"];
+    NSString *destContents = [NSString stringWithFormat:@"%@/%@", destinationPath, @"Contents"];
+    DDLogInfo(@"Copying app Contents bundle %@ to %@", sourceContents, destContents);
+    error = [self _moveFromSource:sourceContents destination:destContents];
+    if (error) {
+      completion(error);
+      return;
+    }
 
-    DDLogInfo(@"Copying app bundle %@ to %@", sourcePath, destinationPath);
-    NSDictionary *params = @{@"source": sourcePath, @"destination": destinationPath};
-    [self.helperTool.helper sendRequest:@"move" params:@[params] completion:^(NSError *error, id value) {
-      if (error) {
-        completion(error);
-        return;
-      }
-
-      // Re-verify destination
-      DDLogInfo(@"Checking destination");
-      [self validate:destinationPath completion:completion];
-    }];
+    // Re-verify destination
+    DDLogInfo(@"Checking destination");
+    [self validate:destinationPath completion:completion];
   }];
 }
 

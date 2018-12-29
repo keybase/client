@@ -28,7 +28,7 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks" image:[KBIcons imageForIcon:KBIconExtension]])) {
-    
+
   }
   return self;
 }
