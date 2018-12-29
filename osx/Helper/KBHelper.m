@@ -13,6 +13,7 @@
 #import <MPMessagePack/MPXPCProtocol.h>
 #include <pwd.h>
 #include <grp.h>
+#include <unistd.h>
 
 @interface KBHelper ()
 @property NSTask *redirector;
@@ -73,9 +74,11 @@
     return;
   }
 
-  if (![self _checkRemoteIsAdmin:remote]) {
-    KBLog(@"Remote caller into Helper process didn't have admin permissions");
-    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid admin permissions"), nil);
+  uid_t uid = xpc_connection_get_euid(remote);
+
+  if (![self _checkUID:uid inGroup:"staff"]) {
+    KBLog(@"Remote caller into Helper process didn't have staff permissions");
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid staff permissions"), nil);
     return;
   }
 
@@ -101,7 +104,7 @@
   } else if ([method isEqualToString:@"remove"]) {
     [self remove:args[@"path"] completion:completion];
   } else if ([method isEqualToString:@"move"]) {
-    [self moveFromSource:args[@"source"] destination:args[@"destination"] overwriteDestination:YES completion:completion];
+    [self moveFromSource:args[@"source"] destination:args[@"destination"] overwriteDestination:YES asUID:uid completion:completion];
   } else if ([method isEqualToString:@"createDirectory"]) {
     [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
   } else if ([method isEqualToString:@"addToPath"]) {
@@ -117,11 +120,14 @@
   }
 }
 
-- (BOOL)_checkRemoteIsAdmin:(xpc_connection_t)remote {
+- (BOOL)_checkRemote:(xpc_connection_t)remote inGroup:(char *)group {
+  uid_t uid = xpc_connection_get_euid(remote);
+  return [self _checkUID:uid inGroup:group];
+}
+
+- (BOOL)_checkUID:(uid_t )uid inGroup:(char *)group {
   char getpwuid_buf[1024];
   char getgrnam_buf[8192];
-
-  uid_t uid = xpc_connection_get_euid(remote);
   struct passwd pwentry;
   struct passwd *pwentryp;
   int tmp = getpwuid_r(uid, &pwentry, getpwuid_buf, sizeof(getpwuid_buf), &pwentryp);
@@ -129,21 +135,21 @@
     KBLog(@"Failed to get PW entry for uid %@", uid);
     return NO;
   }
-  struct group admin_group;
-  struct group *admin_group_p;
-  tmp = getgrnam_r("admin", &admin_group, getgrnam_buf, sizeof(getgrnam_buf), &admin_group_p);
-  if (tmp != 0 || admin_group_p == NULL) {
-    KBLog(@"Could not call getgrnam on the 'admin' group, so can't tell if remote is an admin");
+  struct group wanted_group;
+  struct group *wanted_group_p;
+  tmp = getgrnam_r(group, &wanted_group, getgrnam_buf, sizeof(getgrnam_buf), &wanted_group_p);
+  if (tmp != 0 || wanted_group_p == NULL) {
+    KBLog(@"Could not call getgrnam on the '%s' group, so can't tell if uid is in it", group);
     return NO;
   }
   int n = 0;
-  for (char **p = admin_group_p->gr_mem; *p; p++, n++) {
+  for (char **p = wanted_group_p->gr_mem; *p; p++, n++) {
     if (strcmp(pwentryp->pw_name, *p) == 0) {
-      KBLog(@"Yes, the calling user '%s' is an 'admin'", pwentryp->pw_name);
+      KBLog(@"Yes, the calling user '%s' is in '%s'", pwentryp->pw_name, group);
       return YES;
     }
   }
-  KBLog(@"The 'admin' group had %d members but '%s' wasn't one", n, pwentryp->pw_name);
+  KBLog(@"The '%s' group had %d members but '%s' wasn't one", group, n, pwentryp->pw_name);
   return NO;
 }
 
@@ -423,19 +429,46 @@
   }
 }
 
-- (void)moveFromSource:(NSString *)source destination:(NSString *)destination overwriteDestination:(BOOL)overwriteDestination completion:(void (^)(NSError *error, id value))completion {
+- (NSError *)_moveFromSource:(NSString *)source destination:(NSString *)destination {
   NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
-    completion(error, nil);
-    return;
+    return error;
   }
-
   if (![NSFileManager.defaultManager moveItemAtPath:source toPath:destination error:&error]) {
-    completion(error, nil);
-    return;
+    return error;
   }
+  return nil;
+}
 
-  completion(nil, @{});
+- (void)moveFromSource:(NSString *)source destination:(NSString *)destination overwriteDestination:(BOOL)overwriteDestination asUID:(uid_t)uid completion:(void (^)(NSError *error, id value))completion {
+  NSError *error = nil;
+
+  uid_t orig_uid = 0;
+  BOOL did_setuid = NO;
+
+  if (![self _checkUID:uid inGroup:"admin"]) {
+    KBLog(@"User %d wasn't in group admin, so seteuid to it", uid);
+    did_setuid = YES;
+    orig_uid = getuid();
+    if (seteuid(uid) != 0) {
+      KBLog(@"Failed to setuid to %d", uid);
+      completion(KBMakeError(-1, @"Failed to seteuid on move command"), nil);
+      return;
+    }
+  }
+  error = [self _moveFromSource:source destination:destination];
+  if (did_setuid && seteuid(orig_uid) != 0) {
+      KBLog(@"Fatal error: failed to seteuid back to %d", orig_uid);
+      [[NSException
+        exceptionWithName:@"BadSetuidException"
+        reason:@"Failed to seteuid back to root"
+        userInfo:nil] raise];
+  }
+  if (error == nil) {
+    completion(nil, @{});
+  } else {
+    completion(error, nil);
+  }
 }
 
 - (void)remove:(NSString *)path completion:(void (^)(NSError *error, id value))completion {
