@@ -44,42 +44,51 @@ const Tracker = (props: Props) => {
     backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
   }
 
+  const buttonClose = (
+    <Kb.WaitingButton
+      type="Secondary"
+      key="Close"
+      label="Close"
+      waitingKey={Constants.waitingKey}
+      onClick={props.onClose}
+    />
+  )
+  const buttonAccept = (
+    <Kb.WaitingButton
+      type="PrimaryGreen"
+      key="Accept"
+      label="Accept"
+      waitingKey={Constants.waitingKey}
+      onClick={props.onAccept}
+    />
+  )
+  const buttonChat = (
+    <Kb.WaitingButton
+      type="Primary"
+      key="Chat"
+      label="Chat"
+      waitingKey={Constants.waitingKey}
+      onClick={props.onChat}
+    >
+      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
+    </Kb.WaitingButton>
+  )
+
   let buttons = []
   switch (props.state) {
     case 'checking':
       break
     case 'valid':
       buttons = props.followThem
-        ? [
-            <Kb.WaitingButton
-              type="Secondary"
-              key="Close"
-              label="Close"
-              waitingKey={Constants.waitingKey}
-              onClick={props.onClose}
-            />,
-            <Kb.WaitingButton
-              type="Primary"
-              key="Chat"
-              label="Chat"
-              waitingKey={Constants.waitingKey}
-              onClick={props.onChat}
-            />,
-          ]
+        ? [buttonClose, buttonChat]
         : [
+            buttonChat,
             <Kb.WaitingButton
-              type="Primary"
+              type="PrimaryGreen"
               key="Follow"
               label="Follow"
               waitingKey={Constants.waitingKey}
               onClick={props.onFollow}
-            />,
-            <Kb.WaitingButton
-              type="Secondary"
-              key="Chat"
-              label="Chat"
-              waitingKey={Constants.waitingKey}
-              onClick={props.onChat}
             />,
           ]
       break
@@ -92,34 +101,14 @@ const Tracker = (props: Props) => {
           waitingKey={Constants.waitingKey}
           onClick={props.onIgnoreFor24Hours}
         />,
-        <Kb.WaitingButton
-          type="Primary"
-          key="Accept"
-          label="Accept"
-          waitingKey={Constants.waitingKey}
-          onClick={props.onAccept}
-        />,
+        buttonAccept,
       ]
       break
     case 'needsUpgrade':
-      buttons = [
-        <Kb.WaitingButton
-          type="Secondary"
-          key="Chat"
-          label="Chat"
-          waitingKey={Constants.waitingKey}
-          onClick={props.onChat}
-        />,
-        <Kb.WaitingButton
-          type="Primary"
-          key="Accept"
-          label="Accept"
-          waitingKey={Constants.waitingKey}
-          onClick={props.onAccept}
-        />,
-      ]
+      buttons = [buttonChat, buttonAccept]
       break
     case 'canceled':
+      buttons = [buttonClose]
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.state)
@@ -205,6 +194,9 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
+  chatIcon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   container: {
     backgroundColor: Styles.globalColors.white,
     position: 'relative',
