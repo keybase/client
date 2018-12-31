@@ -12,6 +12,7 @@ import notificationsSaga from '../actions/notifications'
 import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
 import profileSaga from '../actions/profile'
+import profile2Saga from '../actions/profile2'
 import routeSaga from '../actions/route-tree'
 import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
@@ -37,6 +38,7 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(notificationsSaga)
   yield Saga.spawn(pinentrySaga)
   yield Saga.spawn(profileSaga)
+  yield Saga.spawn(profile2Saga)
   yield Saga.spawn(routeSaga)
   yield Saga.spawn(searchSaga)
   yield Saga.spawn(settingsSaga)

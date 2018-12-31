@@ -9,6 +9,16 @@ const colors = require('colors')
 const json5 = require('json5')
 const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json')))
 
+// Sanity check this json file
+Object.keys(enabledCalls).forEach(rpc =>
+  Object.keys(enabledCalls[rpc]).forEach(type => {
+    if (!['engineSaga', 'promise', 'incoming'].includes(type)) {
+      console.log(colors.red('ERROR! Invalid enabled call?\n\n '), rpc, type)
+      process.exit(1)
+    }
+  })
+)
+
 var projects = {
   chat1: {
     customResponseIncomingMaps: {},

@@ -12,7 +12,7 @@ export const typePrefix = 'profile2:'
 export const load = 'profile2:load'
 
 // Payload Types
-type _LoadPayload = $ReadOnly<{|assertion: string, guiID: number, ignoreCache?: boolean|}>
+type _LoadPayload = $ReadOnly<{|assertion: string, forceDisplay: boolean, guiID: string, ignoreCache?: boolean, reason: string|}>
 
 // Action Creators
 export const createLoad = (payload: _LoadPayload) => ({payload, type: load})

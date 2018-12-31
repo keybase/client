@@ -5,8 +5,10 @@
   "actions": {
     "load": {
       "assertion": "string",
-      "guiID": "number",
-      "ignoreCache?": "boolean"
+      "forceDisplay": "boolean",
+      "guiID": "string",
+      "ignoreCache?": "boolean",
+      "reason": "string",
     },
   }
 }

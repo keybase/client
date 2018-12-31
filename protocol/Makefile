@@ -42,7 +42,7 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/
 
 js/rpc.js: build-stamp | config
 	@mkdir -p js/
-	node --harmony ./bin/flow.js
+	node ./bin/flow.js
 	cp ./js/rpc* ../shared/constants/types
 
 clean:

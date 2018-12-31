@@ -21,6 +21,9 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   state: 'error',
 })
 
+export const generateGUIID = () =>
+  Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256))).toString('utf8')
+
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   metas: [],
   proofURL: '',

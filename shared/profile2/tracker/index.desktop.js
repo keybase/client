@@ -194,9 +194,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
-  chatIcon: {
-    marginRight: Styles.globalMargins.tiny,
-  },
+  chatIcon: {marginRight: Styles.globalMargins.tiny},
   container: {
     backgroundColor: Styles.globalColors.white,
     position: 'relative',
