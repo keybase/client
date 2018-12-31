@@ -18,6 +18,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   location: null,
   publishedTeams: null,
   reason: '',
+  state: 'error',
 })
 
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({

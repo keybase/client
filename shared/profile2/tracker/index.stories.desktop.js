@@ -86,6 +86,10 @@ const props = {
   followsYou: false,
   fullname: 'Gabriel Handford',
   location: 'San Francisco, California, USA, Earth, Milky Way',
+  onAccept: Sb.action('onAccept'),
+  onChat: Sb.action('onChat'),
+  onFollow: Sb.action('onFollow'),
+  onIgnoreFor24Hours: Sb.action('onIgnoreFor24Hours'),
   publishedTeams: [],
   reason: 'You accessed a private folder with gabrielh.',
   state: 'valid',
@@ -154,7 +158,7 @@ const provider = Sb.createPropProviderWithCommon({
       p.username === 'longreason'
         ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
         : props.reason,
-    state: p.username === 'red' ? 'error' : props.state,
+    state: p.username === 'red' ? 'error' : p.username === 'green' ? 'valid' : props.state,
   }),
 })
 

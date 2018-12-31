@@ -20,6 +20,8 @@ export type _Assertion = {
 }
 export type Assertion = I.RecordOf<_Assertion>
 
+export type DetailsState = 'checking' | 'valid' | 'error' | 'needsUpgrade' | 'canceled'
+
 export type _Details = {
   assertions: ?I.Map<string, Assertion>,
   bio: ?string,
@@ -32,6 +34,7 @@ export type _Details = {
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
+  state: DetailsState,
 }
 export type Details = I.RecordOf<_Details>
 

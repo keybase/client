@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/profile2'
 import * as Types from '../../constants/types/profile2'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import Assertion from '../assertion/container'
 import Bio from '../bio/container'
 
@@ -16,9 +17,14 @@ type Props = {|
   followsYou: ?boolean,
   guiID: ?string,
   location: ?string,
+  onFollow: () => void,
+  onChat: () => void,
+  onClose: () => void,
+  onIgnoreFor24Hours: () => void,
+  onAccept: () => void,
   publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
-  state: Types.AssertionState,
+  state: Types.DetailsState,
   username: string,
 |}
 
@@ -38,9 +44,86 @@ const Tracker = (props: Props) => {
     backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
   }
 
-  const buttons = [
-    <Kb.WaitingButton type="Secondary" key="Close" label="Close" waitingKey={Constants.waitingKey} />,
-  ]
+  let buttons = []
+  switch (props.state) {
+    case 'checking':
+      break
+    case 'valid':
+      buttons = props.followThem
+        ? [
+            <Kb.WaitingButton
+              type="Secondary"
+              key="Close"
+              label="Close"
+              waitingKey={Constants.waitingKey}
+              onClick={props.onClose}
+            />,
+            <Kb.WaitingButton
+              type="Primary"
+              key="Chat"
+              label="Chat"
+              waitingKey={Constants.waitingKey}
+              onClick={props.onChat}
+            />,
+          ]
+        : [
+            <Kb.WaitingButton
+              type="Primary"
+              key="Follow"
+              label="Follow"
+              waitingKey={Constants.waitingKey}
+              onClick={props.onFollow}
+            />,
+            <Kb.WaitingButton
+              type="Secondary"
+              key="Chat"
+              label="Chat"
+              waitingKey={Constants.waitingKey}
+              onClick={props.onChat}
+            />,
+          ]
+      break
+    case 'error':
+      buttons = [
+        <Kb.WaitingButton
+          type="Secondary"
+          key="Ignore for 24 hours"
+          label="Ignore for 24 hours"
+          waitingKey={Constants.waitingKey}
+          onClick={props.onIgnoreFor24Hours}
+        />,
+        <Kb.WaitingButton
+          type="Primary"
+          key="Accept"
+          label="Accept"
+          waitingKey={Constants.waitingKey}
+          onClick={props.onAccept}
+        />,
+      ]
+      break
+    case 'needsUpgrade':
+      buttons = [
+        <Kb.WaitingButton
+          type="Secondary"
+          key="Chat"
+          label="Chat"
+          waitingKey={Constants.waitingKey}
+          onClick={props.onChat}
+        />,
+        <Kb.WaitingButton
+          type="Primary"
+          key="Accept"
+          label="Accept"
+          waitingKey={Constants.waitingKey}
+          onClick={props.onAccept}
+        />,
+      ]
+      break
+    case 'canceled':
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.state)
+  }
 
   // In order to keep the 'effect' of the card sliding up on top of the text the text is below the scroll area. We still need the spacing so we draw the text inside the scroll but invisible
 
@@ -73,7 +156,7 @@ const Tracker = (props: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       {buttons.length && (
-        <Kb.Box2 direction="horizontal" style={styles.buttons}>
+        <Kb.Box2 gap="small" centerChildren={true} direction="horizontal" style={styles.buttons}>
           {buttons}
         </Kb.Box2>
       )}
@@ -117,7 +200,6 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white_90,
       flexShrink: 0,
       height: barHeight,
-      justifyContent: 'space-around',
       position: 'absolute',
       top: undefined,
     },

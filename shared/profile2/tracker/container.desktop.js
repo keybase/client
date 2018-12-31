@@ -22,7 +22,13 @@ const mapStateToProps = (state, ownProps) => {
     reason: d.reason,
   }
 }
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = dispatch => ({
+  onAccept: () => {}, // TODO
+  onChat: () => {}, // TODO
+  onClose: () => {}, // TODO
+  onFollow: () => {}, // TODO
+  onIgnoreFor24Hours: () => {}, // TODO
+})
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const map = (stateProps._assertions || []).reduce((map, a) => {
     if (!map[a.state]) {
@@ -50,10 +56,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     followsYou: stateProps.followsYou,
     guiID: stateProps.guiID,
     location: stateProps.location,
+    onAccept: dispatchProps.onAccept,
+    onChat: dispatchProps.onChat,
+    onClose: dispatchProps.onClose,
+    onFollow: dispatchProps.onFollow,
+    onIgnoreFor24Hours: dispatchProps.onIgnoreFor24Hours,
     publishedTeams: stateProps.publishedTeams,
-    username: ownProps.username,
     reason: stateProps.reason,
     state,
+    username: ownProps.username,
   }
 }
 
