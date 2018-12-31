@@ -23,7 +23,7 @@ class Wrapper extends React.PureComponent<Props> {
       showImageOnSide: unfurl.media
         ? unfurl.media.height >= unfurl.media.width &&
           !unfurl.media.isVideo &&
-          (unfurl.title.length > 0 && !!unfurl.description)
+          (unfurl.title.length > 0 || !!unfurl.description)
         : false,
       siteName: unfurl.siteName,
       title: unfurl.title,
