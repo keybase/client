@@ -235,6 +235,8 @@
     if (codeCheckResult != errSecSuccess) {
       *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
     }
+    if (staticCode) CFRelease(staticCode);
+    if (keybaseRequirement) CFRelease(keybaseRequirement);
 }
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
