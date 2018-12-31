@@ -105,8 +105,8 @@
     [self remove:args[@"path"] completion:completion];
   } else if ([method isEqualToString:@"uninstallAppBundle"]) {
     [self uninstallAppBundle:completion];
-  } else if ([method isEqualToString:@"createDirectory"]) {
-    [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
+  } else if ([method isEqualToString:@"createMountDirectory"]) {
+    [self createMountDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
   } else if ([method isEqualToString:@"addToPath"]) {
     [self addToPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"removeFromPath"]) {
@@ -172,7 +172,22 @@
   completion(nil, response);
 }
 
-- (void)createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
+-(BOOL)_isStandardKeybaseMountPath:(NSString*)path{
+  NSString *p = path.stringByStandardizingPath;
+  if (!p.absolutePath) {
+    return NO;
+  }
+  NSArray *a = [p componentsSeparatedByString:@"/"];
+  if (a.count != 3) {
+    return NO;
+  }
+  if (![a[0] isEqualToString:@""] || ![a[1] isEqualToString:@"Volumes"]) {
+    return NO;
+  }
+  return YES;
+}
+
+- (void)_createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
   NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
   attributes[NSFilePosixPermissions] = permissions;
   attributes[NSFileOwnerAccountID] = uid;
@@ -194,6 +209,15 @@
   }
 
   completion(nil, @{});
+}
+
+- (void)createMountDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
+  if (![self _isStandardKeybaseMountPath:directory]) {
+    KBLog(@"The provided mount directory doesn't meet expectations: %@", directory);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid mount path"), nil);
+    return;
+  }
+  [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:completion];
 }
 
 - (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
@@ -268,7 +292,7 @@
   }
 
   // First create the directory.
-  [self createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
+  [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
     if (err) {
       completion(err, value);
       return;
