@@ -200,8 +200,9 @@ const getTeamRetentionPolicy = (state, action) => {
         logger.error(err.message)
         throw err
       }
+      return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamname})
     })
-    .finally(() => TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamname}))
+    .catch(() => TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamname}))
 }
 
 const saveTeamRetentionPolicy = (state, action) => {
@@ -327,10 +328,12 @@ const editDescription = (_, action) => {
       name: teamname,
     },
     Constants.teamWaitingKey(teamname)
-  ).finally(() =>
-    // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
-    TeamsGen.createGetDetails({teamname})
   )
+    .then(() => TeamsGen.createGetDetails({teamname}))
+    .catch(() =>
+      // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
+      TeamsGen.createGetDetails({teamname})
+    )
 }
 
 const uploadAvatar = (_, action) => {
@@ -424,12 +427,14 @@ const ignoreRequest = (_, action) => {
       username,
     },
     Constants.teamWaitingKey(teamname)
-  ).finally(
-    () =>
-      // TODO handle error, but for now make sure loading is unset
-      // TODO get rid of this once core sends us a notification for this (CORE-7125)
-      TeamsGen.createGetDetails({teamname}) // getDetails will unset loading
   )
+    .then(() => TeamsGen.createGetDetails({teamname}))
+    .catch(
+      () =>
+        // TODO handle error, but for now make sure loading is unset
+        // TODO get rid of this once core sends us a notification for this (CORE-7125)
+        TeamsGen.createGetDetails({teamname}) // getDetails will unset loading
+    )
 }
 
 function* createNewTeamFromConversation(state, action) {
@@ -576,17 +581,15 @@ function* getDetails(_, action) {
   }
 
   // Get the subteam map for this team.
-  const teamTree = yield* Saga.callPromise(
-    RPCTypes.teamsTeamTreeRpcPromise,
-    {
-      name: {parts: teamname.split('.')},
-    },
+  const {entries} = yield* Saga.callPromise(
+    RPCTypes.teamsTeamGetSubteamsRpcPromise,
+    {name: {parts: teamname.split('.')}},
     Constants.teamWaitingKey(teamname)
   )
-  const subteams = (teamTree.entries || [])
-    .map(team => (team.name.parts ? team.name.parts.join('.') : ''))
-    .filter(team => team !== teamname && team.startsWith(teamname))
-
+  const subteams = (entries || []).reduce((arr, {name}) => {
+    name.parts && arr.push(name.parts.join('.'))
+    return arr
+  }, [])
   yield Saga.put(
     TeamsGen.createSetTeamDetails({
       invites: I.Set(invites),
@@ -954,13 +957,20 @@ const setMemberPublicity = (state, action) => {
       name: teamname,
     },
     Constants.teamWaitingKey(teamname)
-  ).finally(() => [
-    // TODO handle error, but for now make sure loading is unset
-    TeamsGen.createGetDetails({teamname}),
-
-    // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-    TeamsGen.createGetTeams(),
-  ])
+  )
+    .then(() => [
+      TeamsGen.createGetDetails({teamname}),
+      // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
+      TeamsGen.createGetTeams(),
+    ])
+    .catch(e =>
+      // TODO handle error, but for now make sure loading is unset
+      [
+        TeamsGen.createGetDetails({teamname}),
+        // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
+        TeamsGen.createGetTeams(),
+      ]
+    )
 }
 
 function* setPublicity(state, action) {

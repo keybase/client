@@ -655,6 +655,8 @@ const _getRouteChangeActionForOpen = (
 function* openPathItem(state, action) {
   const {path} = action.payload
 
+  yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'}))
+
   if (Types.getPathLevel(path) < 3) {
     return
   }
@@ -689,7 +691,6 @@ function* openPathItem(state, action) {
   if (pathItem.type === 'file') {
     yield Saga.put(FsGen.createMimeTypeLoad({path}))
   }
-  yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'}))
 }
 
 const letResetUserBackIn = (_, {payload: {id, username}}) =>
