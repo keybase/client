@@ -124,7 +124,7 @@
     completion(nil);
     return;
   }
-  NSDictionary *params = @{}
+  NSDictionary *params = @{};
   [self.helperTool.helper sendRequest:@"uninstallAppBundle" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
