@@ -55,7 +55,7 @@ const Tracker = (props: Props) => {
         {props.reason}
       </Kb.Text>
       <Kb.ScrollView style={styles.scrollView}>
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" style={styles.insideScroll}>
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
@@ -75,6 +75,7 @@ const Tracker = (props: Props) => {
           {buttons.length && (
             <Kb.Box2 fullWidth={true} direction="vertical" style={styles.spaceUnderButtons} />
           )}
+          <Kb.Box2 fullWidth={true} direction="vertical" style={styles.restOfTheSpace} />
         </Kb.Box2>
       </Kb.ScrollView>
       {buttons.length && (
@@ -91,6 +92,7 @@ const barHeight = 62
 const reason = {
   alignSelf: 'center',
   color: Styles.globalColors.white,
+  flexShrink: 0,
   paddingBottom: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
@@ -132,6 +134,10 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white,
     position: 'relative',
   },
+  insideScroll: {
+    flexGrow: 1,
+    minHeight: '100%',
+  },
   reason: {
     ...reason,
     ...Styles.globalStyles.fillAbsolute,
@@ -141,8 +147,13 @@ const styles = Styles.styleSheetCreate({
     ...reason,
     opacity: 0,
   },
+  restOfTheSpace: {
+    backgroundColor: Styles.globalColors.white,
+    flexGrow: 1,
+  },
   scrollView: {
     ...Styles.globalStyles.fillAbsolute,
+    display: 'flex',
   },
   spaceUnderButtons: {
     backgroundColor: Styles.globalColors.white,
