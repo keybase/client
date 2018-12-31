@@ -124,8 +124,8 @@
     completion(nil);
     return;
   }
-  NSDictionary *params = @{@"source": path, @"destination": @"/tmp/Keybase.app"};
-  [self.helperTool.helper sendRequest:@"move" params:@[params] completion:^(NSError *error, id value) {
+  NSDictionary *params = @{}
+  [self.helperTool.helper sendRequest:@"uninstallAppBundle" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
