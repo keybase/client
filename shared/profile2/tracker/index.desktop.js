@@ -45,17 +45,12 @@ const Tracker = (props: Props) => {
   // In order to keep the 'effect' of the card sliding up on top of the text the text is below the scroll area. We still need the spacing so we draw the text inside the scroll but invisible
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      style={Styles.collapseStyles([styles.container, {backgroundColor}])}
-    >
-      <Kb.Text type="BodySmallSemibold" style={styles.reason}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
       <Kb.ScrollView style={styles.scrollView}>
-        <Kb.Box2 direction="vertical" style={styles.insideScroll}>
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
@@ -75,7 +70,6 @@ const Tracker = (props: Props) => {
           {buttons.length && (
             <Kb.Box2 fullWidth={true} direction="vertical" style={styles.spaceUnderButtons} />
           )}
-          <Kb.Box2 fullWidth={true} direction="vertical" style={styles.restOfTheSpace} />
         </Kb.Box2>
       </Kb.ScrollView>
       {buttons.length && (
@@ -119,14 +113,13 @@ const styles = Styles.styleSheetCreate({
   avatarContainer: {flexShrink: 0, position: 'relative'},
   buttons: Styles.platformStyles({
     common: {
+      ...Styles.globalStyles.fillAbsolute,
       backgroundColor: Styles.globalColors.white_90,
-      bottom: 0,
       flexShrink: 0,
       height: barHeight,
       justifyContent: 'space-around',
-      left: 0,
       position: 'absolute',
-      right: 0,
+      top: undefined,
     },
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
@@ -134,29 +127,18 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white,
     position: 'relative',
   },
-  insideScroll: {
-    flexGrow: 1,
-    minHeight: '100%',
-  },
   reason: {
     ...reason,
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
+    paddingBottom: avatarSize / 2,
   },
   reasonInvisible: {
     ...reason,
     opacity: 0,
   },
-  restOfTheSpace: {
-    backgroundColor: Styles.globalColors.white,
-    flexGrow: 1,
-  },
-  scrollView: {
-    ...Styles.globalStyles.fillAbsolute,
-    display: 'flex',
-  },
+  scrollView: {...Styles.globalStyles.fillAbsolute},
   spaceUnderButtons: {
-    backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
     height: barHeight,
   },
