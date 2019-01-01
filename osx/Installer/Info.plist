@@ -25,9 +25,9 @@
 	<key>KBFuseVersion</key>
 	<string>3.8.2</string>
 	<key>KBHelperBuild</key>
-	<string>1.0.33</string>
+	<string>1.0.34</string>
 	<key>KBHelperVersion</key>
-	<string>1.0.33</string>
+	<string>1.0.34</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
