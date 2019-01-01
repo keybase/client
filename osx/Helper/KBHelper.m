@@ -155,7 +155,7 @@
 
   for (int i = 0; i < n_gids; i++) {
     if (gids[i] == wanted_group_p->gr_gid) {
-      KBLog(@"Checked that the calling user '%s' (%d) is in '%s' (%d)", pwentryp->pw_name, uid, group, wanted_group_p);
+      KBLog(@"Checked that the calling user '%s' (%d) is in '%s' (%d)", pwentryp->pw_name, uid, group, wanted_group_p->gr_gid);
       return YES;
     }
   }
