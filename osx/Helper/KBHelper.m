@@ -10,6 +10,7 @@
 
 #import "KBKext.h"
 #import "KBLogger.h"
+#import "fs.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 #include <pwd.h>
 #include <grp.h>
@@ -220,35 +221,12 @@
   [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:completion];
 }
 
+
 - (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
-    NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
-    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
-    attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0700];
-    attributes[NSFileOwnerAccountID] = 0;
-    attributes[NSFileGroupOwnerAccountID] = 0;
-    if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:error]) {
-      return nil;
-    }
-
-    NSURL *srcURL = [NSURL fileURLWithPath:bin];
-    NSURL *dstURL = [directoryURL URLByAppendingPathComponent:name isDirectory:NO];
-    if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:error]) {
-      return nil;
-    }
-
-    // Once it's copied into the root-only area, make sure it's not a
-    // symlink, since then a non-root user could change the binary
-    // after we check the signature.
-    NSString *dstPath = [dstURL path];
-    if (![self isRegularFile:dstPath]) {
-        *error = KBMakeError(-1, @"Redirector must be a regular file");
-        return nil;
-    }
-
-    return dstURL;
+  return copyToTemporary(bin, name, NSFileTypeRegular, error);
 }
 
-- (void)checkKeybaseBinary:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
+- (void)checkKeybaseResource:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
 
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)bin;
@@ -270,8 +248,8 @@
     if (keybaseRequirement) CFRelease(keybaseRequirement);
 }
 
-- (void)checkKeybaseRedirectorBinary:(NSURL *)bin error:(NSError **)error {
-  return [self checkKeybaseBinary:bin withIdentifier:@"and identifier \"keybase-redirector\"" error:error];
+- (void)checkRedirectorBinary:(NSURL *)bin error:(NSError **)error {
+  checkKeybaseResource(bin, @"and identifier \"keybase-redirector\"", error);
 }
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
@@ -321,7 +299,7 @@
     // Make sure the passed-in redirector binary points to a proper binary
     // signed by Keybase, we don't want this to be able to run arbitrary code
     // as root.
-    [self checkKeybaseRedirectorBinary:dstURL error:&error];
+    [self checkRedirectorBinary:dstURL error:&error];
     if (error) {
       completion(error, nil);
       return;
@@ -360,13 +338,12 @@
 }
 
 - (BOOL)isRegularFile:(NSString *)linkPath {
-  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
-  if (!attributes) {
-    return NO;
-  }
-  return [attributes[NSFileType] isEqual:NSFileTypeRegular];
+  return checkFileIsType(linkPath, NSFileTypeRegular);
 }
 
+- (BOOL)isDirectory:(NSString *)linkPath {
+  return checkFileIsType(linkPath, NSFileTypeDirectory);
+}
 
 - (NSString *)resolveLinkPath:(NSString *)linkPath {
   if (![self linkExists:linkPath]) {

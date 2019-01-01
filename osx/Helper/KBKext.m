@@ -7,6 +7,7 @@
 //
 
 #import "KBKext.h"
+#import "fs.h"
 
 #import <IOKit/kext/KextManager.h>
 #include <sys/stat.h>
@@ -44,8 +45,26 @@
   }];
 }
 
++ (NSURL *)copyToTemporaryAndCheckIntegrity:(NSString *)source name:(NSString *)name error:(NSError **)error {
+  NSURL *url = copyToTemporary(source, name, NSFileTypeDirectory, error);
+  if (error) {
+    return nil;
+  }
+  checkKeybaseResource(url.absoluteURL, nil, error);
+  if (error) {
+    return nil;
+  }
+  return url;
+}
+
 + (void)copyWithSource:(NSString *)source destination:(NSString *)destination removeExisting:(BOOL)removeExisting completion:(KBOnCompletion)completion {
   NSError *error = nil;
+
+  NSURL *sourceURL = [self copyToTemporaryAndCheckIntegrity:source name:source.lastPathComponent error:&error];
+  if (error) {
+    completion(error, nil);
+    return;
+  }
 
   if (removeExisting && ![self deletePath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to remove existing");
@@ -53,7 +72,7 @@
     return;
   }
 
-  if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
+  if (![NSFileManager.defaultManager moveItemAtURL:sourceURL toURL:[NSURL fileURLWithPath:destination] error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to copy");
     completion(error, nil);
     return;
@@ -71,6 +90,7 @@
     completion(nil, nil);
   }];
 }
+
 
 + (NSNumber *)permissionsForPath:(NSString *)path {
   NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
