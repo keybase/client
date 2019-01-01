@@ -50,7 +50,7 @@
   if (error) {
     return nil;
   }
-  [KBFSUtils checkKeybaseResource:url.absoluteURL identifier:nil error:error];
+  [KBFSUtils checkKeybaseResource:[url path] identifier:nil error:error];
   if (error) {
     return nil;
   }

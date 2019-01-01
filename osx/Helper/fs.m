@@ -26,7 +26,7 @@
     // symlink, since then a non-root user could change the binary
     // after we check the signature.
     NSString *dstPath = [dstURL path];
-    if (!checkFileIsType(dstPath, fileType)) {
+    if (![KBFSUtils checkFile:dstPath isType:fileType]) {
         *error = KBMakeError(-1, @"Install component was of the wrong type");
         return nil;
     }

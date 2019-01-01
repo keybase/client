@@ -249,7 +249,7 @@
 }
 
 - (void)checkRedirectorBinary:(NSURL *)bin error:(NSError **)error {
-  checkKeybaseResource(bin, @"and identifier \"keybase-redirector\"", error);
+  [KBFSUtils checkKeybaseResource:bin identifier:@"and identifier \"keybase-redirector\"" error:error];
 }
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
