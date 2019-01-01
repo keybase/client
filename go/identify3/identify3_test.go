@@ -55,7 +55,7 @@ type fakeUI3 struct {
 	id3results id3results
 }
 
-func (f *fakeUI3) ShowTracker(context.Context, keybase1.ShowTrackerArg) error {
+func (f *fakeUI3) Identify3ShowTracker(context.Context, keybase1.Identify3ShowTrackerArg) error {
 	return nil
 }
 func (f *fakeUI3) Identify3UpdateRow(_ context.Context, row keybase1.Identify3UpdateRowArg) error {
@@ -82,11 +82,11 @@ func (f *fakeUI3) Identify3TrackerTimedOut(context.Context, keybase1.Identify3GU
 	f.id3results.hitTimeout()
 	return nil
 }
-func (f *fakeUI3) Identify3Result(_ context.Context, res keybase1.Identify3ResultType) error {
+func (f *fakeUI3) Identify3Result(_ context.Context, res keybase1.Identify3ResultArg) error {
 	f.Lock()
-	f.id3results.resultType = res
+	f.id3results.resultType = res.Result
 	f.Unlock()
-	f.resultCh <- res
+	f.resultCh <- res.Result
 	return nil
 }
 

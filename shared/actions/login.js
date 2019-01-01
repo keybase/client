@@ -19,10 +19,7 @@ export function setupLoginHMR(cb: () => void) {
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
-  response.error({
-    code: RPCTypes.constantsStatusCode.scgeneric,
-    desc: cancelDesc,
-  })
+  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
 }
 const ignoreCallback = params => {}
 
@@ -48,10 +45,10 @@ const getPassphraseHandler = passphrase => (params, response) => {
 }
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-const login = (_: any, action: LoginGen.LoginPayload) =>
-  Saga.callUntyped(function*() {
-    try {
-      yield RPCTypes.loginLoginRpcSaga({
+function* login(_, action) {
+  try {
+    yield* Saga.callRPCs(
+      RPCTypes.loginLoginRpcSaga({
         customResponseIncomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
@@ -75,25 +72,35 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         },
         waitingKey: Constants.waitingKey,
       })
-      logger.info('login call succeeded')
-      yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
-    } catch (e) {
-      // If we're canceling then ignore the error
-      if (e.desc !== cancelDesc) {
-        yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
-      }
+    )
+    logger.info('login call succeeded')
+    yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
+  } catch (e) {
+    // If we're canceling then ignore the error
+    if (e.desc !== cancelDesc) {
+      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
     }
-  })
+  }
+}
 
-const launchForgotPasswordWebPage = () => Saga.callUntyped(openURL, 'https://keybase.io/#password-reset')
-const launchAccountResetWebPage = () => Saga.callUntyped(openURL, 'https://keybase.io/#account-reset')
+const launchForgotPasswordWebPage = () => {
+  openURL('https://keybase.io/#password-reset')
+}
+const launchAccountResetWebPage = () => {
+  openURL('https://keybase.io/#account-reset')
+}
 
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
-  yield Saga.actionToAction(LoginGen.login, login)
-
-  yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
-  yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
+  yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
+  yield* Saga.chainAction<LoginGen.LaunchForgotPasswordWebPagePayload>(
+    LoginGen.launchForgotPasswordWebPage,
+    launchForgotPasswordWebPage
+  )
+  yield* Saga.chainAction<LoginGen.LaunchAccountResetWebPagePayload>(
+    LoginGen.launchAccountResetWebPage,
+    launchAccountResetWebPage
+  )
 }
 
 export default loginSaga

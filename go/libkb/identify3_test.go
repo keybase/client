@@ -23,7 +23,7 @@ func (i *id3FakeUIRouter) GetSecretUI(sessionID int) (SecretUI, error)          
 func (i *id3FakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)       { return nil, 0, nil }
 func (i *id3FakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
 func (i *id3FakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
-func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext, keybase1.Identify3GUIID) (IdentifyUI, error) {
+func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }
 func (i *id3FakeUIRouter) Shutdown() {}
@@ -44,7 +44,9 @@ func (i *id3FakeUI) assertAndCleanState(t *testing.T, expected []keybase1.Identi
 	i.timeOuts = nil
 }
 
-func (i *id3FakeUI) ShowTracker(context.Context, keybase1.ShowTrackerArg) error { return nil }
+func (i *id3FakeUI) Identify3ShowTracker(context.Context, keybase1.Identify3ShowTrackerArg) error {
+	return nil
+}
 func (i *id3FakeUI) Identify3UpdateRow(context.Context, keybase1.Identify3UpdateRowArg) error {
 	return nil
 }
@@ -58,7 +60,7 @@ func (i *id3FakeUI) Identify3TrackerTimedOut(_ context.Context, id keybase1.Iden
 	i.timeOuts = append(i.timeOuts, id)
 	return nil
 }
-func (i *id3FakeUI) Identify3Result(context.Context, keybase1.Identify3ResultType) error { return nil }
+func (i *id3FakeUI) Identify3Result(context.Context, keybase1.Identify3ResultArg) error { return nil }
 
 func TestIdentify3State(t *testing.T) {
 	tc := SetupTest(t, "TestIdentify3State()", 1)

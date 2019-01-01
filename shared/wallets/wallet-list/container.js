@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
-import * as RouteTree from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {connect, isMobile} from '../../util/container'
@@ -19,14 +19,16 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
     dispatch(
-      RouteTree.navigateAppend([
-        {props: {backButton: isMobile, showOnCreation: true}, selected: 'createNewAccount'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: isMobile, showOnCreation: true}, selected: 'createNewAccount'}],
+      })
     )
   },
-  onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
+  onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : null,
   onLinkExisting: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
+    )
   },
   onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),

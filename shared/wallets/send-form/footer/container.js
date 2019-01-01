@@ -1,6 +1,6 @@
 // @flow
 import Footer from '.'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {namedConnect} from '../../../util/container'
@@ -35,12 +35,12 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickSend: () => {
     dispatch(WalletsGen.createBuildPayment())
     dispatch(
-      Route.navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {},
           selected: Constants.confirmFormRouteKey,
         },
-      ])
+      ]})
     )
   },
 })

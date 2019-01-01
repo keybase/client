@@ -4,7 +4,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {connect, compose} from '../../util/container'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {||}
 
@@ -61,11 +61,11 @@ const mapDispatchToProps = (dispatch: (a: any) => void) => ({
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassphrase())
   },
-  onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
-  onChangePassphrase: () => dispatch(navigateAppend(['changePassphrase'])),
+  onChangeEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changeEmail']})),
+  onChangePassphrase: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassphrase']})),
   onChangeRememberPassphrase: (checked: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassphrase({remember: checked})),
-  onInfo: selectedLevel => dispatch(navigateAppend([{props: {selectedLevel}, selected: 'changePlan'}])),
+  onInfo: selectedLevel => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {selectedLevel}, selected: 'changePlan'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

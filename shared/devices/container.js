@@ -2,7 +2,7 @@
 import Devices from '.'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as RouteTree from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
 import {compose, namedConnect, safeSubmitPerMount} from '../util/container'
@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
   addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onBack: () => dispatch(RouteTree.navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const sortDevices = (a, b) => {

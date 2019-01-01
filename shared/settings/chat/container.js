@@ -2,7 +2,7 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {namedConnect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../styles'
 import Chat from '.'
 
@@ -14,7 +14,7 @@ const mapStateToProps = (state, ownProps: {}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
-  onBack: isMobile ? () => dispatch(navigateUp()) : undefined,
+  onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onRefresh: () => dispatch(SettingsGen.createUnfurlSettingsRefresh()),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) =>
     dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist})),

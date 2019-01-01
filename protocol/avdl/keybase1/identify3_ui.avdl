@@ -7,11 +7,12 @@ protocol identify3Ui {
   // showTracker is called when Go wants to force the frontend to show a tracker popup
   // (rather than the frontend app triggering the action). In this case, the Go side comes
   // up with a unique Identify3GUIID.
-  void showTracker(
+  void identify3ShowTracker(
     Identify3GUIID guiID,         // id used to tie these things together
     Identify3Assertion assertion, // username or bob@twitter etc
-    string reason
-  ) oneway;
+    IdentifyReason reason,
+    boolean forceDisplay=false
+  );
 
   enum Identify3RowState {
     CHECKING_1,
@@ -72,6 +73,7 @@ protocol identify3Ui {
   // Until this RPC arrives, the frontend should show grayed-out buttons. Then, once it does,
   // it can render buttons for the next actions.
   void identify3Result(
+    Identify3GUIID guiID,          // id used to tie these things together
     Identify3ResultType result
   ) oneway;
 
