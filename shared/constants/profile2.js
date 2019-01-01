@@ -18,6 +18,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   location: null,
   publishedTeams: null,
   reason: '',
+  showTracker: false,
   state: 'error',
   username: '',
 })

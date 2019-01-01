@@ -23,6 +23,7 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
           [action.payload.assertion]: {
             assertions: I.Map(), // just remove for now, maybe keep them
             guiID,
+            showTracker: action.payload.forceDisplay,
             state: 'checking',
             username: action.payload.assertion,
           },

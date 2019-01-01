@@ -68,6 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
+// remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps),
 export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
