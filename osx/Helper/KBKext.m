@@ -46,11 +46,11 @@
 }
 
 + (NSURL *)copyToTemporaryAndCheckIntegrity:(NSString *)source name:(NSString *)name error:(NSError **)error {
-  NSURL *url = copyToTemporary(source, name, NSFileTypeDirectory, error);
+  NSURL *url = [KBFSUtils copyToTemporary:source name:name fileType:NSFileTypeDirectory error:error];
   if (error) {
     return nil;
   }
-  checkKeybaseResource(url.absoluteURL, nil, error);
+  [KBFSUtils checkKeybaseResource:url.absoluteURL identifier:nil error:error];
   if (error) {
     return nil;
   }

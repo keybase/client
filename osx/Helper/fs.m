@@ -2,8 +2,10 @@
 #include "fs.h"
 #include "KBHelperDefines.h"
 
-NSURL *
-copyToTemporary(NSString *bin, NSString *name, NSFileAttributeType fileType, NSError **error) {
+
+@implementation KBFSUtils
+
++(NSURL *)copyToTemporary:(NSString *)bin name:(NSString *)name fileType:(NSFileAttributeType)fileType error:(NSError **)error {
 
     NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
     NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
@@ -32,8 +34,7 @@ copyToTemporary(NSString *bin, NSString *name, NSFileAttributeType fileType, NSE
     return dstURL;
 }
 
-BOOL
-checkFileIsType(NSString * linkPath, NSFileAttributeType fileType) {
++(BOOL)checkFile:(NSString *)linkPath isType:(NSFileAttributeType)fileType {
 	NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
 	if (!attributes) {
     	return NO;
@@ -41,8 +42,7 @@ checkFileIsType(NSString * linkPath, NSFileAttributeType fileType) {
   	return [attributes[NSFileType] isEqual:fileType];
 }
 
-void
-checkKeybaseResource(NSURL *bin, NSString *identifier, NSError **error) {
++(void)checkKeybaseResource:(NSURL *)bin identifier:(NSString *)identifier error:(NSError **)error {
 
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)bin;
@@ -63,3 +63,5 @@ checkKeybaseResource(NSURL *bin, NSString *identifier, NSError **error) {
     if (staticCode) CFRelease(staticCode);
     if (keybaseRequirement) CFRelease(keybaseRequirement);
 }
+
+@end

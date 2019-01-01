@@ -223,7 +223,7 @@
 
 
 - (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
-  return copyToTemporary(bin, name, NSFileTypeRegular, error);
+  return [KBFSUtils copyToTemporary:bin name:name fileType:NSFileTypeRegular error:error];
 }
 
 - (void)checkKeybaseResource:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
@@ -338,11 +338,11 @@
 }
 
 - (BOOL)isRegularFile:(NSString *)linkPath {
-  return checkFileIsType(linkPath, NSFileTypeRegular);
+  return [KBFSUtils checkFile:linkPath isType:NSFileTypeRegular];
 }
 
 - (BOOL)isDirectory:(NSString *)linkPath {
-  return checkFileIsType(linkPath, NSFileTypeDirectory);
+  return [KBFSUtils checkFile:linkPath isType:NSFileTypeDirectory];
 }
 
 - (NSString *)resolveLinkPath:(NSString *)linkPath {
