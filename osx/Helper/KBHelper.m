@@ -10,6 +10,7 @@
 
 #import "KBKext.h"
 #import "KBLogger.h"
+#import "fs.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 #include <pwd.h>
 #include <grp.h>
@@ -220,47 +221,35 @@
   [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:completion];
 }
 
+
 - (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
-    NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
-    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
-    attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0700];
-    attributes[NSFileOwnerAccountID] = 0;
-    attributes[NSFileGroupOwnerAccountID] = 0;
-    if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:error]) {
-      return nil;
-    }
-
-    NSURL *srcURL = [NSURL fileURLWithPath:bin];
-    NSURL *dstURL = [directoryURL URLByAppendingPathComponent:name isDirectory:NO];
-    if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:error]) {
-      return nil;
-    }
-
-    // Once it's copied into the root-only area, make sure it's not a
-    // symlink, since then a non-root user could change the binary
-    // after we check the signature.
-    NSString *dstPath = [dstURL path];
-    if (![self isRegularFile:dstPath]) {
-        *error = KBMakeError(-1, @"Redirector must be a regular file");
-        return nil;
-    }
-
-    return dstURL;
+  return [KBFSUtils copyToTemporary:bin name:name fileType:NSFileTypeRegular error:error];
 }
 
-- (void)checkKeybaseBinary:(NSURL *)bin error:(NSError **)error {
+- (void)checkKeybaseResource:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
+
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)bin;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
     SecRequirementRef keybaseRequirement = NULL;
     // This requirement string is taken from Installer/Info.plist.
-    SecRequirementCreateWithString(CFSTR("anchor apple generic and identifier \"keybase-redirector\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")"), kSecCSDefaultFlags, &keybaseRequirement);
+
+    if (identifier == nil) {
+      identifier = @"";
+    }
+    NSString *nsRequirement = [NSString stringWithFormat:@"anchor apple generic %@ and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")", identifier];
+
+    SecRequirementCreateWithString((__bridge CFStringRef)nsRequirement,kSecCSDefaultFlags, &keybaseRequirement);
     OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, kSecCSDefaultFlags, keybaseRequirement, NULL);
     if (codeCheckResult != errSecSuccess) {
       *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
     }
     if (staticCode) CFRelease(staticCode);
     if (keybaseRequirement) CFRelease(keybaseRequirement);
+}
+
+- (void)checkRedirectorBinary:(NSURL *)bin error:(NSError **)error {
+  [KBFSUtils checkKeybaseResource:bin identifier:@"and identifier \"keybase-redirector\"" error:error];
 }
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
@@ -310,7 +299,7 @@
     // Make sure the passed-in redirector binary points to a proper binary
     // signed by Keybase, we don't want this to be able to run arbitrary code
     // as root.
-    [self checkKeybaseBinary:dstURL error:&error];
+    [self checkRedirectorBinary:dstURL error:&error];
     if (error) {
       completion(error, nil);
       return;
@@ -349,13 +338,12 @@
 }
 
 - (BOOL)isRegularFile:(NSString *)linkPath {
-  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
-  if (!attributes) {
-    return NO;
-  }
-  return [attributes[NSFileType] isEqual:NSFileTypeRegular];
+  return [KBFSUtils checkFile:linkPath isType:NSFileTypeRegular];
 }
 
+- (BOOL)isDirectory:(NSString *)linkPath {
+  return [KBFSUtils checkFile:linkPath isType:NSFileTypeDirectory];
+}
 
 - (NSString *)resolveLinkPath:(NSString *)linkPath {
   if (![self linkExists:linkPath]) {
