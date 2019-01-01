@@ -248,19 +248,30 @@
     return dstURL;
 }
 
-- (void)checkKeybaseBinary:(NSURL *)bin error:(NSError **)error {
+- (void)checkKeybaseBinary:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
+
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)bin;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
     SecRequirementRef keybaseRequirement = NULL;
     // This requirement string is taken from Installer/Info.plist.
-    SecRequirementCreateWithString(CFSTR("anchor apple generic and identifier \"keybase-redirector\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")"), kSecCSDefaultFlags, &keybaseRequirement);
+
+    if (identifier == nil) {
+      identifier = @"";
+    }
+    NSString *nsRequirement = [NSString stringWithFormat:@"anchor apple generic %@ and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")", identifier];
+
+    SecRequirementCreateWithString((__bridge CFStringRef)nsRequirement,kSecCSDefaultFlags, &keybaseRequirement);
     OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, kSecCSDefaultFlags, keybaseRequirement, NULL);
     if (codeCheckResult != errSecSuccess) {
       *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
     }
     if (staticCode) CFRelease(staticCode);
     if (keybaseRequirement) CFRelease(keybaseRequirement);
+}
+
+- (void)checkKeybaseRedirectorBinary:(NSURL *)bin error:(NSError **)error {
+  return [self checkKeybaseBinary:bin withIdentifier:@"and identifier \"keybase-redirector\"" error:error];
 }
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
@@ -310,7 +321,7 @@
     // Make sure the passed-in redirector binary points to a proper binary
     // signed by Keybase, we don't want this to be able to run arbitrary code
     // as root.
-    [self checkKeybaseBinary:dstURL error:&error];
+    [self checkKeybaseRedirectorBinary:dstURL error:&error];
     if (error) {
       completion(error, nil);
       return;
