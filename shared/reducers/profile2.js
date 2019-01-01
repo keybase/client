@@ -7,6 +7,11 @@ import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
+const guiIDToUsername = (state, guiID) => {
+  const d = state.usernameToDetails.find(d => d.guiID === guiID)
+  return d ? d.username : null
+}
+
 export default function(state: Types.State = initialState, action: Profile2Gen.Actions): Types.State {
   switch (action.type) {
     case Profile2Gen.resetStore:
@@ -19,6 +24,26 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
             assertions: I.Map(), // just remove for now, maybe keep them
             guiID,
             state: 'checking',
+            username: action.payload.assertion,
+          },
+        }),
+      })
+    case Profile2Gen.updatedDetails:
+      const username = guiIDToUsername(state, action.payload.guiID)
+      if (!username) {
+        return state
+      }
+      return state.merge({
+        usernameToDetails: state.usernameToDetails.merge({
+          [username]: {
+            bio: action.payload.bio,
+            followThem: action.payload.followThem,
+            followersCount: action.payload.followersCount,
+            followingCount: action.payload.followingCount,
+            followsYou: action.payload.followsYou,
+            fullname: action.payload.fullname,
+            location: action.payload.location,
+            publishedTeams: action.payload.publishedTeams,
           },
         }),
       })

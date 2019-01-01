@@ -19,6 +19,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   publishedTeams: null,
   reason: '',
   state: 'error',
+  username: '',
 })
 
 export const generateGUIID = () =>

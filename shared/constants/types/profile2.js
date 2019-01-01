@@ -35,6 +35,7 @@ export type _Details = {
   publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
   state: DetailsState,
+  username: string,
 }
 export type Details = I.RecordOf<_Details>
 

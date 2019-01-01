@@ -22,11 +22,26 @@ const setupEngineListeners = () => {
       })
   })
   engine().setIncomingCallMap({
+    'keybase.1.identify3Ui.identify3UpdateUserCard': ({guiID, card}) =>
+      Saga.put(
+        Profile2Gen.createUpdatedDetails({
+          bio: card.bio,
+          followThem: card.youFollowThem,
+          followersCount: card.followers,
+          followingCount: card.following,
+          followsYou: card.theyFollowYou,
+          fullname: card.fullName,
+          guiID,
+          location: card.location,
+          publishedTeams: (card.teamShowcase || []).map(t => t.fqName),
+        })
+      ),
     'keybase.1.identify3Ui.identify3ShowTracker': ({guiID, assertion, reason, forceDisplay}) =>
       Saga.put(
         Profile2Gen.createLoad({
           assertion,
           forceDisplay: !!forceDisplay,
+          fromDaemon: true,
           guiID,
           ignoreCache: false,
           reason: reason.reason || '',
@@ -36,6 +51,9 @@ const setupEngineListeners = () => {
 }
 
 function* load(state, action) {
+  if (action.payload.fromDaemon) {
+    return
+  }
   const guiID = state.profile2.usernameToDetails.get(action.payload.assertion)
   if (!guiID) {
     throw new Error('No guid on profile 2 load? ' + action.payload.assertion || '')
