@@ -20,6 +20,7 @@ type Props = {
   onLoadMore: () => void,
   onMarkAsRead: () => void,
   sections: any[],
+  refresh: () => void,
 }
 
 const HistoryPlaceholder = () => (
@@ -31,6 +32,10 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
+  componentDidMount() {
+    this.props.refresh()
+  }
+
   componentDidUpdate = (prevProps: Props) => {
     if (prevProps.accountID !== this.props.accountID) {
       prevProps.onMarkAsRead()

@@ -29,6 +29,7 @@ const props = {
   navigateUp: Sb.action('navigateUp'),
   onLoadMore: Sb.action('onLoadMore'),
   onMarkAsRead: Sb.action('onMarkRead'),
+  refresh: Sb.action('refresh'),
   sections: [{data: [], title: 'Your assets'}, {data: ['noPayments'], title: 'History'}],
 }
 

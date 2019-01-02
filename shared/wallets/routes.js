@@ -22,7 +22,6 @@ const routeTree = () => {
   const ConfirmForm = require('./confirm-form/container').default
   const Wallet = require('./wallet/container').default
   const ChooseAsset = require('./send-form/choose-asset/container').default
-  const WalletsList = require('./wallet-list/container').default
 
   const createNewAccount = {
     children: {},
@@ -117,16 +116,8 @@ const routeTree = () => {
   }
   return isMobile
     ? makeRouteDefNode({
-        children: {
-          createNewAccount,
-          linkExisting,
-          wallet: {
-            children: walletChildren,
-            component: Wallet,
-          },
-        },
-        component: WalletsList,
-        tags: makeLeafTags({title: 'Wallets'}),
+        children: walletChildren,
+        component: Wallet,
       })
     : makeRouteDefNode({
         children: {
