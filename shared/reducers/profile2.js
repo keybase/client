@@ -57,9 +57,14 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
       if (!username) {
         return state
       }
+
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], old =>
           (old || Constants.makeDetails()).merge({
+            reason:
+              action.payload.result === 'error'
+                ? `Some of ${username}'s proofs have changed since you last followed them`
+                : old.reason,
             state: action.payload.result,
           })
         ),

@@ -20,11 +20,23 @@ const Bio = (p: Props) => (
     <Kb.Text type="BodyBig" lineClamp={1} style={styles.text}>
       {p.fullname}
     </Kb.Text>
+    {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
     {p.followersCount !== null && (
       <Kb.Text type="BodySmall">
-        <Kb.Text type="BodySmall">{p.followersCount} Followers </Kb.Text>
+        <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" style={styles.bold}>
+            {p.followersCount}
+          </Kb.Text>{' '}
+          Followers{' '}
+        </Kb.Text>
         <Kb.Text type="BodySmall"> · </Kb.Text>
-        <Kb.Text type="BodySmall">Following {p.followersCount} </Kb.Text>
+        <Kb.Text type="BodySmall">
+          {' '}
+          Following{' '}
+          <Kb.Text type="BodySmall" style={styles.bold}>
+            {p.followingCount}{' '}
+          </Kb.Text>
+        </Kb.Text>
       </Kb.Text>
     )}
     {!!p.bio && (
@@ -42,6 +54,7 @@ const Bio = (p: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+  bold: {...Styles.globalStyles.fontBold},
   text: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.mediumLarge,
