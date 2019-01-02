@@ -386,7 +386,7 @@
 
     if ([KBFSUtils checkAbsolutePath:path hasAbsolutePrefix:neededPrefix]) {
 
-      KBLog(@"Allowing creation of symlink %@ -> %@, since it's in %@", linkPath, path, neededPrefix);
+      KBLog(@"Allowing creation of symlink %@ -> %@ since it's in %@", linkPath, path, neededPrefix);
 
       // Fix the link
       NSDictionary *dirAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkDir error:nil];
@@ -399,7 +399,7 @@
       }
 
     } else {
-      KBLog(@"Not allowing creation of symlink %@ -> %@, since it's not in %@", linkPath, path, neededPrefix);
+      KBLog(@"Not allowing creation of symlink %@ -> %@ since it's not in %@", linkPath, path, neededPrefix);
     }
   }
 
