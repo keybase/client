@@ -3578,18 +3578,17 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 func openCRDBInternal(config Config) (*leveldb.DB, error) {
 	if config.IsTestMode() {
 		return leveldb.Open(storage.NewMemStorage(), leveldbOptions)
-	} else {
-		err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
-			conflictResolverRecordsDir, conflictResolverRecordsVersionString),
-			os.ModePerm)
-		if err != nil {
-			return nil, err
-		}
-
-		return leveldb.OpenFile(sysPath.Join(config.StorageRoot(),
-			conflictResolverRecordsDir, conflictResolverRecordsVersionString,
-			conflictResolverRecordsDB), leveldbOptions)
 	}
+	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
+		os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	return leveldb.OpenFile(sysPath.Join(config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString,
+		conflictResolverRecordsDB), leveldbOptions)
 }
 
 func openCRDB(ctx context.Context, config Config) (db *leveldb.DB) {

@@ -439,6 +439,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
+// GetConflictResolutionDB implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetConflictResolutionDB() (db *leveldb.DB) {
 	return fs.conflictResolutionDB
 }
