@@ -16,27 +16,29 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
   switch (action.type) {
     case Profile2Gen.resetStore:
       return initialState
-    case Profile2Gen.load:
+    case Profile2Gen.load: {
       const guiID = action.payload.guiID || Constants.generateGUIID()
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([action.payload.assertion], old =>
           (old || Constants.makeDetails()).merge({
             assertions: I.Map(), // just remove for now, maybe keep them
             guiID,
+            reason: action.payload.reason,
             showTracker: action.payload.forceDisplay,
             state: 'checking',
             username: action.payload.assertion,
           })
         ),
       })
-    case Profile2Gen.updatedDetails:
+    }
+    case Profile2Gen.updatedDetails: {
       const username = guiIDToUsername(state, action.payload.guiID)
       if (!username) {
         return state
       }
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], old =>
-          old.merge({
+          (old || Constants.makeDetails()).merge({
             bio: action.payload.bio,
             followThem: action.payload.followThem,
             followersCount: action.payload.followersCount,
@@ -48,6 +50,20 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
           })
         ),
       })
+    }
+    case Profile2Gen.closeTracker: {
+      const username = guiIDToUsername(state, action.payload.guiID)
+      if (!username) {
+        return state
+      }
+      return state.merge({
+        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
+          (old || Constants.makeDetails()).merge({
+            showTracker: false,
+          })
+        ),
+      })
+    }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state

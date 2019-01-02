@@ -21,6 +21,9 @@
       "fullname": "string",
       "location": "string",
       "publishedTeams": "Array<string>",
-    }
+    },
+    "closeTracker": {
+      "guiID": "string",
+    },
   }
 }

@@ -28,22 +28,7 @@ type Props = {|
   username: string,
 |}
 
-const Tracker = (props: Props) => {
-  let assertions
-  if (props.assertions) {
-    assertions = props.assertions.map(a => <Assertion key={a} username={props.username} assertion={a} />)
-  } else {
-    // TODO could do a loading thing before we know about the list at all?
-    assertions = null
-  }
-
-  let backgroundColor
-  if (props.state === 'error') {
-    backgroundColor = Styles.globalColors.red
-  } else {
-    backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
-  }
-
+const getButtons = (props: Props) => {
   const buttonClose = (
     <Kb.WaitingButton
       type="Secondary"
@@ -74,12 +59,11 @@ const Tracker = (props: Props) => {
     </Kb.WaitingButton>
   )
 
-  let buttons = []
   switch (props.state) {
     case 'checking':
       break
     case 'valid':
-      buttons = props.followThem
+      return props.followThem
         ? [buttonClose, buttonChat]
         : [
             buttonChat,
@@ -91,9 +75,8 @@ const Tracker = (props: Props) => {
               onClick={props.onFollow}
             />,
           ]
-      break
     case 'error':
-      buttons = [
+      return [
         <Kb.WaitingButton
           type="Secondary"
           key="Ignore for 24 hours"
@@ -103,21 +86,41 @@ const Tracker = (props: Props) => {
         />,
         buttonAccept,
       ]
-      break
     case 'needsUpgrade':
-      buttons = [buttonChat, buttonAccept]
-      break
+      return [buttonChat, buttonAccept]
     case 'canceled':
-      buttons = [buttonClose]
-      break
+      return [buttonClose]
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.state)
   }
+  return []
+}
+
+const Tracker = (props: Props) => {
+  let assertions
+  if (props.assertions) {
+    assertions = props.assertions.map(a => <Assertion key={a} username={props.username} assertion={a} />)
+  } else {
+    // TODO could do a loading thing before we know about the list at all?
+    assertions = null
+  }
+
+  let backgroundColor
+  if (props.state === 'error') {
+    backgroundColor = Styles.globalColors.red
+  } else {
+    backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
+  }
+
+  const buttons = getButtons(props)
 
   // In order to keep the 'effect' of the card sliding up on top of the text the text is below the scroll area. We still need the spacing so we draw the text inside the scroll but invisible
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+        <Kb.Icon type="iconfont-close" onClick={props.onClose} />
+      </Kb.Box2>
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
@@ -199,6 +202,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white,
     position: 'relative',
   },
+  header: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDragging,
+      justifyContent: 'flex-end',
+      padding: Styles.globalMargins.tiny,
+      position: 'absolute',
+      zIndex: 9,
+    },
+  }),
   reason: {
     ...reason,
     ...Styles.globalStyles.fillAbsolute,

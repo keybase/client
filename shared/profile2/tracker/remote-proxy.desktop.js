@@ -30,7 +30,6 @@ const trackerMapStateToProps = (state, {name}) => {
     location: d.location,
     loggedIn: state.config.loggedIn,
     publishedTeams: d.publishedTeams,
-    userInfo: state.users.infoMap,
     reason: d.reason,
     waiting: state.waiting.counts.get(Constants.waitingKey),
   }
@@ -85,7 +84,7 @@ const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
 const Empty = () => null
 
 // Actions are handled by remote-container
-const RemoteTracker = compose(
+const RemoteProfile2 = compose(
   connect<OwnProps, _, _, _, _>(
     trackerMapStateToProps,
     () => ({}),
@@ -99,9 +98,9 @@ const RemoteTracker = compose(
 type Props = {
   users: Array<string>,
 }
-class RemoteTrackers extends React.PureComponent<Props> {
+class RemoteProfile2s extends React.PureComponent<Props> {
   render() {
-    return this.props.users.map(name => <RemoteTracker name={name} key={name} />)
+    return this.props.users.map(name => <RemoteProfile2 name={name} key={name} />)
   }
 }
 
@@ -125,4 +124,4 @@ export default connect<{||}, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   mergeProps
-)(RemoteTrackers)
+)(RemoteProfile2s)
