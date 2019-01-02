@@ -64,4 +64,31 @@
     if (keybaseRequirement) CFRelease(keybaseRequirement);
 }
 
+/*
+ * check that the path path has the prefix prefix, being wise to
+ * whatever attacks people will throw at us, like /a/b/../../.., etc
+ */
++(BOOL)checkAbsolutePath:(NSString *)path hasAbsolutePrefix:(NSString *)prefix {
+    if (!prefix.absolutePath) {
+        return NO;
+    }
+    if (!path.absolutePath) {
+        return NO;
+    }
+    NSArray *a = [path.stringByStandardizingPath componentsSeparatedByString:@"/"];
+    NSArray *b = [prefix.stringByStandardizingPath componentsSeparatedByString:@"/"];
+    if (a.count < b.count) {
+        return NO;
+    }
+
+    for (int i = 0; i < b.count; i++) {
+        if (![a[i] isEqualToString:b[i]]) {
+            return NO;
+        }
+    }
+    return YES;
+
+}
+
 @end
+
