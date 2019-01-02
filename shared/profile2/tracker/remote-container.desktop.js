@@ -18,12 +18,10 @@ type State = {|
   followersCount: ?number,
   followingCount: ?number,
   followsYou: ?boolean,
-  fullname: ?string,
   guiID: string,
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
-  showTracker: boolean,
   state: Types.DetailsState,
   username: string,
 |}
