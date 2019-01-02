@@ -142,12 +142,12 @@ const Tracker = (props: Props) => {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assertions}>
             {assertions}
           </Kb.Box2>
-          {buttons.length && (
+          {!!buttons.length && (
             <Kb.Box2 fullWidth={true} direction="vertical" style={styles.spaceUnderButtons} />
           )}
         </Kb.Box2>
       </Kb.ScrollView>
-      {buttons.length && (
+      {!!buttons.length && (
         <Kb.Box2 gap="small" centerChildren={true} direction="horizontal" style={styles.buttons}>
           {buttons}
         </Kb.Box2>

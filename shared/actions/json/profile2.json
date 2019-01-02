@@ -22,6 +22,10 @@
       "location": "string",
       "publishedTeams": "Array<string>",
     },
+    "updateResult": {
+      "guiID": "string",
+      "result": "RPCTypes.Identify3ResultType",
+    },
     "closeTracker": {
       "guiID": "string",
     },

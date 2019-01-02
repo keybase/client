@@ -47,6 +47,13 @@ const setupEngineListeners = () => {
           reason: reason.reason || '',
         })
       ),
+    'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
+      Saga.put(
+        Profile2Gen.createUpdateResult({
+          guiID,
+          result,
+        })
+      ),
   })
 }
 

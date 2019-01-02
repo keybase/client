@@ -1,5 +1,7 @@
 // @flow
 import * as Types from './types/profile2'
+import * as RPCTypes from './types/rpc-gen'
+import * as Flow from '../util/flow'
 import * as I from 'immutable'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -35,6 +37,23 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   state: 'error',
   username: '',
 })
+
+export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
+  switch (result) {
+    case RPCTypes.identify3UiIdentify3ResultType.ok:
+      return 'valid'
+    case RPCTypes.identify3UiIdentify3ResultType.broken:
+      return 'error'
+    case RPCTypes.identify3UiIdentify3ResultType.needsUpgrade:
+      return 'needsUpgrade'
+    case RPCTypes.identify3UiIdentify3ResultType.canceled:
+      return 'canceled'
+    default:
+    // flow is confused by number enums
+    // Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(result)
+  }
+  return 'error'
+}
 
 export const noDetails = makeDetails({})
 export const noAssertion = makeAssertion({})

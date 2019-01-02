@@ -81,9 +81,10 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
   mb.on('ready', () => {
     menubarWindowIDCallback(mb.window.id)
 
-    if (showDevTools && !skipSecondaryDevtools) {
-      mb.window.webContents.openDevTools({mode: 'detach'})
-    }
+    // TEMP
+    // if (showDevTools && !skipSecondaryDevtools) {
+    // mb.window.webContents.openDevTools({mode: 'detach'})
+    // }
 
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e, bounds) => {

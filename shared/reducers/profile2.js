@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Constants from '../constants/profile2'
 import * as Types from '../constants/types/profile2'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Profile2Gen from '../actions/profile2-gen'
 import * as Flow from '../util/flow'
 
@@ -47,6 +48,19 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
             fullname: action.payload.fullname,
             location: action.payload.location,
             publishedTeams: action.payload.publishedTeams,
+          })
+        ),
+      })
+    }
+    case Profile2Gen.updateResult: {
+      const username = guiIDToUsername(state, action.payload.guiID)
+      if (!username) {
+        return state
+      }
+      return state.merge({
+        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
+          (old || Constants.makeDetails()).merge({
+            state: Constants.rpcResultToStatus(action.payload.result),
           })
         ),
       })
