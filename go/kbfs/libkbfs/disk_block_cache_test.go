@@ -34,6 +34,7 @@ type testDiskBlockCacheConfig struct {
 	limiter DiskLimiter
 	syncedTlfGetterSetter
 	initModeGetter
+	bcache BlockCache
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
@@ -44,11 +45,16 @@ func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
 		nil,
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
+		NewBlockCacheStandard(100, 100),
 	}
 }
 
 func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
 	return c.limiter
+}
+
+func (c testDiskBlockCacheConfig) BlockCache() BlockCache {
+	return c.bcache
 }
 
 func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
@@ -563,21 +569,6 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
-
-	t.Log("Remove the block from the disk cache to rule it out for " +
-		"the next step.")
-	numRemoved, _, err := cache.Delete(ctx, []kbfsblock.ID{ptr1.ID})
-	require.NoError(t, err)
-	require.Equal(t, 1, numRemoved)
-
-	block = &FileBlock{}
-	t.Log("Request the same block again to verify the memory cache.")
-	ch = q.Request(
-		ctx, 1, makeKMD(), ptr1, block, TransientEntry,
-		BlockRequestWithPrefetch)
-	err = <-ch
-	require.NoError(t, err)
-	require.Equal(t, block1, block)
 }
 
 func seedDiskBlockCacheForTest(
@@ -711,6 +702,9 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
 	require.Equal(t, numBlocks, standardCache.numBlocks)
 
+	standardCache.clearTickerDuration = 0
+	standardCache.numBlocksToEvictOnClear = 1
+
 	tlfToUnsync := tlf.FakeID(1, tlf.Private)
 	ch, err := config.SetTlfSyncState(tlfToUnsync, FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_DISABLED,
@@ -738,7 +732,7 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 		ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.UpdateMetadata(ctx, block1Ptr.ID, TriggeredPrefetch)
+	err = cache.UpdateMetadata(ctx, block1Ptr.ID, FinishedPrefetch)
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.workingSetCache.numBlocks)
 	require.Equal(t, 0, cache.syncCache.numBlocks)
@@ -751,10 +745,61 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 	require.Equal(t, 1, cache.syncCache.numBlocks)
 	require.Equal(t, 0, cache.workingSetCache.numBlocks)
 
-	t.Log("After the move, make sure the prefetch status is reset.")
+	t.Log("After the move, make sure the prefetch status is downgraded.")
 	_, _, prefetchStatus, err := cache.Get(
 		ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.syncCache.numBlocks)
-	require.Equal(t, NoPrefetch, prefetchStatus)
+	require.Equal(t, TriggeredPrefetch, prefetchStatus)
+}
+
+func TestDiskBlockCacheMark(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that basic disk cache marking and deleting work.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+	standardCache := cache.syncCache
+	ctx := context.Background()
+
+	t.Log("Insert lots of blocks.")
+	numTlfs := 3
+	numBlocksPerTlf := 5
+	numBlocks := numTlfs * numBlocksPerTlf
+	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
+	require.Equal(t, numBlocks, standardCache.numBlocks)
+
+	t.Log("Generate some blocks we can mark.")
+	tlfID := tlf.FakeID(1, tlf.Private)
+	ids := make([]kbfsblock.ID, numBlocksPerTlf)
+	for i := 0; i < numBlocksPerTlf; i++ {
+		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
+			t, config)
+		err := cache.Put(
+			ctx, tlfID, blockPtr.ID, blockEncoded, serverHalf,
+			DiskBlockSyncCache)
+		require.NoError(t, err)
+		ids[i] = blockPtr.ID
+	}
+	numBlocks += numBlocksPerTlf
+	require.Equal(t, numBlocks, standardCache.numBlocks)
+
+	t.Log("Mark a couple blocks.")
+	tag := "mark"
+	err := cache.Mark(ctx, ids[1], tag, DiskBlockSyncCache)
+	require.NoError(t, err)
+	err = cache.Mark(ctx, ids[3], tag, DiskBlockSyncCache)
+	require.NoError(t, err)
+
+	t.Log("Delete all unmarked blocks.")
+	standardCache.clearTickerDuration = 0
+	standardCache.numUnmarkedBlocksToCheck = 1
+	err = cache.DeleteUnmarked(ctx, tlfID, tag, DiskBlockSyncCache)
+	require.NoError(t, err)
+	require.Equal(t, numBlocks-(2*numBlocksPerTlf-2), standardCache.numBlocks)
+	_, _, _, err = cache.Get(ctx, tlfID, ids[0], DiskBlockAnyCache)
+	require.EqualError(t, err, NoSuchBlockError{ids[0]}.Error())
+	_, _, _, err = cache.Get(ctx, tlfID, ids[2], DiskBlockAnyCache)
+	require.EqualError(t, err, NoSuchBlockError{ids[2]}.Error())
+	_, _, _, err = cache.Get(ctx, tlfID, ids[4], DiskBlockAnyCache)
+	require.EqualError(t, err, NoSuchBlockError{ids[4]}.Error())
 }

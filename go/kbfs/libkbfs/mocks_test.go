@@ -1812,6 +1812,18 @@ func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(ctx, fav interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), ctx, fav)
 }
 
+// RefreshEditHistory mocks base method
+func (m *MockKBFSOps) RefreshEditHistory(fav Favorite) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RefreshEditHistory", fav)
+}
+
+// RefreshEditHistory indicates an expected call of RefreshEditHistory
+func (mr *MockKBFSOpsMockRecorder) RefreshEditHistory(fav interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshEditHistory", reflect.TypeOf((*MockKBFSOps)(nil).RefreshEditHistory), fav)
+}
+
 // GetTLFCryptKeys mocks base method
 func (m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]kbfscrypto.TLFCryptKey, tlf.ID, error) {
 	m.ctrl.T.Helper()
@@ -4732,17 +4744,17 @@ func (mr *MockBlockCacheMockRecorder) CheckForKnownPtr(tlf, block interface{}) *
 }
 
 // DeleteTransient mocks base method
-func (m *MockBlockCache) DeleteTransient(ptr BlockPointer, tlf tlf.ID) error {
+func (m *MockBlockCache) DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteTransient", ptr, tlf)
+	ret := m.ctrl.Call(m, "DeleteTransient", id, tlf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteTransient indicates an expected call of DeleteTransient
-func (mr *MockBlockCacheMockRecorder) DeleteTransient(ptr, tlf interface{}) *gomock.Call {
+func (mr *MockBlockCacheMockRecorder) DeleteTransient(id, tlf interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransient", reflect.TypeOf((*MockBlockCache)(nil).DeleteTransient), ptr, tlf)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransient", reflect.TypeOf((*MockBlockCache)(nil).DeleteTransient), id, tlf)
 }
 
 // DeletePermanent mocks base method
@@ -4773,35 +4785,20 @@ func (mr *MockBlockCacheMockRecorder) DeleteKnownPtr(tlf, block interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteKnownPtr", reflect.TypeOf((*MockBlockCache)(nil).DeleteKnownPtr), tlf, block)
 }
 
-// GetWithPrefetch mocks base method
-func (m *MockBlockCache) GetWithPrefetch(ptr BlockPointer) (Block, PrefetchStatus, BlockCacheLifetime, error) {
+// GetWithLifetime mocks base method
+func (m *MockBlockCache) GetWithLifetime(ptr BlockPointer) (Block, BlockCacheLifetime, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWithPrefetch", ptr)
+	ret := m.ctrl.Call(m, "GetWithLifetime", ptr)
 	ret0, _ := ret[0].(Block)
-	ret1, _ := ret[1].(PrefetchStatus)
-	ret2, _ := ret[2].(BlockCacheLifetime)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret1, _ := ret[1].(BlockCacheLifetime)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
-// GetWithPrefetch indicates an expected call of GetWithPrefetch
-func (mr *MockBlockCacheMockRecorder) GetWithPrefetch(ptr interface{}) *gomock.Call {
+// GetWithLifetime indicates an expected call of GetWithLifetime
+func (mr *MockBlockCacheMockRecorder) GetWithLifetime(ptr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithPrefetch", reflect.TypeOf((*MockBlockCache)(nil).GetWithPrefetch), ptr)
-}
-
-// PutWithPrefetch mocks base method
-func (m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutWithPrefetch", ptr, tlf, block, lifetime, prefetchStatus)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PutWithPrefetch indicates an expected call of PutWithPrefetch
-func (mr *MockBlockCacheMockRecorder) PutWithPrefetch(ptr, tlf, block, lifetime, prefetchStatus interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutWithPrefetch", reflect.TypeOf((*MockBlockCache)(nil).PutWithPrefetch), ptr, tlf, block, lifetime, prefetchStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithLifetime", reflect.TypeOf((*MockBlockCache)(nil).GetWithLifetime), ptr)
 }
 
 // SetCleanBytesCapacity mocks base method
@@ -5258,6 +5255,34 @@ func (m *MockDiskBlockCache) DoesCacheHaveSpace(ctx context.Context, cacheType D
 func (mr *MockDiskBlockCacheMockRecorder) DoesCacheHaveSpace(ctx, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoesCacheHaveSpace", reflect.TypeOf((*MockDiskBlockCache)(nil).DoesCacheHaveSpace), ctx, cacheType)
+}
+
+// Mark mocks base method
+func (m *MockDiskBlockCache) Mark(ctx context.Context, blockID kbfsblock.ID, tag string, cacheType DiskBlockCacheType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Mark", ctx, blockID, tag, cacheType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Mark indicates an expected call of Mark
+func (mr *MockDiskBlockCacheMockRecorder) Mark(ctx, blockID, tag, cacheType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mark", reflect.TypeOf((*MockDiskBlockCache)(nil).Mark), ctx, blockID, tag, cacheType)
+}
+
+// DeleteUnmarked mocks base method
+func (m *MockDiskBlockCache) DeleteUnmarked(ctx context.Context, tlfID tlf.ID, tag string, cacheType DiskBlockCacheType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnmarked", ctx, tlfID, tag, cacheType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnmarked indicates an expected call of DeleteUnmarked
+func (mr *MockDiskBlockCacheMockRecorder) DeleteUnmarked(ctx, tlfID, tag, cacheType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnmarked", reflect.TypeOf((*MockDiskBlockCache)(nil).DeleteUnmarked), ctx, tlfID, tag, cacheType)
 }
 
 // Shutdown mocks base method

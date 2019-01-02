@@ -16,11 +16,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type blockContainer struct {
-	block          Block
-	prefetchStatus PrefetchStatus
-}
-
 type idCacheKey struct {
 	tlf           tlf.ID
 	plaintextHash kbfshash.RawDefaultHash
@@ -73,16 +68,16 @@ func NewBlockCacheStandard(transientCapacity int,
 	return b
 }
 
-// GetWithPrefetch implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
-	Block, PrefetchStatus, BlockCacheLifetime, error) {
+// GetWithLifetime implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) GetWithLifetime(ptr BlockPointer) (
+	Block, BlockCacheLifetime, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-			bc, ok := tmp.(blockContainer)
+			block, ok := tmp.(Block)
 			if !ok {
-				return nil, NoPrefetch, NoCacheEntry, BadDataError{ptr.ID}
+				return nil, NoCacheEntry, BadDataError{ptr.ID}
 			}
-			return bc.block, bc.prefetchStatus, TransientEntry, nil
+			return block, TransientEntry, nil
 		}
 	}
 
@@ -92,19 +87,15 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
 		return b.cleanPermanent[ptr.ID]
 	}()
 	if block != nil {
-		// A permanent entry can only be created if this client is performing a
-		// write. Since the client is writing, it knows what goes into it,
-		// including any potential directory entries or indirect blocks.
-		// Thus, it is treated as having triggered a prefetch.
-		return block, TriggeredPrefetch, PermanentEntry, nil
+		return block, PermanentEntry, nil
 	}
 
-	return nil, NoPrefetch, NoCacheEntry, NoSuchBlockError{ptr.ID}
+	return nil, NoCacheEntry, NoSuchBlockError{ptr.ID}
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
-	block, _, _, err := b.GetWithPrefetch(ptr)
+	block, _, err := b.GetWithLifetime(ptr)
 	return block, err
 }
 
@@ -137,11 +128,11 @@ func (b *BlockCacheStandard) subtractBlockBytes(block Block) {
 }
 
 func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
-	bc, ok := value.(blockContainer)
+	block, ok := value.(Block)
 	if !ok {
 		return
 	}
-	b.subtractBlockBytes(bc.block)
+	b.subtractBlockBytes(block)
 }
 
 // CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
@@ -234,15 +225,15 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 	return true
 }
 
-// PutWithPrefetch implements the BlockCache interface for BlockCacheStandard.
-// This method is idempotent for a given ptr, but that invariant is not
-// currently goroutine-safe, and it does not hold if a block size changes
-// between Puts. That is, we assume that a cached block associated with a given
-// pointer will never change its size, even when it gets Put into the cache
-// again.
-func (b *BlockCacheStandard) PutWithPrefetch(
-	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) (err error) {
+// Put implements the BlockCache interface for BlockCacheStandard.
+// This method is idempotent for a given ptr, but that invariant is
+// not currently goroutine-safe, and it does not hold if a block size
+// changes between Puts. That is, we assume that a cached block
+// associated with a given pointer will never change its size, even
+// when it gets Put into the cache again.
+func (b *BlockCacheStandard) Put(
+	ptr BlockPointer, tlf tlf.ID, block Block,
+	lifetime BlockCacheLifetime) error {
 	// We first check if the block shouldn't be cached, since CommonBlocks can
 	// take this path.
 	if lifetime == NoCacheEntry {
@@ -280,16 +271,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		// We could use `cleanTransient.Contains()`, but that wouldn't update
 		// the LRU time. By using `Get`, we make it less likely that another
 		// goroutine will evict this block before we can `Put` it again.
-		var bc interface{}
-		bc, wasInCache = b.cleanTransient.Get(ptr.ID)
-		if wasInCache {
-			oldPrefetchStatus := bc.(blockContainer).prefetchStatus
-			// If the cache believes our prefetch status is greater than the
-			// passed-in status, then that is the authoritative status.
-			if oldPrefetchStatus > prefetchStatus {
-				prefetchStatus = oldPrefetchStatus
-			}
-		}
+		_, wasInCache = b.cleanTransient.Get(ptr.ID)
 		// Cache it later, once we know there's room
 
 	case PermanentEntry:
@@ -319,18 +301,10 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if !transientCacheHasRoom {
 			return cachePutCacheFullError{ptr.ID}
 		}
-		b.cleanTransient.Add(ptr.ID, blockContainer{block, prefetchStatus})
+		b.cleanTransient.Add(ptr.ID, block)
 	}
 
 	return nil
-}
-
-// Put implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Put(
-	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
-	// Default should be to assume that a prefetch has happened, and thus it
-	// won't trigger prefetches in the future.
-	return b.PutWithPrefetch(ptr, tlf, block, lifetime, TriggeredPrefetch)
 }
 
 // DeletePermanent implements the BlockCache interface for
@@ -348,19 +322,18 @@ func (b *BlockCacheStandard) DeletePermanent(id kbfsblock.ID) error {
 
 // DeleteTransient implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) DeleteTransient(
-	ptr BlockPointer, tlf tlf.ID) error {
+	id kbfsblock.ID, tlf tlf.ID) error {
 	if b.cleanTransient == nil {
 		return nil
 	}
 
 	// If the block is cached and a file block, delete the known
 	// pointer as well.
-	if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-		bc, ok := tmp.(blockContainer)
+	if tmp, ok := b.cleanTransient.Get(id); ok {
+		block, ok := tmp.(Block)
 		if !ok {
-			return BadDataError{ptr.ID}
+			return BadDataError{id}
 		}
-		block := bc.block
 
 		// Remove the key if it exists
 		if fBlock, ok := block.(*FileBlock); b.ids != nil && ok &&
@@ -370,7 +343,7 @@ func (b *BlockCacheStandard) DeleteTransient(
 			b.ids.Remove(key)
 		}
 
-		b.cleanTransient.Remove(ptr.ID)
+		b.cleanTransient.Remove(id)
 	}
 	return nil
 }

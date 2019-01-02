@@ -97,7 +97,7 @@ type testInitModeGetter struct {
 var _ initModeGetter = (*testInitModeGetter)(nil)
 
 func (t testInitModeGetter) Mode() InitMode {
-	return NewInitModeFromType(t.mode)
+	return modeTest{NewInitModeFromType(t.mode)}
 }
 
 func (t testInitModeGetter) IsTestMode() bool {
