@@ -67,6 +67,11 @@ class ConversationList extends React.PureComponent<Props> {
     }
   }
 
+  // not highly documented. keeps new content from shifting around the list if you're scrolled up
+  _maintainVisibleContentPosition = {
+    minIndexForVisible: 0,
+  }
+
   render() {
     return (
       <ErrorBoundary>
@@ -77,6 +82,7 @@ class ConversationList extends React.PureComponent<Props> {
             getItem={this._getItem}
             getItemCount={this._getItemCount}
             renderItem={this._renderItem}
+            maintainVisibleContentPosition={this._maintainVisibleContentPosition}
             onViewableItemsChanged={this._onViewableItemsChanged}
             keyboardShouldPersistTaps="handled"
             keyExtractor={this._keyExtractor}
