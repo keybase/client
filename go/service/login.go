@@ -46,7 +46,7 @@ func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
 }
 
 func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
-	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("Logout(force=%t) [service RPC]", arg.Force), func() error { return err })()
 	res, err := canLogout(libkb.NewMetaContext(ctx, h.G()))
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err 
 		if !arg.Force {
 			return fmt.Errorf("Cannot logout: %s", res.Reason)
 		}
-		// Log the reason, logot anyway.
+		// Log the reason, logout anyway.
 		h.G().Log.CWarningf(ctx, "Server advised not to logout because: %s", res.Reason)
 		h.G().Log.CWarningf(ctx, "Logging out anyway (`force` argument is set)")
 	}
