@@ -114,6 +114,10 @@ const routeTree = () => {
       component: TransactionDetails,
     },
   }
+  // On mobile we take the user directly to the wallet page, and they
+  // navigate by tapping on the wallet name which brings up a
+  // switcher. On desktop, we use a wallet list component and we don't
+  // have a wallet switcher tied to the name.
   return isMobile
     ? makeRouteDefNode({
         children: walletChildren,
