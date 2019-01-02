@@ -53,8 +53,8 @@ const Bio = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
   bold: {...Styles.globalStyles.fontBold},
+  container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
   text: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.mediumLarge,

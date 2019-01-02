@@ -2,10 +2,12 @@
 import * as I from 'immutable'
 import * as Constants from '../../constants/profile2'
 import * as Avatar from '../../desktop/remote/sync-avatar-props.desktop'
+import shallowEqual from 'shallowequal'
 
+// We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
 export const serialize: any = {
   ...Avatar.serialize,
-  assertions: v => (v ? v.toJS() : v),
+  assertions: (v, o) => (v ? v.toJS() : v),
   bio: v => v,
   followThem: v => v,
   followersCount: v => v,
@@ -14,12 +16,7 @@ export const serialize: any = {
   fullname: v => v,
   guiID: v => v,
   location: v => v,
-  onAccept: v => v,
-  onChat: v => v,
-  onClose: v => v,
-  onFollow: v => v,
-  onIgnoreFor24Hours: v => v,
-  publishedTeams: v => v,
+  publishedTeams: (v, o) => (o && shallowEqual(v, o) ? undefined : v),
   reason: v => v,
   state: v => v,
   username: v => v,

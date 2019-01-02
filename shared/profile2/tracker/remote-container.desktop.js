@@ -48,15 +48,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followsYou: stateProps.followsYou,
   guiID: stateProps.guiID,
   location: stateProps.location,
-  publishedTeams: stateProps.publishedTeams,
-  reason: stateProps.reason,
-  state: stateProps.state,
-  username: stateProps.username,
   onAccept: () => dispatchProps._onAccept(stateProps.guiID),
   onChat: () => dispatchProps._onChat(stateProps.username),
   onClose: () => dispatchProps._onClose(stateProps.guiID),
   onFollow: () => dispatchProps._onFollow(stateProps.guiID),
   onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
+  publishedTeams: stateProps.publishedTeams,
+  reason: stateProps.reason,
+  state: stateProps.state,
+  username: stateProps.username,
 })
 
 export default remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps)(Tracker)

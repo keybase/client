@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as Constants from '../constants/profile2'
 import * as Types from '../constants/types/profile2'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Profile2Gen from '../actions/profile2-gen'
 import * as Flow from '../util/flow'
 
@@ -95,7 +94,7 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
             (old || Constants.makeAssertion()).merge({
               assertionKey,
               color: action.payload.color,
-              metas: action.payload.metas,
+              metas: action.payload.metas.map(Constants.makeMeta),
               proofURL: action.payload.proofURL,
               siteIcon: action.payload.siteIcon,
               siteURL: action.payload.siteURL,

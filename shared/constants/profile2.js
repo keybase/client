@@ -39,6 +39,11 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   value: '',
 })
 
+export const makeMeta: I.RecordFactory<Types._AssertionMeta> = I.Record({
+  color: 'black',
+  label: '',
+})
+
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
   switch (result) {
     case RPCTypes.identify3UiIdentify3ResultType.ok:

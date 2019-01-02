@@ -99,6 +99,7 @@ const getButtons = (props: Props) => {
 const Tracker = (props: Props) => {
   let assertions
   if (props.assertionKeys) {
+    // $ForceType readOnlyArray doens't like sort()
     assertions = props.assertionKeys
       .sort(Constants.sortAssertionKeys)
       .map(a => <Assertion key={a} assertionKey={a} />)
