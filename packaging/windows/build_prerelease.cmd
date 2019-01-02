@@ -25,10 +25,7 @@ popd
 pushd %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan
 :: Make sure the whole build fails if we can't build kbfsdokan
 del kbfsdokan.exe
-:: winresource invokes git to get the current revision
-:: for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short^=8 HEAD') do set KBFS_HASH=%%i
-:: for /f "tokens=1 delims=+" %%i in ("%KEYBASE_BUILD%") do set KBFS_BUILD=%%i+%KBFS_HASH%
-:: echo KBFS_BUILD %KBFS_BUILD%
+
 set CGO_ENABLED=1
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=%KEYBASE_BUILD%"
 IF %ERRORLEVEL% NEQ 0 (
