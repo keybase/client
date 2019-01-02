@@ -232,7 +232,6 @@ protocol chatUi {
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 
-  void chatPostReadyToSend(int sessionID);
   // Chat Stellar send confirm screen UI
   record UIChatPayment {
     string username;

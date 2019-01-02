@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import CreateTeamNotice from '.'
 import {connect} from '../../../../util/container'
-import {navigateAppend} from '../../../../actions/route-tree'
 
 type OwnProps = {||}
 
@@ -21,12 +21,9 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
   _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
-      navigateAppend([
-        {
-          props: {conversationIDKey},
-          selected: 'showNewTeamDialog',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey}, selected: 'showNewTeamDialog'}],
+      })
     )
   },
 })

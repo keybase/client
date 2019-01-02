@@ -17,7 +17,6 @@ export type _GitInfo = {
 export type GitInfo = I.RecordOf<_GitInfo>
 export type _State = {
   error: ?Error,
-  lastLoad: ?number,
   idToInfo: I.Map<string, GitInfo>,
   isNew: I.Set<string>,
 }

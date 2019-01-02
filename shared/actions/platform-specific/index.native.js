@@ -1,6 +1,5 @@
 // @flow
 import logger from '../../logger'
-import {type TypedState} from '../../constants/reducer'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
@@ -147,7 +146,7 @@ const getContentTypeFromURL = (
           cb({error})
         })
 
-const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
+const updateChangedFocus = (_, action) => {
   let appFocused
   let logState
   switch (action.payload.nextAppState) {
@@ -170,50 +169,49 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
   }
 
   logger.info(`setting app state on service to: ${logState}`)
-  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
+  return ConfigGen.createChangedFocus({appFocused})
 }
 
-const clearRouteState = () =>
-  Saga.spawn(() =>
+function* clearRouteState() {
+  yield Saga.spawn(() =>
     RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
   )
+}
 
-const persistRouteState = (state: TypedState) =>
-  Saga.callUntyped(function*() {
-    // Put a delay in case we go to a route and crash immediately
-    yield Saga.callUntyped(Saga.delay, 3000)
-    const routePath = getPath(state.routeTree.routeState)
-    const selectedTab = routePath.first()
-    if (Tabs.isValidInitialTabString(selectedTab)) {
-      const item = {
-        // in a conversation and not on the inbox
-        selectedConversationIDKey:
-          selectedTab === Tabs.chatTab && routePath.size > 1 ? state.chat2.selectedConversation : null,
-        tab: selectedTab,
-      }
-
-      yield Saga.spawn(() =>
-        RPCTypes.configSetValueRpcPromise({
-          path: 'ui.routeState',
-          value: {isNull: false, s: JSON.stringify(item)},
-        }).catch(() => {})
-      )
-    } else {
-      yield clearRouteState()
+function* persistRouteState(state) {
+  // Put a delay in case we go to a route and crash immediately
+  yield Saga.callUntyped(Saga.delay, 3000)
+  const routePath = getPath(state.routeTree.routeState)
+  const selectedTab = routePath.first()
+  if (Tabs.isValidInitialTabString(selectedTab)) {
+    const item = {
+      // in a conversation and not on the inbox
+      selectedConversationIDKey:
+        selectedTab === Tabs.chatTab && routePath.size > 1 ? state.chat2.selectedConversation : null,
+      tab: selectedTab,
     }
-  })
 
-const setupNetInfoWatcher = () =>
-  Saga.callUntyped(function*() {
-    const channel = Saga.eventChannel(emitter => {
-      NetInfo.addEventListener('connectionChange', () => emitter('changed'))
-      return () => {}
-    }, Saga.buffers.dropping(1))
-    while (true) {
-      yield Saga.take(channel)
-      yield Saga.put(GregorGen.createCheckReachability())
-    }
-  })
+    yield Saga.spawn(() =>
+      RPCTypes.configSetValueRpcPromise({
+        path: 'ui.routeState',
+        value: {isNull: false, s: JSON.stringify(item)},
+      }).catch(() => {})
+    )
+  } else {
+    yield clearRouteState()
+  }
+}
+
+function* setupNetInfoWatcher() {
+  const channel = Saga.eventChannel(emitter => {
+    NetInfo.addEventListener('connectionChange', () => emitter('changed'))
+    return () => {}
+  }, Saga.buffers.dropping(1))
+  while (true) {
+    yield Saga.take(channel)
+    yield Saga.put(GregorGen.createCheckReachability())
+  }
+}
 
 function* loadStartupDetails() {
   let startupWasFromPush = false
@@ -271,52 +269,58 @@ function* loadStartupDetails() {
   )
 }
 
-const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
+function* waitForStartupDetails(state, action) {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  return Saga.callUntyped(function*() {
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: true,
-        name: 'platform.native-waitStartupDetails',
-        version: action.payload.version,
-      })
-    )
-    yield Saga.take(ConfigGen.setStartupDetails)
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: false,
-        name: 'platform.native-waitStartupDetails',
-        version: action.payload.version,
-      })
-    )
-  })
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: 'platform.native-waitStartupDetails',
+      version: action.payload.version,
+    })
+  )
+  yield Saga.take(ConfigGen.setStartupDetails)
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: false,
+      name: 'platform.native-waitStartupDetails',
+      version: action.payload.version,
+    })
+  )
 }
 
-const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_, action) => {
   Clipboard.setString(action.payload.text)
 }
 
-const handleFilePickerError = (state: TypedState, action: ConfigGen.FilePickerErrorPayload) => {
+const handleFilePickerError = (_, action) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
-  yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
-  yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
-  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
+  yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
+  yield* Saga.chainGenerator<RouteTreeGen.SwitchToPayload | Chat2Gen.SelectConversationPayload>(
+    [RouteTreeGen.switchTo, Chat2Gen.selectConversation],
+    persistRouteState
+  )
+  yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupNetInfoWatcher
+  )
+  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    waitForStartupDetails
+  )
+  yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
 
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
-  yield Saga.actionToAction(ConfigGen.filePickerError, handleFilePickerError)
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
-
   yield Saga.spawn(pushSaga)
 }
 

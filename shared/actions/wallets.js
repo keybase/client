@@ -11,7 +11,6 @@ import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Flow from '../util/flow'
 import HiddenString from '../util/hidden-string'
-import * as Route from './route-tree'
 import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
@@ -127,8 +126,8 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
       )
     : Saga.put(
         isMobile
-          ? Route.navigateTo([Tabs.settingsTab, SettingsConstants.walletsTab])
-          : Route.switchTo([Tabs.walletsTab])
+          ? RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, SettingsConstants.walletsTab]})
+          : RouteTreeGen.createSwitchTo({path: [Tabs.walletsTab]})
       )
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
@@ -527,7 +526,7 @@ const createdOrLinkedAccount = (
   if (action.payload.setBuildingTo) {
     return Saga.put(WalletsGen.createSetBuildingTo({to: action.payload.accountID}))
   }
-  return Saga.put(Route.navigateUp())
+  return Saga.put(RouteTreeGen.createNavigateUp())
 }
 
 const navigateUp = (
@@ -538,7 +537,7 @@ const navigateUp = (
     // we don't want to nav on error
     return
   }
-  return Saga.put(Route.navigateUp())
+  return Saga.put(RouteTreeGen.createNavigateUp())
 }
 
 const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPayload) => {
@@ -550,7 +549,7 @@ const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPa
     ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'wallet']
     : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
 
-  return Saga.put(Route.navigateTo(wallet))
+  return Saga.put(RouteTreeGen.createNavigateTo({path: wallet}))
 }
 
 const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
@@ -620,12 +619,16 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   if (Constants.sendReceiveFormRoutes.includes(lastNode)) {
     if (path.first() === Tabs.walletsTab) {
       // User is on send form in wallets tab, navigate back to root of tab
-      return Saga.put(Route.navigateTo([{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]))
+      return Saga.put(
+        RouteTreeGen.createNavigateTo({
+          path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
+        })
+      )
     }
     // User is somewhere else, send them to most recent parent that isn't a form route
     const firstFormIndex = path.findIndex(node => Constants.sendReceiveFormRoutes.includes(node))
     const pathAboveForm = path.slice(0, firstFormIndex)
-    return Saga.put(Route.navigateTo(pathAboveForm))
+    return Saga.put(RouteTreeGen.createNavigateTo({path: pathAboveForm}))
   }
 }
 
@@ -709,17 +712,18 @@ const checkDisclaimer = (state: TypedState) =>
 const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.CheckDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
   Saga.put(
-    Route.navigateTo([
-      ...Constants.rootWalletPath,
-      ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting']),
-    ])
+    RouteTreeGen.createNavigateTo({
+      path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
+    })
   )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
     isMobile
-      ? Route.navigateTo([{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}])
-      : Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab])
+      ? RouteTreeGen.createNavigateTo({
+          path: [{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}],
+        })
+      : RouteTreeGen.createSwitchTo({path: [state.routeTree.get('previousTab') || Tabs.peopleTab]})
   )
 
 const loadMobileOnlyMode = (state: TypedState, action: WalletsGen.LoadMobileOnlyModePayload) => {
@@ -740,6 +744,31 @@ const changeMobileOnlyMode = (state: TypedState, action: WalletsGen.ChangeMobile
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
   return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
+}
+
+const writeLastSentXLM = (state: TypedState, action: WalletsGen.SetLastSentXLMPayload) => {
+  if (action.payload.writeFile) {
+    logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
+    return RPCTypes.configSetValueRpcPromise({
+      path: 'stellar.lastSentXLM',
+      value: {b: state.wallets.lastSentXLM, isNull: false},
+    }).catch(err => logger.error(`Error writing config stellar.lastSentXLM: ${err.message}`))
+  }
+}
+
+const readLastSentXLM = () => {
+  logger.info(`Reading config stellar.lastSentXLM`)
+  return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+    .then(result => {
+      const value = !result.isNull && !!result.b
+      logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
+      return WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false})
+    })
+    .catch(err => {
+      err.message.includes('no such key')
+        ? null
+        : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
+    })
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
@@ -862,6 +891,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(WalletsGen.loadMobileOnlyMode, loadMobileOnlyMode)
   yield Saga.actionToPromise(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
+  yield* Saga.chainAction<WalletsGen.SetLastSentXLMPayload>(WalletsGen.setLastSentXLM, writeLastSentXLM)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+    ConfigGen.daemonHandshakeDone,
+    readLastSentXLM
+  )
 }
 
 export default walletsSaga

@@ -7,6 +7,7 @@ import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
+import {isArray} from 'lodash-es'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -41,6 +42,72 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
     results.push(yield effects[i])
   }
   return results
+}
+
+// TODO I couldn't get flow to figure out how to infer this, or even force you to explicitly do it
+// maybe flow-strict fixes this
+type MaybeAction = void | boolean | TypedActions | null
+function* chainAction<Actions>(
+  pattern: RS.Pattern,
+  f: (
+    state: TypedState,
+    action: Actions
+  ) => MaybeAction | $ReadOnlyArray<MaybeAction> | Promise<MaybeAction | $ReadOnlyArray<MaybeAction>>
+): Generator<any, void, any> {
+  type Fn = Actions => RS.Saga<void>
+  return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
+    action: Actions
+  ): RS.Saga<void> {
+    try {
+      const state = yield* selectState()
+      let toPut = yield Effects.call(f, state, action)
+      if (toPut) {
+        const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
+        for (var out of outActions) {
+          if (out) {
+            yield Effects.put(out)
+          }
+        }
+      }
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('chainAction cancelled')
+      }
+    }
+  })
+}
+
+function* chainGenerator<Actions>(
+  pattern: RS.Pattern,
+  f: (state: TypedState, action: Actions) => Generator<any, void, any>
+): Generator<any, void, any> {
+  type Fn = Actions => RS.Saga<void>
+  return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
+    action: Actions
+  ): RS.Saga<void> {
+    try {
+      const state = yield* selectState()
+      yield* f(state, action)
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('chainGenerator cancelled')
+      }
+    }
+  })
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
@@ -151,6 +218,11 @@ function* callPromise<Args, T>(fn: (...args: Args) => Promise<T>, ...args: Args)
   // $FlowIssue doesn't understand args will be an array
   return yield Effects.call(fn, ...args)
 }
+// Used to delegate in a typed way to what engine saga returns. short term use this but longer term
+// generate generators instead and yield * directly
+function* callRPCs(e: RS.CallEffect<any, any, any>): Generator<any, void, any> {
+  return yield e
+}
 
 function* selectState(): Generator<any, TypedState, any> {
   const state: TypedState = yield Effects.select()
@@ -183,4 +255,7 @@ export {
   actionToAction,
   sequentially,
   callPromise,
+  chainAction,
+  chainGenerator,
+  callRPCs,
 }

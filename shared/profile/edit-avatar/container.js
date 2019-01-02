@@ -4,7 +4,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {connect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type {RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<
@@ -25,7 +25,7 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSaveTeamAvatar: (
     filename: string,
     teamname: string,

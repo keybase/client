@@ -295,7 +295,3 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellar
 func (c *ChatUI) ChatStellarDone(ctx context.Context, sessionID int) error {
 	return nil
 }
-
-func (c *ChatUI) ChatPostReadyToSend(ctx context.Context, sessionID int) error {
-	return nil
-}

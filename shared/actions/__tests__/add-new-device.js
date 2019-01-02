@@ -5,7 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
 import * as ProvisionGen from '../provision-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import HiddenString from '../../util/hidden-string'
 import provisionSaga, {_testing} from '../provision'
 import {createStore, applyMiddleware} from 'redux'
@@ -61,8 +61,8 @@ const startReduxSaga = (initialStore = undefined) => {
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.devicesTab], null))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
 
   return {
     dispatch,

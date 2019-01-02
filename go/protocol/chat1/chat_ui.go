@@ -1058,10 +1058,6 @@ type ChatConfirmChannelDeleteArg struct {
 	Channel   string `codec:"channel" json:"channel"`
 }
 
-type ChatPostReadyToSendArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ChatStellarShowConfirmArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1095,7 +1091,6 @@ type ChatUiInterface interface {
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
-	ChatPostReadyToSend(context.Context, int) error
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
@@ -1316,21 +1311,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatPostReadyToSend": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatPostReadyToSendArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatPostReadyToSendArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatPostReadyToSendArg)(nil), args)
-						return
-					}
-					err = i.ChatPostReadyToSend(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"chatStellarShowConfirm": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatStellarShowConfirmArg
@@ -1468,12 +1448,6 @@ func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearc
 
 func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res)
-	return
-}
-
-func (c ChatUiClient) ChatPostReadyToSend(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatPostReadyToSendArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatPostReadyToSend", []interface{}{__arg}, nil)
 	return
 }
 
