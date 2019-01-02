@@ -1228,7 +1228,6 @@ const messageRetry = (state, action) => {
 
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
-  const outboxID = Constants.generateOutboxID()
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
@@ -1236,30 +1235,7 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const newMsg = Constants.makePendingTextMessage(
-    state,
-    conversationIDKey,
-    text,
-    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-    ephemeralLifetime
-  )
-
   const routeName = 'paymentsConfirm'
-  const addMessage = (p, response) => [
-    Saga.put(
-      Chat2Gen.createMessagesAdd({
-        context: {type: 'sent'},
-        messages: [newMsg],
-      })
-    ),
-    // We need to make extra certain that the message is added into the store before
-    // we get any callbacks from the service for that same message. Currently, it seems possible
-    // that with a mixed custom and vanilla call map those actions generated from the
-    // service can interleave, and cause a duplicate message.
-    Saga.callUntyped(function() {
-      response && response.result()
-    }),
-  ]
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
@@ -1283,10 +1259,10 @@ function* messageSend(state, action) {
     stellarConfirmWindowResponse = response
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
   }
+
   try {
     yield RPCChatTypes.localPostTextNonblockRpcSaga({
       customResponseIncomingCallMap: {
-        'chat.1.chatUi.chatPostReadyToSend': addMessage,
         'chat.1.chatUi.chatStellarDataConfirm': onDataConfirm,
         'chat.1.chatUi.chatStellarDataError': onDataError,
       },
@@ -1300,7 +1276,7 @@ function* messageSend(state, action) {
         clientPrev,
         conversationID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        outboxID,
+        outboxID: null,
         tlfName,
         tlfPublic: false,
       },
@@ -1315,15 +1291,6 @@ function* messageSend(state, action) {
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-
-  // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
-  // the action to add the pending message fires. This would cause a pending message to be stuck
-  // (with a duplicate sent message in there too).
-  //
-  // We put the addMessage on the back in case the service provides chat thread data in between the
-  // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
-  // that is in the store on the outboxID has been sent.
-  yield Saga.sequentially(addMessage())
   stellarConfirmWindowResponse = null
 }
 
@@ -1785,92 +1752,25 @@ function* attachmentsUpload(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-
-  // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
-  // These messages will not send until the upload has both been started and completed.
-  const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
-    paths.map((p, i) =>
-      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise, {
-        ...ephemeralData,
-        clientPrev,
-        convID: Types.keyToConversationID(conversationIDKey),
-        filename: p.path,
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        metadata: Buffer.from([]),
-        outboxID: p.outboxID,
-        title: titles[i],
-        tlfName: meta.tlfname,
-        visibility: RPCTypes.commonTLFVisibility.private,
-      })
-    )
-  )
-  const outboxIDs = messageResults.reduce((obids, r) => {
-    if (r) {
-      obids.push(r.outboxID)
-    }
+  const outboxIDs = paths.reduce((obids, p) => {
+    obids.push(p.outboxID ? p.outboxID : Constants.generateOutboxID())
     return obids
   }, [])
-  if (outboxIDs.length === 0) {
-    logger.info('all outbox IDs filtered on null results')
-    return
-  }
-
-  // Make the previews
-  const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map((p, i) =>
-      Saga.callUntyped(RPCChatTypes.localMakePreviewRpcPromise, {
-        filename: p.path,
-        outboxID: outboxIDs[i],
-      })
-    )
-  )
-
-  // Collect preview information
-  const previewURLs = previews.map(preview =>
-    preview &&
-    preview.location &&
-    preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
-    preview.location.url
-      ? preview.location.url
-      : ''
-  )
-  const previewSpecs = previews.map(preview =>
-    Constants.previewSpecs(preview && preview.metadata, preview && preview.baseMetadata)
-  )
-
-  let lastOrdinal = null
-  const messages = outboxIDs.map((o, i) => {
-    const m = Constants.makePendingAttachmentMessage(
-      state,
-      conversationIDKey,
-      titles[i],
-      FsTypes.getLocalPathName(paths[i].path),
-      previewURLs[i],
-      previewSpecs[i],
-      Types.rpcOutboxIDToOutboxID(outboxIDs[i]),
-      lastOrdinal,
-      null,
-      ephemeralLifetime
-    )
-    lastOrdinal = Constants.nextFractionalOrdinal(m.ordinal)
-    return m
-  })
-  yield Saga.put(
-    Chat2Gen.createMessagesAdd({
-      context: {type: 'sent'},
-      messages,
-    })
-  )
   yield Saga.sequentially(
-    paths.map((path, i) =>
-      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
-        callerPreview: previews[i],
-        convID: Types.keyToConversationID(conversationIDKey),
-        filename: path.path,
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        metadata: Buffer.from([]),
-        outboxID: outboxIDs[i],
-        title: titles[i],
+    paths.map((p, i) =>
+      Saga.callUntyped(RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise, {
+        arg: {
+          ...ephemeralData,
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          filename: p.path,
+          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+          metadata: Buffer.from([]),
+          outboxID: outboxIDs[i],
+          title: titles[i],
+          tlfName: meta.tlfname,
+          visibility: RPCTypes.commonTLFVisibility.private,
+        },
+        clientPrev,
       })
     )
   )

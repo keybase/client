@@ -4,8 +4,10 @@
 package systests
 
 import (
+	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
@@ -59,7 +61,7 @@ func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Ident
 			require.False(d.T, *found)
 			*found = true
 		default:
-			require.Fail(d.T, "unexpected state: %+v", arg)
+			require.Fail(d.T, fmt.Sprintf("unexpected state: %+v", arg))
 		}
 	}
 	switch arg.Key {
@@ -106,12 +108,39 @@ func newDelegateID3UI(g *libkb.GlobalContext, t *testing.T) *delegateID3UI {
 	}
 }
 
+// checkSuccess makes sure that all 3 success markers are true. It would be nice
+// if we just checked all 3 bools, but there's a race because of Notify() use,
+// since we don't get a guarantee of when the Notify()s go out.
 func (d *delegateID3UI) checkSuccess() {
-	d.Lock()
-	defer d.Unlock()
-	require.True(d.T, d.foundTwitter)
-	require.True(d.T, d.foundGithub)
-	require.True(d.T, d.displayedCard)
+
+	check := func() bool {
+		d.Lock()
+		defer d.Unlock()
+		if !d.foundTwitter {
+			d.T.Logf("delegate3IDUI#checkSuccess: check twitter failed")
+			return false
+		}
+		if !d.foundGithub {
+			d.T.Logf("delegate3IDUI#checkSuccess: check github failed")
+			return false
+		}
+		if !d.displayedCard {
+			d.T.Logf("delegate3IDUI#checkSuccess: didn't display card")
+			return false
+		}
+		return true
+	}
+	n := 10
+	wait := 2 * time.Millisecond
+	for i := 0; i < n; i++ {
+		if check() {
+			return
+		}
+		d.T.Logf("Hit a race! Waiting %v for delegateID3UI#checkSuccess check to work", wait)
+		time.Sleep(wait)
+		wait *= 2
+	}
+	d.T.Fatalf("Tried %d times to get successes and failed", n)
 }
 
 func TestDelegateIdentify3UI(t *testing.T) {

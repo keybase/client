@@ -29,7 +29,7 @@
     return;
   }
 
-  if (![self.config isInApplications:self.servicePath] && ![self.config isInUserApplications:self.servicePath]) {
+  if (![self.config isInApplications:self.servicePath]) {
     completion(KBMakeWarning(@"Command line install is not supported from this location: %@", self.servicePath));
     return;
   }
