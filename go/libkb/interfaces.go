@@ -397,7 +397,6 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context) error
-	ChatPostReadyToSend(context.Context) error
 }
 
 type PromptDefault int

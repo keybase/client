@@ -981,7 +981,6 @@ type ChatUI struct {
 	StellarDataConfirm chan chat1.UIChatPaymentSummary
 	StellarDataError   chan string
 	StellarDone        chan struct{}
-	PostReadyToSend    chan struct{}
 }
 
 func NewChatUI() *ChatUI {
@@ -996,7 +995,6 @@ func NewChatUI() *ChatUI {
 		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
 		StellarDataError:   make(chan string, 10),
 		StellarDone:        make(chan struct{}, 10),
-		PostReadyToSend:    make(chan struct{}, 100),
 	}
 }
 
@@ -1118,11 +1116,6 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, er
 
 func (c *ChatUI) ChatStellarDone(ctx context.Context) error {
 	c.StellarDone <- struct{}{}
-	return nil
-}
-
-func (c *ChatUI) ChatPostReadyToSend(ctx context.Context) error {
-	c.PostReadyToSend <- struct{}{}
 	return nil
 }
 
