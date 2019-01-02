@@ -2550,6 +2550,51 @@ func TestChatSrvFindConversations(t *testing.T) {
 	})
 }
 
+func TestChatSrvFindConversationsWithSBS(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_KBFS:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "FindConversations", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Create a conversation between both users. Attempt to send to
+		// `user1,user2@rooter` and make sure we resolve and find the
+		// conversation correctly.
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, users[1])
+		tc1 := ctc.world.Tcs[users[1].Username]
+		sbsName := strings.Join([]string{users[0].Username, fmt.Sprintf("%s@rooter", users[1].Username)}, ",")
+
+		ctx := ctc.as(t, users[0]).startCtx
+		// Fail since we haven't proved rooter yet
+		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          sbsName,
+				MembersType:      mt,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Zero(t, len(res.Conversations))
+
+		proveRooter(t, tc1.Context().ExternalG(), users[1])
+		res, err = ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          sbsName,
+				MembersType:      mt,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(res.Conversations), "no conv found")
+		require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
+	})
+}
+
 func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.UIMessages) {
 	var tres kbtest.NonblockThreadResult
 	select {
