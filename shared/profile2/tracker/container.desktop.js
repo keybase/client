@@ -21,6 +21,7 @@ const mapStateToProps = (state, ownProps) => {
     location: d.location,
     publishedTeams: d.publishedTeams,
     reason: d.reason,
+    state: d.state,
   }
 }
 const mapDispatchToProps = dispatch => ({
@@ -31,23 +32,6 @@ const mapDispatchToProps = dispatch => ({
   onIgnoreFor24Hours: () => {},
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const map = (stateProps._assertions || []).reduce((map, a) => {
-    if (!map[a.state]) {
-      map[a.state] = 0
-    }
-    map[a.state]++
-    return map
-  }, {})
-
-  let state
-  if (map.error) {
-    state = 'error'
-  } else if (map.checking) {
-    state = 'checking'
-  } else {
-    state = 'valid'
-  }
-
   return {
     assertions: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
     bio: stateProps.bio,
@@ -64,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onIgnoreFor24Hours: dispatchProps.onIgnoreFor24Hours,
     publishedTeams: stateProps.publishedTeams,
     reason: stateProps.reason,
-    state,
+    state: stateProps.state,
     username: ownProps.username,
   }
 }

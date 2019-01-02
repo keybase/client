@@ -1,7 +1,6 @@
 // @flow
 import * as Types from './types/profile2'
 import * as RPCTypes from './types/rpc-gen'
-import * as Flow from '../util/flow'
 import * as I from 'immutable'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
