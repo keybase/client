@@ -15,6 +15,7 @@ const mapStateToProps = (state, ownProps) => {
     : Constants.noAssertion
   return {
     _metas: a.metas,
+    color: a.color,
     proofURL: a.proofURL,
     siteIcon: a.siteIcon,
     siteURL: a.siteURL,
@@ -32,6 +33,7 @@ const mapDispatchToProps = dispatch => ({
   onShowUserOnSite: () => {},
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  color: stateProps.color,
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onClickBadge: dispatchProps.onShowProof,
   onShowProof: dispatchProps.onShowProof,

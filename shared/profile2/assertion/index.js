@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 
 type Props = {|
+  color: Types.AssertionColor,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
   onClickBadge: () => void,
   onShowProof: () => void,
@@ -55,7 +56,7 @@ const stateToColor = state => {
   }
 }
 
-const metaColor = (c: Types.AssertionColor) => {
+const assertionColorToColor = (c: Types.AssertionColor) => {
   switch (c) {
     case 'blue':
       return Styles.globalColors.blue
@@ -106,30 +107,40 @@ const siteIcon = icon => {
   }
 }
 
+const printPGP = value => {
+  const last = value.substr(value.length - 16).toUpperCase()
+  return `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+}
+
 const Assertion = (p: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
       <Kb.Icon type={siteIcon(p.type)} onClick={p.onShowSite} color={Styles.globalColors.black_75} />
       <Kb.Text type="Body" style={styles.textContainer}>
-        <Kb.Text type="BodyPrimaryLink" onClick={p.onShowUserOnSite} style={styles.username}>
-          {p.value}
+        <Kb.Text
+          type="BodyPrimaryLink"
+          onClick={p.onShowUserOnSite}
+          style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(p.color)}])}
+        >
+          {p.type === 'pgp' ? printPGP(p.value) : p.value}
         </Kb.Text>
         <Kb.Text type="Body" style={styles.site}>
-          {p.type}
+          @{p.type}
         </Kb.Text>
       </Kb.Text>
       <Kb.Icon
+        boxStyle={styles.stateIcon}
         type={stateToIcon(p.state)}
         fontSize={20}
         onClick={p.onClickBadge}
         hoverColor={stateToColor(p.state)}
-        color={stateToColor(p.state)}
+        color={assertionColorToColor(p.color)}
       />
     </Kb.Box2>
     {!!p.metas.length && (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
         {p.metas.map(m => (
-          <Kb.Meta key={m.label} backgroundColor={metaColor(m.color)} title={m.label} />
+          <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
         ))}
       </Kb.Box2>
     )}
@@ -137,9 +148,10 @@ const Assertion = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {flexShrink: 0, paddingBottom: 2, paddingTop: 2},
+  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
+  stateIcon: {height: 17},
   textContainer: {flexGrow: 1, marginTop: -1},
   username: Styles.platformStyles({
     isElectron: {display: 'inline-block', wordBreak: 'break-all'},

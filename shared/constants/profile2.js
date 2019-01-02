@@ -29,6 +29,7 @@ export const generateGUIID = () =>
 
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
+  color: 'gray',
   metas: [],
   proofURL: '',
   siteIcon: '',
@@ -91,6 +92,50 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
     default:
       return 'error'
   }
+}
+
+const _scoreAssertionKey = a => {
+  switch (a) {
+    case 'pgp':
+      return 110
+    case 'twitter':
+      return 100
+    case 'facebook':
+      return 90
+    case 'github':
+      return 80
+    case 'reddit':
+      return 75
+    case 'hackernews':
+      return 70
+    case 'https':
+      return 60
+    case 'http':
+      return 50
+    case 'dns':
+      return 40
+    case 'stellar':
+      return 30
+    case 'bitcoin':
+      return 20
+    case 'zcash':
+      return 10
+    default:
+      return 1
+  }
+}
+export const sortAssertionKeys = (a: string, b: string) => {
+  const pa = a.split(':')
+  const pb = b.split(':')
+
+  const typeA = pa[0]
+  const typeB = pb[0]
+
+  if (typeA === typeB) {
+    return pa[1].localeCompare(pb[1])
+  }
+
+  return _scoreAssertionKey(typeB) - _scoreAssertionKey(typeA)
 }
 
 export const noDetails = makeDetails({})

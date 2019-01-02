@@ -5,7 +5,7 @@ import * as Avatar from '../../desktop/remote/sync-avatar-props.desktop'
 
 export const serialize: any = {
   ...Avatar.serialize,
-  assertions: v => v.toJS(),
+  assertions: v => (v ? v.toJS() : v),
   bio: v => v,
   followThem: v => v,
   followersCount: v => v,
@@ -32,31 +32,45 @@ export const serialize: any = {
 }
 
 const initialState = {
+  assertions: I.Map(),
   config: {},
+  users: {
+    infoMap: I.Map(),
+  },
+  waiting: {
+    counts: I.Map(),
+  },
 }
 
 export const deserialize = (state: any = initialState, props: any) => {
+  console.log('aaaa deserialize', state, props)
   const newState = {
     ...state,
     ...props,
-    assertions:
-      props && props.assertions
-        ? I.Map(
+    ...(props && props.assertions
+      ? {
+          assertions: I.Map(
             Object.keys(props.assertions).map(assertionKey => [
               assertionKey,
               Constants.makeAssertion(props.assertions[assertionKey]),
             ])
-          )
-        : I.Map(),
-    users: {
-      infoMap:
-        props && props.username
-          ? I.Map([[props.username, {broken: false, fullname: props.fullname}]])
-          : I.Map(),
-    },
-    waiting: {
-      counts: I.Map([[Constants.waitingKey, state.waiting || 0]]),
-    },
+          ),
+        }
+      : {}),
+    ...(props && props.username
+      ? {
+          users: {
+            infoMap: I.Map([[props.username, {broken: false, fullname: props.fullname}]]),
+          },
+        }
+      : {}),
+    ...(props && props.hasOwnProperty('waiting')
+      ? {
+          waiting: {
+            counts: I.Map([[Constants.waitingKey, props.waiting || 0]]),
+          },
+        }
+      : {}),
   }
   return Avatar.deserialize(newState, props)
 }

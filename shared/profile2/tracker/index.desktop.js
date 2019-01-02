@@ -99,7 +99,9 @@ const getButtons = (props: Props) => {
 const Tracker = (props: Props) => {
   let assertions
   if (props.assertionKeys) {
-    assertions = props.assertionKeys.map(a => <Assertion key={a} assertionKey={a} />)
+    assertions = props.assertionKeys
+      .sort(Constants.sortAssertionKeys)
+      .map(a => <Assertion key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null
@@ -221,7 +223,7 @@ const styles = Styles.styleSheetCreate({
     ...reason,
     opacity: 0,
   },
-  scrollView: {...Styles.globalStyles.fillAbsolute},
+  scrollView: {...Styles.globalStyles.fillAbsolute, paddingBottom: Styles.globalMargins.small},
   spaceUnderButtons: {
     flexShrink: 0,
     height: barHeight,
