@@ -111,12 +111,6 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 }
 
 func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingError {
-	// Banned folders are only detectable by the error string currently,
-	// hopefully we can do something better in the future.
-	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
-		return NewPermanentUnboxingError(err)
-	}
-
 	// Check for team not exist error that is in raw form
 	if aerr, ok := err.(libkb.AppStatusError); ok {
 		switch keybase1.StatusCode(aerr.Code) {
