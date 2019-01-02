@@ -3367,7 +3367,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	ptrC := ops.nodeCache.PathFromNode(nodeC).tailPointer()
 	err = config.BlockCache().DeleteTransient(
-		ptrC, rootNode.GetFolderBranch().Tlf)
+		ptrC.ID, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err)
 
 	// Remove c.

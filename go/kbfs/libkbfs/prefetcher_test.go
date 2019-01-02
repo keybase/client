@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
@@ -87,14 +88,20 @@ func shutdownPrefetcherTest(q *blockRetrievalQueue) {
 	q.Shutdown()
 }
 
-func testPrefetcherCheckGet(t *testing.T, bcache BlockCache, ptr BlockPointer,
-	expectedBlock Block, expectedPrefetchStatus PrefetchStatus,
-	expectedLifetime BlockCacheLifetime) {
-	block, prefetchStatus, lifetime, err := bcache.GetWithPrefetch(ptr)
+func testPrefetcherCheckGet(
+	t *testing.T, bcache BlockCache, ptr BlockPointer, expectedBlock Block,
+	expectedPrefetchStatus PrefetchStatus, tlfID tlf.ID,
+	dcache DiskBlockCache) {
+	block, err := bcache.Get(ptr)
 	require.NoError(t, err)
+	if dcache == nil {
+		return
+	}
 	require.Equal(t, expectedBlock, block)
-	require.Equal(t, expectedPrefetchStatus.String(), prefetchStatus.String())
-	require.Equal(t, expectedLifetime.String(), lifetime.String())
+	_, _, prefetchStatus, err := dcache.Get(
+		context.Background(), tlfID, ptr.ID, DiskBlockAnyCache)
+	require.NoError(t, err)
+	require.Equal(t, expectedPrefetchStatus.String(), prefetchStatus.String(), ptr.String())
 }
 
 func getStack() string {
@@ -167,8 +174,9 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	kmd := makeKMD()
 	ch := q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		ctx, defaultOnDemandRequestPriority, kmd, rootPtr, block,
 		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootBlock <- nil
 	err := <-ch
@@ -186,11 +194,11 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
-		indBlock1, FinishedPrefetch, TransientEntry)
+		indBlock1, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
-		indBlock2, FinishedPrefetch, TransientEntry)
+		indBlock2, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
@@ -219,8 +227,9 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	kmd := makeKMD()
 	ch := q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		ctx, defaultOnDemandRequestPriority, kmd, rootPtr, block,
 		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootBlock <- nil
 	err := <-ch
@@ -238,11 +247,11 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
-		indBlock1, NoPrefetch, TransientEntry)
+		indBlock1, NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
-		indBlock2, NoPrefetch, TransientEntry)
+		indBlock2, NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func testPrefetcherIndirectDirBlockTail(
@@ -273,8 +282,9 @@ func testPrefetcherIndirectDirBlockTail(
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	kmd := makeKMD()
 	ch := q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		ctx, defaultOnDemandRequestPriority, kmd, rootPtr, block,
 		TransientEntry, action)
 	continueChRootBlock <- nil
 	err := <-ch
@@ -297,12 +307,12 @@ func testPrefetcherIndirectDirBlockTail(
 		waitForPrefetchOrBust(t, ctx, q.Prefetcher(), ptrs[1].BlockPointer)
 		rootStatus = TriggeredPrefetch
 		testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
-			indBlock1, NoPrefetch, TransientEntry)
+			indBlock1, NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 		testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
-			indBlock2, NoPrefetch, TransientEntry)
+			indBlock2, NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	}
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
-		rootStatus, TransientEntry)
+		rootStatus, kmd.TlfID(), config.DiskBlockCache())
 
 }
 
@@ -354,8 +364,9 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	kmd := makeKMD()
 	ch := q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		ctx, defaultOnDemandRequestPriority, kmd, rootPtr, block,
 		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootDir <- nil
 	err := <-ch
@@ -374,13 +385,13 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		rootDir.Children["c"].BlockPointer, fileC, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		rootDir.Children["b"].BlockPointer, dirB, NoPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Ensure that the largest block isn't in the cache.")
 	block, err = config.BlockCache().Get(rootDir.Children["a"].BlockPointer)
@@ -463,13 +474,13 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 		t, ctx, q.Prefetcher(), rootDir.Children["b"].BlockPointer)
 
 	testPrefetcherCheckGet(t, cache, dirA.Children["b"].BlockPointer, fileB,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	// Check that the dir block is marked as having been prefetched.
 	testPrefetcherCheckGet(t, cache, rootDir.Children["a"].BlockPointer, dirA,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Remove the prefetched file block from the cache.")
-	cache.DeleteTransient(dirA.Children["b"].BlockPointer, kmd.TlfID())
+	cache.DeleteTransient(dirA.Children["b"].BlockPointer.ID, kmd.TlfID())
 	_, err = cache.Get(dirA.Children["b"].BlockPointer)
 	require.EqualError(t, err,
 		NoSuchBlockError{dirA.Children["b"].BlockPointer.ID}.Error())
@@ -528,10 +539,10 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 		"block is in the cache.")
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), ptrA)
 	testPrefetcherCheckGet(
-		t, config.BlockCache(), ptrA, fileA, FinishedPrefetch, TransientEntry)
+		t, config.BlockCache(), ptrA, fileA, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Remove the prefetched block from the cache.")
-	cache.DeleteTransient(ptrA, kmd.TlfID())
+	cache.DeleteTransient(ptrA.ID, kmd.TlfID())
 	_, err = cache.Get(ptrA)
 	require.EqualError(t, err, NoSuchBlockError{ptrA.ID}.Error())
 
@@ -570,8 +581,9 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	kmd := makeKMD()
 	ch := q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		ctx, defaultOnDemandRequestPriority, kmd,
 		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
 	continueChRootDir <- nil
 	err := <-ch
@@ -584,7 +596,7 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 
 	t.Log("Ensure that the directory block is in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func testPrefetcherForSyncedTLF(
@@ -700,25 +712,25 @@ func testPrefetcherForSyncedTLF(
 
 	t.Log("Ensure that the prefetched blocks are all in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		rootDir.Children["c"].BlockPointer, fileC, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		rootDir.Children["b"].BlockPointer, dirB, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		rootDir.Children["a"].BlockPointer, fileA, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		dirB.Children["d"].BlockPointer, dirBfileD, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		dirBfileDptrs[0].BlockPointer, dirBfileDblock1, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		dirBfileDptrs[1].BlockPointer, dirBfileDblock2, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	block = &DirBlock{}
 	ch = q.Request(
@@ -735,7 +747,7 @@ func testPrefetcherForSyncedTLF(
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func TestPrefetcherForSyncedTLF(t *testing.T) {
@@ -814,8 +826,9 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		bg.setBlockToReturn(indBlock2.IPtrs[1].BlockPointer, indBlock22)
 
 	var block Block = &FileBlock{}
+	kmd := makeKMD()
 	ch := q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
+		ctx, defaultOnDemandRequestPriority, kmd, rootPtr, block,
 		TransientEntry, BlockRequestWithPrefetch)
 	continueChRootBlock <- nil
 	notifySyncCh(t, prefetchSyncCh)
@@ -836,16 +849,16 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
-		indBlock1, NoPrefetch, TransientEntry)
+		indBlock1, NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
-		indBlock2, NoPrefetch, TransientEntry)
+		indBlock2, NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Fetch indirect block1 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		ctx, defaultOnDemandRequestPriority, kmd,
 		rootBlock.IPtrs[0].BlockPointer, block, TransientEntry,
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
@@ -861,7 +874,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	t.Log("Fetch indirect block2 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		ctx, defaultOnDemandRequestPriority, kmd,
 		rootBlock.IPtrs[1].BlockPointer, block, TransientEntry,
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
@@ -877,7 +890,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	t.Log("Fetch indirect block11 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		ctx, defaultOnDemandRequestPriority, kmd,
 		indBlock1.IPtrs[0].BlockPointer, block, TransientEntry,
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
@@ -886,7 +899,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	t.Log("Fetch indirect block12 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(
-		ctx, defaultOnDemandRequestPriority, makeKMD(),
+		ctx, defaultOnDemandRequestPriority, kmd,
 		indBlock1.IPtrs[1].BlockPointer, block, TransientEntry,
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
@@ -899,19 +912,19 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
-		indBlock2, FinishedPrefetch, TransientEntry)
+		indBlock2, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(
 		t, config.BlockCache(), indBlock2.IPtrs[0].BlockPointer, indBlock21,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(
 		t, config.BlockCache(), indBlock2.IPtrs[1].BlockPointer, indBlock22,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
-		indBlock1, FinishedPrefetch, TransientEntry)
+		indBlock1, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		indBlock1.IPtrs[0].BlockPointer, indBlock11, FinishedPrefetch, TransientEntry)
+		indBlock1.IPtrs[0].BlockPointer, indBlock11, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		indBlock1.IPtrs[1].BlockPointer, indBlock12, FinishedPrefetch, TransientEntry)
+		indBlock1.IPtrs[1].BlockPointer, indBlock12, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func TestPrefetcherBackwardPrefetch(t *testing.T) {
@@ -1049,19 +1062,19 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["a"].BlockPointer, a, FinishedPrefetch, TransientEntry)
+		root.Children["a"].BlockPointer, a, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["b"].BlockPointer, b, FinishedPrefetch, TransientEntry)
+		root.Children["b"].BlockPointer, b, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		a.Children["aa"].BlockPointer, aa, FinishedPrefetch, TransientEntry)
+		a.Children["aa"].BlockPointer, aa, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		a.Children["ab"].BlockPointer, ab, FinishedPrefetch, TransientEntry)
+		a.Children["ab"].BlockPointer, ab, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		aa.Children["aaa"].BlockPointer, aaa, FinishedPrefetch, TransientEntry)
+		aa.Children["aaa"].BlockPointer, aaa, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		aa.Children["aab"].BlockPointer, aab, FinishedPrefetch, TransientEntry)
+		aa.Children["aab"].BlockPointer, aab, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
@@ -1134,11 +1147,11 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, NoPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
@@ -1180,19 +1193,19 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aaPtr, aa,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), abPtr, ab,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aaaPtr, aaa,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aabPtr, aab,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func setLimiterLimits(
@@ -1283,11 +1296,11 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, NoPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Set the cache maximum bytes to the current total.")
 	syncBytes, workingBytes := testPrefetcherGetCacheBytes(
@@ -1354,9 +1367,9 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 	require.NoError(t, err)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	// Then we wait for the pending prefetches to complete.
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
@@ -1398,7 +1411,7 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	err := <-ch
 	require.NoError(t, err)
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Fetch dir root.")
 	block = &DirBlock{}
@@ -1412,9 +1425,9 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	// Then we wait for the pending prefetches to complete.
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
@@ -1475,7 +1488,7 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
-	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	err = bcache.DeleteTransient(rootPtr.ID, kmd.TlfID())
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root again.")
@@ -1498,9 +1511,9 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	require.NoError(t, err)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	// Then we wait for the pending prefetches to complete.
 	close(prefetchSyncCh)
@@ -1582,7 +1595,7 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
-	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	err = bcache.DeleteTransient(rootPtr.ID, kmd.TlfID())
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root again.")
@@ -1618,11 +1631,11 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	require.NoError(t, err)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	// Then we wait for the pending prefetches to complete.
 	close(prefetchSyncCh)
@@ -1699,7 +1712,7 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
-	err = bcache.DeleteTransient(rootPtr, kmd.TlfID())
+	err = bcache.DeleteTransient(rootPtr.ID, kmd.TlfID())
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root again.")
@@ -1734,11 +1747,11 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	require.NoError(t, err)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b, FinishedPrefetch,
-		TransientEntry)
+		kmd.TlfID(), config.DiskBlockCache())
 
 	// Then we wait for the pending prefetches to complete.
 	close(prefetchSyncCh)
@@ -1838,7 +1851,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Make room in the cache.")
 	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
@@ -1865,11 +1878,11 @@ func TestPrefetcherReschedules(t *testing.T) {
 	require.NoError(t, err)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a,
-		TriggeredPrefetch, TransientEntry)
+		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Set the cache maximum bytes to the current total again.")
 	syncBytes, workingBytes = testPrefetcherGetCacheBytes(
@@ -1889,13 +1902,13 @@ func TestPrefetcherReschedules(t *testing.T) {
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), aaPtr, aa,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), abPtr, ab,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func TestPrefetcherWithDedupBlocks(t *testing.T) {
@@ -1963,7 +1976,7 @@ func TestPrefetcherWithDedupBlocks(t *testing.T) {
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 }
 
 func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
@@ -2085,7 +2098,7 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
 	testPrefetcherCheckGet(t, config.BlockCache(), a2Ptr, a2Block,
-		FinishedPrefetch, TransientEntry)
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), a2Ptr)
 }

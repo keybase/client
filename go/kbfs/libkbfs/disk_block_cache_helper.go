@@ -37,6 +37,8 @@ type DiskBlockCacheMetadata struct {
 	TriggeredPrefetch bool `codec:"HasPrefetched"`
 	// whether the block's triggered prefetches are complete
 	FinishedPrefetch bool
+	// the last tag with which the block was marked
+	Tag string
 }
 
 // lruEntry is an entry for sorting LRU times

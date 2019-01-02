@@ -140,8 +140,6 @@ func TestFBStatusAllFields(t *testing.T) {
 	fbsk.addDirtyNode(n2)
 
 	config.mockRekeyQueue.EXPECT().IsRekeyPending(id)
-	config.mockBcache.EXPECT().GetWithPrefetch(gomock.Any()).
-		Return(nil, NoPrefetch, NoCacheEntry, nil)
 
 	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
 	config.mockBserv.EXPECT().GetUserQuotaInfo(gomock.Any()).AnyTimes().Return(

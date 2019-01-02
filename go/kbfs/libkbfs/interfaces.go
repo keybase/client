@@ -337,6 +337,9 @@ type KBFSOps interface {
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
 	DeleteFavorite(ctx context.Context, fav Favorite) error
+	// RefreshEditHistory asks the FBO for the given favorite to reload its
+	// edit history.
+	RefreshEditHistory(fav Favorite)
 
 	// GetTLFCryptKeys gets crypt key of all generations as well as
 	// TLF ID for tlfHandle. The returned keys (the keys slice) are ordered by
@@ -1162,9 +1165,9 @@ type BlockCache interface {
 	// a nil error.
 	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
 	// DeleteTransient removes the transient entry for the given
-	// pointer from the cache, as well as any cached IDs so the block
+	// ID from the cache, as well as any cached IDs so the block
 	// won't be reused.
-	DeleteTransient(ptr BlockPointer, tlf tlf.ID) error
+	DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error
 	// Delete removes the permanent entry for the non-dirty block
 	// associated with the given block ID from the cache.  No
 	// error is returned if no block exists for the given ID.
@@ -1172,14 +1175,10 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
-	// GetWithPrefetch retrieves a block from the cache, along with the block's
-	// prefetch status.
-	GetWithPrefetch(ptr BlockPointer) (block Block,
-		prefetchStatus PrefetchStatus, lifetime BlockCacheLifetime, err error)
-	// PutWithPrefetch puts a block into the cache, along with whether or not
-	// it has triggered or finished a prefetch.
-	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error
+	// GetWithLifetime retrieves a block from the cache, along with
+	// the block's lifetime.
+	GetWithLifetime(ptr BlockPointer) (
+		block Block, lifetime BlockCacheLifetime, err error)
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
@@ -1355,6 +1354,15 @@ type DiskBlockCache interface {
 	// space.
 	DoesCacheHaveSpace(
 		ctx context.Context, cacheType DiskBlockCacheType) (bool, error)
+	// Mark tags a given block in the disk cache with the given tag.
+	Mark(
+		ctx context.Context, blockID kbfsblock.ID, tag string,
+		cacheType DiskBlockCacheType) error
+	// DeleteUnmarked deletes all the given TLF's blocks in the disk
+	// cache without the given tag.
+	DeleteUnmarked(
+		ctx context.Context, tlfID tlf.ID, tag string,
+		cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }

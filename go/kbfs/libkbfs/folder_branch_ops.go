@@ -349,8 +349,9 @@ type folderBranchOps struct {
 
 	rekeyFSM RekeyFSM
 
-	editHistory  *kbfsedits.TlfHistory
-	editChannels chan editChannelActivity
+	editHistory               *kbfsedits.TlfHistory
+	editChannels              chan editChannelActivity
+	refreshEditHistoryChannel chan struct{}
 
 	cancelEditsLock sync.Mutex
 	// Cancels the goroutine currently waiting on edits
@@ -453,15 +454,16 @@ func newFolderBranchOps(
 			dirtyDirs:  make(map[BlockPointer][]BlockInfo),
 			nodeCache:  nodeCache,
 		},
-		nodeCache:       nodeCache,
-		log:             traceLogger{log},
-		deferLog:        traceLogger{log.CloneWithAddedDepth(1)},
-		shutdownChan:    make(chan struct{}),
-		updatePauseChan: make(chan (<-chan struct{})),
-		forceSyncChan:   forceSyncChan,
-		syncNeededChan:  make(chan struct{}, 1),
-		editHistory:     kbfsedits.NewTlfHistory(),
-		editChannels:    make(chan editChannelActivity, 100),
+		nodeCache:                 nodeCache,
+		log:                       traceLogger{log},
+		deferLog:                  traceLogger{log.CloneWithAddedDepth(1)},
+		shutdownChan:              make(chan struct{}),
+		updatePauseChan:           make(chan (<-chan struct{})),
+		forceSyncChan:             forceSyncChan,
+		syncNeededChan:            make(chan struct{}, 1),
+		editHistory:               kbfsedits.NewTlfHistory(),
+		editChannels:              make(chan editChannelActivity, 100),
+		refreshEditHistoryChannel: make(chan struct{}),
 	}
 	fbo.prepper = folderUpdatePrepper{
 		config:       config,
@@ -546,6 +548,10 @@ func (fbo *folderBranchOps) RefreshCachedFavorites(ctx context.Context) {
 }
 
 func (fbo *folderBranchOps) ClearCachedFavorites(ctx context.Context) {
+	// no-op
+}
+
+func (fbo *folderBranchOps) RefreshEditHistory(fav Favorite) {
 	// no-op
 }
 
@@ -1170,8 +1176,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 			return
 		}
 
-		_, prefetchStatus, _, err := fbo.config.BlockCache().GetWithPrefetch(
-			rootPtr)
+		prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), rootPtr)
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error getting prefetched block: %+v", err)
 			return
@@ -5651,7 +5656,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		idsToDelete := make([]kbfsblock.ID, 0, len(realOp.Unrefs()))
 		for _, ptr := range realOp.Unrefs() {
 			idsToDelete = append(idsToDelete, ptr.ID)
-			if err := bcache.DeleteTransient(ptr, fbo.id()); err != nil {
+			if err := bcache.DeleteTransient(ptr.ID, fbo.id()); err != nil {
 				fbo.log.CDebugf(ctx,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
 			}
@@ -8140,6 +8145,15 @@ func (fbo *folderBranchOps) handleEditActivity(
 	return idToName, nameToID, nameToNextPage, nil
 }
 
+func (fbo *folderBranchOps) refreshEditHistory() {
+	// If we can't send something to the channel,
+	// then there is already a refresh pending.
+	select {
+	case fbo.refreshEditHistoryChannel <- struct{}{}:
+	default:
+	}
+}
+
 func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
@@ -8158,6 +8172,8 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 		case <-fbo.shutdownChan:
 			fbo.log.CDebugf(ctx, "Shutting down chat monitoring")
 			return
+		case <-fbo.refreshEditHistoryChannel:
+			fbo.recomputeEditHistory(ctx, tlfName, nameToID, nameToNextPage)
 		case a := <-fbo.editChannels:
 			var err error
 			idToName, nameToID, nameToNextPage, err = fbo.handleEditActivity(

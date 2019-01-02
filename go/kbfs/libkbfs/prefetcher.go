@@ -284,7 +284,7 @@ func (p *blockPrefetcher) completePrefetch(
 	}
 }
 
-func (p *blockPrefetcher) decrementPrefetch(_ kbfsblock.ID, pp *prefetch) {
+func (p *blockPrefetcher) decrementPrefetch(blockID kbfsblock.ID, pp *prefetch) {
 	pp.subtreeBlockCount--
 	if pp.subtreeBlockCount < 0 {
 		// Both log and panic so that we get the PFID in the log.
@@ -929,7 +929,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				numBlocks, req.ptr.ID)
 			// Walk up the block tree and add numBlocks to every parent,
 			// starting with this block.
-			p.applyToParentsRecursive(func(_ kbfsblock.ID, pp *prefetch) {
+			p.applyToParentsRecursive(func(blockID kbfsblock.ID, pp *prefetch) {
 				pp.subtreeBlockCount += numBlocks
 			}, req.ptr.ID, pre)
 		case <-p.almostDoneCh:

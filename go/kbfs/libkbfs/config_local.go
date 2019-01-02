@@ -1680,17 +1680,20 @@ func (c *ConfigLocal) GetAllSyncedTlfs() []tlf.ID {
 // PrefetchStatus implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 	ptr BlockPointer) PrefetchStatus {
-	_, prefetchStatus, _, err := c.BlockCache().GetWithPrefetch(ptr)
-	if err != nil {
-		prefetchStatus = NoPrefetch
-		dbc := c.DiskBlockCache()
-		if dbc != nil {
-			_, _, prefetchStatus, err = dbc.Get(
-				ctx, tlfID, ptr.ID, DiskBlockAnyCache)
-			if err != nil {
-				prefetchStatus = NoPrefetch
-			}
+	dbc := c.DiskBlockCache()
+	if dbc == nil {
+		// We must be in testing mode, so check the block retrieval queue.
+		bops, ok := c.BlockOps().(*BlockOpsStandard)
+		if !ok {
+			return NoPrefetch
 		}
+		return bops.queue.getPrefetchStatus(ptr.ID)
+	}
+
+	_, _, prefetchStatus, err := dbc.Get(
+		ctx, tlfID, ptr.ID, DiskBlockAnyCache)
+	if err != nil {
+		return NoPrefetch
 	}
 	return prefetchStatus
 }

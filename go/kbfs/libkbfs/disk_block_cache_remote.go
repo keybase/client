@@ -165,6 +165,19 @@ func (dbcr *DiskBlockCacheRemote) DoesCacheHaveSpace(
 	return true, nil
 }
 
+// Mark implements the DiskBlockCache interface for DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) Mark(
+	_ context.Context, _ kbfsblock.ID, _ string, _ DiskBlockCacheType) error {
+	panic("Mark() not implemented in DiskBlockCacheRemote")
+}
+
+// DeleteUnmarked implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) DeleteUnmarked(
+	_ context.Context, _ tlf.ID, _ string, _ DiskBlockCacheType) error {
+	panic("DeleteUnmarked() not implemented in DiskBlockCacheRemote")
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()
