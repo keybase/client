@@ -43,12 +43,14 @@ video {
 }
 `
 
+// Double quote around ${url} is necessary as encodeURIComponent encodes double
+// quote but not single quote.
 const webviewJavaScript = url => `
 const v = document.createElement("video")
 v.setAttribute('loop', true)
 v.setAttribute('controls', true)
 v.setAttribute('controlsList', 'nodownload nofullscreen')
-v.setAttribute('src', '${url}')
+v.setAttribute('src', "${url}")
 document.getElementsByTagName('body')[0].appendChild(v)
 v.play()
 `
