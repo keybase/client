@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/auth"
@@ -140,6 +141,15 @@ func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, 
 	}
 	ni, err := t.AllCryptKeys(ctx, tlfName, public)
 	if err != nil {
+		// Banned folders are only detectable by the error string currently,
+		// hopefully we can do something better in the future.
+		if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
+			return nil, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
+		}
+		// This happens to finalized folders that are no longer being rekeyed
+		if strings.HasPrefix(err.Error(), "Can't get TLF private key for key generation") {
+			return nil, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
+		}
 		return nil, err
 	}
 	for _, key := range ni[chat1.ConversationMembersType_KBFS] {
