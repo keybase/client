@@ -5,8 +5,8 @@ import * as Constants from '../../constants/profile2'
 import * as Types from '../../constants/types/profile2'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
-import Assertion from '../assertion/container'
-import Bio from '../bio/container'
+import Assertion from '../assertion/remote-container'
+import Bio from '../bio/remote-container'
 
 type Props = {|
   assertions: ?$ReadOnlyArray<string>,

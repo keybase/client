@@ -192,10 +192,12 @@ const config = (_, {mode}) => {
   // just keeping main in its old place
   const entryOverride = {
     main: 'desktop/renderer',
+    profile2: 'profile2/tracker',
   }
 
   // multiple entries so we can chunk shared parts
-  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders']
+  // TODO remove tracker when profile2 entirely released
+  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders', 'profile2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.js`

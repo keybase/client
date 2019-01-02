@@ -1,4 +1,5 @@
 // @flow
+// Only used for storybook, maybe get rid of this
 import * as Container from '../../util/container'
 import Tracker from './index.desktop'
 import * as Constants from '../../constants/profile2'
@@ -23,11 +24,11 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = dispatch => ({
-  onAccept: () => {}, // TODO
-  onChat: () => {}, // TODO
-  onClose: () => {}, // TODO
-  onFollow: () => {}, // TODO
-  onIgnoreFor24Hours: () => {}, // TODO
+  onAccept: () => {},
+  onChat: () => {},
+  onClose: () => {},
+  onFollow: () => {},
+  onIgnoreFor24Hours: () => {},
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const map = (stateProps._assertions || []).reduce((map, a) => {
@@ -68,7 +69,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-// remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps),
 export default Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

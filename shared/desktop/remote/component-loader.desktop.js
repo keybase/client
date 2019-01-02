@@ -16,7 +16,7 @@ disableDragDrop()
 
 module.hot && module.hot.accept()
 
-type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker'
+type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker' | 'profile2'
 
 type Props = {|
   children: React.Node,

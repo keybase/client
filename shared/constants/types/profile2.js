@@ -34,8 +34,8 @@ export type _Details = {
   location: ?string,
   publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
-  state: DetailsState,
   showTracker: boolean,
+  state: DetailsState,
   username: string,
 }
 export type Details = I.RecordOf<_Details>
