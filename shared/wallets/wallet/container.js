@@ -1,17 +1,20 @@
 // @flow
+import * as React from 'react'
 import {connect, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import Onboarding from '../onboarding/container'
 import {partition} from 'lodash-es'
 
-import Wallet from '.'
+import Wallet, {type Props} from '.'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
   return {
+    acceptedDisclaimer: state.wallets.acceptedDisclaimer,
     accountID,
     assets: Constants.getAssets(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
@@ -68,6 +71,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   })
 
   return {
+    acceptedDisclaimer: stateProps.acceptedDisclaimer,
     accountID: stateProps.accountID,
     loadingMore: stateProps.loadingMore,
     navigateAppend: dispatchProps.navigateAppend,
@@ -88,8 +92,11 @@ const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp:
     .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
     .map(({paymentID}) => ({paymentID}))
 
+const WalletOrOnboarding = (props: Props) =>
+  props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
+
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(Wallet)
+)(WalletOrOnboarding)

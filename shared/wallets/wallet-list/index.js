@@ -64,7 +64,7 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
 )
 
 type Props = {
-  acceptedDisclaimer?: boolean,
+  acceptedDisclaimer: boolean,
   accountIDs: Array<AccountID>,
   style?: Styles.StylesCrossPlatform,
   onAddNew: () => void,

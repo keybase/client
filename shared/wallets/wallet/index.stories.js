@@ -23,6 +23,7 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 const props = {
+  acceptedDisclaimer: true,
   accountID: stringToAccountID('fakeAccountID'),
   loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),

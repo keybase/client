@@ -12,7 +12,8 @@ const stripePatternName = Styles.isMobile
   : 'pattern-stripes-blue-5-black-5-desktop.png'
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
-type Props = {
+export type Props = {
+  acceptedDisclaimer: boolean,
   accountID: Types.AccountID,
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
