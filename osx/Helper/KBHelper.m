@@ -10,9 +10,11 @@
 
 #import "KBKext.h"
 #import "KBLogger.h"
+#import "fs.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 #include <pwd.h>
 #include <grp.h>
+#include <unistd.h>
 
 @interface KBHelper ()
 @property NSTask *redirector;
@@ -73,9 +75,11 @@
     return;
   }
 
-  if (![self _checkRemoteIsAdmin:remote]) {
-    KBLog(@"Remote caller into Helper process didn't have admin permissions");
-    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid admin permissions"), nil);
+  uid_t uid = xpc_connection_get_euid(remote);
+
+  if (![self _checkUID:uid inGroup:"staff"]) {
+    KBLog(@"Remote caller into Helper process didn't have staff permissions");
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid staff permissions"), nil);
     return;
   }
 
@@ -100,10 +104,10 @@
     [KBKext copyWithSource:args[@"source"] destination:args[@"destination"] removeExisting:YES completion:completion];
   } else if ([method isEqualToString:@"remove"]) {
     [self remove:args[@"path"] completion:completion];
-  } else if ([method isEqualToString:@"move"]) {
-    [self moveFromSource:args[@"source"] destination:args[@"destination"] overwriteDestination:YES completion:completion];
-  } else if ([method isEqualToString:@"createDirectory"]) {
-    [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
+  } else if ([method isEqualToString:@"uninstallAppBundle"]) {
+    [self uninstallAppBundle:completion];
+  } else if ([method isEqualToString:@"createMountDirectory"]) {
+    [self createMountDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
   } else if ([method isEqualToString:@"addToPath"]) {
     [self addToPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"removeFromPath"]) {
@@ -117,11 +121,17 @@
   }
 }
 
-- (BOOL)_checkRemoteIsAdmin:(xpc_connection_t)remote {
+- (BOOL)_checkRemote:(xpc_connection_t)remote inGroup:(char *)group {
+  uid_t uid = xpc_connection_get_euid(remote);
+  return [self _checkUID:uid inGroup:group];
+}
+
+- (BOOL)_checkUID:(uid_t )uid inGroup:(char *)group {
   char getpwuid_buf[1024];
   char getgrnam_buf[8192];
+  int gids[1024];
+  int n_gids = 1024;
 
-  uid_t uid = xpc_connection_get_euid(remote);
   struct passwd pwentry;
   struct passwd *pwentryp;
   int tmp = getpwuid_r(uid, &pwentry, getpwuid_buf, sizeof(getpwuid_buf), &pwentryp);
@@ -129,21 +139,27 @@
     KBLog(@"Failed to get PW entry for uid %@", uid);
     return NO;
   }
-  struct group admin_group;
-  struct group *admin_group_p;
-  tmp = getgrnam_r("admin", &admin_group, getgrnam_buf, sizeof(getgrnam_buf), &admin_group_p);
-  if (tmp != 0 || admin_group_p == NULL) {
-    KBLog(@"Could not call getgrnam on the 'admin' group, so can't tell if remote is an admin");
+  struct group wanted_group;
+  struct group *wanted_group_p;
+  tmp = getgrnam_r(group, &wanted_group, getgrnam_buf, sizeof(getgrnam_buf), &wanted_group_p);
+  if (tmp != 0 || wanted_group_p == NULL) {
+    KBLog(@"Could not call getgrnam on the '%s' group, so can't tell if uid is in it", group);
     return NO;
   }
-  int n = 0;
-  for (char **p = admin_group_p->gr_mem; *p; p++, n++) {
-    if (strcmp(pwentryp->pw_name, *p) == 0) {
-      KBLog(@"Yes, the calling user '%s' is an 'admin'", pwentryp->pw_name);
+
+  tmp = getgrouplist(pwentryp->pw_name, pwentryp->pw_gid, gids, &n_gids);
+  if (tmp != 0) {
+    KBLog(@"Could not call getgrouplist for '%s'", pwentryp->pw_name);
+    return NO;
+  }
+
+  for (int i = 0; i < n_gids; i++) {
+    if (gids[i] == wanted_group_p->gr_gid) {
+      KBLog(@"Checked that the calling user '%s' (%d) is in '%s' (%d)", pwentryp->pw_name, uid, group, wanted_group_p->gr_gid);
       return YES;
     }
   }
-  KBLog(@"The 'admin' group had %d members but '%s' wasn't one", n, pwentryp->pw_name);
+  KBLog(@"The user '%s' was in %d groups but not in '%s'", pwentryp->pw_name, n_gids, group);
   return NO;
 }
 
@@ -157,7 +173,22 @@
   completion(nil, response);
 }
 
-- (void)createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
+-(BOOL)_isStandardKeybaseMountPath:(NSString*)path{
+  NSString *p = path.stringByStandardizingPath;
+  if (!p.absolutePath) {
+    return NO;
+  }
+  NSArray *a = [p componentsSeparatedByString:@"/"];
+  if (a.count != 3) {
+    return NO;
+  }
+  if (![a[0] isEqualToString:@""] || ![a[1] isEqualToString:@"Volumes"]) {
+    return NO;
+  }
+  return YES;
+}
+
+- (void)_createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
   NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
   attributes[NSFilePosixPermissions] = permissions;
   attributes[NSFileOwnerAccountID] = uid;
@@ -181,45 +212,44 @@
   completion(nil, @{});
 }
 
-- (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
-    NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
-    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
-    attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0700];
-    attributes[NSFileOwnerAccountID] = 0;
-    attributes[NSFileGroupOwnerAccountID] = 0;
-    if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:error]) {
-      return nil;
-    }
-
-    NSURL *srcURL = [NSURL fileURLWithPath:bin];
-    NSURL *dstURL = [directoryURL URLByAppendingPathComponent:name isDirectory:NO];
-    if (![[NSFileManager defaultManager] copyItemAtURL:srcURL toURL:dstURL error:error]) {
-      return nil;
-    }
-
-    // Once it's copied into the root-only area, make sure it's not a
-    // symlink, since then a non-root user could change the binary
-    // after we check the signature.
-    NSString *dstPath = [dstURL path];
-    if (![self isRegularFile:dstPath]) {
-        *error = KBMakeError(-1, @"Redirector must be a regular file");
-        return nil;
-    }
-
-    return dstURL;
+- (void)createMountDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
+  if (![self _isStandardKeybaseMountPath:directory]) {
+    KBLog(@"The provided mount directory doesn't meet expectations: %@", directory);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid mount path"), nil);
+    return;
+  }
+  [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:completion];
 }
 
-- (void)checkKeybaseBinary:(NSURL *)bin error:(NSError **)error {
+
+- (NSURL *)copyBinaryForHelperUse:(NSString *)bin name:(NSString *)name error:(NSError **)error {
+  return [KBFSUtils copyToTemporary:bin name:name fileType:NSFileTypeRegular error:error];
+}
+
+- (void)checkKeybaseResource:(NSURL *)bin withIdentifier:(NSString *)identifier error:(NSError **)error {
+
     SecStaticCodeRef staticCode = NULL;
     CFURLRef url = (__bridge CFURLRef)bin;
     SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &staticCode);
     SecRequirementRef keybaseRequirement = NULL;
     // This requirement string is taken from Installer/Info.plist.
-    SecRequirementCreateWithString(CFSTR("anchor apple generic and identifier \"keybase-redirector\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")"), kSecCSDefaultFlags, &keybaseRequirement);
+
+    if (identifier == nil) {
+      identifier = @"";
+    }
+    NSString *nsRequirement = [NSString stringWithFormat:@"anchor apple generic %@ and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")", identifier];
+
+    SecRequirementCreateWithString((__bridge CFStringRef)nsRequirement,kSecCSDefaultFlags, &keybaseRequirement);
     OSStatus codeCheckResult = SecStaticCodeCheckValidityWithErrors(staticCode, kSecCSDefaultFlags, keybaseRequirement, NULL);
     if (codeCheckResult != errSecSuccess) {
       *error = KBMakeError(codeCheckResult, @"Binary not signed by Keybase");
     }
+    if (staticCode) CFRelease(staticCode);
+    if (keybaseRequirement) CFRelease(keybaseRequirement);
+}
+
+- (void)checkRedirectorBinary:(NSURL *)bin error:(NSError **)error {
+  [KBFSUtils checkKeybaseResource:bin identifier:@"and identifier \"keybase-redirector\"" error:error];
 }
 
 - (void)unmount:(NSString *)mount error:(NSError **)error {
@@ -251,7 +281,7 @@
   }
 
   // First create the directory.
-  [self createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
+  [self _createDirectory:directory uid:uid gid:gid permissions:permissions excludeFromBackup:excludeFromBackup completion:^(NSError *err, id value) {
     if (err) {
       completion(err, value);
       return;
@@ -269,7 +299,7 @@
     // Make sure the passed-in redirector binary points to a proper binary
     // signed by Keybase, we don't want this to be able to run arbitrary code
     // as root.
-    [self checkKeybaseBinary:dstURL error:&error];
+    [self checkRedirectorBinary:dstURL error:&error];
     if (error) {
       completion(error, nil);
       return;
@@ -308,13 +338,12 @@
 }
 
 - (BOOL)isRegularFile:(NSString *)linkPath {
-  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
-  if (!attributes) {
-    return NO;
-  }
-  return [attributes[NSFileType] isEqual:NSFileTypeRegular];
+  return [KBFSUtils checkFile:linkPath isType:NSFileTypeRegular];
 }
 
+- (BOOL)isDirectory:(NSString *)linkPath {
+  return [KBFSUtils checkFile:linkPath isType:NSFileTypeDirectory];
+}
 
 - (NSString *)resolveLinkPath:(NSString *)linkPath {
   if (![self linkExists:linkPath]) {
@@ -423,19 +452,27 @@
   }
 }
 
-- (void)moveFromSource:(NSString *)source destination:(NSString *)destination overwriteDestination:(BOOL)overwriteDestination completion:(void (^)(NSError *error, id value))completion {
+- (NSError *)_moveFromSource:(NSString *)source destination:(NSString *)destination {
   NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
-    completion(error, nil);
-    return;
+    return error;
   }
-
   if (![NSFileManager.defaultManager moveItemAtPath:source toPath:destination error:&error]) {
-    completion(error, nil);
-    return;
+    return error;
   }
+  return nil;
+}
 
-  completion(nil, @{});
+- (void)uninstallAppBundle:(void (^)(NSError *error, id value))completion {
+  NSError *error = nil;
+  NSString *source = @"/Applications/Keybase.app";
+  NSString *destination = @"/tmp/Keybase.app";
+  error = [self _moveFromSource:source destination:destination];
+  if (error == nil) {
+    completion(nil, @{});
+  } else {
+    completion(error, nil);
+  }
 }
 
 - (void)remove:(NSString *)path completion:(void (^)(NSError *error, id value))completion {
