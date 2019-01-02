@@ -546,7 +546,7 @@ const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPa
     return
   }
   const wallet = isMobile
-    ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'wallet']
+    ? [Tabs.settingsTab, SettingsConstants.walletsTab]
     : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
 
   return Saga.put(RouteTreeGen.createNavigateTo({path: wallet}))
