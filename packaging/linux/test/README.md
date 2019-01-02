@@ -169,6 +169,11 @@ Note that reinstalling will overwrite this change unless you `sudo touch
 comment out codesigning while testing). You also need to `rm -r /root/build/rpm
 /root/build/rpm_repo` in between `layout_repo`s.
 
+Centos with systemd:
+=======
+You can use the Dockerfile at https://github.com/xrowgmbh/docker-systemd-example-httpd, but note that centos
+doesn't support systemd user services right now, so Keybase will be using background anyway.
+
 Arch:
 =====
 
