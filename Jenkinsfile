@@ -8,34 +8,16 @@ helpers.rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
   properties([
-      [$class: "BuildDiscarderProperty",
-        strategy: [$class: "LogRotator",
-          numToKeepStr: "30",
-          daysToKeepStr: "10",
-          artifactNumToKeepStr: "10",
-        ]
-      ],
-      [$class: 'RebuildSettings',
-        autoRebuild: true,
-      ],
-      //[$class: "ParametersDefinitionProperty",
-      //  parameterDefinitions: [
-      //    [$class: 'StringParameterDefinition',
-      //      name: 'gregorProjectName',
-      //      defaultValue: '',
-      //      description: 'name of upstream gregor project',
-      //    ]
-      //  ]
-      //],
-      //[$class: "ParametersDefinitionProperty",
-      //  parameterDefinitions: [
-      //    [$class: 'StringParameterDefinition',
-      //      name: 'kbwebProjectName',
-      //      defaultValue: '',
-      //      description: 'name of upstream kbweb project',
-      //    ]
-      //  ]
-      //],
+    [$class: "BuildDiscarderProperty",
+      strategy: [$class: "LogRotator",
+        numToKeepStr: "30",
+        daysToKeepStr: "10",
+        artifactNumToKeepStr: "10",
+      ]
+    ],
+    [$class: 'RebuildSettings',
+      autoRebuild: true,
+    ],
   ])
 
   env.BASEDIR=pwd()
@@ -108,19 +90,6 @@ helpers.rootLinuxNode(env, {
         parallel (
           test_linux_deps: {
             if (hasGoChanges) {
-              // Build the client docker first so we can immediately kick off KBFS
-              // FIXME: temporarily avoid this while we merge the Jenkinsfiles.
-              // dir('go') { parallel (
-              //   build_image: {
-              //     sh "go install github.com/keybase/client/go/keybase"
-              //     sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-              //     clientImage = docker.build("keybaseprivate/kbclient")
-              //     sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-              //     archive("kbclient.tar.gz")
-              //     sh "rm kbclient.tar.gz"
-              //   },
-              // )}
-
               // Check protocol diffs
               // Clean the index first
               sh "git add -A"
@@ -168,6 +137,44 @@ helpers.rootLinuxNode(env, {
                       }
                     }
                   }},
+                  integrate: {
+                    // Build the client docker first so we can immediately kick off KBFS
+                    if (hasGoChanges) {
+                      dir('go') {
+                        sh "go install github.com/keybase/client/go/keybase"
+                        sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                        clientImage = docker.build("keybaseprivate/kbclient")
+                        // TODO: only do this when we need to run at least one KBFS test.
+                        dir('kbfs') {
+                          sh "go install github.com/keybase/client/go/kbfs/kbfsfuse"
+                          sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
+                          sh "go install github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
+                          sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
+                          withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
+                            println "Building Docker"
+                            sh '''
+                              set +x
+                              KBFS_DOCKER_CERT="$(echo $KBFS_DOCKER_CERT_B64 | sed 's/ //g' | base64 -d)"
+                              docker build -t keybaseprivate/kbfsfuse \
+                                  --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KBFS_DOCKER_CERT" \
+                                  --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64="$KBFS_DOCKER_CERT_B64" .
+                            '''
+                          }
+                          sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
+                          archive("kbfsfuse.tar.gz")
+                          build([
+                              job: "/kbfs-server/master",
+                              parameters: [
+                                string(
+                                  name: 'kbfsProjectName',
+                                  value: env.JOB_NAME,
+                                ),
+                              ]
+                          ])
+                        }
+                      }
+                    }
+                  },
                 )
               },
             )
