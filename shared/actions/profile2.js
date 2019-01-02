@@ -41,7 +41,7 @@ const setupEngineListeners = () => {
           color: Constants.rpcRowColorToColor(row.color),
           guiID: row.guiID,
           metas: (row.metas || []).map(m => ({
-            color: 'black', // TODO need this from core
+            color: 'red', // TODO need this from core
             label: m,
           })),
           proofURL: row.proofURL,

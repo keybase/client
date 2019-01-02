@@ -55,36 +55,90 @@ const stateToColor = state => {
   }
 }
 
+const metaColor = (c: Types.AssertionColor) => {
+  switch (c) {
+    case 'blue':
+      return Styles.globalColors.blue
+    case 'red':
+      return Styles.globalColors.red
+    case 'black':
+      return Styles.globalColors.black
+    case 'green':
+      return Styles.globalColors.green
+    case 'gray':
+      return Styles.globalColors.black_40
+    case 'yellow':
+      return Styles.globalColors.yellow
+    case 'orange':
+      return Styles.globalColors.orange
+    default:
+      return Styles.globalColors.red
+  }
+}
+
+// TODO get read icon from core
+const siteIcon = icon => {
+  switch (icon) {
+    case 'bitcoin':
+      return 'iconfont-identity-bitcoin'
+    case 'facebook':
+      return 'iconfont-identity-facebook'
+    case 'github':
+      return 'iconfont-identity-github'
+    case 'hackernews':
+      return 'iconfont-identity-hn'
+    case 'pgp':
+      return 'iconfont-identity-pgp'
+    case 'reddit':
+      return 'iconfont-identity-reddit'
+    case 'stellar':
+      return 'iconfont-identity-stellar'
+    case 'twitter':
+      return 'iconfont-identity-twitter'
+    case 'http':
+      return 'iconfont-identity-website'
+    case 'https':
+      return 'iconfont-identity-website'
+    case 'zcash':
+      return 'iconfont-identity-zcash'
+    default:
+      return 'iconfont-identity-website'
+  }
+}
+
 const Assertion = (p: Props) => (
-  <Kb.Box2
-    direction="horizontal"
-    gap="tiny"
-    fullWidth={true}
-    style={styles.container}
-    gapStart={true}
-    gapEnd={true}
-  >
-    <Kb.Icon type={(p.siteIcon: any)} onClick={p.onShowSite} color={Styles.globalColors.black} />
-    <Kb.Text type="Body" style={styles.textContainer}>
-      <Kb.Text type="BodyPrimaryLink" onClick={p.onShowUserOnSite} style={styles.username}>
-        {p.value}
+  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
+      <Kb.Icon type={siteIcon(p.type)} onClick={p.onShowSite} color={Styles.globalColors.black_75} />
+      <Kb.Text type="Body" style={styles.textContainer}>
+        <Kb.Text type="BodyPrimaryLink" onClick={p.onShowUserOnSite} style={styles.username}>
+          {p.value}
+        </Kb.Text>
+        <Kb.Text type="Body" style={styles.site}>
+          {p.type}
+        </Kb.Text>
       </Kb.Text>
-      <Kb.Text type="Body" style={styles.site}>
-        {p.type}
-      </Kb.Text>
-    </Kb.Text>
-    <Kb.Icon
-      type={stateToIcon(p.state)}
-      fontSize={20}
-      onClick={p.onClickBadge}
-      hoverColor={stateToColor(p.state)}
-      color={stateToColor(p.state)}
-    />
+      <Kb.Icon
+        type={stateToIcon(p.state)}
+        fontSize={20}
+        onClick={p.onClickBadge}
+        hoverColor={stateToColor(p.state)}
+        color={stateToColor(p.state)}
+      />
+    </Kb.Box2>
+    {!!p.metas.length && (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
+        {p.metas.map(m => (
+          <Kb.Meta key={m.label} backgroundColor={metaColor(m.color)} title={m.label} />
+        ))}
+      </Kb.Box2>
+    )}
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
   container: {flexShrink: 0, paddingBottom: 2, paddingTop: 2},
+  metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   textContainer: {flexGrow: 1, marginTop: -1},
   username: Styles.platformStyles({
