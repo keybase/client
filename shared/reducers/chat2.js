@@ -389,7 +389,7 @@ const rootReducer = (
           logger.info(
             `rootReducer: selectConversation: setting orange line: convID: ${
               action.payload.conversationIDKey
-            } max: ${maxMsgID} orange: ${orangeLineMsgID}`
+            } max: ${maxMsgID}, orange: ${orangeLineMsgID}`
           )
           if (maxMsgID > readMsgID) {
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], orangeLineMsgID)
