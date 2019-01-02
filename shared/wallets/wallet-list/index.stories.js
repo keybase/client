@@ -56,7 +56,6 @@ const load = () => {
     .addDecorator(Sb.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
     .add('Wallet List', () => (
       <WalletList
-        acceptedDisclaimer={true}
         refresh={Sb.action('refresh')}
         accountIDs={accountIDs}
         onAddNew={Sb.action('onAddNew')}
