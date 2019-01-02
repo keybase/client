@@ -93,22 +93,4 @@
   [rover run];
 }
 
-+ (void)setLoginItemEnabled:(BOOL)loginItemEnabled config:(KBEnvConfig *)config appPath:(NSString *)appPath {
-  NSBundle *appBundle = [NSBundle bundleWithPath:appPath];
-  if (!appBundle) {
-    DDLogError(@"No app bundle found (for login item check)");
-    return;
-  }
-  if (loginItemEnabled && ![config isInApplications:appBundle.bundlePath] && ![config isInUserApplications:appBundle.bundlePath]) {
-    DDLogError(@"Bundle path is invalid for adding login item: %@", appBundle.bundlePath);
-    return;
-  }
-
-  DDLogDebug(@"Login item %@ (%@)", (loginItemEnabled ? @"enabled" : @"disabled"), appPath);
-  NSError *error = nil;
-  BOOL changed = [KBLoginItem setEnabled:loginItemEnabled URL:appBundle.bundleURL error:&error];
-  if (error) DDLogError(@"Error setting login item: %@", error);
-  DDLogDebug(@"Login items changed: %@", changed ? @"Yes" : @"No");
-}
-
 @end

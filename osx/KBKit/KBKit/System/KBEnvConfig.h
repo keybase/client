@@ -81,9 +81,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)launchdKBFSLabel;
 - (NSString *)launchdUpdaterLabel;
 
-- (BOOL)isInApplications:(NSString *)path;
-- (BOOL)isInUserApplications:(NSString *)path;
-
 @end
 
 NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue);

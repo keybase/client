@@ -306,14 +306,6 @@
   }
 }
 
-- (BOOL)isInApplications:(NSString *)path {
-  return [path gh_startsWith:@"/Applications/"];
-}
-
-- (BOOL)isInUserApplications:(NSString *)path {
-  return [path gh_startsWith:NSStringWithFormat(@"%@/Applications/", NSHomeDirectory())];
-}
-
 @end
 
 NSString *NSStringFromKBRunMode(KBRunMode runMode, BOOL isValue) {
