@@ -5530,14 +5530,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 			require.Fail(t, "no done")
 		}
 		if !expectError {
-			select {
-			case msg := <-listener.newMessageLocal:
-				st, err := msg.Message.State()
-				require.NoError(t, err)
-				require.Equal(t, chat1.MessageUnboxedState_OUTBOX, st)
-			case <-time.After(delay):
-				require.Fail(t, "no ready to send")
-			}
+			consumeNewPendingMsg(t, listener)
 			select {
 			case msg := <-listener.newMessageLocal:
 				require.True(t, msg.Message.IsValid())
@@ -5602,14 +5595,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 		require.Fail(t, "confirm")
 	default:
 	}
-	select {
-	case msg := <-listener.newMessageLocal:
-		st, err := msg.Message.State()
-		require.NoError(t, err)
-		require.Equal(t, chat1.MessageUnboxedState_OUTBOX, st)
-	case <-time.After(delay):
-		require.Fail(t, "no confirm")
-	}
+	consumeNewPendingMsg(t, listener)
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {
