@@ -4,6 +4,7 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Profile2Gen from '../../actions/profile2-gen'
+import * as I from 'immutable'
 // import * as TeamsGen from '../actions/teams-gen'
 import * as Types from '../../constants/types/profile2'
 // import * as Profile2Gen from '../actions/profile2-gen'
@@ -12,7 +13,7 @@ import {remoteConnect} from '../../util/container'
 
 type OwnProps = {||}
 type State = {|
-  assertions: Array<string>,
+  assertions: ?I.Map<string, Types.Assertion>,
   bio: ?string,
   followThem: ?boolean,
   followersCount: ?number,
@@ -39,8 +40,18 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...ownProps,
+  assertionKeys: stateProps.assertions ? stateProps.assertions.keySeq().toArray() : null,
+  bio: stateProps.bio,
+  followThem: stateProps.followThem,
+  followersCount: stateProps.followersCount,
+  followingCount: stateProps.followingCount,
+  followsYou: stateProps.followsYou,
+  guiID: stateProps.guiID,
+  location: stateProps.location,
+  publishedTeams: stateProps.publishedTeams,
+  reason: stateProps.reason,
+  state: stateProps.state,
+  username: stateProps.username,
   onAccept: () => dispatchProps._onAccept(stateProps.guiID),
   onChat: () => dispatchProps._onChat(stateProps.username),
   onClose: () => dispatchProps._onClose(stateProps.guiID),

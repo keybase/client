@@ -6,17 +6,17 @@ import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 
 type Props = {|
-  site: string,
-  username: string,
-  siteURL: string,
-  siteIcon: string, // TODO handle actual urls, for now just use iconfont
+  metas: $ReadOnlyArray<Types._AssertionMeta>,
   onClickBadge: () => void,
   onShowProof: () => void,
   onShowSite: () => void,
   onShowUserOnSite: () => void,
   proofURL: string,
+  siteIcon: string, // TODO handle actual urls, for now just use iconfont
+  siteURL: string,
   state: Types.AssertionState,
-  metas: $ReadOnlyArray<Types._AssertionMeta>,
+  type: string,
+  value: string,
 |}
 
 const stateToIcon = state => {
@@ -67,10 +67,10 @@ const Assertion = (p: Props) => (
     <Kb.Icon type={(p.siteIcon: any)} onClick={p.onShowSite} color={Styles.globalColors.black} />
     <Kb.Text type="Body" style={styles.textContainer}>
       <Kb.Text type="BodyPrimaryLink" onClick={p.onShowUserOnSite} style={styles.username}>
-        {p.username}
+        {p.value}
       </Kb.Text>
       <Kb.Text type="Body" style={styles.site}>
-        {p.site}
+        {p.type}
       </Kb.Text>
     </Kb.Text>
     <Kb.Icon

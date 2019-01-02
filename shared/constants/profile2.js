@@ -28,13 +28,14 @@ export const generateGUIID = () =>
   Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256))).toString('utf8')
 
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
+  assertionKey: '',
   metas: [],
   proofURL: '',
-  site: '',
   siteIcon: '',
   siteURL: '',
   state: 'error',
-  username: '',
+  type: '',
+  value: '',
 })
 
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
@@ -52,6 +53,44 @@ export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
     // Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(result)
   }
   return 'error'
+}
+
+export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor) => {
+  switch (color) {
+    case RPCTypes.identify3UiIdentify3RowColor.blue:
+      return 'blue'
+    case RPCTypes.identify3UiIdentify3RowColor.red:
+      return 'red'
+    case RPCTypes.identify3UiIdentify3RowColor.black:
+      return 'black'
+    case RPCTypes.identify3UiIdentify3RowColor.green:
+      return 'green'
+    case RPCTypes.identify3UiIdentify3RowColor.gray:
+      return 'gray'
+    case RPCTypes.identify3UiIdentify3RowColor.yellow:
+      return 'yellow'
+    case RPCTypes.identify3UiIdentify3RowColor.orange:
+      return 'orange'
+    default:
+      return 'black'
+  }
+}
+
+export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): Types.AssertionState => {
+  switch (state) {
+    case RPCTypes.identify3UiIdentify3RowState.checking:
+      return 'checking'
+    case RPCTypes.identify3UiIdentify3RowState.valid:
+      return 'valid'
+    case RPCTypes.identify3UiIdentify3RowState.error:
+      return 'error'
+    case RPCTypes.identify3UiIdentify3RowState.warning:
+      return 'warning'
+    case RPCTypes.identify3UiIdentify3RowState.revoked:
+      return 'revoked'
+    default:
+      return 'error'
+  }
 }
 
 export const noDetails = makeDetails({})

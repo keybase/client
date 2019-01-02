@@ -24,10 +24,21 @@
     },
     "updateResult": {
       "guiID": "string",
-      "result": "RPCTypes.Identify3ResultType",
+      "result": "Types.DetailsState ",
     },
     "closeTracker": {
       "guiID": "string",
     },
+    "updateAssertion": {
+      "guiID": "string",
+      "type": "string",
+      "value": "string",
+      "siteURL": "string",
+      "siteIcon": "string",
+      "proofURL": "string",
+      "state": "Types.AssertionState",
+      "metas": "Array<Types._AssertionMeta>",
+      "color": "Types.AssertionColor"
+    }
   }
 }

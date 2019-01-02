@@ -22,6 +22,36 @@ const setupEngineListeners = () => {
       })
   })
   engine().setIncomingCallMap({
+    'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
+      Saga.put(Profile2Gen.createUpdateResult({guiID, result: Constants.rpcResultToStatus(result)})),
+    'keybase.1.identify3Ui.identify3ShowTracker': ({guiID, assertion, reason, forceDisplay}) =>
+      Saga.put(
+        Profile2Gen.createLoad({
+          assertion,
+          forceDisplay: !!forceDisplay,
+          fromDaemon: true,
+          guiID,
+          ignoreCache: false,
+          reason: reason.reason || '',
+        })
+      ),
+    'keybase.1.identify3Ui.identify3UpdateRow': row =>
+      Saga.put(
+        Profile2Gen.createUpdateAssertion({
+          color: Constants.rpcRowColorToColor(row.color),
+          guiID: row.guiID,
+          metas: (row.metas || []).map(m => ({
+            color: 'black', // TODO need this from core
+            label: m,
+          })),
+          proofURL: row.proofURL,
+          siteIcon: row.siteIcon,
+          siteURL: row.siteURL,
+          state: Constants.rpcRowStateToAssertionState(row.state),
+          type: row.key,
+          value: row.value,
+        })
+      ),
     'keybase.1.identify3Ui.identify3UpdateUserCard': ({guiID, card}) =>
       Saga.put(
         Profile2Gen.createUpdatedDetails({
@@ -34,24 +64,6 @@ const setupEngineListeners = () => {
           guiID,
           location: card.location,
           publishedTeams: (card.teamShowcase || []).map(t => t.fqName),
-        })
-      ),
-    'keybase.1.identify3Ui.identify3ShowTracker': ({guiID, assertion, reason, forceDisplay}) =>
-      Saga.put(
-        Profile2Gen.createLoad({
-          assertion,
-          forceDisplay: !!forceDisplay,
-          fromDaemon: true,
-          guiID,
-          ignoreCache: false,
-          reason: reason.reason || '',
-        })
-      ),
-    'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
-      Saga.put(
-        Profile2Gen.createUpdateResult({
-          guiID,
-          result,
         })
       ),
   })

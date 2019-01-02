@@ -5,7 +5,7 @@ import * as Avatar from '../../desktop/remote/sync-avatar-props.desktop'
 
 export const serialize: any = {
   ...Avatar.serialize,
-  assertions: v => v,
+  assertions: v => v.toJS(),
   bio: v => v,
   followThem: v => v,
   followersCount: v => v,
@@ -39,6 +39,15 @@ export const deserialize = (state: any = initialState, props: any) => {
   const newState = {
     ...state,
     ...props,
+    assertions:
+      props && props.assertions
+        ? I.Map(
+            Object.keys(props.assertions).map(assertionKey => [
+              assertionKey,
+              Constants.makeAssertion(props.assertions[assertionKey]),
+            ])
+          )
+        : I.Map(),
     users: {
       infoMap:
         props && props.username

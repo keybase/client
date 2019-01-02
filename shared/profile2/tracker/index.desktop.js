@@ -9,7 +9,7 @@ import Assertion from '../assertion/remote-container'
 import Bio from '../bio/remote-container'
 
 type Props = {|
-  assertions: ?$ReadOnlyArray<string>,
+  assertionKeys: ?$ReadOnlyArray<string>,
   bio: ?string,
   followThem: ?boolean,
   followersCount: ?number,
@@ -98,8 +98,8 @@ const getButtons = (props: Props) => {
 
 const Tracker = (props: Props) => {
   let assertions
-  if (props.assertions) {
-    assertions = props.assertions.map(a => <Assertion key={a} username={props.username} assertion={a} />)
+  if (props.assertionKeys) {
+    assertions = props.assertionKeys.map(a => <Assertion key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null

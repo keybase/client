@@ -19,7 +19,7 @@ const windowOpts = {height: 470, width: 320}
 const trackerMapStateToProps = (state, {name}) => {
   const d = state.profile2.usernameToDetails.get(name, Constants.noDetails)
   return {
-    _assertions: d.assertions,
+    assertions: d.assertions,
     bio: d.bio,
     followThem: d.followThem,
     followersCount: d.followersCount,
@@ -38,7 +38,7 @@ const trackerMapStateToProps = (state, {name}) => {
 
 const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
   return {
-    assertions: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
+    assertions: stateProps.assertions,
     bio: stateProps.bio,
     followThem: stateProps.followThem,
     followersCount: stateProps.followersCount,

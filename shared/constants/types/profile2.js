@@ -3,6 +3,8 @@ import * as I from 'immutable'
 // import * as RPCTypes from './rpc-gen'
 
 export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked'
+export type AssertionColor = 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
+
 export type _AssertionMeta = {|
   color: 'blue' | 'red' | 'black' | 'green',
   label: string, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
@@ -10,13 +12,15 @@ export type _AssertionMeta = {|
 type AssertionMeta = I.RecordOf<_AssertionMeta>
 
 export type _Assertion = {
+  assertionKey: string, // twitter:bob
+  color: AssertionColor,
   metas: $ReadOnlyArray<AssertionMeta>,
   proofURL: string, // http://twitter.com/bob/post/1234
-  site: string, // twitter
   siteIcon: string, // https://keybase.io/_/icons/twitter.png
   siteURL: string, // https://twitter.com/bob
   state: AssertionState,
-  username: string, // bob
+  type: string, // twitter
+  value: string, // bob
 }
 export type Assertion = I.RecordOf<_Assertion>
 

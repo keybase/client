@@ -60,7 +60,7 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], old =>
           (old || Constants.makeDetails()).merge({
-            state: Constants.rpcResultToStatus(action.payload.result),
+            state: action.payload.result,
           })
         ),
       })
@@ -75,6 +75,30 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
           (old || Constants.makeDetails()).merge({
             showTracker: false,
           })
+        ),
+      })
+    }
+    case Profile2Gen.updateAssertion: {
+      const username = guiIDToUsername(state, action.payload.guiID)
+      if (!username) {
+        return state
+      }
+      const assertionKey = `${action.payload.type}:${action.payload.value}`
+      return state.merge({
+        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
+          (old || Constants.makeDetails()).updateIn(['assertions', assertionKey], old =>
+            (old || Constants.makeAssertion()).merge({
+              assertionKey,
+              color: action.payload.color,
+              metas: action.payload.metas,
+              proofURL: action.payload.proofURL,
+              siteIcon: action.payload.siteIcon,
+              siteURL: action.payload.siteURL,
+              state: action.payload.state,
+              type: action.payload.type,
+              value: action.payload.value,
+            })
+          )
         ),
       })
     }
