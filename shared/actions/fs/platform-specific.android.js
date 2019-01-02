@@ -66,8 +66,8 @@ function* downloadSuccessToAction(state, action) {
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield Saga.chainGenerator<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessToAction)
+  yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
+  yield* Saga.chainGenerator<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessToAction)
 }
 
 export default platformSpecificSaga
