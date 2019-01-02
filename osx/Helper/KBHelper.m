@@ -78,9 +78,7 @@
   uid_t uid = xpc_connection_get_euid(remote);
 
   if (![self _checkUID:uid inGroup:"staff"]) {
-    KBLog(@"Remote caller into Helper process didn't have staff permissions");
-    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid staff permissions"), nil);
-    return;
+    KBLog(@"Warning: remote caller into Helper process didn't have staff permissions");
   }
 
   if ([method isEqualToString:@"version"]) {
@@ -384,14 +382,24 @@
       return;
     }
 
-    // Fix the link
-    NSDictionary *dirAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkDir error:nil];
-    uid_t uid = [dirAttributes[NSFileOwnerAccountID] intValue];
-    gid_t gid = [dirAttributes[NSFileGroupOwnerAccountID] intValue];
-    KBLog(@"Fixing symlink: %@, %@ (%@,%@)", linkPath, path, @(uid), @(gid));
-    if (dirAttributes && [self createLink:path linkPath:linkPath uid:uid gid:gid]) {
-      completion(nil, @{@"path": linkPath});
-      return;
+    NSString *neededPrefix = @"/Applications/Keybase.app";
+
+    if ([KBFSUtils checkAbsolutePath:path hasAbsolutePrefix:neededPrefix]) {
+
+      KBLog(@"Allowing creation of symlink %@ -> %@ since it's in %@", linkPath, path, neededPrefix);
+
+      // Fix the link
+      NSDictionary *dirAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkDir error:nil];
+      uid_t uid = [dirAttributes[NSFileOwnerAccountID] intValue];
+      gid_t gid = [dirAttributes[NSFileGroupOwnerAccountID] intValue];
+      KBLog(@"Fixing symlink: %@, %@ (%@,%@)", linkPath, path, @(uid), @(gid));
+      if (dirAttributes && [self createLink:path linkPath:linkPath uid:uid gid:gid]) {
+        completion(nil, @{@"path": linkPath});
+        return;
+      }
+
+    } else {
+      KBLog(@"Not allowing creation of symlink %@ -> %@ since it's not in %@", linkPath, path, neededPrefix);
     }
   }
 

@@ -90,6 +90,9 @@
   } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.32"]] || [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.33"]] || [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.34"]]) {
     alertText = @"Keybase helper update";
     infoText = @"This Keybase release contains security updates to the helper tool.\n\nYou may need to enter your password for this update.";
+  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]]) {
+    alertText = @"Keybase helper update";
+    infoText = @"This Keybase release fixes a regression in macOS installs that use Active Directory for user management.\n\nYou may need to enter your password for this update.";
   }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];
