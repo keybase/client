@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import WalletList from './index'
+import Wallets from './index'
 import Onboarding from '../onboarding/container'
 import {connect} from '../../util/container'
 
@@ -19,11 +19,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   children: ownProps.children,
 })
 
-const WalletOrOnboarding = props =>
-  props.acceptedDisclaimer ? <WalletList children={props.children} /> : <Onboarding />
+const WalletsOrOnboarding = props =>
+  props.acceptedDisclaimer ? <Wallets children={props.children} /> : <Onboarding />
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(WalletOrOnboarding)
+)(WalletsOrOnboarding)
