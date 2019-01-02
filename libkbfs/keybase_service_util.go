@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/tlf"
 	"sync"
 
 	"github.com/keybase/client/go/kbconst"
@@ -39,7 +40,7 @@ func setupDiskBlockCache(ctx context.Context, config Config, username string) {
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's public TLF: %+v", err)
-	} else {
+	} else if publicHandle.tlfID != tlf.NullID {
 		err = config.DiskBlockCache().AddHomeTLF(ctx, publicHandle.tlfID)
 		if err != nil {
 			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
@@ -51,7 +52,7 @@ func setupDiskBlockCache(ctx context.Context, config Config, username string) {
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's private TLF: %+v", err)
-	} else {
+	} else if privateHandle.tlfID != tlf.NullID {
 		err = config.DiskBlockCache().AddHomeTLF(ctx, privateHandle.tlfID)
 		if err != nil {
 			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
