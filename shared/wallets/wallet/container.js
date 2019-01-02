@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect, type RouteProps} from '../../util/container'
+import {connect, isMobile, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
@@ -92,8 +92,10 @@ const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp:
     .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
     .map(({paymentID}) => ({paymentID}))
 
+// On desktop it's impossible to get here without accepting the
+// disclaimer (from the wallet list).
 const WalletOrOnboarding = (props: Props) =>
-  props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
+  !isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,

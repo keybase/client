@@ -34,16 +34,20 @@ const HistoryPlaceholder = () => (
 
 class Wallet extends React.Component<Props> {
   componentDidMount() {
-    this.props.refresh()
+    // If we're on mobile, this is the entry point, so we need to
+    // refresh.
+    if (Styles.isMobile) {
+      this.props.refresh()
+    }
   }
 
-  componentDidUpdate = (prevProps: Props) => {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.accountID !== this.props.accountID) {
       prevProps.onMarkAsRead()
     }
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.props.onMarkAsRead()
   }
 
