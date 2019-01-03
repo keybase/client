@@ -12,7 +12,7 @@ import {initDesktopStyles} from '../styles/index.desktop'
 
 const stories = {...sharedStories, ...desktopStories}
 
-const filter = null
+const filter = process.env.STORYBOOK_FILTER ? new RegExp(process.env.STORYBOOK_FILTER) : null
 const filteredStories = Object.keys(stories).reduce(
   (acc, k) => {
     if (filter && filter.exec(k)) {
