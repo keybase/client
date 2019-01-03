@@ -1620,7 +1620,8 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 			if cancel, ok := c.tlfClearCancels[tlfID]; ok {
 				cancel()
 			}
-			buf, err := c.codec.Encode(&config)
+			var buf []byte
+			buf, err = c.codec.Encode(&config)
 			if err != nil {
 				return nil, nil, err
 			}
