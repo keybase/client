@@ -308,7 +308,7 @@ const reactComponentsForMarkdownType = {
       />
     )
   },
-  newline: (node, outputFunc, state) =>
+  newline: (node, output, state) =>
     !isMobile || state.inParagraph ? (
       '\n'
     ) : (
@@ -358,12 +358,18 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
-type ASTNode = {
+type SingleASTNode = {
   type: string,
   [string]: any,
 }
 
-const ruleOutput = (rules: {[key: string]: (node: ASTNode, outputFunc: any, state: any) => any}) => (
+type ASTNode = SingleASTNode | Array<SingleASTNode>
+
+type State = {[string]: any}
+
+type Output = (node: ASTNode, state?: ?State) => any
+
+const ruleOutput = (rules: {[key: string]: (node: SingleASTNode, output: Output, state: State) => any}) => (
   node,
   output,
   state
