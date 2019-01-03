@@ -30,6 +30,7 @@ const mapDispatchToProps = dispatch => ({
   onClose: () => {},
   onFollow: () => {},
   onIgnoreFor24Hours: () => {},
+  onReload: () => {},
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
@@ -46,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClose: dispatchProps.onClose,
     onFollow: dispatchProps.onFollow,
     onIgnoreFor24Hours: dispatchProps.onIgnoreFor24Hours,
+    onReload: dispatchProps.onReload,
     publishedTeams: stateProps.publishedTeams,
     reason: stateProps.reason,
     state: stateProps.state,

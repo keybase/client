@@ -22,6 +22,7 @@ type Props = {|
   onClose: () => void,
   onIgnoreFor24Hours: () => void,
   onAccept: () => void,
+  onReload: () => void,
   publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
   state: Types.DetailsState,
@@ -75,7 +76,7 @@ const getButtons = (props: Props) => {
               onClick={props.onFollow}
             />,
           ]
-    case 'error':
+    case 'broken':
       return [
         <Kb.WaitingButton
           type="Secondary"
@@ -88,8 +89,16 @@ const getButtons = (props: Props) => {
       ]
     case 'needsUpgrade':
       return [buttonChat, buttonAccept]
-    case 'canceled':
-      return [buttonClose]
+    case 'error':
+      return [
+        <Kb.WaitingButton
+          type="Primary"
+          key="Reload"
+          label="Reload"
+          waitingKey={Constants.waitingKey}
+          onClick={props.onReload}
+        />,
+      ]
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.state)
   }

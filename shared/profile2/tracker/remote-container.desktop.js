@@ -1,6 +1,7 @@
 // @flow
 // Inside tracker we use an embedded Avatar which is connected. This assumes its connected and uses immutable stuff.
 // We convert the over-the-wire plain json to immutable in the remote-store helper
+import * as Constants from '../../constants/profile2'
 import * as ConfigGen from '../../actions/config-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Profile2Gen from '../../actions/profile2-gen'
@@ -37,6 +38,17 @@ const mapDispatchToProps = dispatch => ({
   _onClose: (guiID: string) => dispatch(Profile2Gen.createCloseTracker({guiID})),
   _onFollow: (guiID: string) => dispatch(Profile2Gen.createChangeFollow({follow: true, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Profile2Gen.createIgnore({guiID})),
+  _onReload: (assertion: string) =>
+    dispatch(
+      Profile2Gen.createLoad({
+        assertion,
+        forceDisplay: true,
+        fromDaemon: false,
+        guiID: Constants.generateGUIID(),
+        ignoreCache: true,
+        reason: '',
+      })
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -53,6 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: () => dispatchProps._onClose(stateProps.guiID),
   onFollow: () => dispatchProps._onFollow(stateProps.guiID),
   onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
+  onReload: () => dispatchProps._onReload(stateProps.username),
   publishedTeams: stateProps.publishedTeams,
   reason: stateProps.reason,
   state: stateProps.state,

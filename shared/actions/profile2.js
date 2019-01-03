@@ -22,8 +22,7 @@ const setupEngineListeners = () => {
       })
   })
   engine().setIncomingCallMap({
-    // TODO ?
-    'keybase.1.NotifyUsers.userChanged': ({uid}) => null,
+    'keybase.1.NotifyUsers.userChanged': ({uid}) => null, // we ignore this
     'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
       Saga.put(
         Profile2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
@@ -81,9 +80,13 @@ const changeFollow = (_, action) =>
     },
     Constants.waitingKey
   )
-    .then(() => {
-      console.log('aaaa ident follow worked')
-    })
+    .then(() =>
+      Profile2Gen.createUpdateResult({
+        guiID: action.payload.guiID,
+        reason: `Successfully ${action.payload.follow ? 'followed' : 'unfollowed'}!`,
+        result: 'valid',
+      })
+    )
     .catch(e =>
       Profile2Gen.createUpdateResult({
         guiID: action.payload.guiID,

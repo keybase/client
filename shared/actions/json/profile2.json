@@ -5,8 +5,8 @@
   "actions": {
     "load": {
       "assertion": "string",
-      "forceDisplay": "boolean",
-      "fromDaemon": "boolean",
+      "forceDisplay?": "boolean",
+      "fromDaemon?": "boolean",
       "guiID": "string",
       "ignoreCache?": "boolean",
       "reason": "string",

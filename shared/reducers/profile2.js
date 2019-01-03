@@ -17,7 +17,7 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
     case Profile2Gen.resetStore:
       return initialState
     case Profile2Gen.load: {
-      const guiID = action.payload.guiID || Constants.generateGUIID()
+      const guiID = action.payload.guiID
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([action.payload.assertion], old =>
           (old || Constants.makeDetails()).merge({
@@ -55,14 +55,15 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
         return state
       }
 
+      const reason =
+        action.payload.reason ||
+        (action.payload.result === 'broken' &&
+          `Some of ${username}'s proofs have changed since you last followed them`)
+
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], old =>
           (old || Constants.makeDetails()).merge({
-            reason:
-              action.payload.result === 'error'
-                ? action.payload.reason ||
-                  `Some of ${username}'s proofs have changed since you last followed them`
-                : old.reason,
+            reason: reason || old.reason,
             state: action.payload.result,
           })
         ),

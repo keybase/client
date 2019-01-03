@@ -23,8 +23,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   username: '',
 })
 
-export const generateGUIID = () =>
-  Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256))).toString('utf8')
+export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
@@ -48,11 +47,11 @@ export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
     case RPCTypes.identify3UiIdentify3ResultType.ok:
       return 'valid'
     case RPCTypes.identify3UiIdentify3ResultType.broken:
-      return 'error'
+      return 'broken'
     case RPCTypes.identify3UiIdentify3ResultType.needsUpgrade:
       return 'needsUpgrade'
     case RPCTypes.identify3UiIdentify3ResultType.canceled:
-      return 'canceled'
+      return 'error'
     default:
     // flow is confused by number enums
     // Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(result)
