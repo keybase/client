@@ -358,7 +358,12 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
-const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: any) => any}) => (
+type ASTNode = {
+  type: string,
+  [string]: any,
+}
+
+const ruleOutput = (rules: {[key: string]: (node: ASTNode, outputFunc: any, state: any) => any}) => (
   node,
   output,
   state
