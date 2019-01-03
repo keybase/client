@@ -13,6 +13,9 @@ import (
 // ErrInvalidAccountID is for invalid account IDs.
 var ErrInvalidAccountID = errors.New("invalid stellar account ID")
 
+// ErrInvalidTxID is for invalid transaction IDs.
+var ErrInvalidTxID = errors.New("invalid stellar transaction ID")
+
 // walletAPIHandler is a type that can handle all the json api
 // methods for the wallet API.
 type walletAPIHandler struct {
@@ -39,12 +42,14 @@ func (w *walletAPIHandler) handle(ctx context.Context, c Call, wr io.Writer) err
 // list of all supported methods:
 const (
 	balancesMethod = "balances"
+	detailsMethod  = "details"
 	historyMethod  = "history"
 )
 
 // validWalletMethodsV1 is a map of the valid V1 methods for quick lookup.
 var validWalletMethodsV1 = map[string]bool{
 	balancesMethod: true,
+	detailsMethod:  true,
 	historyMethod:  true,
 }
 
@@ -63,6 +68,8 @@ func (w *walletAPIHandler) handleV1(ctx context.Context, c Call, wr io.Writer) e
 	switch c.Method {
 	case balancesMethod:
 		return w.balances(ctx, c, wr)
+	case detailsMethod:
+		return w.details(ctx, c, wr)
 	case historyMethod:
 		return w.history(ctx, c, wr)
 	default:
@@ -79,13 +86,26 @@ func (w *walletAPIHandler) balances(ctx context.Context, c Call, wr io.Writer) e
 	return w.encodeResult(c, accounts, wr)
 }
 
+// details outputs details for a single transaction.
+func (w *walletAPIHandler) details(ctx context.Context, c Call, wr io.Writer) error {
+	var opts txIDOptions
+	if err := unmarshalOptions(c, &opts); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	accounts, err := w.cli.WalletGetAccountsCLILocal(ctx)
+	if err != nil {
+		return encodeErr(c, err, wr, w.indent)
+	}
+	return w.encodeResult(c, accounts, wr)
+}
+
 // history outputs recent payment history for the specified account ID.
 func (w *walletAPIHandler) history(ctx context.Context, c Call, wr io.Writer) error {
 	var opts accountIDOptions
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return w.encodeErr(c, err, wr)
 	}
-	a := stellar1.AccountID(opts.AccountID)
+	a := opts.Convert()
 	payments, err := w.cli.RecentPaymentsCLILocal(ctx, &a)
 	if err != nil {
 		return w.encodeErr(c, err, wr)
@@ -113,6 +133,24 @@ func (c *accountIDOptions) Check() error {
 	_, err := strkey.Decode(strkey.VersionByteAccountID, c.AccountID)
 	if err != nil {
 		return ErrInvalidAccountID
+	}
+	return nil
+}
+
+func (c *accountIDOptions) Convert() stellar1.AccountID {
+	return stellar1.AccountID(c.AccountID)
+}
+
+// txIDOptions is for a command where a txid is required.
+type txIDOptions struct {
+	TxID string `json:"txid"`
+}
+
+// Check makes sure that TxID exists and is valid.
+func (c *txIDOptions) Check() error {
+	_, err := strkey.Decode(strkey.VersionByteHashTx, c.TxID)
+	if err != nil {
+		return ErrInvalidTxID
 	}
 	return nil
 }
