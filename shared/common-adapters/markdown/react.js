@@ -358,6 +358,8 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
+type ReactElements = React$Node
+
 type SingleASTNode = {
   type: string,
   [string]: any,
@@ -367,9 +369,13 @@ type ASTNode = SingleASTNode | Array<SingleASTNode>
 
 type State = {[string]: any}
 
-type Output = (node: ASTNode, state?: ?State) => any
+type Output<Result> = (node: ASTNode, state?: ?State) => Result
 
-const ruleOutput = (rules: {[key: string]: (node: SingleASTNode, output: Output, state: State) => any}) => (
+type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result
+
+type ReactNodeOutput = NodeOutput<ReactElements>
+
+const ruleOutput = (rules: {text: NodeOutput<string>, [key: string]: ReactNodeOutput}) => (
   node,
   output,
   state
@@ -397,7 +403,7 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
 )
 
 const previewOutput = SimpleMarkdown.reactFor(
-  (ast: any, output: Function, state: any): any => {
+  (ast: SingleASTNode, output: Output<ReactElements>, state: State): ReactElements => {
     // leaf node is just the raw value, so it has no ast.type
     if (typeof ast !== 'object') {
       return ast
@@ -409,8 +415,10 @@ const previewOutput = SimpleMarkdown.reactFor(
       case 'newline':
         return ' '
       case 'blockQuote':
+        // $ForceType
         return '> ' + output(ast.content, state)
       case 'codeBlock':
+        // $ForceType
         return ' ' + output(ast.content, state)
       default:
         return output(ast.content, state)
