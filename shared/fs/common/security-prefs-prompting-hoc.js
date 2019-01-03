@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import {connect} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // On desktop, SecurityPrefsPromptingHoc prompts user about going to security
 // preferences to allow the kext if needed. It prompts at most once per
@@ -34,12 +34,14 @@ const mapDispatchToProps = dispatch => ({
       })
     )
     dispatch(
-      navigateAppend([
-        {
-          props: {},
-          selected: 'securityPrefs',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: 'securityPrefs',
+          },
+        ],
+      })
     )
   },
 })
@@ -49,20 +51,24 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
   return shouldPromptSecurityPrefs
 }
 
-const ConnectedDesktopSecurityPrefs = connect<{||}, _, React.ComponentType<MergedProps>, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
-)
-
-const DesktopSecurityPrefsBranch = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<MergedProps> {
+const DesktopSecurityPrefsBranch = <P>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<MergedProps & P> =>
+  class extends React.PureComponent<MergedProps & P> {
     render = () => (!displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null)
   }
 
-const DesktopSecurityPrefsPromptingHoc = (ComposedComponent: React.ComponentType<any>) =>
-  ConnectedDesktopSecurityPrefs(DesktopSecurityPrefsBranch(ComposedComponent))
+const DesktopSecurityPrefsPromptingHoc = <P>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<P> =>
+  connect<P, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  )(DesktopSecurityPrefsBranch<P>(ComposedComponent))
 
-const SecurityPrefsPromptingHoc = isMobile ? (i: any) => i : DesktopSecurityPrefsPromptingHoc
+const SecurityPrefsPromptingHoc = isMobile
+  ? <P>(i: React.ComponentType<P>): React.ComponentType<P> => i
+  : DesktopSecurityPrefsPromptingHoc
 
 export default SecurityPrefsPromptingHoc

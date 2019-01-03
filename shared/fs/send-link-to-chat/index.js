@@ -4,6 +4,7 @@ import * as Flow from '../../util/flow'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import CommaSeparatedName from '../common/comma-separated-name'
 
 type Person = {
   type: 'person',
@@ -94,21 +95,26 @@ const BigTeamChannelDropdown = ({conversation}: Props) =>
     />
   )
 
+const Header = (props: Props) => (
+  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.header} fullWidth={true}>
+    {props.conversation.type === 'none' ? (
+      <Kb.Text type="Header">Copy link</Kb.Text>
+    ) : (
+      <>
+        <Kb.Text type="Header">Send Link to</Kb.Text>
+        <Kb.Box style={styles.headerGap} />
+        {(props.conversation.type === 'small-team' || props.conversation.type === 'big-team') && (
+          <Kb.Avatar size={16} teamname={props.conversation.name} isTeam={true} style={styles.avatar} />
+        )}
+        <CommaSeparatedName type="Header" name={props.conversation.name} />
+      </>
+    )}
+  </Kb.Box2>
+)
+
 const SendLinkToChat = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    {props.conversation.type === 'none' ? (
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.header}>
-        <Kb.Text type="Header">Copy Link</Kb.Text>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.header} gap="xtiny">
-        <Kb.Text type="Header">Send Link to</Kb.Text>
-        {(props.conversation.type === 'small-team' || props.conversation.type === 'big-team') && (
-          <Kb.Avatar size={16} teamname={props.conversation.name} isTeam={true} />
-        )}
-        <Kb.Text type="Header">{props.conversation.name}</Kb.Text>
-      </Kb.Box2>
-    )}
+    <Header {...props} />
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
       <Kb.CopyText text={props.pathTextToCopy} containerStyle={styles.copyText} />
       {props.conversation.type !== 'none' && (
@@ -130,6 +136,9 @@ const SendLinkToChat = (props: Props) => (
 export default Kb.HeaderOrPopup(SendLinkToChat)
 
 const styles = Styles.styleSheetCreate({
+  avatar: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   container: Styles.platformStyles({
     isElectron: {
       height: 480,
@@ -146,7 +155,13 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.large,
   },
   header: {
-    marginTop: Styles.globalMargins.mediumLarge,
+    flexWrap: 'wrap',
+    paddingLeft: Styles.globalMargins.mediumLarge,
+    paddingRight: Styles.globalMargins.mediumLarge,
+    paddingTop: Styles.globalMargins.mediumLarge,
+  },
+  headerGap: {
+    paddingLeft: Styles.globalMargins.xtiny,
   },
   onlyWhoGetAccess: {
     marginTop: Styles.globalMargins.xsmall,

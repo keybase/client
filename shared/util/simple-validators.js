@@ -46,14 +46,13 @@ function isValidUsername(username: ?string): string {
 // Returns an error if not valid
 function isValidEmail(email: ?string): string {
   const commonError = isValidCommon(email)
-  if (commonError) {
-    return commonError
+  if (!commonError) {
+    if (email && hasAtSign(email)) {
+      return ''
+    }
   }
 
-  if (email && !hasAtSign(email)) {
-    return 'Invalid email address.'
-  }
-  return ''
+  return 'Invalid email address.'
 }
 
 // Returns an error string if not valid

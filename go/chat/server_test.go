@@ -2118,6 +2118,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				created = ncres.Conv.Info
 				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
+				consumeNewPendingMsg(t, listener)
 				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			default:
@@ -2135,6 +2136,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			var unboxed chat1.UIMessage
 			select {
 			case info := <-listener.newMessageRemote:
@@ -2162,6 +2164,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT) // pending message
 
 			select {
 			case info := <-listener.newMessageRemote:
@@ -2192,6 +2195,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2231,6 +2235,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2248,6 +2253,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			t.Logf("repost reaction = delete reaction")
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2272,6 +2278,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2296,6 +2303,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2324,6 +2332,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2541,6 +2550,51 @@ func TestChatSrvFindConversations(t *testing.T) {
 	})
 }
 
+func TestChatSrvFindConversationsWithSBS(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_KBFS:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "FindConversations", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Create a conversation between both users. Attempt to send to
+		// `user1,user2@rooter` and make sure we resolve and find the
+		// conversation correctly.
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, users[1])
+		tc1 := ctc.world.Tcs[users[1].Username]
+		sbsName := strings.Join([]string{users[0].Username, fmt.Sprintf("%s@rooter", users[1].Username)}, ",")
+
+		ctx := ctc.as(t, users[0]).startCtx
+		// Fail since we haven't proved rooter yet
+		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          sbsName,
+				MembersType:      mt,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Zero(t, len(res.Conversations))
+
+		proveRooter(t, tc1.Context().ExternalG(), users[1])
+		res, err = ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          sbsName,
+				MembersType:      mt,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(res.Conversations), "no conv found")
+		require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
+	})
+}
+
 func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.UIMessages) {
 	var tres kbtest.NonblockThreadResult
 	select {
@@ -2610,6 +2664,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
+			require.NotNil(t, res.Thread.Pagination)
+			require.False(t, res.Thread.Pagination.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2620,6 +2676,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.Equal(t, chat1.MessageID(6), res.Thread.Messages[0].GetMessageID())
 			p = res.Thread.Pagination
+			require.NotNil(t, p)
+			require.False(t, p.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2650,6 +2708,8 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case res := <-ui.ThreadCb:
 			require.False(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
+			require.NotNil(t, res.Thread.Pagination)
+			require.False(t, res.Thread.Pagination.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2659,6 +2719,9 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.True(t, res.Full)
 			require.Equal(t, 1, len(res.Thread.Messages))
 			require.Equal(t, chat1.MessageID(5), res.Thread.Messages[0].GetMessageID())
+			p = res.Thread.Pagination
+			require.NotNil(t, p)
+			require.False(t, p.Last)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
@@ -2666,6 +2729,66 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case <-cb:
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "GetThread never finished")
+		}
+
+		for i := 0; i < 5; i++ {
+			p.Num = 50
+			cb = make(chan struct{})
+			go func() {
+				_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+					chat1.GetThreadNonblockArg{
+						ConversationID:   conv.Id,
+						IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+						Query:            &query,
+						Pagination:       p,
+						Pgmode:           chat1.GetThreadNonblockPgMode_SERVER,
+					},
+				)
+				require.NoError(t, err)
+				close(cb)
+			}()
+			clock.Advance(50 * time.Millisecond)
+			if i == 0 {
+				select {
+				case res := <-ui.ThreadCb:
+					require.False(t, res.Full)
+					require.Equal(t, 3, len(res.Thread.Messages))
+					require.NotNil(t, res.Thread.Pagination)
+					require.True(t, res.Thread.Pagination.Last)
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no thread cb")
+				}
+			} else {
+				select {
+				case <-ui.ThreadCb:
+					require.Fail(t, "no callback expected")
+				default:
+				}
+			}
+			clock.Advance(20 * time.Minute)
+			if i == 0 {
+				select {
+				case res := <-ui.ThreadCb:
+					require.True(t, res.Full)
+					require.Equal(t, 3, len(res.Thread.Messages))
+					require.Equal(t, chat1.MessageID(4), res.Thread.Messages[0].GetMessageID())
+					require.NotNil(t, res.Thread.Pagination.Last)
+					require.True(t, res.Thread.Pagination.Last)
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no thread cb")
+				}
+			} else {
+				select {
+				case <-ui.ThreadCb:
+					require.Fail(t, "no callback expected")
+				default:
+				}
+			}
+			select {
+			case <-cb:
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "GetThread never finished")
+			}
 		}
 	})
 }
@@ -3502,6 +3625,15 @@ func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {
 		}
 	}
 	return false
+}
+
+func consumeNewPendingMsg(t *testing.T, listener *serverChatListener) {
+	select {
+	case msg := <-listener.newMessageLocal:
+		require.True(t, msg.Message.IsOutbox())
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get new pending message notification")
+	}
 }
 
 func consumeNewMsgLocal(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
@@ -5443,11 +5575,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 			require.Fail(t, "no done")
 		}
 		if !expectError {
-			select {
-			case <-ui.PostReadyToSend:
-			case <-time.After(delay):
-				require.Fail(t, "no ready to send")
-			}
+			consumeNewPendingMsg(t, listener)
 			select {
 			case msg := <-listener.newMessageLocal:
 				require.True(t, msg.Message.IsValid())
@@ -5512,11 +5640,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 		require.Fail(t, "confirm")
 	default:
 	}
-	select {
-	case <-ui.PostReadyToSend:
-	case <-time.After(delay):
-		require.Fail(t, "no confirm")
-	}
+	consumeNewPendingMsg(t, listener)
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {

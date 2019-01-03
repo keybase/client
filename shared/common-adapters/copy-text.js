@@ -79,8 +79,7 @@ class _CopyText extends React.Component<Props, State> {
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
-        {/* $FlowIssue innerRef not typed yet */}
-        <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Text
           lineClamp={lineClamp}
           type="Body"

@@ -397,7 +397,6 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context) error
-	ChatPostReadyToSend(context.Context) error
 }
 
 type PromptDefault int
@@ -462,6 +461,8 @@ type UIRouter interface {
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 	GetHomeUI() (keybase1.HomeUIInterface, error)
+	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
+	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 
 	Shutdown()
 }

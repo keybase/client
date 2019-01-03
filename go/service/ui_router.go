@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 
+	identify3 "github.com/keybase/client/go/identify3"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -92,6 +93,27 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 		Contextified: libkb.NewContextified(u.G()),
 	}
 	return ret, nil
+}
+
+func (u *UIRouter) GetIdentify3UI(m libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
+	x, _ := u.getUI(libkb.Identify3UIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
+	id3cli := keybase1.Identify3UiClient{Cli: cli}
+	return id3cli, nil
+}
+
+func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI, error) {
+	id3i, err := u.GetIdentify3UI(m)
+	if err != nil {
+		return nil, err
+	}
+	if id3i == nil {
+		return nil, nil
+	}
+	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3i)
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

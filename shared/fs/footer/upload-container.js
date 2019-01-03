@@ -75,6 +75,7 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
   ({
     ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
     debugToggleShow,
+    // $FlowIssue
   }: UploadCountdownHOCProps)
 
 export default compose(

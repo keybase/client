@@ -50,6 +50,7 @@ const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
+  amountAvailable: '',
   amountErrMsg: '',
   builtBanners: null,
   displayAmountFiat: '',
@@ -118,6 +119,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
+    amountAvailable: b.amountAvailable,
     amountErrMsg: b.amountErrMsg,
     builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,

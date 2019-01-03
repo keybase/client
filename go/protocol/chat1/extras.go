@@ -674,6 +674,13 @@ func (m UIMessage) IsValid() bool {
 	return false
 }
 
+func (m UIMessage) IsOutbox() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
 func (m UIMessage) GetMessageID() MessageID {
 	if state, err := m.State(); err == nil {
 		if state == MessageUnboxedState_VALID {
@@ -1152,6 +1159,26 @@ func (c Conversation) GetMaxMessageID() MessageID {
 
 func (c Conversation) IsSelfFinalized(username string) bool {
 	return c.GetMembersType() == ConversationMembersType_KBFS && c.GetFinalizeInfo().IsResetForUser(username)
+}
+
+func (c Conversation) MaxVisibleMsgID() MessageID {
+	visibleTyps := VisibleChatMessageTypes()
+	visibleTypsMap := map[MessageType]bool{}
+	for _, typ := range visibleTyps {
+		visibleTypsMap[typ] = true
+	}
+	maxMsgID := MessageID(0)
+	for _, msg := range c.MaxMsgSummaries {
+		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+	return maxMsgID
+}
+
+func (c Conversation) IsUnread() bool {
+	maxMsgID := c.MaxVisibleMsgID()
+	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
 }
 
 func (m MessageSummary) GetMessageID() MessageID {

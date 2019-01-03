@@ -432,6 +432,19 @@ func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
 	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
 }
 
+func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) error {
+	if boxes == nil {
+		return nil
+	}
+	bps := boxes.boxPublicSummary
+	if bps == nil || bps.IsEmpty() {
+		return nil
+	}
+	bsh := SCTeamBoxSummaryHash(bps.HashHexEncoded())
+	section.BoxSummaryHash = &bsh
+	return nil
+}
+
 func (t *Team) Rotate(ctx context.Context) (err error) {
 
 	// initialize key manager
@@ -473,6 +486,11 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		return err
 	}
 	section.PerTeamKey = perTeamKeySection
+
+	err = addSummaryHash(&section, secretBoxes)
+	if err != nil {
+		return err
+	}
 
 	// post the change to the server
 	payloadArgs := sigPayloadArgs{
@@ -1236,6 +1254,11 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 	section.PerTeamKey = perTeamKeySection
+
+	err = addSummaryHash(&section, secretBoxes)
+	if err != nil {
+		return SCTeamSection{}, nil, nil, nil, nil, err
+	}
 
 	section.CompletedInvites = req.CompletedInvites
 	section.Implicit = t.IsImplicit()

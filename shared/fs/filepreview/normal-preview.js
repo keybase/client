@@ -1,9 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import {mapProps} from '../../util/container'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {Box, ProgressIndicator} from '../../common-adapters'
 import Footer from '../footer/footer'
@@ -19,7 +17,7 @@ type State = {
   loading: boolean,
 }
 
-class NormalPreview extends React.PureComponent<NormalPreviewProps, State> {
+export default class NormalPreview extends React.PureComponent<NormalPreviewProps, State> {
   state = {
     loading: false,
   }
@@ -89,9 +87,3 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
 })
-
-// TODO: figure out typing here
-export default mapProps<any, any>(({routePath, routeProps}) => ({
-  path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
-  routePath,
-}))(NormalPreview)

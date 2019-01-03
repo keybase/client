@@ -69,9 +69,9 @@ func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
 // Fetch populates the cache in the background.
 func (c *ownAccountLookupCacheImpl) fetch(mctx libkb.MetaContext) {
 	go func() {
-		ctx := libkb.CopyTagsToBackground(mctx.Ctx())
+		mc := mctx.BackgroundWithLogTags()
 		defer c.Unlock()
-		bundle, _, _, err := remote.FetchSecretlessBundle(ctx, mctx.G())
+		bundle, err := remote.FetchSecretlessBundle(mc)
 		c.loadErr = err
 		if err != nil {
 			return

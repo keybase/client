@@ -6,7 +6,7 @@ import {makeRetentionNotice} from '../../../../util/teams'
 import {getCanPerform, hasCanPerform} from '../../../../constants/teams'
 import {createGetTeamOperations} from '../../../../actions/teams-gen'
 import RetentionNotice from '.'
-import {navigateAppend} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey,
@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _loadPermissions: (teamname: string) => dispatch(createGetTeamOperations({teamname})),
   onChange: () =>
     dispatch(
-      navigateAppend([{props: {conversationIDKey: ownProps.conversationIDKey}, selected: 'infoPanel'}])
+      RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey: ownProps.conversationIDKey}, selected: 'infoPanel'}]})
     ),
 })
 

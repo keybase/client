@@ -106,8 +106,7 @@ class _StellarFederatedAddress extends React.PureComponent<
     }
     return (
       <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
-        {/* $FlowIssue innerRef not typed yet */}
-        <Kb.ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <Kb.ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
@@ -403,8 +402,6 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
-                onClickFollowers={this.props.onClickFollowers}
-                onClickFollowing={this.props.onClickFollowing}
               />
               {!this.props.isYou && !loading && (
                 <UserActions

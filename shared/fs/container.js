@@ -1,33 +1,89 @@
 // @flow
-import {compose, namedConnect} from '../util/container'
-import Files from '.'
-import * as Types from '../constants/types/fs'
+import * as React from 'react'
+import * as I from 'immutable'
+import {namedConnect, type RouteProps} from '../util/container'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/fs'
-import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
+import * as Types from '../constants/types/fs'
+import {isMobile} from '../constants/platform'
+import Folder from './folder/container'
+import {NormalPreview} from './filepreview'
+import Loading from './common/loading'
 
-const mapStateToProps = (state, {routeProps}) => {
-  const path = routeProps.get('path', Constants.defaultPath)
-  return {
-    _tlfs: state.fs.tlfs,
-    _username: state.config.username,
-    sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
-  }
-}
+const mapStateToProps = state => ({
+  _pathItems: state.fs.pathItems,
+})
+
+const mapDispatchToProps = (dispatch, {routePath}) => ({
+  _emitBarePreview: (path: Types.Path) => {
+    dispatch(RouteTreeGen.createNavigateUp()) // pop this route node before appending barePreview
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'barePreview'}]}))
+  },
+})
 
 const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
   const path = routeProps.get('path', Constants.defaultPath)
-  const {tlfList} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
-  const elems = Types.getPathElements(path)
-  const resetParticipants = tlfList
-    .get(elems[2], Constants.makeTlf())
-    .resetParticipants.map(i => i.username)
-    .toArray()
-  const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
-  const {sortSetting} = stateProps
-  return {isUserReset, path, resetParticipants, routePath, sortSetting}
+  const isDefinitelyFolder = Types.getPathElements(path).length <= 3
+  const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
+  return {
+    emitBarePreview: () => dispatchProps._emitBarePreview(path),
+    mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
+    path,
+    pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItems.get(path, Constants.unknownPathItem).type,
+    routePath,
+  }
 }
 
-export default compose(
-  SecurityPrefsPromptingHoc,
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'Files')
-)(Files)
+type ChooseComponentProps = {
+  emitBarePreview: () => void,
+  mimeType: ?Types.Mime,
+  path: Types.Path,
+  pathType: Types.PathType,
+  routePath: I.List<string>,
+}
+
+const useBare = isMobile
+  ? (mimeType: ?Types.Mime) => {
+      return Constants.viewTypeFromMimeType(mimeType) === 'image'
+    }
+  : (mimeType: ?Types.Mime) => {
+      return false
+    }
+
+class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
+  componentDidMount() {
+    if (useBare(this.props.mimeType)) {
+      this.props.emitBarePreview()
+    }
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
+      this.props.emitBarePreview()
+    }
+  }
+  render() {
+    switch (this.props.pathType) {
+      case 'folder':
+        return <Folder path={this.props.path} routePath={this.props.routePath} />
+      case 'unknown':
+        return <Loading path={this.props.path} />
+      default:
+        if (!this.props.mimeType) {
+          // We don't have it yet, so don't render.
+          return <Loading path={this.props.path} />
+        }
+        return useBare(this.props.mimeType) ? (
+          // doesn't matter here as we do a navigateAppend for bare views
+          <Loading path={this.props.path} />
+        ) : (
+          <NormalPreview path={this.props.path} routePath={this.props.routePath} />
+        )
+    }
+  }
+}
+
+type OwnProps = RouteProps<{|path: Types.Path|}, {||}>
+
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FsMain')(
+  ChooseComponent
+)

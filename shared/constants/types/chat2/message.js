@@ -99,6 +99,7 @@ export type _MessageText = {
   explodingTime: number,
   explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
+  hasInlinePayments: boolean,
   id: MessageID,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',

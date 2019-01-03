@@ -54,7 +54,7 @@ func TestLoadParamServices(t *testing.T) {
 	gubbleRoot := fmt.Sprintf("%s/_/gubble_universe/gubble_social", serverURI)
 	gubbleAPIRoot := fmt.Sprintf("%s/_/api/1.0/gubble_universe/gubble_social", serverURI)
 	require.Equal(t, fmt.Sprintf("%s%s", gubbleRoot, "/%{username}"), gubbleConf.ProfileUrl)
-	require.Equal(t, fmt.Sprintf("%s%s", gubbleRoot, "?kb_username=%{kb_username}&sig_hash=%{sig_hash}"), gubbleConf.PrefillUrl)
+	require.Equal(t, fmt.Sprintf("%s%s", gubbleRoot, "?kb_username=%{kb_username}&sig_hash=%{sig_hash}&kb_ua=%{kb_ua}"), gubbleConf.PrefillUrl)
 	require.Equal(t, fmt.Sprintf("%s%s", gubbleAPIRoot, "/%{username}/proofs.json"), gubbleConf.CheckUrl)
 
 	require.Equal(t, []keybase1.SelectorEntry{
@@ -67,6 +67,17 @@ func TestLoadParamServices(t *testing.T) {
 			Key:   "keybase_proofs",
 		},
 	}, gubbleConf.CheckPath)
+
+	require.Equal(t, []keybase1.SelectorEntry{
+		keybase1.SelectorEntry{
+			IsKey: true,
+			Key:   "res",
+		},
+		keybase1.SelectorEntry{
+			IsKey: true,
+			Key:   "avatar",
+		},
+	}, gubbleConf.AvatarPath)
 
 	foundGubble := false
 	foundFacebook := false

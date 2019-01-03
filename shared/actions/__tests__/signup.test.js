@@ -3,11 +3,10 @@
 import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
-import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, navigateAppend} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
@@ -36,7 +35,7 @@ describe('goBackAndClearErrors', () => {
     expect(nextState.signup.passphraseError.stringValue()).toEqual('')
     expect(nextState.signup.signupError.stringValue()).toEqual('')
     expect(nextState.signup.usernameError).toEqual('')
-    expect(_testing.goBackAndClearErrors()).toEqual(Saga.put(navigateUp()))
+    expect(_testing.goBackAndClearErrors()).toEqual(RouteTreeGen.createNavigateUp())
   })
 })
 
@@ -52,14 +51,18 @@ describe('requestAutoInvite', () => {
     const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
-    expect(_testing.showInviteScreen()).toEqual(navigateAppend(['inviteCode'], [loginTab]))
+    expect(_testing.showInviteScreen()).toEqual(
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+    )
   })
 
   it('goes to invite page on error', () => {
     const action = SignupGen.createRequestedAutoInviteError()
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
-    expect(_testing.showInviteScreen()).toEqual(navigateAppend(['inviteCode'], [loginTab]))
+    expect(_testing.showInviteScreen()).toEqual(
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+    )
   })
 })
 
@@ -78,7 +81,7 @@ describe('requestInvite', () => {
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.name).toEqual(action.payload.name)
     expect(_testing.showInviteSuccessOnNoErrors(nextState)).toEqual(
-      navigateAppend(['requestInviteSuccess'], [loginTab])
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
     )
   })
 
@@ -128,7 +131,7 @@ describe('checkInviteCode', () => {
     // leaves state alone
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
-      Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']})
     )
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
@@ -230,7 +233,7 @@ describe('checkedUsernameEmail', () => {
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
     expect(_testing.showPassphraseOnNoErrors(nextState)).toEqual(
-      Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']})
     )
   })
 })
@@ -303,31 +306,31 @@ describe('deviceScreen', () => {
 describe('actually sign up', () => {
   it('bails on devicenameError', () => {
     const state = Constants.makeState({devicenameError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on emailError', () => {
     const state = Constants.makeState({emailError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on inviteCodeError', () => {
     const state = Constants.makeState({inviteCodeError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on nameError', () => {
     const state = Constants.makeState({nameError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on usernameError', () => {
     const state = Constants.makeState({usernameError: 'error'})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on passphraseError', () => {
     const state = Constants.makeState({passphraseError: new HiddenString('error')})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on signupError', () => {
     const state = Constants.makeState({signupError: new HiddenString('error')})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state))).toBeUndefined()
+    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
 
   const validSignup = Constants.makeState({
@@ -338,31 +341,42 @@ describe('actually sign up', () => {
     username: 'testuser',
   })
 
+  const signupError = new Error('Missing data for signup')
+
   it('bails on missing email', () => {
-    expect(() => _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('email', '')))).toThrow()
+    expect(() =>
+      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('email', ''))).next()
+    ).toThrow(signupError)
   })
   it('bails on missing devicename', () => {
-    expect(() => _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('devicename', '')))).toThrow()
+    expect(() =>
+      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('devicename', ''))).next()
+    ).toThrow(signupError)
   })
   it('bails on missing inviteCode', () => {
-    expect(() => _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('inviteCode', '')))).toThrow()
+    expect(() =>
+      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('inviteCode', ''))).next()
+    ).toThrow(signupError)
   })
   it('bails on missing passphrase', () => {
     expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('passphrase', new HiddenString(''))))
-    ).toThrow()
+      _testing
+        .reallySignupOnNoErrors(makeTypedState(validSignup.set('passphrase', new HiddenString(''))))
+        .next()
+    ).toThrow(signupError)
   })
   it('bails on missing username', () => {
-    expect(() => _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('username', '')))).toThrow()
+    expect(() =>
+      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('username', ''))).next()
+    ).toThrow(signupError)
   })
-
   it('updates error', () => {
     const state = Constants.makeState()
     const action = SignupGen.createSignedupError({error: new HiddenString('an error')})
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.signupError.stringValue()).toEqual(action.payload.error.stringValue())
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(
-      Saga.put(navigateAppend(['signupError'], [loginTab]))
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
     )
   })
 
@@ -370,8 +384,6 @@ describe('actually sign up', () => {
     const state = Constants.makeState()
     const action = SignupGen.createSignedup()
     const nextState = makeTypedState(reducer(state, action))
-    expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(
-      Saga.put(SignupGen.createRestartSignup())
-    )
+    expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(SignupGen.createRestartSignup())
   })
 })

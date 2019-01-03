@@ -4,7 +4,7 @@ import Render from '.'
 import {connect} from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderOnMobile} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
@@ -26,7 +26,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
   _onSubmit: (bio: string, fullname: string, location: string) =>
     dispatch(createEditProfile({bio, fullname, location})),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Component = HeaderOnMobile(Render)

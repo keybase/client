@@ -4,13 +4,13 @@ import * as I from 'immutable'
 import * as Tabs from '../../constants/tabs'
 import * as GitGen from '../git-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import gitSaga from '../git'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath, getPathState as getRoutePathState} from '../../route-tree'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 // We want to be logged in usually
 const blankStore = Testing.getInitialStore()
@@ -123,13 +123,12 @@ const loadedStore = {
   ...initialStore,
   git: initialStore.git.merge({
     idToInfo: gitRepos.reduce((acc, r) => acc.set(r.id, I.Record(r)()), I.Map()),
-    lastLoad: nowTimestamp,
   }),
 }
 
 const startOnGitTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.gitTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.gitTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(gitSaga, initialStore, startOnGitTab)

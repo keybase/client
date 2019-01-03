@@ -1,5 +1,5 @@
 // @flow
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Constants from '../../../../constants/chat2/'
 import * as Types from '../../../../constants/types/chat2'
 import {getRole, isAdmin} from '../../../../constants/teams'
@@ -25,10 +25,12 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
-    dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   _onViewTeam: (teamname: string) => {
-    dispatch(RouteTree.setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
-    dispatch(RouteTree.navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
+    dispatch(
+      RouteTreeGen.createSetRouteState({partialState: {selectedTab: 'members'}, path: [teamsTab, 'team']})
+    )
+    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
   },
 })
 

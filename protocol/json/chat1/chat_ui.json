@@ -599,6 +599,14 @@
           "name": "senderDeviceType"
         },
         {
+          "type": "gregor1.UID",
+          "name": "senderUID"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDeviceID"
+        },
+        {
           "type": "boolean",
           "name": "superseded"
         },
@@ -1063,15 +1071,6 @@
         }
       ],
       "response": "boolean"
-    },
-    "chatPostReadyToSend": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
     },
     "chatStellarShowConfirm": {
       "request": [

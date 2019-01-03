@@ -37,8 +37,8 @@ func New(g *libkb.GlobalContext, uiSource UISource, walletState *stellar.WalletS
 	}
 }
 
-func (s *Server) assertLoggedIn(ctx context.Context) error {
-	loggedIn := s.G().ActiveDevice.Valid()
+func (s *Server) assertLoggedIn(mctx libkb.MetaContext) error {
+	loggedIn := mctx.ActiveDevice().Valid()
 	if !loggedIn {
 		return libkb.LoginRequiredError{}
 	}
@@ -63,24 +63,24 @@ type preambleArg struct {
 //   ctx, err, fin := c.Preamble(...)
 //   defer fin()
 //   if err != nil { return err }
-func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.Context, err error, fin func()) {
-	ctx = s.logTag(inCtx)
+func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.MetaContext, fin func(), err error) {
+	mctx = libkb.NewMetaContext(s.logTag(inCtx), s.G())
 	getFinalErr := func() error {
 		if opts.Err == nil {
 			return nil
 		}
 		return *opts.Err
 	}
-	fin = s.G().CTraceTimed(ctx, "LRPC "+opts.RPCName, getFinalErr)
+	fin = mctx.CTraceTimed("LRPC "+opts.RPCName, getFinalErr)
 	if !opts.AllowLoggedOut {
-		if err = s.assertLoggedIn(ctx); err != nil {
-			return ctx, err, fin
+		if err = s.assertLoggedIn(mctx); err != nil {
+			return mctx, fin, err
 		}
 	}
 	if opts.RequireWallet {
-		cwg, err := stellar.CreateWalletGated(ctx, s.G())
+		cwg, err := stellar.CreateWalletGated(mctx)
 		if err != nil {
-			return ctx, err, fin
+			return mctx, fin, err
 		}
 		if !cwg.HasWallet {
 			if !cwg.AcceptedDisclaimer {
@@ -90,16 +90,16 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 					Name: "STELLAR_NEED_DISCLAIMER",
 					Desc: "user hasn't yet accepted the Stellar disclaimer",
 				})
-				return ctx, err, fin
+				return mctx, fin, err
 			}
-			return ctx, errors.New("logged-in user does not have a wallet"), fin
+			return mctx, fin, errors.New("logged-in user does not have a wallet")
 		}
 	}
-	return ctx, nil, fin
+	return mctx, fin, nil
 }
 
 func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "BalancesLocal",
 		Err:     &err,
 	})
@@ -108,11 +108,11 @@ func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID
 		return ret, err
 	}
 
-	return s.remoter.Balances(ctx, accountID)
+	return s.remoter.Balances(mctx.Ctx(), accountID)
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ImportSecretKeyLocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -122,11 +122,11 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
+	return stellar.ImportSecretKey(mctx, arg.SecretKey, arg.MakePrimary, arg.Name)
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ExportSecretKeyLocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -135,8 +135,6 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	if err != nil {
 		return res, err
 	}
-
-	mctx := s.mctx(ctx)
 
 	// Prompt for passphrase
 	username := s.G().GetEnv().GetUsername().String()
@@ -151,11 +149,11 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	if err != nil {
 		return res, err
 	}
-	return stellar.ExportSecretKey(ctx, s.G(), accountID)
+	return stellar.ExportSecretKey(mctx, accountID)
 }
 
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ExportSecretKeyLocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -164,12 +162,12 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return isOwn, err
 	}
-	isOwn, _, err = stellar.OwnAccount(ctx, s.G(), accountID)
+	isOwn, _, err = stellar.OwnAccount(mctx, accountID)
 	return isOwn, err
 }
 
 func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg) (res stellar1.SendResultCLILocal, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "SendCLILocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -185,7 +183,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 
 	// make sure that the xlm amount is close to the display amount the
 	// user thinks they are sending.
-	if err = s.checkDisplayAmount(ctx, arg); err != nil {
+	if err = s.checkDisplayAmount(mctx.Ctx(), arg); err != nil {
 		return res, err
 	}
 
@@ -196,9 +194,9 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := s.mctx(ctx).WithUIs(uis)
+	mctx = mctx.WithUIs(uis)
 
-	sendRes, err := stellar.SendPaymentCLI(m, s.walletState, stellar.SendPaymentArg{
+	sendRes, err := stellar.SendPaymentCLI(mctx, s.walletState, stellar.SendPaymentArg{
 		From:           arg.FromAccountID,
 		To:             stellarcommon.RecipientInput(arg.Recipient),
 		Amount:         arg.Amount,
@@ -218,7 +216,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 }
 
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ClaimCLILocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -233,16 +231,16 @@ func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalAr
 		into = *arg.Into
 	} else {
 		// Default to claiming into the user's primary wallet.
-		into, err = stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		into, err = stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return res, err
 		}
 	}
-	return stellar.Claim(ctx, s.G(), s.walletState, arg.TxID, into, nil, nil)
+	return stellar.Claim(mctx, s.walletState, arg.TxID, into, nil, nil)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "RecentPaymentsCLILocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -254,18 +252,18 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 
 	var selectAccountID stellar1.AccountID
 	if accountID == nil {
-		selectAccountID, err = stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		selectAccountID, err = stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		selectAccountID = *accountID
 	}
-	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
+	return stellar.RecentPaymentsCLILocal(mctx, s.remoter, selectAccountID)
 }
 
 func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "PaymentDetailCLILocal",
 		Err:     &err,
 	})
@@ -274,14 +272,14 @@ func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res st
 		return res, err
 	}
 
-	return stellar.PaymentDetailCLILocal(ctx, s.G(), s.remoter, txID)
+	return stellar.PaymentDetailCLILocal(mctx.Ctx(), s.G(), s.remoter, txID)
 }
 
 // WalletInitLocal creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe to call even if the user has a bundle already.
 func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName: "WalletInitLocal",
 		Err:     &err,
 	})
@@ -289,14 +287,13 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	m := libkb.NewMetaContext(ctx, s.G())
-	flaggedForV2 := remote.AcctBundlesEnabled(m)
-	_, err = stellar.CreateWallet(ctx, s.G(), flaggedForV2)
+
+	_, err = stellar.CreateWallet(mctx)
 	return err
 }
 
 func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplayCurrencyArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       fmt.Sprintf("SetDisplayCurrency(%s, %s)", arg.AccountID, arg.Currency),
 		Err:           &err,
 		RequireWallet: true,
@@ -306,7 +303,7 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 		return err
 	}
 
-	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
+	return remote.SetAccountDefaultCurrency(mctx.Ctx(), s.G(), arg.AccountID, arg.Currency)
 }
 
 type exchangeRateMap map[string]stellar1.OutsideExchangeRate
@@ -334,7 +331,7 @@ func getLocalCurrencyAndExchangeRate(mctx libkb.MetaContext, remoter remote.Remo
 }
 
 func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.OwnAccountCLILocal, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "WalletGetAccountsCLILocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -344,9 +341,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		return ret, err
 	}
 
-	mctx := s.mctx(ctx)
-
-	currentBundle, _, _, err := remote.FetchSecretlessBundle(ctx, s.G())
+	currentBundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +390,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 }
 
 func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.OutsideCurrencyCode) (res stellar1.OutsideExchangeRate, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)),
 		Err:            &err,
 		AllowLoggedOut: true,
@@ -405,11 +400,11 @@ func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.Outsid
 		return res, err
 	}
 
-	return s.remoter.ExchangeRate(ctx, string(currency))
+	return s.remoter.ExchangeRate(mctx.Ctx(), string(currency))
 }
 
 func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stellar1.OutsideCurrencyCode]stellar1.OutsideCurrencyDefinition, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        "GetAvailableLocalCurrencies",
 		Err:            &err,
 		AllowLoggedOut: true,
@@ -419,7 +414,7 @@ func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stell
 		return ret, err
 	}
 
-	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	conf, err := s.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return ret, err
 	}
@@ -427,7 +422,7 @@ func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stell
 }
 
 func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.FormatLocalCurrencyStringArg) (res string, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        "FormatLocalCurrencyString",
 		Err:            &err,
 		AllowLoggedOut: true,
@@ -437,7 +432,7 @@ func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.For
 		return res, err
 	}
 
-	return stellar.FormatCurrency(ctx, s.G(), arg.Amount, arg.Code, stellar.FmtRound)
+	return stellar.FormatCurrency(mctx, arg.Amount, arg.Code, stellar.FmtRound)
 }
 
 // check that the display amount is within 1% of current exchange rates
@@ -475,7 +470,7 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 }
 
 func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeRequestCLILocalArg) (res stellar1.KeybaseRequestID, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "MakeRequestCLILocal",
 		Err:           &err,
 		RequireWallet: true,
@@ -488,9 +483,9 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := s.mctx(ctx).WithUIs(uis)
+	mctx = mctx.WithUIs(uis)
 
-	return stellar.MakeRequestCLI(m, s.remoter, stellar.MakeRequestArg{
+	return stellar.MakeRequestCLI(mctx, s.remoter, stellar.MakeRequestArg{
 		To:       stellarcommon.RecipientInput(arg.Recipient),
 		Amount:   arg.Amount,
 		Asset:    arg.Asset,
@@ -500,7 +495,7 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 }
 
 func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.LookupResultCLILocal, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        "LookupCLILocal",
 		Err:            &err,
 		RequireWallet:  false,
@@ -514,7 +509,7 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	mctx := s.mctx(ctx).WithUIs(uis)
+	mctx = mctx.WithUIs(uis)
 
 	recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg), true)
 	if err != nil {
@@ -522,8 +517,7 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	}
 	if recipient.AccountID != nil {
 		// Lookup Account ID -> User
-		uv, username, err := stellar.LookupUserByAccountID(s.mctx(ctx),
-			stellar1.AccountID(recipient.AccountID.String()))
+		uv, username, err := stellar.LookupUserByAccountID(mctx, stellar1.AccountID(recipient.AccountID.String()))
 		if err == nil {
 			recipient.User = &stellarcommon.User{
 				UV:       uv,
@@ -546,10 +540,6 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 		res.Username = &u
 	}
 	return res, nil
-}
-
-func (s *Server) mctx(ctx context.Context) libkb.MetaContext {
-	return libkb.NewMetaContext(ctx, s.G())
 }
 
 func percentageAmountChange(a, b int64) float64 {

@@ -5,7 +5,6 @@ import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
-import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
 
@@ -277,22 +276,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
       return state.update('moveOrCopy', mc =>
-        mc.set(
-          'destinationParentPath',
-          isMobile
-            ? I.List(
-                Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
-                  (list, elem) => [
-                    ...list,
-                    list.length
-                      ? Types.pathConcat(list[list.length - 1], elem)
-                      : Types.stringToPath(`/${elem}`),
-                  ],
-                  []
-                )
-              )
-            : I.List([action.payload.initialDestinationParentPath])
-        )
+        mc.set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
       return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))

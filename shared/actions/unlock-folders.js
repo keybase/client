@@ -1,4 +1,5 @@
 // @flow
+// TODO use waiting key
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as ConfigGen from './config-gen'
@@ -6,11 +7,11 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 
-function* _checkPaperKey(action: UnlockFoldersGen.CheckPaperKeyPayload) {
+function* checkPaperKey(_, action) {
   const {paperKey} = action.payload
   yield Saga.put(UnlockFoldersGen.createWaiting({waiting: true}))
   try {
-    yield * Saga.callPromise(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
+    yield* Saga.callPromise(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone())
   } catch (e) {
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDoneError({error: e.message}))
@@ -19,13 +20,13 @@ function* _checkPaperKey(action: UnlockFoldersGen.CheckPaperKeyPayload) {
   }
 }
 
-const _openPopup = () => {
+const openPopup = () => {
   RPCTypes.rekeyShowPendingRekeyStatusRpcPromise()
 }
 
-const _closePopup = () => {
+const closePopup = () => {
   RPCTypes.rekeyRekeyStatusFinishRpcPromise()
-  return Saga.put(UnlockFoldersGen.createCloseDone())
+  return UnlockFoldersGen.createCloseDone()
 }
 
 const setupEngineListeners = () => {
@@ -80,10 +81,16 @@ const setupEngineListeners = () => {
 }
 
 function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(UnlockFoldersGen.checkPaperKey, _checkPaperKey)
-  yield Saga.safeTakeEveryPure(UnlockFoldersGen.closePopup, _closePopup)
-  yield Saga.safeTakeEveryPure(UnlockFoldersGen.openPopup, _openPopup)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainGenerator<UnlockFoldersGen.CheckPaperKeyPayload>(
+    UnlockFoldersGen.checkPaperKey,
+    checkPaperKey
+  )
+  yield* Saga.chainAction<UnlockFoldersGen.ClosePopupPayload>(UnlockFoldersGen.closePopup, closePopup)
+  yield* Saga.chainAction<UnlockFoldersGen.OpenPopupPayload>(UnlockFoldersGen.openPopup, openPopup)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default unlockFoldersSaga

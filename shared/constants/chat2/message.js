@@ -67,6 +67,14 @@ export const getPaymentMessageInfo = (
   )
 }
 
+export const isPendingPaymentMessage = (state: TypedState, message: Types.Message) => {
+  if (message.type !== 'sendPayment') {
+    return false
+  }
+  const paymentInfo = getPaymentMessageInfo(state, message)
+  return !!(paymentInfo && ['claimable', 'pending'].includes(paymentInfo.status))
+}
+
 // Map service message types to our message types.
 export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
   switch (t) {
@@ -171,6 +179,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
+  hasInlinePayments: false,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -624,6 +633,7 @@ const validUIMessagetoMessage = (
         ...explodable,
         decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         hasBeenEdited: m.superseded,
+        hasInlinePayments: !!m.paymentInfos,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(

@@ -7,11 +7,11 @@ import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as ProfileConstants from '../../constants/profile'
+import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
@@ -20,7 +20,6 @@ import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
-import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -56,30 +55,25 @@ const setupEngineListeners = () => {
   })
 }
 
-const loadDaemonBootstrapStatus = (
-  state: TypedState,
-  action: ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
-) => {
+function* loadDaemonBootstrapStatus(state, action) {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
   }
 
-  const makeCall = Saga.callUntyped(function*() {
-    const loadedAction = yield RPCTypes.configGetBootstrapStatusRpcPromise().then(
-      (s: RPCTypes.BootstrapStatus) =>
-        ConfigGen.createBootstrapStatusLoaded({
-          deviceID: s.deviceID,
-          deviceName: s.deviceName,
-          followers: s.followers ?? [],
-          following: s.following ?? [],
-          loggedIn: s.loggedIn,
-          registered: s.registered,
-          uid: s.uid,
-          username: s.username,
-        })
-    )
-    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn}`)
+  function* makeCall() {
+    const s = yield* Saga.callPromise(RPCTypes.configGetBootstrapStatusRpcPromise)
+    const loadedAction = ConfigGen.createBootstrapStatusLoaded({
+      deviceID: s.deviceID,
+      deviceName: s.deviceName,
+      followers: s.followers ?? [],
+      following: s.following ?? [],
+      loggedIn: s.loggedIn,
+      registered: s.registered,
+      uid: s.uid,
+      username: s.username,
+    })
+    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
 
     // if we're logged in act like getAccounts is done already
@@ -95,33 +89,32 @@ const loadDaemonBootstrapStatus = (
         )
       }
     }
-  })
+  }
 
   switch (action.type) {
     case ConfigGen.daemonHandshake:
-      return Saga.sequentially([
-        Saga.put(
-          ConfigGen.createDaemonHandshakeWait({
-            increment: true,
-            name: 'config.getBootstrapStatus',
-            version: action.payload.version,
-          })
-        ),
-        makeCall,
-        Saga.put(
-          ConfigGen.createDaemonHandshakeWait({
-            increment: false,
-            name: 'config.getBootstrapStatus',
-            version: action.payload.version,
-          })
-        ),
-      ])
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          increment: true,
+          name: 'config.getBootstrapStatus',
+          version: action.payload.version,
+        })
+      )
+      yield* makeCall()
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          increment: false,
+          name: 'config.getBootstrapStatus',
+          version: action.payload.version,
+        })
+      )
+      break
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
-      return makeCall
+      yield* makeCall()
+      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-      return undefined
   }
 }
 
@@ -131,23 +124,24 @@ const dispatchSetupEngineListeners = () => {
     return
   }
   dispatchSetupEngineListenersOnce = true
-  return Saga.put(ConfigGen.createSetupEngineListeners())
+  return ConfigGen.createSetupEngineListeners()
 }
 
 let _firstTimeConnecting = true
-const startHandshake = (state: TypedState) => {
+const startHandshake = state => {
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
   if (firstTimeConnecting) {
     logger.info('First bootstrap started')
   }
-  return Saga.put(
-    ConfigGen.createDaemonHandshake({firstTimeConnecting, version: state.config.daemonHandshakeVersion + 1})
-  )
+  return ConfigGen.createDaemonHandshake({
+    firstTimeConnecting,
+    version: state.config.daemonHandshakeVersion + 1,
+  })
 }
 
 let _firstTimeBootstrapDone = true
-const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const maybeDoneWithDaemonHandshake = (state, action) => {
   if (action.payload.version !== state.config.daemonHandshakeVersion) {
     // ignore out of date actions
     return
@@ -157,14 +151,14 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
   } else {
     if (state.config.daemonHandshakeFailedReason) {
       if (state.config.daemonHandshakeRetriesLeft) {
-        return Saga.put(ConfigGen.createRestartHandshake())
+        return ConfigGen.createRestartHandshake()
       }
     } else {
       if (_firstTimeBootstrapDone) {
         _firstTimeBootstrapDone = false
         logger.info('First bootstrap ended')
       }
-      return Saga.put(ConfigGen.createDaemonHandshakeDone())
+      return ConfigGen.createDaemonHandshakeDone()
     }
   }
 }
@@ -173,10 +167,7 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-const loadDaemonAccounts = (
-  state: TypedState,
-  action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload
-) => {
+function* loadDaemonAccounts(state, action) {
   let handshakeWait = false
   let handshakeVersion = 0
 
@@ -188,89 +179,86 @@ const loadDaemonAccounts = (
     }
   }
 
-  return Saga.callUntyped(function*() {
-    try {
-      if (handshakeWait) {
+  try {
+    if (handshakeWait) {
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          increment: true,
+          name: getAccountsWaitKey,
+          version: handshakeVersion,
+        })
+      )
+    }
+
+    const result = yield* Saga.callPromise(RPCTypes.configGetAllProvisionedUsernamesRpcPromise)
+    let usernames = result.provisionedUsernames || []
+    let defaultUsername = result.defaultUsername
+    usernames = usernames.sort()
+    const loadedAction = ConfigGen.createSetAccounts({defaultUsername, usernames})
+    yield Saga.put(loadedAction)
+    if (handshakeWait) {
+      // someone dismissed this already?
+      const newState = yield* Saga.selectState()
+      if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
-            increment: true,
+            increment: false,
             name: getAccountsWaitKey,
             version: handshakeVersion,
           })
         )
       }
-      const loadedAction = yield RPCTypes.configGetAllProvisionedUsernamesRpcPromise().then(result => {
-        let usernames = result.provisionedUsernames || []
-        let defaultUsername = result.defaultUsername
-        usernames = usernames.sort()
-        return ConfigGen.createSetAccounts({defaultUsername, usernames})
-      })
-      yield Saga.put(loadedAction)
-      if (handshakeWait) {
-        // someone dismissed this already?
-        const newState = yield* Saga.selectState()
-        if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-          yield Saga.put(
-            ConfigGen.createDaemonHandshakeWait({
-              increment: false,
-              name: getAccountsWaitKey,
-              version: handshakeVersion,
-            })
-          )
-        }
-      }
-    } catch (error) {
-      if (handshakeWait) {
-        // someone dismissed this already?
-        const newState = yield* Saga.selectState()
-        if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-          yield Saga.put(
-            ConfigGen.createDaemonHandshakeWait({
-              failedReason: "Can't get accounts",
-              increment: false,
-              name: getAccountsWaitKey,
-              version: handshakeVersion,
-            })
-          )
-        }
+    }
+  } catch (error) {
+    if (handshakeWait) {
+      // someone dismissed this already?
+      const newState = yield* Saga.selectState()
+      if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
+        yield Saga.put(
+          ConfigGen.createDaemonHandshakeWait({
+            failedReason: "Can't get accounts",
+            increment: false,
+            name: getAccountsWaitKey,
+            version: handshakeVersion,
+          })
+        )
       }
     }
-  })
-}
-
-const showDeletedSelfRootPage = () =>
-  Saga.sequentially([
-    Saga.put(RouteTree.switchRouteDef(loginRouteTree)),
-    Saga.put(RouteTree.navigateTo([Tabs.loginTab])),
-  ])
-
-const switchRouteDef = (
-  state: TypedState,
-  action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
-) => {
-  if (state.config.loggedIn) {
-    if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
-      // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
-      return Saga.put(RouteTree.switchRouteDef(appRouteTree))
-    }
-  } else {
-    return Saga.put(RouteTree.switchRouteDef(loginRouteTree))
   }
 }
 
-const resetGlobalStore = () => Saga.put({payload: null, type: 'common:resetStore'})
+const showDeletedSelfRootPage = () => [
+  RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}),
+  RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}),
+]
 
-const startLogoutHandshake = (state: TypedState) =>
-  Saga.put(ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1}))
+const switchRouteDef = (state, action) => {
+  if (state.config.loggedIn) {
+    if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
+      // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
+      return RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree})
+    }
+  } else {
+    return RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree})
+  }
+}
+
+const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
+
+const startLogoutHandshake = state =>
+  ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
 
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
 // stuff to trigger this due to a timeout if there's no listeners or something
-const maybeDoneWithLogoutHandshake = (state: TypedState) =>
-  state.config.logoutHandshakeWaiters.size <= 0 && Saga.callUntyped(RPCTypes.loginLogoutRpcPromise)
+function* maybeDoneWithLogoutHandshake(state) {
+  if (state.config.logoutHandshakeWaiters.size <= 0) {
+    yield* Saga.callPromise(RPCTypes.loginLogoutRpcPromise)
+  }
+}
 
 let routeToInitialScreenOnce = false
 // We figure out where to go (push, link, saved state, etc) once ever in a session
-const routeToInitialScreen = (state: TypedState) => {
+const routeToInitialScreen = state => {
   if (routeToInitialScreenOnce) {
     return
   }
@@ -282,37 +270,35 @@ const routeToInitialScreen = (state: TypedState) => {
       state.config.startupConversation &&
       state.config.startupConversation !== ChatConstants.noConversationIDKey
     ) {
-      return Saga.sequentially([
+      return [
         // $FlowIssue
-        Saga.put(RouteTree.switchRouteDef(appRouteTree, ChatConstants.threadRoute)),
-        Saga.put(
-          ChatGen.createSelectConversation({
-            conversationIDKey: state.config.startupConversation,
-            reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
-          })
-        ),
-      ])
+        RouteTreeGen.createSwitchRouteDef({path: ChatConstants.threadRoute, routeDef: appRouteTree}),
+        ChatGen.createSelectConversation({
+          conversationIDKey: state.config.startupConversation,
+          reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
+        }),
+      ]
     }
 
     // A follow
     if (state.config.startupFollowUser) {
-      return Saga.sequentially([
-        Saga.put(RouteTree.switchRouteDef(appRouteTree, [Tabs.profileTab])),
-        Saga.put(ProfileGen.createShowUserProfile({username: state.config.startupFollowUser})),
-      ])
+      return [
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+        ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
+      ]
     }
 
     // A deep link
     if (state.config.startupLink) {
       try {
         const url = new URL(state.config.startupLink)
-        const username = ProfileConstants.urlToUsername(url)
+        const username = Constants.urlToUsername(url)
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
-          return Saga.sequentially([
-            Saga.put(RouteTree.switchRouteDef(appRouteTree, [Tabs.profileTab])),
-            Saga.put(ProfileGen.createShowUserProfile({username})),
-          ])
+          return [
+            RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+            ProfileGen.createShowUserProfile({username}),
+          ]
         }
       } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
@@ -320,59 +306,61 @@ const routeToInitialScreen = (state: TypedState) => {
     }
 
     // Just a saved tab
-    return Saga.put(RouteTree.switchRouteDef(appRouteTree, [state.config.startupTab || Tabs.peopleTab]))
+    return RouteTreeGen.createSwitchRouteDef({
+      path: [state.config.startupTab || Tabs.peopleTab],
+      routeDef: appRouteTree,
+    })
   } else {
     // Show a login screen
-    return Saga.sequentially([
-      Saga.put(RouteTree.switchRouteDef(loginRouteTree)),
-      Saga.put(RouteTree.navigateTo([], [Tabs.loginTab])),
-    ])
+    return [
+      RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}),
+      RouteTreeGen.createNavigateTo({parentPath: [Tabs.loginTab], path: []}),
+    ]
   }
 }
 
-const handleAppLink = (_: any, action: ConfigGen.LinkPayload) => {
+const handleAppLink = (_, action) => {
   const url = new URL(action.payload.link)
-  const username = ProfileConstants.urlToUsername(url)
+  const username = Constants.urlToUsername(url)
   if (username) {
-    return Saga.sequentially([
-      Saga.put(RouteTree.switchTo([Tabs.profileTab])),
-      Saga.put(ProfileGen.createShowUserProfile({username})),
-    ])
+    return [RouteTreeGen.createSwitchTo({path: [Tabs.profileTab]}), ProfileGen.createShowUserProfile({username})]
   }
 }
 
-const emitInitialLoggedIn = (state: TypedState) =>
-  state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
+const emitInitialLoggedIn = state =>
+  state.config.loggedIn && ConfigGen.createLoggedIn({causedByStartup: true})
 
-const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
-  Saga.sequentially([
-    Saga.put(
-      ConfigGen.createLogoutHandshakeWait({
-        increment: true,
-        name: 'nullhandshake',
-        version: action.payload.version,
-      })
-    ),
-    Saga.callUntyped(Saga.delay, 10),
-    Saga.put(
-      ConfigGen.createLogoutHandshakeWait({
-        increment: false,
-        name: 'nullhandshake',
-        version: action.payload.version,
-      })
-    ),
-  ])
+function* allowLogoutWaiters(_, action) {
+  yield Saga.put(
+    ConfigGen.createLogoutHandshakeWait({
+      increment: true,
+      name: 'nullhandshake',
+      version: action.payload.version,
+    })
+  )
+  yield Saga.delay(10)
+  yield Saga.put(
+    ConfigGen.createLogoutHandshakeWait({
+      increment: false,
+      name: 'nullhandshake',
+      version: action.payload.version,
+    })
+  )
+}
 
 const updateServerConfig = (state: TypedState) =>
-  Saga.callUntyped(function*() {
-    try {
-      const str = yield* Saga.callPromise(RPCTypes.apiserverGetWithSessionRpcPromise, {
-        endpoint: 'user/features',
-      })
-
-      const obj = JSON.parse(str.body)
+  RPCTypes.apiserverGetWithSessionRpcPromise({
+    endpoint: 'user/features',
+  })
+    .then(str => {
+      const obj: {
+        features: {
+          admin?: {value: boolean},
+          stellar?: {value: boolean},
+        },
+      } = JSON.parse(str.body)
       const features = Object.keys(obj.features).reduce((map, key) => {
-        map[key] = obj.features[key].value
+        map[key] = obj.features[key]?.value
         return map
       }, {})
 
@@ -384,79 +372,70 @@ const updateServerConfig = (state: TypedState) =>
 
       logger.info('updateServerConfig', serverConfig)
       updateServerConfigLastLoggedIn(state.config.username, serverConfig)
-    } catch (e) {
-      logger.info('updateServerConfig fail', e)
-    }
-  })
-
-const writeLastSentXLM = (state: TypedState, action: SetLastSentXLMPayload) => {
-  if (action.payload.writeFile) {
-    logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
-    return RPCTypes.configSetValueRpcPromise({
-      path: 'stellar.lastSentXLM',
-      value: {b: state.wallets.lastSentXLM, isNull: false},
-    }).catch(err => logger.error(`Error writing config stellar.lastSentXLM: ${err.message}`))
-  }
-}
-
-const readLastSentXLM = () => {
-  logger.info(`Reading config stellar.lastSentXLM`)
-  return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
-    .then(result => {
-      const value = !result.isNull && !!result.b
-      logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
-      return createSetLastSentXLM({lastSentXLM: value, writeFile: false})
     })
-    .catch(err =>
-      err.message.includes('no such key')
-        ? null
-        : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
-    )
-}
+    .catch(e => {
+      logger.info('updateServerConfig fail', e)
+    })
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
-  yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
+  yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, dispatchSetupEngineListeners)
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
-  yield Saga.actionToAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
+  yield* Saga.chainAction<ConfigGen.RestartHandshakePayload | ConfigGen.StartHandshakePayload>(
+    [ConfigGen.restartHandshake, ConfigGen.startHandshake],
+    startHandshake
+  )
   // When there are no more waiters, we can show the actual app
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeWaitPayload>(
+    ConfigGen.daemonHandshakeWait,
+    maybeDoneWithDaemonHandshake
+  )
   // Re-get info about our account if you log in/out/we're done handshaking
-  yield Saga.actionToAction(
-    [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake],
-    loadDaemonBootstrapStatus
-  )
+  yield* Saga.chainGenerator<
+    ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload | ConfigGen.DaemonHandshakePayload
+  >([ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake], loadDaemonBootstrapStatus)
   // Load the known accounts if you revoke / handshake / logout
-  yield Saga.actionToAction(
-    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut],
-    loadDaemonAccounts
-  )
+  yield* Saga.chainGenerator<
+    DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
+  >([DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut], loadDaemonAccounts)
   // Switch between login or app routes
-  yield Saga.actionToAction([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload>(
+    [ConfigGen.loggedIn, ConfigGen.loggedOut],
+    switchRouteDef
+  )
   // Go to the correct starting screen
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, routeToInitialScreen)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+    ConfigGen.daemonHandshakeDone,
+    routeToInitialScreen
+  )
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+    ConfigGen.daemonHandshakeDone,
+    emitInitialLoggedIn
+  )
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield Saga.actionToAction(ConfigGen.logout, startLogoutHandshake)
+  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshake)
   // Give time for all waiters to register and allow the case where there are no waiters
-  yield Saga.actionToAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
-  yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
+  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
+  yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(
+    ConfigGen.logoutHandshakeWait,
+    maybeDoneWithLogoutHandshake
+  )
   // When we're all done lets clean up
-  yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
+  yield* Saga.chainAction<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield Saga.actionToAction(ConfigGen.loggedIn, updateServerConfig)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, updateServerConfig)
 
-  yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
+  yield* Saga.chainAction<ConfigGen.SetDeletedSelfPayload>(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 
-  yield Saga.actionToAction(ConfigGen.link, handleAppLink)
-
-  yield Saga.actionToPromise(setLastSentXLM, writeLastSentXLM)
-  yield Saga.actionToPromise(ConfigGen.daemonHandshakeDone, readLastSentXLM)
+  yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

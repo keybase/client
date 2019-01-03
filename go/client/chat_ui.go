@@ -115,7 +115,7 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 	if err != nil {
 		return false, err
 	}
-	return strings.TrimSpace(response) == confirm, nil
+	return response == confirm, nil
 }
 
 func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearchHit) error {
@@ -293,9 +293,5 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellar
 }
 
 func (c *ChatUI) ChatStellarDone(ctx context.Context, sessionID int) error {
-	return nil
-}
-
-func (c *ChatUI) ChatPostReadyToSend(ctx context.Context, sessionID int) error {
 	return nil
 }

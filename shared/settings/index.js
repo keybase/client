@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as Types from '../constants/types/settings'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import SettingsContainer from './render'
 import {connect} from '../util/container'
-import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
@@ -18,11 +18,12 @@ const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
   onLogout: () => dispatch(ConfigGen.createLogout()),
-  onTabChange: (tab: Types.Tab) => dispatch(switchTo(routePath.push(tab))),
+  onTabChange: (tab: Types.Tab) => dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNotifications: stateProps.badgeNotifications,
+  // $FlowIssue fix badgeNumbers
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   children: ownProps.children,
   isModal: stateProps.isModal,
@@ -35,5 +36,4 @@ export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-  // $FlowIssue fix badgeNumbers
 )(SettingsContainer)

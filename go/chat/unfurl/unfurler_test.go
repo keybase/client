@@ -89,7 +89,7 @@ func TestUnfurler(t *testing.T) {
 	unfurler.unfurlCh = make(chan *chat1.Unfurl, 1)
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 2})
-	msgBody := fmt.Sprintf("check out this link! http://%s/?name=%s ", addr, "wsj0")
+	msgBody := fmt.Sprintf("check out this link! http://%s/?name=%s ", addr, "wsj0.html")
 	fromMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			TlfName:     "mike",
