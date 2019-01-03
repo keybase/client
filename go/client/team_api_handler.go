@@ -454,6 +454,12 @@ func (t *teamAPIHandler) encodeErr(call Call, err error, w io.Writer) error {
 }
 
 func (t *teamAPIHandler) unmarshalOptions(c Call, opts Checker) error {
+	// Note: keeping this len check here because unmarshalOptions behaves differently:
+	// it runs opts.Check() when len(c.Params.Options) == 0 and unclear if
+	// that is the desired behavior for team API, so leaving this here for now.
+	if len(c.Params.Options) == 0 {
+		return nil
+	}
 	return unmarshalOptions(c, opts)
 }
 
