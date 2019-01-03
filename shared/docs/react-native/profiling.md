@@ -85,6 +85,8 @@ require.Systrace.endEvent = () => {
 }
 ```
 
+This makes use of User Timings API. If you aren't connected to the remote debugger, you'll need to use a polyfill to run this. See https://github.com/keybase/client/commit/f23f82d941 .
+
 The important thing is that beginEvent and endEvent are defined. Otherwise it
 tries to use some nativeTracingMethod that isn't define.
 
@@ -105,7 +107,7 @@ my pixel with release settings. I wasn't able to bring that number down without
 much more work, but I'll outline the steps I took so we can try this again
 while we do the fixes I'll suggest at the end.
 
-### The starting case
+### The control case
 
 First I used Parashuram setup to mark the tti_complete as the latest
 message in the chat view. Then I built the app with `gradle
@@ -118,8 +120,13 @@ trace-event payload.
 Run this a couple of times to get the starting number that you're going to try
 to improve.
 
+I can use the dev build for debugging/analyzing, but when I've made my fix, I'll switch 
+it back to the release version and time `TTI_COMPLETE` to see how it compares with the control 
+case.
+
 ### Investigating slowdowns
 
+For this, I've switched to a dev build.
 I enabled RN's systrace with the method listed above. as soon as
 I did this I saw the culprits. We load most of the app
 at startup before we can even make a single engine call. Our current routing
@@ -142,7 +149,7 @@ changing all files necessary to start the bootstrapping, we still load most of
 the app. So there isn't a real difference.
 
 
-### Areas to improve (in order or biggest impact and easiest to implement)
+### Areas to improve (in order of biggest impact and easiest to implement)
 
 * Use an alternate routing scheme that will load the screens when required or
   when idle.
@@ -162,7 +169,7 @@ the app. So there isn't a real difference.
 
 Normally the engine call is setup and called with a `setImmediate`. This is
 usually exactly what we want. Trading a bit of response time from the engine
-for a more response ui. During bootstrapping, our priorities our a little
+for a more responsive ui. During bootstrapping, our priorities are a little
 different. We can't do anything until we've bootstrapped with the engine, so it
 makes sense to avoid that tradeoff.
 
@@ -173,8 +180,8 @@ startup time.
 
 I cherry picked these commits to start the testing process:
 
-* `bd32cdee4c` - Android perf helper files
-* `507f9ab4a8` - Uses the perf helper files and adds a `TTI_COMPLETE` hook.
+* https://github.com/keybase/client/commit/bd32cdee4c - Android perf helper files
+* https://github.com/keybase/client/commit/507f9ab4a8 - Uses the perf helper files and adds a `TTI_COMPLETE` hook.
 
 ### Control run
 
@@ -184,7 +191,7 @@ the `TTI_COMPLETE` hook.
 
 ### Test run
 
-After making the same change (commit `770c48bae6`). I ran the app five times again to see the new
+After making the same change (commit https://github.com/keybase/client/commit/770c48bae6). I ran the app five times again to see the new
 values of `TTI_COMPLETE`.
 
 ### Results
@@ -239,8 +246,8 @@ plugin to do it for us.
 
 I cherry picked these commits to start the testing process:
 
-* `bd32cdee4c` - Android perf helper files
-* `507f9ab4a8` - Uses the perf helper files and adds a `TTI_COMPLETE` hook.
+* https://github.com/keybase/client/commit/bd32cdee4c - Android perf helper files
+* https://github.com/keybase/client/commit/507f9ab4a8 - Uses the perf helper files and adds a `TTI_COMPLETE` hook.
 
 ### Control run
 
@@ -250,7 +257,7 @@ the `TTI_COMPLETE` hook.
 
 ### Test run
 
-After making the same change (commit `157347d830`). I ran the app five times again to see the new
+After making the same change (commit https://github.com/keybase/client/commit/157347d830). I ran the app five times again to see the new
 values of `TTI_COMPLETE`.
 
 ### Results
