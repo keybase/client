@@ -261,15 +261,13 @@ const reactComponentsForMarkdownType = {
     return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
   link: (node, output, state) => {
-    let url = node.content
-
-    if (!url.match(/^https?:\/\//)) {
-      url = `http://${node.content}`
-    }
+    const {protocol, afterProtocol, spaceInFront} = node
+    const rawURL = protocol + afterProtocol
+    const url = (protocol || 'http://') + afterProtocol
 
     return (
       <React.Fragment key={state.key}>
-        {node.spaceInFront}
+        {spaceInFront}
         <Text
           className="hover-underline"
           type="BodyPrimaryLink"
@@ -278,7 +276,7 @@ const reactComponentsForMarkdownType = {
           onClickURL={url}
           onLongPressURL={url}
         >
-          {node.content}
+          {rawURL}
         </Text>
       </React.Fragment>
     )

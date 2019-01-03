@@ -58,7 +58,7 @@ const _makeLinkRegex = () => {
   const paranthesisPaired = `([(]${valid}+[)])`
   const afterDomain = `(?:\\/|${paranthesisPaired}|${valid}|[.?]+[\\w/=])`
   return new RegExp(
-    `^( *)((https?:\\/\\/)?[\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
+    `^( *)(https?:\\/\\/)?([\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
     'i'
   )
 }
@@ -66,7 +66,7 @@ const _makeLinkRegex = () => {
 const _linkRegex = _makeLinkRegex()
 
 // TODO, when named groups are supported on mobile, we can use this instead
-// const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+// const linkRegex = /^( *)(https?:\/\/)?([\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 // This copies the functionality of this named group
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
@@ -79,6 +79,7 @@ const linkRegex: RegExp = {
     return null
   },
 }
+
 // Only allow a small set of characters before a url
 const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
@@ -281,7 +282,7 @@ const rules = {
     },
     order: SimpleMarkdown.defaultRules.newline.order + 0.5,
     parse: function(capture, parse, state) {
-      return {content: capture[2], spaceInFront: capture[1]}
+      return {afterProtocol: capture[3], protocol: capture[2] || '', spaceInFront: capture[1]}
     },
   },
   mailto: {
