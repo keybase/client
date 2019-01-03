@@ -1,6 +1,7 @@
 package identify3
 
 import (
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -126,6 +127,42 @@ func findRows(t *testing.T, haystack []keybase1.Identify3UpdateRowArg, needles [
 	t.Fatalf("didn't find all wanted rows")
 }
 
+func addBTCAddr(tc libkb.TestContext, u *kbtest.FakeUser, addr string) {
+	t := tc.T
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	e := engine.NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: addr})
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err := engine.RunEngine2(m, e)
+	require.NoError(t, err)
+}
+
+func TestCryptocurrency(t *testing.T) {
+	tc := SetupTest(t, "id3")
+	defer tc.Cleanup()
+	alice, err := kbtest.CreateAndSignupFakeUser("alice", tc.G)
+
+	// The keybase Bitcoin pin address.
+	addr := "1HUCBSJeHnkhzrVKVjaVmWg2QtZS1mdfaz"
+	addBTCAddr(tc, alice, addr)
+	require.NoError(t, err)
+	_, err = kbtest.CreateAndSignupFakeUser("bob", tc.G)
+	require.NoError(t, err)
+
+	mctx := libkb.NewMetaContextForTest(tc)
+	res := runID3(t, mctx, alice.Username, true)
+	require.False(t, res.userWasReset)
+
+	// We get one row of results, just the cryptocurrency row.
+	require.Equal(t, len(res.rows), 1)
+	require.Equal(t, res.rows[0].Key, "bitcoin")
+	require.Equal(t, res.rows[0].Value, addr)
+	require.Equal(t, res.rows[0].Color, keybase1.Identify3RowColor_GREEN)
+	require.Equal(t, res.rows[0].State, keybase1.Identify3RowState_VALID)
+}
+
 func TestFollowUnfollowTracy(t *testing.T) {
 	tc := SetupTest(t, "id3")
 	defer tc.Cleanup()
@@ -165,7 +202,7 @@ func TestFollowUnfollowTracy(t *testing.T) {
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
 			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta("unreachable")},
+			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "unreachable"}},
 		},
 	})
 
@@ -201,7 +238,7 @@ func TestFollowUnfollowTracy(t *testing.T) {
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
 			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta("ignored")},
+			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "ignored"}},
 		},
 	})
 }
