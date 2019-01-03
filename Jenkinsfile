@@ -306,31 +306,33 @@ def getTestDirsWindows() {
 
 def getPackagesToTest() {
   def packagesToTest = [:]
-  if (env.CHANGE_TARGET) {
-    // Load list of packages that changed.
-    sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
-    sh "git fetch origin ${env.CHANGE_TARGET}"
-    def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-    def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --diff-filter=d --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
-    def diffPackagesAsString = diffPackageList.join(' ')
-    println "Go packages changed:\n${diffPackagesAsString}"
+  dir('go') {
+    if (env.CHANGE_TARGET) {
+      // Load list of packages that changed.
+      sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
+      sh "git fetch origin ${env.CHANGE_TARGET}"
+      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+      def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --diff-filter=d --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
+      def diffPackagesAsString = diffPackageList.join(' ')
+      println "Go packages changed:\n${diffPackagesAsString}"
 
-    // Load list of dependencies and mark all dependent packages to test.
-    def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-    def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
-    def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
-    diffPackageList.each { pkg ->
-      // pkg changed; we need to load it from dependencyMap to see
-      // which tests should be run.
-      dependencyMap[pkg].each { dep, _ ->
-        packagesToTest[dep] = 1
+      // Load list of dependencies and mark all dependent packages to test.
+      def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+      def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
+      def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
+      diffPackageList.each { pkg ->
+        // pkg changed; we need to load it from dependencyMap to see
+        // which tests should be run.
+        dependencyMap[pkg].each { dep, _ ->
+          packagesToTest[dep] = 1
+        }
       }
-    }
-  } else {
-    println "This is a merge to a branch, so we are running all tests."
-    def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
-    diffPackageList.each { pkg ->
-      packagesToTest[pkg] = 1
+    } else {
+      println "This is a merge to a branch, so we are running all tests."
+      def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+      diffPackageList.each { pkg ->
+        packagesToTest[pkg] = 1
+      }
     }
   }
   return packagesToTest
