@@ -5,7 +5,7 @@ import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
 import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
-import type {Props} from './index.types'
+import type {Props} from './types'
 
 export const HeaderHocHeader = ({
   headerStyle,

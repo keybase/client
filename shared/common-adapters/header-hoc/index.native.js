@@ -7,7 +7,7 @@ import Box from '../box'
 import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import * as Styles from '../../styles'
-import type {Action, Props} from './index.types'
+import type {Action, Props} from './types'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -17,7 +17,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
   state = {
     floatingMenuVisible: false,
   }
-  _onHidden = () => this.setState({floatingMenuVisible: false})
+  _hideFloatingMenu = () => this.setState({floatingMenuVisible: false})
   _showFloatingMenu = () => this.setState({floatingMenuVisible: true})
   render() {
     // TODO: remove these after updates are fully integrated
@@ -37,77 +37,139 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         ])}
       >
         {this.props.customComponent}
-        <Box style={Styles.collapseStyles([styles.leftAction, this.props.titleComponent && styles.unflex])}>
-          {onLeftAction &&
-            (leftAction === 'cancel' ? (
-              <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
-                {this.props.leftActionText || this.props.customCancelText || 'Cancel'}
-              </Text>
-            ) : (
-              <BackButton
-                badgeNumber={this.props.badgeNumber}
-                hideBackLabel={this.props.hideBackLabel}
-                iconColor={
-                  this.props.theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40
-                }
-                style={styles.action}
-                onClick={onLeftAction}
-              />
-            ))}
-        </Box>
-        <Box
-          style={Styles.collapseStyles([
-            styles.titleContainer,
-            !this.props.rightActions && styles.titlePadding,
-          ])}
-        >
-          {!!this.props.title && !this.props.titleComponent
-            ? (<Text type="BodySemibold" style={styles.title} lineClamp={1}>
-                {this.props.title}
-              </Text>)
-            : (this.props.titleComponent)
-          }
-        </Box>
-        <Box style={Styles.collapseStyles([styles.rightActions, this.props.titleComponent && styles.unflex])}>
-          <Box style={styles.rightActionsWrapper}>
-            {rightActions &&
-              rightActions
-                .slice(
-                  0,
-                  rightActions && rightActions.length <= MAX_RIGHT_ACTIONS
-                    ? MAX_RIGHT_ACTIONS
-                    : MAX_RIGHT_ACTIONS - 1
-                )
-                .map((action, item) => renderAction(action))}
-            {rightActions &&
-              rightActions.length > MAX_RIGHT_ACTIONS && (
-                <>
-                  <Icon
-                    fontSize={22}
-                    onClick={this._showFloatingMenu}
-                    style={styles.action}
-                    type="iconfont-ellipsis"
-                  />
-                  <FloatingMenu
-                    visible={this.state.floatingMenuVisible}
-                    items={rightActions
-                      .slice(MAX_RIGHT_ACTIONS - 1)
-                      .map((action, item) => ({
-                        onClick: action.onPress,
-                        title: action.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
-                      }))}
-                    onHidden={this._onHidden}
-                    position="bottom left"
-                    closeOnSelect={true}
-                  />
-                </>
-              )}
-          </Box>
-        </Box>
+        <LeftAction
+          badgeNumber={this.props.badgeNumber}
+          customCancelText={this.props.customCancelText}
+          hasTitleComponent={!!this.props.titleComponent}
+          hideBackLabel={this.props.hideBackLabel}
+          leftAction={leftAction}
+          leftActionText={this.props.leftActionText}
+          onLeftAction={onLeftAction}
+          theme={this.props.theme}
+        />
+        <Title
+          hasRightActions={!!rightActions}
+          title={this.props.title}
+          titleComponent={this.props.titleComponent}
+        />
+        <RightActions
+          floatingMenuVisible={this.state.floatingMenuVisible}
+          hasTitleComponent={!!this.props.titleComponent}
+          hideFloatingMenu={this._hideFloatingMenu}
+          rightActions={rightActions}
+          showFloatingMenu={this._showFloatingMenu}
+        />
       </Box>
     )
   }
 }
+
+const LeftAction = ({
+  badgeNumber,
+  customCancelText,
+  hasTitleComponent,
+  hideBackLabel,
+  leftAction,
+  leftActionText,
+  onLeftAction,
+  theme,
+}): React.Node => (
+  <Box style={Styles.collapseStyles([styles.leftAction, hasTitleComponent && styles.unflex])}>
+    {onLeftAction &&
+      (leftAction === 'cancel' ? (
+        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+          {leftActionText || customCancelText || 'Cancel'}
+        </Text>
+      ) : (
+        <BackButton
+          badgeNumber={badgeNumber}
+          hideBackLabel={hideBackLabel}
+          iconColor={
+            theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40
+          }
+          style={styles.action}
+          onClick={onLeftAction}
+        />
+      ))}
+  </Box>
+)
+
+const Title = ({
+  hasRightActions,
+  title,
+  titleComponent,
+}): React.Node => (
+  <Box
+    style={Styles.collapseStyles([
+      styles.titleContainer,
+      !hasRightActions && styles.titlePadding,
+    ])}
+  >
+    {!!title && !titleComponent
+      ? (<Text type="BodySemibold" style={styles.title} lineClamp={1}>
+          {title}
+        </Text>)
+      : (titleComponent)
+    }
+  </Box>
+)
+
+const RightActions = ({
+  floatingMenuVisible,
+  hasTitleComponent,
+  hideFloatingMenu,
+  rightActions,
+  showFloatingMenu,
+}): React.Node => (
+  <Box style={Styles.collapseStyles([styles.rightActions, hasTitleComponent && styles.unflex])}>
+    <Box style={styles.rightActionsWrapper}>
+      {rightActions &&
+        rightActions
+          .slice(
+            0,
+            rightActions && rightActions.length <= MAX_RIGHT_ACTIONS
+              ? MAX_RIGHT_ACTIONS
+              : MAX_RIGHT_ACTIONS - 1
+          )
+          .map((action, item) => renderAction(action))}
+        <RightActionsOverflow
+          floatingMenuVisible={floatingMenuVisible}
+          hideFloatingMenu={hideFloatingMenu}
+          rightActions={rightActions}
+          showFloatingMenu={showFloatingMenu}
+        />
+    </Box>
+  </Box>
+)
+
+const RightActionsOverflow = ({
+  floatingMenuVisible,
+  hideFloatingMenu,
+  rightActions,
+  showFloatingMenu,
+}): React.Node =>
+  rightActions && rightActions.length > MAX_RIGHT_ACTIONS && (
+    <>
+      <Icon
+        fontSize={22}
+        onClick={showFloatingMenu}
+        style={styles.action}
+        type="iconfont-ellipsis"
+      />
+      <FloatingMenu
+        visible={floatingMenuVisible}
+        items={rightActions
+          .slice(MAX_RIGHT_ACTIONS - 1)
+          .map((action, item) => ({
+            onClick: action.onPress,
+            title: action.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
+          }))}
+        onHidden={hideFloatingMenu}
+        position="bottom left"
+        closeOnSelect={true}
+      />
+    </>
+  )
 
 const renderAction = (action: Action): React.Node =>
   action.custom ? (
