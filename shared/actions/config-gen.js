@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -97,6 +97,10 @@ type _UpdateNowPayload = void
  */
 export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
 /**
+ * TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers
+ */
+export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
+/**
  * desktop only: the installer ran and we can start up
  */
 export const createInstallerRan = (payload: _InstallerRanPayload) => ({payload, type: installerRan})
@@ -136,10 +140,6 @@ export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) 
  * subsystems that need to do things during logout need to call this to register that we should wait.
  */
 export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({payload, type: logoutHandshakeWait})
-/**
- * when sagas should start creating their incoming handlers / onConnect handlers
- */
-export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({payload, type: bootstrapStatusLoaded})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({payload, type: changedFocus})
