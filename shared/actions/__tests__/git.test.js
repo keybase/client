@@ -10,7 +10,7 @@ import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath, getPathState as getRoutePathState} from '../../route-tree'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 // We want to be logged in usually
 const blankStore = Testing.getInitialStore()

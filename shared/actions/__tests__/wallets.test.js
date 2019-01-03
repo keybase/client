@@ -12,7 +12,7 @@ import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath} from '../../route-tree'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 const blankStore = Testing.getInitialStore()
 const initialStore = {

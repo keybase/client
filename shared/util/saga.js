@@ -11,30 +11,6 @@ import {isArray} from 'lodash-es'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
-function safeTakeEvery(
-  pattern: RS.Pattern,
-  worker: Function
-): RS.ForkEffect<null, Function, $ReadOnlyArray<any>> {
-  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: TypedActions): RS.Saga<void> {
-    try {
-      yield Effects.call(worker, action)
-    } catch (error) {
-      // Convert to global error so we don't kill the takeEvery loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-    } finally {
-      if (yield Effects.cancelled()) {
-        logger.info('safeTakeEvery cancelled')
-      }
-    }
-  }
-
-  return Effects.takeEvery(pattern, safeTakeEveryWorker)
-}
-
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   const results = []
@@ -110,95 +86,6 @@ function* chainGenerator<Actions>(
   })
 }
 
-// Helper that expects a function which returns a promise that resolves to a put
-function actionToPromise<A>(
-  pattern: RS.Pattern,
-  f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
-) {
-  return Effects.takeEvery(pattern, function* actionToPromiseHelper(action: A): RS.Saga<void> {
-    try {
-      const state: TypedState = yield Effects.select()
-      const toPut = yield Effects.call(f, state, action)
-      if (toPut) {
-        yield Effects.put(toPut)
-      }
-    } catch (error) {
-      // Convert to global error so we don't kill the takeEvery loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-    } finally {
-      if (yield Effects.cancelled()) {
-        logger.info('actionToPromise cancelled')
-      }
-    }
-  })
-}
-
-// like safeTakeEveryPure but simpler, only 2 params and gives you a state first
-function actionToAction<A, E>(pattern: RS.Pattern, f: (state: TypedState, action: A) => E) {
-  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): Generator<any, void, any> {
-    try {
-      const state: TypedState = yield Effects.select()
-      yield f(state, action)
-    } catch (error) {
-      // Convert to global error so we don't kill the takeEvery loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-    } finally {
-      if (yield Effects.cancelled()) {
-        logger.info('actionToAction cancelled')
-      }
-    }
-  })
-}
-
-// Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
-// Which is a selector function that will select some state and pass it to pureWorker
-// whatever purework returns will be yielded on.
-// i.e. it can return put(someAction). That effectively transforms the input action into another action
-// It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
-  pattern: RS.Pattern,
-  pureWorker: (action: A, state: TypedState) => any,
-  actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalEffect,
-  actionCreatorsWithError?: ?(result: R, action: A) => FinalErrorEffect
-) {
-  return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
-    // If the pureWorker fn takes two arguments, let's pass the state
-    try {
-      const state: TypedState = yield Effects.select()
-      const result = yield pureWorker(action, state)
-
-      if (actionCreatorsWithResult) {
-        if (actionCreatorsWithResult.length === 3) {
-          // add a way to get the updated state
-          const state: TypedState = yield Effects.select()
-          yield actionCreatorsWithResult(result, action, state)
-        } else {
-          // $FlowIssue we pass undefined if they don't use it
-          yield actionCreatorsWithResult(result, action, undefined)
-        }
-      }
-    } catch (e) {
-      if (actionCreatorsWithError) {
-        yield actionCreatorsWithError(e, action)
-      } else {
-        yield Effects.put(
-          ConfigGen.createGlobalError({
-            globalError: convertToError(e),
-          })
-        )
-      }
-    }
-  })
-}
-
 /***
  * Note: Due to how flow handles generators (https://github.com/facebook/flow/issues/2613), when you
  * const values = yield Saga.call(myFunction, param1, param2)
@@ -246,16 +133,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {
-  selectState,
-  put,
-  safeTakeEvery,
-  safeTakeEveryPure,
-  actionToPromise,
-  actionToAction,
-  sequentially,
-  callPromise,
-  chainAction,
-  chainGenerator,
-  callRPCs,
-}
+export {selectState, put, sequentially, callPromise, chainAction, chainGenerator, callRPCs}
