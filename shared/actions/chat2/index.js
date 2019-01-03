@@ -1420,7 +1420,7 @@ function* previewConversationFindExisting(state, action) {
     })
   )
 
-  if (conversationIDKey) {
+  if (!conversationIDKey) {
     const results = yield Saga.callUntyped(RPCChatTypes.localFindConversationsLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
@@ -1723,7 +1723,7 @@ const attachmentPreviewSelect = (_, action) => {
 const attachmentPasted = (_, action) => {
   const {conversationIDKey, data} = action.payload
   const outboxID = Constants.generateOutboxID()
-  RPCChatTypes.localMakeUploadTempFileRpcPromise({
+  return RPCChatTypes.localMakeUploadTempFileRpcPromise({
     data,
     filename: 'paste.png',
     outboxID,

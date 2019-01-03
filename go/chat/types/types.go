@@ -39,11 +39,6 @@ func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
 }
 
-type NameInfoUntrusted struct {
-	ID            chat1.TLFID
-	CanonicalName string
-}
-
 type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string

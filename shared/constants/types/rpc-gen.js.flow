@@ -2194,7 +2194,7 @@ export type Identify3RowColor =
   | 6 // YELLOW_6
   | 7 // ORANGE_7
 
-export type Identify3RowMeta = String
+export type Identify3RowMeta = $ReadOnly<{color: Identify3RowColor, label: String}>
 export type Identify3RowState =
   | 1 // CHECKING_1
   | 2 // VALID_2
