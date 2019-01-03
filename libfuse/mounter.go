@@ -50,6 +50,19 @@ func (m *mounter) Mount() (err error) {
 }
 
 func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
+	// Create mountdir directory on Linux
+	switch runtime.GOOS {
+	case "linux":
+		// Inherit permissions from containing directory and umask
+		err := os.MkdirAll(dir, os.ModeDir|os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+	case "darwin":
+	case "windows":
+	default:
+	}
+
 	fi, err := os.Stat(dir)
 	if err != nil {
 		return nil, err
