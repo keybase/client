@@ -1,6 +1,9 @@
 [Unit]
 Description=Keybase Filesystem service
-Wants=keybase.service
+# Do not issue a hard dependency on service, because
+# kbfs can reconnect to a restarted service
+# OK to start kbfsfuse even if keybase-redirector fails (e.g., if it is disabled)
+Wants=keybase.service keybase-redirector.service
 
 [Service]
 # "notify" means we promise to call SdNotify() at the end of startup.
@@ -11,8 +14,12 @@ EnvironmentFile=-%E/keybase/keybase-override.env
 # `systemctl --user restart kbfs.service` will hit mount failures if there
 # are any running shells cd'd into a Keybase folder.
 ExecStartPre=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
+
 ExecStart=/usr/bin/kbfsfuse -debug -log-to-file
+
+# This should have already occurred in the signal handler in kbfsfuse.
 ExecStop=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
+
 Restart=on-failure
 
 [Install]
