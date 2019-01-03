@@ -447,26 +447,11 @@ func (t *teamAPIHandler) requireOptionsV1(c Call) error {
 }
 
 func (t *teamAPIHandler) encodeResult(call Call, result interface{}, w io.Writer) error {
-	reply := Reply{
-		Result: result,
-	}
-	return t.encodeReply(call, reply, w)
+	return encodeResult(call, result, w, t.indent)
 }
 
 func (t *teamAPIHandler) encodeErr(call Call, err error, w io.Writer) error {
-	reply := Reply{Error: &CallError{Message: err.Error()}}
-	return t.encodeReply(call, reply, w)
-}
-
-func (t *teamAPIHandler) encodeReply(call Call, reply Reply, w io.Writer) error {
-	reply.Jsonrpc = call.Jsonrpc
-	reply.ID = call.ID
-
-	enc := json.NewEncoder(w)
-	if t.indent {
-		enc.SetIndent("", "    ")
-	}
-	return enc.Encode(reply)
+	return encodeErr(call, err, w, t.indent)
 }
 
 func (t *teamAPIHandler) unmarshalOptions(c Call, opts Checker) error {
@@ -487,10 +472,6 @@ func mapRole(srole string) (keybase1.TeamRole, error) {
 
 	return role, nil
 
-}
-
-type Checker interface {
-	Check() error
 }
 
 func checkSubteam(name string) error {
