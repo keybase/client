@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
@@ -510,7 +511,7 @@ func InitWithLogPrefix(
 	log logger.Logger, logPrefix string) (cfg Config, err error) {
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
-	signal.Notify(interruptChan, os.Interrupt)
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		_ = <-interruptChan
 
