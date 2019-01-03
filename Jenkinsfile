@@ -103,6 +103,10 @@ helpers.rootLinuxNode(env, {
             }
             parallel (
               test_linux: {
+                def packagesToTest
+                if (hasGoChanges) {
+                  packagesToTest = getPackagesToTest()
+                }
                 parallel (
                   check_deps: {
                     // Checking deps can happen in parallel
@@ -123,7 +127,7 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         sh "go build --tags=production"
                       }
-                      testGo("test_linux_go_")
+                      testGo("test_linux_go_", packagesToTest)
                     }
                   }},
                   test_linux_js: { withEnv([
@@ -139,7 +143,9 @@ helpers.rootLinuxNode(env, {
                   }},
                   integrate: {
                     // Build the client docker first so we can immediately kick off KBFS
-                    if (hasGoChanges) {
+                    def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ }
+                    println "has KBFS changes: ${hasKBFSChanges}"
+                    if (hasGoChanges && hasKBFSChanges) {
                       dir('go') {
                         sh "go install github.com/keybase/client/go/keybase"
                         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
@@ -213,7 +219,7 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         bat "go build"
                       }
-                      testGo("test_windows_go_")
+                      testGo("test_windows_go_", getPackagesToTest())
                     }
                   )
                 }}
@@ -260,7 +266,7 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         sh "go build --tags=production"
                       }
-                      testGo("test_macos_go_")
+                      testGo("test_macos_go_", getPackagesToTest())
                     }
                   }
                 )
@@ -298,7 +304,39 @@ def getTestDirsWindows() {
   return dirs.tokenize()
 }
 
-def testGo(prefix) {
+def getPackagesToTest() {
+  def packagesToTest = [:]
+  if (env.CHANGE_TARGET) {
+    // Load list of packages that changed.
+    sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
+    sh "git fetch origin ${env.CHANGE_TARGET}"
+    def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+    def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --diff-filter=d --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
+    def diffPackagesAsString = diffPackageList.join(' ')
+    println "Go packages changed:\n${diffPackagesAsString}"
+
+    // Load list of dependencies and mark all dependent packages to test.
+    def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+    def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
+    def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
+    diffPackageList.each { pkg ->
+      // pkg changed; we need to load it from dependencyMap to see
+      // which tests should be run.
+      dependencyMap[pkg].each { dep, _ ->
+        packagesToTest[dep] = 1
+      }
+    }
+  } else {
+    println "This is a merge to a branch, so we are running all tests."
+    def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+    diffPackageList.each { pkg ->
+      packagesToTest[pkg] = 1
+    }
+  }
+  return packagesToTest
+}
+
+def testGo(prefix, packagesToTest) {
   dir('go') {
   withEnv([
     "KEYBASE_LOG_SETUPTEST_FUNCS=1",
@@ -323,34 +361,6 @@ def testGo(prefix) {
     // Make sure we don't accidentally pull in the testing package.
     sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
-    def packagesToTest = [:]
-    if (env.CHANGE_TARGET) {
-      // Load list of packages that changed.
-      sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
-      sh "git fetch origin ${env.CHANGE_TARGET}"
-      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-      def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --diff-filter=d --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
-      def diffPackagesAsString = diffPackageList.join(' ')
-      println "Go packages changed:\n${diffPackagesAsString}"
-
-      // Load list of dependencies and mark all dependent packages to test.
-      def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-      def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
-      def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
-      diffPackageList.each { pkg ->
-        // pkg changed; we need to load it from dependencyMap to see
-        // which tests should be run.
-        dependencyMap[pkg].each { dep, _ ->
-          packagesToTest[dep] = 1
-        }
-      }
-    } else {
-      println "This is a merge to a branch, so we are running all tests."
-      def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
-      diffPackageList.each { pkg ->
-        packagesToTest[pkg] = 1
-      }
-    }
     def packageTestList = packagesToTest.keySet()
     println "Go packages to test:\n${packageTestList.join('\n')}"
 
