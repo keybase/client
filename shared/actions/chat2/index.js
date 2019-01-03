@@ -2254,7 +2254,8 @@ function* setConvExplodingMode(_, action) {
       } else {
         logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
       }
-    } catch (e) {
+    } catch (_e) {
+      const e: RPCError = _e
       if (seconds !== 0) {
         logger.error(
           `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${
