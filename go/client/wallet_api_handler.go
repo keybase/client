@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -8,6 +9,9 @@ import (
 	"github.com/stellar/go/strkey"
 	"golang.org/x/net/context"
 )
+
+// ErrInvalidAccountID is for invalid account IDs.
+var ErrInvalidAccountID = errors.New("invalid stellar account ID")
 
 // walletAPIHandler is a type that can handle all the json api
 // methods for the wallet API.
@@ -81,11 +85,12 @@ func (w *walletAPIHandler) history(ctx context.Context, c Call, wr io.Writer) er
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return w.encodeErr(c, err, wr)
 	}
-	accounts, err := w.cli.WalletGetAccountsCLILocal(ctx)
+	a := stellar1.AccountID(opts.AccountID)
+	payments, err := w.cli.RecentPaymentsCLILocal(ctx, &a)
 	if err != nil {
 		return w.encodeErr(c, err, wr)
 	}
-	return w.encodeResult(c, accounts, wr)
+	return w.encodeResult(c, payments, wr)
 }
 
 // encodeResult JSON encodes a successful result to the wr writer.
@@ -98,11 +103,16 @@ func (w *walletAPIHandler) encodeErr(call Call, err error, wr io.Writer) error {
 	return encodeErr(call, err, wr, w.indent)
 }
 
+// accountIDOptions is for a command where an account-id is required.
 type accountIDOptions struct {
 	AccountID string `json:"account-id"`
 }
 
+// Check makes sure that AccountID exists and is valid.
 func (c *accountIDOptions) Check() error {
 	_, err := strkey.Decode(strkey.VersionByteAccountID, c.AccountID)
-	return err
+	if err != nil {
+		return ErrInvalidAccountID
+	}
+	return nil
 }

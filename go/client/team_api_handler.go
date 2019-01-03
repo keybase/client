@@ -1,7 +1,6 @@
 package client
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"strings"
@@ -455,13 +454,7 @@ func (t *teamAPIHandler) encodeErr(call Call, err error, w io.Writer) error {
 }
 
 func (t *teamAPIHandler) unmarshalOptions(c Call, opts Checker) error {
-	if len(c.Params.Options) == 0 {
-		return nil
-	}
-	if err := json.Unmarshal(c.Params.Options, opts); err != nil {
-		return err
-	}
-	return opts.Check()
+	return unmarshalOptions(c, opts)
 }
 
 func mapRole(srole string) (keybase1.TeamRole, error) {

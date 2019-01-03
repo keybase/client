@@ -235,9 +235,12 @@ func encodeReply(call Call, reply Reply, wr io.Writer, indent bool) error {
 	return enc.Encode(reply)
 }
 
+// unmarshalOptions unmarshals any options in Call into opts,
+// and verify they pass the Checker checks.
 func unmarshalOptions(c Call, opts Checker) error {
 	if len(c.Params.Options) == 0 {
-		return nil
+		// still check the options in case any fields are required.
+		return opts.Check()
 	}
 	if err := json.Unmarshal(c.Params.Options, opts); err != nil {
 		return err
