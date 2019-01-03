@@ -31,7 +31,6 @@ const provider = Sb.createPropProviderWithCommon({
     makeBreadcrumbProps('meatball', path => Sb.action(`navigate to ${Types.pathToString(path)}`), path),
   FilePreviewDefaultView: () => ({
     fileUIEnabled: false,
-    itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
     onDownload: () => {},
     onSave: () => {},
     onShare: () => {},
@@ -97,7 +96,6 @@ const provider = Sb.createPropProviderWithCommon({
 
 const breadcrumbProps = (names: Array<string>) => {
   const items = names.map((name, idx) => ({
-    iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
     isLastItem: idx === names.length - 1,
     isTeamTlf: idx === 2 && names[idx - 1] === 'team',
     name: name,

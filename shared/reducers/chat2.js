@@ -1,6 +1,7 @@
 // @flow
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -13,6 +14,8 @@ import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
 import * as Flow from '../util/flow'
+
+type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -365,7 +368,7 @@ const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.c
 
 const rootReducer = (
   state: Types.State = initialState,
-  action: Chat2Gen.Actions | TeamBuildingGen.Actions
+  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 ): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
@@ -552,7 +555,7 @@ const rootReducer = (
       // Update any pending messages
       const pendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
-          if (context.type === 'sent' || context.type === 'threadLoad') {
+          if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
             messages.forEach(message => {
               const m = canSendType(message)
               if (m && !m.id && m.outboxID) {
@@ -722,8 +725,15 @@ const rootReducer = (
         })
       )
     }
-    case Chat2Gen.updateTypers: {
-      return state.set('typingMap', action.payload.conversationToTypers)
+    case EngineGen.chat1NotifyChatChatTypingUpdate: {
+      const {typingUpdates} = action.payload.params
+      const typingMap = I.Map(
+        (typingUpdates || []).reduce((arr, u) => {
+          arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+          return arr
+        }, [])
+      )
+      return state.merge({typingMap})
     }
     case Chat2Gen.toggleLocalReaction: {
       const {conversationIDKey, emoji, targetOrdinal, username} = action.payload

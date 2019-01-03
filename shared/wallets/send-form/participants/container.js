@@ -70,7 +70,7 @@ const mapStateToPropsStellarPublicKey = state => {
 
   const curPath = RouteTree.getPath(state.routeTree.routeState, Constants.rootWalletTab).last()
   // looking at the form now, but wasn't before
-  if (curPath === 'sendReceiveForm' && curPath !== lastPath) {
+  if (curPath === Constants.sendRequestFormRouteKey && curPath !== lastPath) {
     keyCounter++
   }
 

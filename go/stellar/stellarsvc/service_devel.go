@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 )
 
-func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestricted, err error) {
+func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
 	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
 		return dump, errors.New("WalletDump only supported in devel run mode")
 	}
@@ -42,13 +42,13 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestr
 		return dump, err
 	}
 
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return dump, err
 	}
 	newAccBundles := make(map[stellar1.AccountID]stellar1.AccountBundle)
 	for _, acct := range bundle.Accounts {
-		singleBundle, _, _, err := remote.FetchAccountBundle(ctx, s.G(), acct.AccountID)
+		singleBundle, err := remote.FetchAccountBundle(mctx, acct.AccountID)
 		if err != nil {
 			// if we can't fetch the secret for this account, just continue on
 			continue

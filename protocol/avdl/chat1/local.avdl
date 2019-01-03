@@ -761,8 +761,7 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
-  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, union { null, OutboxID } outboxID, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
-  void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postFileAttachmentLocalNonblock(int sessionID, PostFileAttachmentArg arg, MessageID clientPrev);
 
   record GetNextAttachmentMessageLocalRes  {
     union { null, UIMessage } message;

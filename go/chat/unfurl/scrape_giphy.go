@@ -41,7 +41,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 	if generic.ImageUrl == nil {
 		// If we couldn't find an image, then just return the generic
 		s.Debug(ctx, "scrapeGiphy: failed to find an image, just returning generic unfurl")
-		return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
+		return s.exportGenericResult(generic)
 	}
 	if len(video.Url) > 0 && video.Height > 0 && video.Width > 0 {
 		giphy.Video = &video

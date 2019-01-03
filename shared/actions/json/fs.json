@@ -97,7 +97,7 @@
       "endEstimate?": "?number"
     },
     "openLocalPathInSystemFileManager": {
-      "path": "string"
+      "localPath": "string"
     },
     "openPathInSystemFileManager": {
       "path": "Types.Path"

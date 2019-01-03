@@ -66,7 +66,7 @@ const checkReachability = () =>
     GregorGen.createUpdateReachable({reachable: reachability.reachable})
   )
 
-const updateCategory = (_: any, action: GregorGen.UpdateCategoryPayload) =>
+const updateCategory = (_, action) =>
   RPCTypes.gregorUpdateCategoryRpcPromise({
     body: action.payload.body,
     category: action.payload.category,
@@ -76,10 +76,13 @@ const updateCategory = (_: any, action: GregorGen.UpdateCategoryPayload) =>
     .catch(() => {})
 
 function* gregorSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(GregorGen.updateCategory, updateCategory)
-  yield Saga.actionToPromise(GregorGen.startReachability, startReachability)
-  yield Saga.actionToPromise(GregorGen.checkReachability, checkReachability)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<GregorGen.UpdateCategoryPayload>(GregorGen.updateCategory, updateCategory)
+  yield* Saga.chainAction<GregorGen.StartReachabilityPayload>(GregorGen.startReachability, startReachability)
+  yield* Saga.chainAction<GregorGen.CheckReachabilityPayload>(GregorGen.checkReachability, checkReachability)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default gregorSaga

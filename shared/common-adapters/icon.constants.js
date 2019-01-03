@@ -226,6 +226,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
   },
+  'icon-fancy-no-access-desktop-96-94': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-no-access-desktop-96-94.png'),
+  },
+  'icon-fancy-no-access-mobile-128-125': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-no-access-mobile-128-125.png'),
+  },
   'icon-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
     isFont: false,
@@ -301,15 +311,45 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-file-placeholder-32.png'),
   },
+  'icon-file-private-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-private-16.png'),
+  },
   'icon-file-private-32': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-file-private-32.png'),
   },
+  'icon-file-private-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-private-48.png'),
+  },
+  'icon-file-private-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-private-64.png'),
+  },
+  'icon-file-public-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-public-16.png'),
+  },
   'icon-file-public-32': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-file-public-32.png'),
+  },
+  'icon-file-public-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-public-48.png'),
+  },
+  'icon-file-public-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-public-64.png'),
   },
   'icon-file-txt-48': {
     extension: 'png',
@@ -485,6 +525,16 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-folder-team-32.png'),
+  },
+  'icon-folder-team-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-team-48.png'),
+  },
+  'icon-folder-team-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-team-64.png'),
   },
   'icon-folders-private-success-48': {
     extension: 'png',
@@ -1500,6 +1550,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-flying-48.png'),
+  },
+  'icon-stellar-coins-stacked-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-16.png'),
   },
   'icon-stellar-logo-16': {
     extension: 'png',

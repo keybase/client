@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -120,7 +120,7 @@ type _NotifySyncActivityPayload = void
 type _NotifyTlfUpdatePayload = $ReadOnly<{|tlfPath: Types.Path|}>
 type _OpenAndUploadPayload = $ReadOnly<{|type: Types.OpenDialogType, parentPath: Types.Path|}>
 type _OpenFilesFromWidgetPayload = $ReadOnly<{|path: Types.Path, type: Types.PathType|}>
-type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|path: string|}>
+type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|localPath: string|}>
 type _OpenPathInFilesTabPayload = $ReadOnly<{|path: Types.Path, routePath?: I.List<string>|}>
 type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
 type _OpenPathItemPayload = $ReadOnly<{|path: Types.Path, routePath: I.List<string>|}>

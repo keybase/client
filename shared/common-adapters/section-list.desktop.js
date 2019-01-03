@@ -5,7 +5,7 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
 import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
-import {throttle} from 'lodash-es'
+import {throttle, once} from 'lodash-es'
 
 // NOTE: this ReactList is of type `simple` (by default)
 // setting it to `variable` or something more complex
@@ -31,6 +31,11 @@ class SectionList extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (prevProps.sections !== this.props.sections) {
       this._storeItems()
+    }
+
+    if (this.props.items !== prevProps.items) {
+      // Items changed so let's also reset the onEndReached call
+      this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
     }
   }
 
@@ -80,9 +85,12 @@ class SectionList extends React.Component<Props, State> {
   _checkOnEndReached = throttle(target => {
     const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
     if (diff < 5) {
-      this.props.onEndReached()
+      this._onEndReached()
     }
   }, 100)
+
+  // This matches the way onEndReached works for sectionlist on RN
+  _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
   _onScroll = e => e.currentTarget && this._checkOnEndReached(e.currentTarget)
 

@@ -3,11 +3,11 @@
     "import * as Types from '../constants/types/config'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
-    "import {RPCError} from '../util/errors'"
+    "import {RPCError} from '../util/errors'",
   ],
   "actions": {
     "setupEngineListeners": {
-      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
+      "_description": "TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers"
     },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
@@ -100,11 +100,11 @@
       "writeFile": "boolean"
     },
     "setDeletedSelf": {"deletedUsername": "string"},
+    "swapRouter": {"useNewRouter": "boolean"},
     "loggedOut": {},
     "loggedIn": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
-    "_avatarQueue": {},
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
     "updateNow": {}

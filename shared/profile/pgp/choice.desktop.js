@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {navigateUp, navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 
 type OwnProps = {||}
@@ -41,8 +41,9 @@ const styleCancelButton = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(navigateUp()),
-  onOptionClick: (type: 'import' | 'provideInfo') => dispatch(navigateAppend([type])),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onOptionClick: (type: 'import' | 'provideInfo') =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [type]})),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

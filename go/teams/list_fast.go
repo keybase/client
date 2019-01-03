@@ -2,6 +2,8 @@ package teams
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -116,4 +118,45 @@ func listTeamsUnverifiedCacheKey(meUID, queryUID keybase1.UID, includeImplicitTe
 		Typ: libkb.DBTeamList,
 		Key: fmt.Sprintf("%v-%v-%v", meUID, queryUID, includeImplicitTeams),
 	}
+}
+
+func ListSubteamsUnverified(mctx libkb.MetaContext, name keybase1.TeamName) (res keybase1.SubteamListResult, err error) {
+	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "TeamList.ListSubteamsUnverified", true)
+	defer tracer.Finish()
+
+	meUID := mctx.G().ActiveDevice.UID()
+	if meUID.IsNil() {
+		return res, libkb.LoginRequiredError{}
+	}
+
+	emptyUID := keybase1.UID("")
+	teams, err := getTeamsListFromServer(mctx.Ctx(), mctx.G(), emptyUID,
+		false /* all */, true /* countMembers */, true /* includeImplicitTeams */)
+	if err != nil {
+		return res, libkb.LoginRequiredError{}
+	}
+
+	var entries []keybase1.SubteamListEntry
+	for _, potentialSubteam := range teams {
+		if isSubteamByName(name, potentialSubteam.FqName) {
+			subteamName, err := keybase1.TeamNameFromString(potentialSubteam.FqName)
+			if err != nil {
+				return res, err
+			}
+			entries = append(entries, keybase1.SubteamListEntry{Name: subteamName, MemberCount: potentialSubteam.MemberCount})
+		}
+	}
+
+	// Order alphabetically: e.g. [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Name.String() < entries[j].Name.String()
+	})
+
+	res.Entries = entries
+	return res, nil
+}
+
+func isSubteamByName(teamName keybase1.TeamName, potentialSubteamName string) bool {
+	// e.g. strings.HasPrefix("keybase.private", "keybase.") => true
+	return strings.HasPrefix(potentialSubteamName, teamName.String()+".")
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 
+	identify3 "github.com/keybase/client/go/identify3"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -36,17 +37,15 @@ type setObj struct {
 type UIRouter struct {
 	sync.Mutex
 	libkb.Contextified
-	cm       *libkb.ConnectionManager
-	uis      map[libkb.UIKind]libkb.ConnectionID
-	id3state *identify3State
+	cm  *libkb.ConnectionManager
+	uis map[libkb.UIKind]libkb.ConnectionID
 }
 
-func NewUIRouter(g *libkb.GlobalContext, id3state *identify3State) *UIRouter {
+func NewUIRouter(g *libkb.GlobalContext) *UIRouter {
 	return &UIRouter{
 		Contextified: libkb.NewContextified(g),
 		cm:           g.ConnectionManager,
 		uis:          make(map[libkb.UIKind]libkb.ConnectionID),
-		id3state:     id3state,
 	}
 }
 
@@ -96,14 +95,25 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return ret, nil
 }
 
-func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext, id keybase1.Identify3GUIID) (libkb.IdentifyUI, error) {
+func (u *UIRouter) GetIdentify3UI(m libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
 	x, _ := u.getUI(libkb.Identify3UIKind)
 	if x == nil {
 		return nil, nil
 	}
 	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
 	id3cli := keybase1.Identify3UiClient{Cli: cli}
-	return NewIdentify3UIAdapter(m, id3cli, u.id3state)
+	return id3cli, nil
+}
+
+func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI, error) {
+	id3i, err := u.GetIdentify3UI(m)
+	if err != nil {
+		return nil, err
+	}
+	if id3i == nil {
+		return nil, nil
+	}
+	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3i)
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

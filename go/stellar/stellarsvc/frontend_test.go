@@ -340,7 +340,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.NoError(t, err)
 
 	mctx := libkb.NewMetaContextBackground(tcs[0].G)
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	bundle, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, bundle.Revision)
 
@@ -571,7 +571,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 
 	t.Logf("can't create wallet before disclaimer")
 	mctx := tcs[0].MetaContext()
-	_, err = stellar.CreateWallet(mctx, false)
+	_, err = stellar.CreateWallet(mctx)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
@@ -1516,6 +1516,20 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
+	// and from non-primary account has an additional privacy banner
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:   senderSecondaryAccountID,
+		To:     tcs[1].Fu.Username,
+		Amount: "15",
+	})
+	require.NoError(t, err)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+	}, {
+		Level:   "info",
+		Message: fmt.Sprintf("Your Keybase username will not be linked to this transaction."),
+	}})
 
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		BypassBid: true,
@@ -1545,6 +1559,18 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "15 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$4.77 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{}) // recipient is funded so banner's gone
+	// and from non-primary account has a privacy banner
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:       senderSecondaryAccountID,
+		To:         tcs[1].Fu.Username,
+		Amount:     "15",
+		PublicMemo: "🥔🥔🥔🥔🥔🥔🥔🥔",
+	})
+	require.NoError(t, err)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Your Keybase username will not be linked to this transaction."),
+	}})
 
 	// Send an amount so close to available to send that the fee would push it it over the edge.
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1662,6 +1688,22 @@ func TestBuildPaymentLocal(t *testing.T) {
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: "Because it's their first transaction, you must send at least 1 XLM.",
+	}})
+	// and from non-primary account has an additional privacy banner
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderSecondaryAccountID,
+		To:            "GBJCIIIWEP2ZIKSNY3AP5GJ5OHNSN6Y4W5K4IVIY4VSQF5QLVE27GADK",
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+	}, {
+		Level:   "info",
+		Message: fmt.Sprintf("Your Keybase username will not be linked to this transaction."),
 	}})
 
 	t.Logf("sending to account ID that is someone's primary")

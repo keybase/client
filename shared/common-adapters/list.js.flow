@@ -9,11 +9,12 @@ export type Props<Item> = {
   style?: StylesCrossPlatform,
   fixedHeight?: ?number,
   renderItem: (index: number, item: Item) => React.Node,
-  keyProperty?: string, // if passed uses item[keyProperty] for the item keys (does nothing on desktop)
+  keyProperty?: string, // if passed uses item[keyProperty] for the item keys
   selectedIndex?: number, // TODO work on mobile
   itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
   windowSize?: number, // Mobile only, has a non-RN default
+  onEndReached?: () => void,
 }
 
 export default class List<Item> extends React.Component<Props<Item>, void> {}

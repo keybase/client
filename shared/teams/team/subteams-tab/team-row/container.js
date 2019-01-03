@@ -5,7 +5,7 @@ import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
 import {TeamRow} from '../../../main/team-list'
 import {connect} from '../../../../util/container'
-import {navigateAppend} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as FsGen from '../../../../actions/fs-gen'
 
 type OwnProps = {
@@ -21,11 +21,11 @@ const mapStateToProps = (state, {teamname}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onManageChat: (teamname: Types.Teamname) =>
-    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   _onOpenFolder: (teamname: Types.Teamname) =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`)})),
   _onViewTeam: (teamname: Types.Teamname) => {
-    dispatch(navigateAppend([{props: {teamname}, selected: 'team'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
   },
 })
 

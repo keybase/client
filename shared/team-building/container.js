@@ -6,6 +6,7 @@ import {debounce, trim} from 'lodash-es'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {compose, namedConnect} from '../util/container'
+import {requestIdleCallback} from '../util/idle-callback'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
@@ -14,7 +15,7 @@ import type {ServiceIdWithContact, User, SearchResults} from '../constants/types
 
 // TODO
 // * there's a lot of render thrashing going on. using keyboard arrows is kinda slow becuase of it.
-// * Limit the highlight index to the max lenght of the list
+// * Limit the highlight index to the max length of the list
 
 type OwnProps = {
   // Supplied by StateComponent
@@ -30,11 +31,11 @@ type OwnProps = {
 type LocalState = {
   searchString: string,
   selectedService: ServiceIdWithContact,
-  highlightedIndex: ?number,
+  highlightedIndex: number,
 }
 
 const initialState: LocalState = {
-  highlightedIndex: 0,
+  highlightedIndex: -1,
   searchString: '',
   selectedService: 'keybase',
 }
@@ -76,8 +77,11 @@ const deriveServiceResultCount: (
 
 const deriveShowServiceResultCount = memoize(searchString => !!searchString)
 
-const deriveUserFromUserIdFn = memoize((searchResults: ?Array<User>) => (userId: string): ?User =>
-  (searchResults || []).filter(u => u.id === userId)[0] || null
+const deriveUserFromUserIdFn = memoize(
+  (searchResults: ?Array<User>, recommendations: ?Array<User>) => (userId: string): ?User =>
+    (searchResults || []).filter(u => u.id === userId)[0] ||
+    (recommendations || []).filter(u => u.id === userId)[0] ||
+    null
 )
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -105,15 +109,15 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
     teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
-    userFromUserId: deriveUserFromUserIdFn(userResults),
+    userFromUserId: deriveUserFromUserIdFn(userResults, state.chat2.teamBuildingUserRecs),
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
-  _search: debounce((query: string, service: ServiceIdWithContact) => {
-    dispatch(TeamBuildingGen.createSearch({query, service}))
+  _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
+    requestIdleCallback(() => dispatch(TeamBuildingGen.createSearch({limit, query, service})))
   }, 500),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
   onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
@@ -154,6 +158,14 @@ const deriveOnEnterKeyDown = memoizeShallow(
   }
 )
 
+const deriveOnSearchForMore = memoizeShallow(
+  ({search, searchResults, searchString, selectedService}) => () => {
+    if (searchResults.length >= 10) {
+      search(searchString, selectedService, searchResults.length + 20)
+    }
+  }
+)
+
 const deriveOnAdd = memoize((userFromUserId, dispatchOnAdd, changeText) => (userId: string) => {
   const user = userFromUserId(userId)
   if (!user) {
@@ -190,11 +202,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     recommendations,
   } = stateProps
 
+  const showRecs = !ownProps.searchString && recommendations && ownProps.selectedService === 'keybase'
+  const userResultsToShow = showRecs ? recommendations : searchResults
+
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
     dispatchProps._search,
     ownProps.selectedService
   )
+
+  const onSearchForMore = deriveOnSearchForMore({
+    search: dispatchProps._search,
+    searchResults,
+    searchString: ownProps.searchString,
+    selectedService: ownProps.selectedService,
+  })
 
   const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
 
@@ -204,7 +226,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onAdd,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onRemove: dispatchProps.onRemove,
-    searchResults,
+    searchResults: userResultsToShow,
     searchStringIsEmpty: !ownProps.searchString,
     teamSoFar,
   })
@@ -217,17 +239,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: deriveOnDownArrowKeyDown(searchResults.length - 1, ownProps.incHighlightIndex),
+    onDownArrowKeyDown: deriveOnDownArrowKeyDown(userResultsToShow.length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
+    onSearchForMore,
     onUpArrowKeyDown: ownProps.decHighlightIndex,
     recommendations,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
     serviceResultCount,
+    showRecs,
     showServiceResultCount,
     teamSoFar,
   }
@@ -247,12 +271,12 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
 
   incHighlightIndex = (maxIndex: number) =>
     this.setState((state: LocalState) => ({
-      highlightedIndex: Math.min(state.highlightedIndex === null ? 0 : state.highlightedIndex + 1, maxIndex),
+      highlightedIndex: Math.min(state.highlightedIndex + 1, maxIndex),
     }))
 
   decHighlightIndex = () =>
     this.setState((state: LocalState) => ({
-      highlightedIndex: !state.highlightedIndex ? 0 : state.highlightedIndex - 1,
+      highlightedIndex: state.highlightedIndex < 1 ? 0 : state.highlightedIndex - 1,
     }))
 
   render() {

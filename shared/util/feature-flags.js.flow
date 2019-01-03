@@ -10,8 +10,8 @@ export type FeatureFlags = {|
   newTeamBuildingForChatAllowMakeTeam: boolean,
   outOfDateBanner: boolean,
   plansEnabled: boolean,
+  useNewRouter: boolean,
   walletsEnabled: boolean,
-  peopleAnnouncementsEnabled: boolean,
 |}
 
 declare var ff: FeatureFlags

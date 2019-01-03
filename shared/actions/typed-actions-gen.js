@@ -5,6 +5,7 @@ import type {Actions as chat2Actions} from './chat2-gen'
 import type {Actions as configActions} from './config-gen'
 import type {Actions as devActions} from './dev-gen'
 import type {Actions as devicesActions} from './devices-gen'
+import type {Actions as enginegenActions} from './engine-gen-gen'
 import type {Actions as entitiesActions} from './entities-gen'
 import type {Actions as fsActions} from './fs-gen'
 import type {Actions as gitActions} from './git-gen'
@@ -28,4 +29,4 @@ import type {Actions as usersActions} from './users-gen'
 import type {Actions as waitingActions} from './waiting-gen'
 import type {Actions as walletsActions} from './wallets-gen'
 
-export type TypedActions = chat2Actions | configActions | devActions | devicesActions | entitiesActions | fsActions | gitActions | gregorActions | loginActions | notificationsActions | peopleActions | pinentryActions | profileActions | provisionActions | pushActions | routetreeActions | searchActions | settingsActions | signupActions | teambuildingActions | teamsActions | trackerActions | unlockfoldersActions | usersActions | waitingActions | walletsActions
+export type TypedActions = chat2Actions | configActions | devActions | devicesActions | enginegenActions | entitiesActions | fsActions | gitActions | gregorActions | loginActions | notificationsActions | peopleActions | pinentryActions | profileActions | provisionActions | pushActions | routetreeActions | searchActions | settingsActions | signupActions | teambuildingActions | teamsActions | trackerActions | unlockfoldersActions | usersActions | waitingActions | walletsActions

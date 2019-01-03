@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import {namedConnect, type RouteProps} from '../util/container'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
@@ -16,8 +16,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   _emitBarePreview: (path: Types.Path) => {
-    dispatch(navigateUp()) // pop this route node before appending barePreview
-    dispatch(navigateAppend([{props: {path}, selected: 'barePreview'}]))
+    dispatch(RouteTreeGen.createNavigateUp()) // pop this route node before appending barePreview
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'barePreview'}]}))
   },
 })
 
