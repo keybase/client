@@ -23,7 +23,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     // TODO: remove these after updates are fully integrated
     const onLeftAction = this.props.onLeftAction || this.props.onBack || this.props.onCancel
     const leftAction = this.props.leftAction || this.props.onCancel ? 'cancel' : this.props.onBack ? 'back' : null
-    const rightActions = this.props.rightActions || (this.props.onRightAction && this.props.rightActionLabel) ? [{
+    const rightActions = this.props.rightActions ? this.props.rightActions.filter(Boolean) : (this.props.onRightAction && this.props.rightActionLabel) ? [{
       label: this.props.rightActionLabel,
       onPress: this.props.onRightAction,
     }] : null
@@ -72,7 +72,6 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           <Box style={styles.rightActionsWrapper}>
             {rightActions &&
               rightActions
-                .filter(Boolean)
                 .slice(
                   0,
                   rightActions && rightActions.length <= MAX_RIGHT_ACTIONS
@@ -92,7 +91,6 @@ export class HeaderHocHeader extends React.Component<Props, State> {
                   <FloatingMenu
                     visible={this.state.floatingMenuVisible}
                     items={rightActions
-                      .filter(Boolean)
                       .slice(MAX_RIGHT_ACTIONS - 1)
                       .map((action, item) => ({
                         onClick: action.onPress,
@@ -119,7 +117,7 @@ const renderAction = (action: Action): React.Node =>
   ) : (
     <Text
       type="BodyBigLink"
-      style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressed])}
+      style={Styles.collapseStyles([styles.action, action.onPress && styles.actionPressable])}
       onClick={action.onPress}
     >
       {action.label}
@@ -155,7 +153,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.small,
     },
   }),
-  actionPressed: {
+  actionPressable: {
     opacity: 0.3,
   },
   borderless: {
