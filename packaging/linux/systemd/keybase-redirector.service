@@ -1,0 +1,13 @@
+[Unit]
+Description=Keybase Root Redirector for KBFS
+Wants=keybase.service
+
+[Service]
+Type=simple
+
+# Abort if root redirector is explicitly disabled
+ExecStartPre=/usr/bin/keybase -c /etc/keybase/config.json config get --direct --assert-false --assert-ok-on-nil disable-root-redirector
+
+# TODO Do we need any special thing for nohup here?
+ExecStart=/usr/bin/keybase-redirector /keybase
+Restart=on-failure
