@@ -90,6 +90,10 @@ func (m *mounter) Unmount() (err error) {
 		_, err = exec.Command("/sbin/umount", dir).Output()
 	case "linux":
 		_, err = exec.Command("fusermount", "-u", dir).Output()
+		// Only clean up mountdir on a clean unmount
+		if err == nil {
+			defer m.DeleteMountdir()
+		}
 	default:
 		err = fuse.Unmount(dir)
 	}
@@ -108,6 +112,14 @@ func (m *mounter) Unmount() (err error) {
 	}
 	if execErr, ok := err.(*exec.ExitError); ok && execErr.Stderr != nil {
 		err = fmt.Errorf("%s (%s)", execErr, execErr.Stderr)
+	}
+	return
+}
+
+func (m *mounter) DeleteMountdir() (err error) {
+	err = os.RemoveAll(m.options.MountPoint)
+	if err != nil {
+		m.log.Errorf("Unable to delete mountdir: %s.", err)
 	}
 	return
 }
