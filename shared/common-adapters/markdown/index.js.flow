@@ -28,7 +28,6 @@ export type MarkdownMeta = {
   mentionsChannelName?: MentionsChannelName,
   mentionsChannel?: MentionsChannel,
   message: MessageText,
-  onOpenInFilesTab?: Path => void,
 }
 
 export type Props = {
