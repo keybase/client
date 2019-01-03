@@ -4,6 +4,7 @@ import * as Constants from '../../constants/profile2'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/profile2'
 import Assertion from '.'
+import openUrl from '../../util/open-url'
 
 type State = {|
   assertions?: I.Map<string, Types.Assertion>,
@@ -28,19 +29,17 @@ const mapStateToProps = (state, ownProps) => {
     value: a.value,
   }
 }
-const mapDispatchToProps = dispatch => ({
-  onShowProof: () => {},
-  onShowSite: () => {},
-  onShowUserOnSite: () => {},
-})
+const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   color: stateProps.color,
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
-  onClickBadge: dispatchProps.onShowProof,
-  onShowProof: dispatchProps.onShowProof,
-  onShowSite: dispatchProps.onShowSite,
-  onShowUserOnSite: dispatchProps.onShowUserOnSite,
+  onShowProof: () => {
+    stateProps.proofURL && openUrl(stateProps.proofURL)
+  },
+  onShowSite: () => {
+    stateProps.siteURL && openUrl(stateProps.siteURL)
+  },
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,
   siteURL: stateProps.siteURL,

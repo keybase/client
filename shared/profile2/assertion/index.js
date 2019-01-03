@@ -8,10 +8,8 @@ import * as Flow from '../../util/flow'
 type Props = {|
   color: Types.AssertionColor,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
-  onClickBadge: () => void,
   onShowProof: () => void,
   onShowSite: () => void,
-  onShowUserOnSite: () => void,
   proofURL: string,
   siteIcon: string, // TODO handle actual urls, for now just use iconfont
   siteURL: string,
@@ -107,7 +105,7 @@ const siteIcon = icon => {
   }
 }
 
-const Value = ({type, value, color, onShowUserOnSite}) => {
+const Value = ({type, value, color, onShowSite}) => {
   let str = value
   let style = styles.username
 
@@ -123,11 +121,7 @@ const Value = ({type, value, color, onShowUserOnSite}) => {
   }
 
   return (
-    <Kb.Text
-      type="BodyPrimaryLink"
-      onClick={onShowUserOnSite}
-      style={Styles.collapseStyles([style, {color}])}
-    >
+    <Kb.Text type="BodyPrimaryLink" onClick={onShowSite} style={Styles.collapseStyles([style, {color}])}>
       {str}
     </Kb.Text>
   )
@@ -142,7 +136,7 @@ const Assertion = (p: Props) => (
           type={p.type}
           value={p.value}
           color={assertionColorToColor(p.color)}
-          onShowUserOnSite={p.onShowUserOnSite}
+          onShowSite={p.onShowSite}
         />
         <Kb.Text type="Body" style={styles.site}>
           @{p.type}
@@ -152,7 +146,7 @@ const Assertion = (p: Props) => (
         boxStyle={styles.stateIcon}
         type={stateToIcon(p.state)}
         fontSize={20}
-        onClick={p.onClickBadge}
+        onClick={p.onShowProof}
         hoverColor={stateToColor(p.state)}
         color={assertionColorToColor(p.color)}
       />
