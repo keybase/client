@@ -49,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onReload: dispatchProps.onReload,
   reason: stateProps.reason,
   state: stateProps.state,
-  teamShowcase: stateProps._teamShowcase.toJS(),
+  teamShowcase: stateProps._teamShowcase ? stateProps._teamShowcase.map(t => t.toObject()).toArray() : null,
   username: ownProps.username,
 })
 

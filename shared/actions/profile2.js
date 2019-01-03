@@ -63,7 +63,13 @@ const setupEngineListeners = () => {
           fullname: card.fullName,
           guiID,
           location: card.location,
-          publishedTeams: (card.teamShowcase || []).map(t => t.fqName),
+          teamShowcase: (card.teamShowcase || []).map(t => ({
+            description: t.description,
+            isOpen: t.open,
+            membersCount: t.numMembers,
+            name: t.fqName,
+            publicAdmins: t.publicAdmins || [],
+          })),
         })
       ),
   })

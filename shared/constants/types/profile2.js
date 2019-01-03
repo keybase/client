@@ -2,14 +2,14 @@
 import * as I from 'immutable'
 // import * as RPCTypes from './rpc-gen'
 
-export type _TeamShowcase = {
+export type _TeamShowcase = {|
   description: string,
   isOpen: boolean,
   membersCount: number,
   name: string,
   publicAdmins: Array<string>,
-}
-type TeamShowcase = I.RecordOf<_TeamShowcase>
+|}
+export type TeamShowcase = I.RecordOf<_TeamShowcase>
 
 export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked'
 export type AssertionColor = 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'

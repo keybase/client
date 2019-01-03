@@ -44,7 +44,7 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
             followingCount: action.payload.followingCount,
             fullname: action.payload.fullname,
             location: action.payload.location,
-            publishedTeams: action.payload.publishedTeams,
+            teamShowcase: I.List(action.payload.teamShowcase.map(Constants.makeTeamShowcase)),
           })
         ),
       })

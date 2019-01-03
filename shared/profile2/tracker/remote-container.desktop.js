@@ -5,11 +5,9 @@ import * as Constants from '../../constants/profile2'
 import * as ConfigGen from '../../actions/config-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Profile2Gen from '../../actions/profile2-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as I from 'immutable'
 // import * as TeamsGen from '../actions/teams-gen'
 import * as Types from '../../constants/types/profile2'
-import * as Tabs from '../../constants/tabs'
 import Tracker from './index.desktop'
 import {remoteConnect} from '../../util/container'
 
@@ -23,9 +21,9 @@ type State = {|
   followsYou: ?boolean,
   guiID: string,
   location: ?string,
-  publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
   state: Types.DetailsState,
+  teamShowcase: ?I.List<Types.TeamShowcase>,
   username: string,
 |}
 
@@ -66,9 +64,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onFollow: () => dispatchProps._onFollow(stateProps.guiID),
   onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
   onReload: () => dispatchProps._onReload(stateProps.username),
-  publishedTeams: stateProps.publishedTeams,
   reason: stateProps.reason,
   state: stateProps.state,
+  teamShowcase: stateProps.teamShowcase ? stateProps.teamShowcase.map(t => t.toObject()).toArray() : null,
   username: stateProps.username,
 })
 

@@ -25,7 +25,7 @@ type Props = {|
   onReload: () => void,
   reason: string,
   state: Types.DetailsState,
-  teamShowcase: $ReadOnlyArray<Types._TeamShowcase>,
+  teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
   username: string,
 |}
 
@@ -105,6 +105,13 @@ const getButtons = (props: Props) => {
   return []
 }
 
+const TeamShowcase = ({name}) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.teamShowcase}>
+    <Kb.Avatar size={32} teamname={name} isTeam={true} />
+    <Kb.Text type="BodySemibold">{name}</Kb.Text>
+  </Kb.Box2>
+)
+
 const Tracker = (props: Props) => {
   let assertions
   if (props.assertionKeys) {
@@ -151,6 +158,13 @@ const Tracker = (props: Props) => {
             />
           </Kb.Box2>
           <Bio username={props.username} />
+          {props.teamShowcase && (
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamShowcases} gap="xtiny">
+              {props.teamShowcase.map(t => (
+                <TeamShowcase key={t.name} {...t} />
+              ))}
+            </Kb.Box2>
+          )}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assertions}>
             {assertions}
           </Kb.Box2>
@@ -183,12 +197,14 @@ const reason = {
 
 const styles = Styles.styleSheetCreate({
   assertions: {
+    backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
   avatarBackground: {
+    backgroundColor: Styles.globalColors.white,
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -208,7 +224,10 @@ const styles = Styles.styleSheetCreate({
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  container: {position: 'relative'},
+  container: {
+    backgroundColor: Styles.globalColors.white,
+    position: 'relative',
+  },
   header: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
@@ -232,6 +251,14 @@ const styles = Styles.styleSheetCreate({
   spaceUnderButtons: {
     flexShrink: 0,
     height: barHeight,
+  },
+  teamShowcase: {alignItems: 'center'},
+  teamShowcases: {
+    backgroundColor: Styles.globalColors.white,
+    flexShrink: 0,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
 })
 

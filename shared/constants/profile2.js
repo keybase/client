@@ -42,6 +42,14 @@ export const makeMeta: I.RecordFactory<Types._AssertionMeta> = I.Record({
   label: '',
 })
 
+export const makeTeamShowcase: I.RecordFactory<Types._TeamShowcase> = I.Record({
+  description: '',
+  isOpen: false,
+  membersCount: 0,
+  name: '',
+  publicAdmins: [],
+})
+
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
   switch (result) {
     case RPCTypes.identify3UiIdentify3ResultType.ok:

@@ -29,9 +29,9 @@ const trackerMapStateToProps = (state, ownProps) => {
     guiID: d.guiID,
     location: d.location,
     loggedIn: state.config.loggedIn,
-    publishedTeams: d.publishedTeams,
     reason: d.reason,
     state: d.state,
+    teamShowcase: d.teamShowcase,
     waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
   }
 }
@@ -47,9 +47,9 @@ const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
     fullname: stateProps.fullname,
     guiID: stateProps.guiID,
     location: stateProps.location,
-    publishedTeams: stateProps.publishedTeams,
     reason: stateProps.reason,
     state: stateProps.state,
+    teamShowcase: stateProps.teamShowcase,
     username: ownProps.username,
     waiting: stateProps.waiting,
     windowComponent: 'profile2',

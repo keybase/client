@@ -20,7 +20,7 @@
       "followsYou": "boolean",
       "fullname": "string",
       "location": "string",
-      "publishedTeams": "Array<string>",
+      "teamShowcase": "Array<Types._TeamShowcase>",
     },
     "updateResult": {
       "guiID": "string",

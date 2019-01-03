@@ -19,6 +19,7 @@ export const serialize: any = {
   publishedTeams: (v, o) => (o && shallowEqual(v, o) ? undefined : v),
   reason: v => v,
   state: v => v,
+  teamShowcase: (v, o) => (o && shallowEqual(v, o) ? undefined : v.toJS()),
   username: v => v,
   waiting: v => v,
   windowComponent: v => v,
@@ -52,6 +53,11 @@ export const deserialize = (state: any = initialState, props: any) => {
               Constants.makeAssertion(props.assertions[assertionKey]),
             ])
           ),
+        }
+      : {}),
+    ...(props && props.teamShowcase
+      ? {
+          teamShowcase: I.List(props.teamShowcase.map(t => Constants.makeTeamShowcase(t))),
         }
       : {}),
     ...(props && props.username
