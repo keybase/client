@@ -624,9 +624,9 @@ const setupEngineListeners = () => {
             .filter(Boolean),
         })
       ),
-    'stellar.1.ui.paymentReviewed': ({msg: {banners, bid, nextButton}}) =>
+    'stellar.1.ui.paymentReviewed': ({sessionID, msg: {bid, seqno, banners, nextButton}}) =>
       Saga.put(
-        WalletsGen.createReviewedPaymentReceived({bid, readyToSend: nextButton, reviewBanners: banners})
+        WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, seqno, sessionID})
       ),
   })
 }

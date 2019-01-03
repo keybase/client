@@ -60,6 +60,8 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   readyToReview: false,
   readyToSend: 'spinning',
   reviewBanners: null,
+  // reviewSessionID: null, // xxx do this
+  reviewLastSeqno: null,
   secretNoteErrMsg: new HiddenString(''),
   sendingIntentionXLM: false,
   toErrMsg: '',

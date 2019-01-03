@@ -99,14 +99,25 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           stateMutable.update('building', b => b.merge({currency}))
         }
       })
-    case WalletsGen.reviewedPaymentReceived:
-      const {reviewBanners, readyToSend} = action.payload
+    case WalletsGen.reviewedPaymentReceived: {
+      // const {sessionID, bid, seqno, banners, nextButton} = action.payload // xxx
+      const {bid, seqno, banners, nextButton} = action.payload
+      const useable = ((state.building.bid === bid) &&
+                       // (state.builtPayment.reviewSessionID == sessionID) && // xxx check this
+                       ((state.builtPayment.reviewLastSeqno || 0) <= seqno))
+      if (!useable) {
+        // Ignore stale message.
+        logger.info(`ignored stale reviewPaymentReceived`)
+        return state
+      }
       return state.merge({
         builtPayment: state.get('builtPayment').merge({
-          readyToSend,
-          reviewBanners,
+          readyToSend: nextButton,
+          reviewBanners: banners,
+          reviewLastSeqno: seqno,
         }),
       })
+    }
     case WalletsGen.secretKeyReceived:
       return state.merge({
         exportedSecretKey: action.payload.secretKey,

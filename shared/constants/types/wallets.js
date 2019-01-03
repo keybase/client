@@ -107,6 +107,8 @@ export type _BuiltPayment = {
   displayAmountFiat: string,
   reviewBanners: ?Array<StellarRPCTypes.SendBannerLocal>,
   sendingIntentionXLM: boolean,
+  // reviewSessionID: ?number, // xxx how do we set this on calls?
+  reviewLastSeqno: ?number,
 }
 
 export type _BuiltRequest = {
