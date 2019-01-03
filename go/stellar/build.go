@@ -358,6 +358,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 				SessionID: arg.SessionID,
 				Msg: stellar1.UIPaymentReviewed{
 					Bid:        arg.Bid,
+					ReviewID:   arg.ReviewID,
 					Seqno:      seqno,
 					Banners:    banners,
 					NextButton: string(nextButton),

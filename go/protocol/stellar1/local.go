@@ -985,6 +985,7 @@ type BuildPaymentLocalArg struct {
 
 type ReviewPaymentLocalArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ReviewID  int            `codec:"reviewID" json:"reviewID"`
 	Bid       BuildPaymentID `codec:"bid" json:"bid"`
 }
 

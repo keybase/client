@@ -330,6 +330,7 @@ protocol local {
   // Sends uiPaymentReview notifications while it is open.
   void reviewPaymentLocal(
     int sessionID,
+    int reviewID, // ID reflected back to and used only by the frontend.
     // Should be the latest ID that went through buildPaymentLocal and returned readyToReview.
     BuildPaymentID bid
   );
