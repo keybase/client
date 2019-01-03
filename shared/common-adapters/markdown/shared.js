@@ -415,7 +415,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     return {hasError: true}
   }
 
-  componentDidCatch(error: any) {
+  componentDidCatch(error: Error) {
     logger.error('Error rendering markdown')
     logger.debug('Error rendering markdown', error)
   }
