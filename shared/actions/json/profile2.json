@@ -24,7 +24,8 @@
     },
     "updateResult": {
       "guiID": "string",
-      "result": "Types.DetailsState ",
+      "result": "Types.DetailsState",
+      "reason": "?string",
     },
     "closeTracker": {
       "guiID": "string",
@@ -39,6 +40,13 @@
       "state": "Types.AssertionState",
       "metas": "Array<Types._AssertionMeta>",
       "color": "Types.AssertionColor"
+    },
+    "changeFollow": {
+      "guiID": "string",
+      "follow": "boolean"
+    },
+    "ignore": {
+      "guiID": "string",
     }
   }
 }

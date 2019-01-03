@@ -62,7 +62,8 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
           (old || Constants.makeDetails()).merge({
             reason:
               action.payload.result === 'error'
-                ? `Some of ${username}'s proofs have changed since you last followed them`
+                ? action.payload.reason ||
+                  `Some of ${username}'s proofs have changed since you last followed them`
                 : old.reason,
             state: action.payload.result,
           })

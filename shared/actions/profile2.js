@@ -69,6 +69,25 @@ const setupEngineListeners = () => {
   })
 }
 
+const changeFollow = (_, action) =>
+  RPCTypes.identify3Identify3FollowUserRpcPromise(
+    {
+      follow: action.payload.follow,
+      guiID: action.payload.guiID,
+    },
+    Constants.waitingKey
+  )
+    .then(() => {})
+    .catch(e =>
+      Saga.put(
+        Profile2Gen.createUpdateResult({
+          guiID: action.payload.guiID,
+          reason: `Failed to ${action.payload.follow ? 'follow' : 'unfollow'}`,
+          result: 'error',
+        })
+      )
+    )
+
 function* load(state, action) {
   if (action.payload.fromDaemon) {
     return
@@ -99,6 +118,7 @@ function* profile2Saga(): Saga.SagaGenerator<any, any> {
     ConfigGen.setupEngineListeners,
     setupEngineListeners
   )
+  yield* Saga.chainAction<Profile2Gen.ChangeFollowPayload>(Profile2Gen.changeFollow, changeFollow)
   yield* Saga.chainGenerator<Profile2Gen.LoadPayload>(Profile2Gen.load, load)
 }
 
