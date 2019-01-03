@@ -1,17 +1,20 @@
 // @flow
-import {connect, type RouteProps} from '../../util/container'
+import * as React from 'react'
+import {connect, isMobile, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import Onboarding from '../onboarding/container'
 import {partition} from 'lodash-es'
 
-import Wallet from '.'
+import Wallet, {type Props} from '.'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
   return {
+    acceptedDisclaimer: state.wallets.acceptedDisclaimer,
     accountID,
     assets: Constants.getAssets(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
@@ -25,6 +28,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
   navigateAppend,
   navigateUp,
+  refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -67,6 +71,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   })
 
   return {
+    acceptedDisclaimer: stateProps.acceptedDisclaimer,
     accountID: stateProps.accountID,
     loadingMore: stateProps.loadingMore,
     navigateAppend: dispatchProps.navigateAppend,
@@ -77,6 +82,7 @@ const mergeProps = (stateProps, dispatchProps) => {
         dispatchProps._onMarkAsRead(stateProps.accountID, mostRecentID)
       }
     },
+    refresh: dispatchProps.refresh,
     sections,
   }
 }
@@ -86,8 +92,13 @@ const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp:
     .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
     .map(({paymentID}) => ({paymentID}))
 
+// On desktop it's impossible to get here without accepting the
+// disclaimer (from the wallet list).
+const WalletOrOnboarding = (props: Props) =>
+  !isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
+
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(Wallet)
+)(WalletOrOnboarding)
