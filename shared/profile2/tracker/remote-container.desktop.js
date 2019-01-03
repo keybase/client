@@ -30,7 +30,6 @@ type State = {|
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
-  _onAccept: (guiID: string) => {},
   _onChat: (username: string) => {
     dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
@@ -60,7 +59,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followsYou: stateProps.followsYou,
   guiID: stateProps.guiID,
   location: stateProps.location,
-  onAccept: () => dispatchProps._onAccept(stateProps.guiID),
+  onAccept: () => dispatchProps._onFollow(stateProps.guiID),
   onChat: () => dispatchProps._onChat(stateProps.username),
   onClose: () => dispatchProps._onClose(stateProps.guiID),
   onFollow: () => dispatchProps._onFollow(stateProps.guiID),
