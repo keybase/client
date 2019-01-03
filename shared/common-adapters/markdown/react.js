@@ -403,7 +403,7 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
 )
 
 const previewOutput = SimpleMarkdown.reactFor(
-  (ast: SingleASTNode, output: Output<ReactElements>, state: State): ReactElements => {
+  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
     // leaf node is just the raw value, so it has no ast.type
     if (typeof ast !== 'object') {
       return ast
@@ -415,10 +415,8 @@ const previewOutput = SimpleMarkdown.reactFor(
       case 'newline':
         return ' '
       case 'blockQuote':
-        // $ForceType
         return '> ' + output(ast.content, state)
       case 'codeBlock':
-        // $ForceType
         return ' ' + output(ast.content, state)
       default:
         return output(ast.content, state)
