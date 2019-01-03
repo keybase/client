@@ -48,6 +48,8 @@ type FolderBranchStatus struct {
 	Unmerged []*crChainSummary
 	Merged   []*crChainSummary
 
+	ConflictResolutionAttempts []conflictRecord `json:",omitempty"`
+
 	Journal *TLFJournalStatus `json:",omitempty"`
 
 	PermanentErr string `json:",omitempty"`
@@ -90,19 +92,23 @@ type folderBranchStatusKeeper struct {
 	merged     []*crChainSummary
 	quotaUsage *EventuallyConsistentQuotaUsage
 
+	fboIDBytes []byte
+
 	updateChan  chan StatusUpdate
 	updateMutex sync.Mutex
 }
 
 func newFolderBranchStatusKeeper(
 	config Config, nodeCache NodeCache,
-	quotaUsage *EventuallyConsistentQuotaUsage) *folderBranchStatusKeeper {
+	quotaUsage *EventuallyConsistentQuotaUsage,
+	fboIDBytes []byte) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
 		config:     config,
 		nodeCache:  nodeCache,
 		dirtyNodes: make(map[NodeID]Node),
 		updateChan: make(chan StatusUpdate, 1),
 		quotaUsage: quotaUsage,
+		fboIDBytes: fboIDBytes,
 	}
 }
 
@@ -261,6 +267,16 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.GitUsageBytes = gitUsageBytes
 		fbs.GitArchiveBytes = gitArchiveBytes
 		fbs.GitLimitBytes = gitLimitBytes
+	}
+
+	var crErr error
+	fbs.ConflictResolutionAttempts, crErr = getAndDeserializeConflicts(
+		fbsk.config, fbsk.config.GetConflictResolutionDB(), fbsk.fboIDBytes)
+	if crErr != nil {
+		// The error is ignored here so that other fields can
+		// still be populated even if this fails.
+		log := fbsk.config.MakeLogger("")
+		log.CDebugf(ctx, "Getting CR status error: %+v", crErr)
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
