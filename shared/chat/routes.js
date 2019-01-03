@@ -24,11 +24,9 @@ const routeTree = () => {
   const DeleteHistoryWarning = require('./delete-history-warning/container').default
   const RetentionWarning = require('../teams/team/settings-tab/retention/warning/container').default
   const ChooseEmoji = require('./conversation/messages/react-button/emoji-picker/container').default
-  const ConfirmForm = require('../wallets/confirm-form/container').default
-  const SendForm = require('../wallets/send-form/container').default
-  const ChooseAsset = require('../wallets/send-form/choose-asset/container').default
-  const QRScan = require('../wallets/qr-scan/container').default
   const PaymentsConfirm = require('./payments/confirm/container').default
+
+  const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
   const chatChildren = {
     attachmentFullscreen: {
@@ -111,26 +109,7 @@ const routeTree = () => {
       component: NewTeamDialogFromChat,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    [WalletConstants.sendRequestFormRouteKey]: {
-      children: {
-        [WalletConstants.confirmFormRouteKey]: {
-          children: {},
-          component: ConfirmForm,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
-        },
-        [WalletConstants.chooseAssetFormRouteKey]: {
-          children: {},
-          component: ChooseAsset,
-          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-        qrScan: {
-          component: QRScan,
-          tags: makeLeafTags({layerOnTop: true, underNotch: true}),
-        },
-      },
-      component: SendForm,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
-    },
+    [WalletConstants.sendRequestFormRouteKey]: SendRequestFormRoutes,
   }
 
   const conversationRoute = makeRouteDefNode({

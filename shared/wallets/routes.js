@@ -17,11 +17,7 @@ const routeTree = () => {
     ReallyRemoveAccountPopup,
     RenameAccountPopup,
   } = require('./wallet/settings/popups')
-  const SendForm = require('./send-form/container').default
-  const QRScan = require('./qr-scan/container').default
-  const ConfirmForm = require('./confirm-form/container').default
   const Wallet = require('./wallet/container').default
-  const ChooseAsset = require('./send-form/choose-asset/container').default
 
   const createNewAccount = {
     children: {},
@@ -48,36 +44,7 @@ const routeTree = () => {
       component: ReceiveModal,
       tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
-    [Constants.sendRequestFormRouteKey]: {
-      children: {
-        [Constants.confirmFormRouteKey]: {
-          children: {},
-          component: ConfirmForm,
-          tags: makeLeafTags({
-            layerOnTop: !isMobile,
-            renderTopmostOnly: true,
-            underNotch: true,
-          }),
-        },
-        createNewAccount,
-        linkExisting,
-        [Constants.chooseAssetFormRouteKey]: {
-          children: {},
-          component: ChooseAsset,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-        qrScan: {
-          component: QRScan,
-          tags: makeLeafTags({layerOnTop: true, underNotch: true}),
-        },
-      },
-      component: SendForm,
-      tags: makeLeafTags({
-        layerOnTop: !isMobile,
-        renderTopmostOnly: true,
-        underNotch: true,
-      }),
-    },
+    [Constants.sendRequestFormRouteKey]: require('./routes-send-request-form').default(),
     settings: {
       children: {
         createNewAccount,
