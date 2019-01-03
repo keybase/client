@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type {Path} from '../../constants/types/fs'
-import type {MentionsAt, MentionsChannel, MentionsChannelName, MessageText} from '../../constants/types/chat2'
+import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
