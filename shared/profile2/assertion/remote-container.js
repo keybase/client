@@ -29,11 +29,8 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = dispatch => ({
-  // TODO
   onShowProof: () => {},
-  // TODO
   onShowSite: () => {},
-  // TODO
   onShowUserOnSite: () => {},
 })
 

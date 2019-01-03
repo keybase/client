@@ -23,9 +23,9 @@ type Props = {|
   onIgnoreFor24Hours: () => void,
   onAccept: () => void,
   onReload: () => void,
-  publishedTeams: ?$ReadOnlyArray<string>,
   reason: string,
   state: Types.DetailsState,
+  teamShowcase: $ReadOnlyArray<Types._TeamShowcase>,
   username: string,
 |}
 
@@ -183,14 +183,12 @@ const reason = {
 
 const styles = Styles.styleSheetCreate({
   assertions: {
-    backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
   avatarBackground: {
-    backgroundColor: Styles.globalColors.white,
     bottom: 0,
     left: 0,
     position: 'absolute',
@@ -210,10 +208,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    position: 'relative',
-  },
+  container: {position: 'relative'},
   header: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
@@ -227,7 +222,7 @@ const styles = Styles.styleSheetCreate({
     ...reason,
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
-    paddingBottom: avatarSize / 2,
+    paddingBottom: reason.paddingBottom + avatarSize / 2,
   },
   reasonInvisible: {
     ...reason,
