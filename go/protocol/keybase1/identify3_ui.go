@@ -116,16 +116,23 @@ func (e Identify3ResultType) String() string {
 	return ""
 }
 
-type Identify3RowMeta string
-
-func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
-	return o
+type Identify3RowMeta struct {
+	Color Identify3RowColor `codec:"color" json:"color"`
+	Label string            `codec:"label" json:"label"`
 }
 
-type ShowTrackerArg struct {
-	GuiID     Identify3GUIID     `codec:"guiID" json:"guiID"`
-	Assertion Identify3Assertion `codec:"assertion" json:"assertion"`
-	Reason    string             `codec:"reason" json:"reason"`
+func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
+	return Identify3RowMeta{
+		Color: o.Color.DeepCopy(),
+		Label: o.Label,
+	}
+}
+
+type Identify3ShowTrackerArg struct {
+	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
+	Assertion    Identify3Assertion `codec:"assertion" json:"assertion"`
+	Reason       IdentifyReason     `codec:"reason" json:"reason"`
+	ForceDisplay bool               `codec:"forceDisplay" json:"forceDisplay"`
 }
 
 type Identify3UpdateRowArg struct {
@@ -154,34 +161,35 @@ type Identify3TrackerTimedOutArg struct {
 }
 
 type Identify3ResultArg struct {
+	GuiID  Identify3GUIID      `codec:"guiID" json:"guiID"`
 	Result Identify3ResultType `codec:"result" json:"result"`
 }
 
 type Identify3UiInterface interface {
-	ShowTracker(context.Context, ShowTrackerArg) error
+	Identify3ShowTracker(context.Context, Identify3ShowTrackerArg) error
 	Identify3UpdateRow(context.Context, Identify3UpdateRowArg) error
 	Identify3UserReset(context.Context, Identify3GUIID) error
 	Identify3UpdateUserCard(context.Context, Identify3UpdateUserCardArg) error
 	Identify3TrackerTimedOut(context.Context, Identify3GUIID) error
-	Identify3Result(context.Context, Identify3ResultType) error
+	Identify3Result(context.Context, Identify3ResultArg) error
 }
 
 func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identify3Ui",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"showTracker": {
+			"identify3ShowTracker": {
 				MakeArg: func() interface{} {
-					var ret [1]ShowTrackerArg
+					var ret [1]Identify3ShowTrackerArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ShowTrackerArg)
+					typedArgs, ok := args.(*[1]Identify3ShowTrackerArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ShowTrackerArg)(nil), args)
+						err = rpc.NewTypeError((*[1]Identify3ShowTrackerArg)(nil), args)
 						return
 					}
-					err = i.ShowTracker(ctx, typedArgs[0])
+					err = i.Identify3ShowTracker(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -256,7 +264,7 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]Identify3ResultArg)(nil), args)
 						return
 					}
-					err = i.Identify3Result(ctx, typedArgs[0].Result)
+					err = i.Identify3Result(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -268,8 +276,8 @@ type Identify3UiClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c Identify3UiClient) ShowTracker(ctx context.Context, __arg ShowTrackerArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.showTracker", []interface{}{__arg})
+func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Identify3ShowTrackerArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil)
 	return
 }
 
@@ -295,8 +303,7 @@ func (c Identify3UiClient) Identify3TrackerTimedOut(ctx context.Context, guiID I
 	return
 }
 
-func (c Identify3UiClient) Identify3Result(ctx context.Context, result Identify3ResultType) (err error) {
-	__arg := Identify3ResultArg{Result: result}
+func (c Identify3UiClient) Identify3Result(ctx context.Context, __arg Identify3ResultArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg})
 	return
 }

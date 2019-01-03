@@ -294,21 +294,6 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res types.NameInfoUntrusted, err error) {
-	teamName, err := keybase1.TeamNameFromString(name)
-	if err != nil {
-		return res, err
-	}
-	kid, err := t.G().GetTeamLoader().ResolveNameToIDUntrusted(ctx, teamName, public, true)
-	if err != nil {
-		return res, err
-	}
-	return types.NameInfoUntrusted{
-		ID:            chat1.TLFID(kid.ToBytes()),
-		CanonicalName: teamName.String(),
-	}, nil
-}
-
 func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
 
@@ -586,28 +571,6 @@ func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Cont
 		t.Debug(ctx, "Lookup: error looking up the team: %v", err)
 		return err
 	}
-}
-
-func (t *ImplicitTeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res types.NameInfoUntrusted, err error) {
-	defer func() { err = t.transformTeamDoesNotExist(ctx, err, name) }()
-	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
-	if err != nil {
-		return res, err
-	}
-	kid, err := teams.LookupImplicitTeamIDUntrusted(ctx, t.G().ExternalG(), name, public)
-	if err != nil {
-		return res, err
-	}
-	tlfID := chat1.TLFID(kid.ToBytes())
-	if t.lookupUpgraded {
-		if tlfID, err = tlfIDToTeamID.LookupTLFID(ctx, kid, t.G().GetAPI()); err != nil {
-			return res, err
-		}
-	}
-	return types.NameInfoUntrusted{
-		ID:            tlfID,
-		CanonicalName: impTeamName.String(),
-	}, nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {

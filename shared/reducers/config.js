@@ -224,7 +224,6 @@ export default function(
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
-    case ConfigGen._avatarQueue:
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
       return state

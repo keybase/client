@@ -1,6 +1,6 @@
 // @flow
 import {namedConnect, type RouteProps} from '../../util/container'
-import {putActionIfOnPath, navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import OopsNoAccess from '.'
@@ -13,7 +13,13 @@ type OwnProps = RouteProps<
 >
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
-  onCancel: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
+  onCancel: () =>
+    dispatch(
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: RouteTreeGen.createNavigateUp(),
+      })
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({

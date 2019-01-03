@@ -7,6 +7,7 @@
 //
 
 #import "KBKext.h"
+#import "fs.h"
 
 #import <IOKit/kext/KextManager.h>
 #include <sys/stat.h>
@@ -44,16 +45,38 @@
   }];
 }
 
++ (NSURL *)copyToTemporaryAndCheckIntegrity:(NSString *)source name:(NSString *)name error:(NSError **)error {
+  NSURL *url = [KBFSUtils copyToTemporary:source name:name fileType:NSFileTypeDirectory error:error];
+  if (*error) {
+    return nil;
+  }
+  KBLog(@"KBKext: copyToTemporaryAndCheckIntegrity source=%@ name=%@ ret=%@", source, name, url);
+  [KBFSUtils checkKeybaseResource:url identifier:nil error:error];
+  if (*error) {
+    KBLog(@"KBKext: copyToTemporaryAndCheckIntegrity: integrity check failed");
+    return nil;
+  }
+  KBLog(@"KBKext: copyToTemporaryAndCheckIntegrity: integrity checked out");
+  return url;
+}
+
 + (void)copyWithSource:(NSString *)source destination:(NSString *)destination removeExisting:(BOOL)removeExisting completion:(KBOnCompletion)completion {
   NSError *error = nil;
+
+  NSURL *sourceURL = [self copyToTemporaryAndCheckIntegrity:source name:source.lastPathComponent error:&error];
+  if (error) {
+    completion(error, nil);
+    return;
+  }
 
   if (removeExisting && ![self deletePath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to remove existing");
     completion(error, nil);
     return;
   }
+  KBLog(@"KBKext: copyWithSource: about to do move; source=%@, sourceURL=%@, destination=%@", source, sourceURL, destination);
 
-  if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
+  if (![NSFileManager.defaultManager moveItemAtURL:sourceURL toURL:[NSURL fileURLWithPath:destination] error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to copy");
     completion(error, nil);
     return;
@@ -71,6 +94,7 @@
     completion(nil, nil);
   }];
 }
+
 
 + (NSNumber *)permissionsForPath:(NSString *)path {
   NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];

@@ -12,7 +12,6 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
-export const _avatarQueue = 'config:_avatarQueue'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -91,7 +90,6 @@ type _UpdateFollowingPayload = $ReadOnly<{|username: string, isTracking: boolean
 type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
 type _UpdateNowPayload = void
-type __avatarQueuePayload = void
 
 // Action Creators
 /**
@@ -168,7 +166,6 @@ export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({pay
 export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
 export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
-export const create_avatarQueue = (payload: __avatarQueuePayload) => ({payload, type: _avatarQueue})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = {|+payload: _BootstrapStatusLoadedPayload, +type: 'config:bootstrapStatusLoaded'|}
@@ -209,7 +206,6 @@ export type UpdateFollowingPayload = {|+payload: _UpdateFollowingPayload, +type:
 export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
 export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
 export type UpdateNowPayload = {|+payload: _UpdateNowPayload, +type: 'config:updateNow'|}
-export type _avatarQueuePayload = {|+payload: __avatarQueuePayload, +type: 'config:_avatarQueue'|}
 
 // All Actions
 // prettier-ignore
@@ -252,5 +248,4 @@ export type Actions =
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
-  | _avatarQueuePayload
   | {type: 'common:resetStore', payload: null}

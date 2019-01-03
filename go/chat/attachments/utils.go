@@ -140,3 +140,20 @@ func (b *BufReadResetter) Reset() error {
 	b.r.Reset(b.buf)
 	return nil
 }
+
+func AddPendingPreview(ctx context.Context, g *globals.Context, obr *chat1.OutboxRecord) error {
+	pre, err := NewPendingPreviews(g).Get(ctx, obr.OutboxID)
+	if err != nil {
+		return err
+	}
+	mpr, err := pre.Export(func() *chat1.PreviewLocation {
+		loc := chat1.NewPreviewLocationWithUrl(g.AttachmentURLSrv.GetPendingPreviewURL(ctx,
+			obr.OutboxID))
+		return &loc
+	})
+	if err != nil {
+		return err
+	}
+	obr.Preview = &mpr
+	return nil
+}

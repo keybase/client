@@ -1,7 +1,7 @@
 // @flow
 import EditAvatar from '.'
 import {connect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {||}
 
@@ -21,7 +21,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onAck: () => dispatch(navigateUp()),
+  onAck: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default connect<OwnProps, _, _, _, _>(

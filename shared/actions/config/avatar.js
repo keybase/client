@@ -13,17 +13,13 @@ const avatarsToLoad = {
   users: I.Set(),
 }
 
-function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) {
+const addToAvatarQueue = (state, action) => {
   if (action.type === ConfigGen.loadAvatars) {
     const usernames = _validNames(action.payload.usernames)
     avatarsToLoad.users = avatarsToLoad.users.concat(usernames)
   } else {
     const teamnames = _validNames(action.payload.teamnames)
     avatarsToLoad.teams = avatarsToLoad.teams.concat(teamnames)
-  }
-
-  if (avatarChannel) {
-    yield Saga.put(avatarChannel, ConfigGen.create_avatarQueue())
   }
 }
 
@@ -58,12 +54,12 @@ function* avatarCallAndHandle(names: Array<string>, method: Function) {
   }
 }
 
-let avatarChannel
 function* handleAvatarQueue() {
-  avatarChannel = yield Saga.channel(Saga.buffers.dropping(1))
   while (true) {
-    yield Saga.callUntyped(Saga.delay, 100)
-    yield Saga.take(avatarChannel)
+    // nothign in queue, keep listening
+    if (!avatarsToLoad.users.size && !avatarsToLoad.teams.size) {
+      yield Saga.take([ConfigGen.loadAvatars, ConfigGen.loadTeamAvatars])
+    }
 
     const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
@@ -77,16 +73,15 @@ function* handleAvatarQueue() {
       yield* avatarCallAndHandle(teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
     }
 
-    // more to load?
-    if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
-      yield Saga.put(avatarChannel, ConfigGen.create_avatarQueue())
-    }
+    yield Saga.delay(100)
   }
 }
 
 function* avatarSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
-  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
+  yield* Saga.chainAction<ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload>(
+    [ConfigGen.loadAvatars, ConfigGen.loadTeamAvatars],
+    addToAvatarQueue
+  )
   yield Saga.spawn(handleAvatarQueue)
 }
 

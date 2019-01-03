@@ -13,7 +13,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
 import {HeaderOnMobile} from '../../common-adapters'
-import {navigateAppend} from '../../actions/route-tree'
 import type {TeamRoleType} from '../../constants/types/teams'
 
 type OwnProps = RouteProps<{username: string}, {}>
@@ -27,7 +26,7 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) => ({
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
     dispatch(navigateUp())

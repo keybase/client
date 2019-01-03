@@ -19,7 +19,6 @@ export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatCo
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
 export const chat1ChatUiChatInboxFailed = 'engine-gen:chat1ChatUiChatInboxFailed'
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
-export const chat1ChatUiChatPostReadyToSend = 'engine-gen:chat1ChatUiChatPostReadyToSend'
 export const chat1ChatUiChatSearchDone = 'engine-gen:chat1ChatUiChatSearchDone'
 export const chat1ChatUiChatSearchHit = 'engine-gen:chat1ChatUiChatSearchHit'
 export const chat1ChatUiChatSearchInboxDone = 'engine-gen:chat1ChatUiChatSearchInboxDone'
@@ -64,11 +63,11 @@ export const keybase1GregorUIPushOutOfBandMessages = 'engine-gen:keybase1GregorU
 export const keybase1GregorUIPushState = 'engine-gen:keybase1GregorUIPushState'
 export const keybase1HomeUIHomeUIRefresh = 'engine-gen:keybase1HomeUIHomeUIRefresh'
 export const keybase1Identify3UiIdentify3Result = 'engine-gen:keybase1Identify3UiIdentify3Result'
+export const keybase1Identify3UiIdentify3ShowTracker = 'engine-gen:keybase1Identify3UiIdentify3ShowTracker'
 export const keybase1Identify3UiIdentify3TrackerTimedOut = 'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'
 export const keybase1Identify3UiIdentify3UpdateRow = 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'
 export const keybase1Identify3UiIdentify3UpdateUserCard = 'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard'
 export const keybase1Identify3UiIdentify3UserReset = 'engine-gen:keybase1Identify3UiIdentify3UserReset'
-export const keybase1Identify3UiShowTracker = 'engine-gen:keybase1Identify3UiShowTracker'
 export const keybase1IdentifyUiCancel = 'engine-gen:keybase1IdentifyUiCancel'
 export const keybase1IdentifyUiConfirm = 'engine-gen:keybase1IdentifyUiConfirm'
 export const keybase1IdentifyUiDelegateIdentifyUI = 'engine-gen:keybase1IdentifyUiDelegateIdentifyUI'
@@ -175,7 +174,6 @@ type _Chat1ChatUiChatConfirmChannelDeletePayload = $ReadOnly<{|params: $Exact<$P
 type _Chat1ChatUiChatInboxConversationPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>>|}>
 type _Chat1ChatUiChatInboxFailedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>>|}>
 type _Chat1ChatUiChatInboxUnverifiedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>>|}>
-type _Chat1ChatUiChatPostReadyToSendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatPostReadyToSend'>, 'inParam'>>|}>
 type _Chat1ChatUiChatSearchDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>>|}>
 type _Chat1ChatUiChatSearchHitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>>|}>
 type _Chat1ChatUiChatSearchInboxDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'>>|}>
@@ -220,11 +218,11 @@ type _Keybase1GregorUIPushOutOfBandMessagesPayload = $ReadOnly<{|params: $Exact<
 type _Keybase1GregorUIPushStatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'>>|}>
 type _Keybase1HomeUIHomeUIRefreshPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3ResultPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'inParam'>>|}>
+type _Keybase1Identify3UiIdentify3ShowTrackerPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3TrackerTimedOutPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3UpdateRowPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3UpdateUserCardPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'inParam'>>|}>
 type _Keybase1Identify3UiIdentify3UserResetPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'inParam'>>|}>
-type _Keybase1Identify3UiShowTrackerPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.showTracker'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiCancelPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiDelegateIdentifyUIPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'>>|}>
@@ -331,7 +329,6 @@ export const createChat1ChatUiChatConfirmChannelDelete = (payload: _Chat1ChatUiC
 export const createChat1ChatUiChatInboxConversation = (payload: _Chat1ChatUiChatInboxConversationPayload) => ({payload, type: chat1ChatUiChatInboxConversation})
 export const createChat1ChatUiChatInboxFailed = (payload: _Chat1ChatUiChatInboxFailedPayload) => ({payload, type: chat1ChatUiChatInboxFailed})
 export const createChat1ChatUiChatInboxUnverified = (payload: _Chat1ChatUiChatInboxUnverifiedPayload) => ({payload, type: chat1ChatUiChatInboxUnverified})
-export const createChat1ChatUiChatPostReadyToSend = (payload: _Chat1ChatUiChatPostReadyToSendPayload) => ({payload, type: chat1ChatUiChatPostReadyToSend})
 export const createChat1ChatUiChatSearchDone = (payload: _Chat1ChatUiChatSearchDonePayload) => ({payload, type: chat1ChatUiChatSearchDone})
 export const createChat1ChatUiChatSearchHit = (payload: _Chat1ChatUiChatSearchHitPayload) => ({payload, type: chat1ChatUiChatSearchHit})
 export const createChat1ChatUiChatSearchInboxDone = (payload: _Chat1ChatUiChatSearchInboxDonePayload) => ({payload, type: chat1ChatUiChatSearchInboxDone})
@@ -376,11 +373,11 @@ export const createKeybase1GregorUIPushOutOfBandMessages = (payload: _Keybase1Gr
 export const createKeybase1GregorUIPushState = (payload: _Keybase1GregorUIPushStatePayload) => ({payload, type: keybase1GregorUIPushState})
 export const createKeybase1HomeUIHomeUIRefresh = (payload: _Keybase1HomeUIHomeUIRefreshPayload) => ({payload, type: keybase1HomeUIHomeUIRefresh})
 export const createKeybase1Identify3UiIdentify3Result = (payload: _Keybase1Identify3UiIdentify3ResultPayload) => ({payload, type: keybase1Identify3UiIdentify3Result})
+export const createKeybase1Identify3UiIdentify3ShowTracker = (payload: _Keybase1Identify3UiIdentify3ShowTrackerPayload) => ({payload, type: keybase1Identify3UiIdentify3ShowTracker})
 export const createKeybase1Identify3UiIdentify3TrackerTimedOut = (payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload) => ({payload, type: keybase1Identify3UiIdentify3TrackerTimedOut})
 export const createKeybase1Identify3UiIdentify3UpdateRow = (payload: _Keybase1Identify3UiIdentify3UpdateRowPayload) => ({payload, type: keybase1Identify3UiIdentify3UpdateRow})
 export const createKeybase1Identify3UiIdentify3UpdateUserCard = (payload: _Keybase1Identify3UiIdentify3UpdateUserCardPayload) => ({payload, type: keybase1Identify3UiIdentify3UpdateUserCard})
 export const createKeybase1Identify3UiIdentify3UserReset = (payload: _Keybase1Identify3UiIdentify3UserResetPayload) => ({payload, type: keybase1Identify3UiIdentify3UserReset})
-export const createKeybase1Identify3UiShowTracker = (payload: _Keybase1Identify3UiShowTrackerPayload) => ({payload, type: keybase1Identify3UiShowTracker})
 export const createKeybase1IdentifyUiCancel = (payload: _Keybase1IdentifyUiCancelPayload) => ({payload, type: keybase1IdentifyUiCancel})
 export const createKeybase1IdentifyUiConfirm = (payload: _Keybase1IdentifyUiConfirmPayload) => ({payload, type: keybase1IdentifyUiConfirm})
 export const createKeybase1IdentifyUiDelegateIdentifyUI = (payload: _Keybase1IdentifyUiDelegateIdentifyUIPayload) => ({payload, type: keybase1IdentifyUiDelegateIdentifyUI})
@@ -487,7 +484,6 @@ export type Chat1ChatUiChatConfirmChannelDeletePayload = {|+payload: _Chat1ChatU
 export type Chat1ChatUiChatInboxConversationPayload = {|+payload: _Chat1ChatUiChatInboxConversationPayload, +type: 'engine-gen:chat1ChatUiChatInboxConversation'|}
 export type Chat1ChatUiChatInboxFailedPayload = {|+payload: _Chat1ChatUiChatInboxFailedPayload, +type: 'engine-gen:chat1ChatUiChatInboxFailed'|}
 export type Chat1ChatUiChatInboxUnverifiedPayload = {|+payload: _Chat1ChatUiChatInboxUnverifiedPayload, +type: 'engine-gen:chat1ChatUiChatInboxUnverified'|}
-export type Chat1ChatUiChatPostReadyToSendPayload = {|+payload: _Chat1ChatUiChatPostReadyToSendPayload, +type: 'engine-gen:chat1ChatUiChatPostReadyToSend'|}
 export type Chat1ChatUiChatSearchDonePayload = {|+payload: _Chat1ChatUiChatSearchDonePayload, +type: 'engine-gen:chat1ChatUiChatSearchDone'|}
 export type Chat1ChatUiChatSearchHitPayload = {|+payload: _Chat1ChatUiChatSearchHitPayload, +type: 'engine-gen:chat1ChatUiChatSearchHit'|}
 export type Chat1ChatUiChatSearchInboxDonePayload = {|+payload: _Chat1ChatUiChatSearchInboxDonePayload, +type: 'engine-gen:chat1ChatUiChatSearchInboxDone'|}
@@ -532,11 +528,11 @@ export type Keybase1GregorUIPushOutOfBandMessagesPayload = {|+payload: _Keybase1
 export type Keybase1GregorUIPushStatePayload = {|+payload: _Keybase1GregorUIPushStatePayload, +type: 'engine-gen:keybase1GregorUIPushState'|}
 export type Keybase1HomeUIHomeUIRefreshPayload = {|+payload: _Keybase1HomeUIHomeUIRefreshPayload, +type: 'engine-gen:keybase1HomeUIHomeUIRefresh'|}
 export type Keybase1Identify3UiIdentify3ResultPayload = {|+payload: _Keybase1Identify3UiIdentify3ResultPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3Result'|}
+export type Keybase1Identify3UiIdentify3ShowTrackerPayload = {|+payload: _Keybase1Identify3UiIdentify3ShowTrackerPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3ShowTracker'|}
 export type Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {|+payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'|}
 export type Keybase1Identify3UiIdentify3UpdateRowPayload = {|+payload: _Keybase1Identify3UiIdentify3UpdateRowPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'|}
 export type Keybase1Identify3UiIdentify3UpdateUserCardPayload = {|+payload: _Keybase1Identify3UiIdentify3UpdateUserCardPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard'|}
 export type Keybase1Identify3UiIdentify3UserResetPayload = {|+payload: _Keybase1Identify3UiIdentify3UserResetPayload, +type: 'engine-gen:keybase1Identify3UiIdentify3UserReset'|}
-export type Keybase1Identify3UiShowTrackerPayload = {|+payload: _Keybase1Identify3UiShowTrackerPayload, +type: 'engine-gen:keybase1Identify3UiShowTracker'|}
 export type Keybase1IdentifyUiCancelPayload = {|+payload: _Keybase1IdentifyUiCancelPayload, +type: 'engine-gen:keybase1IdentifyUiCancel'|}
 export type Keybase1IdentifyUiConfirmPayload = {|+payload: _Keybase1IdentifyUiConfirmPayload, +type: 'engine-gen:keybase1IdentifyUiConfirm'|}
 export type Keybase1IdentifyUiDelegateIdentifyUIPayload = {|+payload: _Keybase1IdentifyUiDelegateIdentifyUIPayload, +type: 'engine-gen:keybase1IdentifyUiDelegateIdentifyUI'|}
@@ -645,7 +641,6 @@ export type Actions =
   | Chat1ChatUiChatInboxConversationPayload
   | Chat1ChatUiChatInboxFailedPayload
   | Chat1ChatUiChatInboxUnverifiedPayload
-  | Chat1ChatUiChatPostReadyToSendPayload
   | Chat1ChatUiChatSearchDonePayload
   | Chat1ChatUiChatSearchHitPayload
   | Chat1ChatUiChatSearchInboxDonePayload
@@ -690,11 +685,11 @@ export type Actions =
   | Keybase1GregorUIPushStatePayload
   | Keybase1HomeUIHomeUIRefreshPayload
   | Keybase1Identify3UiIdentify3ResultPayload
+  | Keybase1Identify3UiIdentify3ShowTrackerPayload
   | Keybase1Identify3UiIdentify3TrackerTimedOutPayload
   | Keybase1Identify3UiIdentify3UpdateRowPayload
   | Keybase1Identify3UiIdentify3UpdateUserCardPayload
   | Keybase1Identify3UiIdentify3UserResetPayload
-  | Keybase1Identify3UiShowTrackerPayload
   | Keybase1IdentifyUiCancelPayload
   | Keybase1IdentifyUiConfirmPayload
   | Keybase1IdentifyUiDelegateIdentifyUIPayload

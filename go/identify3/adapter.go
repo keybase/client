@@ -17,6 +17,7 @@ type UIAdapter struct {
 	ui          keybase1.Identify3UiInterface
 	iFollowThem bool
 	sentResult  bool
+	isUpcall    bool
 }
 
 var _ libkb.IdentifyUI = (*UIAdapter)(nil)
@@ -29,6 +30,33 @@ func NewUIAdapter(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (*UI
 	return ret, nil
 }
 
+func NewUIAdapterMakeSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface, guiid keybase1.Identify3GUIID) (ret *UIAdapter, err error) {
+	sess := libkb.NewIdentify3SessionWithID(mctx, guiid)
+	err = mctx.G().Identify3State.Put(sess)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err = NewUIAdapterWithSession(mctx, ui, sess)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func NewUIAdapterMakeSessionForUpcall(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (ret *UIAdapter, err error) {
+	guiid, err := libkb.NewIdentify3GUIID()
+	if err != nil {
+		return nil, err
+	}
+	ret, err = NewUIAdapterMakeSession(mctx, ui, guiid)
+	if err != nil {
+		return nil, err
+	}
+	ret.isUpcall = true
+	return ret, nil
+}
+
 func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface, sess *libkb.Identify3Session) (*UIAdapter, error) {
 	ret, err := NewUIAdapter(mctx, ui)
 	if err != nil {
@@ -38,8 +66,22 @@ func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInte
 	return ret, nil
 }
 
-func (i *UIAdapter) Start(string, keybase1.IdentifyReason, bool) error {
-	return nil
+func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force bool) error {
+	if !i.isUpcall {
+		return nil
+	}
+	arg := keybase1.Identify3ShowTrackerArg{
+		GuiID:        i.session.ID(),
+		Assertion:    keybase1.Identify3Assertion(user),
+		Reason:       reason,
+		ForceDisplay: force,
+	}
+
+	err := i.ui.Identify3ShowTracker(i.M().Ctx(), arg)
+	if err != nil {
+		i.M().CDebugf("Failed to call Identify3ShowTracker: %s", err)
+	}
+	return err
 }
 
 // return true if we need an upgrade
@@ -59,46 +101,49 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 	case lcr.ProofResult.State == keybase1.ProofState_OK && lcr.RemoteDiff != nil && lcr.RemoteDiff.Type == keybase1.TrackDiffType_NEW:
 		arg.Color = keybase1.Identify3RowColor_BLUE
 		arg.State = keybase1.Identify3RowState_VALID
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("new"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "new"})
 		needUpgrade = true
 
 	// The proof worked, and it's upgraded.
 	case lcr.ProofResult.State == keybase1.ProofState_OK && lcr.RemoteDiff != nil && lcr.RemoteDiff.Type == keybase1.TrackDiffType_UPGRADED:
 		arg.Color = keybase1.Identify3RowColor_BLUE
 		arg.State = keybase1.Identify3RowState_VALID
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("upgraded"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "upgraded"})
 		needUpgrade = true
 
 	// The proof worked, we tracked failed, and now it's working
 	case lcr.ProofResult.State == keybase1.ProofState_OK && lcr.RemoteDiff != nil && lcr.RemoteDiff.Type == keybase1.TrackDiffType_REMOTE_WORKING:
 		arg.Color = keybase1.Identify3RowColor_BLUE
 		arg.State = keybase1.Identify3RowState_VALID
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("upgraded"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "upgraded"})
 		needUpgrade = true
 
 	// The proof failed, but we didn't track it
 	case lcr.ProofResult.State != keybase1.ProofState_OK && lcr.RemoteDiff == nil:
 		arg.Color = keybase1.Identify3RowColor_ORANGE
 		arg.State = keybase1.Identify3RowState_WARNING
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("unreachable"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "unreachable"})
 
 	// The proof failed, but we did "ignore" it, so it's OK
 	case lcr.ProofResult.State != keybase1.ProofState_OK && (lcr.RemoteDiff == nil || lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE):
 		arg.Color = keybase1.Identify3RowColor_ORANGE
 		arg.State = keybase1.Identify3RowState_WARNING
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("ignored"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "ignored"})
 
 	// The proof failed, but we did "ignore" it via "SNOONZE", so it's OK, for now.
 	case lcr.ProofResult.State != keybase1.ProofState_OK && lcr.RemoteDiff != nil && lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY:
 		arg.Color = keybase1.Identify3RowColor_YELLOW
 		arg.State = keybase1.Identify3RowState_WARNING
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("ignored"), keybase1.Identify3RowMeta("temporary"))
+		arg.Metas = append(arg.Metas,
+			keybase1.Identify3RowMeta{Color: arg.Color, Label: "ignored"},
+			keybase1.Identify3RowMeta{Color: arg.Color, Label: "temporary"},
+		)
 
 	// The proof failed, we did track it, and it didn't match our track
 	case lcr.ProofResult.State != keybase1.ProofState_OK && lcr.RemoteDiff != nil && lcr.RemoteDiff.Type != keybase1.TrackDiffType_NONE:
 		arg.Color = keybase1.Identify3RowColor_RED
 		arg.State = keybase1.Identify3RowState_ERROR
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("unreachable"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "unreachable"})
 
 	}
 	return needUpgrade
@@ -140,7 +185,8 @@ func (i *UIAdapter) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, 
 	return keybase1.ConfirmResult{}, nil
 }
 
-func (i *UIAdapter) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+func (i *UIAdapter) DisplayCryptocurrency(cc keybase1.Cryptocurrency) error {
+	i.plumbCryptocurrency(cc)
 	return nil
 }
 
@@ -174,7 +220,7 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 	case key.TrackDiff != nil && key.TrackDiff.Type == keybase1.TrackDiffType_NEW:
 		arg.State = keybase1.Identify3RowState_VALID
 		arg.Color = keybase1.Identify3RowColor_BLUE
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta("new"))
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "new"})
 	}
 
 	i.updateRow(arg)
@@ -233,10 +279,14 @@ func (i *UIAdapter) shouldSkipSendResult() bool {
 	return false
 }
 
-func (i *UIAdapter) sendResult(arg keybase1.Identify3ResultType) error {
+func (i *UIAdapter) sendResult(typ keybase1.Identify3ResultType) error {
 	if i.shouldSkipSendResult() {
 		i.M().CDebugf("Skipping send result, already done")
 		return nil
+	}
+	arg := keybase1.Identify3ResultArg{
+		GuiID:  i.session.ID(),
+		Result: typ,
 	}
 
 	err := i.ui.Identify3Result(i.M().Ctx(), arg)
@@ -255,12 +305,6 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	})
 }
 
-func (i *UIAdapter) plumbCryptocurrencies(cryptos []keybase1.Cryptocurrency) {
-	for _, c := range cryptos {
-		i.plumbCryptocurrency(c)
-	}
-
-}
 func (i *UIAdapter) plumbRevoked(row keybase1.RevokedProof) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:   row.Proof.Key,
@@ -281,9 +325,7 @@ func (i *UIAdapter) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.Us
 	if id.BreaksTracking {
 		i.session.SetTrackBroken()
 	}
-
 	i.plumbUncheckedProofs(id.Proofs)
-	i.plumbCryptocurrencies(id.Cryptocurrency)
 	i.plumbRevokeds(id.RevokedDetails)
 
 	return nil

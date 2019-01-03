@@ -7,7 +7,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 import {loginTab} from '../constants/tabs'
-import {navigateAppend, navigateTo, navigateUp} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 
@@ -24,28 +24,30 @@ const noErrors = (state: TypedState) =>
 
 // Navigation side effects ///////////////////////////////////////////////////////////
 // When going back we clear all errors so we can fix things and move forward
-const goBackAndClearErrors = () => Saga.put(navigateUp())
+const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 
 const showUserEmailOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']})
 
-const showInviteScreen = () => navigateAppend(['inviteCode'], [loginTab])
+const showInviteScreen = () =>
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab])
+  noErrors(state) &&
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
 
-const goToLoginRoot = () => Saga.put(navigateTo([], [loginTab]))
+const goToLoginRoot = () => RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
 
 const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab]))
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['deviceName']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
-    ? Saga.put(SignupGen.createRestartSignup())
-    : Saga.put(navigateAppend(['signupError'], [loginTab]))
+    ? SignupGen.createRestartSignup()
+    : RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>
@@ -114,7 +116,7 @@ const checkDevicename = (state: TypedState) =>
     )
 
 // Actually sign up ///////////////////////////////////////////////////////////
-const reallySignupOnNoErrors = (state: TypedState) => {
+function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any> {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return
@@ -135,62 +137,85 @@ const reallySignupOnNoErrors = (state: TypedState) => {
     throw new Error('Missing data for signup')
   }
 
-  type Fn = () => Generator<any, any, any>
-  return Saga.callUntyped<_, Fn>(function*() {
-    try {
-      yield RPCTypes.signupSignupRpcSaga({
-        customResponseIncomingCallMap: {
-          // Do not add a gpg key for now
-          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
-            response.result(false)
-          },
+  try {
+    yield RPCTypes.signupSignupRpcSaga({
+      customResponseIncomingCallMap: {
+        // Do not add a gpg key for now
+        'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+          response.result(false)
         },
-        incomingCallMap: {
-          // We dont show the paperkey anymore
-          'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-        },
-        params: {
-          deviceName: devicename,
-          deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
-          email,
-          genPGPBatch: false,
-          genPaper: false,
-          inviteCode,
-          passphrase: passphrase.stringValue(),
-          skipMail: false,
-          storeSecret: true,
-          username,
-        },
-        waitingKey: Constants.waitingKey,
-      })
-      yield Saga.put(SignupGen.createSignedup())
-    } catch (error) {
-      yield Saga.put(SignupGen.createSignedupError({error: new HiddenString(error.desc)}))
-    }
-  })
+      },
+      incomingCallMap: {
+        // We dont show the paperkey anymore
+        'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+      },
+      params: {
+        deviceName: devicename,
+        deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
+        email,
+        genPGPBatch: false,
+        genPaper: false,
+        inviteCode,
+        passphrase: passphrase.stringValue(),
+        skipMail: false,
+        storeSecret: true,
+        username,
+      },
+      waitingKey: Constants.waitingKey,
+    })
+    yield Saga.put(SignupGen.createSignedup())
+  } catch (error) {
+    yield Saga.put(SignupGen.createSignedupError({error: new HiddenString(error.desc)}))
+  }
 }
 
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
-  yield Saga.actionToPromise(SignupGen.requestInvite, requestInvite)
-  yield Saga.actionToPromise(SignupGen.checkUsernameEmail, checkUsernameEmail)
-  yield Saga.actionToPromise(SignupGen.requestAutoInvite, requestAutoInvite)
-  yield Saga.actionToPromise([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
-  yield Saga.actionToPromise(SignupGen.checkDevicename, checkDevicename)
+  yield* Saga.chainAction<SignupGen.RequestInvitePayload>(SignupGen.requestInvite, requestInvite)
+  yield* Saga.chainAction<SignupGen.CheckUsernameEmailPayload>(
+    SignupGen.checkUsernameEmail,
+    checkUsernameEmail
+  )
+  yield* Saga.chainAction<SignupGen.RequestAutoInvitePayload>(SignupGen.requestAutoInvite, requestAutoInvite)
+  yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload | SignupGen.CheckInviteCodePayload>(
+    [SignupGen.requestedAutoInvite, SignupGen.checkInviteCode],
+    checkInviteCode
+  )
+  yield* Saga.chainAction<SignupGen.CheckDevicenamePayload>(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield Saga.actionToAction(SignupGen.restartSignup, goToLoginRoot)
-  yield Saga.actionToAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
-  yield Saga.actionToAction(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
-  yield Saga.actionToAction(SignupGen.requestedAutoInvite, showInviteScreen)
-  yield Saga.actionToAction(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
-  yield Saga.actionToAction(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
-  yield Saga.actionToAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  yield* Saga.chainAction<SignupGen.RestartSignupPayload>(SignupGen.restartSignup, goToLoginRoot)
+  yield* Saga.chainAction<SignupGen.RequestedInvitePayload>(
+    SignupGen.requestedInvite,
+    showInviteSuccessOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload>(
+    SignupGen.checkedUsernameEmail,
+    showPassphraseOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(
+    SignupGen.requestedAutoInvite,
+    showInviteScreen
+  )
+  yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(
+    SignupGen.checkedInviteCode,
+    showUserEmailOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.CheckPassphrasePayload>(
+    SignupGen.checkPassphrase,
+    showDeviceScreenOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
 
   // actually make the signup call
-  yield Saga.actionToAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
-
-  yield Saga.actionToAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
+  yield* Saga.chainGenerator<SignupGen.CheckedDevicenamePayload>(
+    SignupGen.checkedDevicename,
+    reallySignupOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.GoBackAndClearErrorsPayload>(
+    SignupGen.goBackAndClearErrors,
+    goBackAndClearErrors
+  )
 }
 
 export default signupSaga

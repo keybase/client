@@ -48,8 +48,17 @@ func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat
 	return pre.Export(func() *chat1.PreviewLocation { return nil })
 }
 
+func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview *chat1.MakePreviewRes) (res Preprocess, err error) {
+	src, err := NewFileReadResetter(filename)
+	if err != nil {
+		return res, err
+	}
+	return PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
+}
+
 func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
-	inOutboxID *chat1.OutboxID, filename, title string, md []byte, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
+	inOutboxID *chat1.OutboxID, filename, title string, md []byte, ephemeralLifetime *gregor1.DurationSec,
+	callerPreview *chat1.MakePreviewRes) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
 	if inOutboxID == nil {
 		if outboxID, err = storage.NewOutboxID(); err != nil {
 			return msg, outboxID, err
@@ -77,16 +86,27 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			Lifetime: *ephemeralLifetime,
 		}
 	}
+	if pre, err := s.preprocess(ctx, filename, callerPreview); err != nil {
+		// If we can't generate a preview here, let's not blow the whole thing up, we can try
+		// again when we are actually uploading the attachment
+		s.Debug(ctx, "makeBaseAttachmentMessage: failed to process caller preview, skipping: %s", err)
+	} else {
+		if err := NewPendingPreviews(s.G()).Put(ctx, outboxID, pre); err != nil {
+			s.Debug(ctx, "makeBaseAttachmentMessage: failed to save pending preview: %s", err)
+		}
+	}
+
 	return msg, outboxID, nil
 }
 
 func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sender,
 	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, inOutboxID *chat1.OutboxID,
-	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
+	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec,
+	callerPreview *chat1.MakePreviewRes) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PostFileAttachmentMessage")()
 	var msg chat1.MessagePlaintext
 	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,
-		ephemeralLifetime); err != nil {
+		ephemeralLifetime, callerPreview); err != nil {
 		return outboxID, msgID, err
 	}
 	s.Debug(ctx, "PostFileAttachmentMessage: generated message with outbox ID: %s", outboxID)
@@ -108,7 +128,7 @@ func (s *Sender) PostFileAttachment(ctx context.Context, sender types.Sender, ui
 	defer s.Trace(ctx, func() error { return err }, "PostFileAttachment")()
 	var msg chat1.MessagePlaintext
 	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,
-		ephemeralLifetime); err != nil {
+		ephemeralLifetime, callerPreview); err != nil {
 		return outboxID, msgID, err
 	}
 	// Start upload

@@ -5,7 +5,7 @@ import * as SearchConstants from '../../constants/search'
 import {getRole, isOwner, teamWaitingKey} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {
   connect,
@@ -73,7 +73,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     onComplete: (string, boolean) => void
   ) => {
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {
             addButtonLabel: 'Add',
@@ -86,7 +86,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
           },
           selected: 'controlledRolePicker',
         },
-      ])
+      ]})
     )
   },
 })

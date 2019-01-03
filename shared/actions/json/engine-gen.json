@@ -48,9 +48,6 @@
         "chat1ChatUiChatConfirmChannelDelete": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>>"
         },
-        "chat1ChatUiChatPostReadyToSend": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatPostReadyToSend'>, 'inParam'>>"
-        },
         "chat1ChatUiChatStellarShowConfirm": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>>"
         },
@@ -159,8 +156,8 @@
         "keybase1HomeUIHomeUIRefresh": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>>"
         },
-        "keybase1Identify3UiShowTracker": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.showTracker'>, 'inParam'>>"
+        "keybase1Identify3UiIdentify3ShowTracker": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'inParam'>>"
         },
         "keybase1Identify3UiIdentify3UpdateRow": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>>"
