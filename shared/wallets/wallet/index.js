@@ -12,7 +12,8 @@ const stripePatternName = Styles.isMobile
   : 'pattern-stripes-blue-5-black-5-desktop.png'
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
-type Props = {
+export type Props = {
+  acceptedDisclaimer: boolean,
   accountID: Types.AccountID,
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
@@ -20,6 +21,7 @@ type Props = {
   onLoadMore: () => void,
   onMarkAsRead: () => void,
   sections: any[],
+  refresh: () => void,
 }
 
 const HistoryPlaceholder = () => (
@@ -31,13 +33,21 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
-  componentDidUpdate = (prevProps: Props) => {
+  componentDidMount() {
+    // If we're on mobile, this is the entry point, so we need to
+    // refresh.
+    if (Styles.isMobile) {
+      this.props.refresh()
+    }
+  }
+
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.accountID !== this.props.accountID) {
       prevProps.onMarkAsRead()
     }
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.props.onMarkAsRead()
   }
 

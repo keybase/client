@@ -4,7 +4,7 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Route from '../../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
@@ -39,12 +39,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'chooseEmoji',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'chooseEmoji',
+          },
+        ],
+      })
     )
   },
   _onCopy: (message: Types.Message) => {
@@ -62,9 +64,9 @@ const mapDispatchToProps = dispatch => ({
   _onDeleteMessageHistory: (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
-      Route.navigateAppend([
-        {props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'}],
+      })
     )
   },
   _onEdit: (message: Types.Message) => {

@@ -2,7 +2,7 @@
 import * as Types from '../../../constants/types/chat2'
 import CreateTeamHeader from '.'
 import {connect} from '../../../util/container'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -14,12 +14,12 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
 const mapDispatchToProps = dispatch => ({
   _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {conversationIDKey},
           selected: 'showNewTeamDialog',
         },
-      ])
+      ]})
     )
   },
 })

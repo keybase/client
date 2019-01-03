@@ -309,6 +309,10 @@ func IsNotFoundError(err error) bool {
 	return ok
 }
 
+func NewNotFoundError(s string) error {
+	return NotFoundError{s}
+}
+
 //=============================================================================
 
 type MissingDelegationTypeError struct{}
@@ -2068,7 +2072,7 @@ func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {
-	return "stale previous state error"
+	return "Unable to change chat channels"
 }
 
 //=============================================================================

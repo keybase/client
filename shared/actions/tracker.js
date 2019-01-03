@@ -29,7 +29,7 @@ function* _trackerTimer(): Generator<any, void, any> {
   }
 }
 
-function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
+function* _getProfile(state, action) {
   const {username, ignoreCache, forceDisplay} = action.payload
   const tracker = state.tracker
 
@@ -50,18 +50,18 @@ function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
     return
   }
 
-  return Saga.all([
+  yield Saga.all([
     Saga.put(TrackerGen.createUpdateUsername({username})),
     Saga.callUntyped(triggerIdentify('', username, forceDisplay)),
     Saga.callUntyped(_fillFolders(username)),
   ])
 }
 
-function _getMyProfile(action: TrackerGen.GetMyProfilePayload, state: TypedState) {
+function* _getMyProfile(state, action) {
   const {ignoreCache} = action.payload
   const username = state.config.username
   if (username) {
-    return Saga.put(TrackerGen.createGetProfile({ignoreCache: ignoreCache || false, username}))
+    yield Saga.put(TrackerGen.createGetProfile({ignoreCache: ignoreCache || false, username}))
   }
 }
 
@@ -101,9 +101,8 @@ const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisp
     yield Saga.put(action)
   }
 
-function* _refollow(action: TrackerGen.RefollowPayload) {
+function* _refollow(state, action) {
   const {username} = action.payload
-  const state = yield* Saga.selectState()
   const trackToken = _getTrackToken(state, username)
 
   yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
@@ -118,7 +117,7 @@ function* _refollow(action: TrackerGen.RefollowPayload) {
   }
 }
 
-function* _unfollow(action: TrackerGen.UnfollowPayload) {
+function* _unfollow(_, action) {
   const {username} = action.payload
   yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
   try {
@@ -162,9 +161,9 @@ const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean>
     }
   })
 
-function _ignore(action: TrackerGen.IgnorePayload) {
+function* _ignore(_, action) {
   const {username} = action.payload
-  return Saga.all([
+  yield Saga.all([
     Saga.put(TrackerGen.createFollow({localIgnore: true, username})),
     Saga.put(TrackerGen.createOnClose({username})),
   ])
@@ -175,15 +174,14 @@ function _getTrackToken(state, username) {
   return trackerState ? trackerState.trackToken : null
 }
 
-function _getUsername(uid: string, state: TypedState): ?string {
+function _getUsername(state, uid): ?string {
   const trackers = state.tracker.userTrackers
   // $FlowIssue flow thinks we don't need this cause the value of tracker[name] can't be null but it can be in practice cause the type is slightly wrong
   return Object.keys(trackers).find(name => trackers[name]?.userInfo?.uid === uid)
 }
 
-function* _follow(action: TrackerGen.FollowPayload) {
+function* _follow(state, action) {
   const {username, localIgnore} = action.payload
-  const state = yield* Saga.selectState()
   const trackToken = _getTrackToken(state, username)
 
   yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
@@ -204,7 +202,7 @@ function _dismissWithToken(trackToken) {
   })
 }
 
-function _onClose(action: TrackerGen.OnClosePayload, state: TypedState) {
+function* _onClose(state, action) {
   const {username} = action.payload
   const trackToken = _getTrackToken(state, username)
 
@@ -544,7 +542,7 @@ const _fillFolders = (username: string) =>
     yield Saga.put(TrackerGen.createUpdateFolders({tlfs, username}))
   }
 
-function* _updateTrackers(action: TrackerGen.UpdateTrackersPayload) {
+function* _updateTrackers(_, action) {
   const {username} = action.payload
   try {
     const [trackers, tracking] = yield Saga.all([
@@ -558,19 +556,19 @@ function* _updateTrackers(action: TrackerGen.UpdateTrackersPayload) {
   }
 }
 
-function _openProofUrl(action: TrackerGen.OpenProofUrlPayload) {
+function* _openProofUrl(_, action: TrackerGen.OpenProofUrlPayload) {
   const {proof} = action.payload
   openUrl(proof.humanUrl)
 }
 
-function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
+function* _userChanged(state, action: {payload: {uid: string}}) {
   const {uid} = action.payload
   const actions = [Saga.put(TrackerGen.createCacheIdentify({goodTill: 0, uid}))]
-  const username = _getUsername(uid, state)
+  const username = _getUsername(state, uid)
   if (username) {
     actions.push(Saga.put(TrackerGen.createGetProfile({username})))
   }
-  return Saga.all(actions)
+  yield Saga.all(actions)
 }
 
 const setupEngineListeners = () => {
@@ -638,23 +636,27 @@ const setupEngineListeners = () => {
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(TrackerGen.unfollow, _unfollow)
-  yield Saga.safeTakeEvery(TrackerGen.follow, _follow)
-  yield Saga.safeTakeEveryPure(TrackerGen.ignore, _ignore)
-  yield Saga.safeTakeEvery(TrackerGen.refollow, _refollow)
-  yield Saga.safeTakeEveryPure(TrackerGen.onClose, _onClose)
-  yield Saga.safeTakeEvery(TrackerGen.updateTrackers, _updateTrackers)
-  yield Saga.safeTakeEveryPure(TrackerGen.getProfile, _getProfile)
-  yield Saga.safeTakeEveryPure(TrackerGen.getMyProfile, _getMyProfile)
-  yield Saga.safeTakeEveryPure(TrackerGen.openProofUrl, _openProofUrl)
-  yield Saga.safeTakeEveryPure('tracker:_userChanged', _userChanged)
+  // TODO not bothering to make these nice as its all going away next week
+  yield* Saga.chainGenerator<TrackerGen.UnfollowPayload>(TrackerGen.unfollow, _unfollow)
+  yield* Saga.chainGenerator<TrackerGen.FollowPayload>(TrackerGen.follow, _follow)
+  yield* Saga.chainGenerator<TrackerGen.IgnorePayload>(TrackerGen.ignore, _ignore)
+  yield* Saga.chainGenerator<TrackerGen.RefollowPayload>(TrackerGen.refollow, _refollow)
+  yield* Saga.chainGenerator<TrackerGen.OnClosePayload>(TrackerGen.onClose, _onClose)
+  yield* Saga.chainGenerator<TrackerGen.UpdateTrackersPayload>(TrackerGen.updateTrackers, _updateTrackers)
+  yield* Saga.chainGenerator<TrackerGen.GetProfilePayload>(TrackerGen.getProfile, _getProfile)
+  yield* Saga.chainGenerator<TrackerGen.GetMyProfilePayload>(TrackerGen.getMyProfile, _getMyProfile)
+  yield* Saga.chainGenerator<TrackerGen.OpenProofUrlPayload>(TrackerGen.openProofUrl, _openProofUrl)
+  yield* Saga.chainGenerator<any>('tracker:_userChanged', _userChanged)
 
   // We don't have open trackers in mobile
   if (!isMobile) {
     yield Saga.spawn(_trackerTimer)
   }
 
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default trackerSaga

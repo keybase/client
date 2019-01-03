@@ -10,7 +10,7 @@ import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
 type DefaultViewProps = {
   fileUIEnabled: boolean,
-  itemStyles: Types.ItemStyles,
+  path: Types.Path,
   pathItem: Types.PathItem,
 
   download: () => void,
@@ -21,18 +21,12 @@ type DefaultViewProps = {
 
 const DefaultView = (props: DefaultViewProps) => (
   <Box style={stylesContainer}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={{}} />
-    <Text type="BodyBig" style={stylesFilename(props.itemStyles.textColor)}>
+    <PathItemIcon path={props.path} size={32} />
+    <Text type="BodyBig" style={stylesFilename(Constants.getPathTextColor(props.path))}>
       {props.pathItem.name}
     </Text>
     <Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Text>
-    {isMobile && (
-      <PathItemInfo
-        lastModifiedTimestamp={props.pathItem.lastModifiedTimestamp}
-        lastWriter={props.pathItem.lastWriter.username}
-        startWithLastModified={true}
-      />
-    )}
+    {isMobile && <PathItemInfo path={props.path} startWithLastModified={true} />}
     {props.pathItem.type === 'symlink' && (
       <Text type="BodySmall" style={stylesSymlink}>
         {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}

@@ -65,14 +65,14 @@
   <PropertyGroup>
     <PreBuildEvent>"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64 -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs
 cd /d "$(ProjectDir)"
-if NOT exist Redist\dokan-dev\1.2.0.1000\DokanSetup_redist.exe (
+if NOT exist Redist\dokan-dev\1.2.1.2000\DokanSetup_redist.exe (
       if NOT exist Redist\ mkdir Redist
       if NOT exist Redist\dokan-dev\ mkdir Redist\dokan-dev\
-      if NOT exist Redist\dokan-dev\1.2.0.1000 mkdir Redist\dokan-dev\1.2.0.1000
-      powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/1.2.0.1000/DokanSetup_redist.exe -OutFile Redist\dokan-dev\1.2.0.1000\DokanSetup_redist.exe"
+      if NOT exist Redist\dokan-dev\1.2.1.2000 mkdir Redist\dokan-dev\1.2.1.2000
+      powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/dokan-dev/1.2.1.2000/DokanSetup_redist.exe -UseBasicParsing -OutFile Redist\dokan-dev\1.2.1.2000\DokanSetup_redist.exe"
 )
-for /f "usebackq tokens=2%2a" %25%25i in (`powershell Get-FileHash -Algorithm sha1 Redist\dokan-dev\1.2.0.1000\DokanSetup_redist.exe`) do set DOKANLIBHASH=%25%25i
-if NOT %25DOKANLIBHASH%25==618DDC0E36C1B3C5648B2BAD0AAD8467CEEB1FB1 exit /B 1</PreBuildEvent>
+for /f "usebackq tokens=2%2a" %25%25i in (`powershell Get-FileHash -Algorithm sha1 Redist\dokan-dev\1.2.1.2000\DokanSetup_redist.exe`) do set DOKANLIBHASH=%25%25i
+if NOT %25DOKANLIBHASH%25==BB4620645894627676CEFFDC4363A036AC1FBFBA exit /B 1</PreBuildEvent>
   </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.

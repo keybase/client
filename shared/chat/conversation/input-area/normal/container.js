@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
 import Input, {type Props} from '.'
@@ -63,9 +63,9 @@ const mapDispatchToProps = dispatch => ({
       path: p,
     }))
     dispatch(
-      RouteTree.navigateAppend([
-        {props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      })
     )
   },
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>

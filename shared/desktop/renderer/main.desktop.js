@@ -16,7 +16,7 @@ import {makeEngine, getEngine} from '../../engine'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
-import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor.desktop'
@@ -179,7 +179,7 @@ function render(store, MainComponent) {
 }
 
 function setupRoutes(store) {
-  store.dispatch(setInitialRouteDef(loginRouteTree))
+  store.dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
 }
 
 function setupHMR(store) {
@@ -191,7 +191,7 @@ function setupHMR(store) {
   const refreshRoutes = () => {
     const appRouteTree = require('../../app/routes-app').default
     const loginRouteTree = require('../../app/routes-login').default
-    store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+    store.dispatch(RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree}))
     try {
       const NewMain = require('../../app/main.desktop').default
       render(store, NewMain)

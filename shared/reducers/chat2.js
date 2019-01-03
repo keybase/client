@@ -552,7 +552,7 @@ const rootReducer = (
       // Update any pending messages
       const pendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
-          if (context.type === 'sent' || context.type === 'threadLoad') {
+          if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
             messages.forEach(message => {
               const m = canSendType(message)
               if (m && !m.id && m.outboxID) {

@@ -290,12 +290,6 @@
 			"revisionTime": "2016-05-19T03:34:20Z"
 		},
 		{
-			"checksumSHA1": "B7tNNRFtE+SkHjYAx3L8xak8zLU=",
-			"path": "github.com/gonutz/w32",
-			"revision": "7b87625ae312b3dc5a34773dfbf819ed486f2685",
-			"revisionTime": "2018-05-16T16:26:43Z"
-		},
-		{
 			"path": "github.com/google/go-snappy/snappy",
 			"revision": "eaa750b9bf4dcb7cb20454be850613b66cda3273",
 			"revisionTime": "2015-06-08T14:53:52-07:00"

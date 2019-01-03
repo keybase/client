@@ -6,7 +6,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {connect} from '../../../util/container'
 import {Settings} from '.'
 import {anyWaiting} from '../../../constants/waiting'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 export type OwnProps = {
   teamname: string,
@@ -39,10 +39,10 @@ const mapDispatchToProps = dispatch => ({
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: RetentionPolicy) =>
     dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname})),
   _showRetentionWarning: (days: number, onConfirm: () => void, entityType: 'big team' | 'small team') =>
-    dispatch(navigateAppend([{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}]})),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {
             allowAdmin: false,
@@ -53,7 +53,7 @@ const mapDispatchToProps = dispatch => ({
           },
           selected: 'controlledRolePicker',
         },
-      ])
+      ]})
     )
   },
 })

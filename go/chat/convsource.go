@@ -74,28 +74,16 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 }
 
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
-	pp := attachments.NewPendingPreviews(s.G())
 	for index, m := range thread.Messages {
 		if !m.IsOutbox() {
 			continue
 		}
 		obr := m.Outbox()
-		pre, err := pp.Get(ctx, obr.OutboxID)
-		if err != nil {
+		if err := attachments.AddPendingPreview(ctx, s.G(), &obr); err != nil {
 			s.Debug(ctx, "addPendingPreviews: failed to get pending preview: outboxID: %s err: %s",
 				obr.OutboxID, err)
 			continue
 		}
-		mpr, err := pre.Export(func() *chat1.PreviewLocation {
-			loc := chat1.NewPreviewLocationWithUrl(s.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
-				obr.OutboxID))
-			return &loc
-		})
-		if err != nil {
-			s.Debug(ctx, "addPendingPreviews: failed to export: %s", err)
-			continue
-		}
-		obr.Preview = &mpr
 		thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
 	}
 }

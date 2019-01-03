@@ -4,11 +4,7 @@ import {globalStyles, globalColors, isMobile, platformStyles} from '../../styles
 import {Box, Meta, Text, ConnectedUsernames} from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'
 
-// TODO: this thing should probably get its own container, so we don't have to
-// derive lastModifiedTimestamp, lastWriter, resetParticipants, isUserReset
-// everwhere.
-
-type Props = {
+export type Props = {
   lastModifiedTimestamp?: number,
   lastWriter?: string,
   wrap?: boolean,

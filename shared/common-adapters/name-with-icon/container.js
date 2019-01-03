@@ -1,6 +1,6 @@
 // @flow
 import {namedConnect} from '../../util/container'
-import * as Route from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
@@ -18,7 +18,9 @@ const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   onOpenTeamProfile: (teamname: string) =>
-    dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
+    dispatch(
+      RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname: teamname}, selected: 'team'}]})
+    ),
   onOpenTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),

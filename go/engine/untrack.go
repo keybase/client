@@ -44,9 +44,7 @@ func (e *UntrackEngine) Prereqs() Prereqs {
 }
 
 func (e *UntrackEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.SecretUIKind,
-	}
+	return []libkb.UIKind{}
 }
 
 func (e *UntrackEngine) SubConsumers() []libkb.UIConsumer {

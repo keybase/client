@@ -27,7 +27,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   error: null,
   idToInfo: I.Map(),
   isNew: I.Set(),
-  lastLoad: null,
 })
 
 const parseRepoResult = (result: RPCTypes.GitRepoResult): ?Types.GitInfo => {

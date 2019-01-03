@@ -355,6 +355,7 @@ export const homeAppLinkType = {
   git: 5,
   devices: 6,
   settings: 7,
+  teams: 8,
 }
 
 export const homeHomeScreenItemType = {
@@ -389,6 +390,7 @@ export const identify3UiIdentify3ResultType = {
   ok: 0,
   broken: 1,
   needsUpgrade: 2,
+  canceled: 3,
 }
 
 export const identify3UiIdentify3RowColor = {
@@ -396,6 +398,9 @@ export const identify3UiIdentify3RowColor = {
   red: 2,
   black: 3,
   green: 4,
+  gray: 5,
+  yellow: 6,
+  orange: 7,
 }
 
 export const identify3UiIdentify3RowState = {
@@ -908,6 +913,7 @@ export const gregorGetStateRpcPromise = (params, waitingKey) => new Promise((res
 export const gregorInjectItemRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.gregor.injectItem', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gregorUpdateCategoryRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.gregor.updateCategory', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gregorUpdateItemRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.gregor.updateItem', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const homeHomeDismissAnnouncementRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeDismissAnnouncement', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeGetScreenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeGetScreen', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeMarkViewedRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeMarkViewed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeSkipTodoTypeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeSkipTodoType', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -958,6 +964,7 @@ export const teamsTeamCreateRpcPromise = (params, waitingKey) => new Promise((re
 export const teamsTeamCreateSeitanTokenV2RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanTokenV2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamEditMemberRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamEditMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamGetSubteamsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetSubteams', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamIgnoreRequestRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamIgnoreRequest', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamLeaveRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamLeave', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamListMyAccessRequestsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamListMyAccessRequests', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -967,7 +974,6 @@ export const teamsTeamProfileAddListRpcPromise = (params, waitingKey) => new Pro
 export const teamsTeamReAddMemberAfterResetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamReAddMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamRemoveMemberRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamRemoveMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamSetSettingsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamSetSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsTeamTreeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamTree', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsUploadTeamAvatarRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.uploadTeamAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackCheckTrackingRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.checkTracking', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackDismissWithTokenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.dismissWithToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

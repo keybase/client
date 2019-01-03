@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 
 type OwnProps = {||}
@@ -66,7 +66,7 @@ const styleTerminal = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

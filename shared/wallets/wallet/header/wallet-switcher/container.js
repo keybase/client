@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {connect, isMobile} from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
 import openURL from '../../../../util/open-url'
@@ -19,13 +19,15 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
     dispatch(
-      RouteTree.navigateAppend([
-        {props: {backButton: isMobile, showOnCreation: true}, selected: 'createNewAccount'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: isMobile, showOnCreation: true}, selected: 'createNewAccount'}],
+      })
     )
   },
   onLinkExisting: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
+    )
   },
   onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
 })
