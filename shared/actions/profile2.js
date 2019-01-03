@@ -92,6 +92,23 @@ const changeFollow = (_, action) =>
       })
     )
 
+const ignore = (_, action) =>
+  RPCTypes.identify3Identify3IgnoreUserRpcPromise({guiID: action.payload.guiID}, Constants.waitingKey)
+    .then(() =>
+      Profile2Gen.createUpdateResult({
+        guiID: action.payload.guiID,
+        reason: `Successfully ignored`,
+        result: 'valid',
+      })
+    )
+    .catch(e =>
+      Profile2Gen.createUpdateResult({
+        guiID: action.payload.guiID,
+        reason: `Failed to ignore`,
+        result: 'error',
+      })
+    )
+
 function* load(state, action) {
   if (action.payload.fromDaemon) {
     return
@@ -123,6 +140,7 @@ function* profile2Saga(): Saga.SagaGenerator<any, any> {
     setupEngineListeners
   )
   yield* Saga.chainAction<Profile2Gen.ChangeFollowPayload>(Profile2Gen.changeFollow, changeFollow)
+  yield* Saga.chainAction<Profile2Gen.IgnorePayload>(Profile2Gen.ignore, ignore)
   yield* Saga.chainGenerator<Profile2Gen.LoadPayload>(Profile2Gen.load, load)
 }
 

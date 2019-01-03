@@ -76,7 +76,7 @@ export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor) => {
     case RPCTypes.identify3UiIdentify3RowColor.orange:
       return 'orange'
     default:
-      return 'black'
+      throw new Error('Invalid identifyv3 row color ' + color)
   }
 }
 
@@ -93,7 +93,7 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
     case RPCTypes.identify3UiIdentify3RowState.revoked:
       return 'revoked'
     default:
-      return 'error'
+      throw new Error('Invalid identifyv3 row state ' + state)
   }
 }
 

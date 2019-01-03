@@ -69,7 +69,7 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
     case 'gray':
       return Styles.globalColors.black_40
     case 'yellow':
-      return Styles.globalColors.yellow
+      return Styles.globalColors.yellow2
     case 'orange':
       return Styles.globalColors.orange
     default:

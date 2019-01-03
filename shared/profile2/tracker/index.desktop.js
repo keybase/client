@@ -118,7 +118,7 @@ const Tracker = (props: Props) => {
   }
 
   let backgroundColor
-  if (props.state === 'error') {
+  if (['broken', 'error'].includes(props.state)) {
     backgroundColor = Styles.globalColors.red
   } else {
     backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
