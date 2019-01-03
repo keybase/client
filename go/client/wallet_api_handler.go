@@ -4,10 +4,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/strkey"
 	"golang.org/x/net/context"
 )
@@ -23,6 +25,15 @@ var ErrNameMissing = errors.New("'name' option is required")
 
 // ErrDestinationMissing is for missing destination options.
 var ErrDestinationMissing = errors.New("'destination' option is required")
+
+// ErrRecipientMissing is for missing recipient options.
+var ErrRecipientMissing = errors.New("'recipient' option is required")
+
+// ErrAmountMissing is for missing amount options.
+var ErrAmountMissing = errors.New("'amount' option is required")
+
+// ErrMessageTooLong is for lengthy payment messages.
+var ErrMessageTooLong = errors.New("message is too long")
 
 // walletAPIHandler is a type that can handle all the json api
 // methods for the wallet API.
@@ -175,12 +186,8 @@ func (w *walletAPIHandler) lookup(ctx context.Context, c Call, wr io.Writer) err
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return w.encodeErr(c, err, wr)
 	}
-
-	protocols := []rpc.Protocol{
-		NewNullIdentifyUIProtocol(),
-	}
-	if err := RegisterProtocolsWithContext(protocols, w.G()); err != nil {
-		return err
+	if err := w.registerIdentifyUI(); err != nil {
+		return w.encodeErr(c, err, wr)
 	}
 
 	result, err := w.cli.LookupCLILocal(ctx, opts.Name)
@@ -192,11 +199,48 @@ func (w *walletAPIHandler) lookup(ctx context.Context, c Call, wr io.Writer) err
 
 // send sends XLM to an account.
 func (w *walletAPIHandler) send(ctx context.Context, c Call, wr io.Writer) error {
-	accounts, err := w.cli.WalletGetAccountsCLILocal(ctx)
+	var opts sendOptions
+	if err := unmarshalOptions(c, &opts); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	if err := w.registerIdentifyUI(); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
+	// convert the amount if necessary
+	amount := opts.Amount
+	var displayAmount, displayCurrency string
+	if opts.Currency != "" && strings.ToUpper(opts.Currency) != "XLM" {
+		exchangeRate, err := w.cli.ExchangeRateLocal(ctx, stellar1.OutsideCurrencyCode(opts.Currency))
+		if err != nil {
+			return w.encodeErr(c, err, wr)
+		}
+
+		amount, err = stellarnet.ConvertOutsideToXLM(opts.Amount, exchangeRate.Rate)
+		if err != nil {
+			return w.encodeErr(c, err, wr)
+		}
+
+		displayAmount = opts.Amount
+		displayCurrency = opts.Currency
+	}
+
+	arg := stellar1.SendCLILocalArg{
+		Recipient:       opts.Recipient,
+		Amount:          amount,
+		Asset:           stellar1.AssetNative(),
+		Note:            opts.Message,
+		DisplayAmount:   displayAmount,
+		DisplayCurrency: displayCurrency,
+		FromAccountID:   stellar1.AccountID(opts.FromAccountID),
+	}
+	result, err := w.cli.SendCLILocal(ctx, arg)
 	if err != nil {
 		return w.encodeErr(c, err, wr)
 	}
-	return w.encodeResult(c, accounts, wr)
+
+	return w.encodeResult(c, result, wr)
 }
 
 // setInflation sets the inflation destination for an account.
@@ -247,6 +291,14 @@ func (w *walletAPIHandler) getInflationLocal(ctx context.Context, accountID stel
 		inflation.Comment = "no inflation destination set"
 	}
 	return inflation, nil
+}
+
+func (w *walletAPIHandler) registerIdentifyUI() error {
+	protocols := []rpc.Protocol{
+		NewNullIdentifyUIProtocol(),
+	}
+
+	return RegisterProtocolsWithContext(protocols, w.G())
 }
 
 // accountIDOptions is for a command where an account-id is required.
@@ -315,10 +367,12 @@ func (c *inflationOptions) Check() error {
 	return nil
 }
 
+// AccountIDConvert converts the AccountID string into a stellar1.AccountID.
 func (c *inflationOptions) AccountIDConvert() stellar1.AccountID {
 	return stellar1.AccountID(c.AccountID)
 }
 
+// DestinationConvert converts the Destination string into a stellar1.InflationDestination.
 func (c *inflationOptions) DestinationConvert() stellar1.InflationDestination {
 	switch c.Destination {
 	case "self":
@@ -328,4 +382,34 @@ func (c *inflationOptions) DestinationConvert() stellar1.InflationDestination {
 	default:
 		return stellar1.NewInflationDestinationWithAccountid(stellar1.AccountID(c.Destination))
 	}
+}
+
+// sendOptions are the options for the send payment method.
+type sendOptions struct {
+	Recipient     string `json:"recipient"`
+	Amount        string `json:"amount"`
+	Currency      string `json:"currency"`
+	Message       string `json:"message"`
+	FromAccountID string `json:"from-account-id"`
+}
+
+// Check makes sure that the send options are valid.
+func (c *sendOptions) Check() error {
+	if strings.TrimSpace(c.Recipient) == "" {
+		return ErrRecipientMissing
+	}
+	if strings.TrimSpace(c.Amount) == "" {
+		return ErrAmountMissing
+	}
+	if c.FromAccountID != "" {
+		_, err := strkey.Decode(strkey.VersionByteAccountID, c.FromAccountID)
+		if err != nil {
+			return ErrInvalidAccountID
+		}
+	}
+	if len(c.Message) > 400 {
+		return ErrMessageTooLong
+	}
+
+	return nil
 }
