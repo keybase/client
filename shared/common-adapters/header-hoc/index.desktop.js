@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import Text from './text'
-import BackButton from './back-button'
-import Box from './box'
-import Icon from './icon'
-import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
-import type {Props} from './header-hoc.types'
+import Text from '../text'
+import BackButton from '../back-button'
+import Box from '../box'
+import Icon from '../icon'
+import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
+import type {Props} from './index.types'
 
 export const HeaderHocHeader = ({
   headerStyle,

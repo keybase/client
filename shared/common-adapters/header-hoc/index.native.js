@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import Text from './text'
 import {StyleSheet} from 'react-native'
-import BackButton from './back-button'
-import Box from './box'
-import FloatingMenu from './floating-menu'
-import Icon from './icon'
-import * as Styles from '../styles'
-import type {Action, Props} from './header-hoc.types'
+import Text from '../text'
+import BackButton from '../back-button'
+import Box from '../box'
+import FloatingMenu from '../floating-menu'
+import Icon from '../icon'
+import * as Styles from '../../styles'
+import type {Action, Props} from './index.types'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
