@@ -30,7 +30,6 @@ const mocks = {
   ...reduxSaga,
   ...effects,
   actionToAction: () => {},
-  actionToPromise: () => {},
   identity: () => {},
   safeTakeEvery: () => {},
   safeTakeEveryPure: () => {},

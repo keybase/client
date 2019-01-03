@@ -927,7 +927,21 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 
 	<-s.doStop(ctx)
 
-	s.outbox = storage.NewOutbox(s.G(), uid)
+	s.outbox = storage.NewOutbox(s.G(), uid,
+		storage.PendingPreviewer(func(ctx context.Context, obr *chat1.OutboxRecord) error {
+			return attachments.AddPendingPreview(ctx, s.G(), obr)
+		}),
+		storage.NewMessageNotifier(func(ctx context.Context, obr chat1.OutboxRecord) {
+			uid := obr.Msg.ClientHeader.Sender
+			convID := obr.ConvID
+			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
+					uid, convID),
+				ConvID: convID,
+			})
+			s.G().ActivityNotifier.Activity(ctx, uid, obr.Msg.ClientHeader.Conv.TopicType, &act,
+				chat1.ChatActivitySource_LOCAL)
+		}))
 	s.outbox.SetClock(s.clock)
 
 	s.delivering = true
@@ -1006,7 +1020,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	if err != nil {
 		return obr, err
 	}
-	s.Debug(ctx, "queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
+	s.Debug(ctx, "Queue: queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
 		obr.OutboxID, s.outbox.GetUID(), identifyBehavior)
 
 	// Alert the deliver loop it should wake up
@@ -1445,7 +1459,10 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	}
 	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, identifyBehavior)
-	return obr.OutboxID, nil, err
+	if err != nil {
+		return obr.OutboxID, nil, err
+	}
+	return obr.OutboxID, nil, nil
 }
 
 func (s *NonblockingSender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,

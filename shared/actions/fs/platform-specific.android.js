@@ -3,7 +3,6 @@ import logger from '../../logger'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as FsGen from '../fs-gen'
-import {type TypedState} from '../../util/container'
 import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
@@ -40,39 +39,35 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
 }
 
-const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
+function* downloadSuccessToAction(state, action) {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {
     logger.warn('missing download key', key)
-    return null
+    return
   }
   const {intent, localPath} = download.meta
   switch (intent) {
     case 'camera-roll':
-      return Saga.sequentially([
-        Saga.callUntyped(saveAttachmentDialog, localPath),
-        Saga.put(FsGen.createDismissDownload({key})),
-      ])
+      yield Saga.callUntyped(saveAttachmentDialog, localPath)
+      yield Saga.put(FsGen.createDismissDownload({key}))
+      break
     case 'share':
-      return Saga.sequentially([
-        Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath}),
-        Saga.put(FsGen.createDismissDownload({key})),
-      ])
+      yield Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath})
+      yield Saga.put(FsGen.createDismissDownload({key}))
+      break
     case 'none':
-      return Saga.sequentially([
-        Saga.callUntyped(copyToDownloadDir, localPath, mimeType),
-        // TODO: dismiss download when we get rid of download cards on mobile
-      ])
+      yield Saga.callUntyped(copyToDownloadDir, localPath, mimeType)
+      // TODO: dismiss download when we get rid of download cards on mobile
+      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      return null
   }
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield Saga.actionToAction(FsGen.downloadSuccess, downloadSuccessToAction)
+  yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
+  yield* Saga.chainGenerator<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessToAction)
 }
 
 export default platformSpecificSaga

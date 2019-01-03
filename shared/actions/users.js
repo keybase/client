@@ -2,10 +2,9 @@
 import * as UsersGen from './users-gen'
 import * as TrackerConstants from '../constants/tracker'
 import * as TrackerGen from './tracker-gen'
-import type {TypedState} from '../util/container'
 import * as Saga from '../util/saga'
 
-const updateProofState = (action: TrackerGen.UpdateProofStatePayload, state: TypedState) => {
+const updateProofState = (state, action) => {
   const {username} = action.payload
 
   const user = state.tracker.userTrackers[username]
@@ -22,25 +21,21 @@ const updateProofState = (action: TrackerGen.UpdateProofStatePayload, state: Typ
     !['followed', 'refollowed'].includes(user.lastAction)
 
   if (isRed) {
-    return Saga.put(
-      UsersGen.createUpdateBrokenState({
-        newlyBroken: [username],
-        newlyFixed: [],
-      })
-    )
+    return UsersGen.createUpdateBrokenState({
+      newlyBroken: [username],
+      newlyFixed: [],
+    })
   } else {
-    return Saga.put(
-      UsersGen.createUpdateBrokenState({
-        newlyBroken: [],
-        newlyFixed: [username],
-      })
-    )
+    return UsersGen.createUpdateBrokenState({
+      newlyBroken: [],
+      newlyFixed: [username],
+    })
   }
 }
 
 function* usersSaga(): Saga.SagaGenerator<any, any> {
   // Temporary until tracker gets refactored a bit. Listen for proof updates and update our broken state
-  yield Saga.safeTakeEveryPure(TrackerGen.updateProofState, updateProofState)
+  yield* Saga.chainAction<TrackerGen.UpdateProofStatePayload>(TrackerGen.updateProofState, updateProofState)
 }
 
 export default usersSaga

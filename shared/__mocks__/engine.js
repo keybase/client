@@ -1,10 +1,14 @@
 // @noflow
+console.error('mock engine loaded')
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
 class Engine {}
 class EngineChannel {}
-const makeEngine = () => null
-const getEngine = () => null
+const mockEngine = {
+  _rpcOutgoing: () => {},
+}
+const makeEngine = () => mockEngine
+const getEngine = () => mockEngine
 export default getEngine
 export {getEngine, makeEngine, Engine, EngineChannel}
