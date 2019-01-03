@@ -46,6 +46,7 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
+export const swapRouter = 'config:swapRouter'
 export const updateFollowing = 'config:updateFollowing'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
@@ -86,6 +87,7 @@ type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startu
 type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
+type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
 type _UpdateFollowingPayload = $ReadOnly<{|username: string, isTracking: boolean|}>
 type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
@@ -162,6 +164,7 @@ export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({paylo
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({payload, type: showMain})
+export const createSwapRouter = (payload: _SwapRouterPayload) => ({payload, type: swapRouter})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({payload, type: updateFollowing})
 export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
@@ -202,6 +205,7 @@ export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +t
 export type SetupEngineListenersPayload = {|+payload: _SetupEngineListenersPayload, +type: 'config:setupEngineListeners'|}
 export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
 export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
+export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
 export type UpdateFollowingPayload = {|+payload: _UpdateFollowingPayload, +type: 'config:updateFollowing'|}
 export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
 export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
@@ -244,6 +248,7 @@ export type Actions =
   | SetupEngineListenersPayload
   | ShowMainPayload
   | StartHandshakePayload
+  | SwapRouterPayload
   | UpdateFollowingPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
