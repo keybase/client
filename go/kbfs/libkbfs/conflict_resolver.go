@@ -3198,17 +3198,17 @@ outer:
 const conflictRecordVersion = 1
 
 type conflictRecord struct {
-	Version     int
-	Time        time.Time
-	Merged      string
-	Unmerged    string
-	ErrorTime   time.Time
-	ErrorString string
-	PanicString string
-	codec.UnknownFieldSetHandler
+	Version                      int `json:"-"`
+	Time                         time.Time
+	Merged                       string
+	Unmerged                     string
+	ErrorTime                    time.Time
+	ErrorString                  string
+	PanicString                  string
+	codec.UnknownFieldSetHandler `json:"-"`
 }
 
-func (cr *ConflictResolver) getAndDeserializeConflicts(db *leveldb.DB,
+func getAndDeserializeConflicts(config Config, db *leveldb.DB,
 	key []byte) ([]conflictRecord, error) {
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
@@ -3216,8 +3216,7 @@ func (cr *ConflictResolver) getAndDeserializeConflicts(db *leveldb.DB,
 	case leveldb.ErrNotFound:
 		conflictsSoFar = nil
 	case nil:
-		err = cr.config.Codec().Decode(conflictsSoFarSerialized,
-			&conflictsSoFar)
+		err = config.Codec().Decode(conflictsSoFarSerialized, &conflictsSoFar)
 		if err != nil {
 			return nil, err
 		}
@@ -3227,9 +3226,9 @@ func (cr *ConflictResolver) getAndDeserializeConflicts(db *leveldb.DB,
 	return conflictsSoFar, nil
 }
 
-func (cr *ConflictResolver) serializeAndPutConflicts(db *leveldb.DB,
+func serializeAndPutConflicts(config Config, db *leveldb.DB,
 	key []byte, conflicts []conflictRecord) error {
-	conflictsSerialized, err := cr.config.Codec().Encode(conflicts)
+	conflictsSerialized, err := config.Codec().Encode(conflicts)
 	if err != nil {
 		return err
 	}
@@ -3239,7 +3238,7 @@ func (cr *ConflictResolver) serializeAndPutConflicts(db *leveldb.DB,
 func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 	db := cr.config.GetConflictResolutionDB()
 	key := cr.fbo.id().Bytes()
-	conflictsSoFar, err := cr.getAndDeserializeConflicts(db, key)
+	conflictsSoFar, err := getAndDeserializeConflicts(cr.config, db, key)
 	if err != nil {
 		return err
 	}
@@ -3253,7 +3252,7 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 		Merged:   ci.merged.String(),
 		Unmerged: ci.unmerged.String(),
 	})
-	return cr.serializeAndPutConflicts(db, key, conflictsSoFar)
+	return serializeAndPutConflicts(cr.config, db, key, conflictsSoFar)
 }
 
 // recordFinishResolve does one of two things:
@@ -3271,7 +3270,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 	// the DB entry.
 	if (receivedErr == nil || receivedErr == context.Canceled) &&
 		panicVar == nil {
-		err := db.Delete([]byte(cr.fbo.id().String()), nil)
+		err := db.Delete(key, nil)
 		if err != nil {
 			cr.log.CWarningf(ctx,
 				"Could not record conflict resolution success: %v", err)
@@ -3296,7 +3295,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 	// Otherwise we need to decode the most recent entry, modify it, and put it
 	// back in the DB.
 	var conflictsSoFar []conflictRecord
-	conflictsSoFar, err = cr.getAndDeserializeConflicts(db, key)
+	conflictsSoFar, err = getAndDeserializeConflicts(cr.config, db, key)
 	if err != nil {
 		return
 	}
@@ -3311,7 +3310,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 			debug.Stack())
 	}
 
-	err = cr.serializeAndPutConflicts(db, key, conflictsSoFar)
+	err = serializeAndPutConflicts(cr.config, db, key, conflictsSoFar)
 }
 
 // CRWrapError wraps an error that happens during conflict resolution.
