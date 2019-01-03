@@ -1723,7 +1723,7 @@ const attachmentPreviewSelect = (_, action) => {
 const attachmentPasted = (_, action) => {
   const {conversationIDKey, data} = action.payload
   const outboxID = Constants.generateOutboxID()
-  RPCChatTypes.localMakeUploadTempFileRpcPromise({
+  return RPCChatTypes.localMakeUploadTempFileRpcPromise({
     data,
     filename: 'paste.png',
     outboxID,
