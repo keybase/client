@@ -8,6 +8,7 @@ import Text from '../text'
 import KbfsPath from './kbfs-path-container'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
+import {type MarkdownMeta} from '.'
 import Box from '../box'
 import Emoji from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
@@ -334,12 +335,19 @@ const reactComponentsForMarkdownType = {
     )
   },
   serviceDecoration: (node, output, state) => {
+    const {markdownMeta} = state
+    if (!markdownMeta) {
+      throw new Error('markdownMeta unexpectedly empty')
+    }
+    // $FlowIssue Don't know what's going on here.
+    const {message} = markdownMeta
+
     return (
       <ServiceDecoration
         json={node.content}
         key={state.key}
         allowFontScaling={state.allowFontScaling}
-        message={state.markdownMeta.message}
+        message={message}
       />
     )
   },
@@ -358,6 +366,8 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
+type State = {allowFontScaling?: boolean, markdownMeta: ?MarkdownMeta, styleOverride: any, [string]: any}
+
 type ReactElements = React$Node
 
 type SingleASTNode = {
@@ -366,8 +376,6 @@ type SingleASTNode = {
 }
 
 type ASTNode = SingleASTNode | Array<SingleASTNode>
-
-type State = {[string]: any}
 
 type Output<Result> = (node: ASTNode, state?: ?State) => Result
 
