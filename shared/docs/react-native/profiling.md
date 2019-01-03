@@ -68,8 +68,7 @@ This is super useful in analyzing startup time performance cost. You can use
 this to see how long requires are taking. But there's a trick. You have to
 change the implementation of a couple methods for it to work properly.
 
-Add this to your entry file to enable Systrace (you can also enable it via RN
-devtools)
+Add this to your entry file to enable Systrace
 
 ```
 require.Systrace.setEnabled(true)
