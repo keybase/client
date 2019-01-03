@@ -1,0 +1,10 @@
+[Unit]
+Description=Keybase Root Redirector for KBFS
+Wants=keybase.service
+
+[Service]
+Type=simple
+# Abort if root redirector is explicitly disabled
+ExecStartPre=/usr/bin/keybase --use-root-config-file=true config get --direct --assert-false --assert-ok-on-nil disable-root-redirector
+ExecStart=/usr/bin/keybase-redirector /keybase
+Restart=on-failure

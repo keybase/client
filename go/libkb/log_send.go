@@ -501,7 +501,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		// However we do use it for startup logs, since that's the only place
 		// to get them in systemd mode.
 		if l.G().Env.WantsSystemd() {
-			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "kbfs.service", "keybase.gui.service"}, numBytes)
+			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "kbfs.service", "keybase.gui.service", "keybase-redirector.service"}, numBytes)
 		} else {
 			startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		}
