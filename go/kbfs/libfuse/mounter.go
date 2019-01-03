@@ -17,7 +17,9 @@ import (
 
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type mounter struct {
@@ -52,6 +54,17 @@ func (m *mounter) Mount() (err error) {
 }
 
 func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
+	// Create mountdir directory on Linux
+	switch libkb.RuntimeGroup() {
+	case keybase1.RuntimeGroup_UNIXLIKE:
+		// Inherit permissions from containing directory and umask
+		err := os.MkdirAll(dir, os.ModeDir|os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+	default:
+	}
+
 	fi, err := os.Stat(dir)
 	if err != nil {
 		return nil, err
