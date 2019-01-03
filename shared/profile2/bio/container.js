@@ -11,10 +11,10 @@ const mapStateToProps = (state, ownProps) => {
   const d = state.profile2.usernameToDetails.get(ownProps.username, Constants.noDetails)
   return {
     bio: d.bio,
-    followThem: d.followThem,
+    followThem: Constants.followThem(state, ownProps.username),
     followersCount: d.followersCount,
     followingCount: d.followingCount,
-    followsYou: d.followsYou,
+    followsYou: Constants.followsYou(state, ownProps.username),
     fullname: d.fullname,
     location: d.location,
   }

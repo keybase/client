@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
+import * as Profile2Gen from '../actions/profile2-gen'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
@@ -12,9 +13,16 @@ import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
+// just a gui to username map for profile, only used to tie togeether followers state, not part of the store
+let guiIDToUsername = {}
+
 export default function(
   state: Types.State = initialState,
-  action: ConfigGen.Actions | DevicesGen.RevokedPayload
+  action:
+    | ConfigGen.Actions
+    | DevicesGen.RevokedPayload
+    | Profile2Gen.UpdatedDetailsPayload
+    | Profile2Gen.LoadPayload
 ): Types.State {
   switch (action.type) {
     case DevicesGen.revoked:
@@ -24,7 +32,33 @@ export default function(
           ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
           : state.defaultUsername,
       })
+    case Profile2Gen.load:
+      guiIDToUsername[action.payload.guiID] = action.payload.assertion
+      return state
+    case Profile2Gen.updatedDetails: {
+      const username = guiIDToUsername[action.payload.guiID]
+      if (!username) {
+        return state
+      }
+      let followers = state.followers
+      let following = state.following
+
+      if (action.payload.followThem) {
+        following = following.add(username)
+      } else {
+        following = following.delete(username)
+      }
+
+      if (action.payload.followsYou) {
+        followers = followers.add(username)
+      } else {
+        followers = followers.delete(username)
+      }
+
+      return state.merge({followers, following})
+    }
     case ConfigGen.resetStore:
+      guiIDToUsername = {}
       return initialState.merge({
         appFocused: state.appFocused,
         appFocusedCount: state.appFocusedCount,

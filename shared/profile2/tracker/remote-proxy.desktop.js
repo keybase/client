@@ -11,20 +11,20 @@ import SyncBrowserWindow from '../../desktop/remote/sync-browser-window.desktop'
 import {connect, compose} from '../../util/container'
 import {serialize} from './remote-serializer.desktop'
 
-type OwnProps = {|name: string|}
+type OwnProps = {|username: string|}
 
 const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
 
-const trackerMapStateToProps = (state, {name}) => {
-  const d = state.profile2.usernameToDetails.get(name, Constants.noDetails)
+const trackerMapStateToProps = (state, ownProps) => {
+  const d = state.profile2.usernameToDetails.get(ownProps.username, Constants.noDetails)
   return {
     assertions: d.assertions,
     bio: d.bio,
-    followThem: d.followThem,
+    followThem: Constants.followThem(state, ownProps.username),
     followersCount: d.followersCount,
     followingCount: d.followingCount,
-    followsYou: d.followsYou,
+    followsYou: Constants.followsYou(state, ownProps.username),
     fullname: d.fullname,
     guiID: d.guiID,
     location: d.location,
@@ -32,11 +32,11 @@ const trackerMapStateToProps = (state, {name}) => {
     publishedTeams: d.publishedTeams,
     reason: d.reason,
     state: d.state,
-    waiting: state.waiting.counts.get(Constants.waitingKey),
+    waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
   }
 }
 
-const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
+const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     assertions: stateProps.assertions,
     bio: stateProps.bio,
@@ -50,13 +50,13 @@ const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
     publishedTeams: stateProps.publishedTeams,
     reason: stateProps.reason,
     state: stateProps.state,
-    username: name,
+    username: ownProps.username,
     waiting: stateProps.waiting,
     windowComponent: 'profile2',
     windowOpts,
-    windowParam: name,
+    windowParam: ownProps.username,
     windowPositionBottomRight: true,
-    windowTitle: `Tracker - ${name}`,
+    windowTitle: `Tracker - ${ownProps.username}`,
   }
 }
 
@@ -79,7 +79,7 @@ type Props = {
 }
 class RemoteProfile2s extends React.PureComponent<Props> {
   render() {
-    return this.props.users.map(name => <RemoteProfile2 name={name} key={name} />)
+    return this.props.users.map(username => <RemoteProfile2 username={username} key={username} />)
   }
 }
 

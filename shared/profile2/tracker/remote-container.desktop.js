@@ -35,8 +35,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClose: (guiID: string) => dispatch(Profile2Gen.createCloseTracker({guiID})),
-  _onFollow: (guiID: string) => {},
-  _onIgnoreFor24Hours: (guiID: string) => {},
+  _onFollow: (guiID: string) => dispatch(Profile2Gen.createChangeFollow({follow: true, guiID})),
+  _onIgnoreFor24Hours: (guiID: string) => dispatch(Profile2Gen.createIgnore({guiID})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

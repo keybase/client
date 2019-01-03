@@ -13,10 +13,10 @@ const mapStateToProps = (state, ownProps) => {
   return {
     _assertions: d.assertions,
     bio: d.bio,
-    followThem: d.followThem,
+    followThem: Constants.followThem(state, ownProps.username),
     followersCount: d.followersCount,
     followingCount: d.followingCount,
-    followsYou: d.followsYou,
+    followsYou: Constants.followsYou(state, ownProps.username),
     guiID: d.guiID,
     location: d.location,
     publishedTeams: d.publishedTeams,

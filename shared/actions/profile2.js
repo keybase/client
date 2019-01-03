@@ -22,8 +22,12 @@ const setupEngineListeners = () => {
       })
   })
   engine().setIncomingCallMap({
+    // TODO ?
+    'keybase.1.NotifyUsers.userChanged': ({uid}) => null,
     'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
-      Saga.put(Profile2Gen.createUpdateResult({guiID, result: Constants.rpcResultToStatus(result)})),
+      Saga.put(
+        Profile2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
+      ),
     'keybase.1.identify3Ui.identify3ShowTracker': ({guiID, assertion, reason, forceDisplay}) =>
       Saga.put(
         Profile2Gen.createLoad({
@@ -77,15 +81,15 @@ const changeFollow = (_, action) =>
     },
     Constants.waitingKey
   )
-    .then(() => {})
+    .then(() => {
+      console.log('aaaa ident follow worked')
+    })
     .catch(e =>
-      Saga.put(
-        Profile2Gen.createUpdateResult({
-          guiID: action.payload.guiID,
-          reason: `Failed to ${action.payload.follow ? 'follow' : 'unfollow'}`,
-          result: 'error',
-        })
-      )
+      Profile2Gen.createUpdateResult({
+        guiID: action.payload.guiID,
+        reason: `Failed to ${action.payload.follow ? 'follow' : 'unfollow'}`,
+        result: 'error',
+      })
     )
 
 function* load(state, action) {

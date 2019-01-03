@@ -23,7 +23,7 @@ type _CloseTrackerPayload = $ReadOnly<{|guiID: string|}>
 type _IgnorePayload = $ReadOnly<{|guiID: string|}>
 type _LoadPayload = $ReadOnly<{|assertion: string, forceDisplay: boolean, fromDaemon: boolean, guiID: string, ignoreCache?: boolean, reason: string|}>
 type _UpdateAssertionPayload = $ReadOnly<{|guiID: string, type: string, value: string, siteURL: string, siteIcon: string, proofURL: string, state: Types.AssertionState, metas: Array<Types._AssertionMeta>, color: Types.AssertionColor|}>
-type _UpdateResultPayload = $ReadOnly<{|guiID: string, result: Types.DetailsState|}>
+type _UpdateResultPayload = $ReadOnly<{|guiID: string, result: Types.DetailsState, reason: ?string|}>
 type _UpdatedDetailsPayload = $ReadOnly<{|guiID: string, bio: string, followThem: boolean, followersCount: number, followingCount: number, followsYou: boolean, fullname: string, location: string, publishedTeams: Array<string>|}>
 
 // Action Creators

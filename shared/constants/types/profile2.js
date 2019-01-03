@@ -29,10 +29,8 @@ export type DetailsState = 'checking' | 'valid' | 'error' | 'needsUpgrade' | 'ca
 export type _Details = {
   assertions: ?I.Map<string, Assertion>,
   bio: ?string,
-  followThem: ?boolean,
   followersCount: ?number,
   followingCount: ?number,
-  followsYou: ?boolean,
   fullname: ?string,
   guiID: string,
   location: ?string,

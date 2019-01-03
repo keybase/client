@@ -2,6 +2,7 @@
 import * as Types from './types/profile2'
 import * as RPCTypes from './types/rpc-gen'
 import * as I from 'immutable'
+import type {TypedState} from './reducer'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   usernameToDetails: I.Map(),
@@ -10,10 +11,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   assertions: I.Map(),
   bio: null,
-  followThem: null,
   followersCount: null,
   followingCount: null,
-  followsYou: null,
   fullname: null,
   guiID: null,
   location: null,
@@ -142,6 +141,9 @@ export const sortAssertionKeys = (a: string, b: string) => {
 
   return _scoreAssertionKey(typeB) - _scoreAssertionKey(typeA)
 }
+
+export const followThem = (state: TypedState, username: string) => state.config.following.has(username)
+export const followsYou = (state: TypedState, username: string) => state.config.followers.has(username)
 
 export const noDetails = makeDetails({})
 export const noAssertion = makeAssertion({})

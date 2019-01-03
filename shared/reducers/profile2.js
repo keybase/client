@@ -40,10 +40,8 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
         usernameToDetails: state.usernameToDetails.updateIn([username], old =>
           (old || Constants.makeDetails()).merge({
             bio: action.payload.bio,
-            followThem: action.payload.followThem,
             followersCount: action.payload.followersCount,
             followingCount: action.payload.followingCount,
-            followsYou: action.payload.followsYou,
             fullname: action.payload.fullname,
             location: action.payload.location,
             publishedTeams: action.payload.publishedTeams,
@@ -107,6 +105,10 @@ export default function(state: Types.State = initialState, action: Profile2Gen.A
         ),
       })
     }
+    // Saga only actions
+    case Profile2Gen.changeFollow:
+    case Profile2Gen.ignore:
+      return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
