@@ -88,7 +88,8 @@ func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force boo
 func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybase1.LinkCheckResult) bool {
 
 	needUpgrade := false
-	i.M().CDebugf("setRowStatus(%+v)", lcr)
+	i.M().CDebugf("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
+		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
 
 	switch {
 
@@ -144,6 +145,9 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 		arg.Color = keybase1.Identify3RowColor_RED
 		arg.State = keybase1.Identify3RowState_ERROR
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "unreachable"})
+
+	default:
+		i.M().CWarningf("unhandled ID3 setRowStatus")
 
 	}
 	return needUpgrade
