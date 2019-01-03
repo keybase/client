@@ -67,6 +67,14 @@ export const getPaymentMessageInfo = (
   )
 }
 
+export const isPendingPaymentMessage = (state: TypedState, message: Types.Message) => {
+  if (message.type !== 'sendPayment') {
+    return false
+  }
+  const paymentInfo = getPaymentMessageInfo(state, message)
+  return !!(paymentInfo && ['claimable', 'pending'].includes(paymentInfo.status))
+}
+
 // Map service message types to our message types.
 export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
   switch (t) {

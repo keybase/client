@@ -69,7 +69,6 @@ const sent = Styles.platformStyles({
   },
   isMobile: {
     ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.fastBlank,
   },
 })
 const sentEditing = {
