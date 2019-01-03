@@ -35,7 +35,7 @@ const load = () => {
     .add('Team Building', () => (
       <OutlineWrapper style={{height: 434, marginTop: 20, width: 460}}>
         <TeamBuilding
-          searchString=""
+          searchString="chris"
           selectedService="keybase"
           onChangeService={Sb.action('onChangeService')}
           onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
@@ -46,8 +46,12 @@ const load = () => {
           onBackspace={Sb.action('onBackspace')}
           onRemove={Sb.action('onRemove')}
           onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
           recommendations={[]}
           fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
           teamSoFar={[
             {
               prettyName: 'max (Max Krohn)',
@@ -215,6 +219,7 @@ const load = () => {
         username="chris"
         prettyName="Chris Coyne"
         highlight={false}
+        resultForService={'keybase'}
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -236,6 +241,7 @@ const load = () => {
         username="chris"
         prettyName="Chris Coyne"
         highlight={false}
+        resultForService={'keybase'}
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -245,6 +251,36 @@ const load = () => {
         }}
         inTeam={true}
         followingState="Following"
+        onAdd={Sb.action('onAdd')}
+        onRemove={Sb.action('onRemove')}
+        onMouseOver={Sb.action('onMouseOver')}
+        onMouseLeave={Sb.action('onMouseLeave')}
+      />
+    ))
+    .add('marcopolo (github) - keybase user. following', () => (
+      <UserResult
+        resultForService={'github'}
+        username="marcopolo"
+        prettyName=""
+        highlight={false}
+        services={{github: 'marcopolo', keybase: 'marcopolo'}}
+        inTeam={true}
+        followingState="Following"
+        onAdd={Sb.action('onAdd')}
+        onRemove={Sb.action('onRemove')}
+        onMouseOver={Sb.action('onMouseOver')}
+        onMouseLeave={Sb.action('onMouseLeave')}
+      />
+    ))
+    .add('marcopolo2 (github) - no keybase user', () => (
+      <UserResult
+        resultForService={'github'}
+        username="marcopolo"
+        prettyName=""
+        highlight={false}
+        services={{github: 'marcopolo'}}
+        inTeam={true}
+        followingState="NoState"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         onMouseOver={Sb.action('onMouseOver')}
@@ -267,6 +303,7 @@ const load = () => {
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
+        resultForService={'keybase'}
       />
     ))
 }

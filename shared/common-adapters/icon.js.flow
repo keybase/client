@@ -22,6 +22,8 @@ export type Props = {
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
+  // Temporary hack that let's you override the color directly in the style instead of using css class names
+  colorOverride?: Color,
   color?: Color,
   hoverColor?: string,
   fontSize?: number,
