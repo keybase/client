@@ -27,7 +27,6 @@ export type MarkdownMeta = {
   mentionsAt?: MentionsAt,
   mentionsChannelName?: MentionsChannelName,
   mentionsChannel?: MentionsChannel,
-  message: MessageText,
 }
 
 export type Props = {
