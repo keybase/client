@@ -8,7 +8,7 @@ import Text from '../text'
 import KbfsPath from './kbfs-path-container'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
-import {type MarkdownMeta} from '.'
+import {type MarkdownMeta, type StyleOverride} from '.'
 import Box from '../box'
 import Emoji from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
@@ -366,7 +366,12 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
-type State = {allowFontScaling?: boolean, markdownMeta: ?MarkdownMeta, styleOverride: any, [string]: any}
+type State = {
+  allowFontScaling?: boolean,
+  markdownMeta: ?MarkdownMeta,
+  styleOverride: StyleOverride,
+  [string]: any,
+}
 
 type ReactElements = React$Node
 

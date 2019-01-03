@@ -28,6 +28,18 @@ export type MarkdownMeta = {
   mentionsChannel?: MentionsChannel,
 }
 
+export type StyleOverride = {
+    paragraph?: Styles.StylesCrossPlatform,
+    fence?: Styles.StylesCrossPlatform,
+    inlineCode?: Styles.StylesCrossPlatform,
+    strong?: Styles.StylesCrossPlatform,
+    em?: Styles.StylesCrossPlatform,
+    del?: Styles.StylesCrossPlatform,
+    link?: Styles.StylesCrossPlatform,
+    mailto?: Styles.StylesCrossPlatform,
+    preview?: Styles.StylesCrossPlatform,
+}
+
 export type Props = {
   children?: string,
   preview?: boolean, // if true render a simplified version
@@ -46,17 +58,7 @@ export type Props = {
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_40
   // but want blue_30 for the inline code
-  styleOverride?: {
-    paragraph?: Styles.StylesCrossPlatform,
-    fence?: Styles.StylesCrossPlatform,
-    inlineCode?: Styles.StylesCrossPlatform,
-    strong?: Styles.StylesCrossPlatform,
-    em?: Styles.StylesCrossPlatform,
-    del?: Styles.StylesCrossPlatform,
-    link?: Styles.StylesCrossPlatform,
-    mailto?: Styles.StylesCrossPlatform,
-    preview?: Styles.StylesCrossPlatform,
-  },
+  styleOverride?: StyleOverride,
 }
 
 export default class Markdown extends React.Component<Props> {}
