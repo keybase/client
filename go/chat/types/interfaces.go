@@ -38,7 +38,6 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupIDUntrusted(ctx context.Context, name string, public bool) (NameInfoUntrusted, error)
 	LookupID(ctx context.Context, name string, public bool) (NameInfo, error)
 	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
@@ -177,7 +176,7 @@ type InboxSource interface {
 	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfoUntrusted, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
