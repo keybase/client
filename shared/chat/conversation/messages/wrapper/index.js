@@ -487,9 +487,12 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginTop: 8},
   }),
-  avatar: {
-    marginLeft: Styles.globalMargins.small,
-  },
+  avatar: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.small,
+    },
+    isMobile: {marginLeft: Styles.globalMargins.tiny},
+  }),
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
