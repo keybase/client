@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export type OwnProps = {
   accountID: Types.AccountID,
@@ -20,20 +20,19 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onCancelPayment: (paymentID: Types.PaymentID) =>
-    dispatch(WalletsGen.createCancelPayment({paymentID, showAccount: true})),
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (
     paymentID: Types.PaymentID,
     accountID: Types.AccountID,
     status: Types.StatusSimplified
   ) =>
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {accountID, paymentID, status},
           selected: 'transactionDetails',
         },
-      ])
+      ]})
     ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
@@ -57,8 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyType,
     issuerDescription: tx.issuerDescription,
     memo,
-    onCancelPayment:
-      tx.showCancel ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment: tx.showCancel ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),

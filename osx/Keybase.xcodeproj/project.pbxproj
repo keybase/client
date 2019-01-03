@@ -35,6 +35,7 @@
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
 		00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
 		00E1CEF01C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
+		503740A121DB05F7001C0893 /* fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 503740A021DB05F7001C0893 /* fs.m */; };
 		5AAE4172EC33DA8F19F8A42E /* Pods_Installer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */; };
 		A41AA4F5D9C9A73A57136523 /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 647177609208B611C8346C28 /* libPods-keybase.Helper.a */; };
 		EAACDAA5E950F358EB5A14C6 /* Pods_Status.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B4795B58002E8F344AF75FF0 /* Pods_Status.framework */; };
@@ -161,7 +162,10 @@
 		00E1CEEE1C44313B00ED3A35 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.debug.xcconfig"; sourceTree = "<group>"; };
+		274108FC21CC410600B9C9F1 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.release.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.release.xcconfig"; sourceTree = "<group>"; };
+		5037409F21DB05F7001C0893 /* fs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fs.h; sourceTree = "<group>"; };
+		503740A021DB05F7001C0893 /* fs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = fs.m; sourceTree = "<group>"; };
 		50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
 		647177609208B611C8346C28 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Installer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -307,6 +311,8 @@
 		0057B0BB1AE57A7A00BFB0E7 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				5037409F21DB05F7001C0893 /* fs.h */,
+				503740A021DB05F7001C0893 /* fs.m */,
 				0057B0BE1AE57A7A00BFB0E7 /* Info.plist */,
 				0057B0BF1AE57A7A00BFB0E7 /* KBHelper.h */,
 				0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */,
@@ -422,6 +428,7 @@
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				274108FC21CC410600B9C9F1 /* MapKit.framework */,
 				00DAF5BE1B2F885D000D7F9A /* Social.framework */,
 				004624CD1B2A3BE300E218AC /* FinderSync.framework */,
 				DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */,
@@ -485,7 +492,6 @@
 				003608191C442ED200B3300E /* Frameworks */,
 				0036081A1C442ED200B3300E /* Resources */,
 				6DDFBFD461DBB29084739629 /* [CP] Embed Pods Frameworks */,
-				38CEFEB2D5410D87D00C3A1C /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -520,7 +526,6 @@
 				166B875C609738F652A27DA5 /* [CP] Check Pods Manifest.lock */,
 				0057B0B01AE57A4900BFB0E7 /* Sources */,
 				0057B0B11AE57A4900BFB0E7 /* Frameworks */,
-				625C86A0B17F430F8CA6DAD5 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -580,7 +585,6 @@
 				0057B0DA1AE57B4C00BFB0E7 /* Copy Files */,
 				0043D1051B28ED290036C532 /* Embed Frameworks */,
 				6EBF4CB0181E5A8EE38B470D /* [CP] Embed Pods Frameworks */,
-				BC1C8B68EFC6983159FD7C76 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -670,13 +674,19 @@
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
-								enabled = 1;
+								enabled = 0;
+							};
+							com.apple.HardenedRuntime = {
+								enabled = 0;
 							};
 							com.apple.InAppPurchase = {
 								enabled = 0;
 							};
 							com.apple.Keychain = {
-								enabled = 1;
+								enabled = 0;
+							};
+							com.apple.Maps.Mac = {
+								enabled = 0;
 							};
 						};
 					};
@@ -830,36 +840,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		38CEFEB2D5410D87D00C3A1C /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Status/Pods-Status-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		625C86A0B17F430F8CA6DAD5 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		6DDFBFD461DBB29084739629 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -948,21 +928,6 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Installer/Pods-Installer-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		BC1C8B68EFC6983159FD7C76 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Installer/Pods-Installer-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -998,6 +963,7 @@
 			files = (
 				003B40471B265F7B000B7D3B /* KBKext.m in Sources */,
 				00A8E4AF1D42A4CD00B77F08 /* KBLogger.m in Sources */,
+				503740A121DB05F7001C0893 /* fs.m in Sources */,
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
 				003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */,
 				003B40451B265F7B000B7D3B /* KBHelper.m in Sources */,
@@ -1427,7 +1393,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Installer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer2;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1454,7 +1420,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Installer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer2;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = NO;

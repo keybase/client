@@ -30,6 +30,7 @@ type WalletState struct {
 	refreshReqs  chan stellar1.AccountID
 	refreshCount int
 	rateGroup    *singleflight.Group
+	shutdownOnce sync.Once
 	sync.Mutex
 }
 
@@ -46,9 +47,22 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		rateGroup:    &singleflight.Group{},
 	}
 
+	g.PushShutdownHook(ws.Shutdown)
+
 	go ws.backgroundRefresh()
 
 	return ws
+}
+
+func (w *WalletState) Shutdown() error {
+	w.shutdownOnce.Do(func() {
+		mctx := libkb.NewMetaContextBackground(w.G())
+		mctx.CDebugf("WalletState shutting down")
+		close(w.refreshReqs)
+		w.Reset(mctx)
+		mctx.CDebugf("WalletState shut down complete")
+	})
+	return nil
 }
 
 // accountState returns the AccountState object for an accountID.
@@ -121,7 +135,7 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
 	defer mctx.CTraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
-	bundle, _, _, err := remote.FetchSecretlessBundle(mctx)
+	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
 	}
@@ -360,7 +374,10 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	w.Lock()
 	defer w.Unlock()
 
-	mctx.CDebugf("WalletState: Reset clearing all account state")
+	for _, a := range w.accounts {
+		a.Reset(mctx)
+	}
+
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
 }
 
@@ -556,6 +573,14 @@ func (a *AccountState) RecentPayments(ctx context.Context) (stellar1.PaymentsPag
 	return *a.recent, nil
 }
 
+// Reset sets the refreshReqs channel to nil so nothing will be put on it.
+func (a *AccountState) Reset(mctx libkb.MetaContext) {
+	a.Lock()
+	defer a.Unlock()
+
+	a.refreshReqs = nil
+}
+
 // String returns a small string representation of AccountState suitable for
 // debug logging.
 func (a *AccountState) String() string {
@@ -567,7 +592,7 @@ func (a *AccountState) String() string {
 	return fmt.Sprintf("%s (seqno: %d, balances: %d, pending: %d, payments: nil)", a.accountID, a.seqno, len(a.balances), len(a.pending))
 }
 
-func (a *AccountState) updateEntry(entry stellar1.BundleEntryRestricted) {
+func (a *AccountState) updateEntry(entry stellar1.BundleEntry) {
 	a.Lock()
 	defer a.Unlock()
 

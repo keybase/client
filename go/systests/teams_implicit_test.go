@@ -350,3 +350,152 @@ func TestImplicitSBSPukless(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID3)
 }
+
+func TestResolveSBSTeamWithConflict(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	// Create two implicit teams that will become conflicted later:
+	// - alice,bob
+	// - alice,bob@rooter
+	impteamName1 := fmt.Sprintf("%s,%s", ann.username, bob.username)
+	_, err := ann.lookupImplicitTeam(true /* create */, impteamName1, false /* public */)
+	require.NoError(t, err)
+
+	impteamName2 := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	_, err = ann.lookupImplicitTeam(true /* create */, impteamName2, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure we can resolve them right now and get two different team IDs.
+	teamid1, err := ann.lookupImplicitTeam(false /* create */, impteamName1, false /* public */)
+	require.NoError(t, err)
+
+	teamid2, err := ann.lookupImplicitTeam(false /* create */, impteamName2, false /* public */)
+	require.NoError(t, err)
+
+	require.NotEqual(t, teamid1, teamid2)
+
+	// Make sure we can load these teams.
+	teamObj1 := ann.loadTeamByID(teamid1, true /* admin */)
+	teamObj2 := ann.loadTeamByID(teamid2, true /* admin */)
+
+	// Check display names with conflicts, teams are not in conflict right now
+	// (ImplicitTeamDisplayNameString returns display name with suffix).
+	name, err := teamObj1.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, impteamName1, name)
+	t.Logf("Team 1 display name is: %s", name)
+	name, err = teamObj2.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, impteamName2, name)
+	t.Logf("Team 2 (w/ rooter) display name is: %s", name)
+
+	// Bob proves rooter.
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Wait till team2 resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamid2,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure teams are still loadable by ID.
+	teamObj1 = ann.loadTeamByID(teamid1, true /* admin */)
+	teamObj2 = ann.loadTeamByID(teamid2, true /* admin */)
+
+	// Team1 display name with suffix should stay unchanged.
+	name, err = teamObj1.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	t.Logf("After resolution, team1 display name is: %s", name)
+	require.Equal(t, impteamName1, name)
+
+	// See if we can resolve implicit team by name without suffix and get the
+	// first team.
+	lookupTeamID, err := ann.lookupImplicitTeam(false /* create */, name, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, teamid1, lookupTeamID)
+
+	// Team 2 should be the one that gets conflict suffix.
+	name, err = teamObj2.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	t.Logf("After resolution, team2 display name is: %s", name)
+	require.Contains(t, name, "(conflicted copy")
+	require.Contains(t, name, "#1)")
+
+	// We should be able to resolve team2 by name with suffix. This is where
+	// the CORE-9732 cache bug was.
+	lookupTeamID, err = ann.lookupImplicitTeam(false /* create */, name, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, teamid2, lookupTeamID)
+}
+
+func TestResolveSBSConsolidatedTeamWithConflict(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	// Create two implicit teams that will become conflicted later
+	// - alice,bob
+	// - alice,bob#bob@rooter
+	// The second team will consolidate to "alice,bob", but since there
+	// already is "alice,bob", it will become "conflicted copy #1".
+
+	impteamName1 := fmt.Sprintf("%s,%s", ann.username, bob.username)
+	_, err := ann.lookupImplicitTeam(true /* create */, impteamName1, false /* public */)
+	require.NoError(t, err)
+
+	impteamName2 := fmt.Sprintf("%s,%s#%s@rooter", ann.username, bob.username, bob.username)
+	_, err = ann.lookupImplicitTeam(true /* create */, impteamName2, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure we can resolve them right now.
+	teamid1, err := ann.lookupImplicitTeam(false /* create */, impteamName1, false /* public */)
+	require.NoError(t, err)
+
+	teamid2, err := ann.lookupImplicitTeam(false /* create */, impteamName2, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure we can load these teams.
+	teamObj1 := ann.loadTeamByID(teamid1, true /* admin */)
+	teamObj2 := ann.loadTeamByID(teamid2, true /* admin */)
+
+	name, err := teamObj1.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, impteamName1, name)
+	t.Logf("Team 1 display name is: %s", name)
+	name, err = teamObj2.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, impteamName2, name)
+	t.Logf("Team 2 (w/ rooter) display name is: %s", name)
+
+	// Bob proves rooter.
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Wait till team2 resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamid2,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure teams are still loadable by ID.
+	teamObj1 = ann.loadTeamByID(teamid1, true /* admin */)
+	teamObj2 = ann.loadTeamByID(teamid2, true /* admin */)
+
+	name, err = teamObj2.ImplicitTeamDisplayNameString(context.Background())
+	require.NoError(t, err)
+	t.Logf("Second team became: %s", name)
+	require.Contains(t, name, "(conflicted copy")
+	require.Contains(t, name, "#1)")
+
+	// See if we can lookup this team.
+	lookupTeamID, err := ann.lookupImplicitTeam(false /* create */, name, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, teamid2, lookupTeamID)
+}

@@ -8,28 +8,21 @@ type OwnProps = {
   path: Types.Path,
 }
 
-const mapStateToProps = (state, {path}: OwnProps) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  const _uploads = state.fs.uploads
-  const _username = state.config.username
-  return {
-    _pathItem,
-    _uploads,
-    _username,
-  }
-}
+const mapStateToProps = (state, {path}: OwnProps) => ({
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _uploads: state.fs.uploads,
+})
 
-const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: OwnProps) => {
-  const name = Types.getPathName(path)
+const mergeProps = ({_pathItem, _uploads}, dispatchProps, {path}: OwnProps) => {
   const error = _uploads.errors.has(path)
   const writingToJournal = _uploads.writingToJournal.has(path)
   const syncing = _uploads.syncingPaths.has(path)
 
   return {
     error,
-    itemStyles: Constants.getItemStyles(Types.getPathElements(path), _pathItem.type, _username),
-    name,
+    path,
     syncing,
+    type: _pathItem.type,
     writingToJournal,
   }
 }

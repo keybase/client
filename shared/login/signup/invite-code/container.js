@@ -2,7 +2,7 @@
 import * as SignupGen from '../../../actions/signup-gen'
 import InviteCode from '.'
 import {connect} from '../../../util/container'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = {||}
 
@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-  onRequestInvite: () => dispatch(navigateAppend(['requestInvite'])),
+  onRequestInvite: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['requestInvite']})),
   onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),
 })
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -502,6 +503,16 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			topicName = globals.DefaultTeamTopic
 		}
 
+		// Attempt to resolve any sbs convs incase the team already exists.
+		var nameInfo *types.NameInfo
+		if strings.Contains(tlfName, "@") || strings.Contains(tlfName, ":") {
+			// Fetch the TLF ID from specified name
+			if info, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, vis == keybase1.TLFVisibility_PUBLIC); err == nil {
+				nameInfo = &info
+				tlfName = nameInfo.CanonicalName
+			}
+		}
+
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
 				Name:        tlfName,
@@ -535,10 +546,13 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			// are not any public team chats.
 
 			// Fetch the TLF ID from specified name
-			nameInfo, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, false)
-			if err != nil {
-				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
-				return res, err
+			if nameInfo == nil {
+				info, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, false)
+				if err != nil {
+					debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
+					return res, err
+				}
+				nameInfo = &info
 			}
 			tlfConvs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 			if err != nil {

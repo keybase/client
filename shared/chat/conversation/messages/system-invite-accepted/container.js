@@ -1,6 +1,6 @@
 // @flow
 import SystemInviteAccepted from '.'
-import * as Route from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import {teamsTab} from '../../../../constants/tabs'
@@ -17,8 +17,13 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   _onViewTeam: (teamname: string) => {
-    dispatch(Route.navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
-    dispatch(Route.setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
+    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
+    dispatch(
+      RouteTreeGen.createSetRouteState({
+        partialState: {selectedTab: 'members'},
+        path: [teamsTab, 'team'],
+      })
+    )
   },
 })
 

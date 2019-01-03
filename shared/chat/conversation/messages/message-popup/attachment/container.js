@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Route from '../../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
@@ -38,12 +38,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'chooseEmoji',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'chooseEmoji',
+          },
+        ],
+      })
     )
   },
   _onDelete: (message: Types.Message) => {
@@ -81,7 +83,7 @@ const mapDispatchToProps = dispatch => ({
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
 })
 

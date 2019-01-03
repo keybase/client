@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect} from '../../../../util/container'
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) =>
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
-  onBack: () => dispatch(RouteTree.navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
 })

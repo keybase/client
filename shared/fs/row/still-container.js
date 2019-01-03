@@ -15,24 +15,19 @@ type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _downloads: state.fs.downloads,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  _username: state.config.username,
 })
 
 const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinationPickerIndex}: OwnProps) => {
-  const {_downloads, _pathItem, _username} = stateProps
-  const {type, lastModifiedTimestamp, lastWriter} = _pathItem
+  const {_downloads, _pathItem} = stateProps
   const download = _downloads.find(t => t.meta.path === path && !t.state.isDone)
   return {
     destinationPickerIndex,
     intentIfDownloading: download && download.meta.intent,
     isEmpty: _pathItem.type === 'folder' && _pathItem.progress === 'loaded' && _pathItem.children.isEmpty(),
-    itemStyles: Constants.getItemStyles(Types.getPathElements(path), type, _username),
-    lastModifiedTimestamp,
-    lastWriter: lastWriter.username,
     name,
     path,
     routePath,
-    type,
+    type: _pathItem.type,
   }
 }
 

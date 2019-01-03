@@ -148,20 +148,22 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
 					})
 				}
+				var sendingToSelf bool
+				var selfSendErr error
 				if recipient.AccountID == nil {
 					// Sending a payment to a target with no account. (relay)
 					minAmountXLM = "2.01"
 					addMinBanner(bannerTheir, minAmountXLM)
 				} else {
+					sendingToSelf, _, selfSendErr = bpc.OwnsAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
 					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()))
 					if err != nil {
 						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
 					} else if !isFunded {
 						// Sending to a non-funded stellar account.
 						minAmountXLM = "1"
-						owns, _, err := bpc.OwnsAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
-						log("OwnsAccount (to) -> owns:%v err:%v", owns, err)
-						if !owns || err != nil {
+						log("OwnsAccount (to) -> owns:%v err:%v", sendingToSelf, selfSendErr)
+						if !sendingToSelf || selfSendErr != nil {
 							// Likely sending to someone else's account.
 							addMinBanner(bannerTheir, minAmountXLM)
 						} else {
@@ -172,6 +174,12 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 							})
 						}
 					}
+				}
+				if !sendingToSelf && !fromPrimaryAccount {
+					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+						Level:   "info",
+						Message: "Your Keybase username will not be linked to this transaction.",
+					})
 				}
 			}
 		}
@@ -211,6 +219,28 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
+				availableToSendFormatted := availableToSendXLM + " XLM"
+				availableToSendXLMFmt, err := FormatAmount(
+					availableToSendXLM, false, FmtTruncate)
+				if err == nil {
+					availableToSendFormatted = availableToSendXLMFmt + " XLM"
+				}
+				if arg.Currency != nil && amountX.rate != nil {
+					// If the user entered an amount in outside currency and an exchange
+					// rate is available, attempt to show them available balance in that currency.
+					availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
+					if err != nil {
+						log("error converting available-to-send", err)
+					} else {
+						formattedATS, err := FormatCurrencyWithCodeSuffix(mctx,
+							availableToSendOutside, amountX.rate.Currency, FmtTruncate)
+						if err != nil {
+							log("error formatting available-to-send", err)
+						} else {
+							availableToSendFormatted = formattedATS
+						}
+					}
+				}
 				cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
 				switch {
 				case err != nil:
@@ -218,30 +248,11 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				case cmp == -1:
 					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
-					availableToSendXLMFmt, err := FormatAmount(
-						availableToSendXLM, false, FmtTruncate)
-					if err == nil {
-						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
-					}
-					if arg.Currency != nil && amountX.rate != nil {
-						// If the user entered an amount in outside currency and an exchange
-						// rate is available, attempt to show them available balance in that currency.
-						availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
-						if err != nil {
-							log("error converting available-to-send", err)
-						} else {
-							formattedATS, err := FormatCurrencyWithCodeSuffix(mctx,
-								availableToSendOutside, amountX.rate.Currency, FmtTruncate)
-							if err != nil {
-								log("error formatting available-to-send", err)
-							} else {
-								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", formattedATS)
-							}
-						}
-					}
+					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", availableToSendFormatted)
+
 				default:
 					// Welcome back. How was your stay at the error handling hotel?
+					res.AmountAvailable = availableToSendFormatted + " available"
 				}
 			}
 		}

@@ -14,10 +14,9 @@ import Breadcrumb from '../header/breadcrumb-container.desktop.js'
 
 type Props = {
   index: number,
-  path: Types.Path,
+  parentPath: Types.Path,
   routePath: I.List<string>,
   targetName: string,
-  targetIconSpec: Types.PathItemIconSpec,
   onCancel: (() => void) | null,
   onCopyHere?: ?() => void,
   onMoveHere?: ?() => void,
@@ -40,7 +39,7 @@ const DesktopHeaders = (props: Props) => (
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
       </Kb.Text>
-      <FsCommon.PathItemIcon size={16} spec={props.targetIconSpec} />
+      <FsCommon.PathItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
       <Kb.Text type="Header" lineClamp={1}>
         {props.targetName}
       </Kb.Text>
@@ -49,7 +48,7 @@ const DesktopHeaders = (props: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-      <Breadcrumb path={props.path} inDestinationPicker={true} routePath={props.routePath} />
+      <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
       {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
     </Kb.Box2>
   </>
@@ -96,7 +95,7 @@ const DestinationPicker = (props: Props) => (
     )}
     <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
       <Rows
-        path={props.path}
+        path={props.parentPath}
         sortSetting={Constants.defaultSortSetting}
         destinationPickerIndex={props.index}
         routePath={props.routePath}
@@ -122,13 +121,13 @@ export default (isMobile
           </Kb.ClickableBox>
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-              <FsCommon.PathItemIcon size={12} spec={props.targetIconSpec} />
+              <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
               <Kb.Text type="BodySmallSemibold" lineClamp={1}>
                 {props.targetName}
               </Kb.Text>
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
-              {Types.getPathName(props.path)}
+              {Types.getPathName(props.parentPath)}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>

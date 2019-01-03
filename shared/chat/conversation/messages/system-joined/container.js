@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import Joined from '.'
 import {connect, isMobile} from '../../../../util/container'
 import {chatTab} from '../../../../constants/tabs'
@@ -20,8 +20,15 @@ const mapStateToProps = (state, {message}) => ({
 const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     isMobile
-      ? dispatch(RouteTree.navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))
-      : dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+      ? dispatch(
+          RouteTreeGen.createNavigateTo({
+            parentPath: [chatTab],
+            path: [{props: {teamname}, selected: 'manageChannels'}],
+          })
+        )
+      : dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})
+        ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

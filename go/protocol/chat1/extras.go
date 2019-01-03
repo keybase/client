@@ -674,6 +674,13 @@ func (m UIMessage) IsValid() bool {
 	return false
 }
 
+func (m UIMessage) IsOutbox() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
 func (m UIMessage) GetMessageID() MessageID {
 	if state, err := m.State(); err == nil {
 		if state == MessageUnboxedState_VALID {
