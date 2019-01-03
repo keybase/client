@@ -107,9 +107,30 @@ const siteIcon = icon => {
   }
 }
 
-const printPGP = value => {
-  const last = value.substr(value.length - 16).toUpperCase()
-  return `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+const Value = ({type, value, color, onShowUserOnSite}) => {
+  let str = value
+  let style = styles.username
+
+  switch (type) {
+    case 'pgp': {
+      const last = value.substr(value.length - 16).toUpperCase()
+      str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+      break
+    }
+    case 'bitcoin':
+      style = styles.bitcoin
+      break
+  }
+
+  return (
+    <Kb.Text
+      type="BodyPrimaryLink"
+      onClick={onShowUserOnSite}
+      style={Styles.collapseStyles([style, {color}])}
+    >
+      {str}
+    </Kb.Text>
+  )
 }
 
 const Assertion = (p: Props) => (
@@ -117,13 +138,12 @@ const Assertion = (p: Props) => (
     <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
       <Kb.Icon type={siteIcon(p.type)} onClick={p.onShowSite} color={Styles.globalColors.black_75} />
       <Kb.Text type="Body" style={styles.textContainer}>
-        <Kb.Text
-          type="BodyPrimaryLink"
-          onClick={p.onShowUserOnSite}
-          style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(p.color)}])}
-        >
-          {p.type === 'pgp' ? printPGP(p.value) : p.value}
-        </Kb.Text>
+        <Value
+          type={p.type}
+          value={p.value}
+          color={assertionColorToColor(p.color)}
+          onShowUserOnSite={p.onShowUserOnSite}
+        />
         <Kb.Text type="Body" style={styles.site}>
           @{p.type}
         </Kb.Text>
@@ -148,6 +168,9 @@ const Assertion = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  bitcoin: Styles.platformStyles({
+    isElectron: {display: 'inline-block', wordBreak: 'break-all', fontSize: 11},
+  }),
   container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},

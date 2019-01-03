@@ -43,10 +43,7 @@ const setupEngineListeners = () => {
         Profile2Gen.createUpdateAssertion({
           color: Constants.rpcRowColorToColor(row.color),
           guiID: row.guiID,
-          metas: (row.metas || []).map(m => ({
-            color: 'red', // TODO need this from core
-            label: m,
-          })),
+          metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
           proofURL: row.proofURL,
           siteIcon: row.siteIcon,
           siteURL: row.siteURL,

@@ -6,7 +6,7 @@ export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revok
 export type AssertionColor = 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
 
 export type _AssertionMeta = {|
-  color: 'blue' | 'red' | 'black' | 'green',
+  color: AssertionColor,
   label: string, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
 |}
 type AssertionMeta = I.RecordOf<_AssertionMeta>
