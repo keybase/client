@@ -49,17 +49,6 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res types.NameInfoUntrusted, err error) {
-	ni, err := t.LookupID(ctx, name, public)
-	if err != nil {
-		return res, err
-	}
-	return types.NameInfoUntrusted{
-		ID:            ni.ID,
-		CanonicalName: ni.CanonicalName,
-	}, nil
-}
-
 func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public bool) (res types.NameInfo, keys types.AllCryptKeys, err error) {
 	var lastErr error
 	keys = types.NewAllCryptKeys()

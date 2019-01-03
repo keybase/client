@@ -39,9 +39,10 @@ protocol identify3Ui {
     CANCELED_3
   }
 
-
-  @typedef("string")
-  record Identify3RowMeta {}
+  record Identify3RowMeta {
+    Identify3RowColor color;
+    string label;
+  }
 
   @lint("ignore")
   void identify3UpdateRow(

@@ -1,5 +1,4 @@
 // @flow
-import * as React from 'react'
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -7,12 +6,10 @@ import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {connect, isMobile} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
-import Onboarding from '../onboarding/container'
 
 type OwnProps = {style: Styles.StylesCrossPlatform}
 
 const mapStateToProps = state => ({
-  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   accounts: getAccountIDs(state),
 })
 
@@ -35,7 +32,6 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
-  acceptedDisclaimer: stateProps.acceptedDisclaimer,
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
   onBack: dispatchProps.onBack,
@@ -46,11 +42,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   title: 'Wallets',
 })
 
-const WalletListOrOnboarding = (props: Props) =>
-  props.acceptedDisclaimer ? <WalletList {...props} /> : <Onboarding />
-
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(WalletListOrOnboarding)
+)(WalletList)

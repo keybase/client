@@ -44,8 +44,16 @@
     {
       "type": "record",
       "name": "Identify3RowMeta",
-      "fields": [],
-      "typedef": "string"
+      "fields": [
+        {
+          "type": "Identify3RowColor",
+          "name": "color"
+        },
+        {
+          "type": "string",
+          "name": "label"
+        }
+      ]
     }
   ],
   "messages": {

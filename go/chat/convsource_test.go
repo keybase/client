@@ -733,11 +733,6 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) LookupIDUntrusted(context.Context, string, bool) (res types.NameInfoUntrusted, err error) {
-	require.Fail(f.t, "LookupUnstrusted call")
-	return res, err
-}
-
 func (f failingTlf) LookupID(context.Context, string, bool) (res types.NameInfo, err error) {
 	require.Fail(f.t, "Lookup call")
 	return res, err

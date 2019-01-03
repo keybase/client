@@ -22,7 +22,6 @@ const routeTree = () => {
   const ConfirmForm = require('./confirm-form/container').default
   const Wallet = require('./wallet/container').default
   const ChooseAsset = require('./send-form/choose-asset/container').default
-  const WalletsList = require('./wallet-list/container').default
 
   const createNewAccount = {
     children: {},
@@ -115,18 +114,14 @@ const routeTree = () => {
       component: TransactionDetails,
     },
   }
+  // On mobile we take the user directly to the wallet page, and they
+  // navigate by tapping on the wallet name which brings up a
+  // switcher. On desktop, we use a wallet list component and we don't
+  // have a wallet switcher tied to the name.
   return isMobile
     ? makeRouteDefNode({
-        children: {
-          createNewAccount,
-          linkExisting,
-          wallet: {
-            children: walletChildren,
-            component: Wallet,
-          },
-        },
-        component: WalletsList,
-        tags: makeLeafTags({title: 'Wallets'}),
+        children: walletChildren,
+        component: Wallet,
       })
     : makeRouteDefNode({
         children: {
