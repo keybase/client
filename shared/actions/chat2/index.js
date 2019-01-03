@@ -1420,7 +1420,7 @@ function* previewConversationFindExisting(state, action) {
     })
   )
 
-  if (conversationIDKey) {
+  if (!conversationIDKey) {
     const results = yield Saga.callUntyped(RPCChatTypes.localFindConversationsLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
