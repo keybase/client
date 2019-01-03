@@ -94,6 +94,9 @@ func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, msg string) (bo
 	})
 }
 
-func (r *RemoteChatUI) ChatStellarDone(ctx context.Context) error {
-	return r.cli.ChatStellarDone(ctx, r.sessionID)
+func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
+	return r.cli.ChatStellarDone(ctx, chat1.ChatStellarDoneArg{
+		SessionID: r.sessionID,
+		Canceled:  canceled,
+	})
 }

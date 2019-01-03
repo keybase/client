@@ -248,5 +248,5 @@ protocol chatUi {
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
   boolean chatStellarDataError(int sessionID, string message);
-  void chatStellarDone(int sessionID);
+  void chatStellarDone(int sessionID, boolean canceled);
 }

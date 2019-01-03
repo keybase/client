@@ -169,7 +169,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatStellarDone': {|
-    inParam: void,
+    inParam: $ReadOnly<{|canceled: Boolean|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatStellarShowConfirm': {|

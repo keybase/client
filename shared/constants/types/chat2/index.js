@@ -6,6 +6,7 @@ import * as Meta from './meta'
 import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
+import HiddenString from '../../../util/hidden-string'
 
 export type PendingMode =
   | 'none' // no pending
@@ -73,6 +74,7 @@ export type _State = {
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
+  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

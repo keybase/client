@@ -189,6 +189,11 @@ class Input extends React.Component<InputProps, InputState> {
         this._setText('')
         return
       }
+
+      if (this.props.unsentTextRefresh) {
+        this._setText(this.props.getUnsentText(), true)
+        return
+      }
     }
 
     // Inject the appropriate text when quoting. Keep track of the
