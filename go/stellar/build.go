@@ -335,6 +335,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	seqno := 0
 	notify := func(banners []stellar1.SendBannerLocal, nextButton reviewButtonState) chan struct{} {
 		seqno++
+		seqno := seqno                    // Shadow seqno to freeze it for the goroutine below.
 		receivedCh := make(chan struct{}) // channel closed when the notification has been acked.
 		mctx.CDebugf("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
 			arg.Bid, arg.SessionID, seqno, nextButton, len(banners))
