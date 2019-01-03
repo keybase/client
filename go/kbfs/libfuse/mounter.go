@@ -9,6 +9,7 @@ package libfuse
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -92,6 +93,10 @@ func (m *mounter) Unmount() (err error) {
 		_, err = exec.Command("/sbin/umount", dir).Output()
 	case "linux":
 		_, err = exec.Command("fusermount", "-u", dir).Output()
+		// Only clean up mountdir on a clean unmount
+		if err == nil {
+			defer m.DeleteMountdirIfEmpty()
+		}
 	default:
 		err = fuse.Unmount(dir)
 	}
@@ -110,6 +115,40 @@ func (m *mounter) Unmount() (err error) {
 	}
 	if execErr, ok := err.(*exec.ExitError); ok && execErr.Stderr != nil {
 		err = fmt.Errorf("%s (%s)", execErr, execErr.Stderr)
+	}
+	return
+}
+
+func directoryIsEmpty(dir string) (empty bool, err error) {
+	handle, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer handle.Close()
+	// Attempt to read in the first file in the directory.
+	// If it is empty, Readdir will return an io.EOF error.
+	_, err = handle.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return
+}
+
+func removeDirectoryIfEmpty(dir string) (err error) {
+	empty, err := directoryIsEmpty(dir)
+	if err != nil {
+		return err
+	}
+	if empty {
+		return os.RemoveAll(dir)
+	}
+	return
+}
+
+func (m *mounter) DeleteMountdirIfEmpty() (err error) {
+	err = removeDirectoryIfEmpty(m.options.MountPoint)
+	if err != nil {
+		m.log.Errorf("Unable to delete mountdir: %s.", err)
 	}
 	return
 }
