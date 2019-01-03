@@ -107,8 +107,6 @@ export type _BuiltPayment = {
   displayAmountFiat: string,
   reviewBanners: ?Array<StellarRPCTypes.SendBannerLocal>,
   sendingIntentionXLM: boolean,
-  // reviewSessionID: ?number, // xxx how do we set this on calls?
-  reviewLastSeqno: ?number,
 }
 
 export type _BuiltRequest = {
@@ -263,6 +261,8 @@ export type _State = {
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
   requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
+  reviewCounter: number, // increments when we call reviewPayment
+  reviewLastSeqno: ?number, // last UIPaymentReviewed.seqno received from the active review
   secretKey: HiddenString,
   secretKeyError: string,
   secretKeyMap: I.Map<AccountID, HiddenString>,

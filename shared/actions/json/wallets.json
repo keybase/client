@@ -235,8 +235,8 @@
     },
     "reviewedPaymentReceived": {
       "_description": "Update our store with the results of reviewing a built payment",
-      "sessionID": "number",
       "bid": "string",
+      "reviewID": "number",
       "seqno": "number",
       "nextButton": "string",
       "banners?": "?Array<StellarRPCTypes.SendBannerLocal>",

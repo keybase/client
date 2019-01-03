@@ -99,23 +99,25 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           stateMutable.update('building', b => b.merge({currency}))
         }
       })
+    case WalletsGen.reviewPayment:
+      return state.set('reviewCounter', state.reviewCounter + 1).set('reviewLastSeqno', null)
     case WalletsGen.reviewedPaymentReceived: {
-      // const {sessionID, bid, seqno, banners, nextButton} = action.payload // xxx
-      const {bid, seqno, banners, nextButton} = action.payload
-      const useable = ((state.building.bid === bid) &&
-                       // (state.builtPayment.reviewSessionID == sessionID) && // xxx check this
-                       ((state.builtPayment.reviewLastSeqno || 0) <= seqno))
+      // paymentReviewed notifications can arrive out of order, so check their freshness.
+      const {bid, reviewID, seqno, banners, nextButton} = action.payload
+      const useable =
+        state.building.bid === bid &&
+        state.reviewCounter === reviewID &&
+        (state.reviewLastSeqno || 0) <= seqno
       if (!useable) {
-        // Ignore stale message.
         logger.info(`ignored stale reviewPaymentReceived`)
         return state
       }
       return state.merge({
-        builtPayment: state.get('builtPayment').merge({
+        builtPayment: state.builtPayment.merge({
           readyToSend: nextButton,
           reviewBanners: banners,
-          reviewLastSeqno: seqno,
         }),
+        reviewLastSeqno: seqno,
       })
     }
     case WalletsGen.secretKeyReceived:
@@ -342,7 +344,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
-    case WalletsGen.reviewPayment:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:

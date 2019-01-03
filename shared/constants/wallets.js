@@ -60,8 +60,6 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   readyToReview: false,
   readyToSend: 'spinning',
   reviewBanners: null,
-  // reviewSessionID: null, // xxx do this
-  reviewLastSeqno: null,
   secretNoteErrMsg: new HiddenString(''),
   sendingIntentionXLM: false,
   toErrMsg: '',
@@ -110,6 +108,8 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   paymentOldestUnreadMap: I.Map(),
   paymentsMap: I.Map(),
   requests: I.Map(),
+  reviewCounter: 0,
+  reviewLastSeqno: null,
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
