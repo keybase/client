@@ -116,11 +116,15 @@ func (w *walletAPIHandler) balances(ctx context.Context, c Call, wr io.Writer) e
 
 // cancelPayment cancels a pending relay payment and yanks back the funds.
 func (w *walletAPIHandler) cancelPayment(ctx context.Context, c Call, wr io.Writer) error {
-	accounts, err := w.cli.WalletGetAccountsCLILocal(ctx)
+	var opts txIDOptions
+	if err := unmarshalOptions(c, &opts); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	result, err := w.cli.ClaimCLILocal(ctx, stellar1.ClaimCLILocalArg{TxID: opts.TxID})
 	if err != nil {
 		return w.encodeErr(c, err, wr)
 	}
-	return w.encodeResult(c, accounts, wr)
+	return w.encodeResult(c, result, wr)
 }
 
 // details outputs details for a single transaction.
