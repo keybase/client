@@ -110,7 +110,7 @@ const Avatar = ({
     <Kb.Icon
       fontSize={32}
       type={serviceIdToIconFont(resultForService)}
-      externalServiceColor={serviceIdToAccentColor(resultForService)}
+      colorOverride={serviceIdToAccentColor(resultForService)}
     />
   )
 }

@@ -26,7 +26,7 @@ const GeneralServiceBubble = (props: Props) => (
   <Kb.Icon
     fontSize={bubbleSize}
     type={serviceIdToIconFont(props.service)}
-    externalServiceColor={serviceIdToAccentColor(props.service)}
+    colorOverride={serviceIdToAccentColor(props.service)}
   />
 )
 

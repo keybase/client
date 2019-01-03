@@ -39,7 +39,7 @@ const Text = Styles.styled(NativeText)(
       : null,
   props => {
     const color =
-      props.externalServiceColor ||
+      props.colorOverride ||
       props.color ||
       Shared.defaultColor(props.type) ||
       (props.opacity && Styles.globalColors.lightGrey)
