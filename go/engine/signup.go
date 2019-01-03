@@ -84,11 +84,11 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 
 	m = m.WithNewProvisionalLoginContext()
 
-	if err = s.genPassphraseStream(m); err != nil {
+	if err = s.genPassphraseStream(m, s.arg.Passphrase, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
-	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
@@ -163,9 +163,8 @@ func (s *SignupEngine) genRandomPassphrase(m libkb.MetaContext) (string, error) 
 	return base64.StdEncoding.EncodeToString(str), nil
 }
 
-func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext) error {
-	passphrase := s.arg.Passphrase
-	if s.arg.GenerateRandomPassphrase {
+func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase string, randomPW bool) error {
+	if randomPW {
 		if len(passphrase) != 0 {
 			return fmt.Errorf("Tried to generate random passphrase but also provided passphrase argument")
 		}
@@ -191,7 +190,7 @@ func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext) error {
 	return nil
 }
 
-func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool) error {
+func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool, randomPW bool) error {
 	m.CDebugf("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(m.G())
 
@@ -206,7 +205,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 		InviteCode: inviteCode,
 		PWHash:     s.ppStream.PWHash(),
 		PWSalt:     s.pwsalt,
-		RandomPW:   s.arg.GenerateRandomPassphrase,
+		RandomPW:   randomPW,
 		SkipMail:   skipMail,
 		PDPKA5KID:  pdpkda5kid,
 	}
