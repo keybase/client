@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const disable = true
+const disable = false
 const disableMsg = "friendbot issues"
 
 func TestStellarNoteRoundtripAndResets(t *testing.T) {
