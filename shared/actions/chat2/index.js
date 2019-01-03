@@ -32,6 +32,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platf
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
+import type {RPCError} from '../../util/errors'
 
 // Ask the service to refresh the inbox
 function* inboxRefresh(state, action) {
