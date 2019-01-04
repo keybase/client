@@ -78,7 +78,7 @@ type ToStellarPublicKeyProps = {|
   errorMessage?: string,
   onChangeRecipient: string => void,
   onScanQRCode: ?() => void,
-  setReadyToSend: boolean => void,
+  setReadyToReview: boolean => void,
   keyCounter: number,
 |}
 
@@ -91,7 +91,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
   _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
   _onChangeRecipient = recipientPublicKey => {
     this.setState({recipientPublicKey})
-    this.props.setReadyToSend(false)
+    this.props.setReadyToReview(false)
     this._propsOnChangeRecipient(recipientPublicKey)
   }
 

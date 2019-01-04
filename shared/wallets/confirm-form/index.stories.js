@@ -28,6 +28,7 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
+  readyToSend: 'enabled',
   sendFailed: false,
   sendingIntentionXLM: true,
   waitingKey: 'false',
@@ -41,6 +42,7 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 const banner = {
   bannerBackground: 'Announcements',
   bannerText: 'The conversion rate has changed since you got to this screen.',
+  reviewProofs: false,
 }
 
 const load = () => {

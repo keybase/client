@@ -92,10 +92,11 @@ export type _Building = {
 export type _BuiltPayment = {
   amountAvailable: string,
   amountErrMsg: string,
-  banners: ?Array<StellarRPCTypes.SendBannerLocal>,
+  builtBanners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: AccountID,
   publicMemoErrMsg: HiddenString,
-  readyToSend: boolean,
+  readyToReview: boolean,
+  readyToSend: string,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
   worthAmount: string,
@@ -104,12 +105,13 @@ export type _BuiltPayment = {
   worthInfo: string,
   displayAmountXLM: string,
   displayAmountFiat: string,
+  reviewBanners: ?Array<StellarRPCTypes.SendBannerLocal>,
   sendingIntentionXLM: boolean,
 }
 
 export type _BuiltRequest = {
   amountErrMsg: string,
-  banners?: ?Array<StellarRPCTypes.SendBannerLocal>,
+  builtBanners?: ?Array<StellarRPCTypes.SendBannerLocal>,
   readyToRequest: boolean,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
@@ -216,6 +218,7 @@ export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 export type Banner = {|
   bannerBackground: BannerBackground,
   bannerText: string,
+  reviewProofs?: boolean,
 |}
 
 export type Building = I.RecordOf<_Building>
@@ -258,6 +261,8 @@ export type _State = {
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
   requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
+  reviewCounter: number, // increments when we call reviewPayment
+  reviewLastSeqno: ?number, // last UIPaymentReviewed.seqno received from the active review
   secretKey: HiddenString,
   secretKeyError: string,
   secretKeyMap: I.Map<AccountID, HiddenString>,
