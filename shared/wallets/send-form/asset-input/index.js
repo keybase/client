@@ -102,7 +102,6 @@ class AssetInput extends React.Component<Props> {
           onChangeText={this._onChangeAmount}
           textType="HeaderBigExtrabold"
           placeholder={this.props.inputPlaceholder}
-          className="stellar-asset-input"
           placeholderColor={Styles.globalColors.purple2_40}
           error={!!this.props.warningAsset}
           value={this.props.value}
