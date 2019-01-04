@@ -22,13 +22,13 @@ const routeTree = () => {
   const createNewAccount = {
     children: {},
     component: CreateNewAccount,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+    tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
   }
 
   const linkExisting = {
     children: {},
     component: LinkExisting,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+    tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
   }
 
   const walletChildren = {

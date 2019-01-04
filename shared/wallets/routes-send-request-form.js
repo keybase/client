@@ -3,9 +3,9 @@ import * as Constants from '../constants/wallets'
 import {makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 
-// stash in here so we only `require` everything once
+// this is called from multiple places, stash the first result so we don't
+// create new objects each time
 let loaded = null
-
 const routeTree = () => {
   if (loaded) {
     return loaded
@@ -21,13 +21,13 @@ const routeTree = () => {
   const createNewAccount = {
     children: {},
     component: CreateNewAccount,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+    tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
   }
 
   const linkExisting = {
     children: {},
     component: LinkExisting,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+    tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
   }
 
   loaded = {
@@ -36,6 +36,7 @@ const routeTree = () => {
         children: {},
         component: ConfirmForm,
         tags: makeLeafTags({
+          fullscreen: isMobile,
           layerOnTop: !isMobile,
           renderTopmostOnly: true,
           underNotch: true,
@@ -46,15 +47,16 @@ const routeTree = () => {
       [Constants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       qrScan: {
         component: QRScan,
-        tags: makeLeafTags({layerOnTop: true, underNotch: true}),
+        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: true, underNotch: true}),
       },
     },
     component: SendForm,
     tags: makeLeafTags({
+      fullscreen: isMobile,
       layerOnTop: !isMobile,
       renderTopmostOnly: true,
       underNotch: true,
