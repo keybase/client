@@ -85,40 +85,19 @@ const Proofs = p => {
   )
 }
 
-// don't bother to keep this in the store
-const usernameSelectedFollowing = {}
-
-type State = {|
-  selectedFollowing: boolean,
-|}
-
-class FriendshipTabs extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username]}
-  }
-
-  _clicked = following => {
-    this.setState(p => {
-      if (p.selectedFollowing === following) return
-      const selectedFollowing = !p.selectedFollowing
-      usernameSelectedFollowing[this.props.username] = selectedFollowing
-      return {selectedFollowing}
-    })
-  }
-
+class FriendshipTabs extends React.Component<Props> {
   _tab = following => (
     <Kb.ClickableBox
       style={Styles.collapseStyles([
         styles.followTab,
-        following === this.state.selectedFollowing && styles.followTabSelected,
+        following === this.props.selectedFollowing && styles.followTabSelected,
       ])}
     >
       <Kb.Text
         type="BodySmallSemibold"
-        onClick={() => this._clicked(following)}
+        onClick={() => this.props.onChangeFollowing(following)}
         style={
-          following === this.state.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
+          following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
         {following ? 'Following' : 'Followers'} (TODO)
@@ -136,7 +115,9 @@ class FriendshipTabs extends React.Component<Props, State> {
   }
 }
 
-const DesktopLayout = (p: Props) => (
+type LayoutProps = {...Props, onChangeFollowing: boolean => void, selectedFollowing: boolean}
+
+const DesktopLayout = (p: LayoutProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     <Header onBack={p.onBack} state={p.state} backgroundColor={p.backgroundColor} />
     <Kb.ScrollView>
@@ -156,9 +137,9 @@ const DesktopLayout = (p: Props) => (
   </Kb.Box2>
 )
 
-class MobileLayout extends React.Component<Props> {
+class MobileLayout extends React.Component<LayoutProps> {
   _renderSectionHeader = ({section}) => {
-    if (section.data[0] === 'bioTeamProofs') {
+    if (section === this._bioTeamProofsSection) {
       return (
         <Header
           onBack={this.props.onBack}
@@ -181,12 +162,15 @@ class MobileLayout extends React.Component<Props> {
     </Kb.Box2>
   )
 
-  _renderOtherUsers = () => {
-    return <Kb.Text type="Body">other users</Kb.Text>
+  _renderOtherUsers = ({item}) => {
+    return <Kb.Text type="Body">{item}</Kb.Text>
   }
 
+  _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
+
   render() {
-    const otherUsers = ['a', 'b']
+    const following = ['inga', 'ingb', 'ingc', 'ingd', 'inge']
+    const followers = ['a', 'b', 'c', 'd', 'e']
     return (
       <Kb.Box2 directio="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
@@ -194,23 +178,56 @@ class MobileLayout extends React.Component<Props> {
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this._renderSectionHeader}
           sections={[
-            {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs},
-            {data: otherUsers, renderItem: this._renderOtherUsers},
+            this._bioTeamProofsSection,
+            {data: this.props.selectedFollowing ? following : followers, renderItem: this._renderOtherUsers},
           ]}
           style={{backgroundColor: this.props.backgroundColor}}
-          contentContainerStyle={styles.sectionListBackground}
+          contentContainerStyle={styles.sectionListContentStyle}
         />
       </Kb.Box2>
     )
   }
 }
 
-class User extends React.PureComponent<Props> {
+// don't bother to keep this in the store
+const usernameSelectedFollowing = {}
+
+type State = {|
+  selectedFollowing: boolean,
+|}
+
+class User extends React.PureComponent<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username]}
+  }
+
+  _changeFollowing = following => {
+    this.setState(p => {
+      if (p.selectedFollowing === following) return
+      const selectedFollowing = !p.selectedFollowing
+      usernameSelectedFollowing[this.props.username] = selectedFollowing
+      return {selectedFollowing}
+    })
+  }
+
   componentDidMount() {
     this.props.onReload()
   }
   render() {
-    return Styles.isMobile ? <MobileLayout {...this.props} /> : <DesktopLayout {...this.props} />
+    return Styles.isMobile ? (
+      <MobileLayout
+        {...this.props}
+        onChangeFollowing={this._changeFollowing}
+        selectedFollowing={this.state.selectedFollowing}
+      />
+    ) : (
+      <DesktopLayout
+        {...this.props}
+        onChangeFollowing={this._changeFollowing}
+        selectedFollowing={this.state.selectedFollowing}
+      />
+    )
   }
 }
 
@@ -236,11 +253,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
-  followTabContainer: {
-    alignItems: 'flex-end',
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-  },
   followTab: {
     alignItems: 'center',
     borderBottomColor: 'white',
@@ -248,6 +260,11 @@ const styles = Styles.styleSheetCreate({
     height: Styles.globalMargins.large,
     justifyContent: 'center',
     width: '50%',
+  },
+  followTabContainer: {
+    alignItems: 'flex-end',
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
   },
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
@@ -274,7 +291,7 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {width: '100%'},
   }),
-  sectionListBackground: {backgroundColor: Styles.globalColors.white},
+  sectionListContentStyle: {backgroundColor: Styles.globalColors.white, minHeight: '100%'},
   teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     flexShrink: 0,
