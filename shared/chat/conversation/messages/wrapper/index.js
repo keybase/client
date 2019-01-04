@@ -522,7 +522,7 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   edited: {color: Styles.globalColors.black_20},
