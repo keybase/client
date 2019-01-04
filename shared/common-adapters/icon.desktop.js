@@ -109,6 +109,7 @@ class Icon extends Component<Props, void> {
         fontSizeHint,
         onClick && Styles.desktopStyles.clickable,
         inheritStyle,
+        this.props.colorOverride && {color: this.props.colorOverride},
         this.props.style,
       ])
 

@@ -493,7 +493,7 @@ const navigateToAccount = (state, action) => {
     return
   }
   const wallet = isMobile
-    ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'wallet']
+    ? [Tabs.settingsTab, SettingsConstants.walletsTab]
     : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
 
   return RouteTreeGen.createNavigateTo({path: wallet})

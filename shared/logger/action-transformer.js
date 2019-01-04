@@ -7,6 +7,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import * as EntitiesGen from '../actions/entities-gen'
 import {getPath} from '../route-tree'
@@ -64,7 +65,7 @@ const actionTransformMap = {
   [ConfigGen.loadedAvatars]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
-  [Chat2Gen.updateTypers]: nullTransform,
+  [EngineGen.chat1NotifyChatChatTypingUpdate]: nullTransform,
 
   [Chat2Gen.selectConversation]: fullOutput,
   [Chat2Gen.metaNeedsUpdating]: fullOutput,

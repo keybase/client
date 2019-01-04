@@ -213,17 +213,6 @@ func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, err
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m *TlfMock) LookupIDUntrusted(ctx context.Context, tlfName string, public bool) (res types.NameInfoUntrusted, err error) {
-	ni, err := m.LookupID(ctx, tlfName, public)
-	if err != nil {
-		return res, err
-	}
-	return types.NameInfoUntrusted{
-		ID:            ni.ID,
-		CanonicalName: ni.CanonicalName,
-	}, nil
-}
-
 func (m *TlfMock) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {
 	cres, err := m.CryptKeys(ctx, tlfName)
 	if err != nil {
@@ -1114,7 +1103,7 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, er
 	return false, nil
 }
 
-func (c *ChatUI) ChatStellarDone(ctx context.Context) error {
+func (c *ChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
 	c.StellarDone <- struct{}{}
 	return nil
 }
