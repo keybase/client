@@ -95,6 +95,64 @@ const Proofs = p => {
   )
 }
 
+// don't bother to keep this in the store
+const usernameSelectedFollowing = {}
+
+type State = {|
+  selectedFollowing: boolean,
+|}
+
+class FriendshipTabs extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username]}
+  }
+
+  _clicked = following => {
+    this.setState(p => {
+      if (p.selectedFollowing === following) return
+      const selectedFollowing = !p.selectedFollowing
+      usernameSelectedFollowing[this.props.username] = selectedFollowing
+      return {selectedFollowing}
+    })
+  }
+
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.followTabContainer}>
+        <Kb.ClickableBox
+          style={Styles.collapseStyles([
+            styles.followTab,
+            !this.state.selectedFollowing && styles.followTabSelected,
+          ])}
+        >
+          <Kb.Text
+            type="BodySmallSemibold"
+            onClick={() => this._clicked(false)}
+            style={this.state.selectedFollowing ? styles.followTabText : styles.followTabTextSelected}
+          >
+            Followers (TODO)
+          </Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.ClickableBox
+          style={Styles.collapseStyles([
+            styles.followTab,
+            this.state.selectedFollowing && styles.followTabSelected,
+          ])}
+        >
+          <Kb.Text
+            type="BodySmallSemibold"
+            onClick={() => this._clicked(true)}
+            style={!this.state.selectedFollowing ? styles.followTabText : styles.followTabTextSelected}
+          >
+            Following (TODO)
+          </Kb.Text>
+        </Kb.ClickableBox>
+      </Kb.Box2>
+    )
+  }
+}
+
 const headerBackgroundColor = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
     return Styles.globalColors.red
@@ -104,7 +162,7 @@ const headerBackgroundColor = (state, followThem) => {
 }
 
 const DesktopLayout = (p: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     <Header onBack={p.onBack} state={p.state} followThem={p.followThem} />
     <Kb.ScrollView>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
@@ -131,11 +189,11 @@ class MobileLayout extends React.Component<Props> {
     if (section.data[0] === 'bioTeamProofs') {
       return <Header onBack={this.props.onBack} state={this.props.state} followThem={this.props.followThem} />
     }
-    return <Kb.Text type="Body">friends section</Kb.Text>
+    return <FriendshipTabs {...this.props} />
   }
 
   _renderBioTeamProofs = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -186,9 +244,7 @@ const avatarSize = 128
 const headerHeight = 48
 
 const styles = Styles.styleSheetCreate({
-  backButton: {
-    color: Styles.globalColors.white,
-  },
+  backButton: {color: Styles.globalColors.white},
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
@@ -199,11 +255,31 @@ const styles = Styles.styleSheetCreate({
     isElectron: {maxWidth: 350},
     isMobile: {width: '100%'},
   }),
-  bioAndProofs: {
-    justifyContent: 'space-around',
-    position: 'relative',
+  bioAndProofs: Styles.platformStyles({
+    common: {
+      justifyContent: 'space-around',
+      position: 'relative',
+    },
+    isMobile: {paddingBottom: Styles.globalMargins.small},
+  }),
+  followTabContainer: {
+    alignItems: 'flex-end',
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
   },
-  container: {},
+  followTab: {
+    alignItems: 'center',
+    borderBottomColor: 'white',
+    borderBottomWidth: 2,
+    height: Styles.globalMargins.large,
+    justifyContent: 'center',
+    width: '50%',
+  },
+  followTabSelected: {
+    borderBottomColor: Styles.globalColors.blue,
+  },
+  followTabText: {color: Styles.globalColors.black_60},
+  followTabTextSelected: {color: Styles.globalColors.black_75},
   header: Styles.platformStyles({
     common: {
       alignItems: 'center',
