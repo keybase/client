@@ -3,22 +3,15 @@ import * as I from 'immutable'
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-// Use services from constants instead, here to avoid a circular dependency
-// Order is important here. It's the order that the services appear on tabs
-/* eslint-disable sort-keys */
-export const _services = {
-  keybase: true,
-  contact: true,
-  twitter: true,
-  facebook: true,
-  github: true,
-  reddit: true,
-  hackernews: true,
-  pgp: true,
-}
-/* eslint-enable sort-keys */
-
-export type ServiceIdWithContact = $Keys<typeof _services>
+export type ServiceIdWithContact =
+  | 'keybase'
+  | 'contact'
+  | 'twitter'
+  | 'facebook'
+  | 'github'
+  | 'reddit'
+  | 'hackernews'
+  | 'pgp'
 
 export type SearchString = string
 type UsernameOnService = string
