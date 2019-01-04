@@ -375,18 +375,21 @@ type State = {
   styleOverride: StyleOverride,
 }
 
-type ReactElements = React$Node
-
+// Ideally this would be a discriminated union keyed by type.
 type SingleASTNode = {
   type: string,
   [string]: any,
 }
+
+// The types below are adapted from the simple-markdown types.
 
 type ASTNode = SingleASTNode | Array<SingleASTNode>
 
 type Output<Result> = (node: ASTNode, state?: ?State) => Result
 
 type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result
+
+type ReactElements = React$Node
 
 type ReactNodeOutput = NodeOutput<ReactElements>
 
@@ -417,6 +420,8 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
   })
 )
 
+// TODO: Fix the typing here. Can ast actually be a non-object? Can
+// output actually only return strings?
 const previewOutput = SimpleMarkdown.reactFor(
   (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
     // leaf node is just the raw value, so it has no ast.type
