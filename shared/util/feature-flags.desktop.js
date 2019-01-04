@@ -29,6 +29,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   foldersInProfileTab: true,
   kbfsChatIntegration: true,
   moveOrCopy: true,
+  newTeamBuildingForChat: true,
   walletsEnabled: true,
 }
 
