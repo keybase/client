@@ -356,7 +356,7 @@ def testGo(prefix, packagesToTest) {
       sh 'go get -u golang.org/x/lint/golint'
     }
     retry(5) {
-      timeout(activity: true, time: 30, unit: 'SECONDS') {
+      timeout(activity: true, time: 90, unit: 'SECONDS') {
         sh 'make -s lint'
       }
     }
