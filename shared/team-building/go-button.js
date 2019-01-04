@@ -3,9 +3,6 @@ import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
-// TODO
-// * style
-
 export type Props = {
   onClick: () => void,
 }
