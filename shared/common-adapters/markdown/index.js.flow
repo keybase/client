@@ -22,12 +22,12 @@ export type MarkdownCreateComponent = (
   options: {href?: string, convID?: string, bigEmoji?: boolean}
 ) => ?React.Node
 
-export type MarkdownMeta = {
+export type MarkdownMeta = {|
   mentionsAt: MentionsAt,
   mentionsChannelName: MentionsChannelName,
   mentionsChannel: MentionsChannel,
   message: MessageText,
-}
+|}
 
 export type StyleOverride = {
     paragraph?: Styles.StylesCrossPlatform,
