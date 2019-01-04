@@ -1008,6 +1008,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.OrangeLineMsgID = rawConv.ReaderInfo.OrangeLineMsgid
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
@@ -1075,6 +1076,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.OrangeLineMsgID = rawConv.ReaderInfo.OrangeLineMsgid
 	res.ConvRetention = rawConv.ConvRetention

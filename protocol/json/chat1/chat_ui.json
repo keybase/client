@@ -141,6 +141,10 @@
         },
         {
           "type": "MessageID",
+          "name": "maxVisibleMsgID"
+        },
+        {
+          "type": "MessageID",
           "name": "readMsgID"
         },
         {
@@ -304,6 +308,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxVisibleMsgID"
         },
         {
           "type": "MessageID",

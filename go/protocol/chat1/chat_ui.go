@@ -81,6 +81,7 @@ type UnverifiedInboxUIItem struct {
 	Time            gregor1.Time                   `codec:"time" json:"time"`
 	Version         ConversationVers               `codec:"version" json:"version"`
 	MaxMsgID        MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
+	MaxVisibleMsgID MessageID                      `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID       MessageID                      `codec:"readMsgID" json:"readMsgID"`
 	OrangeLineMsgID MessageID                      `codec:"orangeLineMsgID" json:"orangeLineMsgID"`
 	LocalMetadata   *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
@@ -109,6 +110,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 		Time:            o.Time.DeepCopy(),
 		Version:         o.Version.DeepCopy(),
 		MaxMsgID:        o.MaxMsgID.DeepCopy(),
+		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
 		ReadMsgID:       o.ReadMsgID.DeepCopy(),
 		OrangeLineMsgID: o.OrangeLineMsgID.DeepCopy(),
 		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
@@ -202,6 +204,7 @@ type InboxUIItem struct {
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
 	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
+	MaxVisibleMsgID   MessageID                     `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID         MessageID                     `codec:"readMsgID" json:"readMsgID"`
 	OrangeLineMsgID   MessageID                     `codec:"orangeLineMsgID" json:"orangeLineMsgID"`
 	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
@@ -278,6 +281,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.CreatorInfo),
 		Version:         o.Version.DeepCopy(),
 		MaxMsgID:        o.MaxMsgID.DeepCopy(),
+		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
 		ReadMsgID:       o.ReadMsgID.DeepCopy(),
 		OrangeLineMsgID: o.OrangeLineMsgID.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {

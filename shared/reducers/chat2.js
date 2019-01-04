@@ -382,16 +382,16 @@ const rootReducer = (
       }
       return state.withMutations(s => {
         if (action.payload.conversationIDKey) {
-          const {orangeLineMsgID, readMsgID, maxMsgID} = state.metaMap.get(
+          const {orangeLineMsgID, readMsgID, maxVisibleMsgID} = state.metaMap.get(
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
           )
           logger.info(
             `rootReducer: selectConversation: setting orange line: convID: ${
               action.payload.conversationIDKey
-            } max: ${maxMsgID}, orange: ${orangeLineMsgID}`
+            } maxVisible: ${maxVisibleMsgID}, read: ${readMsgID}, orange: ${orangeLineMsgID}`
           )
-          if (maxMsgID > readMsgID) {
+          if (maxVisibleMsgID > readMsgID) {
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], orangeLineMsgID)
           } else {
             // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap

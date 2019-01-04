@@ -212,8 +212,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	var update chat1.TLFFinalizeUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
@@ -271,8 +270,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	var update chat1.TLFResolveUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
@@ -467,8 +465,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 	uid := m.UID().Bytes()
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&gm)
-	if err != nil {
+	if err = dec.Decode(&gm); err != nil {
 		g.Debug(ctx, "chat activity: failed to decode into generic payload: %v", err)
 		return err
 	}
@@ -493,8 +490,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		switch action {
 		case types.ActionNewMessage:
 			var nm chat1.NewMessagePayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding newMessage: %v", err)
 				return
 			}
@@ -577,8 +573,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			}
 		case types.ActionReadMessage:
 			var nm chat1.ReadMessagePayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
@@ -596,8 +591,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
@@ -615,8 +609,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionSetAppNotificationSettings:
 			var nm chat1.SetAppNotificationSettingsPayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
@@ -636,8 +629,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
 		case types.ActionNewConversation:
 			var nm chat1.NewConversationPayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
@@ -671,8 +663,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
@@ -690,8 +681,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionExpunge:
 			var nm chat1.ExpungePayload
-			err = dec.Decode(&nm)
-			if err != nil {
+			if err = dec.Decode(&nm); err != nil {
 				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
@@ -800,8 +790,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	var update chat1.RemoteUserTypingUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 
@@ -837,8 +826,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 	var update chat1.KBFSImpteamUpgradeUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
@@ -883,8 +871,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	var update chat1.UpdateConversationMembership
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
@@ -947,8 +934,7 @@ func (g *PushHandler) TeamChannels(ctx context.Context, m gregor.OutOfBandMessag
 	var update chat1.TeamChannelUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 
@@ -969,8 +955,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 	var update chat1.SetConvRetentionUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
@@ -1015,8 +1000,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 	var update chat1.SetTeamRetentionUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
