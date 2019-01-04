@@ -443,11 +443,17 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         markdownMeta: this.props.meta,
       })
 
+      const state = {
+        allowFontScaling,
+        markdownMeta: this.props.meta,
+        styleOverride,
+      }
+
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-        ? bigEmojiOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
-        : reactOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
+        ? bigEmojiOutput(parseTree, state)
+        : reactOutput(parseTree, state)
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)
