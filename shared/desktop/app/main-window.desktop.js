@@ -38,7 +38,7 @@ export default function() {
   const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
     height: appState.state.height,
-    minHeight: 600,
+    // minHeight: 600, // TEMP
     minWidth: 400,
     show: false,
     webPreferences: {

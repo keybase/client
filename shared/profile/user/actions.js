@@ -73,7 +73,7 @@ const Actions = (p: Props) => {
   }
 
   return (
-    <Kb.Box2 gap="small" centerChildren={true} direction="horizontal">
+    <Kb.Box2 gap="small" centerChildren={true} direction="horizontal" fullWidth={true}>
       {buttons}
     </Kb.Box2>
   )
