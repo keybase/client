@@ -262,8 +262,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   render = () => {
     const inputProps = this._getInputProps()
-    const css = `::-webkit-input-placeholder { color: ${this.props.placeholderColor ||
-      globalColors.black_40}; }
+    if (this.props.placeholderColor && !this.props.className) {
+      logger.warn(
+        'PlainInput warning: using prop placeholderColor without setting className. The color might be overridden by a later input in the dom. Set a className unique within the current screen to avoid this.'
+      )
+    }
+    const css = `${
+      this.props.className ? `.${this.props.className}` : ''
+    }::-webkit-input-placeholder { color: ${this.props.placeholderColor || globalColors.black_40}; }
                  ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
     return (
       <React.Fragment>

@@ -94,6 +94,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               placeholder={`${
                 this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'
               } (in Keybase)`}
+              className="stellar-encrypted-note"
               placeholderColor={placeholderColor}
               rowsMin={Styles.isMobile ? 2 : 3}
               rowsMax={8}
@@ -164,6 +165,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
           <Kb.PlainInput
             multiline={true}
             placeholder="Add a public memo (on Stellar)"
+            className="stellar-public-memo"
             placeholderColor={placeholderColor}
             style={styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
