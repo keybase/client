@@ -24,6 +24,7 @@ export type Props = {
   showBold: boolean,
   snippet: string,
   snippetDecoration: string,
+  snippetStyle?: Object,
   subColor: string,
   teamname: string,
   timestamp: string,
@@ -132,6 +133,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 showBold={props.showBold}
                 snippet={props.snippet}
                 snippetDecoration={props.snippetDecoration}
+                snippetStyle={props.snippetStyle}
                 subColor={props.subColor}
                 hasResetUsers={props.hasResetUsers}
                 youNeedToRekey={props.youNeedToRekey}

@@ -17,6 +17,7 @@ type Props = {
   showBold: boolean,
   snippet: ?string,
   snippetDecoration: ?string,
+  snippetStyle?: Object,
   subColor: string,
   youNeedToRekey: boolean,
   youAreReset: boolean,
@@ -61,6 +62,7 @@ class BottomLine extends PureComponent<Props> {
           color: this.props.subColor,
           ...(this.props.showBold ? globalStyles.fontBold : {}),
         },
+        this.props.snippetStyle,
       ])
 
       let snippetDecoration
