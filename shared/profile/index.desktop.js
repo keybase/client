@@ -153,7 +153,7 @@ class _StellarFederatedAddress extends React.PureComponent<
               </Kb.WithTooltip>
               <Kb.FloatingMenu
                 attachTo={this.state.storedAttachmentRef && this._getAttachmentRef}
-                closeOnSelect={false}
+                closeOnSelect={true}
                 containerStyle={styles.floatingStellarAddressMenu}
                 items={this._menuItems}
                 onHidden={this.props.toggleShowingMenu}
