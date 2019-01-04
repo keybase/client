@@ -661,7 +661,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 	})
 
 	maxJobs := idx.maxSyncConvs
-	var totalCompletedJobs int
+	var totalCompletedJobs, fullyIndexedConvs int
 	for _, idxInfo := range convIdxs {
 		conv := convMap[idxInfo.convID.String()].Conv
 		completedJobs, _, err := idx.reindexConv(ctx, conv, uid, idxInfo.idx, reindexOpts{
@@ -672,6 +672,9 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", idxInfo.convID, err)
 			continue
+		} else if completedJobs == 0 {
+			fullyIndexedConvs++
+			continue
 		}
 		totalCompletedJobs += completedJobs
 		idx.Debug(ctx, "SelectiveSync: Indexed %d/%d jobs", totalCompletedJobs, maxJobs)
@@ -679,6 +682,8 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 			break
 		}
 	}
+	idx.Debug(ctx, "SelectiveSync: Complete, %d/%d convs fully indexed",
+		fullyIndexedConvs, len(convIdxs))
 }
 
 // IndexInbox is only exposed in devel for debugging/profiling the indexing
