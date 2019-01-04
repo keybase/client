@@ -100,7 +100,7 @@ class BottomLine extends PureComponent<Props> {
           break
         default:
           snippetDecoration =
-            this.props.snippetDecoration && !this.props.isTypingSnippet ? (
+            !!this.props.snippetDecoration && !this.props.isTypingSnippet ? (
               <Text type="BodySmall">{this.props.snippetDecoration}</Text>
             ) : null
       }
