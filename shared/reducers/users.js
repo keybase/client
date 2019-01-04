@@ -1,5 +1,6 @@
 // @flow
 import * as UsersGen from '../actions/users-gen'
+import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
@@ -10,7 +11,7 @@ const blankUserInfo = Constants.makeUserInfo()
 
 const reducer = (
   state: Types.State = initialState,
-  action: UsersGen.Actions | TrackerGen.UpdateUserInfoPayload
+  action: UsersGen.Actions | TrackerGen.UpdateUserInfoPayload | Tracker2Gen.UpdateFollowersPayload
 ): Types.State => {
   switch (action.type) {
     case UsersGen.resetStore:
@@ -41,10 +42,20 @@ const reducer = (
         })
       )
     }
+    // maybe plumb through updatedetails
     case TrackerGen.updateUserInfo: {
       return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
         userInfo.set('fullname', action.payload.userCard.fullName)
       )
+    }
+
+    case Tracker2Gen.updateFollowers: {
+      const updates = [...action.payload.followers, ...action.payload.following].reduce((map, f) => {
+        map[f.username] = {fullname: f.fullname}
+        return map
+      }, {})
+
+      return state.updateIn(['infoMap'], infoMap => infoMap.mergeDeep(updates))
     }
     // Saga only actions
     default:

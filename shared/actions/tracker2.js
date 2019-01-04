@@ -32,6 +32,7 @@ const setupEngineListeners = () => {
           fromDaemon: true,
           guiID,
           ignoreCache: false,
+          inTracker: true,
           reason: reason.reason || '',
         })
       ),
@@ -133,6 +134,26 @@ function* load(state, action) {
   )
 }
 
+const loadFollow = (_, action) => {
+  const {assertion} = action.payload
+  const convert = fs =>
+    (fs.users || []).map(f => ({
+      following: f.isFollowee,
+      followsYou: f.isFollower,
+      fullname: f.fullName,
+      username: f.username,
+    }))
+  return (
+    !action.payload.inTracker &&
+    Promise.all([
+      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: false}).then(convert),
+      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: true}).then(convert),
+    ]).then(([followers, following]) => {
+      return Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
+    })
+  )
+}
+
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   if (!flags.identify3) {
     return
@@ -145,6 +166,7 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Tracker2Gen.ChangeFollowPayload>(Tracker2Gen.changeFollow, changeFollow)
   yield* Saga.chainAction<Tracker2Gen.IgnorePayload>(Tracker2Gen.ignore, ignore)
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
+  yield* Saga.chainAction<Tracker2Gen.LoadPayload>(Tracker2Gen.load, loadFollow)
 }
 
 export default tracker2Saga

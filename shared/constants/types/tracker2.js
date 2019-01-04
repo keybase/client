@@ -1,6 +1,5 @@
 // @flow strict
 import * as I from 'immutable'
-// import * as RPCTypes from './rpc-gen'
 
 export type _TeamShowcase = {|
   description: string,
@@ -38,6 +37,8 @@ export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'e
 export type _Details = {
   assertions: ?I.Map<string, Assertion>,
   bio: ?string,
+  followers: ?I.OrderedSet<string>,
+  following: ?I.OrderedSet<string>,
   followersCount: ?number,
   followingCount: ?number,
   fullname: ?string,

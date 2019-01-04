@@ -11,6 +11,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   assertions: I.Map(),
   bio: null,
+  followers: I.OrderedSet(),
+  followering: I.OrderedSet(),
   followersCount: null,
   followingCount: null,
   fullname: null,

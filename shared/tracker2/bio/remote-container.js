@@ -14,6 +14,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followingCount: stateProps.followingCount,
   followsYou: stateProps.followsYou,
   fullname: stateProps.fullname,
+  inTracker: true,
   location: stateProps.location,
 })
 

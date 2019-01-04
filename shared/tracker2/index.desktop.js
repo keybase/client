@@ -157,7 +157,7 @@ const Tracker = (props: Props) => {
               notFollowingColorOverride={Styles.globalColors.orange}
             />
           </Kb.Box2>
-          <Bio inTracker={true} username={props.username} />
+          <Bio username={props.username} />
           {props.teamShowcase && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamShowcases} gap="xtiny">
               {props.teamShowcase.map(t => (

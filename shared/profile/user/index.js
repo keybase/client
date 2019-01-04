@@ -10,6 +10,9 @@ import Actions from './actions'
 
 export type Props = {|
   assertionKeys: ?$ReadOnlyArray<string>,
+  followThem: boolean,
+  followers: $ReadOnlyArray<string>,
+  following: $ReadOnlyArray<string>,
   backgroundColor: string,
   onFollow: () => void,
   onUnfollow: () => void,
@@ -45,7 +48,18 @@ const BioLayout = p => (
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
-      <Actions {...p} />
+      <Actions
+        followThem={p.followThem}
+        onFollow={p.onFollow}
+        onUnfollow={p.onUnfollow}
+        onBack={p.onBack}
+        onChat={p.onChat}
+        onClose={p.onClose}
+        onReload={p.onReload}
+        onIgnoreFor24Hours={p.onIgnoreFor24Hours}
+        onAccept={p.onAccept}
+        state={p.state}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -85,7 +99,7 @@ const Proofs = p => {
   )
 }
 
-class FriendshipTabs extends React.Component<Props> {
+class FriendshipTabs extends React.Component<LayoutProps> {
   _tab = following => (
     <Kb.ClickableBox
       style={Styles.collapseStyles([
@@ -172,7 +186,7 @@ class MobileLayout extends React.Component<LayoutProps> {
     const following = ['inga', 'ingb', 'ingc', 'ingd', 'inge']
     const followers = ['a', 'b', 'c', 'd', 'e']
     return (
-      <Kb.Box2 directio="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
         <Kb.SectionList
           stickySectionHeadersEnabled={true}
@@ -204,7 +218,9 @@ class User extends React.PureComponent<Props, State> {
 
   _changeFollowing = following => {
     this.setState(p => {
-      if (p.selectedFollowing === following) return
+      if (p.selectedFollowing === following) {
+        return
+      }
       const selectedFollowing = !p.selectedFollowing
       usernameSelectedFollowing[this.props.username] = selectedFollowing
       return {selectedFollowing}

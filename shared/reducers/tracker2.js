@@ -106,6 +106,16 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
         ),
       })
     }
+    case Tracker2Gen.updateFollowers:
+      const convert = f => f.username
+      return state.merge({
+        usernameToDetails: state.usernameToDetails.updateIn([action.payload.username], old =>
+          (old || Constants.makeDetails()).merge({
+            followers: I.OrderedSet(action.payload.followers.map(convert)),
+            following: I.OrderedSet(action.payload.following.map(convert)),
+          })
+        ),
+      })
     // Saga only actions
     case Tracker2Gen.changeFollow:
     case Tracker2Gen.ignore:

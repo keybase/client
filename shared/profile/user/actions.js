@@ -1,12 +1,24 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-// import * as Types from '../../constants/types/tracker2'
+import * as Types from '../../constants/types/tracker2'
 import * as Constants from '../../constants/tracker2'
 import FollowButton from '../follow-button'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
-import type {Props} from '.'
+
+type Props = {|
+  followThem: boolean,
+  onFollow: () => void,
+  onUnfollow: () => void,
+  onBack: () => void,
+  onChat: () => void,
+  onClose: () => void,
+  onReload: () => void,
+  onIgnoreFor24Hours: () => void,
+  onAccept: () => void,
+  state: Types.DetailsState,
+|}
 
 const Actions = (p: Props) => {
   let buttons = []

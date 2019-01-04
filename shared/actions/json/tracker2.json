@@ -10,6 +10,7 @@
       "guiID": "string",
       "ignoreCache?": "boolean",
       "reason": "string",
+      "inTracker": "boolean",
     },
     "updatedDetails": {
       "guiID": "string",
@@ -47,6 +48,11 @@
     },
     "ignore": {
       "guiID": "string",
-    }
+    },
+    "updateFollowers": {
+      "username": "string",
+      "following": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>",
+      "followers": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>",
+    },
   }
 }

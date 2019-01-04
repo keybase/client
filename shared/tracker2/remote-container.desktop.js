@@ -44,6 +44,7 @@ const mapDispatchToProps = dispatch => ({
         fromDaemon: false,
         guiID: Constants.generateGUIID(),
         ignoreCache: true,
+        inTracker: true,
         reason: '',
       })
     ),
