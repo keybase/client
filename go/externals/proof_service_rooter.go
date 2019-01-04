@@ -41,7 +41,7 @@ func (rc *RooterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 
 type RooterServiceType struct{ libkb.BaseServiceType }
 
-func (t *RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *RooterServiceType) Key() string { return t.GetTypeName() }
 
 var rooterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
