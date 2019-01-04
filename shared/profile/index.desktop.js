@@ -82,10 +82,19 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 
+type AddressState = {
+  storedAttachmentRef: any,
+}
+
 class _StellarFederatedAddress extends React.PureComponent<
-  StellarFederatedAddressProps & Kb.OverlayParentProps
+  StellarFederatedAddressProps & Kb.OverlayParentProps,
+  AddressState
 > {
+  state: AddressState = {
+    storedAttachmentRef: null,
+  }
   _attachmentRef = null
+
   _toastRef: ?Kb._ToastContainer = null
   _onCopyAddress = () => {
     this._toastRef && this._toastRef.copy()
@@ -97,7 +106,11 @@ class _StellarFederatedAddress extends React.PureComponent<
     stellarAddress: this.props.stellarAddress,
   })
 
-  _getAttachmentRef = () => this._attachmentRef
+  _storeAttachmentRef = r => {
+    this._attachmentRef = r
+    this.setState({storedAttachmentRef: r})
+  }
+  _getAttachmentRef = () => this.state.storedAttachmentRef
 
   render() {
     const stellarAddressNameStyle = {
@@ -105,8 +118,11 @@ class _StellarFederatedAddress extends React.PureComponent<
       color: this.props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
     }
     return (
-      <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
-        <Kb.ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+      <Kb.Box2 direction="horizontal" ref={r => this._storeAttachmentRef(r)}>
+        <Kb.ToastContainer
+          ref={r => (this._toastRef = r)}
+          getAttachmentRef={this.state.storedAttachmentRef && this._getAttachmentRef}
+        />
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
@@ -136,8 +152,8 @@ class _StellarFederatedAddress extends React.PureComponent<
                 </Kb.Text>
               </Kb.WithTooltip>
               <Kb.FloatingMenu
-                attachTo={this.props.getAttachmentRef}
-                closeOnSelect={true}
+                attachTo={this.state.storedAttachmentRef && this._getAttachmentRef}
+                closeOnSelect={false}
                 containerStyle={styles.floatingStellarAddressMenu}
                 items={this._menuItems}
                 onHidden={this.props.toggleShowingMenu}
