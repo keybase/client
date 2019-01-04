@@ -10,7 +10,7 @@ export type Props<Item> = {
   fixedHeight?: ?number,
   renderItem: (index: number, item: Item) => React.Node,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys
-  selectedIndex?: number, // TODO work on mobile
+  selectedIndex?: number, // Works on mobile only when fixedHeight is used.
   itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
   windowSize?: number, // Mobile only, has a non-RN default
