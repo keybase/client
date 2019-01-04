@@ -12,6 +12,7 @@ type ConfirmSendProps = {|
   onClose: () => void,
   onSendClick: () => void,
   onBack: () => void,
+  onReviewProofs?: () => void,
   encryptedNote?: string,
   publicMemo?: string,
   banners?: Array<BannerType>,
@@ -20,6 +21,7 @@ type ConfirmSendProps = {|
   sendingIntentionXLM: boolean,
   displayAmountXLM: string,
   displayAmountFiat: string,
+  readyToSend: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -33,7 +35,13 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         displayAmountFiat={props.displayAmountFiat}
       />
       {(props.banners || []).map(banner => (
-        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        <Banner
+          background={banner.bannerBackground}
+          key={banner.bannerText}
+          onReviewProofs={props.onReviewProofs}
+          reviewProofs={banner.reviewProofs}
+          text={banner.bannerText}
+        />
       ))}
       <Kb.ScrollView style={styles.scrollView}>
         <Participants />
@@ -50,29 +58,33 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         gapEnd={true}
         style={styles.buttonContainer}
       >
-        <Kb.WaitingButton
-          type="PrimaryGreen"
-          disabled={props.sendFailed}
-          onClick={props.onSendClick}
-          waitingKey={props.waitingKey}
-          fullWidth={true}
-          style={styles.button}
-          children={
-            <React.Fragment>
-              <Kb.Icon
-                type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
-                color={Styles.globalColors.white}
-              />
-              <Kb.Text type="BodyBig" style={styles.buttonText}>
-                Send{' '}
-                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                  {props.displayAmountXLM}
+        {props.readyToSend === 'spinning' ? (
+          <Kb.Button type="PrimaryGreen" fullWidth={true} style={styles.button} waiting={true} />
+        ) : (
+          <Kb.WaitingButton
+            type="PrimaryGreen"
+            disabled={props.sendFailed || props.readyToSend === 'disabled'}
+            onClick={props.onSendClick}
+            waitingKey={props.waitingKey}
+            fullWidth={true}
+            style={styles.button}
+            children={
+              <React.Fragment>
+                <Kb.Icon
+                  type="iconfont-stellar-send"
+                  style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
+                  color={Styles.globalColors.white}
+                />
+                <Kb.Text type="BodyBig" style={styles.buttonText}>
+                  Send{' '}
+                  <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
+                    {props.displayAmountXLM}
+                  </Kb.Text>
                 </Kb.Text>
-              </Kb.Text>
-            </React.Fragment>
-          }
-        />
+              </React.Fragment>
+            }
+          />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   </Kb.MaybePopup>

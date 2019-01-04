@@ -3,6 +3,7 @@ package stellar
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/engine"
@@ -12,6 +13,7 @@ import (
 	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	stellarAddress "github.com/stellar/go/address"
 )
 
 func StartBuildPaymentLocal(mctx libkb.MetaContext) (res stellar1.BuildPaymentID, err error) {
@@ -308,8 +310,6 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				ToIsAccountID: arg.ToIsAccountID,
 				Amount:        amountX.amountOfAsset,
 				Asset:         amountX.asset,
-				SecretNote:    arg.SecretNote,
-				PublicMemo:    arg.PublicMemo,
 			}
 		}
 	}
@@ -344,6 +344,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	seqno := 0
 	notify := func(banners []stellar1.SendBannerLocal, nextButton reviewButtonState) chan struct{} {
 		seqno++
+		seqno := seqno                    // Shadow seqno to freeze it for the goroutine below.
 		receivedCh := make(chan struct{}) // channel closed when the notification has been acked.
 		mctx.CDebugf("sending UIPaymentReview bid:%v sessionID:%v seqno:%v nextButton:%v banners:%v",
 			arg.Bid, arg.SessionID, seqno, nextButton, len(banners))
@@ -355,6 +356,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 				SessionID: arg.SessionID,
 				Msg: stellar1.UIPaymentReviewed{
 					Bid:        arg.Bid,
+					ReviewID:   arg.ReviewID,
 					Seqno:      seqno,
 					Banners:    banners,
 					NextButton: string(nextButton),
@@ -386,9 +388,29 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	if data.Frozen.ToIsAccountID {
 		mctx.CDebugf("skipping identify for account ID recipient: %v", data.Frozen.To)
 		data.ReadyToSend = true
-	} else {
-		recipientAssertion := data.Frozen.To
-		recipientUV := data.Frozen.ToUV
+	}
+
+	recipientAssertion := data.Frozen.To
+	// how would you have this before identify?  from LookupRecipient?
+	// does that mean that identify is happening twice?
+	recipientUV := data.Frozen.ToUV
+
+	// check if it is a federation address
+	if strings.Contains(recipientAssertion, stellarAddress.Separator) {
+		name, domain, err := stellarAddress.Split(recipientAssertion)
+		// if there is an error, let this fall through and get identified
+		if err == nil {
+			if domain != "keybase.io" {
+				mctx.CDebugf("skipping identify for federation address recipient: %s", data.Frozen.To)
+				data.ReadyToSend = true
+			} else {
+				mctx.CDebugf("identifying keybase user %s in federation address recipient: %s", name, data.Frozen.To)
+				recipientAssertion = name
+			}
+		}
+	}
+
+	if !data.ReadyToSend {
 		mctx.CDebugf("identifying recipient: %v", recipientAssertion)
 
 		identifySuccessCh := make(chan struct{}, 1)
@@ -434,7 +456,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 			case <-identifyTrackFailCh:
 				notify([]stellar1.SendBannerLocal{{
 					Level:         "error",
-					Message:       fmt.Sprintf("Some of %v's proofs have changed since you last followed them. Please review", recipientAssertion),
+					Message:       fmt.Sprintf("Some of %v's proofs have changed since you last followed them.", recipientAssertion),
 					ProofsChanged: true,
 				}}, reviewButtonDisabled)
 			case <-identifySuccessCh:
@@ -840,8 +862,8 @@ type frozenPayment struct {
 	ToIsAccountID bool
 	Amount        string
 	Asset         stellar1.Asset
-	SecretNote    string
-	PublicMemo    string
+	// SecretNote and PublicMemo are not checked because
+	// frontend may not call build when the user changes the notes.
 }
 
 func newBuildPaymentEntry(bid stellar1.BuildPaymentID) *buildPaymentEntry {
@@ -885,13 +907,6 @@ func (b *buildPaymentData) CheckReadyToSend(arg stellar1.SendPaymentLocalArg) er
 	}
 	if !arg.Asset.Eq(b.Frozen.Asset) {
 		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, b.Frozen.Asset)
-	}
-	if arg.SecretNote != b.Frozen.SecretNote {
-		// Don't log the secret memo.
-		return fmt.Errorf("mismatched secret note")
-	}
-	if arg.PublicMemo != b.Frozen.PublicMemo {
-		return fmt.Errorf("mismatched public memo: '%v' != '%v'", arg.PublicMemo, b.Frozen.PublicMemo)
 	}
 	return nil
 }

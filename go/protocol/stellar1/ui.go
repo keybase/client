@@ -10,6 +10,7 @@ import (
 
 type UIPaymentReviewed struct {
 	Bid        BuildPaymentID    `codec:"bid" json:"bid"`
+	ReviewID   int               `codec:"reviewID" json:"reviewID"`
 	Seqno      int               `codec:"seqno" json:"seqno"`
 	Banners    []SendBannerLocal `codec:"banners" json:"banners"`
 	NextButton string            `codec:"nextButton" json:"nextButton"`
@@ -17,8 +18,9 @@ type UIPaymentReviewed struct {
 
 func (o UIPaymentReviewed) DeepCopy() UIPaymentReviewed {
 	return UIPaymentReviewed{
-		Bid:   o.Bid.DeepCopy(),
-		Seqno: o.Seqno,
+		Bid:      o.Bid.DeepCopy(),
+		ReviewID: o.ReviewID,
+		Seqno:    o.Seqno,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil

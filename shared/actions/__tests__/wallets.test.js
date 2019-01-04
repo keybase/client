@@ -37,7 +37,7 @@ const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs
 const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
   amountAvailable: '',
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   from: 'fake account ID',
@@ -154,7 +154,7 @@ it('build and send payment', () => {
 
 const buildRequestRes: RPCStellarTypes.BuildRequestResLocal = {
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   readyToRequest: false,

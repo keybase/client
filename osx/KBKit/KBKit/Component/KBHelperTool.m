@@ -102,6 +102,10 @@
   [alert runModal]; // ignore response
 }
 
+- (BOOL)exists {
+  return [NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil];
+}
+
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];

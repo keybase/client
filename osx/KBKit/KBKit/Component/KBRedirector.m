@@ -51,6 +51,13 @@
 - (void)uninstall:(KBCompletion)completion {
   NSString *mount = [self.config redirectorMount];
   NSDictionary *params = @{@"directory": mount};
+
+  if (![self.helperTool exists]) {
+    DDLogDebug(@"Redirector wasn't installed (no helper), so no-op");
+    completion(nil);
+    return;
+  }
+
   DDLogDebug(@"Stopping redirector: %@", params);
   [self.helperTool.helper sendRequest:@"stopRedirector" params:@[params] completion:^(NSError *err, id value) {
     completion(err);

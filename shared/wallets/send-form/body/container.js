@@ -7,8 +7,8 @@ type OwnProps = {||}
 
 const mapStateToProps = state => ({
   banners: state.wallets.building.isRequest
-    ? state.wallets.builtRequest.banners
-    : state.wallets.builtPayment.banners,
+    ? state.wallets.builtRequest.builtBanners
+    : state.wallets.builtPayment.builtBanners,
 })
 
 const mapDispatchToProps = dispatch => ({})

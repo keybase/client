@@ -1320,6 +1320,10 @@
           "type": "int"
         },
         {
+          "name": "reviewID",
+          "type": "int"
+        },
+        {
           "name": "bid",
           "type": "BuildPaymentID"
         }

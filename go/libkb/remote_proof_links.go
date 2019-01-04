@@ -43,13 +43,11 @@ func (r *RemoteProofLinks) Insert(link RemoteProofChainLink, err ProofError) {
 // ForService returns all the active proof links for a service.
 func (r *RemoteProofLinks) ForService(st ServiceType) []RemoteProofChainLink {
 	var links []RemoteProofChainLink
-	for _, k := range st.AllStringKeys() {
-		for _, l := range r.links[k] {
-			if l.link.IsRevoked() {
-				continue
-			}
-			links = append(links, l.link)
+	for _, l := range r.links[st.Key()] {
+		if l.link.IsRevoked() {
+			continue
 		}
+		links = append(links, l.link)
 	}
 
 	// Chop the array off if it's a last-writer wins service

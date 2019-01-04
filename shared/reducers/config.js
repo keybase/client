@@ -232,6 +232,9 @@ export default function(
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
+    case ConfigGen.swapRouter: {
+      return state.set('useNewRouter', action.payload.useNewRouter)
+    }
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
     case ConfigGen.updateNow:

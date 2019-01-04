@@ -208,6 +208,7 @@
   "stellar.1.local.linkNewWalletAccountLocal": {"promise": true},
   "stellar.1.local.makeRequestLocal": {"promise": true},
   "stellar.1.local.markAsReadLocal": {"promise": true},
+  "stellar.1.local.reviewPaymentLocal": {"promise": true},
   "stellar.1.local.sendPaymentLocal": {"promise": true},
   "stellar.1.local.setAccountAllDevicesLocal": {"promise": true},
   "stellar.1.local.setAccountMobileOnlyLocal": {"promise": true},

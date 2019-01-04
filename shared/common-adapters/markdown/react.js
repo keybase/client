@@ -8,6 +8,7 @@ import Text from '../text'
 import KbfsPath from './kbfs-path-container'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
+import {type MarkdownMeta, type StyleOverride} from '.'
 import Box from '../box'
 import Emoji from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
@@ -260,23 +261,22 @@ const reactComponentsForMarkdownType = {
     return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
   link: (node, output, state) => {
-    let url = node.content
+    const {protocol, afterProtocol, spaceInFront} = node
+    const rawURL = protocol + afterProtocol
+    const url = (protocol || 'http://') + afterProtocol
 
-    if (!url.match(/^https?:\/\//)) {
-      url = `http://${node.content}`
-    }
     return (
       <React.Fragment key={state.key}>
-        {node.spaceInFront}
+        {spaceInFront}
         <Text
           className="hover-underline"
           type="BodyPrimaryLink"
           style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
-          title={node.content}
+          title={url}
           onClickURL={url}
           onLongPressURL={url}
         >
-          {node.content}
+          {rawURL}
         </Text>
       </React.Fragment>
     )
@@ -308,7 +308,7 @@ const reactComponentsForMarkdownType = {
       />
     )
   },
-  newline: (node, outputFunc, state) =>
+  newline: (node, output, state) =>
     !isMobile || state.inParagraph ? (
       '\n'
     ) : (
@@ -334,12 +334,18 @@ const reactComponentsForMarkdownType = {
     )
   },
   serviceDecoration: (node, output, state) => {
+    const {markdownMeta} = state
+    if (!markdownMeta) {
+      throw new Error('markdownMeta unexpectedly empty')
+    }
+    const {message} = markdownMeta
+
     return (
       <ServiceDecoration
         json={node.content}
         key={state.key}
         allowFontScaling={state.allowFontScaling}
-        message={state.markdownMeta.message}
+        message={message}
       />
     )
   },
@@ -358,7 +364,34 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
-const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: any) => any}) => (
+type State = {
+  allowFontScaling?: boolean,
+  inBlockQuote?: boolean,
+  inParagraph?: boolean,
+  key?: string,
+  markdownMeta: ?MarkdownMeta,
+  styleOverride: StyleOverride,
+}
+
+// Ideally this would be a discriminated union keyed by type.
+type SingleASTNode = {
+  type: string,
+  [string]: any,
+}
+
+// The types below are adapted from the simple-markdown types.
+
+type ASTNode = SingleASTNode | Array<SingleASTNode>
+
+type Output<Result> = (node: ASTNode, state?: ?State) => Result
+
+type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result
+
+type ReactElements = React$Node
+
+type ReactNodeOutput = NodeOutput<ReactElements>
+
+const ruleOutput = (rules: {text: NodeOutput<string>, [key: string]: ReactNodeOutput}) => (
   node,
   output,
   state
@@ -385,8 +418,10 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
   })
 )
 
+// TODO: Fix the typing here. Can ast actually be a non-object? Can
+// output actually only return strings?
 const previewOutput = SimpleMarkdown.reactFor(
-  (ast: any, output: Function, state: any): any => {
+  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
     // leaf node is just the raw value, so it has no ast.type
     if (typeof ast !== 'object') {
       return ast

@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type {Path} from '../../constants/types/fs'
 import type {MentionsAt, MentionsChannel, MentionsChannelName, MessageText} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
@@ -23,12 +22,23 @@ export type MarkdownCreateComponent = (
   options: {href?: string, convID?: string, bigEmoji?: boolean}
 ) => ?React.Node
 
-export type MarkdownMeta = {
-  mentionsAt?: MentionsAt,
-  mentionsChannelName?: MentionsChannelName,
-  mentionsChannel?: MentionsChannel,
+export type MarkdownMeta = {|
+  mentionsAt: MentionsAt,
+  mentionsChannelName: MentionsChannelName,
+  mentionsChannel: MentionsChannel,
   message: MessageText,
-  onOpenInFilesTab?: Path => void,
+|}
+
+export type StyleOverride = {
+    paragraph?: Styles.StylesCrossPlatform,
+    fence?: Styles.StylesCrossPlatform,
+    inlineCode?: Styles.StylesCrossPlatform,
+    strong?: Styles.StylesCrossPlatform,
+    em?: Styles.StylesCrossPlatform,
+    del?: Styles.StylesCrossPlatform,
+    link?: Styles.StylesCrossPlatform,
+    mailto?: Styles.StylesCrossPlatform,
+    preview?: Styles.StylesCrossPlatform,
 }
 
 export type Props = {
@@ -49,17 +59,7 @@ export type Props = {
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_40
   // but want blue_30 for the inline code
-  styleOverride?: {
-    paragraph?: Styles.StylesCrossPlatform,
-    fence?: Styles.StylesCrossPlatform,
-    inlineCode?: Styles.StylesCrossPlatform,
-    strong?: Styles.StylesCrossPlatform,
-    em?: Styles.StylesCrossPlatform,
-    del?: Styles.StylesCrossPlatform,
-    link?: Styles.StylesCrossPlatform,
-    mailto?: Styles.StylesCrossPlatform,
-    preview?: Styles.StylesCrossPlatform,
-  },
+  styleOverride?: StyleOverride,
 }
 
 export default class Markdown extends React.Component<Props> {}

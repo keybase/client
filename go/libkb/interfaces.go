@@ -396,7 +396,7 @@ type ChatUI interface {
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
-	ChatStellarDone(context.Context) error
+	ChatStellarDone(context.Context, bool) error
 }
 
 type PromptDefault int
@@ -559,7 +559,7 @@ type ProofChecker interface {
 // ServiceType is an interface for describing an external proof service, like 'Twitter'
 // or 'GitHub', etc.
 type ServiceType interface {
-	AllStringKeys() []string
+	Key() string
 
 	// NormalizeUsername normalizes the given username, assuming
 	// that it's free of any leading strings like '@' or 'dns://'.

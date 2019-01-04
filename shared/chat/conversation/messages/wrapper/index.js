@@ -487,9 +487,12 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginTop: 8},
   }),
-  avatar: {
-    marginLeft: Styles.globalMargins.small,
-  },
+  avatar: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.small,
+    },
+    isMobile: {marginLeft: Styles.globalMargins.tiny},
+  }),
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
@@ -519,7 +522,7 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   edited: {color: Styles.globalColors.black_20},

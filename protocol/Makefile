@@ -44,6 +44,7 @@ js/rpc.js: build-stamp | config
 	@mkdir -p js/
 	node ./bin/flow.js
 	cp ./js/rpc* ../shared/constants/types
+	cp ./js/engine-gen.json ../shared/actions/json
 
 clean:
 	rm -rf json/*.json json/*/*.json js/*.js *build-stamp
