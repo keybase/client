@@ -99,7 +99,7 @@ helpers.rootLinuxNode(env, {
                 sh "make clean"
                 sh "make"
               }
-              checkDiffs(['./go/', './protocol/'], 'Please run "make" inside the client/protocol directory.')
+              checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
             }
             parallel (
               test_linux: {
@@ -114,7 +114,7 @@ helpers.rootLinuxNode(env, {
                     if (hasGoChanges) {
                       dir('go') {
                         sh "make gen-deps"
-                        checkDiffs(['./'], 'Please run "make gen-deps" inside the client/go directory.')
+                        checkDiffs(['./'], 'Please run \\"make gen-deps\\" inside the client/go directory.')
                       }
                     }
                   },
@@ -486,6 +486,8 @@ def checkDiffs(dirs, addressMessage) {
   try {
     sh "git diff --patience --exit-code HEAD -- ${joinedDirs}"
   } catch (ex) {
-    sh "bash -c \"echo 'ERROR: \'git diff\' detected changes. Some files in the directories {${dirs.join(", ")}} are stale. ${addressMessage}' && (exit 1)\""
+    sh """
+        bash -c 'echo "ERROR: \\"git diff\\" detected changes. Some files in the directories {${dirs.join(", ")}} are stale. ${addressMessage}" && (exit 1)'
+    """
   }
 }
