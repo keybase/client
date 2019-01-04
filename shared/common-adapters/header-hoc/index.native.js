@@ -107,7 +107,7 @@ const Title = ({
   >
     {!!title && !titleComponent
       ? (<Text type="BodySemibold" style={styles.title} lineClamp={1}>
-          {title}
+          !{title}
         </Text>)
       : (titleComponent)
     }
