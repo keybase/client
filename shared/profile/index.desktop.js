@@ -93,7 +93,6 @@ class _StellarFederatedAddress extends React.PureComponent<
   state: AddressState = {
     storedAttachmentRef: null,
   }
-  _attachmentRef = null
 
   _toastRef: ?Kb._ToastContainer = null
   _onCopyAddress = () => {
@@ -107,7 +106,6 @@ class _StellarFederatedAddress extends React.PureComponent<
   })
 
   _storeAttachmentRef = r => {
-    this._attachmentRef = r
     this.setState({storedAttachmentRef: r})
   }
   _getAttachmentRef = () => this.state.storedAttachmentRef
