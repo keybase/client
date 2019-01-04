@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {connect, isMobile} from '../../../../util/container'
-import {getAccountIDs} from '../../../../constants/wallets'
+import {getAccountIDs, getSelectedAccount} from '../../../../constants/wallets'
 import openURL from '../../../../util/open-url'
 import {WalletSwitcher} from '.'
 
@@ -14,6 +14,7 @@ type OwnProps = {|
 
 const mapStateToProps = state => ({
   accounts: getAccountIDs(state),
+  selectedAccount: getSelectedAccount(state),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -37,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
   onWhatIsStellar: dispatchProps.onWhatIsStellar,
+  selectedAccount: stateProps.selectedAccount,
   ...ownProps,
 })
 

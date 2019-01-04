@@ -38,6 +38,7 @@ class List extends PureComponent<Props<any>, void> {
             renderItem={this._itemRender}
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
+            initialScrollIndex={this.props.selectedIndex}
             keyExtractor={this._keyExtractor}
             keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
             onEndReached={this.props.onEndReached}

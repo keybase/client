@@ -114,6 +114,8 @@ export const WalletSwitcher = (props: Props) => {
     })),
   ]
 
+  const selectedIndex = props.accountIDs.findIndex(accountID => accountID === props.selectedAccount)
+
   return (
     <Kb.Overlay
       position="bottom center"
@@ -127,8 +129,10 @@ export const WalletSwitcher = (props: Props) => {
         fullWidth={true}
       >
         <Kb.List
+          fixedHeight={48}
           items={menuItems}
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
+          selectedIndex={selectedIndex}
           bounces={false}
         />
         {renderItem(
