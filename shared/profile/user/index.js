@@ -126,7 +126,52 @@ const DesktopLayout = (p: Props) => (
   </Kb.Box2>
 )
 
-const MobileLayout = (p: Props) => <Kb.SectionList />
+class MobileLayout extends React.Component<Props> {
+  _renderSectionHeader = ({section}) => {
+    if (section.data[0] === 'bioTeamProofs') {
+      return <Header onBack={this.props.onBack} state={this.props.state} followThem={this.props.followThem} />
+    }
+    return <Kb.Text type="Body">friends section</Kb.Text>
+  }
+
+  _renderBioTeamProofs = () => (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.backgroundColor,
+          {backgroundColor: headerBackgroundColor(this.props.state, this.props.followThem)},
+        ])}
+      />
+      <BioLayout {...this.props} />
+    </Kb.Box2>
+  )
+
+  _renderOtherUsers = () => {
+    return <Kb.Text type="Body">other users</Kb.Text>
+  }
+
+  render() {
+    const otherUsers = ['a', 'b']
+    const backgroundColor = headerBackgroundColor(this.props.state, this.props.followThem)
+    return (
+      <Kb.Box2 directio="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.SafeAreaViewTop style={{backgroundColor, flexGrow: 0}} />
+        <Kb.SectionList
+          stickySectionHeadersEnabled={true}
+          renderSectionHeader={this._renderSectionHeader}
+          sections={[
+            {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs},
+            {data: otherUsers, renderItem: this._renderOtherUsers},
+          ]}
+          style={{backgroundColor}}
+          contentContainerStyle={{backgroundColor: Styles.globalColors.white}}
+        />
+      </Kb.Box2>
+    )
+  }
+}
 
 class User extends React.PureComponent<Props> {
   componentDidMount() {
@@ -144,14 +189,11 @@ const styles = Styles.styleSheetCreate({
   backButton: {
     color: Styles.globalColors.white,
   },
-  backgroundColor: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      bottom: undefined,
-      height: avatarSize / 2,
-    },
-    isMobile: {}, // TODO
-  }),
+  backgroundColor: {
+    ...Styles.globalStyles.fillAbsolute,
+    bottom: undefined,
+    height: avatarSize / 2,
+  },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
     isElectron: {maxWidth: 350},
@@ -162,12 +204,17 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   container: {},
-  header: {
-    alignItems: 'center',
-    flexShrink: 0,
-    height: headerHeight,
-    padding: Styles.globalMargins.small,
-  },
+  header: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      flexShrink: 0,
+    },
+    isElectron: {
+      height: headerHeight,
+      padding: Styles.globalMargins.small,
+    },
+    isMobile: {},
+  }),
   proofs: Styles.platformStyles({
     isElectron: {
       flexShrink: 0,
