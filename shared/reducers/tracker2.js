@@ -7,11 +7,6 @@ import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
-const guiIDToUsername = (state, guiID) => {
-  const d = state.usernameToDetails.find(d => d.guiID === guiID)
-  return d ? d.username : null
-}
-
 export default function(state: Types.State = initialState, action: Tracker2Gen.Actions): Types.State {
   switch (action.type) {
     case Tracker2Gen.resetStore:
@@ -32,7 +27,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       })
     }
     case Tracker2Gen.updatedDetails: {
-      const username = guiIDToUsername(state, action.payload.guiID)
+      const username = Constants.guiIDToUsername(state, action.payload.guiID)
       if (!username) {
         return state
       }
@@ -50,7 +45,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       })
     }
     case Tracker2Gen.updateResult: {
-      const username = guiIDToUsername(state, action.payload.guiID)
+      const username = Constants.guiIDToUsername(state, action.payload.guiID)
       if (!username) {
         return state
       }
@@ -70,7 +65,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       })
     }
     case Tracker2Gen.closeTracker: {
-      const username = guiIDToUsername(state, action.payload.guiID)
+      const username = Constants.guiIDToUsername(state, action.payload.guiID)
       if (!username) {
         return state
       }
@@ -83,7 +78,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       })
     }
     case Tracker2Gen.updateAssertion: {
-      const username = guiIDToUsername(state, action.payload.guiID)
+      const username = Constants.guiIDToUsername(state, action.payload.guiID)
       if (!username) {
         return state
       }
@@ -106,6 +101,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
         ),
       })
     }
+
     case Tracker2Gen.updateFollowers:
       const convert = f => f.username
       return state.merge({

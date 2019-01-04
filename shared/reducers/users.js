@@ -9,10 +9,13 @@ import * as Flow from '../util/flow'
 const initialState: Types.State = Constants.makeState()
 const blankUserInfo = Constants.makeUserInfo()
 
-const reducer = (
-  state: Types.State = initialState,
-  action: UsersGen.Actions | TrackerGen.UpdateUserInfoPayload | Tracker2Gen.UpdateFollowersPayload
-): Types.State => {
+type Actions =
+  | UsersGen.Actions
+  | TrackerGen.UpdateUserInfoPayload
+  | Tracker2Gen.UpdateFollowersPayload
+  | Tracker2Gen.UpdatedDetailsPayload
+
+const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
   switch (action.type) {
     case UsersGen.resetStore:
       return initialState
@@ -42,20 +45,23 @@ const reducer = (
         })
       )
     }
-    // maybe plumb through updatedetails
-    case TrackerGen.updateUserInfo: {
+    case TrackerGen.updateUserInfo:
       return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
         userInfo.set('fullname', action.payload.userCard.fullName)
       )
-    }
-
+    case Tracker2Gen.updatedDetails:
+      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
+        userInfo.set('fullname', action.payload.fullname)
+      )
     case Tracker2Gen.updateFollowers: {
-      const updates = [...action.payload.followers, ...action.payload.following].reduce((map, f) => {
-        map[f.username] = {fullname: f.fullname}
-        return map
-      }, {})
-
-      return state.updateIn(['infoMap'], infoMap => infoMap.mergeDeep(updates))
+      return state.update('infoMap', map =>
+        map.withMutations(m => {
+          const all = [...action.payload.followers, ...action.payload.following]
+          all.forEach(({username, fullname}) => {
+            m.update(username, old => (old || blankUserInfo).merge({fullname, fullname}))
+          })
+        })
+      )
     }
     // Saga only actions
     default:

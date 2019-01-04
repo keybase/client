@@ -1,5 +1,6 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
@@ -9,6 +10,7 @@ import logger from '../logger'
 import engine from '../engine'
 
 const setupEngineListeners = () => {
+  // TODO move over to engine action
   engine().actionOnConnect('registerIdentify3UI', () => {
     RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
       .then(() => {
@@ -50,26 +52,33 @@ const setupEngineListeners = () => {
           value: row.value,
         })
       ),
-    'keybase.1.identify3Ui.identify3UpdateUserCard': ({guiID, card}) =>
-      Saga.put(
-        Tracker2Gen.createUpdatedDetails({
-          bio: card.bio,
-          followThem: card.youFollowThem,
-          followersCount: card.followers,
-          followingCount: card.following,
-          followsYou: card.theyFollowYou,
-          fullname: card.fullName,
-          guiID,
-          location: card.location,
-          teamShowcase: (card.teamShowcase || []).map(t => ({
-            description: t.description,
-            isOpen: t.open,
-            membersCount: t.numMembers,
-            name: t.fqName,
-            publicAdmins: t.publicAdmins || [],
-          })),
-        })
-      ),
+  })
+}
+
+const updateUserCard = (state, action) => {
+  const {guiID, card} = action.payload.params
+  const username = Constants.guiIDToUsername(state.tracker2, guiID)
+  if (!username) {
+    throw new Error('update user card w/ no username? ' + guiID)
+  }
+
+  return Tracker2Gen.createUpdatedDetails({
+    bio: card.bio,
+    followThem: card.youFollowThem,
+    followersCount: card.followers,
+    followingCount: card.following,
+    followsYou: card.theyFollowYou,
+    fullname: card.fullName,
+    guiID,
+    location: card.location,
+    teamShowcase: (card.teamShowcase || []).map(t => ({
+      description: t.description,
+      isOpen: t.open,
+      membersCount: t.numMembers,
+      name: t.fqName,
+      publicAdmins: t.publicAdmins || [],
+    })),
+    username,
   })
 }
 
@@ -162,6 +171,11 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,
     setupEngineListeners
+  )
+
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
+    EngineGen.keybase1Identify3UiIdentify3UpdateUserCard,
+    updateUserCard
   )
   yield* Saga.chainAction<Tracker2Gen.ChangeFollowPayload>(Tracker2Gen.changeFollow, changeFollow)
   yield* Saga.chainAction<Tracker2Gen.IgnorePayload>(Tracker2Gen.ignore, ignore)

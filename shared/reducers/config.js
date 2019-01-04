@@ -13,17 +13,9 @@ import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
-// just a gui to username map for profile, only used to tie togeether followers state, not part of the store
-let guiIDToUsername = {}
+type Actions = ConfigGen.Actions | DevicesGen.RevokedPayload | Tracker2Gen.UpdatedDetailsPayload
 
-export default function(
-  state: Types.State = initialState,
-  action:
-    | ConfigGen.Actions
-    | DevicesGen.RevokedPayload
-    | Tracker2Gen.UpdatedDetailsPayload
-    | Tracker2Gen.LoadPayload
-): Types.State {
+export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
     case DevicesGen.revoked:
       return state.merge({
@@ -32,16 +24,10 @@ export default function(
           ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
           : state.defaultUsername,
       })
-    case Tracker2Gen.load:
-      guiIDToUsername[action.payload.guiID] = action.payload.assertion
-      return state
     case Tracker2Gen.updatedDetails: {
-      const username = guiIDToUsername[action.payload.guiID]
-      if (!username) {
-        return state
-      }
       let followers = state.followers
       let following = state.following
+      const {username} = action.payload
 
       if (action.payload.followThem) {
         following = following.add(username)
@@ -54,11 +40,9 @@ export default function(
       } else {
         followers = followers.delete(username)
       }
-
       return state.merge({followers, following})
     }
     case ConfigGen.resetStore:
-      guiIDToUsername = {}
       return initialState.merge({
         appFocused: state.appFocused,
         appFocusedCount: state.appFocusedCount,

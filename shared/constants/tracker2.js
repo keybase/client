@@ -154,6 +154,11 @@ export const sortAssertionKeys = (a: string, b: string) => {
 export const followThem = (state: TypedState, username: string) => state.config.following.has(username)
 export const followsYou = (state: TypedState, username: string) => state.config.followers.has(username)
 
+export const guiIDToUsername = (state: Types.State, guiID: string) => {
+  const d = state.usernameToDetails.find(d => d.guiID === guiID)
+  return d ? d.username : null
+}
+
 export const noDetails = makeDetails({})
 export const noAssertion = makeAssertion({})
 export const waitingKey = 'tracker2:waitingKey'
