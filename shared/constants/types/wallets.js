@@ -46,13 +46,6 @@ export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentI
 export const paymentIDToString = (id: PaymentID): string => id
 export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
-export type _Account = {
-  accountID: AccountID,
-  balanceDescription: string,
-  isDefault: boolean,
-  name: string,
-}
-
 export type _Assets = {
   assetCode: string,
   balanceAvailableToSend: string,
@@ -195,7 +188,19 @@ export type AssetDescription = I.RecordOf<_AssetDescription>
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
-export type Account = I.RecordOf<_Account>
+export type _Request = {
+  amount: string, // The number alone
+  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
+  asset: Asset,
+  completed: boolean,
+  completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
+  currencyCode: string, // set if asset === 'currency'
+  id: StellarRPCTypes.KeybaseRequestID,
+  requestee: string, // username or assertion
+  requesteeType: string,
+  sender: string,
+  status: 'ok' | 'canceled',
+}
 
 export type Assets = I.RecordOf<_Assets>
 
@@ -221,6 +226,15 @@ export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
 
+export type _Account = {
+  accountID: AccountID,
+  balanceDescription: string,
+  displayCurrency: Currency,
+  isDefault: boolean,
+  name: string,
+}
+export type Account = I.RecordOf<_Account>
+
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
@@ -237,7 +251,6 @@ export type _State = {
   builtRequest: BuiltRequest,
   createNewAccountError: string,
   currencies: I.List<Currency>,
-  currencyMap: I.Map<AccountID, Currency>,
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
   lastSentXLM: boolean,

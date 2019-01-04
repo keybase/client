@@ -320,7 +320,7 @@ const loadMorePayments = (state, action) => {
 const loadDisplayCurrencies = (state, action) =>
   RPCStellarTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
     WalletsGen.createDisplayCurrenciesReceived({
-      currencies: (res || []).map(c => Constants.currenciesResultToCurrencies(c)),
+      currencies: (res || []).map(c => Constants.currencyResultToCurrency(c)),
     })
   )
 
@@ -343,7 +343,7 @@ const loadDisplayCurrency = (state, action) => {
   ).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
       accountID: accountID,
-      currency: Constants.makeCurrencies(res),
+      currency: Constants.makeCurrency(res),
       setBuildingCurrency: action.payload.setBuildingCurrency,
     })
   )
