@@ -58,7 +58,7 @@ const WalletRow = (props: Props) => {
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
       {/* Just needed for proper centering */ emptyIcon}
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal">
           {!!props.keybaseUser && (
             <Kb.Avatar
               size={16}
