@@ -1,0 +1,14 @@
+// @flow
+import * as React from 'react'
+import * as Styles from '../../styles'
+import type {Position} from '../../common-adapters/relative-popup-hoc.types'
+
+export type Props = {
+  dropdownButtonDefaultText: string,
+  dropdownButtonStyle?: Styles.StylesCrossPlatform,
+  overlayStyle?: Styles.StylesCrossPlatform,
+  disabled?: boolean,
+  position?: Position,
+}
+
+declare export default React.ComponentType<Props>

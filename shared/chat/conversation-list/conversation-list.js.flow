@@ -1,0 +1,5 @@
+// @flow
+import * as React from 'react'
+import type {Props} from './shared'
+
+declare export default React.ComponentType<Props>
