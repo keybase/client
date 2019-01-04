@@ -1222,7 +1222,7 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
-func (b TLFIdentifyBehavior) UnblockDespiteTracking() bool {
+func (b TLFIdentifyBehavior) UnblockThenForceIDTable() bool {
 	switch b {
 	case TLFIdentifyBehavior_GUI_PROFILE:
 		return true
