@@ -118,6 +118,9 @@ export const WalletSwitcher = (props: Props) => {
 
   const selectedIndex = props.accountIDs.findIndex(accountID => accountID === props.selectedAccount)
 
+  // Menu items plus pinned cancel item on bottom.
+  const height = rowHeight * (menuItems.length + 1)
+
   return (
     <Kb.Overlay
       position="bottom center"
@@ -127,7 +130,7 @@ export const WalletSwitcher = (props: Props) => {
     >
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.container, {height: rowHeight * menuItems.length}])}
+        style={Styles.collapseStyles([styles.container, {height}])}
         fullWidth={true}
       >
         <Kb.List
