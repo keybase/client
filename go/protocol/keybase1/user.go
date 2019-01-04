@@ -128,6 +128,12 @@ func (o UserSummary) DeepCopy() UserSummary {
 	}
 }
 
+type EmailAddress string
+
+func (o EmailAddress) DeepCopy() EmailAddress {
+	return o
+}
+
 type Email struct {
 	Email      EmailAddress       `codec:"email" json:"email"`
 	IsVerified bool               `codec:"isVerified" json:"isVerified"`
@@ -324,12 +330,6 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
-type EmailAddress string
-
-func (o EmailAddress) DeepCopy() EmailAddress {
-	return o
-}
-
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -454,6 +454,10 @@ type FindNextMerkleRootAfterResetArg struct {
 	Prev       ResetMerkleRoot `codec:"prev" json:"prev"`
 }
 
+type LoadHasRandomPwArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -501,6 +505,7 @@ type UserInterface interface {
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
+	LoadHasRandomPw(context.Context, int) (bool, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -867,6 +872,21 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"loadHasRandomPw": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadHasRandomPwArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadHasRandomPwArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadHasRandomPwArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadHasRandomPw(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1021,5 +1041,11 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadHasRandomPw(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := LoadHasRandomPwArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res)
 	return
 }

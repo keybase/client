@@ -131,6 +131,12 @@
     },
     {
       "type": "record",
+      "name": "EmailAddress",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Email",
       "fields": [
         {
@@ -319,12 +325,6 @@
           "name": "res"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "EmailAddress",
-      "fields": [],
-      "typedef": "string"
     }
   ],
   "messages": {
@@ -702,6 +702,15 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
+    },
+    "loadHasRandomPw": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "keybase.1"

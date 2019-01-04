@@ -539,3 +539,18 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
 }
+
+func (h *UserHandler) LoadHasRandomPw(ctx context.Context, sessionID int) (res bool, err error) {
+	type hasRandomPWRes struct {
+		libkb.AppStatusEmbed
+		RandomPW bool `json:"random_pw"`
+	}
+
+	var ret hasRandomPWRes
+	err = h.G().API.GetDecode(libkb.APIArg{
+		Endpoint:    "user/has_random_pw",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}, &ret)
+	return ret.RandomPW, err
+}

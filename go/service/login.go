@@ -41,6 +41,7 @@ func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
 	err = mctx.G().API.GetDecode(libkb.APIArg{
 		Endpoint:    "user/can_logout",
 		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: mctx,
 	}, &res)
 	return res, err
 }

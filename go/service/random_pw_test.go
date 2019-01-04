@@ -25,6 +25,11 @@ func TestSignupRandomPWUser(t *testing.T) {
 	require.Contains(t, err.Error(), "Cannot logout")
 	require.Contains(t, err.Error(), "Set a password first")
 
+	userHandler := NewUserHandler(nil, tc.G, nil)
+	ret, err := userHandler.LoadHasRandomPw(context.Background(), 0)
+	require.NoError(t, err)
+	require.True(t, ret)
+
 	err = handler.Logout(context.Background(), keybase1.LogoutArg{Force: true})
 	require.NoError(t, err)
 }
