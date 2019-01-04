@@ -1216,7 +1216,9 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
 		return res, err
 	}
-	defer ui.ChatStellarDone(ctx)
+	defer func() {
+		ui.ChatStellarDone(ctx, err != nil)
+	}()
 	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
 	if err != nil {
 		ui.ChatStellarDataError(ctx, err.Error())

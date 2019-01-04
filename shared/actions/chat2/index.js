@@ -1227,11 +1227,14 @@ function* messageSend(state, action) {
       })
     ),
   ]
-  const onHideConfirm = () =>
+  const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
       const state = yield* Saga.selectState()
       if (getPath(state.routeTree.routeState).last() === routeName) {
         yield Saga.put(RouteTreeGen.createNavigateUp())
+      }
+      if (canceled) {
+        yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
       }
     })
   const onDataConfirm = ({summary}, response) => {

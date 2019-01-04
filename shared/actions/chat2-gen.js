@@ -90,6 +90,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
+export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
@@ -188,6 +189,7 @@ type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conve
 type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
+type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
@@ -266,6 +268,10 @@ export const createSetPaymentConfirmInfoError = (payload: _SetPaymentConfirmInfo
  * Set the remote exploding mode for a conversation.
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({payload, type: setConvExplodingMode})
+/**
+ * Set unsent text for a conversation
+ */
+export const createSetUnsentText = (payload: _SetUnsentTextPayload) => ({payload, type: setUnsentText})
 /**
  * Set whether exploding messages are a new feature or not.
  */
@@ -465,6 +471,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = {|+payload:
 export type SetPendingConversationUsersPayload = {|+payload: _SetPendingConversationUsersPayload, +type: 'chat2:setPendingConversationUsers'|}
 export type SetPendingModePayload = {|+payload: _SetPendingModePayload, +type: 'chat2:setPendingMode'|}
 export type SetPendingStatusPayload = {|+payload: _SetPendingStatusPayload, +type: 'chat2:setPendingStatus'|}
+export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
 export type ToggleLocalReactionPayload = {|+payload: _ToggleLocalReactionPayload, +type: 'chat2:toggleLocalReaction'|}
@@ -562,6 +569,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetPendingStatusPayload
+  | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
   | ToggleLocalReactionPayload

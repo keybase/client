@@ -118,6 +118,7 @@ const InputContainer = (props: Props) => {
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
     typing: props.typing,
+    unsentTextRefresh: false,
   }
 
   return (

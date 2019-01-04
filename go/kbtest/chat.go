@@ -1103,7 +1103,7 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, er
 	return false, nil
 }
 
-func (c *ChatUI) ChatStellarDone(ctx context.Context) error {
+func (c *ChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
 	c.StellarDone <- struct{}{}
 	return nil
 }
