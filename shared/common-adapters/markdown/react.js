@@ -8,6 +8,7 @@ import Text from '../text'
 import KbfsPath from './kbfs-path-container'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
+import {type MarkdownMeta, type StyleOverride} from '.'
 import Box from '../box'
 import Emoji from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
@@ -308,7 +309,7 @@ const reactComponentsForMarkdownType = {
       />
     )
   },
-  newline: (node, outputFunc, state) =>
+  newline: (node, output, state) =>
     !isMobile || state.inParagraph ? (
       '\n'
     ) : (
@@ -334,12 +335,18 @@ const reactComponentsForMarkdownType = {
     )
   },
   serviceDecoration: (node, output, state) => {
+    const {markdownMeta} = state
+    if (!markdownMeta) {
+      throw new Error('markdownMeta unexpectedly empty')
+    }
+    const {message} = markdownMeta
+
     return (
       <ServiceDecoration
         json={node.content}
         key={state.key}
         allowFontScaling={state.allowFontScaling}
-        message={state.markdownMeta.message}
+        message={message}
       />
     )
   },
@@ -358,7 +365,34 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text.react,
 }
 
-const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: any) => any}) => (
+type State = {
+  allowFontScaling?: boolean,
+  inBlockQuote?: boolean,
+  inParagraph?: boolean,
+  key?: string,
+  markdownMeta: ?MarkdownMeta,
+  styleOverride: StyleOverride,
+}
+
+// Ideally this would be a discriminated union keyed by type.
+type SingleASTNode = {
+  type: string,
+  [string]: any,
+}
+
+// The types below are adapted from the simple-markdown types.
+
+type ASTNode = SingleASTNode | Array<SingleASTNode>
+
+type Output<Result> = (node: ASTNode, state?: ?State) => Result
+
+type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result
+
+type ReactElements = React$Node
+
+type ReactNodeOutput = NodeOutput<ReactElements>
+
+const ruleOutput = (rules: {text: NodeOutput<string>, [key: string]: ReactNodeOutput}) => (
   node,
   output,
   state
@@ -385,8 +419,10 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
   })
 )
 
+// TODO: Fix the typing here. Can ast actually be a non-object? Can
+// output actually only return strings?
 const previewOutput = SimpleMarkdown.reactFor(
-  (ast: any, output: Function, state: any): any => {
+  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
     // leaf node is just the raw value, so it has no ast.type
     if (typeof ast !== 'object') {
       return ast

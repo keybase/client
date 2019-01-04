@@ -4,7 +4,7 @@ import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
-import type {MarkdownMeta, Props as MarkdownProps} from '../markdown'
+import type {MarkdownMeta, Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, tldExp, commonTlds} from './emoji-gen'
 import {isMobile} from '../../constants/platform'
 import {specialMentions} from '../../constants/chat2'
@@ -130,6 +130,9 @@ const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
 }
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
+//
+// TODO: Type rules. In particular, use a better type for State than
+// that provided by simple-markdown, which is {[string]: any}.
 const rules = {
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
@@ -415,7 +418,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     return {hasError: true}
   }
 
-  componentDidCatch(error: any) {
+  componentDidCatch(error: Error) {
     logger.error('Error rendering markdown')
     logger.debug('Error rendering markdown', error)
   }
