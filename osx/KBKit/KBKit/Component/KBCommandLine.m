@@ -52,9 +52,44 @@
   }];
 }
 
+- (NSError *)uninstallBinaryLink:(NSString *)name fromDir:(NSString *)binDir {
+
+  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", binDir, name];
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (!attributes) {
+    DDLogDebug(@"No symlink exists at path %@, so nothing to do", linkPath);
+    return nil;
+  }
+
+  if (![attributes[NSFileType] isEqual:NSFileTypeSymbolicLink]) {
+    DDLogInfo(@"File exists at %@ but isn't a symlink; we'll still try to remove it", linkPath);
+  }
+  NSError *ret = nil;
+  if (![NSFileManager.defaultManager removeItemAtPath:linkPath error:&ret]) {
+    DDLogError(@"Removal of link failed %@: %@", linkPath, ret);
+  }
+  return ret;
+}
+
+- (NSError *)uninstallWithoutHelper {
+  NSString *binDir = @"/usr/local/bin";
+  [self uninstallBinaryLink:self.config.serviceBinName fromDir:binDir];
+  [self uninstallBinaryLink:self.config.gitRemoteHelperName fromDir:binDir];
+  return nil;
+}
+
 - (void)uninstall:(KBCompletion)completion {
+
+  if (![self.helperTool exists]) {
+    DDLogDebug(@"No helper tool exists, so we're uninstalling symlinks ourselves");
+    NSError *error = [self uninstallWithoutHelper];
+    completion(error);
+    return;
+  }
+
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: removeFromPath(%@)", params);
+
   [self.helperTool.helper sendRequest:@"removeFromPath" params:@[params] completion:^(NSError *error, id value) {
     DDLogDebug(@"Result: %@", value);
     if (error) {
