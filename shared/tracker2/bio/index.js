@@ -10,12 +10,13 @@ type Props = {|
   followingCount: ?number,
   followsYou: ?boolean,
   fullname: ?string,
+  inTracker: boolean,
   location: ?string,
 |}
 
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
-    <Kb.Text type="BodyBig" lineClamp={1} style={styles.text}>
+    <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
       {p.fullname}
     </Kb.Text>
     {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
@@ -38,12 +39,12 @@ const Bio = (p: Props) => (
       </Kb.Text>
     )}
     {!!p.bio && (
-      <Kb.Text type="Body" lineClamp={2} style={styles.text}>
+      <Kb.Text type="Body" lineClamp={p.inTracker ? 2 : undefined} style={styles.text}>
         {p.bio}
       </Kb.Text>
     )}
     {!!p.location && (
-      <Kb.Text type="BodySmall" lineClamp={1} style={styles.text}>
+      <Kb.Text type="BodySmall" lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
         {p.location}
       </Kb.Text>
     )}

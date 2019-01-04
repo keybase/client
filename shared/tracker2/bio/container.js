@@ -4,6 +4,7 @@ import * as Constants from '../../constants/tracker2'
 import Bio from '.'
 
 type OwnProps = {|
+  inTracker: boolean,
   username: string,
 |}
 
@@ -27,6 +28,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followingCount: stateProps.followingCount,
   followsYou: stateProps.followsYou,
   fullname: stateProps.fullname,
+  inTracker: ownProps.inTracker,
   location: stateProps.location,
 })
 

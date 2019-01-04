@@ -38,21 +38,23 @@ const Header = ({onBack}) => (
 )
 
 const BioLayout = p => (
-  <Kb.Box2 direction="vertical">
+  <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
       username={p.username}
       colorFollowing={true}
       notFollowingColorOverride={Styles.globalColors.orange}
     />
-    <Bio username={p.username} />
-    <Actions {...p} />
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+      <Bio inTracker={false} username={p.username} />
+      <Actions {...p} />
+    </Kb.Box2>
   </Kb.Box2>
 )
 
 const DesktopLayout = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     <Header onBack={p.onBack} />
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
       <BioLayout {...p} />
     </Kb.Box2>
   </Kb.Box2>
@@ -68,5 +70,15 @@ class User extends React.PureComponent<Props> {
     return Styles.isMobile ? <MobileLayout {...this.props} /> : <DesktopLayout {...this.props} />
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  bio: Styles.platformStyles({
+    isMobile: {width: '100%'},
+    isElectron: {maxWidth: 350},
+  }),
+  bioAndProofs: {
+    justifyContent: 'space-around',
+  },
+})
 
 export default User
