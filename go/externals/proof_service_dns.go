@@ -42,7 +42,7 @@ func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libk
 
 type DNSServiceType struct{ libkb.BaseServiceType }
 
-func (t *DNSServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *DNSServiceType) StringKey() string { return t.GetTypeName() }
 
 func (t *DNSServiceType) NormalizeUsername(s string) (string, error) {
 	if !libkb.IsValidHostname(s) {

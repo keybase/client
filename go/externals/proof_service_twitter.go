@@ -39,7 +39,7 @@ func (rc *TwitterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _
 
 type TwitterServiceType struct{ libkb.BaseServiceType }
 
-func (t *TwitterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *TwitterServiceType) StringKey() string { return t.GetTypeName() }
 
 var twitterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 

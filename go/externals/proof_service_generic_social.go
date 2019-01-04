@@ -242,7 +242,7 @@ func NewGenericSocialProofServiceType(config *GenericSocialProofConfig) *Generic
 	}
 }
 
-func (t *GenericSocialProofServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *GenericSocialProofServiceType) StringKey() string { return t.GetTypeName() }
 
 func (t *GenericSocialProofServiceType) NormalizeUsername(s string) (string, error) {
 	if err := t.config.validateRemoteUsername(s); err != nil {

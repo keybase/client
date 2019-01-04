@@ -59,11 +59,11 @@ type WebServiceType struct {
 	scheme string
 }
 
-func (t *WebServiceType) AllStringKeys() []string {
+func (t *WebServiceType) StringKey() string {
 	if t.scheme == "" {
-		return []string{"web"}
+		return "web"
 	}
-	return []string{t.scheme}
+	return t.scheme
 }
 
 func (t *WebServiceType) NormalizeUsername(s string) (ret string, err error) {
