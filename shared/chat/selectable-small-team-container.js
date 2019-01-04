@@ -4,7 +4,7 @@ import * as Types from '../constants/types/chat2'
 import SelectableSmallTeam from './selectable-small-team'
 import {namedConnect} from '../util/container'
 
-type OwnProps = {|
+export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   filter?: string,
   isSelected: boolean,

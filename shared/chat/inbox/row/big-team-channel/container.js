@@ -5,10 +5,10 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {BigTeamChannel} from '.'
 import {connect, isMobile} from '../../../../util/container'
 
-type OwnProps = {|
+type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   channelname: string,
-|}
+}
 
 const mapStateToProps = (state, ownProps) => {
   const _conversationIDKey = ownProps.conversationIDKey
