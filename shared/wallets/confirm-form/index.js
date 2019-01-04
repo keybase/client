@@ -36,11 +36,11 @@ const getBannerAction = (props: ConfirmSendProps, banner: BannerType) => {
 }
 
 const ConfirmSend = (props: ConfirmSendProps) => (
-  <Kb.MaybePopup onClose={props.sendFailed ? props.onExitFailed : props.onClose}>
+  <Kb.MaybePopup onClose={props.onClose}>
     {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
-        onBack={props.sendFailed ? props.onExitFailed : props.onBack}
+        onBack={props.onBack}
         sendingIntentionXLM={props.sendingIntentionXLM}
         displayAmountXLM={props.displayAmountXLM}
         displayAmountFiat={props.displayAmountFiat}
