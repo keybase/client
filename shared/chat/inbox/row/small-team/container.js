@@ -13,12 +13,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const youAreReset = _meta.membershipType === 'youAreReset'
   const typers = state.chat2.typingMap.get(_conversationIDKey)
   let snippet = _meta.snippet
-  let snippetDecoration = _meta.snippetDecoration
-  let snippetStyle
+  let isTypingSnippet = false
   if (typers && typers.size > 0) {
-    snippetDecoration = ''
+    isTypingSnippet = true
     snippet = typers.size === 1 ? `${typers.first()} is typing...` : 'multiple people typing...'
-    snippetStyle = {fontStyle: 'italic'}
   }
   return {
     _meta,
@@ -26,9 +24,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
     isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
+    isTypingSnippet,
     snippet,
-    snippetDecoration,
-    snippetStyle,
+    snippetDecoration: _meta.snippetDecoration,
     youAreReset,
   }
 }
@@ -56,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
+    isTypingSnippet: stateProps.isTypingSnippet,
     // Don't allow you to select yourself
     onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
     participantNeedToRekey,
@@ -63,7 +62,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     showBold: styles.showBold,
     snippet: stateProps.snippet,
     snippetDecoration: stateProps.snippetDecoration,
-    snippetStyle: stateProps.snippetStyle,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
     timestamp: Constants.timestampToString(stateProps._meta),
