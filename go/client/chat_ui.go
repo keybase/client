@@ -292,6 +292,6 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellar
 	return false, errors.New(msg)
 }
 
-func (c *ChatUI) ChatStellarDone(ctx context.Context, sessionID int) error {
+func (c *ChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
 	return nil
 }

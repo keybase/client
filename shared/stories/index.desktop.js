@@ -12,6 +12,17 @@ import {initDesktopStyles} from '../styles/index.desktop'
 
 const stories = {...sharedStories, ...desktopStories}
 
+const filter = process.env.STORYBOOK_FILTER ? new RegExp(process.env.STORYBOOK_FILTER) : null
+const filteredStories = Object.keys(stories).reduce(
+  (acc, k) => {
+    if (filter && filter.exec(k)) {
+      acc[k] = stories[k]
+    }
+    return acc
+  },
+  filter ? {} : stories
+)
+
 const rootDecorator = story => (
   <div style={{height: '100%', width: '100%'}}>
     {story()}
@@ -24,7 +35,7 @@ const load = () => {
   addDecorator(rootDecorator)
   // $FlowIssue
   addDecorator(Sb.createPropProviderWithCommon())
-  Object.keys(stories).forEach(s => stories[s]())
+  Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }
 
 export default load

@@ -37,16 +37,18 @@ const apiSearch = (
     })
 
 function* searchResultCounts(state) {
-  const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state.chat2
+  const {teamBuildingSearchQuery, teamBuildingSelectedService} = state.chat2
+  const teamBuildingSearchLimit = 11 // Hard coded since this happens for background tabs
 
   if (teamBuildingSearchQuery === '') {
     return
   }
 
   // filter out the service we are searching for and contact
-  const servicesToSearch = Constants.services.filter(
-    s => s !== teamBuildingSelectedService && s !== 'contact'
-  )
+  // Also filter out if we already have that result cached
+  const servicesToSearch = Constants.services
+    .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
+    .filter(s => !state.chat2.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
   const isStillInSameQuery = (state: TypedState): boolean =>
     state.chat2.teamBuildingSearchQuery === teamBuildingSearchQuery &&
@@ -93,6 +95,11 @@ function* searchResultCounts(state) {
 
 const search = state => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state.chat2
+  // We can only ask the api for at most 100 results
+  if (teamBuildingSearchLimit > 100) {
+    logger.info('ignoring search request with a limit over 100')
+    return
+  }
 
   // TODO add a way to search for contacts
   if (teamBuildingSearchQuery === '' || teamBuildingSelectedService === 'contact') {
@@ -115,8 +122,8 @@ const fetchUserRecs = state =>
       (suggestions || []).map(
         ({username}): TeamBuildingTypes.User => ({
           id: username,
-          prettyName: `${username} on Keybase`,
-          serviceMap: {},
+          prettyName: ``,
+          serviceMap: {keybase: username},
         })
       )
     )

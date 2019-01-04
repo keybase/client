@@ -48,6 +48,7 @@ export type _State = {
   startupLink: string,
   startupTab: ?Tab,
   uid: string,
+  useNewRouter: boolean,
   userActive: boolean,
   username: string,
 }

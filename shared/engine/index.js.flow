@@ -3,36 +3,7 @@ import Session from './session'
 import type {TypedActions} from '../util/container'
 import type {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
-import type {
-  CustomResponseIncomingCallMap as KBCustomResponseIncomingCallMap,
-  IncomingCallMapType as KBIncomingCallMap,
-} from '../constants/types/rpc-gen'
-import type {
-  CustomResponseIncomingCallMap as ChatCustomResponseIncomingCallMap,
-  IncomingCallMapType as ChatIncomingCallMap,
-} from '../constants/types/rpc-chat-gen'
-import type {
-  CustomResponseIncomingCallMap as GregorCustomResponseIncomingCallMap,
-  IncomingCallMapType as GregorIncomingCallMap,
-} from '../constants/types/rpc-gregor-gen'
-import type {
-  CustomResponseIncomingCallMap as SellarCustomResponseIncomingCallMap,
-  IncomingCallMapType as SellarIncomingCallMap,
-} from '../constants/types/rpc-stellar-gen'
-
-export type IncomingCallMapType = {|
-  ...KBIncomingCallMap,
-  ...ChatIncomingCallMap,
-  ...GregorIncomingCallMap,
-  ...SellarIncomingCallMap,
-|}
-
-export type CustomResponseIncomingCallMapType = {|
-  ...KBCustomResponseIncomingCallMap,
-  ...ChatCustomResponseIncomingCallMap,
-  ...GregorCustomResponseIncomingCallMap,
-  ...SellarCustomResponseIncomingCallMap,
-|}
+import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
 
 type WaitingKey = string | Array<string>
 
@@ -67,3 +38,4 @@ declare export class Engine {
 declare export function getEngine(): Engine
 declare export function makeEngine(any, any): Engine
 export default getEngine
+export type {IncomingCallMapType, CustomResponseIncomingCallMapType}

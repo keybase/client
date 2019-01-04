@@ -71,10 +71,7 @@ const parseRawResultToUser = (
 
     const kbPrettyName = result.keybase && (result.keybase.full_name || result.keybase.username)
 
-    const prettyName =
-      result.service.full_name ||
-      kbPrettyName ||
-      `${result.service.username} on ${result.service.service_name}`
+    const prettyName = result.service.full_name || kbPrettyName || ``
 
     const id = result.keybase
       ? result.keybase.username
