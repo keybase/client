@@ -368,9 +368,11 @@ const reactComponentsForMarkdownType = {
 
 type State = {
   allowFontScaling?: boolean,
+  inBlockQuote?: boolean,
+  inParagraph?: boolean,
+  key?: string,
   markdownMeta: ?MarkdownMeta,
   styleOverride: StyleOverride,
-  [string]: any,
 }
 
 type ReactElements = React$Node
