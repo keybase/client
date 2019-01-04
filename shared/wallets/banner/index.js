@@ -6,6 +6,8 @@ import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} 
 
 type Props = {
   background: Background,
+  onReviewProofs?: () => void,
+  reviewProofs?: boolean,
   text: string,
 }
 
@@ -18,6 +20,16 @@ const Banner = (props: Props) => (
   >
     <Text type="BodySmallSemibold" style={styles.text} backgroundMode={props.background}>
       {props.text}
+      {props.reviewProofs && (
+        <Text
+          type="BodySmallSemiboldPrimaryLink"
+          style={styles.secondText}
+          backgroundMode={props.background}
+          onClick={props.onReviewProofs}
+        >
+          Please review.
+        </Text>
+      )}
     </Text>
   </Box2>
 )
@@ -28,6 +40,10 @@ const styles = styleSheetCreate({
     padding: globalMargins.small,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
+  },
+  secondText: {
+    paddingLeft: globalMargins.xtiny,
+    textAlign: 'center',
   },
   text: {
     textAlign: 'center',

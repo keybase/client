@@ -233,6 +233,14 @@
       "_description": "Store a request's details",
       "request": "StellarRPCTypes.RequestDetailsLocal"
     },
+    "reviewedPaymentReceived": {
+      "_description": "Update our store with the results of reviewing a built payment",
+      "bid": "string",
+      "reviewID": "number",
+      "seqno": "number",
+      "nextButton": "string",
+      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>",
+    },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
       "accountID": "Types.AccountID",
@@ -304,9 +312,12 @@
       "lastSentXLM": "boolean",
       "writeFile": "boolean"
     },
-    "setReadyToSend": {
-      "_description": "Set whether the payment is ready to send",
-      "readyToSend": "boolean"
+    "setReadyToReview": {
+      "_description": "Set whether the payment is ready to review",
+      "readyToReview": "boolean"
+    },
+    "reviewPayment": {
+      "_description": "Move to the confirm screen on a built payment."
     },
     "openSendRequestForm": {
       "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",

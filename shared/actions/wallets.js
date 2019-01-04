@@ -144,7 +144,7 @@ const sendPayment = state => {
       // FIXME -- support other assets.
       bid: state.wallets.building.bid,
       bypassBid: false,
-      bypassReview: true, // DESKTOP-8556
+      bypassReview: false,
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -199,6 +199,19 @@ const startPayment = () =>
   RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
     WalletsGen.createBuildingPaymentIDReceived({bid})
   )
+
+const reviewPayment = state =>
+  RPCStellarTypes.localReviewPaymentLocalRpcPromise({
+    bid: state.wallets.building.bid,
+    reviewID: state.wallets.reviewCounter,
+  }).catch(error => {
+    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+      // ignore cancellation, which is expected in the case where we have a
+      // failing review and then we build or stop a payment
+    } else {
+      throw error
+    }
+  })
 
 const stopPayment = (state, action) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
@@ -614,6 +627,8 @@ const setupEngineListeners = () => {
             .filter(Boolean),
         })
       ),
+    'stellar.1.ui.paymentReviewed': ({msg: {bid, reviewID, seqno, banners, nextButton}}) =>
+      Saga.put(WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})),
   })
 }
 
@@ -849,6 +864,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.openSendRequestForm,
     openSendRequestForm
   )
+  yield* Saga.chainAction<WalletsGen.ReviewPaymentPayload>(WalletsGen.reviewPayment, reviewPayment)
   yield* Saga.chainAction<WalletsGen.OpenSendRequestFormPayload>(WalletsGen.openSendRequestForm, startPayment)
 
   yield* Saga.chainAction<WalletsGen.DeletedAccountPayload>(WalletsGen.deletedAccount, deletedAccount)
