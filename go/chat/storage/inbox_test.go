@@ -590,7 +590,7 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, 2, res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.EqualValues(t, 1, res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.EqualValues(t, 1, res[0].Conv.ReaderInfo.OrangeLineMsgid, "wrong orange line msgid")
+	require.EqualValues(t, 2, res[0].Conv.ReaderInfo.OrangeLineMsgid, "wrong orange line msgid")
 	require.NoError(t, inbox.ReadMessage(context.TODO(), uid, 3, conv.GetConvID(), 2))
 	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
 	require.NoError(t, err)
