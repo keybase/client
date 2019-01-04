@@ -10,9 +10,10 @@ import {type Banner as BannerType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
+  onExitFailed: () => void,
   onSendClick: () => void,
   onBack: () => void,
-  onReviewProofs?: () => void,
+  onReviewProofs: () => void,
   encryptedNote?: string,
   publicMemo?: string,
   banners?: Array<BannerType>,
@@ -24,12 +25,22 @@ type ConfirmSendProps = {|
   readyToSend: string,
 |}
 
+const getBannerAction = (props: ConfirmSendProps, banner: BannerType) => {
+  if (banner.reviewProofs) {
+    return props.onReviewProofs
+  }
+  if (banner.sendFailed) {
+    return props.onExitFailed
+  }
+  return null
+}
+
 const ConfirmSend = (props: ConfirmSendProps) => (
-  <Kb.MaybePopup onClose={props.onClose}>
+  <Kb.MaybePopup onClose={props.sendFailed ? props.onExitFailed : props.onClose}>
     {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
-        onBack={props.onBack}
+        onBack={props.sendFailed ? props.onExitFailed : props.onBack}
         sendingIntentionXLM={props.sendingIntentionXLM}
         displayAmountXLM={props.displayAmountXLM}
         displayAmountFiat={props.displayAmountFiat}
@@ -38,8 +49,9 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         <Banner
           background={banner.bannerBackground}
           key={banner.bannerText}
-          onReviewProofs={props.onReviewProofs}
+          onAction={getBannerAction(props, banner)}
           reviewProofs={banner.reviewProofs}
+          sendFailed={banner.sendFailed}
           text={banner.bannerText}
         />
       ))}

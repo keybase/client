@@ -16,6 +16,7 @@ const mapStateToProps = state => {
         {
           bannerBackground: 'HighRisk',
           bannerText: state.wallets.sentPaymentError,
+          sendFailed: true,
         },
       ]
     : []
@@ -48,6 +49,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onExitFailed: () => dispatch(WalletsGen.createExitFailedPayment()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
@@ -68,6 +70,7 @@ export default connect<OwnProps, _, _, _, _>(
       dispatchProps._onClearErrors()
       dispatchProps._onClose()
     },
+    onExitFailed: dispatchProps.onExitFailed,
     onReviewProofs: () => dispatchProps._onReviewProofs(stateProps.to),
     onSendClick: dispatchProps.onSendClick,
     publicMemo: stateProps.publicMemo,

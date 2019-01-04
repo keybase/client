@@ -219,6 +219,7 @@ export type Banner = {|
   bannerBackground: BannerBackground,
   bannerText: string,
   reviewProofs?: boolean,
+  sendFailed?: boolean,
 |}
 
 export type Building = I.RecordOf<_Building>

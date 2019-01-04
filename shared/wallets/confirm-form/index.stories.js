@@ -27,6 +27,8 @@ const confirmProps = {
   displayAmountXLM: '1.234 XLM',
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
+  onExitFailed: Sb.action('onExitFailed'),
+  onReviewProofs: Sb.action('onReviewProofs'),
   onSendClick: Sb.action('onSendClick'),
   readyToSend: 'enabled',
   sendFailed: false,
