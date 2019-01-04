@@ -310,8 +310,6 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				ToIsAccountID: arg.ToIsAccountID,
 				Amount:        amountX.amountOfAsset,
 				Asset:         amountX.asset,
-				SecretNote:    arg.SecretNote,
-				PublicMemo:    arg.PublicMemo,
 			}
 		}
 	}
@@ -864,8 +862,8 @@ type frozenPayment struct {
 	ToIsAccountID bool
 	Amount        string
 	Asset         stellar1.Asset
-	SecretNote    string
-	PublicMemo    string
+	// SecretNote and PublicMemo are not checked because
+	// frontend may not call build when the user changes the notes.
 }
 
 func newBuildPaymentEntry(bid stellar1.BuildPaymentID) *buildPaymentEntry {
@@ -909,13 +907,6 @@ func (b *buildPaymentData) CheckReadyToSend(arg stellar1.SendPaymentLocalArg) er
 	}
 	if !arg.Asset.Eq(b.Frozen.Asset) {
 		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, b.Frozen.Asset)
-	}
-	if arg.SecretNote != b.Frozen.SecretNote {
-		// Don't log the secret memo.
-		return fmt.Errorf("mismatched secret note")
-	}
-	if arg.PublicMemo != b.Frozen.PublicMemo {
-		return fmt.Errorf("mismatched public memo: '%v' != '%v'", arg.PublicMemo, b.Frozen.PublicMemo)
 	}
 	return nil
 }
