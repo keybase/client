@@ -4,10 +4,19 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as Styles from '../../styles'
 import Profile2 from '.'
 import type {RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{username: string}, {}>
+
+const headerBackgroundColor = (state, followThem) => {
+  if (['broken', 'error'].includes(state)) {
+    return Styles.globalColors.red
+  } else {
+    return followThem ? Styles.globalColors.green : Styles.globalColors.blue
+  }
+}
 
 const mapStateToProps = (state, ownProps) => {
   const username = ownProps.routeProps.get('username')
@@ -16,14 +25,8 @@ const mapStateToProps = (state, ownProps) => {
   return {
     _assertions: d.assertions,
     _teamShowcase: d.teamShowcase,
-    bio: d.bio,
-    followThem: Constants.followThem(state, username),
-    followersCount: d.followersCount,
-    followingCount: d.followingCount,
-    followsYou: Constants.followsYou(state, username),
+    backgroundColor: headerBackgroundColor(d.state, Constants.followThem(state, username)),
     guiID: d.guiID,
-    location: d.location,
-    reason: d.reason,
     state: d.state,
     username,
   }
@@ -49,13 +52,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   assertionKeys: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
-  bio: stateProps.bio,
-  followThem: stateProps.followThem,
-  followersCount: stateProps.followersCount,
-  followingCount: stateProps.followingCount,
-  followsYou: stateProps.followsYou,
-  guiID: stateProps.guiID,
-  location: stateProps.location,
+  backgroundColor: stateProps.backgroundColor,
   onAccept: () => dispatchProps._onFollow(stateProps.guiID, true),
   onBack: () => dispatchProps.onBack(),
   onChat: () => dispatchProps._onChat(stateProps.username),
@@ -64,7 +61,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
   onReload: () => dispatchProps._onReload(stateProps.username),
   onUnfollow: () => dispatchProps._onFollow(stateProps.guiID, false),
-  reason: stateProps.reason,
   state: stateProps.state,
   teamShowcase: stateProps._teamShowcase ? stateProps._teamShowcase.map(t => t.toObject()).toArray() : null,
   username: stateProps.username,

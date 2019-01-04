@@ -10,13 +10,7 @@ import Actions from './actions'
 
 export type Props = {|
   assertionKeys: ?$ReadOnlyArray<string>,
-  bio: ?string,
-  followThem: ?boolean,
-  followersCount: ?number,
-  followingCount: ?number,
-  followsYou: ?boolean,
-  guiID: ?string,
-  location: ?string,
+  backgroundColor: string,
   onFollow: () => void,
   onUnfollow: () => void,
   onBack: () => void,
@@ -25,20 +19,16 @@ export type Props = {|
   onReload: () => void,
   onIgnoreFor24Hours: () => void,
   onAccept: () => void,
-  reason: string,
   state: Types.DetailsState,
   teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
   username: string,
 |}
 
-const Header = ({onBack, state, followThem}) => (
+const Header = ({onBack, state, backgroundColor}) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([
-      styles.header,
-      {backgroundColor: headerBackgroundColor(state, followThem)},
-    ])}
+    style={Styles.collapseStyles([styles.header, {backgroundColor}])}
   >
     <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={onBack} />
     <Kb.Text type="Body">TODO search</Kb.Text>
@@ -117,62 +107,44 @@ class FriendshipTabs extends React.Component<Props, State> {
     })
   }
 
+  _tab = following => (
+    <Kb.ClickableBox
+      style={Styles.collapseStyles([
+        styles.followTab,
+        following === this.state.selectedFollowing && styles.followTabSelected,
+      ])}
+    >
+      <Kb.Text
+        type="BodySmallSemibold"
+        onClick={() => this._clicked(following)}
+        style={
+          following === this.state.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
+        }
+      >
+        {following ? 'Following' : 'Followers'} (TODO)
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+
   render() {
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.followTabContainer}>
-        <Kb.ClickableBox
-          style={Styles.collapseStyles([
-            styles.followTab,
-            !this.state.selectedFollowing && styles.followTabSelected,
-          ])}
-        >
-          <Kb.Text
-            type="BodySmallSemibold"
-            onClick={() => this._clicked(false)}
-            style={this.state.selectedFollowing ? styles.followTabText : styles.followTabTextSelected}
-          >
-            Followers (TODO)
-          </Kb.Text>
-        </Kb.ClickableBox>
-        <Kb.ClickableBox
-          style={Styles.collapseStyles([
-            styles.followTab,
-            this.state.selectedFollowing && styles.followTabSelected,
-          ])}
-        >
-          <Kb.Text
-            type="BodySmallSemibold"
-            onClick={() => this._clicked(true)}
-            style={!this.state.selectedFollowing ? styles.followTabText : styles.followTabTextSelected}
-          >
-            Following (TODO)
-          </Kb.Text>
-        </Kb.ClickableBox>
+        {this._tab(false)}
+        {this._tab(true)}
       </Kb.Box2>
     )
   }
 }
 
-const headerBackgroundColor = (state, followThem) => {
-  if (['broken', 'error'].includes(state)) {
-    return Styles.globalColors.red
-  } else {
-    return followThem ? Styles.globalColors.green : Styles.globalColors.blue
-  }
-}
-
 const DesktopLayout = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <Header onBack={p.onBack} state={p.state} followThem={p.followThem} />
+    <Header onBack={p.onBack} state={p.state} backgroundColor={p.backgroundColor} />
     <Kb.ScrollView>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            {backgroundColor: headerBackgroundColor(p.state, p.followThem)},
-          ])}
+          style={Styles.collapseStyles([styles.backgroundColor, {backgroundColor: p.backgroundColor}])}
         />
         <BioLayout {...p} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
@@ -187,7 +159,13 @@ const DesktopLayout = (p: Props) => (
 class MobileLayout extends React.Component<Props> {
   _renderSectionHeader = ({section}) => {
     if (section.data[0] === 'bioTeamProofs') {
-      return <Header onBack={this.props.onBack} state={this.props.state} followThem={this.props.followThem} />
+      return (
+        <Header
+          onBack={this.props.onBack}
+          state={this.props.state}
+          backgroundColor={this.props.backgroundColor}
+        />
+      )
     }
     return <FriendshipTabs {...this.props} />
   }
@@ -197,10 +175,7 @@ class MobileLayout extends React.Component<Props> {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Styles.collapseStyles([
-          styles.backgroundColor,
-          {backgroundColor: headerBackgroundColor(this.props.state, this.props.followThem)},
-        ])}
+        style={Styles.collapseStyles([styles.backgroundColor, {backgroundColor: this.props.backgroundColor}])}
       />
       <BioLayout {...this.props} />
     </Kb.Box2>
@@ -212,10 +187,9 @@ class MobileLayout extends React.Component<Props> {
 
   render() {
     const otherUsers = ['a', 'b']
-    const backgroundColor = headerBackgroundColor(this.props.state, this.props.followThem)
     return (
       <Kb.Box2 directio="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.SafeAreaViewTop style={{backgroundColor, flexGrow: 0}} />
+        <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
         <Kb.SectionList
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this._renderSectionHeader}
@@ -223,8 +197,8 @@ class MobileLayout extends React.Component<Props> {
             {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs},
             {data: otherUsers, renderItem: this._renderOtherUsers},
           ]}
-          style={{backgroundColor}}
-          contentContainerStyle={{backgroundColor: Styles.globalColors.white}}
+          style={{backgroundColor: this.props.backgroundColor}}
+          contentContainerStyle={styles.sectionListBackground}
         />
       </Kb.Box2>
     )
@@ -300,6 +274,7 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {width: '100%'},
   }),
+  sectionListBackground: {backgroundColor: Styles.globalColors.white},
   teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     flexShrink: 0,
