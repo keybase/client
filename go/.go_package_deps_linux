@@ -19,7 +19,6 @@
       "github.com/keybase/client/go/git" : 1,
       "github.com/keybase/client/go/home" : 1,
       "github.com/keybase/client/go/identify3" : 1,
-      "github.com/keybase/client/go/kbfs/fsrpc" : 1,
       "github.com/keybase/client/go/kbfs/kbfsblock" : 1,
       "github.com/keybase/client/go/kbfs/kbfscrypto" : 1,
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
