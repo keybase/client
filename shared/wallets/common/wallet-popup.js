@@ -105,7 +105,6 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
     isMobile: {
-      flex: 1,
       width: '100%',
     },
   }),
@@ -113,12 +112,13 @@ const styles = Styles.styleSheetCreate({
   scrollView: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
+    height: '100%',
     width: '100%',
   },
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 })
 
-const WalletPopupWrapped = compose(
+export default compose(
   withProps<any, any, any>((props: WalletPopupProps) => ({
     [backButtonTypeToFcnHandle[props.backButtonType]]: (props.onExit: any), // cast to any for flow "incompatible with undefined"
     customCancelText: props.backButtonType === 'close' ? 'Close' : '',
@@ -129,16 +129,3 @@ const WalletPopupWrapped = compose(
   })),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)
-
-const WithKeyboardAvoidingView = (props: WalletPopupProps) => (
-  <Kb.KeyboardAvoidingView
-    behavior={Styles.isAndroid ? undefined : 'padding'}
-    style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
-  >
-    <Kb.SafeAreaViewTop />
-    <WalletPopupWrapped {...props} />
-    <Kb.SafeAreaView />
-  </Kb.KeyboardAvoidingView>
-)
-
-export default WithKeyboardAvoidingView
