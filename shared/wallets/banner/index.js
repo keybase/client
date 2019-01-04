@@ -31,17 +31,17 @@ const Banner = (props: Props) => (
           Please review.
         </Text>
       )}
-      {props.sendFailed && (
-        <Text
-          type="BodySmallSemiboldPrimaryLink"
-          style={styles.secondText}
-          backgroundMode={props.background}
-          onClick={props.onAction}
-        >
-          Exit
-        </Text>
-      )}
     </Text>
+    {props.sendFailed && (
+      <Text
+        type="BodySmallSemiboldPrimaryLink"
+        style={styles.secondText}
+        backgroundMode={props.background}
+        onClick={props.onAction}
+      >
+        Exit
+      </Text>
+    )}
   </Box2>
 )
 

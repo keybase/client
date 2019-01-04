@@ -722,6 +722,15 @@ const readLastSentXLM = () => {
     })
 }
 
+const exitFailedPayment = (state, action) => {
+  const accountID = state.wallets.builtPayment.from
+  return [
+    WalletsGen.createAbandonPayment(),
+    WalletsGen.createSelectAccount({accountID, show: true}),
+    WalletsGen.createLoadPayments({accountID}),
+  ]
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -901,6 +910,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   // Effects of abandoning payments
   yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(WalletsGen.abandonPayment, stopPayment)
+
+  yield* Saga.chainAction<WalletsGen.ExitFailedPaymentPayload>(
+    WalletsGen.exitFailedPayment,
+    exitFailedPayment
+  )
 
   yield* Saga.chainAction<WalletsGen.LoadRequestDetailPayload>(
     WalletsGen.loadRequestDetail,
