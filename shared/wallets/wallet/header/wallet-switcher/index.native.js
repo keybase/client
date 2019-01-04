@@ -84,6 +84,8 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
   }
 }
 
+const rowHeight = 48
+
 export const WalletSwitcher = (props: Props) => {
   if (!props.showingMenu) {
     return null
@@ -125,11 +127,11 @@ export const WalletSwitcher = (props: Props) => {
     >
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.container, {height: 48 * menuItems.length}])}
+        style={Styles.collapseStyles([styles.container, {height: rowHeight * menuItems.length}])}
         fullWidth={true}
       >
         <Kb.List
-          fixedHeight={48}
+          fixedHeight={rowHeight}
           items={menuItems}
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
           selectedIndex={selectedIndex}
@@ -164,7 +166,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     borderColor: Styles.globalColors.black_10,
-    height: 48,
+    height: rowHeight,
     justifyContent: 'center',
   },
   rowContainer: {
