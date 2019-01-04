@@ -7,7 +7,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import {trim} from 'lodash-es'
 import * as Flow from '../util/flow'
 
-export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
+export default function<X: Object, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
   state: S,
   action: TeamBuildingGen.Actions
 ): S {
