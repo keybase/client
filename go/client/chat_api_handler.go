@@ -608,15 +608,7 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
-	// copy jsonrpc fields from call to reply
-	reply.Jsonrpc = call.Jsonrpc
-	reply.ID = call.ID
-
-	enc := json.NewEncoder(w)
-	if a.indent {
-		enc.SetIndent("", "    ")
-	}
-	return enc.Encode(reply)
+	return encodeReply(call, reply, w, a.indent)
 }
 
 func checkChannelConv(method string, channel ChatChannel, convID string) error {

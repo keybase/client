@@ -112,6 +112,29 @@
   }];
 }
 
+- (NSError *) uninstallViaMove:(NSString *)path {
+
+  NSError *ret = nil;
+  NSString *contents = [NSString stringWithFormat:@"%@/%@", path, @"Contents"];
+
+  // Create a temporary directory to move Contents/ to
+  NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
+  NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+  attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0700];
+  if (![[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:attributes error:&ret]) {
+    DDLogDebug(@"Failed to create temporary directory %@", directoryURL);
+    return ret;
+  }
+  NSString *destPath = [NSString stringWithFormat:@"%@/%@", [directoryURL path], @"Contents"];
+  DDLogDebug(@"Moving %@ -> %@", contents, destPath);
+  if (![NSFileManager.defaultManager moveItemAtPath:contents toPath:destPath error:&ret]) {
+    DDLogDebug(@"Failed to move app contents: %@", ret);
+    return ret;
+  }
+  DDLogDebug(@"Moved %@ -> %@ as an uninstall", contents, destPath);
+  return nil;
+}
+
 - (void)uninstall:(KBCompletion)completion {
   NSString *path = self.config.appPath;
   // Only remove from approved locations
@@ -122,6 +145,12 @@
   if (![NSFileManager.defaultManager fileExistsAtPath:path]) {
     DDLogInfo(@"No app to uninstall");
     completion(nil);
+    return;
+  }
+  if (![self.helperTool exists]) {
+    DDLogDebug(@"Cannot uninstall app bundle via helper, since it was never installed; we'll uninstall Contents via move");
+    NSError *err = [self uninstallViaMove:path];
+    completion(err);
     return;
   }
   NSDictionary *params = @{};

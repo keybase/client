@@ -23,6 +23,7 @@ type Props = {
   hasResetUsers: boolean,
   isSelected: boolean,
   isDecryptingSnippet: boolean,
+  isTypingSnippet: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -61,6 +62,7 @@ class BottomLine extends PureComponent<Props> {
           color: this.props.subColor,
           ...(this.props.showBold ? globalStyles.fontBold : {}),
         },
+        this.props.isTypingSnippet ? styles.typingSnippet : null,
       ])
 
       let snippetDecoration
@@ -97,9 +99,10 @@ class BottomLine extends PureComponent<Props> {
           )
           break
         default:
-          snippetDecoration = this.props.snippetDecoration ? (
-            <Text type="BodySmall">{this.props.snippetDecoration}</Text>
-          ) : null
+          snippetDecoration =
+            !!this.props.snippetDecoration && !this.props.isTypingSnippet ? (
+              <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+            ) : null
       }
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
@@ -208,6 +211,9 @@ const styles = styleSheetCreate({
       lineHeight: 14,
     },
   }),
+  typingSnippet: {
+    fontStyle: 'italic',
+  },
   youAreResetText: platformStyles({
     isElectron: {
       fontSize: 12,
