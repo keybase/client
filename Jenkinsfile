@@ -391,10 +391,6 @@ def testGo(prefix, packagesToTest) {
       ],
       test_windows_go_: [
         '*': [],
-        'github.com/keybase/client/go/kbfs/test': [
-          disable: true,
-          // TODO: re-enable once we fix SimpleFSTruncate
-        ],
       ],
     ]
     def defaultPackageTestSpec = { pkg ->
