@@ -24,7 +24,7 @@ export type Props = {
   showBold: boolean,
   snippet: string,
   snippetDecoration: string,
-  snippetStyle?: Object,
+  snippetStyle?: Styles.StylesCrossPlatform,
   subColor: string,
   teamname: string,
   timestamp: string,

@@ -9,6 +9,7 @@ import {
   collapseStyles,
   platformStyles,
 } from '../../../../styles'
+import type {StylesCrossPlatform} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
@@ -17,7 +18,7 @@ type Props = {
   showBold: boolean,
   snippet: ?string,
   snippetDecoration: ?string,
-  snippetStyle?: Object,
+  snippetStyle?: StylesCrossPlatform,
   subColor: string,
   youNeedToRekey: boolean,
   youAreReset: boolean,
