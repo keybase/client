@@ -12,13 +12,23 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const _meta = Constants.getMeta(state, _conversationIDKey)
   const youAreReset = _meta.membershipType === 'youAreReset'
   const typers = state.chat2.typingMap.get(_conversationIDKey)
+  let snippet = _meta.snippet
+  let snippetDecoration = _meta.snippetDecoration
+  let snippetStyle
+  if (typers && typers.size > 0) {
+    snippetDecoration = ''
+    snippet = typers.size === 1 ? `${typers.first()} is typing...` : 'multiple people typing...'
+    snippetStyle = {fontStyle: 'italic'}
+  }
   return {
     _meta,
     _username: state.config.username || '',
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
     isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
-    typers,
+    snippet,
+    snippetDecoration,
+    snippetStyle,
     youAreReset,
   }
 }
@@ -34,15 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
-  let snippet = stateProps._meta.snippet
-  let snippetDecoration = stateProps._meta.snippetDecoration
-  let snippetStyle
-  if (stateProps.typers && stateProps.typers.size > 0) {
-    snippetDecoration = ''
-    snippet =
-      stateProps.typers.size === 1 ? `${stateProps.typers.first()} is typing...` : 'multiple people typing...'
-    snippetStyle = {fontStyle: 'italic'}
-  }
+
   return {
     backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
@@ -59,9 +61,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     participantNeedToRekey,
     participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
     showBold: styles.showBold,
-    snippet,
-    snippetDecoration,
-    snippetStyle,
+    snippet: stateProps.snippet,
+    snippetDecoration: stateProps.snippetDecoration,
+    snippetStyle: stateProps.snippetStyle,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
     timestamp: Constants.timestampToString(stateProps._meta),
