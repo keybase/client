@@ -969,14 +969,16 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 
 	// If we are all up to date on the thread (and the sender is the
 	// current user), mark this message as read too
-	if conv.Conv.ReaderInfo.ReadMsgid == conv.Conv.ReaderInfo.MaxMsgid &&
+	readMsgID := conv.Conv.ReaderInfo.ReadMsgid
+	if readMsgID == conv.Conv.ReaderInfo.MaxMsgid &&
 		bytes.Equal(msg.ClientHeader.Sender.Bytes(), uid) {
 		conv.Conv.ReaderInfo.ReadMsgid = msg.GetMessageID()
+		conv.Conv.ReaderInfo.OrangeLineMsgid = msg.GetMessageID()
 	}
 	// If this is a visible message we have to update the orange line
 	// regardless of sender.
 	if conv.Conv.ReaderInfo.OrangeLineMsgid <= conv.Conv.ReaderInfo.MaxMsgid &&
-		conv.Conv.ReaderInfo.OrangeLineMsgid == conv.Conv.ReaderInfo.ReadMsgid &&
+		conv.Conv.ReaderInfo.OrangeLineMsgid == readMsgID &&
 		utils.IsVisibleChatMessageType(msg.GetMessageType()) {
 		conv.Conv.ReaderInfo.OrangeLineMsgid = msg.GetMessageID()
 	}

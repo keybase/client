@@ -1472,9 +1472,8 @@ func TestChatSrvGetThreadLocalMarkAsRead(t *testing.T) {
 		var found bool
 		for _, m := range res.Conversations[0].MaxMessages {
 			if m.GetMessageType() == chat1.MessageType_TEXT {
-				if res.Conversations[0].ReaderInfo.ReadMsgid == m.GetMessageID() {
-					t.Fatalf("conversation was marked as read before requesting so\n")
-				}
+				require.NotEqual(t, res.Conversations[0].ReaderInfo.ReadMsgid, m.GetMessageID(), "conversation was marked as read before requesting so")
+				require.NotEqual(t, res.Conversations[0].ReaderInfo.OrangeLineMsgid, m.GetMessageID())
 				found = true
 				break
 			}
@@ -1524,9 +1523,8 @@ func TestChatSrvGetThreadLocalMarkAsRead(t *testing.T) {
 		found = false
 		for _, m := range res.Conversations[0].MaxMessages {
 			if m.GetMessageType() == chat1.MessageType_TEXT {
-				if res.Conversations[0].ReaderInfo.ReadMsgid != m.GetMessageID() {
-					t.Fatalf("conversation was not marked as read\n")
-				}
+				require.Equal(t, res.Conversations[0].ReaderInfo.ReadMsgid, m.GetMessageID(), "conversation was not marked as read")
+				require.Equal(t, res.Conversations[0].ReaderInfo.OrangeLineMsgid, m.GetMessageID())
 				found = true
 				break
 			}

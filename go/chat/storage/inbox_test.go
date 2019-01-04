@@ -48,9 +48,10 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) t
 				Status:     chat1.ConversationStatus_UNFILED,
 			},
 			ReaderInfo: &chat1.ConversationReaderInfo{
-				Mtime:     mtime,
-				ReadMsgid: rmsg,
-				MaxMsgid:  mmsg,
+				Mtime:           mtime,
+				ReadMsgid:       rmsg,
+				OrangeLineMsgid: rmsg,
+				MaxMsgid:        mmsg,
 			},
 			// Make it look like there's a visible message in here too
 			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT, MsgID: 1}},
@@ -469,70 +470,97 @@ func TestInboxNewMessage(t *testing.T) {
 	uid3, err := hex.DecodeString("33")
 	require.NoError(t, err)
 
+	assertRead := func(conv types.RemoteConversation, maxMsgID, readMsgID, orangelineMsgID chat1.MessageID,
+		activeList []gregor1.UID, msgType chat1.MessageType) {
+		_, res, _, err := inbox.Read(context.TODO(), uid, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
+		t.Logf("reader info: %+v", res[0].Conv.ReaderInfo)
+		require.EqualValues(t, maxMsgID, res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
+		require.EqualValues(t, readMsgID, res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+		require.EqualValues(t, orangelineMsgID, res[0].Conv.ReaderInfo.OrangeLineMsgid, "wrong orange line msgid")
+		require.Equal(t, activeList, res[0].Conv.Metadata.ActiveList, "active list")
+		maxMsg, err2 := res[0].Conv.GetMaxMessage(msgType)
+		require.NoError(t, err2)
+		require.Equal(t, maxMsgID, maxMsg.GetMessageID(), "max msg not updated")
+	}
+
 	convs[5].Conv.Metadata.ActiveList = []gregor1.UID{uid2, uid3, uid1}
 	convs[6].Conv.Metadata.ActiveList = []gregor1.UID{uid2, uid3}
 	conv := convs[5]
 	msg := makeInboxMsg(2, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid1
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil))
-	_, res, _, err := inbox.Read(context.TODO(), uid, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, convs[0].GetConvID(), res[0].GetConvID(), "conv not promoted")
+	assertRead(convs[0], 1, 1, 1, nil, chat1.MessageType_TEXT)
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 2, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
-	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
-	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
-	maxMsg, err := res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
-	require.NoError(t, err)
-	require.Equal(t, chat1.MessageID(2), maxMsg.GetMessageID(), "max msg not updated")
+	assertRead(conv, 2, 2, 2, []gregor1.UID{uid1, uid2, uid3}, chat1.MessageType_TEXT)
 
 	// Test incomplete active list
 	conv = convs[6]
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 3, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
+	assertRead(conv, 2, 2, 2, []gregor1.UID{uid1, uid2, uid3}, chat1.MessageType_TEXT)
 
-	// Send another one from a diff User
+	// Send another one from a diff user
 	msg = makeInboxMsg(3, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 4, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, chat1.MessageID(3), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
-	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
-	require.Equal(t, []gregor1.UID{uid2, uid1, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
-	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
-	require.NoError(t, err)
-	require.Equal(t, chat1.MessageID(3), maxMsg.GetMessageID())
+	assertRead(conv, 3, 2, 3, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_TEXT)
 
 	// Test delete mechanics
 	delMsg := makeInboxMsg(4, chat1.MessageType_TEXT)
+	delMsg.ClientHeader.Sender = uid2
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 5, conv.GetConvID(), delMsg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	assertRead(conv, 4, 2, 3, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_TEXT)
+	// read msg 4, ensure orange line is correct
+	err = inbox.ReadMessage(context.TODO(), uid, 6, conv.GetConvID(), 4)
 	require.NoError(t, err)
-	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
-	require.NoError(t, err)
-	require.Equal(t, delMsg.GetMessageID(), maxMsg.GetMessageID())
+	assertRead(conv, 4, 4, 4, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_TEXT)
+
 	delete := makeInboxMsg(5, chat1.MessageType_DELETE)
-	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), delete, nil))
-	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 6, conv.GetConvID(), delete,
-		[]chat1.MessageSummary{msg.Summary()}))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
-	require.NoError(t, err)
-	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
-	require.NoError(t, err)
-	require.Equal(t, msg.GetMessageID(), maxMsg.GetMessageID())
+	err = inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), delete, nil)
+	require.IsType(t, VersionMismatchError{}, err)
+	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), delete,
+		[]chat1.MessageSummary{msg.Summary()})
+	require.IsType(t, VersionMismatchError{}, err)
+	assertRead(conv, 4, 4, 4, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_TEXT)
 	delete = makeInboxMsg(6, chat1.MessageType_DELETE)
-	err = inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), delete, nil)
-	require.Error(t, err)
+	err = inbox.NewMessage(context.TODO(), uid, 8, conv.GetConvID(), delete, nil)
 	require.IsType(t, VersionMismatchError{}, err)
 
 	err = inbox.NewMessage(context.TODO(), uid, 10, conv.GetConvID(), msg, nil)
 	require.IsType(t, VersionMismatchError{}, err)
+
+	// Send a non-visible message and then a visible one, orange line should
+	// move to the next visible when fully read.
+	msg = makeInboxMsg(8, chat1.MessageType_REACTION)
+	msg.ClientHeader.Sender = uid1
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 7, conv.GetConvID(), msg, nil))
+	assertRead(conv, 8, 8, 8, []gregor1.UID{uid1, uid2, uid3}, chat1.MessageType_REACTION)
+
+	// read up to msg 8
+	err = inbox.ReadMessage(context.TODO(), uid, 8, conv.GetConvID(), 8)
+	require.NoError(t, err)
+	assertRead(conv, 8, 8, 8, []gregor1.UID{uid1, uid2, uid3}, chat1.MessageType_REACTION)
+
+	msg = makeInboxMsg(9, chat1.MessageType_TEXT)
+	msg.ClientHeader.Sender = uid2
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 9, conv.GetConvID(), msg, nil))
+	assertRead(conv, 9, 8, 9, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_TEXT)
+
+	// send a text and then a reaction, orange line stays on the text
+	err = inbox.ReadMessage(context.TODO(), uid, 10, conv.GetConvID(), 9)
+	require.NoError(t, err)
+	assertRead(conv, 9, 9, 9, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_TEXT)
+
+	msg = makeInboxMsg(10, chat1.MessageType_TEXT)
+	msg.ClientHeader.Sender = uid1
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 11, conv.GetConvID(), msg, nil))
+	assertRead(conv, 10, 10, 10, []gregor1.UID{uid1, uid2, uid3}, chat1.MessageType_TEXT)
+
+	msg = makeInboxMsg(11, chat1.MessageType_REACTION)
+	msg.ClientHeader.Sender = uid2
+	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 12, conv.GetConvID(), msg, nil))
+	assertRead(conv, 11, 10, 10, []gregor1.UID{uid2, uid1, uid3}, chat1.MessageType_REACTION)
 }
 
 func TestInboxReadMessage(t *testing.T) {
@@ -560,13 +588,15 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 2, conv.GetConvID(), msg, nil))
 	_, res, _, err := inbox.Read(context.TODO(), uid, nil, nil)
 	require.NoError(t, err)
-	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
-	require.Equal(t, chat1.MessageID(1), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.EqualValues(t, 2, res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
+	require.EqualValues(t, 1, res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.EqualValues(t, 1, res[0].Conv.ReaderInfo.OrangeLineMsgid, "wrong orange line msgid")
 	require.NoError(t, inbox.ReadMessage(context.TODO(), uid, 3, conv.GetConvID(), 2))
 	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
 	require.NoError(t, err)
-	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
-	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.EqualValues(t, 2, res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
+	require.EqualValues(t, 2, res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
+	require.EqualValues(t, 2, res[0].Conv.ReaderInfo.OrangeLineMsgid, "wrong orange line msgid")
 
 	err = inbox.ReadMessage(context.TODO(), uid, 10, conv.GetConvID(), 3)
 	require.IsType(t, VersionMismatchError{}, err)
