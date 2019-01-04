@@ -23,9 +23,9 @@ export type MarkdownCreateComponent = (
 ) => ?React.Node
 
 export type MarkdownMeta = {
-  mentionsAt?: MentionsAt,
-  mentionsChannelName?: MentionsChannelName,
-  mentionsChannel?: MentionsChannel,
+  mentionsAt: MentionsAt,
+  mentionsChannelName: MentionsChannelName,
+  mentionsChannel: MentionsChannel,
 }
 
 export type StyleOverride = {
