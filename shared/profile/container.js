@@ -24,7 +24,7 @@ import {connect} from '../util/container'
 import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
-import type {MissingProof} from '../common-adapters/user-proofs'
+import type {MissingProof} from './user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
 

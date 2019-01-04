@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {Avatar, Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
-import type {AvatarSize} from './avatar'
+import type {AvatarSize} from '../common-adapters/avatar'
 import type {Props} from './user-bio'
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {

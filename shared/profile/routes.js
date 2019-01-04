@@ -1,10 +1,11 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
+import flags from '../util/feature-flags'
 
 const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
-  const Profile = require('./container').default
+  const Profile = flags.identify3 ? require('./user/container').default : require('./container').default
   const AddToTeam = require('./add-to-team/container').default
   const EditProfile = require('./edit-profile/container').default
   const EditAvatar = require('./edit-avatar/container').default

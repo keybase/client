@@ -5,7 +5,7 @@ import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
-import {Box, Icon, Text, Meta} from '../common-adapters/index'
+import {Box, Icon, Text, Meta} from '../common-adapters'
 import {defaultColor} from '../common-adapters/icon.shared'
 import {
   globalStyles,
