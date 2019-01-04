@@ -16,7 +16,7 @@ const ff: FeatureFlags = {
   foldersInProfileTab: false,
   kbfsChatIntegration: false,
   moveOrCopy: false,
-  newTeamBuildingForChat: false,
+  newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
