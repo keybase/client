@@ -339,7 +339,6 @@ const reactComponentsForMarkdownType = {
     if (!markdownMeta) {
       throw new Error('markdownMeta unexpectedly empty')
     }
-    // $FlowIssue Don't know what's going on here.
     const {message} = markdownMeta
 
     return (
