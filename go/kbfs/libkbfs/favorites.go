@@ -227,6 +227,9 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 		version:        favoritesDiskCacheStorageVersion,
 	}
 	encodedData, err := f.config.Codec().Encode(cacheEncryptedForDisk)
+	if err != nil {
+		return err
+	}
 
 	// Write the encrypted cache to disk
 	session, err := f.config.KBPKI().GetCurrentSession(ctx)
