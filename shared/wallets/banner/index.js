@@ -39,7 +39,7 @@ const Banner = (props: Props) => (
         backgroundMode={props.background}
         onClick={props.onAction}
       >
-        Exit
+        Review payments
       </Text>
     )}
   </Box2>

@@ -47,6 +47,13 @@ const banner = {
   reviewProofs: false,
 }
 
+const sendFailedBanner = {
+  bannerBackground: 'HighRisk',
+  bannerText:
+    'The request to the stellar network timed out. Please make sure your payment failed before trying again.',
+  sendFailed: true,
+}
+
 const load = () => {
   participants()
   Sb.storiesOf('Wallets/ConfirmForm', module)
@@ -67,6 +74,7 @@ const load = () => {
         banners={[banner]}
       />
     ))
+    .add('With a payment failed banner', () => <ConfirmSend {...confirmProps} banners={[sendFailedBanner]} />)
 }
 
 export default load
