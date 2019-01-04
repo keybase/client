@@ -65,6 +65,7 @@ const (
 	detailsMethod      = "details"
 	getInflationMethod = "get-inflation"
 	historyMethod      = "history"
+	initializeMethod   = "setup-wallet"
 	lookupMethod       = "lookup"
 	sendMethod         = "send"
 	setInflationMethod = "set-inflation"
@@ -77,6 +78,7 @@ var validWalletMethodsV1 = map[string]bool{
 	detailsMethod:      true,
 	getInflationMethod: true,
 	historyMethod:      true,
+	initializeMethod:   true,
 	lookupMethod:       true,
 	sendMethod:         true,
 	setInflationMethod: true,
@@ -105,6 +107,8 @@ func (w *walletAPIHandler) handleV1(ctx context.Context, c Call, wr io.Writer) e
 		return w.getInflation(ctx, c, wr)
 	case historyMethod:
 		return w.history(ctx, c, wr)
+	case initializeMethod:
+		return w.initializeWallet(ctx, c, wr)
 	case lookupMethod:
 		return w.lookup(ctx, c, wr)
 	case sendMethod:
@@ -180,6 +184,16 @@ func (w *walletAPIHandler) history(ctx context.Context, c Call, wr io.Writer) er
 	return w.encodeResult(c, payments, wr)
 }
 
+// initializeWallet creates the initial wallet for an account
+// (by "accepting" the disclaimer).
+func (w *walletAPIHandler) initializeWallet(ctx context.Context, c Call, wr io.Writer) error {
+	if err := w.cli.AcceptDisclaimerLocal(ctx, 0); err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	result := map[string]string{"disclaimer": disclaimerText}
+	return w.encodeResult(c, result, wr)
+}
+
 // lookup outputs an account ID for a keybase username or federation address.
 func (w *walletAPIHandler) lookup(ctx context.Context, c Call, wr io.Writer) error {
 	var opts nameOptions
@@ -240,7 +254,11 @@ func (w *walletAPIHandler) send(ctx context.Context, c Call, wr io.Writer) error
 		return w.encodeErr(c, err, wr)
 	}
 
-	return w.encodeResult(c, result, wr)
+	detail, err := w.cli.PaymentDetailCLILocal(ctx, string(result.TxID))
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+	return w.encodeResult(c, detail, wr)
 }
 
 // setInflation sets the inflation destination for an account.
