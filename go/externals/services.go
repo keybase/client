@@ -36,7 +36,7 @@ func (p *staticProofServices) register(services []libkb.ServiceType) {
 		if !useDevelProofCheckers && st.IsDevelOnly() {
 			continue
 		}
-		p.externalServices[st.StringKey()] = st
+		p.externalServices[st.Key()] = st
 	}
 }
 
@@ -93,7 +93,7 @@ func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
 		if !useDevelProofCheckers && st.IsDevelOnly() {
 			continue
 		}
-		p.externalServices[st.StringKey()] = st
+		p.externalServices[st.Key()] = st
 	}
 }
 

@@ -84,7 +84,7 @@ func urlReencode(s string) string {
 
 type RedditServiceType struct{ libkb.BaseServiceType }
 
-func (t *RedditServiceType) StringKey() string { return t.GetTypeName() }
+func (t *RedditServiceType) Key() string { return t.GetTypeName() }
 
 var redditUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`)
 

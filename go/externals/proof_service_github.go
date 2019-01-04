@@ -39,7 +39,7 @@ func (rc *GithubChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 
 type GithubServiceType struct{ libkb.BaseServiceType }
 
-func (t *GithubServiceType) StringKey() string { return t.GetTypeName() }
+func (t *GithubServiceType) Key() string { return t.GetTypeName() }
 
 var githubUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9][a-z0-9-]{0,38})$`)
 

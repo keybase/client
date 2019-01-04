@@ -43,7 +43,7 @@ func (r *RemoteProofLinks) Insert(link RemoteProofChainLink, err ProofError) {
 // ForService returns all the active proof links for a service.
 func (r *RemoteProofLinks) ForService(st ServiceType) []RemoteProofChainLink {
 	var links []RemoteProofChainLink
-	for _, l := range r.links[st.StringKey()] {
+	for _, l := range r.links[st.Key()] {
 		if l.link.IsRevoked() {
 			continue
 		}

@@ -59,7 +59,7 @@ type WebServiceType struct {
 	scheme string
 }
 
-func (t *WebServiceType) StringKey() string {
+func (t *WebServiceType) Key() string {
 	if t.scheme == "" {
 		return "web"
 	}

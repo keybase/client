@@ -57,7 +57,7 @@ func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 
 type HackerNewsServiceType struct{ libkb.BaseServiceType }
 
-func (t *HackerNewsServiceType) StringKey() string { return t.GetTypeName() }
+func (t *HackerNewsServiceType) Key() string { return t.GetTypeName() }
 
 var hackerNewsUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{2,15})$`)
 
