@@ -8,8 +8,8 @@ export type Props = {|
   hideMenu: () => void,
   onAddNew: () => void,
   onLinkExisting: () => void,
-                     onWhatIsStellar: () => void,
-                     selectedAccount: ?Types.AccountID,
+  onWhatIsStellar: () => void,
+  selectedAccount: ?Types.AccountID,
   showingMenu: boolean,
 |}
 
