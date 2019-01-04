@@ -157,7 +157,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("receive oobm with version light years ahead of its current one")
 	_, err = tc.ChatG.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
-		conv.GetConvID(), boxed, nil)
+		conv.GetConvID(), boxed, nil, 0)
 	require.NoError(t, err)
 	assertInboxVersion(100)
 

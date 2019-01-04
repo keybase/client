@@ -790,8 +790,8 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 	time.Sleep(400 * time.Millisecond)
 	select {
 	case <-list.bgConvLoads:
-	case <-time.After(2 * time.Second):
-		require.Fail(t, "no conv load on sync")
+		require.Fail(t, "no conv load here")
+	default:
 	}
 }
 
