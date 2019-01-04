@@ -486,6 +486,6 @@ def checkDiffs(dirs, addressMessage) {
   try {
     sh "git diff --patience --exit-code HEAD -- ${joinedDirs}"
   } catch (ex) {
-    sh "bash -c \"echo 'ERROR: `git diff` detected changes. Some files in the directories {${dirs.join(", ")}} are stale. ${addressMessage}' && (exit 1)\""
+    sh "bash -c 'echo \\'ERROR: `git diff` detected changes. Some files in the directories {${dirs.join(", ")}} are stale. ${addressMessage}\\' && (exit 1)'"
   }
 }
