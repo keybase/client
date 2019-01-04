@@ -130,6 +130,9 @@ const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
 }
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
+//
+// TODO: Type rules. In particular, use a better type for State than
+// that provided by simple-markdown, which is {[string]: any}.
 const rules = {
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
