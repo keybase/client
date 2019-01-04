@@ -909,7 +909,8 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
+	convID chat1.ConversationID, msg chat1.MessageBoxed,
+	maxMsgs []chat1.MessageSummary, orangelineMsgID chat1.MessageID) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -924,18 +925,9 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 		return err
 	}
 
-	// Check for a delete, if so just auto return a version mismatch to resync.
-	// The reason is it is tricky to update max messages/orange line msg in
-	// this case.
-	switch msg.GetMessageType() {
-	case chat1.MessageType_DELETE, chat1.MessageType_DELETEHISTORY:
-		i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete: vers: %d",
-			vers)
-		return NewVersionMismatchError(ibox.InboxVersion, vers)
-	}
-
 	// Check inbox versions, make sure it makes sense (clear otherwise)
 	var cont bool
+	updateVers := vers
 	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
 		return err
 	}
@@ -950,6 +942,17 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	// Update conversation. Use given max messages if the param is non-empty, otherwise just fill
 	// it in ourselves
 	if len(maxMsgs) == 0 {
+		// Check for a delete, if so just auto return a version mismatch to resync. The reason
+		// is it is tricky to update max messages in this case. NOTE: this update must also not be a
+		// self update, we only do this clear if the server transmitted the update to us.
+		if updateVers > 0 {
+			switch msg.GetMessageType() {
+			case chat1.MessageType_DELETE, chat1.MessageType_DELETEHISTORY:
+				i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete: vers: %d",
+					vers)
+				return NewVersionMismatchError(ibox.InboxVersion, vers)
+			}
+		}
 		found := false
 		typ := msg.GetMessageType()
 		for mindex, maxmsg := range conv.Conv.MaxMsgSummaries {
@@ -973,14 +976,21 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	if readMsgID == conv.Conv.ReaderInfo.MaxMsgid &&
 		bytes.Equal(msg.ClientHeader.Sender.Bytes(), uid) {
 		conv.Conv.ReaderInfo.ReadMsgid = msg.GetMessageID()
-		conv.Conv.ReaderInfo.OrangeLineMsgid = msg.GetMessageID()
+		if orangelineMsgID == 0 {
+			conv.Conv.ReaderInfo.OrangeLineMsgid = msg.GetMessageID()
+		}
 	}
 	// If this is a visible message we have to update the orange line
-	// regardless of sender.
-	if conv.Conv.ReaderInfo.OrangeLineMsgid <= conv.Conv.ReaderInfo.MaxMsgid &&
+	// regardless of sender if the server has not provided the value.
+	if orangelineMsgID == 0 &&
+		conv.Conv.ReaderInfo.OrangeLineMsgid <= conv.Conv.ReaderInfo.MaxMsgid &&
 		conv.Conv.ReaderInfo.OrangeLineMsgid == readMsgID &&
 		utils.IsVisibleChatMessageType(msg.GetMessageType()) {
 		conv.Conv.ReaderInfo.OrangeLineMsgid = msg.GetMessageID()
+	}
+	// If server has provided this value, use it.
+	if orangelineMsgID > 0 {
+		conv.Conv.ReaderInfo.OrangeLineMsgid = orangelineMsgID
 	}
 	conv.Conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
 	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())

@@ -521,7 +521,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to push message: %v", pushErr)
 			}
 			if conv, err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message,
-				nm.MaxMsgs); err != nil {
+				nm.MaxMsgs, nm.OrangeLineMsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 

@@ -111,6 +111,10 @@
             "items": "MessageSummary"
           },
           "name": "maxMsgs"
+        },
+        {
+          "type": "MessageID",
+          "name": "orangeLineMsgID"
         }
       ]
     },

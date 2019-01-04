@@ -58,13 +58,14 @@ func (o NewConversationPayload) DeepCopy() NewConversationPayload {
 }
 
 type NewMessagePayload struct {
-	Action       string           `codec:"Action" json:"Action"`
-	ConvID       ConversationID   `codec:"convID" json:"convID"`
-	Message      MessageBoxed     `codec:"message" json:"message"`
-	InboxVers    InboxVers        `codec:"inboxVers" json:"inboxVers"`
-	TopicType    TopicType        `codec:"topicType" json:"topicType"`
-	UnreadUpdate *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
-	MaxMsgs      []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
+	Action          string           `codec:"Action" json:"Action"`
+	ConvID          ConversationID   `codec:"convID" json:"convID"`
+	Message         MessageBoxed     `codec:"message" json:"message"`
+	InboxVers       InboxVers        `codec:"inboxVers" json:"inboxVers"`
+	TopicType       TopicType        `codec:"topicType" json:"topicType"`
+	UnreadUpdate    *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	MaxMsgs         []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
+	OrangeLineMsgID MessageID        `codec:"orangeLineMsgID" json:"orangeLineMsgID"`
 }
 
 func (o NewMessagePayload) DeepCopy() NewMessagePayload {
@@ -92,6 +93,7 @@ func (o NewMessagePayload) DeepCopy() NewMessagePayload {
 			}
 			return ret
 		})(o.MaxMsgs),
+		OrangeLineMsgID: o.OrangeLineMsgID.DeepCopy(),
 	}
 }
 

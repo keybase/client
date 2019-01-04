@@ -828,7 +828,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 	}
 	if convLocal, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID,
-		*boxed, nil); err != nil {
+		*boxed, nil, 0); err != nil {
 		s.Debug(ctx, "Send: failed to update inbox: %s", err)
 	}
 	// Send up to frontend
