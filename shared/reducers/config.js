@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
-import * as Profile2Gen from '../actions/profile2-gen'
+import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
@@ -21,8 +21,8 @@ export default function(
   action:
     | ConfigGen.Actions
     | DevicesGen.RevokedPayload
-    | Profile2Gen.UpdatedDetailsPayload
-    | Profile2Gen.LoadPayload
+    | Tracker2Gen.UpdatedDetailsPayload
+    | Tracker2Gen.LoadPayload
 ): Types.State {
   switch (action.type) {
     case DevicesGen.revoked:
@@ -32,10 +32,10 @@ export default function(
           ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
           : state.defaultUsername,
       })
-    case Profile2Gen.load:
+    case Tracker2Gen.load:
       guiIDToUsername[action.payload.guiID] = action.payload.assertion
       return state
-    case Profile2Gen.updatedDetails: {
+    case Tracker2Gen.updatedDetails: {
       const username = guiIDToUsername[action.payload.guiID]
       if (!username) {
         return state

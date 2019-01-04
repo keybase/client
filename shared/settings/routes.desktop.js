@@ -5,7 +5,7 @@ import * as Constants from '../constants/settings'
 const routeTree = () => {
   const Settings = require('./').default
   const LandingContainer = require('./landing/container').default
-  const UpdatePayment = require('./payment/container').default
+  // const UpdatePayment = require('./payment/container').default
   const AdvancedContainer = require('./advanced/container').default
   const FilesContainer = require('./files/container').default
   const DBNukeConfirm = require('./db-nuke-confirm/container').default
@@ -35,9 +35,9 @@ const routeTree = () => {
         },
         component: LandingContainer,
       },
-      [Constants.updatePaymentTab]: {
-        component: UpdatePayment,
-      },
+      // [Constants.updatePaymentTab]: {
+      // component: UpdatePayment,
+      // },
       [Constants.invitationsTab]: {
         children: {
           inviteSent: {

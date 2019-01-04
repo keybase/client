@@ -63,8 +63,8 @@ export const deserialize = (state: any = initialState, props: any) => {
     config: {
       ...state.config,
       avatars: (state.config.avatars || I.Map()).merge(I.Map(arrs)),
-      followers: I.Set(props.followers),
-      following: I.Set(props.following),
+      ...(props.followers ? {followers: I.Set(props.followers)} : {}),
+      ...(props.following ? {following: I.Set(props.following)} : {}),
     },
   }
 }
