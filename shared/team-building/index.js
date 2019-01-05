@@ -125,10 +125,10 @@ const styles = Styles.styleSheetCreate({
       minHeight: 200,
     },
     isElectron: {
+      height: 434,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
-      height: 434,
       width: 470,
     },
   }),
