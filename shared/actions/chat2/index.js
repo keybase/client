@@ -1417,6 +1417,8 @@ function* previewConversationFindExisting(state, action) {
       ...params,
     })
     yield* previewConversationAfterFindExisting(state, action, results, users)
+  } else {
+    yield* previewConversationAfterFindExisting(state, action, undefined, [])
   }
 }
 
