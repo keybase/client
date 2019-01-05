@@ -38,8 +38,6 @@ const wrapperStyle = Styles.platformStyles({
   },
 })
 
-Sb.action = a => console.log(a)
-
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
