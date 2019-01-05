@@ -8,10 +8,15 @@ type Props = {|
   followsYou: boolean,
   fullname: string,
   username: string,
+  width: number,
 |}
 
 const Friend = (p: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
+  <Kb.Box2
+    direction="vertical"
+    style={Styles.collapseStyles([styles.container, {width: p.width}])}
+    centerChildren={true}
+  >
     <Kb.Avatar size={64} username={p.username} style={styles.avatar} />
     <Kb.ConnectedUsernames usernames={[p.username]} />
     <Kb.Text type="BodySmall" lineClamp={1}>
@@ -26,8 +31,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     flexShrink: 0,
-    height: 106,
-    width: 112,
+    height: 105,
   },
 })
 

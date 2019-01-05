@@ -4,10 +4,12 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/tracker2'
 import * as Constants from '../../constants/tracker2'
 import * as Styles from '../../styles'
+import {chunk} from 'lodash-es'
 import Bio from '../../tracker2/bio/container'
 import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions'
 import Friend from './friend/container'
+import Measure from './measure'
 
 export type Props = {|
   assertionKeys: ?$ReadOnlyArray<string>,
@@ -154,7 +156,21 @@ const DesktopLayout = (p: LayoutProps) => (
   </Kb.Box2>
 )
 
-class MobileLayout extends React.Component<LayoutProps> {
+class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidth: number|}> {
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" style={styles.friendRow}>
+        {this.props.usernames.map(u => (
+          <Friend key={u} username={u} width={this.props.itemWidth} />
+        ))}
+      </Kb.Box2>
+    )
+  }
+}
+
+class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
+  state = {width: 0}
+
   _renderSectionHeader = ({section}) => {
     if (section === this._bioTeamProofsSection) {
       return (
@@ -179,27 +195,48 @@ class MobileLayout extends React.Component<LayoutProps> {
     </Kb.Box2>
   )
 
-  _renderOtherUsers = ({item}) => <Friend username={item} />
+  _renderOtherUsers = ({item, section, index}) => (
+    <FriendRow key={index} usernames={item} itemWidth={section.itemWidth} />
+  )
 
   _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
 
+  _widthToDimentions = width => {
+    const itemsInARow = Math.floor(Math.max(1, width / 105))
+    const itemWidth = Math.floor(width / itemsInARow)
+    return {itemWidth, itemsInARow}
+  }
+
+  _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
+  _keyExtractor = (item, index) => index
+
   render() {
+    const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
+    const {itemsInARow, itemWidth} = this._widthToDimentions(this.state.width)
+    // $ForceType
+    const chunks = this.state.width ? chunk(friends, itemsInARow) : []
+
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Measure onMeasured={this._onMeasured} />
         <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
-        <Kb.SectionList
-          stickySectionHeadersEnabled={true}
-          renderSectionHeader={this._renderSectionHeader}
-          sections={[
-            this._bioTeamProofsSection,
-            {
-              data: this.props.selectedFollowing ? this.props.following : this.props.followers,
-              renderItem: this._renderOtherUsers,
-            },
-          ]}
-          style={{backgroundColor: this.props.backgroundColor}}
-          contentContainerStyle={styles.sectionListContentStyle}
-        />
+        {!!this.state.width && (
+          <Kb.SectionList
+            stickySectionHeadersEnabled={true}
+            renderSectionHeader={this._renderSectionHeader}
+            keyExtractor={this._keyExtractor}
+            sections={[
+              this._bioTeamProofsSection,
+              {
+                data: chunks,
+                itemWidth,
+                renderItem: this._renderOtherUsers,
+              },
+            ]}
+            style={{backgroundColor: this.props.backgroundColor}}
+            contentContainerStyle={styles.sectionListContentStyle}
+          />
+        )}
       </Kb.Box2>
     )
   }
@@ -290,6 +327,11 @@ const styles = Styles.styleSheetCreate({
   },
   followTabText: {color: Styles.globalColors.black_60},
   followTabTextSelected: {color: Styles.globalColors.black_75},
+  friendRow: {
+    justifyContent: 'center',
+    marginBottom: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.xtiny,
+  },
   header: Styles.platformStyles({
     common: {
       alignItems: 'center',
