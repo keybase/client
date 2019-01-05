@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -48,6 +49,17 @@ const (
 	workingSetCacheName             string = "WorkingSetBlockCache"
 )
 
+var errTeamOrUnknownTLFAddedAsHome = errors.New(
+	"Team or Unknown TLF added to disk block cache as home TLF")
+
+type evictionPriority int
+
+const (
+	priorityNotHome evictionPriority = iota
+	priorityPublicHome
+	priorityPrivateHome
+)
+
 // DiskBlockCacheLocal is the standard implementation for DiskBlockCache.
 type DiskBlockCacheLocal struct {
 	config     diskBlockCacheConfig
@@ -80,11 +92,18 @@ type DiskBlockCacheLocal struct {
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
 	numBlocks int
+	// Track the number of blocks in the cahce per eviction priority,
+	// for easy eviction counting.
+	priorityBlockCounts map[evictionPriority]int
+	priorityTlfMap      map[evictionPriority]map[tlf.ID]int
 	// Track the aggregate size of blocks in the cache per TLF and overall.
 	tlfSizes  map[tlf.ID]uint64
 	currBytes uint64
 	// Track the last unref'd revisions for each TLF.
 	tlfLastUnrefs map[tlf.ID]kbfsmd.Revision
+	// Don't evict files from the user's private or public home directory.
+	// Higher numbers are more important not to evict.
+	homeDirs map[tlf.ID]evictionPriority
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
@@ -218,18 +237,25 @@ func newDiskBlockCacheLocalFromStorage(
 		evictSizeMeter:           NewCountMeter(),
 		deleteCountMeter:         NewCountMeter(),
 		deleteSizeMeter:          NewCountMeter(),
+		homeDirs:                 map[tlf.ID]evictionPriority{},
 		log:                      log,
 		blockDb:                  blockDb,
 		metaDb:                   metaDb,
 		tlfDb:                    tlfDb,
 		lastUnrefDb:              lastUnrefDb,
 		tlfCounts:                map[tlf.ID]int{},
-		tlfSizes:                 map[tlf.ID]uint64{},
-		tlfLastUnrefs:            map[tlf.ID]kbfsmd.Revision{},
-		startedCh:                startedCh,
-		startErrCh:               startErrCh,
-		shutdownCh:               make(chan struct{}),
-		closer:                   closer,
+		priorityBlockCounts:      map[evictionPriority]int{},
+		priorityTlfMap: map[evictionPriority]map[tlf.ID]int{
+			priorityPublicHome:  {},
+			priorityPrivateHome: {},
+			priorityNotHome:     {},
+		},
+		tlfSizes:      map[tlf.ID]uint64{},
+		tlfLastUnrefs: map[tlf.ID]kbfsmd.Revision{},
+		startedCh:     startedCh,
+		startErrCh:    startErrCh,
+		shutdownCh:    make(chan struct{}),
+		closer:        closer,
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
 	// Since this method blocks, any Get or Put requests to the disk block
@@ -369,6 +395,12 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsAndUnrefsFromDb() error {
 
 	tlfCounts := make(map[tlf.ID]int)
 	tlfSizes := make(map[tlf.ID]uint64)
+	priorityBlockCounts := make(map[evictionPriority]int)
+	priorityTlfMap := map[evictionPriority]map[tlf.ID]int{
+		priorityNotHome:     {},
+		priorityPublicHome:  {},
+		priorityPrivateHome: {},
+	}
 	numBlocks := 0
 	totalSize := uint64(0)
 	iter := cache.metaDb.NewIterator(nil, nil)
@@ -382,6 +414,8 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsAndUnrefsFromDb() error {
 		size := uint64(metadata.BlockSize)
 		tlfCounts[metadata.TlfID]++
 		tlfSizes[metadata.TlfID] += size
+		priorityBlockCounts[cache.homeDirs[metadata.TlfID]]++
+		priorityTlfMap[cache.homeDirs[metadata.TlfID]][metadata.TlfID]++
 		numBlocks++
 		totalSize += size
 	}
@@ -389,6 +423,8 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsAndUnrefsFromDb() error {
 	cache.numBlocks = numBlocks
 	cache.tlfSizes = tlfSizes
 	cache.currBytes = totalSize
+	cache.priorityTlfMap = priorityTlfMap
+	cache.priorityBlockCounts = priorityBlockCounts
 
 	cache.log.Debug("| syncBlockCountsAndUnrefsFromDb block counts done")
 
@@ -645,6 +681,8 @@ func (cache *DiskBlockCacheLocal) Put(
 		cache.config.DiskLimiter().commitOrRollback(ctx, cache.cacheType,
 			encodedLen, 0, true, "")
 		cache.tlfCounts[tlfID]++
+		cache.priorityBlockCounts[cache.homeDirs[tlfID]]++
+		cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID]++
 		cache.numBlocks++
 		encodedLenUint := uint64(encodedLen)
 		cache.tlfSizes[tlfID] += encodedLenUint
@@ -765,6 +803,8 @@ func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 	// Update the cache's totals.
 	for k, v := range removalCounts {
 		cache.tlfCounts[k] -= v
+		cache.priorityBlockCounts[cache.homeDirs[k]] -= v
+		cache.priorityTlfMap[cache.homeDirs[k]][k] -= v
 		cache.numBlocks -= v
 		cache.tlfSizes[k] -= removalSizes[k]
 		cache.currBytes -= removalSizes[k]
@@ -862,13 +902,9 @@ func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 		key := iter.Key()
 
 		blockIDBytes := key[len(tlfBytes):]
-		if err != nil {
-			cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
-			continue
-		}
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
 		if err != nil {
-			cache.log.CWarningf(ctx, "Error getting id from bytes %x", blockIDBytes)
+			cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
 			continue
 		}
 		lru, err := cache.getLRULocked(blockID)
@@ -883,53 +919,121 @@ func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
 }
 
-// evictLocked evicts a number of blocks from the cache.  We choose a pivot
-// variable b randomly. Then begin an iterator into cache.metaDb.Range(b,
-// MaxBlockID) and iterate from there to get numBlocks *
-// evictionConsiderationFactor block IDs.  We sort the resulting blocks by
-// value (LRU time) and pick the minimum numBlocks. We then call cache.Delete()
-// on that list of block IDs.
+// weightedByCount is used to shuffle TLF IDs, weighting by per-TLF block count.
+type weightedByCount struct {
+	key   float64
+	value tlf.ID
+}
+
+// shuffleTLFsAtPriorityWeighted shuffles the TLFs at a given priority,
+// weighting by per-TLF block count.
+func (cache *DiskBlockCacheLocal) shuffleTLFsAtPriorityWeighted(
+	priority evictionPriority) []weightedByCount {
+	weightedSlice := make([]weightedByCount, 0,
+		len(cache.priorityTlfMap[priority]))
+	idx := 0
+	// Use an exponential distribution to ensure the weights are
+	// correctly used.
+	// See http://utopia.duth.gr/~pefraimi/research/data/2007EncOfAlg.pdf
+	for tlfID, count := range cache.priorityTlfMap[priority] {
+		if count == 0 {
+			continue
+		}
+		weightedSlice = append(weightedSlice, weightedByCount{
+			key:   math.Pow(rand.Float64(), 1.0/float64(count)),
+			value: tlfID,
+		})
+		idx++
+	}
+	sort.Slice(weightedSlice, func(i, j int) bool {
+		return weightedSlice[i].key > weightedSlice[j].key
+	})
+	return weightedSlice
+}
+
+// evictLocked evicts a number of blocks from the cache. We search the lowest
+// eviction priority level for blocks to evict first, then the next highest
+// priority and so on until enough blocks have been evicted. Within each
+// priority, we first shuffle the TLFs, weighting by how many blocks they
+// contain, and then we take the top TLFs from that shuffle and evict the
+// least recently used blocks from them.
 func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 	numBlocks int) (numRemoved int, sizeRemoved int64, err error) {
+	numRemoved = 0
+	sizeRemoved = 0
 	defer func() {
-		if err == nil {
-			cache.evictCountMeter.Mark(int64(numRemoved))
-			cache.evictSizeMeter.Mark(sizeRemoved)
-		}
+		cache.evictCountMeter.Mark(int64(numRemoved))
+		cache.evictSizeMeter.Mark(sizeRemoved)
 	}()
-	numElements := numBlocks * evictionConsiderationFactor
-	blockID, err := cache.getRandomBlockID(numElements, cache.numBlocks)
-	if err != nil {
-		return 0, 0, err
-	}
-	rng := &util.Range{Start: blockID.Bytes(), Limit: cache.maxBlockID}
-	iter := cache.metaDb.NewIterator(rng, nil)
-	defer iter.Release()
+	for priorityToEvict := priorityNotHome; (priorityToEvict <= priorityPrivateHome) && (numRemoved < numBlocks); priorityToEvict++ {
+		// Shuffle the TLFs of this priority, weighting by block count.
+		shuffledSlice := cache.shuffleTLFsAtPriorityWeighted(priorityToEvict)
+		// Select some TLFs to evict from.
+		numElements := (numBlocks - numRemoved) * evictionConsiderationFactor
 
-	blockIDs := make(blockIDsByTime, 0, numElements)
+		// blockIDs is a slice of blocks from which evictions will be selected.
+		blockIDs := make(blockIDsByTime, 0, numElements)
 
-	for i := 0; i < numElements; i++ {
-		if !iter.Next() {
-			break
+		// For each TLF until we get enough elements to select among,
+		// add its blocks to the eviction slice.
+		for _, tlfIDStruct := range shuffledSlice {
+			tlfID := tlfIDStruct.value
+			if cache.tlfCounts[tlfID] == 0 {
+				continue
+			}
+			tlfBytes := tlfID.Bytes()
+
+			blockID, err := cache.getRandomBlockID(numElements, cache.tlfCounts[tlfID])
+			if err != nil {
+				return 0, 0, err
+			}
+			rng := &util.Range{
+				Start: append(tlfBytes, blockID.Bytes()...),
+				Limit: append(tlfBytes, cache.maxBlockID...),
+			}
+
+			// Extra func exists to make defers work.
+			func() {
+				iter := cache.tlfDb.NewIterator(rng, nil)
+				defer iter.Release()
+
+				for i := 0; i < numElements; i++ {
+					if !iter.Next() {
+						break
+					}
+					key := iter.Key()
+
+					blockIDBytes := key[len(tlfBytes):]
+					blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
+					if err != nil {
+						cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
+						continue
+					}
+					lru, err := cache.getLRULocked(blockID)
+					if err != nil {
+						cache.log.CWarningf(ctx, "Error decoding LRU time for block %s",
+							blockID)
+						continue
+					}
+					blockIDs = append(blockIDs, lruEntry{blockID, lru})
+				}
+			}()
+			if len(blockIDs) == numElements {
+				break
+			}
 		}
-		key := iter.Key()
-
-		blockID, err := kbfsblock.IDFromBytes(key)
+		// Evict some of the selected blocks.
+		currNumRemoved, currSizeRemoved, err := cache.evictSomeBlocks(ctx,
+			numBlocks-numRemoved, blockIDs)
 		if err != nil {
-			cache.log.CWarningf(ctx, "Error getting id from bytes %x", key)
-			continue
+			return numRemoved, sizeRemoved, err
 		}
-		metadata := DiskBlockCacheMetadata{}
-		err = cache.config.Codec().Decode(iter.Value(), &metadata)
-		if err != nil {
-			cache.log.CWarningf(ctx, "Error decoding metadata for block %s",
-				blockID)
-			continue
-		}
-		blockIDs = append(blockIDs, lruEntry{blockID, metadata.LRUTime.Time})
+		// Update the evicted count.
+		numRemoved += currNumRemoved
+		sizeRemoved += currSizeRemoved
 	}
 
-	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
+	return numRemoved, sizeRemoved, nil
 }
 
 func (cache *DiskBlockCacheLocal) deleteNextBatchFromClearedTlf(
@@ -1222,6 +1326,42 @@ func (cache *DiskBlockCacheLocal) DeleteUnmarked(
 			return ctx.Err()
 		}
 	}
+}
+
+// AddHomeTLF implements this DiskBlockCache interace for DiskBlockCacheLocal.
+func (cache *DiskBlockCacheLocal) AddHomeTLF(ctx context.Context, tlfID tlf.ID) error {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	cache.priorityBlockCounts[cache.homeDirs[tlfID]] -= cache.tlfCounts[tlfID]
+	cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID] -= cache.tlfCounts[tlfID]
+
+	switch tlfID.Type() {
+	case tlf.Private:
+		cache.homeDirs[tlfID] = priorityPrivateHome
+	case tlf.Public:
+		cache.homeDirs[tlfID] = priorityPublicHome
+	default:
+		return errTeamOrUnknownTLFAddedAsHome
+	}
+	cache.priorityBlockCounts[cache.homeDirs[tlfID]] += cache.tlfCounts[tlfID]
+	cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID] += cache.tlfCounts[tlfID]
+
+	return nil
+}
+
+// ClearHomeTLFs implements this DiskBlockCache interace for
+// DiskBlockCacheLocal.
+func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	for tlfID, priority := range cache.homeDirs {
+		cache.priorityBlockCounts[priority] -= cache.tlfCounts[tlfID]
+		cache.priorityTlfMap[priority][tlfID] -= cache.tlfCounts[tlfID]
+		cache.priorityBlockCounts[priorityNotHome] += cache.tlfCounts[tlfID]
+		cache.priorityTlfMap[priorityNotHome][tlfID] += cache.tlfCounts[tlfID]
+	}
+	cache.homeDirs = make(map[tlf.ID]evictionPriority)
+	return nil
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.
