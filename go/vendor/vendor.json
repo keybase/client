@@ -15,16 +15,17 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "RPtpMc3jUR9RZC/Ccxw+NuVWWV4=",
+			"origin": "github.com/keybase/fuse",
+			"path": "bazil.org/fuse",
+			"revision": "e3996deee1b03bec702b6a4d4f5b6f2154895e41",
+			"revisionTime": "2018-11-12T20:58:52Z"
+		},
+		{
 			"checksumSHA1": "SYupvmlf7Gq3GEyIqp6Ll5j3xuM=",
 			"path": "bazil.org/fuse",
 			"revision": "08e592e472ded97404acd4e03e9a9e46dfd57fab",
 			"revisionTime": "2016-08-11T21:01:40Z"
-		},
-		{
-			"checksumSHA1": "389JFJTJADMtZkTIfdSnsmHVOUs=",
-			"path": "bazil.org/fuse/fs",
-			"revision": "65cc252bf6691cb3c7014bcb2c8dc29de91e3a7e",
-			"revisionTime": "2018-04-21T15:31:58Z"
 		},
 		{
 			"checksumSHA1": "wy8DrEJ4Al2iZk5hKQEbIqaghGM=",
@@ -903,10 +904,10 @@
 			"revisionTime": "2016-12-20T22:57:08-05:00"
 		},
 		{
-			"checksumSHA1": "LmajbO3+qtbE7JA0MQ29PXbmKNM=",
+			"checksumSHA1": "KAzbLjI9MzW2tjfcAsK75lVRp6I=",
 			"path": "github.com/rcrowley/go-metrics",
-			"revision": "3113b8401b8a98917cde58f8bbd42a1b1c03b1fd",
-			"revisionTime": "2018-10-16T18:43:25Z"
+			"revision": "1f30fe9094a513ce4c700b9a54458bbb0c96996c",
+			"revisionTime": "2016-11-28T21:05:44Z"
 		},
 		{
 			"checksumSHA1": "jFB5vxLu4zA5qTKxAGTBnxyTMKA=",
@@ -1579,10 +1580,10 @@
 			"revisionTime": "2017-05-17T20:25:26Z"
 		},
 		{
-			"checksumSHA1": "dDWzJ5h90HfoQsEK12PtN4UpPlo=",
+			"checksumSHA1": "afJnZlrtxfTzpS7lu1yhU3xKVqw=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "58da1121af381632b48b2843aeb16299f2e1dc50",
-			"revisionTime": "2015-07-30T00:23:51Z"
+			"revision": "833a04a10549a95dc34458c195cbad61bbb6cb4d",
+			"revisionTime": "2015-12-10T17:34:15-08:00"
 		},
 		{
 			"checksumSHA1": "6aa7Y4gpUDxYNt48cOT95zMjp9E=",
@@ -1699,10 +1700,10 @@
 			"revisionTime": "2016-06-17T13:51:20-05:00"
 		},
 		{
-			"checksumSHA1": "TZDHZj3zWDc5LKqpoLamOKt6Nmo=",
+			"checksumSHA1": "0uwDStcjVf2LGzegKmTBWsaZ6Ns=",
 			"path": "golang.org/x/text/transform",
-			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
-			"revisionTime": "2016-06-17T13:51:20-05:00"
+			"revision": "f773ec03ce334298742df7f3108fc0d402646d22",
+			"revisionTime": "2016-05-05T22:32:54Z"
 		},
 		{
 			"checksumSHA1": "n94g6qdzv0fgQFGelH4/HXOthl0=",
@@ -1711,10 +1712,10 @@
 			"revisionTime": "2016-09-22T05:42:04Z"
 		},
 		{
-			"checksumSHA1": "vAScJLvb0ucuuclyN9vmJUyWTBA=",
+			"checksumSHA1": "OwypTTxsp/HEwbfXq9yMR4fACRM=",
 			"path": "golang.org/x/text/unicode/norm",
-			"revision": "e6919f6577db79269a6443b9dc46d18f2238fb5d",
-			"revisionTime": "2018-12-15T12:10:58Z"
+			"revision": "f773ec03ce334298742df7f3108fc0d402646d22",
+			"revisionTime": "2016-05-05T22:32:54Z"
 		},
 		{
 			"checksumSHA1": "7Ev/X4Xe8P3961myez/hBKO05ig=",
