@@ -573,10 +573,6 @@
 			"revisionTime": "2018-08-24T13:24:23Z"
 		},
 		{
-			"path": "github.com/keybase/ps-go",
-			"revision": ""
-		},
-		{
 			"checksumSHA1": "AdTewzl8bd3Il/9CHP/+b4hkhyw=",
 			"path": "github.com/keybase/saltpack",
 			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
