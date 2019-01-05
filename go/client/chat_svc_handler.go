@@ -27,8 +27,8 @@ type ChatServiceHandler interface {
 	EditV1(context.Context, editOptionsV1) Reply
 	ReactionV1(context.Context, reactionOptionsV1) Reply
 	DeleteV1(context.Context, deleteOptionsV1) Reply
-	AttachV1(context.Context, attachOptionsV1) Reply
-	DownloadV1(context.Context, downloadOptionsV1) Reply
+	AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterface, chat1.NotifyChatInterface) Reply
+	DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
@@ -399,7 +399,8 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 }
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
-func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
+	chatUI chat1.ChatUiInterface, notifyUI chat1.NotifyChatInterface) Reply {
 	var rl []chat1.RateLimit
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
@@ -447,23 +448,14 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		}
 	}
 
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
-	notify := &ChatNotifications{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
-
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
-		chat1.NotifyChatProtocol(notify),
+		chat1.ChatUiProtocol(chatUI),
+		chat1.NotifyChatProtocol(notifyUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -499,9 +491,10 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 }
 
 // DownloadV1 implements ChatServiceHandler.DownloadV1.
-func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1) Reply {
+func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1,
+	chatUI chat1.ChatUiInterface) Reply {
 	if opts.NoStream && opts.Output != "-" {
-		return c.downloadV1NoStream(ctx, opts)
+		return c.downloadV1NoStream(ctx, opts, chatUI)
 	}
 	var fsink Sink
 	if opts.Output == "-" {
@@ -512,17 +505,13 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	defer fsink.Close()
 	sink := c.G().XStreams.ExportWriter(fsink)
 
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
+		chat1.ChatUiProtocol(chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -559,18 +548,15 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 }
 
 // downloadV1NoStream uses DownloadFileAttachmentLocal instead of DownloadAttachmentLocal.
-func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1) Reply {
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
+func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1,
+	chatUI chat1.ChatUiInterface) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
+		chat1.ChatUiProtocol(chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
