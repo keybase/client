@@ -23,7 +23,7 @@ type ChatServiceHandler interface {
 	ListV1(context.Context, listOptionsV1) Reply
 	ReadV1(context.Context, readOptionsV1) Reply
 	GetV1(context.Context, getOptionsV1) Reply
-	SendV1(context.Context, sendOptionsV1) Reply
+	SendV1(context.Context, sendOptionsV1, chat1.ChatUiInterface) Reply
 	EditV1(context.Context, editOptionsV1) Reply
 	ReactionV1(context.Context, reactionOptionsV1) Reply
 	DeleteV1(context.Context, deleteOptionsV1) Reply
@@ -325,7 +325,7 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 }
 
 // SendV1 implements ChatServiceHandler.SendV1.
-func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
+func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui chat1.ChatUiInterface) Reply {
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -340,17 +340,15 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 		ephemeralLifetime: opts.EphemeralLifetime,
 	}
 
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, ui)
 }
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
-
 	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
-
 	messages := []chat1.MessageID{opts.MessageID}
 	arg := sendArgV1{
 		conversationID: convID,
@@ -363,7 +361,7 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 		// NOTE: The service will fill in the IDs of edit messages that also need to be deleted.
 		body: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 	}
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // EditV1 implements ChatServiceHandler.EditV1.
@@ -380,7 +378,7 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 		supersedes:     opts.MessageID,
 		response:       "message edited",
 	}
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // ReactionV1 implements ChatServiceHandler.ReactionV1.
@@ -397,7 +395,7 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 		supersedes:     opts.MessageID,
 		response:       "message reacted to",
 	}
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
@@ -818,7 +816,7 @@ type sendArgV1 struct {
 	ephemeralLifetime ephemeralLifetime
 }
 
-func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
+func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, ui chat1.ChatUiInterface) Reply {
 	var rl []chat1.RateLimit
 	existing, existingRl, err := c.getExistingConvs(ctx, arg.conversationID, arg.channel)
 	if err != nil {
