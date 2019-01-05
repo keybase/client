@@ -5,7 +5,7 @@
 package libkbfs
 
 import (
-	"github.com/keybase/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"sync"
 
 	"github.com/keybase/client/go/kbconst"
