@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build !go1.8,android !go1.8,linux !go1.8,netbsd !go1.8,solaris !go1.8,dragonfly
+// +build linux netbsd openbsd solaris dragonfly
 
 package osext
 
@@ -16,7 +16,7 @@ import (
 
 func executable() (string, error) {
 	switch runtime.GOOS {
-	case "linux", "android":
+	case "linux":
 		const deletedTag = " (deleted)"
 		execpath, err := os.Readlink("/proc/self/exe")
 		if err != nil {
@@ -27,7 +27,7 @@ func executable() (string, error) {
 		return execpath, nil
 	case "netbsd":
 		return os.Readlink("/proc/curproc/exe")
-	case "dragonfly":
+	case "openbsd", "dragonfly":
 		return os.Readlink("/proc/curproc/file")
 	case "solaris":
 		return os.Readlink(fmt.Sprintf("/proc/%d/path/a.out", os.Getpid()))

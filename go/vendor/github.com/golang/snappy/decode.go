@@ -18,6 +18,7 @@ var (
 	// ErrUnsupported reports that the input isn't supported.
 	ErrUnsupported = errors.New("snappy: unsupported input")
 
+	errUnsupportedCopy4Tag      = errors.New("snappy: unsupported COPY_4 tag")
 	errUnsupportedLiteralLength = errors.New("snappy: unsupported literal length")
 )
 
@@ -45,6 +46,7 @@ func decodedLen(src []byte) (blockLen, headerLen int, err error) {
 const (
 	decodeErrCodeCorrupt                  = 1
 	decodeErrCodeUnsupportedLiteralLength = 2
+	decodeErrCodeUnsupportedCopy4Tag      = 3
 )
 
 // Decode returns the decoded form of src. The returned slice may be a sub-
@@ -67,6 +69,8 @@ func Decode(dst, src []byte) ([]byte, error) {
 		return dst, nil
 	case decodeErrCodeUnsupportedLiteralLength:
 		return nil, errUnsupportedLiteralLength
+	case decodeErrCodeUnsupportedCopy4Tag:
+		return nil, errUnsupportedCopy4Tag
 	}
 	return nil, ErrCorrupt
 }

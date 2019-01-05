@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gomobile_bind
+package main
 
 // Go support functions for generated Go bindings. This file is
-// copied into the generated package, gomobile_bind, and compiled
-// along with the bindings.
+// copied into the generated main package, and compiled along
+// with the bindings.
 
+// #cgo android CFLAGS: -D__GOBIND_ANDROID__
+// #cgo darwin CFLAGS: -D__GOBIND_DARWIN__
 // #include <stdlib.h>
 // #include "seq.h"
 import "C"
@@ -18,6 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "golang.org/x/mobile/bind/java"
 	_seq "golang.org/x/mobile/bind/seq"
 )
 
@@ -45,3 +48,5 @@ func init() {
 func IncGoRef(refnum C.int32_t) {
 	_seq.Inc(int32(refnum))
 }
+
+func main() {}

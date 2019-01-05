@@ -35,6 +35,13 @@ func (e UnsupportedError) Error() string {
 	return "tiff: unsupported feature: " + string(e)
 }
 
+// An InternalError reports that an internal error was encountered.
+type InternalError string
+
+func (e InternalError) Error() string {
+	return "tiff: internal error: " + string(e)
+}
+
 var errNoPixels = FormatError("not enough pixel data")
 
 type decoder struct {
@@ -110,7 +117,7 @@ func (d *decoder) ifdUint(p []byte) (u []uint, err error) {
 	return u, nil
 }
 
-// parseIFD decides whether the IFD entry in p is "interesting" and
+// parseIFD decides whether the the IFD entry in p is "interesting" and
 // stows away the data in the decoder. It returns the tag number of the
 // entry and an error, if any.
 func (d *decoder) parseIFD(p []byte) (int, error) {
@@ -263,9 +270,6 @@ func (d *decoder) decode(dst image.Image, xmin, ymin, xmax, ymax int) error {
 						v = 0xffff - v
 					}
 					img.SetGray16(x, y, color.Gray16{v})
-				}
-				if rMaxX == img.Bounds().Max.X {
-					d.off += 2 * (xmax - img.Bounds().Max.X)
 				}
 			}
 		} else {

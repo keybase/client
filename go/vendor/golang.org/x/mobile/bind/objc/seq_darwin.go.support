@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gomobile_bind
+package main
 
 // Go support functions for Objective-C. Note that this
 // file is copied into and compiled with the generated
 // bindings.
 
 /*
-#cgo CFLAGS: -x objective-c -fobjc-arc -Werror
+#cgo CFLAGS: -x objective-c -fobjc-arc -fmodules -fblocks -Werror
 #cgo LDFLAGS: -framework Foundation
 
 #include <stdint.h>

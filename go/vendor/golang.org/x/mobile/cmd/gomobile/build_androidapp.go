@@ -25,7 +25,7 @@ import (
 )
 
 func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool, error) {
-	if ndkRoot == "" {
+	if !hasNDK() {
 		return nil, errors.New("no Android NDK path is set. Please run gomobile init with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.")
 	}
 	appName := path.Base(pkg.ImportPath)
@@ -287,20 +287,15 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 // but not exactly same.
 func androidPkgName(name string) string {
 	var res []rune
-	for i, r := range name {
+	for _, r := range name {
 		switch {
-		case 'a' <= r && r <= 'z', 'A' <= r && r <= 'Z':
-			res = append(res, r)
-		case '0' <= r && r <= '9':
-			if i == 0 {
-				panic(fmt.Sprintf("package name %q is not a valid go package name", name))
-			}
+		case 'a' <= r && r <= 'z', 'A' <= r && r <= 'Z', '0' <= r && r <= '9':
 			res = append(res, r)
 		default:
 			res = append(res, '_')
 		}
 	}
-	if len(res) == 0 || res[0] == '_' {
+	if len(res) == 0 || res[0] == '_' || ('0' <= res[0] && res[0] <= '9') {
 		// Android does not seem to allow the package part starting with _.
 		res = append([]rune{'g', 'o'}, res...)
 	}
