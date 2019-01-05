@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 import Bio from '../../tracker2/bio/container'
 import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions'
+import Friend from './friend/container'
 
 export type Props = {|
   assertionKeys: ?$ReadOnlyArray<string>,
@@ -178,9 +179,7 @@ class MobileLayout extends React.Component<LayoutProps> {
     </Kb.Box2>
   )
 
-  _renderOtherUsers = ({item}) => {
-    return <Kb.Text type="Body">{item}</Kb.Text>
-  }
+  _renderOtherUsers = ({item}) => <Friend username={item} />
 
   _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
 
@@ -282,6 +281,7 @@ const styles = Styles.styleSheetCreate({
   },
   followTabContainer: {
     alignItems: 'flex-end',
+    backgroundColor: Styles.globalColors.white,
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
   },
