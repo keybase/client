@@ -3,8 +3,9 @@ package ast
 import (
 	"errors"
 	"fmt"
-	"github.com/gobwas/glob/syntax/lexer"
 	"unicode/utf8"
+
+	"github.com/gobwas/glob/syntax/lexer"
 )
 
 type Lexer interface {
@@ -83,7 +84,6 @@ func parserMain(tree *Node, lex Lexer) (parseFn, *Node, error) {
 			return nil, tree, fmt.Errorf("unexpected token: %s", token)
 		}
 	}
-	return nil, tree, fmt.Errorf("unknown error")
 }
 
 func parserRange(tree *Node, lex Lexer) (parseFn, *Node, error) {

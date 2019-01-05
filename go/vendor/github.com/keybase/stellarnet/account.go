@@ -178,11 +178,10 @@ func AvailableBalance(balance string, subentryCount int) (string, error) {
 
 // AccountDetails contains basic details about a stellar account.
 type AccountDetails struct {
-	Seqno                string
-	SubentryCount        int
-	Available            string
-	Balances             []horizon.Balance
-	InflationDestination string
+	Seqno         string
+	SubentryCount int
+	Available     string
+	Balances      []horizon.Balance
 }
 
 // Details returns AccountDetails for this account (minimizing horizon calls).
@@ -197,11 +196,10 @@ func (a *Account) Details() (*AccountDetails, error) {
 	}
 
 	details := AccountDetails{
-		Seqno:                a.internal.Sequence,
-		SubentryCount:        int(a.internal.SubentryCount),
-		Balances:             a.internal.Balances,
-		Available:            available,
-		InflationDestination: a.internal.InflationDestination,
+		Seqno:         a.internal.Sequence,
+		SubentryCount: int(a.internal.SubentryCount),
+		Balances:      a.internal.Balances,
+		Available:     available,
 	}
 
 	return &details, nil

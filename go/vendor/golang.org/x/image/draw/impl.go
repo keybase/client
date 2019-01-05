@@ -11,9 +11,8 @@ import (
 )
 
 func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
-	// Try to simplify a Scale to a Copy when DstMask is not specified.
-	// If DstMask is not nil, Copy will call Scale back with same dr and sr, and cause stack overflow.
-	if dr.Size() == sr.Size() && (opts == nil || opts.DstMask == nil) {
+	// Try to simplify a Scale to a Copy.
+	if dr.Size() == sr.Size() {
 		Copy(dst, dr.Min, src, sr, op, opts)
 		return
 	}
@@ -344,7 +343,7 @@ func (nnInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rec
 			pj := (sr.Min.Y+int(sy)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -387,7 +386,7 @@ func (nnInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rec
 			pj := (sr.Min.Y+int(sy)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -430,7 +429,7 @@ func (nnInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rec
 			pj := ((sr.Min.Y+int(sy))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -473,7 +472,7 @@ func (nnInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rec
 			pj := ((sr.Min.Y+int(sy))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -760,7 +759,7 @@ func (nnInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image
 			pj := (sy0-src.Rect.Min.Y)*src.CStride + (sx0 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -804,7 +803,7 @@ func (nnInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image
 			pj := (sy0-src.Rect.Min.Y)*src.CStride + ((sx0)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -848,7 +847,7 @@ func (nnInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image
 			pj := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + ((sx0)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -892,7 +891,7 @@ func (nnInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image
 			pj := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + (sx0 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			pyy1 := int(src.Y[pi]) * 0x10101
+			pyy1 := int(src.Y[pi]) * 0x10100
 			pcb1 := int(src.Cb[pj]) - 128
 			pcr1 := int(src.Cr[pj]) - 128
 			pr := (pyy1 + 91881*pcr1) >> 8
@@ -1049,9 +1048,8 @@ func (nnInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectang
 }
 
 func (z ablInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
-	// Try to simplify a Scale to a Copy when DstMask is not specified.
-	// If DstMask is not nil, Copy will call Scale back with same dr and sr, and cause stack overflow.
-	if dr.Size() == sr.Size() && (opts == nil || opts.DstMask == nil) {
+	// Try to simplify a Scale to a Copy.
+	if dr.Size() == sr.Size() {
 		Copy(dst, dr.Min, src, sr, op, opts)
 		return
 	}
@@ -1758,7 +1756,7 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 			s00j := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx0) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -1787,7 +1785,7 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 			s10j := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -1819,7 +1817,7 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 			s01j := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx0) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -1848,7 +1846,7 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 			s11j := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -1933,7 +1931,7 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 			s00j := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx0))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -1962,7 +1960,7 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 			s10j := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -1994,7 +1992,7 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 			s01j := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx0))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -2023,7 +2021,7 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 			s11j := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -2108,7 +2106,7 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 			s00j := ((sr.Min.Y+int(sy0))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx0))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -2137,7 +2135,7 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 			s10j := ((sr.Min.Y+int(sy0))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -2169,7 +2167,7 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 			s01j := ((sr.Min.Y+int(sy1))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx0))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -2198,7 +2196,7 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 			s11j := ((sr.Min.Y+int(sy1))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -2283,7 +2281,7 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 			s00j := ((sr.Min.Y+int(sy0))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx0) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -2312,7 +2310,7 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 			s10j := ((sr.Min.Y+int(sy0))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -2344,7 +2342,7 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 			s01j := ((sr.Min.Y+int(sy1))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx0) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -2373,7 +2371,7 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 			s11j := ((sr.Min.Y+int(sy1))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -3347,7 +3345,7 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 			s00j := (sy0-src.Rect.Min.Y)*src.CStride + (sx0 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -3376,7 +3374,7 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 			s10j := (sy0-src.Rect.Min.Y)*src.CStride + (sx1 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -3408,7 +3406,7 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 			s01j := (sy1-src.Rect.Min.Y)*src.CStride + (sx0 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -3437,7 +3435,7 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 			s11j := (sy1-src.Rect.Min.Y)*src.CStride + (sx1 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -3523,7 +3521,7 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 			s00j := (sy0-src.Rect.Min.Y)*src.CStride + ((sx0)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -3552,7 +3550,7 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 			s10j := (sy0-src.Rect.Min.Y)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -3584,7 +3582,7 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 			s01j := (sy1-src.Rect.Min.Y)*src.CStride + ((sx0)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -3613,7 +3611,7 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 			s11j := (sy1-src.Rect.Min.Y)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -3699,7 +3697,7 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 			s00j := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + ((sx0)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -3728,7 +3726,7 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 			s10j := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -3760,7 +3758,7 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 			s01j := ((sy1)/2-src.Rect.Min.Y/2)*src.CStride + ((sx0)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -3789,7 +3787,7 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 			s11j := ((sy1)/2-src.Rect.Min.Y/2)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -3875,7 +3873,7 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 			s00j := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + (sx0 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s00yy1 := int(src.Y[s00i]) * 0x10101
+			s00yy1 := int(src.Y[s00i]) * 0x10100
 			s00cb1 := int(src.Cb[s00j]) - 128
 			s00cr1 := int(src.Cr[s00j]) - 128
 			s00ru := (s00yy1 + 91881*s00cr1) >> 8
@@ -3904,7 +3902,7 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 			s10j := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + (sx1 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s10yy1 := int(src.Y[s10i]) * 0x10101
+			s10yy1 := int(src.Y[s10i]) * 0x10100
 			s10cb1 := int(src.Cb[s10j]) - 128
 			s10cr1 := int(src.Cr[s10j]) - 128
 			s10ru := (s10yy1 + 91881*s10cr1) >> 8
@@ -3936,7 +3934,7 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 			s01j := ((sy1)/2-src.Rect.Min.Y/2)*src.CStride + (sx0 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s01yy1 := int(src.Y[s01i]) * 0x10101
+			s01yy1 := int(src.Y[s01i]) * 0x10100
 			s01cb1 := int(src.Cb[s01j]) - 128
 			s01cr1 := int(src.Cr[s01j]) - 128
 			s01ru := (s01yy1 + 91881*s01cr1) >> 8
@@ -3965,7 +3963,7 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 			s11j := ((sy1)/2-src.Rect.Min.Y/2)*src.CStride + (sx1 - src.Rect.Min.X)
 
 			// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-			s11yy1 := int(src.Y[s11i]) * 0x10101
+			s11yy1 := int(src.Y[s11i]) * 0x10100
 			s11cb1 := int(src.Cb[s11j]) - 128
 			s11cr1 := int(src.Cr[s11j]) - 128
 			s11ru := (s11yy1 + 91881*s11cr1) >> 8
@@ -4731,7 +4729,7 @@ func (z *kernelScaler) scaleX_YCbCr444(tmp [][4]float64, src *image.YCbCr, sr im
 				pj := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 
 				// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-				pyy1 := int(src.Y[pi]) * 0x10101
+				pyy1 := int(src.Y[pi]) * 0x10100
 				pcb1 := int(src.Cb[pj]) - 128
 				pcr1 := int(src.Cr[pj]) - 128
 				pru := (pyy1 + 91881*pcr1) >> 8
@@ -4778,7 +4776,7 @@ func (z *kernelScaler) scaleX_YCbCr422(tmp [][4]float64, src *image.YCbCr, sr im
 				pj := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(c.coord))/2 - src.Rect.Min.X/2)
 
 				// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-				pyy1 := int(src.Y[pi]) * 0x10101
+				pyy1 := int(src.Y[pi]) * 0x10100
 				pcb1 := int(src.Cb[pj]) - 128
 				pcr1 := int(src.Cr[pj]) - 128
 				pru := (pyy1 + 91881*pcr1) >> 8
@@ -4825,7 +4823,7 @@ func (z *kernelScaler) scaleX_YCbCr420(tmp [][4]float64, src *image.YCbCr, sr im
 				pj := ((sr.Min.Y+int(y))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(c.coord))/2 - src.Rect.Min.X/2)
 
 				// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-				pyy1 := int(src.Y[pi]) * 0x10101
+				pyy1 := int(src.Y[pi]) * 0x10100
 				pcb1 := int(src.Cb[pj]) - 128
 				pcr1 := int(src.Cr[pj]) - 128
 				pru := (pyy1 + 91881*pcr1) >> 8
@@ -4872,7 +4870,7 @@ func (z *kernelScaler) scaleX_YCbCr440(tmp [][4]float64, src *image.YCbCr, sr im
 				pj := ((sr.Min.Y+int(y))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 
 				// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-				pyy1 := int(src.Y[pi]) * 0x10101
+				pyy1 := int(src.Y[pi]) * 0x10100
 				pcb1 := int(src.Cb[pj]) - 128
 				pcr1 := int(src.Cr[pj]) - 128
 				pru := (pyy1 + 91881*pcr1) >> 8
@@ -5761,7 +5759,7 @@ func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rect
 							pj := (ky-src.Rect.Min.Y)*src.CStride + (kx - src.Rect.Min.X)
 
 							// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-							pyy1 := int(src.Y[pi]) * 0x10101
+							pyy1 := int(src.Y[pi]) * 0x10100
 							pcb1 := int(src.Cb[pj]) - 128
 							pcr1 := int(src.Cr[pj]) - 128
 							pru := (pyy1 + 91881*pcr1) >> 8
@@ -5885,7 +5883,7 @@ func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rect
 							pj := (ky-src.Rect.Min.Y)*src.CStride + ((kx)/2 - src.Rect.Min.X/2)
 
 							// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-							pyy1 := int(src.Y[pi]) * 0x10101
+							pyy1 := int(src.Y[pi]) * 0x10100
 							pcb1 := int(src.Cb[pj]) - 128
 							pcr1 := int(src.Cr[pj]) - 128
 							pru := (pyy1 + 91881*pcr1) >> 8
@@ -6009,7 +6007,7 @@ func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rect
 							pj := ((ky)/2-src.Rect.Min.Y/2)*src.CStride + ((kx)/2 - src.Rect.Min.X/2)
 
 							// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-							pyy1 := int(src.Y[pi]) * 0x10101
+							pyy1 := int(src.Y[pi]) * 0x10100
 							pcb1 := int(src.Cb[pj]) - 128
 							pcr1 := int(src.Cr[pj]) - 128
 							pru := (pyy1 + 91881*pcr1) >> 8
@@ -6133,7 +6131,7 @@ func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rect
 							pj := ((ky)/2-src.Rect.Min.Y/2)*src.CStride + (kx - src.Rect.Min.X)
 
 							// This is an inline version of image/color/ycbcr.go's YCbCr.RGBA method.
-							pyy1 := int(src.Y[pi]) * 0x10101
+							pyy1 := int(src.Y[pi]) * 0x10100
 							pcb1 := int(src.Cb[pj]) - 128
 							pcr1 := int(src.Cr[pj]) - 128
 							pru := (pyy1 + 91881*pcr1) >> 8

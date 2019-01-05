@@ -71,7 +71,7 @@ func (a *ancestorQuery) Select(t iterator) NodeNavigator {
 				}
 				for node.MoveToParent() {
 					if !a.Predicate(node) {
-						continue
+						break
 					}
 					return node
 				}
