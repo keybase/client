@@ -4,6 +4,7 @@ import Friend from '.'
 
 type OwnProps = {|
   username: string,
+  width: number,
 |}
 
 const mapStateToProps = (state, ownProps) => {
@@ -20,7 +21,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followsYou: stateProps.followsYou,
   fullname: stateProps.fullname,
   username: stateProps.username,
-  width: ownProps.width
+  width: ownProps.width,
 })
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(
