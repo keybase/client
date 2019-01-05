@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 )
 
@@ -50,6 +51,8 @@ type KBFSOpsStandard struct {
 	editLock     sync.Mutex
 	editShutdown bool
 
+	conflictResolutionDB *leveldb.DB
+
 	currentStatus            *kbfsCurrentStatus
 	quotaUsage               *EventuallyConsistentQuotaUsage
 	longOperationDebugDumper *ImpatientDebugDumper
@@ -74,7 +77,8 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
-		currentStatus: &kbfsCurrentStatus{},
+		currentStatus:        &kbfsCurrentStatus{},
+		conflictResolutionDB: openCRDB(context.Background(), config),
 	}
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
@@ -157,6 +161,9 @@ func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 			errors = append(errors, err)
 			// Continue on and try to shut down the other FBOs.
 		}
+	}
+	if err := fs.conflictResolutionDB.Close(); err != nil {
+		errors = append(errors, err)
 	}
 	if len(errors) == 1 {
 		return errors[0]
@@ -438,6 +445,11 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 		currFav: fav,
 	})
 	return ops
+}
+
+// GetConflictResolutionDB implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetConflictResolutionDB() (db *leveldb.DB) {
+	return fs.conflictResolutionDB
 }
 
 func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *TlfHandle) error {

@@ -58,6 +58,9 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	if err != nil {
 		t.Fatal(err)
 	}
+	crdb := openCRDB(ctx, config)
+	config.mockKbfs.EXPECT().GetConflictResolutionDB().Return(crdb).AnyTimes()
+
 	initSuccess = true
 	return ctx, cancel, mockCtrl, config, fbo.cr
 }
