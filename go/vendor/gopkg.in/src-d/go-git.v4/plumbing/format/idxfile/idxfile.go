@@ -214,6 +214,11 @@ func (idx *MemoryIndex) Count() (int64, error) {
 	return int64(idx.Fanout[fanout-1]), nil
 }
 
+// Unexported: count returns the Count from an MemoryIndex as int and does not fail.
+func (idx *MemoryIndex) count() int {
+	return int(idx.Fanout[fanout-1])
+}
+
 // Entries implements the Index interface.
 func (idx *MemoryIndex) Entries() (EntryIter, error) {
 	return &idxfileEntryIter{idx, 0, 0, 0}, nil

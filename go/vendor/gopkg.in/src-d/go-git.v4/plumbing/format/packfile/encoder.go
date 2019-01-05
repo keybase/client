@@ -48,16 +48,27 @@ func NewEncoder(w io.Writer, s storer.EncodedObjectStorer, useRefDeltas bool) *E
 func (e *Encoder) Encode(
 	hashes []plumbing.Hash,
 	packWindow uint,
+	statusChan plumbing.StatusChan,
 ) (plumbing.Hash, error) {
-	objects, err := e.selector.ObjectsToPack(hashes, packWindow)
+	objects, err := e.selector.ObjectsToPack(
+		hashes, packWindow, statusChan)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
 
-	return e.encode(objects)
+	return e.encode(objects, statusChan)
 }
 
-func (e *Encoder) encode(objects []*ObjectToPack) (plumbing.Hash, error) {
+func (e *Encoder) encode(
+	objects []*ObjectToPack,
+	statusChan plumbing.StatusChan,
+) (plumbing.Hash, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusSend,
+		ObjectsTotal: len(objects),
+	}
+	statusChan.SendUpdate(update)
+
 	if err := e.head(len(objects)); err != nil {
 		return plumbing.ZeroHash, err
 	}
@@ -66,6 +77,8 @@ func (e *Encoder) encode(objects []*ObjectToPack) (plumbing.Hash, error) {
 		if err := e.entry(o); err != nil {
 			return plumbing.ZeroHash, err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return e.footer()

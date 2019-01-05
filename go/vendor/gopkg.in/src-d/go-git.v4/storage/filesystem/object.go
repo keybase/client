@@ -18,8 +18,6 @@ import (
 )
 
 type ObjectStorage struct {
-	options Options
-
 	// deltaBaseCache is an object cache uses to cache delta's bases when
 	deltaBaseCache cache.Object
 
@@ -27,18 +25,14 @@ type ObjectStorage struct {
 	index map[plumbing.Hash]idxfile.Index
 }
 
-// NewObjectStorage creates a new ObjectStorage with the given .git directory and cache.
-func NewObjectStorage(dir *dotgit.DotGit, cache cache.Object) *ObjectStorage {
-	return NewObjectStorageWithOptions(dir, cache, Options{})
-}
-
-// NewObjectStorageWithOptions creates a new ObjectStorage with the given .git directory, cache and extra options
-func NewObjectStorageWithOptions(dir *dotgit.DotGit, cache cache.Object, ops Options) *ObjectStorage {
-	return &ObjectStorage{
-		options:        ops,
-		deltaBaseCache: cache,
+// NewObjectStorage creates a new ObjectStorage with the given .git directory.
+func NewObjectStorage(dir *dotgit.DotGit) (ObjectStorage, error) {
+	s := ObjectStorage{
+		deltaBaseCache: cache.NewObjectLRUDefault(),
 		dir:            dir,
 	}
+
+	return s, nil
 }
 
 func (s *ObjectStorage) requireIndex() error {
@@ -61,11 +55,6 @@ func (s *ObjectStorage) requireIndex() error {
 	return nil
 }
 
-// Reindex indexes again all packfiles. Useful if git changed packfiles externally
-func (s *ObjectStorage) Reindex() {
-	s.index = nil
-}
-
 func (s *ObjectStorage) loadIdxFile(h plumbing.Hash) (err error) {
 	f, err := s.dir.ObjectPackIdx(h)
 	if err != nil {
@@ -73,7 +62,6 @@ func (s *ObjectStorage) loadIdxFile(h plumbing.Hash) (err error) {
 	}
 
 	defer ioutil.CheckClose(f, &err)
-
 	idxf := idxfile.NewMemoryIndex()
 	d := idxfile.NewDecoder(f)
 	if err = d.Decode(idxf); err != nil {
@@ -88,12 +76,12 @@ func (s *ObjectStorage) NewEncodedObject() plumbing.EncodedObject {
 	return &plumbing.MemoryObject{}
 }
 
-func (s *ObjectStorage) PackfileWriter() (io.WriteCloser, error) {
+func (s *ObjectStorage) PackfileWriter(statusChan plumbing.StatusChan) (io.WriteCloser, error) {
 	if err := s.requireIndex(); err != nil {
 		return nil, err
 	}
 
-	w, err := s.dir.NewObjectPack()
+	w, err := s.dir.NewObjectPack(statusChan)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +242,10 @@ func (s *ObjectStorage) EncodedObject(t plumbing.ObjectType, h plumbing.Hash) (p
 			// Create a new object storage with the DotGit(s) and check for the
 			// required hash object. Skip when not found.
 			for _, dg := range dotgits {
-				o := NewObjectStorage(dg, s.deltaBaseCache)
+				o, oe := NewObjectStorage(dg)
+				if oe != nil {
+					continue
+				}
 				enobj, enerr := o.EncodedObject(t, h)
 				if enerr != nil {
 					continue
@@ -350,9 +341,7 @@ func (s *ObjectStorage) getFromPackfile(h plumbing.Hash, canBeDelta bool) (
 		return nil, err
 	}
 
-	if !s.options.KeepDescriptors {
-		defer ioutil.CheckClose(f, &err)
-	}
+	defer ioutil.CheckClose(f, &err)
 
 	idx := s.index[pack]
 	if canBeDelta {
@@ -474,10 +463,7 @@ func (s *ObjectStorage) IterEncodedObjects(t plumbing.ObjectType) (storer.Encode
 	return storer.NewMultiEncodedObjectIter(iters), nil
 }
 
-func (s *ObjectStorage) buildPackfileIters(
-	t plumbing.ObjectType,
-	seen map[plumbing.Hash]struct{},
-) (storer.EncodedObjectIter, error) {
+func (s *ObjectStorage) buildPackfileIters(t plumbing.ObjectType, seen map[plumbing.Hash]struct{}) (storer.EncodedObjectIter, error) {
 	if err := s.requireIndex(); err != nil {
 		return nil, err
 	}
@@ -493,17 +479,9 @@ func (s *ObjectStorage) buildPackfileIters(
 			if err != nil {
 				return nil, err
 			}
-			return newPackfileIter(
-				s.dir.Fs(), pack, t, seen, s.index[h],
-				s.deltaBaseCache, s.options.KeepDescriptors,
-			)
+			return newPackfileIter(s.dir.Fs(), pack, t, seen, s.index[h], s.deltaBaseCache)
 		},
 	}, nil
-}
-
-// Close closes all opened files.
-func (s *ObjectStorage) Close() error {
-	return s.dir.Close()
 }
 
 type lazyPackfilesIter struct {
@@ -557,21 +535,16 @@ type packfileIter struct {
 	pack billy.File
 	iter storer.EncodedObjectIter
 	seen map[plumbing.Hash]struct{}
-
-	// tells whether the pack file should be left open after iteration or not
-	keepPack bool
 }
 
 // NewPackfileIter returns a new EncodedObjectIter for the provided packfile
 // and object type. Packfile and index file will be closed after they're
-// used. If keepPack is true the packfile won't be closed after the iteration
-// finished.
+// used.
 func NewPackfileIter(
 	fs billy.Filesystem,
 	f billy.File,
 	idxFile billy.File,
 	t plumbing.ObjectType,
-	keepPack bool,
 ) (storer.EncodedObjectIter, error) {
 	idx := idxfile.NewMemoryIndex()
 	if err := idxfile.NewDecoder(idxFile).Decode(idx); err != nil {
@@ -582,8 +555,7 @@ func NewPackfileIter(
 		return nil, err
 	}
 
-	seen := make(map[plumbing.Hash]struct{})
-	return newPackfileIter(fs, f, t, seen, idx, nil, keepPack)
+	return newPackfileIter(fs, f, t, make(map[plumbing.Hash]struct{}), idx, nil)
 }
 
 func newPackfileIter(
@@ -593,7 +565,6 @@ func newPackfileIter(
 	seen map[plumbing.Hash]struct{},
 	index idxfile.Index,
 	cache cache.Object,
-	keepPack bool,
 ) (storer.EncodedObjectIter, error) {
 	var p *packfile.Packfile
 	if cache != nil {
@@ -608,10 +579,9 @@ func newPackfileIter(
 	}
 
 	return &packfileIter{
-		pack:     f,
-		iter:     iter,
-		seen:     seen,
-		keepPack: keepPack,
+		pack: f,
+		iter: iter,
+		seen: seen,
 	}, nil
 }
 
@@ -649,9 +619,7 @@ func (iter *packfileIter) ForEach(cb func(plumbing.EncodedObject) error) error {
 
 func (iter *packfileIter) Close() {
 	iter.iter.Close()
-	if !iter.keepPack {
-		_ = iter.pack.Close()
-	}
+	_ = iter.pack.Close()
 }
 
 type objectsIter struct {

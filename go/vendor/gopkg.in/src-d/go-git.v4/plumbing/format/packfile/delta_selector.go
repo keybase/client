@@ -36,8 +36,15 @@ func newDeltaSelector(s storer.EncodedObjectStorer) *deltaSelector {
 func (dw *deltaSelector) ObjectsToPack(
 	hashes []plumbing.Hash,
 	packWindow uint,
+	statusChan plumbing.StatusChan,
 ) ([]*ObjectToPack, error) {
-	otp, err := dw.objectsToPack(hashes, packWindow)
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusRead,
+		ObjectsTotal: len(hashes),
+	}
+	statusChan.SendUpdate(update)
+
+	otp, err := dw.objectsToPack(hashes, packWindow, statusChan, update)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +53,19 @@ func (dw *deltaSelector) ObjectsToPack(
 		return otp, nil
 	}
 
+	update = plumbing.StatusUpdate{
+		Stage:        plumbing.StatusSort,
+		ObjectsTotal: update.ObjectsTotal,
+	}
+	statusChan.SendUpdate(update)
+
 	dw.sort(otp)
+
+	update = plumbing.StatusUpdate{
+		Stage:        plumbing.StatusDelta,
+		ObjectsTotal: update.ObjectsTotal,
+	}
+	statusChan.SendUpdate(update)
 
 	var objectGroups [][]*ObjectToPack
 	var prev *ObjectToPack
@@ -63,11 +82,12 @@ func (dw *deltaSelector) ObjectsToPack(
 
 	var wg sync.WaitGroup
 	var once sync.Once
+	var updateMutex sync.Mutex
 	for _, objs := range objectGroups {
 		objs := objs
 		wg.Add(1)
 		go func() {
-			if walkErr := dw.walk(objs, packWindow); walkErr != nil {
+			if walkErr := dw.walk(objs, packWindow, statusChan, &update, &updateMutex); walkErr != nil {
 				once.Do(func() {
 					err = walkErr
 				})
@@ -87,6 +107,8 @@ func (dw *deltaSelector) ObjectsToPack(
 func (dw *deltaSelector) objectsToPack(
 	hashes []plumbing.Hash,
 	packWindow uint,
+	statusChan plumbing.StatusChan,
+	update plumbing.StatusUpdate,
 ) ([]*ObjectToPack, error) {
 	var objectsToPack []*ObjectToPack
 	for _, h := range hashes {
@@ -107,13 +129,19 @@ func (dw *deltaSelector) objectsToPack(
 		}
 
 		objectsToPack = append(objectsToPack, otp)
+
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	if packWindow == 0 {
 		return objectsToPack, nil
 	}
 
-	if err := dw.fixAndBreakChains(objectsToPack); err != nil {
+	if packWindow == 0 {
+		return objectsToPack, nil
+	}
+	if err := dw.fixAndBreakChains(objectsToPack, statusChan); err != nil {
 		return nil, err
 	}
 
@@ -133,7 +161,16 @@ func (dw *deltaSelector) encodedObject(h plumbing.Hash) (plumbing.EncodedObject,
 	return dw.storer.EncodedObject(plumbing.AnyObject, h)
 }
 
-func (dw *deltaSelector) fixAndBreakChains(objectsToPack []*ObjectToPack) error {
+func (dw *deltaSelector) fixAndBreakChains(
+	objectsToPack []*ObjectToPack,
+	statusChan plumbing.StatusChan,
+) error {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusFixChains,
+		ObjectsTotal: len(objectsToPack),
+	}
+	statusChan.SendUpdate(update)
+
 	m := make(map[plumbing.Hash]*ObjectToPack, len(objectsToPack))
 	for _, otp := range objectsToPack {
 		m[otp.Hash()] = otp
@@ -143,6 +180,8 @@ func (dw *deltaSelector) fixAndBreakChains(objectsToPack []*ObjectToPack) error 
 		if err := dw.fixAndBreakChainsOne(m, otp); err != nil {
 			return err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return nil
@@ -220,8 +259,18 @@ func (dw *deltaSelector) sort(objectsToPack []*ObjectToPack) {
 func (dw *deltaSelector) walk(
 	objectsToPack []*ObjectToPack,
 	packWindow uint,
+	statusChan plumbing.StatusChan,
+	update *plumbing.StatusUpdate,
+	updateMutex *sync.Mutex,
 ) error {
 	indexMap := make(map[plumbing.Hash]*deltaIndex)
+	sendUpdate := func() {
+		updateMutex.Lock()
+		defer updateMutex.Unlock()
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(*update)
+	}
+
 	for i := 0; i < len(objectsToPack); i++ {
 		// Clean up the index map and reconstructed delta objects for anything
 		// outside our pack window, to save memory.
@@ -242,11 +291,13 @@ func (dw *deltaSelector) walk(
 		// object. This happens when a delta is set to be reused from an existing
 		// packfile.
 		if target.IsDelta() {
+			sendUpdate()
 			continue
 		}
 
 		// We only want to create deltas from specific types.
 		if !applyDelta[target.Type()] {
+			sendUpdate()
 			continue
 		}
 
@@ -263,6 +314,7 @@ func (dw *deltaSelector) walk(
 				return err
 			}
 		}
+		sendUpdate()
 	}
 
 	return nil
