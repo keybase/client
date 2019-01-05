@@ -7,17 +7,22 @@ package libkbfs
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	sysPath "path"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 )
 
@@ -40,6 +45,16 @@ const (
 	// How long we're allowed to block writes for if we exceed the max
 	// revisions threshold.
 	crMaxWriteLockTime = 10 * time.Second
+
+	// Where in config.StorageRoot() we store information about failed conflict
+	// resolutions.
+	conflictResolverRecordsDir           = "kbfs_conflicts"
+	conflictResolverRecordsVersionString = "v1"
+	conflictResolverRecordsDB            = "kbfsConflicts.leveldb"
+
+	// If we have failed at CR 5 times, probably it's never going to work and
+	// we should give up.
+	maxConflictResolutionAttempts = 5
 )
 
 // CtxCROpID is the display name for the unique operation
@@ -3183,6 +3198,122 @@ outer:
 	return nil
 }
 
+const conflictRecordVersion = 1
+
+type conflictRecord struct {
+	Version int
+	time.Time
+	Merged      string
+	Unmerged    string
+	ErrorTime   time.Time
+	ErrorString string
+	PanicString string
+	codec.UnknownFieldSetHandler
+}
+
+func (cr *ConflictResolver) recordStartResolve(ci conflictInput) (
+	failCount int, err error) {
+	db := cr.config.KBFSOps().GetConflictResolutionDB()
+	conflictsSoFarSerialized, err := db.Get([]byte(cr.fbo.id().String()), nil)
+	var conflictsSoFar []conflictRecord
+	switch err {
+	case leveldb.ErrNotFound:
+		conflictsSoFar = nil
+	case nil:
+		err = cr.config.Codec().Decode(conflictsSoFarSerialized,
+			&conflictsSoFar)
+		if err != nil {
+			return 0, err
+		}
+	default:
+		return 0, err
+	}
+	if len(conflictsSoFar) > 10 {
+		conflictsSoFar = conflictsSoFar[len(conflictsSoFar)-10:]
+	}
+	conflictsSoFar = append(conflictsSoFar, conflictRecord{
+		Version:  conflictRecordVersion,
+		Time:     cr.config.Clock().Now(),
+		Merged:   ci.merged.String(),
+		Unmerged: ci.unmerged.String(),
+	})
+	conflictsSerialized, err := cr.config.Codec().Encode(conflictsSoFar)
+	if err != nil {
+		return 0, err
+	}
+	return len(conflictsSoFar), db.Put([]byte(cr.fbo.id().String()), conflictsSerialized, nil)
+}
+
+// recordFinishResolve does one of two things:
+//  - in the event of success, it deletes the DB entry that recorded conflict
+//    resolution attempts for this resolver
+//  - in the event of failure, it logs that CR failed and tries to record the
+//    failure to the DB.
+func (cr *ConflictResolver) recordFinishResolve(
+	ctx context.Context, ci conflictInput, receivedErr error) {
+	db := cr.config.KBFSOps().GetConflictResolutionDB()
+	panicVar := recover()
+
+	// If we neither errored nor panicked, this CR succeeded and we can wipe
+	// the DB entry.
+	if receivedErr == nil && panicVar == nil {
+		err := db.Delete([]byte(cr.fbo.id().String()), nil)
+		if err != nil {
+			cr.log.CWarningf(ctx,
+				"Could not record conflict resolution success: %v", err)
+		}
+		return
+	}
+
+	var err error
+	defer func() {
+		// If we can't record the failure to the CR DB, at least log it.
+		if err != nil {
+			cr.log.CWarningf(ctx,
+				"Could not record conflict resolution failure [%v/%v]: %v",
+				receivedErr, panicVar, err)
+		}
+		// If we recovered from a panic, keep panicking.
+		if panicVar != nil {
+			panic(panicVar)
+		}
+	}()
+
+	// Otherwise we need to decode the most recent entry, modify it, and put it
+	// back in the DB.
+	var conflictsSerialized []byte
+	conflictsSerialized, err = db.Get([]byte(cr.fbo.id().String()), nil)
+	var conflictsSoFar []conflictRecord
+	switch err {
+	case leveldb.ErrNotFound:
+		err = errors.New("No CR records")
+		return
+	case nil:
+		err = cr.config.Codec().Decode(conflictsSerialized,
+			&conflictsSoFar)
+		if err != nil {
+			return
+		}
+	default:
+		return
+	}
+
+	thisCR := &conflictsSoFar[len(conflictsSoFar)-1]
+	thisCR.ErrorTime = cr.config.Clock().Now()
+	if receivedErr != nil {
+		thisCR.ErrorString = receivedErr.Error()
+	}
+	if panicVar != nil {
+		thisCR.PanicString = fmt.Sprintf("%s", panicVar)
+	}
+
+	conflictsSerialized, err = cr.config.Codec().Encode(conflictsSoFar)
+	if err != nil {
+		return
+	}
+	err = db.Put([]byte(cr.fbo.id().String()), conflictsSerialized, nil)
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -3198,6 +3329,20 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	ctx = cr.config.MaybeStartTrace(ctx, "CR.doResolve",
 		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
+
+	var failCount int
+	failCount, err = cr.recordStartResolve(ci)
+	if err != nil {
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution attempt: %v", err)
+	} else if failCount >= maxConflictResolutionAttempts {
+		cr.log.CWarningf(ctx,
+			"Maximum number of conflict resolution attempts reached for TLF "+
+				"%s: auto failing.", cr.fbo.id().String())
+
+	} else {
+		defer cr.recordFinishResolve(ctx, ci, err)
+	}
 
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
 	lState := makeFBOLockState()
@@ -3439,4 +3584,31 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// don't count against the quota forever.  (Though of course if we
 	// completely fail, we'll need to rely on a future complete scan
 	// to clean up the quota anyway . . .)
+}
+
+func openCRDBInternal(config Config) (*leveldb.DB, error) {
+	if config.IsTestMode() {
+		return leveldb.Open(storage.NewMemStorage(), leveldbOptions)
+	}
+	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
+		os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	return leveldb.OpenFile(sysPath.Join(config.StorageRoot(),
+		conflictResolverRecordsDir, conflictResolverRecordsVersionString,
+		conflictResolverRecordsDB), leveldbOptions)
+}
+
+func openCRDB(ctx context.Context, config Config) (db *leveldb.DB) {
+	db, err := openCRDBInternal(config)
+	if err != nil {
+		config.MakeLogger("CR").CWarningf(ctx,
+			"Could not open conflict resolver DB: %v", err)
+		// TODO: elsewhere we expect this db to be non-nil.
+		//  Should we just panic here?
+	}
+	return db
 }
