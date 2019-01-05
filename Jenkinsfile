@@ -331,7 +331,9 @@ def getPackagesToTest() {
       println "This is a merge to a branch, so we are running all tests."
       def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
       diffPackageList.each { pkg ->
-        packagesToTest[pkg] = 1
+        if (pkg != 'github.com\/keybase\/client\/go\/bind') {
+          packagesToTest[pkg] = 1
+        }
       }
     }
   }
