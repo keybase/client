@@ -22,10 +22,11 @@
 			"revisionTime": "2018-11-12T20:58:52Z"
 		},
 		{
-			"checksumSHA1": "SYupvmlf7Gq3GEyIqp6Ll5j3xuM=",
-			"path": "bazil.org/fuse",
-			"revision": "08e592e472ded97404acd4e03e9a9e46dfd57fab",
-			"revisionTime": "2016-08-11T21:01:40Z"
+			"checksumSHA1": "duEBNH0Xz8VZFOi1F3t/RRTaEJs=",
+			"origin": "github.com/keybase/fuse/fs",
+			"path": "bazil.org/fuse/fs",
+			"revision": "e3996deee1b03bec702b6a4d4f5b6f2154895e41",
+			"revisionTime": "2018-11-12T20:58:52Z"
 		},
 		{
 			"checksumSHA1": "wy8DrEJ4Al2iZk5hKQEbIqaghGM=",
