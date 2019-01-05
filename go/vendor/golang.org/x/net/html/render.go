@@ -14,7 +14,7 @@ import (
 
 type writer interface {
 	io.Writer
-	io.ByteWriter
+	WriteByte(c byte) error // in Go 1.1, use io.ByteWriter
 	WriteString(string) (int, error)
 }
 

@@ -195,12 +195,6 @@ func asString(t iterator, v interface{}) string {
 		return strconv.FormatFloat(v, 'g', -1, 64)
 	case string:
 		return v
-	case query:
-		node := v.Select(t)
-		if node == nil {
-			return ""
-		}
-		return node.Value()
 	default:
 		panic(fmt.Errorf("unexpected type: %T", v))
 	}

@@ -43,4 +43,3 @@ func (b *LogBackend) Log(level Level, calldepth int, rec *Record) error {
 
 	return b.Logger.Output(calldepth+2, rec.Formatted(calldepth+1))
 }
-
