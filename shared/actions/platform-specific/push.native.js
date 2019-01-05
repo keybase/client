@@ -281,7 +281,7 @@ function* requestPermissions() {
 }
 
 function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
-  const hasPermissions = yield checkPermissions(null, null)
+  const hasPermissions = yield _checkPermissions(null)
   if (hasPermissions) {
     // Get the token
     yield Saga.spawn(requestPermissionsFromNative)
