@@ -51,6 +51,10 @@ const (
 	conflictResolverRecordsDir           = "kbfs_conflicts"
 	conflictResolverRecordsVersionString = "v1"
 	conflictResolverRecordsDB            = "kbfsConflicts.leveldb"
+
+	// If we have failed at CR 5 times, probably it's never going to work and
+	// we should give up.
+	maxConflictResolutionAttempts = 5
 )
 
 // CtxCROpID is the display name for the unique operation
@@ -3207,7 +3211,8 @@ type conflictRecord struct {
 	codec.UnknownFieldSetHandler
 }
 
-func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
+func (cr *ConflictResolver) recordStartResolve(ci conflictInput) (
+	failCount int, err error) {
 	db := cr.config.KBFSOps().GetConflictResolutionDB()
 	conflictsSoFarSerialized, err := db.Get([]byte(cr.fbo.id().String()), nil)
 	var conflictsSoFar []conflictRecord
@@ -3218,10 +3223,10 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 		err = cr.config.Codec().Decode(conflictsSoFarSerialized,
 			&conflictsSoFar)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	default:
-		return err
+		return 0, err
 	}
 	if len(conflictsSoFar) > 10 {
 		conflictsSoFar = conflictsSoFar[len(conflictsSoFar)-10:]
@@ -3234,9 +3239,9 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 	})
 	conflictsSerialized, err := cr.config.Codec().Encode(conflictsSoFar)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return db.Put([]byte(cr.fbo.id().String()), conflictsSerialized, nil)
+	return len(conflictsSoFar), db.Put([]byte(cr.fbo.id().String()), conflictsSerialized, nil)
 }
 
 // recordFinishResolve does one of two things:
@@ -3325,10 +3330,16 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
 
-	err = cr.recordStartResolve(ci)
+	var failCount int
+	failCount, err = cr.recordStartResolve(ci)
 	if err != nil {
 		cr.log.CWarningf(ctx,
 			"Could not record conflict resolution attempt: %v", err)
+	} else if failCount >= maxConflictResolutionAttempts {
+		cr.log.CWarningf(ctx,
+			"Maximum number of conflict resolution attempts reached for TLF "+
+				"%s: auto failing.", cr.fbo.id().String())
+
 	} else {
 		defer cr.recordFinishResolve(ctx, ci, err)
 	}
