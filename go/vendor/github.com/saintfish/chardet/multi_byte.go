@@ -312,7 +312,7 @@ func (charDecoder_gb_18030) DecodeOneChar(input []byte) (c uint16, remain []byte
 				fourth := remain[0]
 				remain = remain[1:]
 				if fourth >= 0x30 && fourth <= 0x39 {
-					c = uint16(third)<<8 | uint16(fourth)
+					c = c<<16 | uint16(third)<<8 | uint16(fourth)
 					return
 				}
 			}
