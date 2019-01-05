@@ -339,6 +339,12 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			return nil, 0, err
 		}
 
+		// Refuse to execute files by checking FILE_EXECUTE (not exported by syscall).
+		if de.Type.IsFile() && oc.CreateData.DesiredAccess&0x20 != 0 {
+			d.folder.fs.log.CDebugf(ctx, "Refusing to execute %q %v", path[0], oc.CreateData)
+			return nil, 0, dokan.ErrAccessDenied
+		}
+
 		if newNode != nil {
 			d.folder.mu.Lock()
 			f, _ := d.folder.nodes[newNode.GetID()]
