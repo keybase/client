@@ -27,6 +27,8 @@ export type Props = {|
   username: string,
 |}
 
+type LayoutProps = {...Props, onChangeFollowing: boolean => void, selectedFollowing: boolean}
+
 const Header = ({onBack, state, backgroundColor}) => (
   <Kb.Box2
     direction="horizontal"
@@ -114,7 +116,9 @@ class FriendshipTabs extends React.Component<LayoutProps> {
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following ? 'Following' : 'Followers'} (TODO)
+        {following
+          ? `Following (${this.props.following.length})`
+          : `Followers (${this.props.followers.length})`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -128,8 +132,6 @@ class FriendshipTabs extends React.Component<LayoutProps> {
     )
   }
 }
-
-type LayoutProps = {...Props, onChangeFollowing: boolean => void, selectedFollowing: boolean}
 
 const DesktopLayout = (p: LayoutProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -183,8 +185,6 @@ class MobileLayout extends React.Component<LayoutProps> {
   _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
 
   render() {
-    const following = ['inga', 'ingb', 'ingc', 'ingd', 'inge']
-    const followers = ['a', 'b', 'c', 'd', 'e']
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
@@ -193,7 +193,10 @@ class MobileLayout extends React.Component<LayoutProps> {
           renderSectionHeader={this._renderSectionHeader}
           sections={[
             this._bioTeamProofsSection,
-            {data: this.props.selectedFollowing ? following : followers, renderItem: this._renderOtherUsers},
+            {
+              data: this.props.selectedFollowing ? this.props.following : this.props.followers,
+              renderItem: this._renderOtherUsers,
+            },
           ]}
           style={{backgroundColor: this.props.backgroundColor}}
           contentContainerStyle={styles.sectionListContentStyle}
