@@ -7,6 +7,7 @@ package libfuse
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -50,6 +51,19 @@ func (m *mounter) Mount() (err error) {
 }
 
 func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
+	// Create mountdir directory on Linux
+	switch runtime.GOOS {
+	case "linux":
+		// Inherit permissions from containing directory and umask
+		err := os.MkdirAll(dir, os.ModeDir|os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+	case "darwin":
+	case "windows":
+	default:
+	}
+
 	fi, err := os.Stat(dir)
 	if err != nil {
 		return nil, err
@@ -77,6 +91,10 @@ func (m *mounter) Unmount() (err error) {
 		_, err = exec.Command("/sbin/umount", dir).Output()
 	case "linux":
 		_, err = exec.Command("fusermount", "-u", dir).Output()
+		// Only clean up mountdir on a clean unmount
+		if err == nil {
+			defer m.DeleteMountdirIfEmpty()
+		}
 	default:
 		err = fuse.Unmount(dir)
 	}
@@ -87,13 +105,48 @@ func (m *mounter) Unmount() (err error) {
 			_, err = exec.Command(
 				"/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
 		case "linux":
-			_, err = exec.Command("fusermount", "-ul", dir).Output()
+			// Lazy unmount; will unmount when KBFS is no longer in use
+			_, err = exec.Command("fusermount", "-u", "-z", dir).Output()
 		default:
 			err = errors.New("Forced unmount is not supported on this platform yet")
 		}
 	}
 	if execErr, ok := err.(*exec.ExitError); ok && execErr.Stderr != nil {
 		err = fmt.Errorf("%s (%s)", execErr, execErr.Stderr)
+	}
+	return
+}
+
+func directoryIsEmpty(dir string) (empty bool, err error) {
+	handle, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer handle.Close()
+	// Attempt to read in the first file in the directory.
+	// If it is empty, Readdir will return an io.EOF error.
+	_, err = handle.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return
+}
+
+func removeDirectoryIfEmpty(dir string) (err error) {
+	empty, err := directoryIsEmpty(dir)
+	if err != nil {
+		return err
+	}
+	if empty {
+		return os.RemoveAll(dir)
+	}
+	return
+}
+
+func (m *mounter) DeleteMountdirIfEmpty() (err error) {
+	err = removeDirectoryIfEmpty(m.options.MountPoint)
+	if err != nil {
+		m.log.Errorf("Unable to delete mountdir: %s.", err)
 	}
 	return
 }

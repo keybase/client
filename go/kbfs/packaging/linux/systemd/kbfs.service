@@ -1,6 +1,8 @@
 [Unit]
 Description=Keybase Filesystem service
-Wants=keybase.service
+Requires=keybase.service
+# Soft dependency on redirector; this fails if it is disabled
+Wants=keybase-redirector.service
 
 [Service]
 # "notify" means we promise to call SdNotify() at the end of startup.
