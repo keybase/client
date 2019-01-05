@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/terminalescaper"
 )
 
-type ChatNotifications struct {
+type ChatCLINotifications struct {
 	libkb.Contextified
 	chat1.NotifyChatInterface
 	noOutput            bool
@@ -24,7 +24,14 @@ type ChatNotifications struct {
 	lastPercentReported int
 }
 
-func (n *ChatNotifications) ChatAttachmentUploadStart(ctx context.Context,
+func NewChatCLINotifications(g *libkb.GlobalContext) *ChatCLINotifications {
+	return &ChatCLINotifications{
+		Contextified: libkb.NewContextified(g),
+		terminal:     g.UI.GetTerminalUI(),
+	}
+}
+
+func (n *ChatCLINotifications) ChatAttachmentUploadStart(ctx context.Context,
 	arg chat1.ChatAttachmentUploadStartArg) error {
 	if n.noOutput {
 		return nil
@@ -34,7 +41,7 @@ func (n *ChatNotifications) ChatAttachmentUploadStart(ctx context.Context,
 	return nil
 }
 
-func (n *ChatNotifications) ChatAttachmentUploadProgress(ctx context.Context,
+func (n *ChatCLINotifications) ChatAttachmentUploadProgress(ctx context.Context,
 	arg chat1.ChatAttachmentUploadProgressArg) error {
 	if n.noOutput {
 		return nil
@@ -48,14 +55,21 @@ func (n *ChatNotifications) ChatAttachmentUploadProgress(ctx context.Context,
 	return nil
 }
 
-type ChatUI struct {
+type ChatCLIUI struct {
 	libkb.Contextified
 	terminal            libkb.TerminalUI
 	noOutput            bool
 	lastPercentReported int
 }
 
-func (c *ChatUI) ChatAttachmentDownloadStart(context.Context, int) error {
+func NewChatCLIUI(g *libkb.GlobalContext) *ChatCLIUI {
+	return &ChatCLIUI{
+		Contextified: libkb.NewContextified(g),
+		terminal:     g.UI.GetTerminalUI(),
+	}
+}
+
+func (c *ChatCLIUI) ChatAttachmentDownloadStart(context.Context, int) error {
 	if c.noOutput {
 		return nil
 	}
@@ -64,7 +78,7 @@ func (c *ChatUI) ChatAttachmentDownloadStart(context.Context, int) error {
 	return nil
 }
 
-func (c *ChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
+func (c *ChatCLIUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -77,7 +91,7 @@ func (c *ChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.C
 	return nil
 }
 
-func (c *ChatUI) ChatAttachmentDownloadDone(context.Context, int) error {
+func (c *ChatCLIUI) ChatAttachmentDownloadDone(context.Context, int) error {
 	if c.noOutput {
 		return nil
 	}
@@ -86,27 +100,27 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context, int) error {
 	return nil
 }
 
-func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
+func (c *ChatCLIUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	return nil
 }
 
-func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
+func (c *ChatCLIUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	return nil
 }
 
-func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
+func (c *ChatCLIUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
 	return nil
 }
 
-func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+func (c *ChatCLIUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
 	return nil
 }
 
-func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+func (c *ChatCLIUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	return nil
 }
 
-func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+func (c *ChatCLIUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	term := c.G().UI.GetTerminalUI()
 	term.Printf("WARNING: This will destroy this chat channel and remove it from all members' inbox\n\n")
 	confirm := fmt.Sprintf("nuke %s", arg.Channel)
@@ -118,7 +132,7 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 	return response == confirm, nil
 }
 
-func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearchHit) error {
+func (c *ChatCLIUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearchHit) error {
 	getMsgPrefix := func(msg chat1.UIMessage) string {
 		m := msg.Valid()
 		t := gregor1.FromTime(m.Ctime)
@@ -173,21 +187,21 @@ func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearch
 	return nil
 }
 
-func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+func (c *ChatCLIUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
 	if c.noOutput {
 		return nil
 	}
 	return c.renderSearchHit(ctx, arg.SearchHit)
 }
 
-func (c *ChatUI) simplePlural(count int, prefix string) string {
+func (c *ChatCLIUI) simplePlural(count int, prefix string) string {
 	if count == 1 {
 		return prefix
 	}
 	return fmt.Sprintf("%ss", prefix)
 }
 
-func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+func (c *ChatCLIUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -201,7 +215,7 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	return nil
 }
 
-func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
+func (c *ChatCLIUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -226,7 +240,7 @@ func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInb
 	return nil
 }
 
-func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
+func (c *ChatCLIUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -249,7 +263,7 @@ func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchIn
 	return nil
 }
 
-func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -257,11 +271,11 @@ func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearch
 	return nil
 }
 
-func (c *ChatUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
+func (c *ChatCLIUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
 	return nil
 }
 
-func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
+func (c *ChatCLIUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
 	term := c.G().UI.GetTerminalUI()
 	term.Printf("Confirm Stellar Payments:\n\n")
 	term.Printf("Total: %s (%s)\n", arg.Summary.XlmTotal, arg.Summary.DisplayTotal)
@@ -285,13 +299,13 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStell
 	return strings.TrimSpace(response) == confirm, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
+func (c *ChatCLIUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStellarDataErrorArg) (bool, error) {
 	w := c.terminal.ErrorWriter()
 	msg := "Failed to obtain Stellar payment information, aborting send"
 	fmt.Fprintf(w, msg+"\n")
 	return false, errors.New(msg)
 }
 
-func (c *ChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
+func (c *ChatCLIUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
 	return nil
 }

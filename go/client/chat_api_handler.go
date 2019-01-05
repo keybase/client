@@ -163,6 +163,7 @@ type sendOptionsV1 struct {
 	Nonblock          bool              `json:"nonblock"`
 	MembersType       string            `json:"members_type"`
 	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
+	ConfirmLumenSend  bool              `json:"confirm_lumen_send"`
 }
 
 func (s sendOptionsV1) Check() error {
@@ -450,8 +451,8 @@ func (a *ChatAPI) SendV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 
 	// opts are valid for send v1
-
-	return a.encodeReply(c, a.svcHandler.SendV1(ctx, opts), w)
+	chatUI := NewChatAPIUI(AllowStellarPayments(opts.ConfirmLumenSend))
+	return a.encodeReply(c, a.svcHandler.SendV1(ctx, opts, chatUI), w)
 }
 
 func (a *ChatAPI) EditV1(ctx context.Context, c Call, w io.Writer) error {
@@ -518,8 +519,7 @@ func (a *ChatAPI) AttachV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 
 	// opts are valid for attach v1
-
-	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts), w)
+	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts, NewChatAPIUI(), NewChatAPINotifications()), w)
 }
 
 func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
@@ -536,7 +536,7 @@ func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
 
 	// opts are valid for download v1
 
-	return a.encodeReply(c, a.svcHandler.DownloadV1(ctx, opts), w)
+	return a.encodeReply(c, a.svcHandler.DownloadV1(ctx, opts, NewChatAPIUI()), w)
 }
 
 func (a *ChatAPI) SetStatusV1(ctx context.Context, c Call, w io.Writer) error {

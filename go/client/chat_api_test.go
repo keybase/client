@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
 
@@ -115,7 +116,7 @@ func (c *chatEcho) GetV1(context.Context, getOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) SendV1(context.Context, sendOptionsV1) Reply {
+func (c *chatEcho) SendV1(context.Context, sendOptionsV1, chat1.ChatUiInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -131,11 +132,12 @@ func (c *chatEcho) ReactionV1(context.Context, reactionOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
+func (c *chatEcho) AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterface,
+	chat1.NotifyChatInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1) Reply {
+func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
