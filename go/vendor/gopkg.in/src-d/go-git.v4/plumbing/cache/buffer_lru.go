@@ -45,23 +45,19 @@ func (c *BufferLRU) Put(key int64, slice []byte) {
 		c.ll = list.New()
 	}
 
-	bufSize := FileSize(len(slice))
 	if ee, ok := c.cache[key]; ok {
-		oldBuf := ee.Value.(buffer)
-		// in this case bufSize is a delta: new size - old size
-		bufSize -= FileSize(len(oldBuf.Slice))
 		c.ll.MoveToFront(ee)
 		ee.Value = buffer{key, slice}
-	} else {
-		if bufSize > c.MaxSize {
-			return
-		}
-		ee := c.ll.PushFront(buffer{key, slice})
-		c.cache[key] = ee
+		return
 	}
 
-	c.actualSize += bufSize
-	for c.actualSize > c.MaxSize {
+	objSize := FileSize(len(slice))
+
+	if objSize > c.MaxSize {
+		return
+	}
+
+	for c.actualSize+objSize > c.MaxSize {
 		last := c.ll.Back()
 		lastObj := last.Value.(buffer)
 		lastSize := FileSize(len(lastObj.Slice))
@@ -70,6 +66,10 @@ func (c *BufferLRU) Put(key int64, slice []byte) {
 		delete(c.cache, lastObj.Key)
 		c.actualSize -= lastSize
 	}
+
+	ee := c.ll.PushFront(buffer{key, slice})
+	c.cache[key] = ee
+	c.actualSize += objSize
 }
 
 // Get returns a buffer by its key. It marks the buffer as used. If the buffer

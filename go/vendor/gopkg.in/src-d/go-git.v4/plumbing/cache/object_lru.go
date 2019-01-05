@@ -42,24 +42,20 @@ func (c *ObjectLRU) Put(obj plumbing.EncodedObject) {
 		c.ll = list.New()
 	}
 
-	objSize := FileSize(obj.Size())
 	key := obj.Hash()
 	if ee, ok := c.cache[key]; ok {
-		oldObj := ee.Value.(plumbing.EncodedObject)
-		// in this case objSize is a delta: new size - old size
-		objSize -= FileSize(oldObj.Size())
 		c.ll.MoveToFront(ee)
 		ee.Value = obj
-	} else {
-		if objSize > c.MaxSize {
-			return
-		}
-		ee := c.ll.PushFront(obj)
-		c.cache[key] = ee
+		return
 	}
 
-	c.actualSize += objSize
-	for c.actualSize > c.MaxSize {
+	objSize := FileSize(obj.Size())
+
+	if objSize > c.MaxSize {
+		return
+	}
+
+	for c.actualSize+objSize > c.MaxSize {
 		last := c.ll.Back()
 		lastObj := last.Value.(plumbing.EncodedObject)
 		lastSize := FileSize(lastObj.Size())
@@ -68,6 +64,10 @@ func (c *ObjectLRU) Put(obj plumbing.EncodedObject) {
 		delete(c.cache, lastObj.Hash())
 		c.actualSize -= lastSize
 	}
+
+	ee := c.ll.PushFront(obj)
+	c.cache[key] = ee
+	c.actualSize += objSize
 }
 
 // Get returns an object by its hash. It marks the object as used. If the object

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"gopkg.in/src-d/go-git.v4/plumbing/cache"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
@@ -44,7 +43,7 @@ func (l *fsLoader) Load(ep *transport.Endpoint) (storer.Storer, error) {
 		return nil, transport.ErrRepositoryNotFound
 	}
 
-	return filesystem.NewStorage(fs, cache.NewObjectLRUDefault()), nil
+	return filesystem.NewStorage(fs)
 }
 
 // MapLoader is a Loader that uses a lookup map of storer.Storer by
