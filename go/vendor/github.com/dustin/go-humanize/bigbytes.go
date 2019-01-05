@@ -95,14 +95,14 @@ var ten = big.NewInt(10)
 
 func humanateBigBytes(s, base *big.Int, sizes []string) string {
 	if s.Cmp(ten) < 0 {
-		return fmt.Sprintf("%dB", s)
+		return fmt.Sprintf("%d B", s)
 	}
 	c := (&big.Int{}).Set(s)
 	val, mag := oomm(c, base, len(sizes)-1)
 	suffix := sizes[mag]
-	f := "%.0f%s"
+	f := "%.0f %s"
 	if val < 10 {
-		f = "%.1f%s"
+		f = "%.1f %s"
 	}
 
 	return fmt.Sprintf(f, val, suffix)
@@ -113,7 +113,7 @@ func humanateBigBytes(s, base *big.Int, sizes []string) string {
 //
 // See also: ParseBigBytes.
 //
-// BigBytes(82854982) -> 83MB
+// BigBytes(82854982) -> 83 MB
 func BigBytes(s *big.Int) string {
 	sizes := []string{"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
 	return humanateBigBytes(s, bigSIExp, sizes)
@@ -123,7 +123,7 @@ func BigBytes(s *big.Int) string {
 //
 // See also: ParseBigBytes.
 //
-// BigIBytes(82854982) -> 79MiB
+// BigIBytes(82854982) -> 79 MiB
 func BigIBytes(s *big.Int) string {
 	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"}
 	return humanateBigBytes(s, bigIECExp, sizes)
@@ -134,19 +134,28 @@ func BigIBytes(s *big.Int) string {
 //
 // See also: BigBytes, BigIBytes.
 //
-// ParseBigBytes("42MB") -> 42000000, nil
-// ParseBigBytes("42mib") -> 44040192, nil
+// ParseBigBytes("42 MB") -> 42000000, nil
+// ParseBigBytes("42 mib") -> 44040192, nil
 func ParseBigBytes(s string) (*big.Int, error) {
 	lastDigit := 0
+	hasComma := false
 	for _, r := range s {
-		if !(unicode.IsDigit(r) || r == '.') {
+		if !(unicode.IsDigit(r) || r == '.' || r == ',') {
 			break
+		}
+		if r == ',' {
+			hasComma = true
 		}
 		lastDigit++
 	}
 
+	num := s[:lastDigit]
+	if hasComma {
+		num = strings.Replace(num, ",", "", -1)
+	}
+
 	val := &big.Rat{}
-	_, err := fmt.Sscanf(s[:lastDigit], "%f", val)
+	_, err := fmt.Sscanf(num, "%f", val)
 	if err != nil {
 		return nil, err
 	}

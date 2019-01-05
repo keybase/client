@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	sysunix "golang.org/x/sys/unix"
 )
 
 func handleFusermountStderr(errCh chan<- error) func(line string) (ignore bool) {
@@ -55,9 +57,91 @@ func isBoringFusermountError(err error) bool {
 	return false
 }
 
-func mount(dir string, conf *mountConfig, ready chan<- struct{}, errp *error) (fusefd *os.File, err error) {
+func getDirectMountOptions(dir string, conf *mountConfig, f *os.File) (
+	fsName, options string, flag uintptr, err error) {
+	fsName = conf.options["fsname"]
+
+	fi, err := os.Lstat(dir)
+	if err != nil {
+		return "", "", 0, err
+	}
+	if !fi.IsDir() {
+		return "", "", 0, fmt.Errorf("%s is not a directory", dir)
+	}
+	mode := fi.Mode() | 040000 // expected directory mode in a C-style stat buf
+
+	// TODO: support more of fusermount's options here.
+	optionsSlice := []string{
+		fmt.Sprintf("fd=%d", f.Fd()),
+		fmt.Sprintf("rootmode=%o", mode&syscall.S_IFMT),
+		"user_id=0",
+		"group_id=0",
+	}
+	if _, ok := conf.options["allow_other"]; ok {
+		optionsSlice = append(optionsSlice, "allow_other")
+	}
+
+	flag = sysunix.MS_NOSUID | sysunix.MS_NODEV
+	if _, ok := conf.options["ro"]; ok {
+		flag |= sysunix.MS_RDONLY
+	}
+
+	return fsName, strings.Join(optionsSlice, ","), flag, nil
+}
+
+func doDirectMountAsRoot(
+	dir string, conf *mountConfig) (f *os.File, err error) {
+	f, err = os.OpenFile("/dev/fuse", os.O_RDWR, 0600)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			f.Close()
+		}
+	}()
+
+	fsName, options, flag, err := getDirectMountOptions(dir, conf, f)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sure the directory is empty before mounting over it.
+	d, err := os.Open(dir)
+	if err != nil {
+		return nil, err
+	}
+	fis, err := d.Readdir(0)
+	if err != nil {
+		d.Close()
+		return nil, err
+	}
+	err = d.Close()
+	if err != nil {
+		return nil, err
+	}
+	// TODO: Support the `nonempty` config option.
+	if len(fis) != 0 {
+		return nil, fmt.Errorf("%s is non-empty", dir)
+	}
+
+	err = syscall.Mount(fsName, dir, "fuse", flag, options)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func mount(dir string, conf *mountConfig, ready chan<- struct{}, _ *error) (fusefd *os.File, err error) {
 	// linux mount is never delayed
 	close(ready)
+
+	if os.Geteuid() == 0 {
+		// If we are running as root, we can avoid the security risks
+		// that come along with exec'ing fusermount and just mount
+		// directly.
+		return doDirectMountAsRoot(dir, conf)
+	}
 
 	fds, err := syscall.Socketpair(syscall.AF_FILE, syscall.SOCK_STREAM, 0)
 	if err != nil {

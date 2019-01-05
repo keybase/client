@@ -19,22 +19,34 @@ import (
 )
 
 var (
-	goos   = runtime.GOOS
-	goarch = runtime.GOARCH
+	goos    = runtime.GOOS
+	goarch  = runtime.GOARCH
+	ndkarch string
 )
+
+func init() {
+	switch runtime.GOARCH {
+	case "amd64":
+		ndkarch = "x86_64"
+	case "386":
+		ndkarch = "x86"
+	default:
+		ndkarch = runtime.GOARCH
+	}
+}
 
 var cmdInit = &command{
 	run:   runInit,
 	Name:  "init",
-	Usage: "[-ndk dir] [-openal dir]",
-	Short: "install NDK toolchains and build OpenAL for Android",
+	Usage: "[-u]",
+	Short: "install mobile compiler toolchain",
 	Long: `
-If the -ndk flag is specified or the Android NDK is installed at
-$ANDROID_HOME/ndk-bundle, init will create NDK standalone toolchains
-for Android targets.
-
+Init builds copies of the Go standard library for mobile devices.
+It uses Xcode, if available, to build for iOS and uses the Android
+NDK from the ndk-bundle SDK package or from the -ndk flag, to build
+for Android.
 If a OpenAL source directory is specified with -openal, init will
-build an Android version of OpenAL for use with gomobile build
+also build an Android version of OpenAL for use with gomobile build
 and gomobile install.
 `,
 }
@@ -56,6 +68,7 @@ func runInit(cmd *command) error {
 	}
 	gomobilepath = filepath.Join(gopaths[0], "pkg/gomobile")
 
+	verpath := filepath.Join(gomobilepath, "version")
 	if buildX || buildN {
 		fmt.Fprintln(xout, "GOMOBILE="+gomobilepath)
 	}
@@ -85,11 +98,6 @@ func runInit(cmd *command) error {
 		removeAll(tmpdir)
 	}()
 
-	// Make sure gobind is up to date.
-	if err := goInstall([]string{"golang.org/x/mobile/cmd/gobind"}, nil); err != nil {
-		return err
-	}
-
 	if buildN {
 		initNDK = "$NDK_PATH"
 		initOpenAL = "$OPENAL_PATH"
@@ -116,6 +124,10 @@ func runInit(cmd *command) error {
 				}
 				return err
 			}
+			ndkFile := filepath.Join(gomobilepath, "android_ndk_root")
+			if err := ioutil.WriteFile(ndkFile, []byte(initNDK), 0644); err != nil {
+				return err
+			}
 		}
 		if initOpenAL != "" {
 			var err error
@@ -124,13 +136,39 @@ func runInit(cmd *command) error {
 			}
 		}
 	}
+	ndkRoot = initNDK
 	if err := envInit(); err != nil {
 		return err
 	}
 
-	start := time.Now()
+	if runtime.GOOS == "darwin" {
+		// Install common x/mobile packages for local development.
+		// These are often slow to compile (due to cgo) and easy to forget.
+		//
+		// Limited to darwin for now as it is common for linux to
+		// not have GLES installed.
+		//
+		// TODO: consider testing GLES installation and suggesting it here
+		for _, pkg := range commonPkgs {
+			if err := installPkg(pkg, nil); err != nil {
+				return err
+			}
+		}
+	}
 
-	if err := installNDKToolchains(gomobilepath); err != nil {
+	// Install standard libraries for cross compilers.
+	start := time.Now()
+	// Ideally this would be -buildmode=c-shared.
+	// https://golang.org/issue/13234.
+	androidArgs := []string{"-gcflags=-shared", "-ldflags=-shared"}
+	for _, arch := range archs {
+		env := androidEnv[arch]
+		if err := installStd(env, androidArgs...); err != nil {
+			return err
+		}
+	}
+
+	if err := installDarwin(); err != nil {
 		return err
 	}
 
@@ -138,6 +176,14 @@ func runInit(cmd *command) error {
 		return err
 	}
 
+	if buildX || buildN {
+		printcmd("go version > %s", verpath)
+	}
+	if !buildN {
+		if err := ioutil.WriteFile(verpath, goVersionOut, 0644); err != nil {
+			return err
+		}
+	}
 	if buildV {
 		took := time.Since(start) / time.Second * time.Second
 		fmt.Fprintf(os.Stderr, "\nDone, build took %s.\n", took)
@@ -145,38 +191,10 @@ func runInit(cmd *command) error {
 	return nil
 }
 
-func installNDKToolchains(gomobilepath string) error {
-	if initNDK == "" {
-		return nil
-	}
-	toolsDir := filepath.Join(initNDK, "prebuilt", archNDK(), "bin")
-	py27 := filepath.Join(toolsDir, "python2.7")
-	for _, arch := range allArchs {
-		t := ndk[arch]
-		// Split android-XX to get the api version.
-		platform := strings.SplitN(t.platform, "-", 2)
-		api := platform[1]
-		cmd := exec.Command(py27,
-			"build/tools/make_standalone_toolchain.py",
-			"--arch="+t.arch,
-			"--api="+api,
-			"--install-dir="+filepath.Join(gomobilepath, "ndk-toolchains", t.arch))
-		cmd.Dir = initNDK
-		if err := runCmd(cmd); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func installOpenAL(gomobilepath string) error {
-	if initOpenAL == "" {
+	if ndkRoot == "" || initOpenAL == "" {
 		return nil
 	}
-	if !hasNDK() {
-		return errors.New("The Android NDK is needed to build OpenAL but it was not found. Please run gomobile init with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.")
-	}
-
 	var cmake string
 	if buildN {
 		cmake = "cmake"
@@ -226,27 +244,48 @@ func installOpenAL(gomobilepath string) error {
 		}
 	}
 
-	for _, arch := range allArchs {
+	toolsDir := filepath.Join(ndkRoot, "prebuilt", archNDK(), "bin")
+	py27 := filepath.Join(toolsDir, "python2.7")
+	var make string
+	if !buildN && runtime.GOOS == "windows" {
+		var err error
+		make, err = exec.LookPath("nmake")
+		if err != nil {
+			return nil
+		}
+	} else {
+		make = filepath.Join(toolsDir, "make")
+	}
+	for _, arch := range archs {
 		t := ndk[arch]
 		abi := t.arch
 		if abi == "arm" {
 			abi = "armeabi"
 		}
-		tcPath := filepath.Join(gomobilepath, "ndk-toolchains", t.arch, "bin")
-		make := filepath.Join(tcPath, "make")
 		// Split android-XX to get the api version.
+		platform := strings.SplitN(t.platform, "-", 2)
+		api := platform[1]
 		buildDir := alTmpDir + "/build/" + abi
-		if err := mkdir(buildDir); err != nil {
+		toolchain := buildDir + "/toolchain"
+		// standalone ndk toolchains make openal-soft's build config easier.
+		cmd := exec.Command(py27,
+			"build/tools/make_standalone_toolchain.py",
+			"--arch="+t.arch,
+			"--api="+api,
+			"--install-dir="+toolchain)
+		cmd.Dir = ndkRoot
+		if err := runCmd(cmd); err != nil {
 			return err
 		}
-		cmd := exec.Command(cmake,
+
+		cmd = exec.Command(cmake,
 			initOpenAL,
 			"-DCMAKE_TOOLCHAIN_FILE="+initOpenAL+"/XCompile-Android.txt",
 			"-DHOST="+t.toolPrefix)
 		cmd.Dir = buildDir
+		orgPath := os.Getenv("PATH")
 		if !buildN {
-			orgPath := os.Getenv("PATH")
-			cmd.Env = []string{"PATH=" + tcPath + string(os.PathListSeparator) + orgPath}
+			cmd.Env = []string{"PATH=" + toolchain + "/bin" + string(os.PathListSeparator) + orgPath}
 		}
 		if err := runCmd(cmd); err != nil {
 			return err
@@ -271,6 +310,56 @@ var commonPkgs = []string{
 	"golang.org/x/mobile/gl",
 	"golang.org/x/mobile/app",
 	"golang.org/x/mobile/exp/app/debug",
+}
+
+func installDarwin() error {
+	if !xcodeAvailable() {
+		return nil
+	}
+	if err := installStd(darwinArmEnv); err != nil {
+		return err
+	}
+	if err := installStd(darwinArm64Env); err != nil {
+		return err
+	}
+	// TODO(crawshaw): darwin/386 for the iOS simulator?
+	if err := installStd(darwinAmd64Env, "-tags=ios"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func installStd(env []string, args ...string) error {
+	return installPkg("std", env, args...)
+}
+
+func installPkg(pkg string, env []string, args ...string) error {
+	tOS, tArch, pd := getenv(env, "GOOS"), getenv(env, "GOARCH"), pkgdir(env)
+	if tOS != "" && tArch != "" {
+		if buildV {
+			fmt.Fprintf(os.Stderr, "\n# Installing %s for %s/%s.\n", pkg, tOS, tArch)
+		}
+		args = append(args, "-pkgdir="+pd)
+	} else {
+		if buildV {
+			fmt.Fprintf(os.Stderr, "\n# Installing %s.\n", pkg)
+		}
+	}
+
+	cmd := exec.Command("go", "install")
+	cmd.Args = append(cmd.Args, args...)
+	if buildV {
+		cmd.Args = append(cmd.Args, "-v")
+	}
+	if buildX {
+		cmd.Args = append(cmd.Args, "-x")
+	}
+	if buildWork {
+		cmd.Args = append(cmd.Args, "-work")
+	}
+	cmd.Args = append(cmd.Args, pkg)
+	cmd.Env = append([]string{}, env...)
+	return runCmd(cmd)
 }
 
 func mkdir(dir string) error {

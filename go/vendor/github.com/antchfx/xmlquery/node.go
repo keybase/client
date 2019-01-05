@@ -178,6 +178,8 @@ func parse(r io.Reader) (*Node, error) {
 		space2prefix = make(map[string]string)
 		level        = 0
 	)
+	// http://www.w3.org/XML/1998/namespace is bound by definition to the prefix xml.
+	space2prefix["http://www.w3.org/XML/1998/namespace"] = "xml"
 	decoder.CharsetReader = charset.NewReaderLabel
 	prev := doc
 	for {
@@ -212,6 +214,14 @@ func parse(r io.Reader) (*Node, error) {
 					return nil, errors.New("xmlquery: invalid XML document, namespace is missing")
 				}
 			}
+
+			for i := 0; i < len(tok.Attr); i++ {
+				att := &tok.Attr[i]
+				if prefix, ok := space2prefix[att.Name.Space]; ok {
+					att.Name.Space = prefix
+				}
+			}
+
 			node := &Node{
 				Type:         ElementNode,
 				Data:         tok.Name.Local,

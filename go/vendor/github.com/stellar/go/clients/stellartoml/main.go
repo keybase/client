@@ -23,6 +23,11 @@ type Client struct {
 	UseHTTP bool
 }
 
+type ClientInterface interface {
+	GetStellarToml(domain string) (*Response, error)
+	GetStellarTomlByAddress(addy string) (*Response, error)
+}
+
 // HTTP represents the http client that a stellertoml resolver uses to make http
 // requests.
 type HTTP interface {

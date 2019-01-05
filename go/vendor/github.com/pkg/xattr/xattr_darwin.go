@@ -2,73 +2,85 @@
 
 package xattr
 
-import "syscall"
+import (
+	"os"
+	"syscall"
 
-// Get retrieves extended attribute data associated with path.
-func Get(path, name string) ([]byte, error) {
-	// find size.
-	size, err := getxattr(path, name, nil, 0, 0, 0)
-	if err != nil {
-		return nil, &Error{"xattr.Get", path, name, err}
-	}
-	if size > 0 {
-		buf := make([]byte, size)
-		// Read into buffer of that size.
-		read, err := getxattr(path, name, &buf[0], size, 0, 0)
-		if err != nil {
-			return nil, &Error{"xattr.Get", path, name, err}
+	"golang.org/x/sys/unix"
+)
+
+// See https://opensource.apple.com/source/xnu/xnu-1504.15.3/bsd/sys/xattr.h.auto.html
+const (
+	XATTR_NOFOLLOW        = 0x0001
+	XATTR_CREATE          = 0x0002
+	XATTR_REPLACE         = 0x0004
+	XATTR_NOSECURITY      = 0x0008
+	XATTR_NODEFAULT       = 0x0010
+	XATTR_SHOWCOMPRESSION = 0x0020
+
+	// ENOATTR is not exported by the syscall package on Linux, because it is
+	// an alias for ENODATA. We export it here so it is available on all
+	// our supported platforms.
+	ENOATTR = syscall.ENOATTR
+)
+
+func getxattr(path string, name string, data []byte) (int, error) {
+	return unix.Getxattr(path, name, data)
+}
+
+func lgetxattr(path string, name string, data []byte) (int, error) {
+	return unix.Lgetxattr(path, name, data)
+}
+
+func fgetxattr(f *os.File, name string, data []byte) (int, error) {
+	return getxattr(f.Name(), name, data)
+}
+
+func setxattr(path string, name string, data []byte, flags int) error {
+	return unix.Setxattr(path, name, data, flags)
+}
+
+func lsetxattr(path string, name string, data []byte, flags int) error {
+	return unix.Lsetxattr(path, name, data, flags)
+}
+
+func fsetxattr(f *os.File, name string, data []byte, flags int) error {
+	return setxattr(f.Name(), name, data, flags)
+}
+
+func removexattr(path string, name string) error {
+	return unix.Removexattr(path, name)
+}
+
+func lremovexattr(path string, name string) error {
+	return unix.Lremovexattr(path, name)
+}
+
+func fremovexattr(f *os.File, name string) error {
+	return removexattr(f.Name(), name)
+}
+
+func listxattr(path string, data []byte) (int, error) {
+	return unix.Listxattr(path, data)
+}
+
+func llistxattr(path string, data []byte) (int, error) {
+	return unix.Llistxattr(path, data)
+}
+
+func flistxattr(f *os.File, data []byte) (int, error) {
+	return listxattr(f.Name(), data)
+}
+
+// stringsFromByteSlice converts a sequence of attributes to a []string.
+// On Darwin and Linux, each entry is a NULL-terminated string.
+func stringsFromByteSlice(buf []byte) (result []string) {
+	offset := 0
+	for index, b := range buf {
+		if b == 0 {
+			result = append(result, string(buf[offset:index]))
+			offset = index + 1
 		}
-		return buf[:read], nil
 	}
-	return []byte{}, nil
-}
-
-// List retrieves a list of names of extended attributes associated
-// with the given path in the file system.
-func List(path string) ([]string, error) {
-	// find size.
-	size, err := listxattr(path, nil, 0, 0)
-	if err != nil {
-		return nil, &Error{"xattr.List", path, "", err}
-	}
-	if size > 0 {
-
-		buf := make([]byte, size)
-		// Read into buffer of that size.
-		read, err := listxattr(path, &buf[0], size, 0)
-		if err != nil {
-			return nil, &Error{"xattr.List", path, "", err}
-		}
-		return nullTermToStrings(buf[:read]), nil
-	}
-	return []string{}, nil
-}
-
-// Set associates name and data together as an attribute of path.
-func Set(path, name string, data []byte) error {
-	var dataval *byte = nil
-	datalen := len(data)
-	if datalen > 0 {
-		dataval = &data[0]
-	}
-	if err := setxattr(path, name, dataval, datalen, 0, 0); err != nil {
-		return &Error{"xattr.Set", path, name, err}
-	}
-	return nil
-}
-
-// Remove removes the attribute associated with the given path.
-func Remove(path, name string) error {
-	if err := removexattr(path, name, 0); err != nil {
-		return &Error{"xattr.Remove", path, name, err}
-	}
-	return nil
-}
-
-// Supported checks if filesystem supports extended attributes
-func Supported(path string) bool {
-	if _, err := listxattr(path, nil, 0, 0); err != nil {
-		return err != syscall.ENOTSUP
-	}
-	return true
+	return
 }

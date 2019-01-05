@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 )
 
 // Errors
@@ -18,6 +17,7 @@ var (
 	MalformedArrayError        = errors.New("Value is array, but can't find closing ']' symbol")
 	MalformedObjectError       = errors.New("Value looks like object, but can't find closing '}' symbol")
 	MalformedValueError        = errors.New("Value looks like Number/Boolean/None, but can't find its end: ',' or '}' symbol")
+	OverflowIntegerError       = errors.New("Value is number, but overflowed while parsing")
 	MalformedStringEscapeError = errors.New("Encountered an invalid escape sequence in a string")
 )
 
@@ -214,6 +214,7 @@ func searchKeys(data []byte, keys ...string) int {
 	i := 0
 	ln := len(data)
 	lk := len(keys)
+	lastMatched := true
 
 	if lk == 0 {
 		return 0
@@ -241,8 +242,12 @@ func searchKeys(data []byte, keys ...string) int {
 
 			i += valueOffset
 
-			// if string is a key, and key level match
-			if data[i] == ':' && keyLevel == level-1 {
+			// if string is a key
+			if data[i] == ':' {
+				if level < 1 {
+					return -1
+				}
+
 				key := data[keyBegin:keyEnd]
 
 				// for unescape: if there are no escape sequences, this is cheap; if there are, it is a
@@ -257,17 +262,32 @@ func searchKeys(data []byte, keys ...string) int {
 				}
 
 				if equalStr(&keyUnesc, keys[level-1]) {
-					keyLevel++
-					// If we found all keys in path
-					if keyLevel == lk {
-						return i + 1
+					lastMatched = true
+
+					// if key level match
+					if keyLevel == level-1 {
+						keyLevel++
+						// If we found all keys in path
+						if keyLevel == lk {
+							return i + 1
+						}
 					}
+				} else {
+					lastMatched = false
 				}
 			} else {
 				i--
 			}
 		case '{':
-			level++
+
+			// in case parent key is matched then only we will increase the level otherwise can directly
+			// can move to the end of this block
+			if !lastMatched {
+				end := blockEnd(data[i:], '{', '}')
+				i += end - 1
+			} else{
+				level++
+			}
 		case '}':
 			level--
 			if level == keyLevel {
@@ -440,9 +460,11 @@ func EachKey(data []byte, cb func(int, []byte, ValueType, error), paths ...[]str
 					}
 				}
 
-				switch data[i] {
-				case '{', '}', '[', '"':
-					i--
+				if i < ln {
+					switch data[i] {
+					case '{', '}', '[', '"':
+						i--
+					}
 				}
 			} else {
 				i--
@@ -564,23 +586,42 @@ var (
 
 func createInsertComponent(keys []string, setValue []byte, comma, object bool) []byte {
 	var buffer bytes.Buffer
+	isIndex := string(keys[0][0]) == "["
 	if comma {
 		buffer.WriteString(",")
 	}
-	if object {
-		buffer.WriteString("{")
-	}
-	buffer.WriteString("\"")
-	buffer.WriteString(keys[0])
-	buffer.WriteString("\":")
-	for i := 1; i < len(keys); i++ {
-		buffer.WriteString("{\"")
-		buffer.WriteString(keys[i])
+	if isIndex {
+		buffer.WriteString("[")
+	} else {
+		if object {
+			buffer.WriteString("{")
+		}
+		buffer.WriteString("\"")
+		buffer.WriteString(keys[0])
 		buffer.WriteString("\":")
 	}
+
+	for i := 1; i < len(keys); i++ {
+		if string(keys[i][0]) == "[" {
+			buffer.WriteString("[")
+		} else {
+			buffer.WriteString("{\"")
+			buffer.WriteString(keys[i])
+			buffer.WriteString("\":")
+		}
+	}
 	buffer.Write(setValue)
-	buffer.WriteString(strings.Repeat("}", len(keys)-1))
-	if object {
+	for i := len(keys) - 1; i > 0; i-- {
+		if string(keys[i][0]) == "[" {
+			buffer.WriteString("]")
+		} else {
+			buffer.WriteString("}")
+		}
+	}
+	if isIndex {
+		buffer.WriteString("]")
+	}
+	if object && !isIndex {
 		buffer.WriteString("}")
 	}
 	return buffer.Bytes()
@@ -630,6 +671,8 @@ func Delete(data []byte, keys ...string) []byte {
 
 		if data[endOffset+tokEnd] == ","[0] {
 			endOffset += tokEnd + 1
+		} else if data[endOffset+tokEnd] == " "[0] && len(data) > endOffset+tokEnd+1 && data[endOffset+tokEnd+1] == ","[0] {
+			endOffset += tokEnd + 2
 		} else if data[endOffset+tokEnd] == "}"[0] && data[tokStart] == ","[0] {
 			keyOffset = tokStart
 		}
@@ -650,7 +693,18 @@ func Delete(data []byte, keys ...string) []byte {
 		}
 	}
 
-	data = append(data[:keyOffset], data[endOffset:]...)
+	// We need to remove remaining trailing comma if we delete las element in the object
+	prevTok := lastToken(data[:keyOffset])
+	remainedValue := data[endOffset:]
+
+	var newOffset int
+	if nextToken(remainedValue) > -1 && remainedValue[nextToken(remainedValue)] == '}' && data[prevTok] == ',' {
+		newOffset = prevTok
+	} else {
+		newOffset = prevTok + 1
+	}
+
+	data = append(data[:newOffset], data[endOffset:]...)
 	return data
 }
 
@@ -1146,7 +1200,10 @@ func ParseFloat(b []byte) (float64, error) {
 
 // ParseInt parses a Number ValueType into a Go int64
 func ParseInt(b []byte) (int64, error) {
-	if v, ok := parseInt(b); !ok {
+	if v, ok, overflow := parseInt(b); !ok {
+		if overflow {
+			return 0, OverflowIntegerError
+		}
 		return 0, MalformedValueError
 	} else {
 		return v, nil

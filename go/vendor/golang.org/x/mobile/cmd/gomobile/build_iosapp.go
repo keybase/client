@@ -19,7 +19,7 @@ import (
 	"text/template"
 )
 
-func goIOSBuild(pkg *build.Package, bundleID string, archs []string) (map[string]bool, error) {
+func goIOSBuild(pkg *build.Package, bundleID string) (map[string]bool, error) {
 	src := pkg.ImportPath
 	if buildO != "" && !strings.HasSuffix(buildO, ".app") {
 		return nil, fmt.Errorf("-o must have an .app for -target=ios")
@@ -62,29 +62,31 @@ func goIOSBuild(pkg *build.Package, bundleID string, archs []string) (map[string
 		}
 	}
 
-	// We are using lipo tool to build multiarchitecture binaries.
-	cmd := exec.Command(
-		"xcrun", "lipo",
-		"-o", filepath.Join(tmpdir, "main/main"),
-		"-create",
-	)
-	var nmpkgs map[string]bool
-	for _, arch := range archs {
-		path := filepath.Join(tmpdir, arch)
-		// Disable DWARF; see golang.org/issues/25148.
-		if err := goBuild(src, darwinEnv[arch], "-ldflags=-w", "-o="+path); err != nil {
-			return nil, err
-		}
-		if nmpkgs == nil {
-			var err error
-			nmpkgs, err = extractPkgs(darwinArmNM, path)
-			if err != nil {
-				return nil, err
-			}
-		}
-		cmd.Args = append(cmd.Args, path)
+	ctx.BuildTags = append(ctx.BuildTags, "ios")
+
+	armPath := filepath.Join(tmpdir, "arm")
+	if err := goBuild(src, darwinArmEnv, "-o="+armPath); err != nil {
+		return nil, err
+	}
+	nmpkgs, err := extractPkgs(darwinArmNM, armPath)
+	if err != nil {
+		return nil, err
 	}
 
+	arm64Path := filepath.Join(tmpdir, "arm64")
+	if err := goBuild(src, darwinArm64Env, "-o="+arm64Path); err != nil {
+		return nil, err
+	}
+
+	// Apple requires builds to target both darwin/arm and darwin/arm64.
+	// We are using lipo tool to build multiarchitecture binaries.
+	// TODO(jbd): Investigate the new announcements about iO9's fat binary
+	// size limitations are breaking this feature.
+	cmd := exec.Command(
+		"xcrun", "lipo",
+		"-create", armPath, arm64Path,
+		"-o", filepath.Join(tmpdir, "main/main"),
+	)
 	if err := runCmd(cmd); err != nil {
 		return nil, err
 	}

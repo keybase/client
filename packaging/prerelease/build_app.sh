@@ -48,7 +48,7 @@ build_dir_kbfs="/tmp/build_kbfs"
 build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
 client_dir="$gopath/src/github.com/keybase/client"
-kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 updater_dir="$gopath/src/github.com/keybase/go-updater"
 
 if [ ! "$nopull" = "1" ]; then

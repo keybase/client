@@ -227,7 +227,7 @@ func (f *win32File) Read(b []byte) (int, error) {
 	// Handle EOF conditions.
 	if err == nil && n == 0 && len(b) != 0 {
 		return 0, io.EOF
-	} else if err == syscall.ERROR_BROKEN_PIPE || err == ErrFileClosed {
+	} else if err == syscall.ERROR_BROKEN_PIPE {
 		return 0, io.EOF
 	} else {
 		return n, err

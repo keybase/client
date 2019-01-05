@@ -16,7 +16,6 @@ package draw
 
 import (
 	"image"
-	"image/color"
 	"image/draw"
 )
 
@@ -33,11 +32,7 @@ func DrawMask(dst Image, r image.Rectangle, src image.Image, sp image.Point, mas
 }
 
 // Drawer contains the Draw method.
-type Drawer interface {
-	// Draw aligns r.Min in dst with sp in src and then replaces the
-	// rectangle r in dst with the result of drawing src on dst.
-	Draw(dst Image, r image.Rectangle, src image.Image, sp image.Point)
-}
+type Drawer = draw.Drawer
 
 // FloydSteinberg is a Drawer that is the Src Op with Floyd-Steinberg error
 // diffusion.
@@ -50,30 +45,17 @@ func (floydSteinberg) Draw(dst Image, r image.Rectangle, src image.Image, sp ima
 }
 
 // Image is an image.Image with a Set method to change a single pixel.
-type Image interface {
-	image.Image
-	Set(x, y int, c color.Color)
-}
+type Image = draw.Image
 
 // Op is a Porter-Duff compositing operator.
-type Op int
+type Op = draw.Op
 
 const (
 	// Over specifies ``(src in mask) over dst''.
-	Over Op = Op(draw.Over)
+	Over Op = draw.Over
 	// Src specifies ``src in mask''.
-	Src Op = Op(draw.Src)
+	Src Op = draw.Src
 )
 
-// Draw implements the Drawer interface by calling the Draw function with
-// this Op.
-func (op Op) Draw(dst Image, r image.Rectangle, src image.Image, sp image.Point) {
-	(draw.Op(op)).Draw(dst, r, src, sp)
-}
-
 // Quantizer produces a palette for an image.
-type Quantizer interface {
-	// Quantize appends up to cap(p) - len(p) colors to p and returns the
-	// updated palette suitable for converting m to a paletted image.
-	Quantize(p color.Palette, m image.Image) color.Palette
-}
+type Quantizer = draw.Quantizer

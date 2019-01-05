@@ -47,7 +47,7 @@ installed. Support is not complete.
 If the package directory contains an assets subdirectory, its contents
 are copied into the output.
 
-The -bundleid flag is for -target ios only and sets the bundle ID to use
+The -bundleid flag is for -target ios only and sets the bundle ID to use 
 with the app; defaults to "org.golang.todo".
 
 The -o flag specifies the output file name. If not specified, the
@@ -74,16 +74,8 @@ func runBuild(cmd *command) (err error) {
 		return fmt.Errorf(`invalid -target=%q: %v`, buildTarget, err)
 	}
 
-	oldCtx := ctx
-	defer func() {
-		ctx = oldCtx
-	}()
 	ctx.GOARCH = targetArchs[0]
 	ctx.GOOS = targetOS
-
-	if ctx.GOOS == "darwin" {
-		ctx.BuildTags = append(ctx.BuildTags, "ios")
-	}
 
 	switch len(args) {
 	case 0:
@@ -119,19 +111,17 @@ func runBuild(cmd *command) (err error) {
 			return err
 		}
 	case "darwin":
+		// TODO: use targetArchs?
 		if !xcodeAvailable() {
 			return fmt.Errorf("-target=ios requires XCode")
 		}
 		if pkg.Name != "main" {
-			for _, arch := range targetArchs {
-				env := darwinEnv[arch]
-				if err := goBuild(pkg.ImportPath, env); err != nil {
-					return err
-				}
+			if err := goBuild(pkg.ImportPath, darwinArmEnv); err != nil {
+				return err
 			}
-			return nil
+			return goBuild(pkg.ImportPath, darwinArm64Env)
 		}
-		nmpkgs, err = goIOSBuild(pkg, buildBundleID, targetArchs)
+		nmpkgs, err = goIOSBuild(pkg, buildBundleID)
 		if err != nil {
 			return err
 		}
@@ -144,7 +134,7 @@ func runBuild(cmd *command) (err error) {
 	return nil
 }
 
-var nmRE = regexp.MustCompile(`[0-9a-f]{8} t (?:.*/vendor/)?(golang.org/x.*/[^.]*)`)
+var nmRE = regexp.MustCompile(`[0-9a-f]{8} t (golang.org/x.*/[^.]*)`)
 
 func extractPkgs(nm string, path string) (map[string]bool, error) {
 	if buildN {
@@ -282,6 +272,7 @@ func goCmd(subcmd string, srcs []string, env []string, args ...string) error {
 	cmd := exec.Command(
 		"go",
 		subcmd,
+		"-pkgdir="+pkgdir(env),
 	)
 	if len(ctx.BuildTags) > 0 {
 		cmd.Args = append(cmd.Args, "-tags", strings.Join(ctx.BuildTags, " "))
@@ -339,8 +330,16 @@ func parseBuildTarget(buildTarget string) (os string, archs []string, _ error) {
 	}
 
 	// verify all archs are supported one while deduping.
+	var supported []string
+	switch os {
+	case "ios":
+		supported = []string{"arm", "arm64", "amd64"}
+	case "android":
+		supported = []string{"arm", "arm64", "386", "amd64"}
+	}
+
 	isSupported := func(arch string) bool {
-		for _, a := range allArchs {
+		for _, a := range supported {
 			if a == arch {
 				return true
 			}
@@ -366,7 +365,7 @@ func parseBuildTarget(buildTarget string) (os string, archs []string, _ error) {
 		targetOS = "darwin"
 	}
 	if all {
-		return targetOS, allArchs, nil
+		return targetOS, supported, nil
 	}
 	return targetOS, archs, nil
 }

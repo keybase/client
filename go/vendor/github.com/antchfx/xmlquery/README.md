@@ -10,6 +10,12 @@ Overview
 
 xmlquery is an XPath query package for XML document, lets you extract data or evaluate from XML documents by an XPath expression.
 
+Change Logs
+===
+
+**2018-12-03**
+ * added support attribute name with namespace prefix and XML output. [#6](https://github.com/antchfx/xmlquery/issues/6)
+
 Installation
 ====
 
@@ -164,6 +170,6 @@ List of supported XPath query packages
 |[xmlquery](https://github.com/antchfx/xmlquery) | XPath query package for the XML document|
 |[jsonquery](https://github.com/antchfx/jsonquery) | XPath query package for the JSON document|
 
-Questions
+ Questions
 ===
 Please let me know if you have any questions
