@@ -2,18 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gomobile_bind
+package main
 
 // Go support functions for bindings. This file is copied into the
-// generated gomobile_bind package and compiled along with the
-// generated binding files.
+// generated main package and compiled along with the generated binding
+// files.
 
 //#cgo CFLAGS: -Werror
 //#cgo LDFLAGS: -llog
 //#include <jni.h>
 //#include <stdint.h>
 //#include <stdlib.h>
-//#include "seq.h"
+//#include "seq_android.h"
 import "C"
 import (
 	"unsafe"

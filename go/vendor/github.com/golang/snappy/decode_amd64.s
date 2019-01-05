@@ -226,25 +226,6 @@ tagLit63:
 // ----------------------------------------
 // The code below handles copy tags.
 
-tagCopy4:
-	// case tagCopy4:
-	// s += 5
-	ADDQ $5, SI
-
-	// if uint(s) > uint(len(src)) { etc }
-	MOVQ SI, BX
-	SUBQ R11, BX
-	CMPQ BX, R12
-	JA   errCorrupt
-
-	// length = 1 + int(src[s-5])>>2
-	SHRQ $2, CX
-	INCQ CX
-
-	// offset = int(uint32(src[s-4]) | uint32(src[s-3])<<8 | uint32(src[s-2])<<16 | uint32(src[s-1])<<24)
-	MOVLQZX -4(SI), DX
-	JMP     doCopy
-
 tagCopy2:
 	// case tagCopy2:
 	// s += 3
@@ -260,7 +241,7 @@ tagCopy2:
 	SHRQ $2, CX
 	INCQ CX
 
-	// offset = int(uint32(src[s-2]) | uint32(src[s-1])<<8)
+	// offset = int(src[s-2]) | int(src[s-1])<<8
 	MOVWQZX -2(SI), DX
 	JMP     doCopy
 
@@ -270,7 +251,7 @@ tagCopy:
 	//	- CX == src[s]
 	CMPQ BX, $2
 	JEQ  tagCopy2
-	JA   tagCopy4
+	JA   errUC4T
 
 	// case tagCopy1:
 	// s += 2
@@ -282,7 +263,7 @@ tagCopy:
 	CMPQ BX, R12
 	JA   errCorrupt
 
-	// offset = int(uint32(src[s-2])&0xe0<<3 | uint32(src[s-1]))
+	// offset = int(src[s-2])&0xe0<<3 | int(src[s-1])
 	MOVQ    CX, DX
 	ANDQ    $0xe0, DX
 	SHLQ    $3, DX
@@ -487,4 +468,9 @@ end:
 errCorrupt:
 	// return decodeErrCodeCorrupt
 	MOVQ $1, ret+48(FP)
+	RET
+
+errUC4T:
+	// return decodeErrCodeUnsupportedCopy4Tag
+	MOVQ $3, ret+48(FP)
 	RET

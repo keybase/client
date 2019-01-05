@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package coding implements low-level QR coding details.
-package coding
+package coding // import "rsc.io/qr/coding"
 
 import (
 	"fmt"

@@ -109,22 +109,6 @@ func FindEach(top *Node, expr string, cb func(int, *Node)) {
 	}
 }
 
-// FindEachWithBreak functions the same as FindEach but allows you
-// to break the loop by returning false from your callback function, cb.
-func FindEachWithBreak(top *Node, expr string, cb func(int, *Node) bool) {
-	exp, err := xpath.Compile(expr)
-	if err != nil {
-		panic(err)
-	}
-	t := exp.Select(CreateXPathNavigator(top))
-	var i int
-	cont := true
-	for t.MoveNext() && cont {
-		cont = cb(i, getCurrentNode(t))
-		i++
-	}
-}
-
 type NodeNavigator struct {
 	root, curr *Node
 	attr       int
@@ -161,9 +145,6 @@ func (x *NodeNavigator) LocalName() string {
 
 func (x *NodeNavigator) Prefix() string {
 	if x.NodeType() == xpath.AttributeNode {
-		if x.attr != -1 {
-			return x.curr.Attr[x.attr].Name.Space
-		}
 		return ""
 	}
 	return x.curr.Prefix
