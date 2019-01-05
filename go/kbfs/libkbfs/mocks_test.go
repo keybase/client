@@ -17,6 +17,7 @@ import (
 	kbfsmd "github.com/keybase/kbfs/kbfsmd"
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
+	leveldb "github.com/syndtr/goleveldb/leveldb"
 	context "golang.org/x/net/context"
 	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
 	reflect "reflect"
@@ -2237,6 +2238,20 @@ func (m *MockKBFSOps) GetNodeMetadata(ctx context.Context, node Node) (NodeMetad
 func (mr *MockKBFSOpsMockRecorder) GetNodeMetadata(ctx, node interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetNodeMetadata), ctx, node)
+}
+
+// GetConflictResolutionDB mocks base method
+func (m *MockKBFSOps) GetConflictResolutionDB() *leveldb.DB {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConflictResolutionDB")
+	ret0, _ := ret[0].(*leveldb.DB)
+	return ret0
+}
+
+// GetConflictResolutionDB indicates an expected call of GetConflictResolutionDB
+func (mr *MockKBFSOpsMockRecorder) GetConflictResolutionDB() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConflictResolutionDB", reflect.TypeOf((*MockKBFSOps)(nil).GetConflictResolutionDB))
 }
 
 // Shutdown mocks base method

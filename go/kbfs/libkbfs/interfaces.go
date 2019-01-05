@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -514,7 +515,9 @@ type KBFSOps interface {
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
-
+	// GetConflictResolutionDB gets the levelDB in which conflict resolution
+	// status is stored.
+	GetConflictResolutionDB() (db *leveldb.DB)
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown(ctx context.Context) error
