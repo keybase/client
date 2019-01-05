@@ -8,17 +8,31 @@ import (
 
 type ChatAPIUI struct {
 	utils.DummyChatUI
-	allowStellarPayment bool
+	allowStellarPayments bool
 }
 
-func NewChatAPIUI() *ChatAPIUI {
-	return &ChatAPIUI{
-		DummyChatUI: utils.DummyChatUI{},
+func AllowStellarPayments(enabled bool) func(*ChatAPIUI) {
+	return func(c *ChatAPIUI) {
+		c.SetAllowStellarPayments(enabled)
 	}
 }
 
+func NewChatAPIUI(opts ...func(*ChatAPIUI)) *ChatAPIUI {
+	c := &ChatAPIUI{
+		DummyChatUI: utils.DummyChatUI{},
+	}
+	for _, o := range opts {
+		o(c)
+	}
+	return c
+}
+
 func (u *ChatAPIUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
-	return u.allowStellarPayment, nil
+	return u.allowStellarPayments, nil
+}
+
+func (u *ChatAPIUI) SetAllowStellarPayments(enabled bool) {
+	u.allowStellarPayments = enabled
 }
 
 type ChatAPINotifications struct {

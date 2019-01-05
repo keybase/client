@@ -802,7 +802,18 @@ type sendArgV1 struct {
 	ephemeralLifetime ephemeralLifetime
 }
 
-func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, ui chat1.ChatUiInterface) Reply {
+func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI chat1.ChatUiInterface) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		chat1.ChatUiProtocol(chatUI),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+
 	var rl []chat1.RateLimit
 	existing, existingRl, err := c.getExistingConvs(ctx, arg.conversationID, arg.channel)
 	if err != nil {
@@ -824,11 +835,6 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, ui chat1
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
-	client, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return c.errReply(err)
-	}
-
 	var idFails []keybase1.TLFIdentifyFailure
 	if arg.nonblock {
 		var nbarg chat1.PostLocalNonblockArg
