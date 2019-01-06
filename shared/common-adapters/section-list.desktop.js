@@ -78,7 +78,7 @@ class SectionList extends React.Component<Props, State> {
         {this.props.renderSectionHeader({section})}
       </Box>
     ) : (
-      this.props.renderItem({index: indexWithinSection, item: item.item, section})
+      (section.renderItem || this.props.renderItem)({index: indexWithinSection, item: item.item, section})
     )
   }
 
@@ -100,7 +100,11 @@ class SectionList extends React.Component<Props, State> {
         style={collapseStyles([styles.fullHeight, this.props.style])}
         onScroll={this.props.onEndReached ? this._onScroll : null}
       >
-        <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
+        <ReactList
+          itemRenderer={this._itemRenderer}
+          length={this.state.items.length}
+          retrigger={this.state.items}
+        />
       </ScrollView>
     )
   }

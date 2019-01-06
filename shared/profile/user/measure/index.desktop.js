@@ -5,8 +5,12 @@ import Rm from 'react-measure'
 import type {Props} from '.'
 
 class Measure extends React.Component<Props, {width: number}> {
+  _width = 0
   _onResize = contentRect => {
-    this.props.onMeasured(contentRect.bounds.width)
+    if (this._width !== contentRect.bounds.width) {
+      this._width = contentRect.bounds.width
+      this.props.onMeasured(this._width)
+    }
   }
 
   render() {

@@ -1,5 +1,6 @@
 // @flow
 import * as Container from '../../../util/container'
+import * as ProfileGen from '../../../actions/profile-gen'
 import Friend from '.'
 
 type OwnProps = {|
@@ -15,11 +16,14 @@ const mapStateToProps = (state, ownProps) => {
     username: ownProps.username,
   }
 }
-const mapDispatchToProps = (dispatch, ownProps) => ({})
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  _onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followThem: stateProps.followThem,
   followsYou: stateProps.followsYou,
   fullname: stateProps.fullname,
+  onClick: () => dispatchProps._onClick(stateProps.username),
   username: stateProps.username,
   width: ownProps.width,
 })

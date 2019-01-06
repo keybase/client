@@ -142,53 +142,53 @@ const widthToDimentions = width => {
   return {itemWidth, itemsInARow}
 }
 
-class DesktopLayout extends React.PureComponent<LayoutProps, {|width: number|}> {
-  state = {width: 0}
-  _itemWidth = 0
-  _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
-  _renderItem = (index, item) => <FriendRow key={index} usernames={item} itemWidth={this._itemWidth} />
+// class DesktopLayout extends React.PureComponent<LayoutProps, {|width: number|}> {
+// state = {width: 0}
+// _itemWidth = 0
+// _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
+// _renderItem = (index, item) => <FriendRow key={index} usernames={item} itemWidth={this._itemWidth} />
 
-  render() {
-    const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
-    const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
-    this._itemWidth = itemWidth
-    // $ForceType
-    const chunks = this.state.width ? chunk(friends, itemsInARow) : []
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Header
-          onBack={this.props.onBack}
-          state={this.props.state}
-          backgroundColor={this.props.backgroundColor}
-        />
-        <Kb.ScrollView>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-            <Kb.Box2
-              direction="vertical"
-              fullWidth={true}
-              style={Styles.collapseStyles([
-                styles.backgroundColor,
-                {backgroundColor: this.props.backgroundColor},
-              ])}
-            />
-            <BioLayout {...this.props} />
-            <Kb.Box2 direction="vertical" style={styles.proofs}>
-              <Teams {...this.props} />
-              <Proofs {...this.props} />
-            </Kb.Box2>
-          </Kb.Box2>
-          <FriendshipTabs {...this.props} />
-          <Kb.List items={chunks} renderItem={this._renderItem} />
-        </Kb.ScrollView>
-      </Kb.Box2>
-    )
-  }
-}
+// render() {
+// const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
+// const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
+// this._itemWidth = itemWidth
+// // $ForceType
+// const chunks = this.state.width ? chunk(friends, itemsInARow) : []
+// return (
+// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+// <Header
+// onBack={this.props.onBack}
+// state={this.props.state}
+// backgroundColor={this.props.backgroundColor}
+// />
+// <Kb.ScrollView>
+// <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+// <Kb.Box2
+// direction="vertical"
+// fullWidth={true}
+// style={Styles.collapseStyles([
+// styles.backgroundColor,
+// {backgroundColor: this.props.backgroundColor},
+// ])}
+// />
+// <BioLayout {...this.props} />
+// <Kb.Box2 direction="vertical" style={styles.proofs}>
+// <Teams {...this.props} />
+// <Proofs {...this.props} />
+// </Kb.Box2>
+// </Kb.Box2>
+// <FriendshipTabs {...this.props} />
+// <Kb.List items={chunks} renderItem={this._renderItem} />
+// </Kb.ScrollView>
+// </Kb.Box2>
+// )
+// }
+// }
 
 class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidth: number|}> {
   render() {
     return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" style={styles.friendRow}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
         {this.props.usernames.map(u => (
           <Friend key={u} username={u} width={this.props.itemWidth} />
         ))}
@@ -204,28 +204,49 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
     if (section === this._bioTeamProofsSection) {
       return (
         <Header
+          key="header"
           onBack={this.props.onBack}
           state={this.props.state}
           backgroundColor={this.props.backgroundColor}
         />
       )
     }
-    return <FriendshipTabs {...this.props} />
+    return <FriendshipTabs key="tabs" {...this.props} />
   }
 
-  _renderBioTeamProofs = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.backgroundColor, {backgroundColor: this.props.backgroundColor}])}
-      />
-      <BioLayout {...this.props} />
-    </Kb.Box2>
-  )
+  _renderBioTeamProofs = () =>
+    Styles.isMobile ? (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.backgroundColor,
+            {backgroundColor: this.props.backgroundColor},
+          ])}
+        />
+        <BioLayout {...this.props} />
+      </Kb.Box2>
+    ) : (
+      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.backgroundColor,
+            {backgroundColor: this.props.backgroundColor},
+          ])}
+        />
+        <BioLayout {...this.props} />
+        <Kb.Box2 direction="vertical" style={styles.proofs}>
+          <Teams {...this.props} />
+          <Proofs {...this.props} />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
 
   _renderOtherUsers = ({item, section, index}) => (
-    <FriendRow key={index} usernames={item} itemWidth={section.itemWidth} />
+    <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
   )
 
   _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
@@ -240,11 +261,12 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
     const chunks = this.state.width ? chunk(friends, itemsInARow) : []
 
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Measure onMeasured={this._onMeasured} />
         <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
         {!!this.state.width && (
           <Kb.SectionList
+            key={this.props.username + this.state.width /* forc render on user change or width change */}
             stickySectionHeadersEnabled={true}
             renderSectionHeader={this._renderSectionHeader}
             keyExtractor={this._keyExtractor}
@@ -256,7 +278,12 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
                 renderItem: this._renderOtherUsers,
               },
             ]}
-            style={{backgroundColor: this.props.backgroundColor}}
+            style={Styles.collapseStyles([
+              styles.sectionList,
+              {
+                backgroundColor: Styles.isMobile ? this.props.backgroundColor : Styles.globalColors.white,
+              },
+            ])}
             contentContainerStyle={styles.sectionListContentStyle}
           />
         )}
@@ -289,23 +316,35 @@ class User extends React.PureComponent<Props, State> {
     })
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this.props.onReload()
   }
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.username !== prevProps.username) {
+      this.props.onReload()
+    }
+  }
   render() {
-    return Styles.isMobile ? (
+    return (
       <MobileLayout
         {...this.props}
         onChangeFollowing={this._changeFollowing}
         selectedFollowing={this.state.selectedFollowing}
       />
-    ) : (
-      <DesktopLayout
-        {...this.props}
-        onChangeFollowing={this._changeFollowing}
-        selectedFollowing={this.state.selectedFollowing}
-      />
     )
+    // return Styles.isMobile ? (
+    // <MobileLayout
+    // {...this.props}
+    // onChangeFollowing={this._changeFollowing}
+    // selectedFollowing={this.state.selectedFollowing}
+    // />
+    // ) : (
+    // <DesktopLayout
+    // {...this.props}
+    // onChangeFollowing={this._changeFollowing}
+    // selectedFollowing={this.state.selectedFollowing}
+    // />
+    // )
   }
 }
 
@@ -331,6 +370,9 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
+  container: {
+    ...Styles.globalStyles.fillAbsolute,
+  },
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -369,11 +411,16 @@ const styles = Styles.styleSheetCreate({
   },
   followTabText: {color: Styles.globalColors.black_60},
   followTabTextSelected: {color: Styles.globalColors.black_75},
-  friendRow: {
-    justifyContent: 'center',
-    marginBottom: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.xtiny,
-  },
+  friendRow: Styles.platformStyles({
+    common: {
+      marginBottom: Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.xtiny,
+      maxWidth: '100%',
+      minWidth: 0,
+    },
+    isElectron: {justifyContent: 'flex-start'},
+    isMobile: {justifyContent: 'center'},
+  }),
   header: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -387,14 +434,20 @@ const styles = Styles.styleSheetCreate({
   }),
   proofs: Styles.platformStyles({
     isElectron: {
+      alignSelf: 'flex-start',
       flexShrink: 0,
       marginTop: avatarSize / 2,
-      maxWidth: 350,
+      width: 350,
       paddingTop: Styles.globalMargins.small,
     },
     isMobile: {width: '100%'},
   }),
-  sectionListContentStyle: {backgroundColor: Styles.globalColors.white, minHeight: '100%'},
+  sectionList: {width: '100%'},
+  sectionListContentStyle: Styles.platformStyles({
+    common: {backgroundColor: Styles.globalColors.white},
+    isElectron: {},
+    isMobile: {minHeight: '100%'},
+  }),
   teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     flexShrink: 0,
