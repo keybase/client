@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import {showImagePicker, type Response} from 'react-native-image-picker'
 import * as shared from './shared'
 import * as Types from '../constants/types/profile'

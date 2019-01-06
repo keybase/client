@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
 import {Avatar, Box, Button, Text} from '../common-adapters'

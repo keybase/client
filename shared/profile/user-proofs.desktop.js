@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as React from 'react'
 import {TransitionGroup, CSSTransition} from 'react-transition-group'
 import * as shared from './user-proofs.shared'

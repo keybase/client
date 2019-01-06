@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import React, {Component, PureComponent} from 'react'
 import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'

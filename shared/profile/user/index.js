@@ -128,7 +128,7 @@ class FriendshipTabs extends React.Component<LayoutProps> {
 
   render() {
     return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.followTabContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.followTabContainer}>
         {this._tab(false)}
         {this._tab(true)}
       </Kb.Box2>
@@ -152,6 +152,7 @@ const DesktopLayout = (p: LayoutProps) => (
           <Proofs {...p} />
         </Kb.Box2>
       </Kb.Box2>
+      <FriendshipTabs {...p} />
     </Kb.ScrollView>
   </Kb.Box2>
 )
@@ -308,20 +309,34 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
-  followTab: {
-    alignItems: 'center',
-    borderBottomColor: 'white',
-    borderBottomWidth: 2,
-    height: Styles.globalMargins.large,
-    justifyContent: 'center',
-    width: '50%',
-  },
-  followTabContainer: {
-    alignItems: 'flex-end',
-    backgroundColor: Styles.globalColors.white,
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-  },
+  followTab: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      borderBottomColor: 'white',
+      borderBottomWidth: 2,
+      height: Styles.globalMargins.large,
+      justifyContent: 'center',
+      width: '50%',
+    },
+    isElectron: {
+      borderBottomStyle: 'solid',
+    },
+  }),
+  followTabContainer: Styles.platformStyles({
+    common: {
+      alignItems: 'flex-end',
+      backgroundColor: Styles.globalColors.white,
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+    },
+    isElectron: {
+      borderBottomStyle: 'solid',
+      width: 350,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },

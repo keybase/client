@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as shared from './shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
