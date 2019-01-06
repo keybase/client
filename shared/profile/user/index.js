@@ -314,12 +314,18 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       borderBottomColor: 'white',
       borderBottomWidth: 2,
-      height: Styles.globalMargins.large,
       justifyContent: 'center',
-      width: '50%',
     },
     isElectron: {
       borderBottomStyle: 'solid',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      height: Styles.globalMargins.large,
+      width: '50%',
     },
   }),
   followTabContainer: Styles.platformStyles({
@@ -331,7 +337,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderBottomStyle: 'solid',
-      width: 350,
     },
     isMobile: {
       width: '100%',
