@@ -120,9 +120,12 @@ func (c *CmdWalletSend) Run() (err error) {
 		return fmt.Errorf("invalid amount of XLM: %q", amount)
 	}
 
-	if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.Recipient))); err != nil {
-		return err
-	}
+	/*
+		if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.Recipient))); err != nil {
+			return err
+		}
+	*/
+	_ = amountDesc
 
 	arg := stellar1.SendCLILocalArg{
 		Recipient:       c.Recipient,
