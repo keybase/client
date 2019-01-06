@@ -136,26 +136,54 @@ class FriendshipTabs extends React.Component<LayoutProps> {
   }
 }
 
-const DesktopLayout = (p: LayoutProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <Header onBack={p.onBack} state={p.state} backgroundColor={p.backgroundColor} />
-    <Kb.ScrollView>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([styles.backgroundColor, {backgroundColor: p.backgroundColor}])}
+const widthToDimentions = width => {
+  const itemsInARow = Math.floor(Math.max(1, width / 105))
+  const itemWidth = Math.floor(width / itemsInARow)
+  return {itemWidth, itemsInARow}
+}
+
+class DesktopLayout extends React.PureComponent<LayoutProps, {|width: number|}> {
+  state = {width: 0}
+  _itemWidth = 0
+  _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
+  _renderItem = (index, item) => <FriendRow key={index} usernames={item} itemWidth={this._itemWidth} />
+
+  render() {
+    const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
+    const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
+    this._itemWidth = itemWidth
+    // $ForceType
+    const chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Header
+          onBack={this.props.onBack}
+          state={this.props.state}
+          backgroundColor={this.props.backgroundColor}
         />
-        <BioLayout {...p} />
-        <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Teams {...p} />
-          <Proofs {...p} />
-        </Kb.Box2>
+        <Kb.ScrollView>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+            <Kb.Box2
+              direction="vertical"
+              fullWidth={true}
+              style={Styles.collapseStyles([
+                styles.backgroundColor,
+                {backgroundColor: this.props.backgroundColor},
+              ])}
+            />
+            <BioLayout {...this.props} />
+            <Kb.Box2 direction="vertical" style={styles.proofs}>
+              <Teams {...this.props} />
+              <Proofs {...this.props} />
+            </Kb.Box2>
+          </Kb.Box2>
+          <FriendshipTabs {...this.props} />
+          <Kb.List items={chunks} renderItem={this._renderItem} />
+        </Kb.ScrollView>
       </Kb.Box2>
-      <FriendshipTabs {...p} />
-    </Kb.ScrollView>
-  </Kb.Box2>
-)
+    )
+  }
+}
 
 class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidth: number|}> {
   render() {
@@ -202,18 +230,12 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
 
   _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
 
-  _widthToDimentions = width => {
-    const itemsInARow = Math.floor(Math.max(1, width / 105))
-    const itemWidth = Math.floor(width / itemsInARow)
-    return {itemWidth, itemsInARow}
-  }
-
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
 
   render() {
     const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
-    const {itemsInARow, itemWidth} = this._widthToDimentions(this.state.width)
+    const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // $ForceType
     const chunks = this.state.width ? chunk(friends, itemsInARow) : []
 
