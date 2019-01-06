@@ -77,4 +77,8 @@ coverclean:
 gen-deps:
 	./gen_deps.pl
 
-.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean gen-deps
+shavendorstellar:
+	echo "expecting f3a7d9906dab5c481669b5b4f852bf447388bd3d:"
+	find vendor/github.com/stellar -type f -print0 | sort -z | xargs -0 shasum | shasum
+
+.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean shavendorstellar gen-deps
