@@ -40,7 +40,7 @@ const TeamInfo = p => (
                 <OpenMeta isOpen={p.isOpen} />
               </Kb.Box2>
             }
-            metaTwo={<Kb.Text type="BodySmall">{p.membersCount} members</Kb.Text>}
+            metaTwo={<Kb.Text type="BodySmall">{p.membersCount} member{p.membersCount > 1 ? 's' : ''}</Kb.Text>}
           />
           <Kb.Text type="Body" style={styles.description}>
             {p.description}
