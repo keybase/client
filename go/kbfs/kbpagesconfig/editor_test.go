@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEditor(t *testing.T) {
+func TestEditorACLs(t *testing.T) {
 	configDir, err := ioutil.TempDir(".", "kbpagesconfig-editor-test-")
 	require.NoError(t, err)
 	defer os.RemoveAll(configDir)
@@ -138,4 +138,60 @@ func TestEditor(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
+}
+
+func TestEditorSimple(t *testing.T) {
+	configDir, err := ioutil.TempDir(".", "kbpagesconfig-editor-test-")
+	require.NoError(t, err)
+	defer os.RemoveAll(configDir)
+
+	nextResponse := make(chan string, 4)
+	prompter := &fakePrompterForTest{
+		nextResponse: nextResponse,
+	}
+
+	editor, err := newKBPConfigEditorWithPrompter(
+		configDir, prompter)
+	require.NoError(t, err)
+	err = editor.setAccessControlAllowOrigin("/", "")
+	require.NoError(t, err)
+	nextResponse <- "y"
+	err = editor.confirmAndWrite()
+	require.NoError(t, err)
+
+	editor, err = newKBPConfigEditorWithPrompter(
+		configDir, prompter)
+	require.NoError(t, err)
+	err = editor.setAccessControlAllowOrigin("/", "*")
+	require.NoError(t, err)
+	nextResponse <- "y"
+	err = editor.confirmAndWrite()
+	require.NoError(t, err)
+
+	editor, err = newKBPConfigEditorWithPrompter(
+		configDir, prompter)
+	require.NoError(t, err)
+	err = editor.setAccessControlAllowOrigin("/", "https://keybase.io")
+	require.Error(t, err)
+
+	editor, err = newKBPConfigEditorWithPrompter(
+		configDir, prompter)
+	require.NoError(t, err)
+	err = editor.set403("/", "/403.html")
+	require.NoError(t, err)
+	nextResponse <- "y"
+	err = editor.confirmAndWrite()
+	require.NoError(t, err)
+
+	editor, err = newKBPConfigEditorWithPrompter(
+		configDir, prompter)
+	require.NoError(t, err)
+	err = editor.set404("/", "/404")
+	require.Error(t, err)
+
+	editor, err = newKBPConfigEditorWithPrompter(
+		configDir, prompter)
+	require.NoError(t, err)
+	err = editor.set404("/", "../404.html")
+	require.Error(t, err)
 }
