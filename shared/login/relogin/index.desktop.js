@@ -141,6 +141,7 @@ class Login extends React.Component<Props, State> {
             checkboxesProps={checkboxProps}
           />
           <Kb.WaitingButton
+            disabled={!this.props.passphrase}
             waitingKey={Constants.waitingKey}
             style={{marginTop: 0}}
             type="Primary"
