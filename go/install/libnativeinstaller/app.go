@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/utils"
 )
 
 // Log is the logging interface for this package
@@ -35,7 +36,7 @@ type Context interface {
 
 // AppBundleForPath returns path to app bundle
 func AppBundleForPath() (string, error) {
-	path, err := libkb.BinPath()
+	path, err := utils.BinPath()
 	if err != nil {
 		return "", err
 	}

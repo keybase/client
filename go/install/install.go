@@ -14,6 +14,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/utils"
 )
 
 // Log is the logging interface for this package
@@ -259,7 +260,7 @@ func chooseBinPath(bp string) (string, error) {
 // BinPath returns path to the keybase executable. If the executable path is a
 // symlink, the target path is returned.
 func BinPath() (string, error) {
-	return libkb.BinPath()
+	return utils.BinPath()
 }
 
 func binName() (string, error) {

@@ -17,7 +17,7 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/utils"
 	"golang.org/x/net/context"
 )
 
@@ -102,7 +102,7 @@ func bundleResourcePath(path string) (string, error) {
 	if runtime.GOOS != "darwin" {
 		return "", fmt.Errorf("Bundle resource path only available on macOS/darwin")
 	}
-	execPath, err := libkb.BinPath()
+	execPath, err := utils.BinPath()
 	if err != nil {
 		return "", err
 	}
