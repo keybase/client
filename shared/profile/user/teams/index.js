@@ -19,7 +19,14 @@ const TeamInfo = p => (
     header={{
       title: 'header',
       view: (
-        <Kb.Box2 centerChildren={true} direction="vertical" gap="tiny" gapStart={true} gapEnd={true}>
+        <Kb.Box2
+          centerChildren={true}
+          direction="vertical"
+          gap="tiny"
+          gapStart={true}
+          gapEnd={true}
+          style={styles.info}
+        >
           <Kb.NameWithIcon
             avatarSize={48}
             teamname={p.name}
@@ -58,16 +65,7 @@ const TeamInfo = p => (
 const _TeamShowcase = p => (
   <Kb.ClickableBox ref={p.setAttachmentRef} onClick={p.toggleShowingMenu}>
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
-      <TeamInfo
-        attachTo={p.getAttachmentRef}
-        onHidden={p.toggleShowingMenu}
-        name={p.name}
-        visible={p.showingMenu}
-        publicAdmins={p.publicAdmins}
-        description={p.description}
-        membersCount={p.membersCount}
-        onJoinTeam={p.onJoinTeam}
-      />
+      <TeamInfo {...p} attachTo={p.getAttachmentRef} onHidden={p.toggleShowingMenu} visible={p.showingMenu} />
       <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
       <Kb.Text type="BodySemiboldLink" style={styles.link}>
         {p.name}
@@ -82,12 +80,13 @@ const Teams = (p: Props) =>
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
       {p.teamShowcase.map(t => (
-        <TeamShowcase key={t.name} {...t} />
+        <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} />
       ))}
     </Kb.Box2>
   ) : null
 
 const styles = Styles.styleSheetCreate({
+  info: {padding: Styles.globalMargins.small},
   link: {color: Styles.globalColors.black_75},
   showcase: {alignItems: 'center'},
   showcases: {
