@@ -232,6 +232,7 @@ const _defaultPaymentCommon = {
   targetType: '',
   time: null,
   worth: '',
+  worthAtSendTime: '',
 }
 
 const _defaultPaymentResult = {
@@ -343,6 +344,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetType,
     time: p.time,
     worth: p.worth,
+    worthAtSendTime: p.worthAtSendTime,
   }
 }
 

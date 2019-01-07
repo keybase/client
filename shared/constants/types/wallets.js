@@ -157,6 +157,7 @@ export type _PaymentCommon = {|
   targetType: string,
   time: ?number,
   worth: string,
+  worthAtSendTime: string, // for "(APPROXIMATELY $X.XX)" strings
   // issuer, for non-xlm assets
   issuerDescription: string,
   issuerAccountID: ?AccountID,

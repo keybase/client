@@ -27,12 +27,14 @@ const mapDispatchToProps = dispatch => ({
     status: Types.StatusSimplified
   ) =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [
-        {
-          props: {accountID, paymentID, status},
-          selected: 'transactionDetails',
-        },
-      ]})
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {accountID, paymentID, status},
+            selected: 'transactionDetails',
+          },
+        ],
+      })
     ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
@@ -52,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
+    approxWorth: tx.worthAtSendTime,
     counterparty,
     counterpartyType,
     issuerDescription: tx.issuerDescription,

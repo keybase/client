@@ -83,6 +83,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 }
 
 type DetailProps = {|
+  approxWorth: string,
   detailView: boolean,
   large: boolean,
   pending: boolean,
@@ -148,6 +149,14 @@ const Detail = (props: DetailProps) => {
       textTypeSemiboldItalic={textTypeSemiboldItalic}
     />
   )
+  const approxWorth = props.approxWorth ? (
+    <Text type={textTypeSemibold}>
+      {' '}
+      (approximately <Text type={textTypeExtrabold}>{props.approxWorth}</Text>)
+    </Text>
+  ) : (
+    ''
+  )
 
   const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
 
@@ -158,6 +167,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
+            {approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -166,6 +176,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
+            {approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -175,7 +186,7 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from {counterparty()} to this account
+            {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -184,6 +195,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textTypeSemibold} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}
+            {approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -192,7 +204,7 @@ const Detail = (props: DetailProps) => {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold} style={textStyle}>
-          {verbPhrase} {amount} from this account to itself
+          {verbPhrase} {amount} from this account to itself{approxWorth}
           {textSentenceEnd}
         </Text>
       )
@@ -301,22 +313,25 @@ const TimestampLine = (props: TimestampLineProps) => {
       break
   }
   return (
-      <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
-        {human}
-        {status ? ` • ` : null}
-        {!!status && (
-          <Text selectable={props.selectableText} type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}>
-            {status}
-          </Text>
-        )}
-        {status === 'Failed' && !props.detailView && (
-          <>
-          {' '}(<Text selectable={props.selectableText} type='BodySmallSecondaryLink'>
+    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+      {human}
+      {status ? ` • ` : null}
+      {!!status && (
+        <Text selectable={props.selectableText} type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}>
+          {status}
+        </Text>
+      )}
+      {status === 'Failed' && !props.detailView && (
+        <>
+          {' '}
+          (
+          <Text selectable={props.selectableText} type="BodySmallSecondaryLink">
             see more
-          </Text>)
-          </>
-        )}
-      </Text>
+          </Text>
+          )
+        </>
+      )}
+    </Text>
   )
 }
 
@@ -325,6 +340,7 @@ type ReadState = 'read' | 'unread' | 'oldestUnread'
 export type Props = {|
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
+  approxWorth: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   detailView?: boolean,
@@ -388,6 +404,7 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
+              approxWorth={props.approxWorth}
               detailView={!!props.detailView}
               large={large}
               pending={pending}
