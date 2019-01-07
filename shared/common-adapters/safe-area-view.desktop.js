@@ -1,3 +1,7 @@
 // @flow
-// Just act like a box
-export {Box as default, Box as SafeAreaViewTop} from './box'
+import type {Props} from './safe-area-view'
+
+const RenderChildren = (props: Props) => props.children || null
+
+// Do nothing
+export {RenderChildren as default, RenderChildren as SafeAreaViewTop}
