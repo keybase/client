@@ -238,7 +238,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	if cl.IsService() {
 		g.Log.Debug("| in configureProcesses, is service")
 		if runtime.GOOS == "linux" {
-			g.Log.Debug("| calling AutoInstall")
+			g.Log.Debug("| calling AutoInstall for Linux")
 			_, err := install.AutoInstall(g, "", false, 10*time.Second, g.Log)
 			if err != nil {
 				return err
