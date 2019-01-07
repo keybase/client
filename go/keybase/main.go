@@ -204,7 +204,6 @@ func configOtherLibraries(g *libkb.GlobalContext) error {
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
 // various run configurations that we can run in.
 func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd *libcmdline.Command) (err error) {
-
 	g.Log.Debug("+ configureProcesses")
 	defer func() {
 		g.Log.Debug("- configureProcesses -> %v", err)
@@ -294,6 +293,10 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err = client.FixVersionClash(g, cl); err != nil {
 			return err
 		}
+	}
+
+	if err = client.WarnOutdatedKBFS(g, cl); err != nil {
+		return err
 	}
 
 	g.Log.Debug("| After forks; newProc=%v", newProc)
