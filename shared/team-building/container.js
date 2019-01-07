@@ -7,15 +7,13 @@ import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {compose, namedConnect} from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
-import {PopupDialogHoc} from '../common-adapters'
+import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
+import {isMobile} from '../constants/platform'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
-
-// TODO
-// * there's a lot of render thrashing going on. using keyboard arrows is kinda slow becuase of it.
-// * Limit the highlight index to the max length of the list
+import type {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 
 type OwnProps = {
   // Supplied by StateComponent
@@ -231,7 +229,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     teamSoFar,
   })
 
+  const headerHocProps: HeaderHocProps = isMobile
+    ? {
+        leftAction: 'cancel',
+        onLeftAction: dispatchProps._onCancelTeamBuilding,
+        rightActions: [
+          teamSoFar.length ? {label: 'start', onPress: dispatchProps.onFinishTeamBuilding} : null,
+        ],
+        title: 'New chat',
+      }
+    : {}
+
   return {
+    ...headerHocProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
@@ -259,7 +269,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 const Connected = compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
-  PopupDialogHoc
+  isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
 class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {

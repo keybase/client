@@ -82,7 +82,7 @@ const routeTree = () => {
     newChat: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: TeamBuilding,
-      tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     paymentsConfirm: {
       children: key => makeRouteDefNode(chatChildren[key]),

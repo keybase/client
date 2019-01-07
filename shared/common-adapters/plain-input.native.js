@@ -215,6 +215,7 @@ class PlainInput extends Component<InternalProps, State> {
       onChangeText: this._onChangeText,
       onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
+      onKeyPress: this.props.onKeyPress,
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
