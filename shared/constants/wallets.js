@@ -26,10 +26,10 @@ const requestStatusToString: {
   [key: RPCTypes.RequestStatus]: $Keys<typeof RPCTypes.commonRequestStatus>,
 } = invert(RPCTypes.commonRequestStatus)
 
-const sendReceiveFormRouteKey = 'sendReceiveForm'
+const sendRequestFormRouteKey = 'sendReceiveForm'
 const chooseAssetFormRouteKey = 'chooseAssetForm'
 const confirmFormRouteKey = 'confirmForm'
-const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
+const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
@@ -667,8 +667,8 @@ export {
   rpcPaymentDetailToPaymentDetail,
   rpcPaymentResultToPaymentResult,
   sendPaymentWaitingKey,
-  sendReceiveFormRouteKey,
-  sendReceiveFormRoutes,
+  sendRequestFormRouteKey,
+  sendRequestFormRoutes,
   setAccountAsDefaultWaitingKey,
   searchKey,
   shortenAccountID,

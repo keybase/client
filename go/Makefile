@@ -18,7 +18,7 @@ lint:
 	&& ( \
 		golint ./... \
 		| grep -v ^vendor \
-		| grep -v ^protocol \
+		| grep -v "protocol[\/\\]" \
 		| grep -v comment \
 		| grep -v KeysById \
 		| grep -v "error should be the last type" \
@@ -28,6 +28,10 @@ lint:
 		| grep -v "redundant if ...; err != nil check, just return error instead" \
 		| grep -v "don't use ALL_CAPS in Go names; use CamelCase" \
 		| grep -v runquiet.go \
+		| grep -v mocks_test\.go \
+		| grep -v mock_codec\.go \
+		| grep -v "_test\.go.*context\.Context should be the first parameter of a function" \
+		| grep -v "use underscores in Go names" \
 		&& exit 1 \
 		|| echo "Lint-free!" \
 	)
@@ -70,4 +74,11 @@ coverlibkb:
 coverclean:
 	rm /tmp/count.out
 
-.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean
+gen-deps:
+	./gen_deps.pl
+
+shavendorstellar:
+	echo "expecting f3a7d9906dab5c481669b5b4f852bf447388bd3d:"
+	find vendor/github.com/stellar -type f -print0 | sort -z | xargs -0 shasum | shasum
+
+.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean shavendorstellar gen-deps

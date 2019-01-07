@@ -80,7 +80,7 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.transparent,
     width: '100%',
   },
-  safeAreaViewTop: {color: Styles.globalColors.purple, flexGrow: 0},
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
   text: {
     color: Styles.globalColors.white,
     textAlign: 'center',

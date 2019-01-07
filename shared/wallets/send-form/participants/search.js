@@ -7,7 +7,7 @@ import ResultsList from '../../../search/results-list/container'
 import UserInput from '../../../search/user-input/container'
 import {getPath} from '../../../route-tree/index'
 import {ParticipantsRow} from '../../common'
-import {searchKey, sendReceiveFormRouteKey} from '../../../constants/wallets'
+import {searchKey, sendRequestFormRouteKey} from '../../../constants/wallets'
 
 export type SearchProps = {|
   heading: 'To' | 'From',
@@ -189,7 +189,7 @@ const styles = Styles.styleSheetCreate({
 
 export default Container.namedConnect<SearchProps, _, _, _, _>(
   (state, ownProps) => ({
-    onVisibleScreen: getPath(state.routeTree.routeState).last() === sendReceiveFormRouteKey,
+    onVisibleScreen: getPath(state.routeTree.routeState).last() === sendRequestFormRouteKey,
   }),
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d}),

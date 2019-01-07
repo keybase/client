@@ -40,7 +40,7 @@ const WalletPopup = (props: WalletPopupProps) => (
     >
       <Kb.Box2
         direction="vertical"
-        fullHeight={true}
+        fullHeight={!Styles.isMobile}
         fullWidth={true}
         centerChildren={true}
         style={Styles.collapseStyles([

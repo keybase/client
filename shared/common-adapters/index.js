@@ -39,6 +39,7 @@ export {default as Icon, castPlatformStyles as iconCastPlatformStyles} from './i
 export {default as Image, RequireImage} from './image'
 export {default as InfoNote} from './info-note'
 export {default as Input} from './input'
+export {default as KeyboardAvoidingView} from './keyboard-avoiding-view'
 export {default as List} from './list'
 export {default as LoadingLine} from './loading-line'
 export {default as ListItem} from './list-item'

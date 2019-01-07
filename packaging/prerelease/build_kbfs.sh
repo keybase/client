@@ -8,7 +8,7 @@ cd "$dir"
 build_dir=${BUILD_DIR:-/tmp/keybase}
 gopath=${GOPATH:-}
 
-kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 cd "$kbfs_dir"
 
 mkdir -p "$build_dir"
@@ -18,13 +18,13 @@ commit_short=`git log -1 --pretty=format:%h`
 build="$current_date+$commit_short"
 kbfs_build=${KBFS_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
-pkg="github.com/keybase/kbfs/kbfsfuse"
-git_remote_helper_pkg="github.com/keybase/kbfs/kbfsgit/git-remote-keybase"
-redirector_pkg="github.com/keybase/kbfs/redirector"
+ldflags="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
+pkg="github.com/keybase/client/go/kbfs/kbfsfuse"
+git_remote_helper_pkg="github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
+redirector_pkg="github.com/keybase/client/go/kbfs/redirector"
 
 if [ "$PLATFORM" = "windows" ]; then
-  pkg="github.com/keybase/kbfs/kbfsdokan"
+  pkg="github.com/keybase/client/go/kbfs/kbfsdokan"
 fi
 
 echo "Building $build_dir/kbfs ($kbfs_build) with $(go version)"

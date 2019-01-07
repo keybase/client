@@ -1,0 +1,31 @@
+# -----------------------------------------------------------------------------
+#
+#   REMINDER: If you edit this file, you'll most likely also want to edit
+#   .circleci/config.yml in the client repository!
+#
+# -----------------------------------------------------------------------------
+version: 2
+jobs:
+  build:
+    working_directory: ~/go-path/src/github.com/keybase/client/go/kbfs
+
+    docker:
+    - image: keybaseprivate/circleci-kbfs@sha256:6e95999341a551ca9d175f497abc6f99e42583d977e26489471a86895327cd28
+
+    steps:
+    - checkout
+
+    # TODO: Investigate whether we can do some caching to speed up
+    # this step, e.g. of /tmp/go-android/pkg.
+    - run:
+        environment:
+          LOCAL_CLIENT: 0
+          LOCAL_KBFS: 1
+          KEYBASE_BUILD: kbfsci
+          DEST_DIR: /tmp
+        command: |
+          cd /tmp
+          wget https://raw.githubusercontent.com/keybase/client/master/shared/react-native/gobuild.sh -O gobuild.sh
+          chmod a+x gobuild.sh
+          ./gobuild.sh android
+          ls -la keybaselib.aar
