@@ -157,11 +157,6 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
-	loc.WorthAtSendTime, _, err = formatWorthAtSendTime(mctx, p, isSender)
-	if err != nil {
-		return nil, err
-	}
-
 	loc.Worth, _, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {
 		return nil, err
@@ -184,6 +179,17 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	}
 
 	fillOwnAccounts(mctx, loc, oc)
+	switch {
+	case loc.FromAccountName != "":
+		// we are sender
+		loc.WorthAtSendTime, _, err = formatWorthAtSendTime(mctx, p, true)
+	case loc.ToAccountName != "":
+		// we are recipient
+		loc.WorthAtSendTime, _, err = formatWorthAtSendTime(mctx, p, false)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
