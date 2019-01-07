@@ -5,23 +5,15 @@ package libcmdline
 
 import (
 	"os"
-
-	"github.com/kardianos/osext"
+	"path/filepath"
 )
 
 // BinPath returns path to the keybase executable. If the executable path is a
 // symlink, the target path is returned.
 func BinPath() (string, error) {
-	exePath, err := osext.Executable()
+	exePath, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	fi, err := os.Lstat(exePath)
-	if err != nil {
-		return "", err
-	}
-	if fi.Mode()&os.ModeSymlink != 0 {
-		return os.Readlink(exePath)
-	}
-	return exePath, nil
+	return filepath.EvalSymlinks(exePath)
 }
