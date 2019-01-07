@@ -128,6 +128,17 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	return loc, nil
 }
 
+func formatWorthAtSendTime(mctx libkb.MetaContext, p stellar1.PaymentSummaryDirect, isSender bool) (worthAtSendTime, worthCurrencyAtSendTime string, err error) {
+	switch {
+	case isSender && (p.DisplayCurrency == nil || p.FromDisplayCurrency != *p.DisplayCurrency):
+		return formatWorth(mctx, &p.FromDisplayAmount, &p.FromDisplayCurrency)
+	case !isSender && (p.DisplayCurrency == nil || p.ToDisplayCurrency != *p.DisplayCurrency):
+		return formatWorth(mctx, &p.ToDisplayAmount, &p.ToDisplayCurrency)
+	}
+	// payment display currency matches user's, don't need this field
+	return "", "", nil
+}
+
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
@@ -146,7 +157,12 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
-	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
+	loc.WorthAtSendTime, _, err = formatWorthAtSendTime(mctx, p, isSender)
+	if err != nil {
+		return nil, err
+	}
+
+	loc.Worth, _, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +208,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.Delta = stellar1.BalanceDelta_DECREASE
 	}
 
-	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
+	loc.Worth, _, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {
 		return nil, err
 	}
