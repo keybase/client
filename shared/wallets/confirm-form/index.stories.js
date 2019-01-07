@@ -27,8 +27,6 @@ const confirmProps = {
   displayAmountXLM: '1.234 XLM',
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
-  onExitFailed: Sb.action('onExitFailed'),
-  onReviewProofs: Sb.action('onReviewProofs'),
   onSendClick: Sb.action('onSendClick'),
   readyToSend: 'enabled',
   sendFailed: false,
@@ -44,10 +42,10 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 const banner = {
   bannerBackground: 'Announcements',
   bannerText: 'The conversion rate has changed since you got to this screen.',
-  reviewProofs: false,
 }
 
 const sendFailedBanner = {
+  action: Sb.action('onExitFailed'),
   bannerBackground: 'HighRisk',
   bannerText:
     'The request to the stellar network timed out. Please make sure your payment failed before trying again.',

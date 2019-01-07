@@ -63,15 +63,20 @@ export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps) => ({
-    banners: stateProps.banners,
+    banners: stateProps.banners.map(b => {
+      if (b.reviewProofs) {
+        return {...b, action: () => dispatchProps._onReviewProofs(stateProps.to)}
+      } else if (b.sendFailed) {
+        return {...b, action: dispatchProps.onExitFailed}
+      }
+      return b
+    }),
     displayAmountFiat: stateProps.displayAmountFiat,
     displayAmountXLM: stateProps.displayAmountXLM,
     encryptedNote: stateProps.encryptedNote,
     // Always close send form completely if send failed
     onBack: stateProps.sendFailed ? dispatchProps.onAbandonPayment : dispatchProps.onBack,
     onClose: stateProps.sendFailed ? dispatchProps.onAbandonPayment : dispatchProps.onClose,
-    onExitFailed: dispatchProps.onExitFailed,
-    onReviewProofs: () => dispatchProps._onReviewProofs(stateProps.to),
     onSendClick: dispatchProps.onSendClick,
     publicMemo: stateProps.publicMemo,
     readyToSend: stateProps.readyToSend,

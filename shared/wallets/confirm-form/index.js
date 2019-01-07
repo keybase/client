@@ -10,10 +10,8 @@ import {type Banner as BannerType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
-  onExitFailed: () => void,
   onSendClick: () => void,
   onBack: () => void,
-  onReviewProofs: () => void,
   encryptedNote?: string,
   publicMemo?: string,
   banners?: Array<BannerType>,
@@ -24,16 +22,6 @@ type ConfirmSendProps = {|
   displayAmountFiat: string,
   readyToSend: string,
 |}
-
-const getBannerAction = (props: ConfirmSendProps, banner: BannerType) => {
-  if (banner.reviewProofs) {
-    return props.onReviewProofs
-  }
-  if (banner.sendFailed) {
-    return props.onExitFailed
-  }
-  return null
-}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
@@ -49,7 +37,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         <Banner
           background={banner.bannerBackground}
           key={banner.bannerText}
-          onAction={getBannerAction(props, banner)}
+          onAction={banner.action}
           reviewProofs={banner.reviewProofs}
           sendFailed={banner.sendFailed}
           text={banner.bannerText}
