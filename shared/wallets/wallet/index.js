@@ -54,7 +54,14 @@ class Wallet extends React.Component<Props> {
   _renderItem = ({item, index, section}) => {
     const children = []
     if (item === 'notLoadedYet') {
-      children.push(<Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />)
+      children.push(
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.loadingBox} gap="tiny" gapStart={true}>
+          <Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />
+          <Kb.Text type="BodySmall">
+            {section.title === 'Your assets' ? 'Loading assets...' : 'Loading payments...'}
+          </Kb.Text>
+        </Kb.Box2>
+      )
     } else if (item === 'noPayments') {
       children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'Your assets') {
@@ -127,6 +134,10 @@ const styles = Styles.styleSheetCreate({
   },
   historyPlaceholderText: {
     color: Styles.globalColors.black_40,
+  },
+  loadingBox: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   loadingMore: {
     bottom: 10,
