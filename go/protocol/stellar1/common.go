@@ -145,6 +145,7 @@ type RequestStatus int
 const (
 	RequestStatus_OK       RequestStatus = 0
 	RequestStatus_CANCELED RequestStatus = 1
+	RequestStatus_DONE     RequestStatus = 2
 )
 
 func (o RequestStatus) DeepCopy() RequestStatus { return o }
@@ -152,11 +153,13 @@ func (o RequestStatus) DeepCopy() RequestStatus { return o }
 var RequestStatusMap = map[string]RequestStatus{
 	"OK":       0,
 	"CANCELED": 1,
+	"DONE":     2,
 }
 
 var RequestStatusRevMap = map[RequestStatus]string{
 	0: "OK",
 	1: "CANCELED",
+	2: "DONE",
 }
 
 func (e RequestStatus) String() string {

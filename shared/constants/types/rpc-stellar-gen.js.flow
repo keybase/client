@@ -232,6 +232,7 @@ export const commonRelayDirection = {
 export const commonRequestStatus = {
   ok: 0,
   canceled: 1,
+  done: 2,
 }
 
 export const commonTransactionStatus = {
@@ -419,6 +420,7 @@ export type RequestPost = $ReadOnly<{toUser?: ?Keybase1.UserVersion, toAssertion
 export type RequestStatus =
   | 0 // OK_0
   | 1 // CANCELED_1
+  | 2 // DONE_2
 
 export type RequestStatusMsg = $ReadOnly<{reqID: KeybaseRequestID}>
 export type SecretKey = String

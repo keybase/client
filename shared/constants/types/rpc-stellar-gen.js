@@ -52,6 +52,7 @@ export const commonRelayDirection = {
 export const commonRequestStatus = {
   ok: 0,
   canceled: 1,
+  done: 2,
 }
 
 export const commonTransactionStatus = {

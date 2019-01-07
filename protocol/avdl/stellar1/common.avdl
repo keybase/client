@@ -40,7 +40,8 @@ protocol common {
 
   enum RequestStatus {
     OK_0,
-    CANCELED_1
+    CANCELED_1,
+    DONE_2
   }
 
   enum PaymentStrategy {
