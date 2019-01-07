@@ -257,9 +257,21 @@ func chooseBinPath(bp string) (string, error) {
 	return BinPath()
 }
 
-// BinPath returns path to the keybase executable
+// BinPath returns path to the keybase executable. If the executable path is a
+// symlink, the target path is returned.
 func BinPath() (string, error) {
-	return osext.Executable()
+	exePath, err := osext.Executable()
+	if err != nil {
+		return "", err
+	}
+	fi, err := os.Lstat(exePath)
+	if err != nil {
+		return "", err
+	}
+	if fi.Mode()&os.ModeSymlink != 0 {
+		return os.Readlink(exePath)
+	}
+	return exePath, nil
 }
 
 func binName() (string, error) {
