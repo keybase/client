@@ -13,7 +13,6 @@ set -u
 
 rootmount="/keybase"
 krbin="/usr/bin/keybase-redirector"
-rootConfigFile="/etc/keybase/config.json"
 disableConfigKey="disable-root-redirector"
 disableAutorestartConfigKey="disable-autorestart"
 
@@ -21,7 +20,7 @@ redirector_enabled() {
   disableRedirector="false"
   if [ -r "$rootConfigFile" ] ; then
     if keybase --standalone -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
-      disableRedirector="$(keybase --standalone -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+      disableRedirector="$(keybase --standalone --use-root-config-file=true config get -d "$disableConfigKey" 2> /dev/null)"
     fi
   fi
   [ "$disableRedirector" != "true" ]
