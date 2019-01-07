@@ -6,6 +6,7 @@ import Tracker from './container.desktop'
 
 const assertion = {
   assertion: '',
+  color: 'blue',
   metas: [],
   proofURL: '',
   siteIcon: '',
@@ -17,28 +18,32 @@ const github = {...assertion, assertion: 'githubuser@github', siteIcon: 'iconfon
 const twitter = {
   ...assertion,
   assertion: 'twitteruser@twitter',
+  color: 'gray',
   siteIcon: 'iconfont-identity-twitter',
   state: 'checking',
 }
 const facebook = {
   ...assertion,
   assertion: 'facebookuser@facebook',
+  color: 'red',
   siteIcon: 'iconfont-identity-facebook',
   state: 'error',
 }
 const hackernews = {
   ...assertion,
   assertion: 'hackernewsuser@hackernews',
+  color: 'yellow',
   siteIcon: 'iconfont-identity-hn',
   state: 'warning',
 }
 const reddit = {
   ...assertion,
   assertion: 'reddituser@reddit',
+  color: 'red',
   siteIcon: 'iconfont-identity-reddit',
   state: 'revoked',
 }
-const pgp = {...assertion, assertion: 'pgpuser@pgp', siteIcon: 'iconfont-identity-pgp'}
+const pgp = {...assertion, assertion: 'DEADBEEFFEEBDAED@pgp', siteIcon: 'iconfont-identity-pgp'}
 const https = {...assertion, assertion: 'httpsuser@https', siteIcon: 'iconfont-identity-website'}
 const rooter = {...assertion, assertion: 'rooteruser@rooter', siteIcon: 'iconfont-thunderbolt'}
 const dns = {...assertion, assertion: 'dnsuser@dns', siteIcon: 'iconfont-identity-website'}
@@ -96,34 +101,44 @@ const props = {
   username: 'darksim905',
 }
 
+const teams = [
+  {
+    description: 'team A',
+    isOpen: false,
+    membersCount: 123,
+    name: 'teamA',
+    publicAdmins: ['max', 'chris'],
+  },
+  {
+    description: 'team open',
+    isOpen: true,
+    membersCount: 3,
+    name: 'teamOpen',
+    publicAdmins: ['chris'],
+  },
+]
+
 const provider = Sb.createPropProviderWithCommon({
   Assertion: p => {
-    const a = allAssertions.find(a => a.assertion === p.assertion)
+    const a = allAssertions.find(a => a.assertion === p.assertionKey)
     if (!a) {
       throw new Error('cant happen')
     }
     const parts = a.assertion.split('@')
-    let prefix = '@'
-    switch (parts[1]) {
-      case 'dns':
-      case 'http':
-      case 'https':
-        prefix = ''
-        break
-    }
-    const site = `${prefix}${parts[1]}`
+    const site = parts[1]
     return {
+      color: a.color,
       metas: a.metas,
       onClickBadge: Sb.action('onClickBadge'),
       onShowProof: Sb.action('onShowProof'),
       onShowSite: Sb.action('onShowSite'),
       onShowUserOnSite: Sb.action('onShowUserOnSite'),
       proofURL: a.proofURL,
-      site,
       siteIcon: a.siteIcon,
       siteURL: a.siteURL,
       state: a.state,
-      username: parts[0],
+      type: site,
+      value: parts[0],
       ...p.storyProps,
     }
   },
@@ -151,7 +166,7 @@ const provider = Sb.createPropProviderWithCommon({
     ...props,
     ...p,
     ...p.storyProps,
-    assertions:
+    assertionKeys:
       p.username === 'noProofs' ? [] : p.username === 'oneProof' ? [props.assertions[0]] : props.assertions,
     followThem: p.username === 'green' ? true : props.followThem,
     reason:
@@ -159,6 +174,7 @@ const provider = Sb.createPropProviderWithCommon({
         ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
         : props.reason,
     state: p.username === 'red' ? 'error' : p.username === 'green' ? 'valid' : props.state,
+    teamShowcase: p.username === 'teams' ? teams : props.teamShowcase,
   }),
 })
 
@@ -182,6 +198,7 @@ const load = () => {
     .add('NoProofs', () => <Tracker username="noProofs" />)
     .add('Green', () => <Tracker username="green" />)
     .add('Red', () => <Tracker username="red" />)
+    .add('Teams', () => <Tracker username="teams" />)
 }
 
 const wrapper = {
