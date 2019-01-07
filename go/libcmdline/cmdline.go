@@ -126,6 +126,9 @@ func (p CommandLine) GetLogFile() string {
 func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
 	return p.GetBool("use-default-log-file", true)
 }
+func (p CommandLine) GetUseRootConfigFile() (bool, bool) {
+	return p.GetBool("use-root-config-file", true)
+}
 func (p CommandLine) GetLogPrefix() string {
 	return p.GetGString("log-prefix")
 }
@@ -471,6 +474,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "config-file, c",
 			Usage: "Specify an (alternate) master config file.",
+		},
+		cli.StringFlag{
+			Name:  "use-root-config-file",
+			Usage: "Use the default root config on Linux only.",
 		},
 		cli.StringFlag{
 			Name:  "db",

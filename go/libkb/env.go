@@ -76,6 +76,7 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                    { re
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
+func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)        { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)            { return 0, false }
@@ -503,8 +504,27 @@ func (e *Env) GetServerURI() string {
 	)
 }
 
+func (e *Env) GetUseRootConfigFile() bool {
+	return e.GetBool(false, e.cmd.GetUseRootConfigFile)
+}
+
+func (e *Env) GetRootConfigFilename() string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_UNIXLIKE:
+		return "/etc/keybase/config.json"
+	default:
+		return ""
+	}
+}
+
 func (e *Env) GetConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				return e.GetRootConfigFilename()
+			}
+			return ""
+		},
 		func() string { return e.Test.ConfigFilename },
 		func() string { return e.cmd.GetConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },

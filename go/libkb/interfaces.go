@@ -63,6 +63,7 @@ type configGetter interface {
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
 	GetUseDefaultLogFile() (bool, bool)
+	GetUseRootConfigFile() (bool, bool)
 	GetLogPrefix() string
 	GetLogFormat() string
 	GetMerkleKIDs() []string
