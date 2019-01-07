@@ -5,8 +5,8 @@ Description=Keybase core service
 # "notify" means we promise to call SdNotify() at the end of startup.
 Type=notify
 Environment=KEYBASE_SERVICE_TYPE=systemd
-# import keybase environment variables
-EnvironmentFile=-%t/keybase/keybase.env
+# Let user override environment variables if desired
+EnvironmentFile=-%E/keybase/keybase-override.env
 ExecStart=/usr/bin/keybase --use-default-log-file --debug service
 Restart=on-failure
 

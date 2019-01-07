@@ -65,7 +65,7 @@ export default function() {
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
     !!process.env['KEYBASE_RESTORE_UI'] || app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = process.env['KEYBASE_START_UI'] === 'hideWindow'
+  const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
