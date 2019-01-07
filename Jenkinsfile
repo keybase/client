@@ -104,11 +104,13 @@ helpers.rootLinuxNode(env, {
 
             parallel (
               test_linux: {
-                // Make sure vendored stellar external packages haven't changed
-                sh 'make shavendorstellar'
 
                 def packagesToTest = [:]
                 if (hasGoChanges) {
+                  dir('go') {
+                    // Make sure vendored stellar external packages haven't changed
+                    sh 'make shavendorstellar'
+                  }
                   packagesToTest = getPackagesToTest()
                 }
                 parallel (
