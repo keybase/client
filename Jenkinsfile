@@ -101,8 +101,12 @@ helpers.rootLinuxNode(env, {
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
             }
+
             parallel (
               test_linux: {
+                // Make sure vendored stellar external packages haven't changed
+                sh 'make shavendorstellar'
+
                 def packagesToTest = [:]
                 if (hasGoChanges) {
                   packagesToTest = getPackagesToTest()
@@ -364,9 +368,6 @@ def testGo(prefix, packagesToTest) {
     }
     // Make sure we don't accidentally pull in the testing package.
     sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
-
-    // Make sure vendored stellar external packages haven't changed
-    sh 'make shavendorstellar'
 
     def packageTestList = packagesToTest.keySet()
     println "Go packages to test:\n${packageTestList.join('\n')}"
