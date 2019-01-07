@@ -81,7 +81,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   progressLabelStyle: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     marginRight: Styles.globalMargins.tiny,
   },
   titleStyle: {

@@ -85,7 +85,7 @@ const styleCopyToastContainer = {
 const styleCopyToast = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.black_40,
+  backgroundColor: globalColors.black_50,
   borderRadius: globalMargins.large,
   height: globalMargins.medium + globalMargins.tiny,
   paddingLeft: globalMargins.medium,

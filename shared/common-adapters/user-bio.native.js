@@ -203,21 +203,21 @@ const stylesFullname = {
   textAlign: 'center',
 }
 const stylesFollowLabel = {
-  color: globalColors.black_40,
+  color: globalColors.black_50,
   fontSize: 14,
   marginBottom: globalMargins.xtiny,
   marginTop: globalMargins.xtiny,
 }
 const stylesFollowing = {
-  color: globalColors.black_40,
+  color: globalColors.black_50,
   marginBottom: globalMargins.xtiny,
   marginTop: globalMargins.xtiny,
 }
 const stylesFollowingLabel = {
-  color: globalColors.black_40,
+  color: globalColors.black_50,
 }
 const stylesFollowingCount = {
-  color: globalColors.black_40,
+  color: globalColors.black_50,
   ...globalStyles.fontBold,
 }
 const stylesBio = {

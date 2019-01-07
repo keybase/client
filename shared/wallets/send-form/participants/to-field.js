@@ -141,7 +141,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
           </Kb.Box2>
           {!this.state.recipientPublicKey && this.props.onScanQRCode && (
             <Kb.Icon
-              color={Styles.globalColors.black_40}
+              color={Styles.globalColors.black_50}
               type="iconfont-qr-code"
               fontSize={24}
               onClick={this.props.onScanQRCode}

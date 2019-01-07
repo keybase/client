@@ -94,7 +94,7 @@ class Login extends React.Component<Props, State> {
             />
             <Kb.Icon
               type="iconfont-caret-down"
-              color={Styles.globalColors.black_40}
+              color={Styles.globalColors.black_50}
               style={{marginBottom: 4}}
             />
           </ButtonBox>

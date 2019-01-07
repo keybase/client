@@ -120,7 +120,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodySmall: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 14,
@@ -133,7 +133,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodySmallExtrabold: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 14,
@@ -147,7 +147,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodySmallItalic: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 14,
@@ -173,7 +173,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodySmallSemibold: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 14,
@@ -181,7 +181,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodySmallSemiboldItalic: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 14,
@@ -217,7 +217,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodyTiny: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 12,
@@ -225,7 +225,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodyTinyBold: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 12,
@@ -233,7 +233,7 @@ const metaData: {[key: TextType]: MetaType} = {
   },
   BodyTinySemibold: {
     colorForBackgroundMode: {
-      Normal: globalColors.black_40,
+      Normal: globalColors.black_50,
       Terminal: globalColors.white,
     },
     fontSize: 12,

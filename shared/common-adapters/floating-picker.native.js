@@ -64,7 +64,7 @@ const styles = Styles.styleSheetCreate({
   overlay: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.black_40,
+    backgroundColor: Styles.globalColors.black_50,
     justifyContent: 'flex-end',
   },
   overlayContainer: {

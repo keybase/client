@@ -45,14 +45,14 @@ const JoinedUserNotice = (props: Props) => (
     <Kb.Text
       type="BodySmallSemibold"
       backgroundMode="Announcements"
-      style={{color: Styles.globalColors.black_40}}
+      style={{color: Styles.globalColors.black_50}}
     >
       {formatTimeForMessages(props.timestamp)}
     </Kb.Text>
     <Kb.Text
       type="BodySmallSemibold"
       backgroundMode="Announcements"
-      style={{color: Styles.globalColors.black_40}}
+      style={{color: Styles.globalColors.black_50}}
     >
       {props.authorIsYou ? (
         'You'

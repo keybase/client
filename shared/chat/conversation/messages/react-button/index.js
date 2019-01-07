@@ -73,7 +73,7 @@ const ReactButton = (props: Props) => (
       </Box2>
       <Text
         type="BodyTinyBold"
-        style={{color: props.active ? Styles.globalColors.blue : Styles.globalColors.black_40}}
+        style={{color: props.active ? Styles.globalColors.blue : Styles.globalColors.black_50}}
       >
         {props.count}
       </Text>
@@ -183,7 +183,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           {Styles.isMobile ? (
             <Icon
               type="iconfont-reacji"
-              color={Styles.globalColors.black_40}
+              color={Styles.globalColors.black_50}
               fontSize={16}
               style={iconCastPlatformStyles(styles.emojiIconWrapper)}
             />
@@ -192,7 +192,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
               <Icon
                 key={iconName}
                 type={iconName}
-                color={this.state.hovering ? Styles.globalColors.black_60 : Styles.globalColors.black_40}
+                color={this.state.hovering ? Styles.globalColors.black_60 : Styles.globalColors.black_50}
                 fontSize={16}
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([

@@ -16,7 +16,7 @@ const DividerBox = Styles.styled(Kb.Box)({
     ? {backgroundColor: Styles.globalColors.fastBlank}
     : {
         ':hover': {
-          color: Styles.globalColors.black_40,
+          color: Styles.globalColors.black_50,
         },
         color: Styles.globalColors.black_20,
       }),

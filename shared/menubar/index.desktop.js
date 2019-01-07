@@ -62,7 +62,7 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _renderLoggedOut() {
-    const menuColor = this.state.showingMenu ? Styles.globalColors.black_60 : Styles.globalColors.black_40
+    const menuColor = this.state.showingMenu ? Styles.globalColors.black_60 : Styles.globalColors.black_50
     const menuStyle = Styles.platformStyles({
       isElectron: {
         ...Styles.desktopStyles.clickable,

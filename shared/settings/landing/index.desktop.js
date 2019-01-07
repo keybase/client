@@ -73,7 +73,7 @@ function SpaceInfo({
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{color: globalColors.black_40, fontSize: 12, marginRight: globalMargins.xtiny}}
+        style={{color: globalColors.black_50, fontSize: 12, marginRight: globalMargins.xtiny}}
         type={'BodySmallSemibold'}
       >
         {freeSpace} FREE
@@ -191,7 +191,7 @@ function PaymentInfo({
       >
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">{name}</Text>
-          <Text style={{color: isBroken ? globalColors.red : globalColors.black_40}} type="BodySmall">
+          <Text style={{color: isBroken ? globalColors.red : globalColors.black_50}} type="BodySmall">
             **** {last4Digits} {isBroken ? ' (broken)' : ''}
           </Text>
         </Box>

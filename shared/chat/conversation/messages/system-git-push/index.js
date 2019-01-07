@@ -121,7 +121,7 @@ const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCom
     onClickAvatar={() => onClickUserAvatar(pusher)}
   >
     {!isMobile && <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -12, zIndex: 999}} />}
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_50}}>
       {formatTimeForMessages(timestamp)}
     </Text>
     {children}

@@ -321,7 +321,7 @@ const styles = styleSheetCreate({
   },
   expanderText: {color: globalColors.black_60},
   grey: {
-    color: globalColors.black_40,
+    color: globalColors.black_50,
   },
   listContainer: platformStyles({
     common: {
