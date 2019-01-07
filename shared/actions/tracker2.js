@@ -1,5 +1,6 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
+import {getProfile as getProfileOLD, type GetProfilePayload as GetProfilePayloadOLD} from './tracker-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
@@ -143,6 +144,17 @@ function* load(state, action) {
   )
 }
 
+// Just to bridge the old action
+const _getProfileOLD = (_, action) =>
+  Tracker2Gen.createLoad({
+    assertion: action.payload.username,
+    forceDisplay: action.payload.forceDisplay,
+    guiID: Constants.generateGUIID(),
+    ignoreCache: action.payload.ignoreCache,
+    inTracker: false,
+    reason: '',
+  })
+
 const loadFollow = (_, action) => {
   const {assertion} = action.payload
   const convert = fs =>
@@ -181,6 +193,10 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Tracker2Gen.IgnorePayload>(Tracker2Gen.ignore, ignore)
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
   yield* Saga.chainAction<Tracker2Gen.LoadPayload>(Tracker2Gen.load, loadFollow)
+
+  // TEMP until actions/tracker is deprecated
+  yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
+  // end TEMP until actions/tracker is deprecated
 }
 
 export default tracker2Saga
