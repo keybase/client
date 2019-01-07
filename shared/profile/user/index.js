@@ -30,8 +30,6 @@ export type Props = {|
   username: string,
 |}
 
-type LayoutProps = {...Props, onChangeFollowing: boolean => void, selectedFollowing: boolean}
-
 const Header = ({onBack, state, backgroundColor}) => (
   <Kb.Box2
     direction="horizontal"
@@ -104,7 +102,9 @@ const Proofs = p => {
   )
 }
 
-class FriendshipTabs extends React.Component<LayoutProps> {
+class FriendshipTabs extends React.Component<
+  Props & {onChangeFollowing: boolean => void, selectedFollowing: boolean}
+> {
   _tab = following => (
     <Kb.ClickableBox
       style={Styles.collapseStyles([
@@ -154,8 +154,26 @@ class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidt
   }
 }
 
-class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
-  state = {width: 0}
+type State = {|
+  selectedFollowing: boolean,
+  width: number,
+|}
+class User extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username], width: 0}
+  }
+
+  _changeFollowing = following => {
+    this.setState(p => {
+      if (p.selectedFollowing === following) {
+        return
+      }
+      const selectedFollowing = !p.selectedFollowing
+      usernameSelectedFollowing[this.props.username] = selectedFollowing
+      return {selectedFollowing}
+    })
+  }
 
   _renderSectionHeader = ({section}) => {
     if (section === this._bioTeamProofsSection) {
@@ -168,7 +186,14 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
         />
       )
     }
-    return <FriendshipTabs key="tabs" {...this.props} />
+    return (
+      <FriendshipTabs
+        key="tabs"
+        {...this.props}
+        onChangeFollowing={this._changeFollowing}
+        selectedFollowing={this.state.selectedFollowing}
+      />
+    )
   }
 
   _renderBioTeamProofs = () =>
@@ -211,8 +236,17 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
 
+  componentWillMount() {
+    this.props.onReload()
+  }
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.username !== prevProps.username) {
+      this.props.onReload()
+    }
+  }
+
   render() {
-    const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
+    const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // $ForceType
     const chunks = this.state.width ? chunk(friends, itemsInARow) : []
@@ -251,59 +285,6 @@ class MobileLayout extends React.Component<LayoutProps, {|width: number|}> {
 
 // don't bother to keep this in the store
 const usernameSelectedFollowing = {}
-
-type State = {|
-  selectedFollowing: boolean,
-|}
-
-class User extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username]}
-  }
-
-  _changeFollowing = following => {
-    this.setState(p => {
-      if (p.selectedFollowing === following) {
-        return
-      }
-      const selectedFollowing = !p.selectedFollowing
-      usernameSelectedFollowing[this.props.username] = selectedFollowing
-      return {selectedFollowing}
-    })
-  }
-
-  componentWillMount() {
-    this.props.onReload()
-  }
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.username !== prevProps.username) {
-      this.props.onReload()
-    }
-  }
-  render() {
-    return (
-      <MobileLayout
-        {...this.props}
-        onChangeFollowing={this._changeFollowing}
-        selectedFollowing={this.state.selectedFollowing}
-      />
-    )
-    // return Styles.isMobile ? (
-    // <MobileLayout
-    // {...this.props}
-    // onChangeFollowing={this._changeFollowing}
-    // selectedFollowing={this.state.selectedFollowing}
-    // />
-    // ) : (
-    // <DesktopLayout
-    // {...this.props}
-    // onChangeFollowing={this._changeFollowing}
-    // selectedFollowing={this.state.selectedFollowing}
-    // />
-    // )
-  }
-}
 
 const avatarSize = 128
 const headerHeight = 48
