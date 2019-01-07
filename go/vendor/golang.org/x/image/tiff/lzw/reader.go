@@ -147,7 +147,6 @@ func (d *decoder) Read(b []byte) (int, error) {
 // litWidth is the width in bits of literal codes.
 func (d *decoder) decode() {
 	// Loop over the code stream, converting codes into decompressed bytes.
-loop:
 	for {
 		code, err := d.read(d)
 		if err != nil {
@@ -155,7 +154,8 @@ loop:
 				err = io.ErrUnexpectedEOF
 			}
 			d.err = err
-			break
+			d.flush()
+			return
 		}
 		switch {
 		case code < d.clear:
@@ -174,8 +174,9 @@ loop:
 			d.last = decoderInvalidCode
 			continue
 		case code == d.eof:
+			d.flush()
 			d.err = io.EOF
-			break loop
+			return
 		case code <= d.hi:
 			c, i := code, len(d.output)-1
 			if code == d.hi {
@@ -205,7 +206,8 @@ loop:
 			}
 		default:
 			d.err = errors.New("lzw: invalid code")
-			break loop
+			d.flush()
+			return
 		}
 		d.last, d.hi = code, d.hi+1
 		if d.hi+1 >= d.overflow { // NOTE: the "+1" is where TIFF's LZW differs from the standard algorithm.
@@ -217,10 +219,13 @@ loop:
 			}
 		}
 		if d.o >= flushBuffer {
-			break
+			d.flush()
+			return
 		}
 	}
-	// Flush pending output.
+}
+
+func (d *decoder) flush() {
 	d.toRead = d.output[:d.o]
 	d.o = 0
 }

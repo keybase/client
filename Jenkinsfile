@@ -103,7 +103,7 @@ helpers.rootLinuxNode(env, {
             }
             parallel (
               test_linux: {
-                def packagesToTest
+                def packagesToTest = [:]
                 if (hasGoChanges) {
                   packagesToTest = getPackagesToTest()
                 }
@@ -144,8 +144,8 @@ helpers.rootLinuxNode(env, {
                   integrate: {
                     // Build the client docker first so we can immediately kick off KBFS
                     def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
-                    println "has KBFS changes: ${hasKBFSChanges}"
                     if (hasGoChanges && hasKBFSChanges) {
+                      println "We have KBFS changes, so we are building kbfs-server."
                       dir('go') {
                         sh "go install github.com/keybase/client/go/keybase"
                         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
@@ -331,7 +331,9 @@ def getPackagesToTest() {
       println "This is a merge to a branch, so we are running all tests."
       def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
       diffPackageList.each { pkg ->
-        packagesToTest[pkg] = 1
+        if (pkg != 'github.com/keybase/client/go/bind') {
+          packagesToTest[pkg] = 1
+        }
       }
     }
   }

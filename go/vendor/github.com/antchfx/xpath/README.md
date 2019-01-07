@@ -55,9 +55,6 @@ Supported Features
 
 - `a|b` : All nodes matching a or b, union operation(not boolean or).
 
-- `(a, b, c)` : Evaluates each of its operands and concatenates the resulting sequences, in order, into a single result sequence
-
-
 #### Node Axes 
 
 - `child::*` : The child axis selects children of the current node.
@@ -156,9 +153,3 @@ Supported Features
 `translate()`| ✓ |
 `true()`| ✓ |
 `unparsed-entity-url()` | ✗ |
-
-Changelogs
-===
-
-2018-12-07
--  supports XPath 2.0 Sequence expressions. [#30](https://github.com/antchfx/xpath/pull/30) by [@minherz](https://github.com/minherz).

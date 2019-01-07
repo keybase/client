@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"math"
+	"math/rand"
 	"os"
 	"sync"
 	"testing"
@@ -24,7 +25,7 @@ import (
 )
 
 const (
-	testDiskBlockCacheMaxBytes int64 = 1 << 20
+	testDiskBlockCacheMaxBytes int64 = 1 << 21
 )
 
 type testDiskBlockCacheConfig struct {
@@ -571,9 +572,9 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	require.Equal(t, block1, block)
 }
 
-func seedDiskBlockCacheForTest(
-	t *testing.T, ctx context.Context, cache *diskBlockCacheWrapped,
-	config diskBlockCacheConfig, numTlfs, numBlocksPerTlf int) {
+func seedDiskBlockCacheForTest(t *testing.T, ctx context.Context,
+	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, numTlfs,
+	numBlocksPerTlf int) {
 	t.Log("Seed the cache with some blocks.")
 	clock := config.Clock().(*TestClock)
 	for i := byte(0); int(i) < numTlfs; i++ {
@@ -751,6 +752,127 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.syncCache.numBlocks)
 	require.Equal(t, TriggeredPrefetch, prefetchStatus)
+}
+
+// seedTlf seeds the cache with blocks from a given TLF ID. Notably,
+// it does NOT give them different times,
+// because that makes TLFs filled first more likely to face eviction.
+func seedTlf(t *testing.T, ctx context.Context,
+	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, tlfID tlf.ID,
+	numBlocksPerTlf int) {
+	for j := 0; j < numBlocksPerTlf; j++ {
+		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
+			t, config)
+		err := cache.Put(
+			ctx, tlfID, blockPtr.ID, blockEncoded, serverHalf,
+			DiskBlockSyncCache)
+		require.NoError(t, err)
+	}
+
+}
+
+func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that blocks from a home directory aren't evicted when there" +
+		" are other options.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+
+	ctx := context.Background()
+
+	rand.Seed(time.Now().UnixNano())
+
+	t.Log("Set home directories on the cache")
+	homeTLF := tlf.FakeID(100, tlf.Private)
+	err := cache.AddHomeTLF(ctx, homeTLF)
+	require.NoError(t, err)
+	homePublicTLF := tlf.FakeID(101, tlf.Public)
+	err = cache.AddHomeTLF(ctx, homePublicTLF)
+	require.NoError(t, err)
+
+	t.Log("Seed the cache with blocks")
+	totalBlocks := 0
+	homeTLFBlocksEach := 50
+	originalSizes := map[tlf.ID]int{
+		homePublicTLF: homeTLFBlocksEach,
+		homeTLF:       homeTLFBlocksEach,
+	}
+
+	seedTlf(t, ctx, cache, config, homePublicTLF, homeTLFBlocksEach)
+	seedTlf(t, ctx, cache, config, homeTLF, homeTLFBlocksEach)
+	totalBlocks += 2 * homeTLFBlocksEach
+	otherTlfIds := []tlf.ID{
+		tlf.FakeID(1, tlf.Private),
+		tlf.FakeID(2, tlf.Public),
+		tlf.FakeID(3, tlf.Private),
+		tlf.FakeID(4, tlf.Private),
+		tlf.FakeID(5, tlf.Public),
+	}
+
+	// Distribute the blocks exponentially over the non-home TLFs.
+	// Use LOTS of blocks to get better statistical behavior.
+	nextTlfSize := 200
+	for _, tlfID := range otherTlfIds {
+		seedTlf(t, ctx, cache, config, tlfID, nextTlfSize)
+		originalSizes[tlfID] = nextTlfSize
+		totalBlocks += nextTlfSize
+		nextTlfSize *= 2
+	}
+
+	t.Log("Evict half the non-home TLF blocks using small eviction sizes.")
+	evictionSize := 5
+	numEvictions := (totalBlocks - 2*homeTLFBlocksEach) / (evictionSize * 2)
+	for i := 0; i < numEvictions; i++ {
+		_, _, err := cache.syncCache.evictLocked(ctx, evictionSize)
+		require.NoError(t, err)
+		totalBlocks -= evictionSize
+	}
+
+	t.Log("Verify that the non-home TLFs have been reduced in size by about" +
+		" half")
+	// Allow a tolerance of .4, so 30-70% of the original size.
+	for _, tlfID := range otherTlfIds {
+		original := originalSizes[tlfID]
+		current := cache.syncCache.tlfCounts[tlfID]
+		t.Logf("ID: %v, Current: %d, Original: %d", tlfID, current, original)
+		require.InEpsilon(t, original/2, current, 0.4)
+	}
+	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homeTLF])
+	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homePublicTLF])
+
+	t.Log("Evict the rest of the non-home TLF blocks in 2 evictions.")
+	numEvictions = 2
+	evictionSize1 := (totalBlocks - 2*homeTLFBlocksEach) / numEvictions
+	// In the second eviction, evict enough blocks to touch the public home.
+	publicHomeEvict := 10
+	evictionSize2 := totalBlocks - 2*homeTLFBlocksEach - evictionSize1 + publicHomeEvict
+
+	_, _, err = cache.syncCache.evictLocked(ctx, evictionSize1)
+	require.NoError(t, err)
+
+	// Make sure the home TLFs are not touched.
+	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homeTLF])
+	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homePublicTLF])
+
+	_, _, err = cache.syncCache.evictLocked(ctx, evictionSize2)
+	require.NoError(t, err)
+
+	// Make sure the home TLFs are minimally touched.
+	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homeTLF])
+	require.Equal(t, homeTLFBlocksEach-publicHomeEvict,
+		cache.syncCache.tlfCounts[homePublicTLF])
+
+	t.Log("Evict enough blocks to get rid of the public home TLF.")
+	_, _, err = cache.syncCache.evictLocked(ctx, homeTLFBlocksEach-publicHomeEvict)
+	require.NoError(t, err)
+	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homeTLF])
+	require.Equal(t, 0, cache.syncCache.tlfCounts[homePublicTLF])
+
+	t.Log("Evict enough blocks to get rid of the private home TLF.")
+	_, _, err = cache.syncCache.evictLocked(ctx, homeTLFBlocksEach)
+	require.NoError(t, err)
+	require.Equal(t, 0, cache.syncCache.tlfCounts[homeTLF])
+	require.Equal(t, 0, cache.syncCache.tlfCounts[homePublicTLF])
 }
 
 func TestDiskBlockCacheMark(t *testing.T) {

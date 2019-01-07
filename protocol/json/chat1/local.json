@@ -2943,6 +2943,10 @@
     "postLocalNonblock": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "conversationID",
           "type": "ConversationID"
         },

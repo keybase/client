@@ -161,7 +161,7 @@ func pkgFirstElem(p *types.Package) string {
 	path := p.Path()
 	idx := strings.Index(path, "/")
 	if idx == -1 {
-		return ""
+		return path
 	}
 	return path[:idx]
 }

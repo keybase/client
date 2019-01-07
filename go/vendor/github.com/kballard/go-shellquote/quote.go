@@ -50,7 +50,7 @@ func quote(word string, buf *bytes.Buffer) {
 		if strings.ContainsRune(specialChars, c) || (atStart && strings.ContainsRune(prefixChars, c)) {
 			// copy the non-special chars up to this point
 			if len(cur) < len(prev) {
-				buf.WriteString(prev[0 : len(prev)-len(cur)-l])
+				buf.WriteString(word[0 : len(prev)-len(cur)-l])
 			}
 			buf.WriteByte('\\')
 			buf.WriteRune(c)

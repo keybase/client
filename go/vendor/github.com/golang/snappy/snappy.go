@@ -2,21 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package snappy implements the Snappy compression format. It aims for very
-// high speeds and reasonable compression.
+// Package snappy implements the snappy block-based compression format.
+// It aims for very high speeds and reasonable compression.
 //
-// There are actually two Snappy formats: block and stream. They are related,
-// but different: trying to decompress block-compressed data as a Snappy stream
-// will fail, and vice versa. The block format is the Decode and Encode
-// functions and the stream format is the Reader and Writer types.
-//
-// The block format, the more common case, is used when the complete size (the
-// number of bytes) of the original data is known upfront, at the time
-// compression starts. The stream format, also known as the framing format, is
-// for when that isn't always true.
-//
-// The canonical, C++ implementation is at https://github.com/google/snappy and
-// it only implements the block format.
+// The C++ snappy implementation is at https://github.com/google/snappy
 package snappy // import "github.com/golang/snappy"
 
 import (
@@ -43,10 +32,7 @@ Lempel-Ziv compression algorithms. In particular:
   - For l == 2, the offset ranges in [0, 1<<16) and the length in [1, 65).
     The length is 1 + m. The offset is the little-endian unsigned integer
     denoted by the next 2 bytes.
-  - For l == 3, this tag is a legacy format that is no longer issued by most
-    encoders. Nonetheless, the offset ranges in [0, 1<<32) and the length in
-    [1, 65). The length is 1 + m. The offset is the little-endian unsigned
-    integer denoted by the next 4 bytes.
+  - For l == 3, this tag is a legacy format that is no longer supported.
 */
 const (
 	tagLiteral = 0x00

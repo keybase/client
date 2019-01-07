@@ -178,6 +178,20 @@ func (dbcr *DiskBlockCacheRemote) DeleteUnmarked(
 	panic("DeleteUnmarked() not implemented in DiskBlockCacheRemote")
 }
 
+// AddHomeTLF implements the DiskBlockCache interface for DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) AddHomeTLF(ctx context.Context,
+	tlfID tlf.ID) error {
+	// Let the local cache care about home TLFs.
+	return nil
+}
+
+// ClearHomeTLFs implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) ClearHomeTLFs(ctx context.Context) error {
+	// Let the local cache care about home TLFs.
+	return nil
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()

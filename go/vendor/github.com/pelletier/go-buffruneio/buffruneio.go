@@ -116,6 +116,10 @@ func (rd *Reader) PeekRunes(n int) []rune {
 
 	res := make([]rune, 0, n)
 	for i := 0; i < n; i++ {
+		if rd.current + i >= len(rd.buffer) {
+			// reached end of buffer before reading as much as we wanted
+			break
+		}
 		r := rd.buffer[rd.current+i]
 		if r == badRune {
 			r = utf8.RuneError

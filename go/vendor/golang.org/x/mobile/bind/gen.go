@@ -484,7 +484,19 @@ func (g *Generator) isSupported(t types.Type) bool {
 	}
 	switch t := t.(type) {
 	case *types.Basic:
-		return true
+		switch t.Kind() {
+		case types.Bool, types.UntypedBool,
+			types.Int,
+			types.Int8, types.Uint8, // types.Byte
+			types.Int16,
+			types.Int32, types.UntypedRune, // types.Rune
+			types.Int64, types.UntypedInt,
+			types.Float32,
+			types.Float64, types.UntypedFloat,
+			types.String, types.UntypedString:
+			return true
+		}
+		return false
 	case *types.Slice:
 		switch e := t.Elem().(type) {
 		case *types.Basic:

@@ -88,7 +88,7 @@ func (c *CmdChatUpload) Run() error {
 	}()
 
 	h := newChatServiceHandler(c.G())
-	reply := h.AttachV1(ctx, opts)
+	reply := h.AttachV1(ctx, opts, NewChatCLIUI(c.G()), NewChatCLINotifications(c.G()))
 
 	c.G().Log.Debug("AttachV1 done")
 	c.done <- true
