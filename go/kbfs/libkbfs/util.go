@@ -22,7 +22,6 @@ import (
 // to finish, unless ctx is cancelled. Returns nil only when fn was
 // run to completion and succeeded.  Any closed-over variables updated
 // in fn should be considered visible only if nil is returned.
-// TODO: remove this edit.
 func runUnlessCanceled(ctx context.Context, fn func() error) error {
 	c := make(chan error, 1) // buffered, in case the request is canceled
 	go func() {
