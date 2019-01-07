@@ -40,16 +40,6 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onChat: (username: string) => {
-    dispatch(ConfigGen.createShowMain())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
-  },
-  _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
-  _onEditAvatar: (image?: Response) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
-  _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['editProfile']})),
-  _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
-  _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
   _onReload: (assertion: string) => {
     dispatch(
       Tracker2Gen.createLoad({
@@ -69,16 +59,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followThem: stateProps.followThem,
   followers: stateProps.followers.toArray(),
   following: stateProps.following.toArray(),
-  onAccept: () => dispatchProps._onFollow(stateProps.guiID, true),
   onBack: () => dispatchProps.onBack(),
-  onChat: () => dispatchProps._onChat(stateProps.username),
-  onClose: () => dispatchProps._onClose(stateProps.guiID),
-  onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
-  onEditProfile: stateProps._userIsYou ? dispatchProps._onEditProfile : null,
-  onFollow: () => dispatchProps._onFollow(stateProps.guiID, true),
-  onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
   onReload: () => dispatchProps._onReload(stateProps.username),
-  onUnfollow: () => dispatchProps._onFollow(stateProps.guiID, false),
   state: stateProps.state,
   username: stateProps.username,
 })

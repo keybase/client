@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
-  _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['editProfile']})),
+  _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['editProfile2']})),
   _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
   _onReload: (assertion: string) => {

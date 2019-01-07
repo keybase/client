@@ -7,7 +7,9 @@ const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
   const Profile = flags.identify3 ? require('./user/container').default : require('./container').default
   const AddToTeam = require('./add-to-team/container').default
+  // TODO deprecate
   const EditProfile = require('./edit-profile/container').default
+  const EditProfile2 = require('./edit-profile2/container').default
   const EditAvatar = require('./edit-avatar/container').default
   const EditAvatarPlaceholder = require('./edit-avatar-placeholder/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
@@ -62,6 +64,10 @@ const profileRoute = () => {
       },
       editProfile: {
         component: EditProfile,
+      },
+      editProfile2: {
+        component: EditProfile2,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       nonUserProfile: {
         children: {
