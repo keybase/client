@@ -424,7 +424,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 	syncer.isConnected = true
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 
-	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	conv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username, chat1.ConversationMembersType_KBFS)
 	t.Logf("convID: %s", conv.GetConvID())
 	convID := conv.GetConvID()
 
