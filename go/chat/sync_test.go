@@ -18,7 +18,7 @@ import (
 func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
 	return newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, tlfName,
-		chat1.ConversationMembersType_KBFS)
+		chat1.ConversationMembersType_IMPTEAMUPGRADE)
 }
 
 func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
