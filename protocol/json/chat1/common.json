@@ -433,6 +433,10 @@
         {
           "type": "boolean",
           "name": "summarizeMaxMsgs"
+        },
+        {
+          "type": "boolean",
+          "name": "skipBgLoads"
         }
       ]
     },

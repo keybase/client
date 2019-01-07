@@ -454,6 +454,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 			chat1.ConversationStatus_FAVORITE,
 			chat1.ConversationStatus_MUTED,
 		},
+		SkipBgLoads: true,
 	}
 	username := idx.G().Env.GetUsername().String()
 	// convID -> remoteConv
