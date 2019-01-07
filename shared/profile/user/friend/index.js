@@ -4,8 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {|
-  followThem: boolean,
-  followsYou: boolean,
   fullname: string,
   onClick: () => void,
   username: string,
@@ -19,7 +17,7 @@ const Friend = (p: Props) => (
       style={Styles.collapseStyles([styles.container, {width: p.width}])}
       centerChildren={true}
     >
-      <Kb.Avatar size={64} username={p.username} style={styles.avatar} />
+      <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
       <Kb.ConnectedUsernames type="Body" usernames={[p.username]} />
       <Kb.Text type="BodySmall" lineClamp={1}>
         {p.fullname}
