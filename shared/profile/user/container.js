@@ -27,7 +27,6 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     _assertions: d.assertions,
-    _teamShowcase: d.teamShowcase,
     backgroundColor: headerBackgroundColor(d.state),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
@@ -73,7 +72,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onReload: () => dispatchProps._onReload(stateProps.username),
   onUnfollow: () => dispatchProps._onFollow(stateProps.guiID, false),
   state: stateProps.state,
-  teamShowcase: stateProps._teamShowcase ? stateProps._teamShowcase.map(t => t.toObject()).toArray() : null,
   username: stateProps.username,
 })
 

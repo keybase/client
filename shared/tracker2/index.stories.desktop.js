@@ -95,9 +95,9 @@ const props = {
   onChat: Sb.action('onChat'),
   onFollow: Sb.action('onFollow'),
   onIgnoreFor24Hours: Sb.action('onIgnoreFor24Hours'),
-  publishedTeams: [],
   reason: 'You accessed a private folder with gabrielh.',
   state: 'valid',
+  teamShowcase: [],
   username: 'darksim905',
 }
 

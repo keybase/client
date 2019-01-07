@@ -10,6 +10,7 @@ import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions'
 import Friend from './friend/container'
 import Measure from './measure'
+import Teams from './teams/container'
 
 export type Props = {|
   assertionKeys: ?$ReadOnlyArray<string>,
@@ -26,7 +27,6 @@ export type Props = {|
   onIgnoreFor24Hours: () => void,
   onAccept: () => void,
   state: Types.DetailsState,
-  teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
   username: string,
 |}
 
@@ -67,22 +67,18 @@ const BioLayout = p => (
   </Kb.Box2>
 )
 
-const TeamShowcase = ({name}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.teamShowcase}>
-    <Kb.Avatar size={32} teamname={name} isTeam={true} />
-    <Kb.Text type="BodySemibold">{name}</Kb.Text>
-  </Kb.Box2>
-)
-
-const Teams = p =>
-  p.teamShowcase && p.teamShowcase.length > 0 ? (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.teamShowcases}>
-      <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
-      {p.teamShowcase.map(t => (
-        <TeamShowcase key={t.name} name={t.name} />
-      ))}
-    </Kb.Box2>
-  ) : null
+// const ShowcaseTeamsOffer = ({onClickShowcaseOffer}) => (
+// <Kb.ClickableBox onClick={onClickShowcaseOffer} style={{}}>
+// <Kb.Box>
+// <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
+// </Kb.Box>
+// <Kb.Box>
+// <Kb.Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
+// Publish the teams you're in
+// </Kb.Text>
+// </Kb.Box>
+// </Kb.ClickableBox>
+// )
 
 const Proofs = p => {
   let assertions
@@ -221,7 +217,7 @@ class User extends React.Component<Props, State> {
         />
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Teams {...this.props} />
+          <Teams username={this.props.username} />
           <Proofs {...this.props} />
         </Kb.Box2>
       </Kb.Box2>
@@ -253,31 +249,33 @@ class User extends React.Component<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Measure onMeasured={this._onMeasured} />
-        <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
-        {!!this.state.width && (
-          <Kb.SectionList
-            key={this.props.username + this.state.width /* forc render on user change or width change */}
-            stickySectionHeadersEnabled={true}
-            renderSectionHeader={this._renderSectionHeader}
-            keyExtractor={this._keyExtractor}
-            sections={[
-              this._bioTeamProofsSection,
-              {
-                data: chunks,
-                itemWidth,
-                renderItem: this._renderOtherUsers,
-              },
-            ]}
-            style={Styles.collapseStyles([
-              styles.sectionList,
-              {
-                backgroundColor: Styles.isMobile ? this.props.backgroundColor : Styles.globalColors.white,
-              },
-            ])}
-            contentContainerStyle={styles.sectionListContentStyle}
-          />
-        )}
+        <Kb.Box2 direction="vertical" style={styles.innerContainer}>
+          <Measure onMeasured={this._onMeasured} />
+          <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
+          {!!this.state.width && (
+            <Kb.SectionList
+              key={this.props.username + this.state.width /* forc render on user change or width change */}
+              stickySectionHeadersEnabled={true}
+              renderSectionHeader={this._renderSectionHeader}
+              keyExtractor={this._keyExtractor}
+              sections={[
+                this._bioTeamProofsSection,
+                {
+                  data: chunks,
+                  itemWidth,
+                  renderItem: this._renderOtherUsers,
+                },
+              ]}
+              style={Styles.collapseStyles([
+                styles.sectionList,
+                {
+                  backgroundColor: Styles.isMobile ? this.props.backgroundColor : Styles.globalColors.white,
+                },
+              ])}
+              contentContainerStyle={styles.sectionListContentStyle}
+            />
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -309,7 +307,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
   container: {
-    ...Styles.globalStyles.fillAbsolute,
+    position: 'relative',
   },
   followTab: Styles.platformStyles({
     common: {
@@ -371,13 +369,14 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {},
   }),
+  innerContainer: {...Styles.globalStyles.fillAbsolute},
   proofs: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
       flexShrink: 0,
       marginTop: avatarSize / 2,
-      width: 350,
       paddingTop: Styles.globalMargins.small,
+      width: 350,
     },
     isMobile: {width: '100%'},
   }),
@@ -387,6 +386,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {},
     isMobile: {minHeight: '100%'},
   }),
+  teamLink: {color: Styles.globalColors.black_75},
   teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     flexShrink: 0,
