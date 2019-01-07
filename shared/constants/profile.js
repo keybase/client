@@ -32,7 +32,7 @@ export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
 })
 
 export const waitingKey = 'profile:waiting'
-export const maxProfileBioChars = 256
+export const maxProfileBioChars = 255
 export const AVATAR_SIZE = 128
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
