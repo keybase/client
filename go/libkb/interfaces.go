@@ -68,6 +68,7 @@ type configGetter interface {
 	GetLogFormat() string
 	GetMerkleKIDs() []string
 	GetMountDir() string
+	GetMountDirDefault() string
 	GetPidFile() string
 	GetPinentry() string
 	GetProofCacheSize() (int, bool)

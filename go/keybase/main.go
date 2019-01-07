@@ -134,6 +134,29 @@ func checkSystemUser(log logger.Logger) {
 	}
 }
 
+func osPreconfigure(g *libkb.GlobalContext) {
+	switch libkb.RuntimeGroup() {
+	case keybase1.RuntimeGroup_UNIXLIKE:
+		// Initialize KBFS mountdir
+		userMountdir := g.Env.GetConfig().GetMountDir()
+		userMountdirDefault := g.Env.GetConfig().GetMountDirDefault()
+
+		oldMountdirDefault := g.Env.GetOldMountDirDefault()
+		mountdirDefault := g.Env.GetMountDirDefault()
+
+		nonexistentMountdir := userMountdir == ""
+		usingOldMountdirByDefault := userMountdir == oldMountdirDefault && (userMountdirDefault == oldMountdirDefault || userMountdirDefault == "")
+
+		if nonexistentMountdir || usingOldMountdirByDefault {
+			g.Env.GetConfigWriter().SetStringAtPath("mountdir", mountdirDefault)
+			g.Env.GetConfigWriter().SetStringAtPath("mountdirdefault", mountdirDefault)
+		}
+	case keybase1.RuntimeGroup_DARWINLIKE:
+	case keybase1.RuntimeGroup_WINDOWSLIKE:
+	default:
+	}
+}
+
 func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl, g))
@@ -178,6 +201,7 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	warnNonProd(g.Log, g.Env)
 	logStartupIssues(startupErrors, g.Log)
 	tryToDisableProcessTracing(g.Log, g.Env)
+	osPreconfigure(g)
 
 	if err := configOtherLibraries(g); err != nil {
 		return err
