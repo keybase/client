@@ -17,9 +17,12 @@ import (
 
 type CmdConfigGet struct {
 	libkb.Contextified
-	Path   string
-	Direct bool
-	Bare   bool
+	Path          string
+	Direct        bool
+	Bare          bool
+	AssertTrue    bool
+	AssertFalse   bool
+	AssertOkOnNil bool
 }
 
 type CmdConfigSet struct {
@@ -39,6 +42,18 @@ func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 	}
 	if ctx.Bool("bare") {
 		v.Bare = true
+	}
+	if ctx.Bool("assert-true") {
+		v.AssertTrue = true
+	}
+	if ctx.Bool("assert-false") {
+		v.AssertFalse = true
+	}
+	if v.AssertTrue && v.AssertFalse {
+		return fmt.Errorf("Cannot assert both true and false.")
+	}
+	if ctx.Bool("assert-ok-on-nil") {
+		v.AssertOkOnNil = true
 	}
 	if len(ctx.Args()) == 1 {
 		v.Path = ctx.Args()[0]
@@ -139,6 +154,9 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 	config := v.G().Env.GetConfig()
 	i, err := config.GetInterfaceAtPath(v.Path)
 	if err != nil {
+		if v.AssertOkOnNil {
+			return nil
+		}
 		return err
 	}
 	if i == nil {
@@ -155,6 +173,12 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 			}
 		case bool:
 			dui.Printf("%t\n", val)
+			if v.AssertTrue && !val {
+				return fmt.Errorf("Assertion failed.")
+			}
+			if v.AssertFalse && val {
+				return fmt.Errorf("Assertion failed.")
+			}
 		case float64:
 			dui.Printf("%d\n", int(val))
 		default:
@@ -164,6 +188,12 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 				return err
 			}
 			dui.Printf("%s\n", string(b))
+		}
+
+		if v.AssertTrue || v.AssertFalse {
+			if _, ok := i.(bool); !ok {
+				return fmt.Errorf("Not a boolean.")
+			}
 		}
 	}
 	return nil
@@ -177,8 +207,12 @@ func (v *CmdConfigGet) runClient(dui libkb.DumbOutputUI) error {
 	var val keybase1.ConfigValue
 	val, err = cli.GetValue(context.TODO(), v.Path)
 	if err != nil {
+		if v.AssertOkOnNil {
+			return nil
+		}
 		return err
 	}
+	valueIsBoolean := false
 	switch {
 	case val.IsNull:
 		dui.Printf("null\n")
@@ -192,8 +226,18 @@ func (v *CmdConfigGet) runClient(dui libkb.DumbOutputUI) error {
 		}
 	case val.B != nil:
 		dui.Printf("%t\n", *val.B)
+		valueIsBoolean = true
+		if v.AssertTrue && !*val.B {
+			return fmt.Errorf("Assertion failed.")
+		}
+		if v.AssertFalse && *val.B {
+			return fmt.Errorf("Assertion failed.")
+		}
 	case val.O != nil:
 		dui.Printf("%s\n", *val.O)
+	}
+	if (v.AssertTrue || v.AssertFalse) && !valueIsBoolean {
+		return fmt.Errorf("Not a boolean.")
 	}
 	return nil
 }
@@ -253,6 +297,18 @@ func NewCmdConfigGet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cli.BoolFlag{
 				Name:  "b, bare",
 				Usage: "Print string values without enclosing, JSON-style quotes",
+			},
+			cli.BoolFlag{
+				Name:  "assert-true",
+				Usage: "Returns 0 exit code iff the value is a true boolean",
+			},
+			cli.BoolFlag{
+				Name:  "assert-false",
+				Usage: "Returns 0 exit code iff the value is a false boolean",
+			},
+			cli.BoolFlag{
+				Name:  "assert-ok-on-nil",
+				Usage: "Return 0 exit code if the value does not exist or the config file does not exist",
 			},
 		},
 		ArgumentHelp: "<key>",
