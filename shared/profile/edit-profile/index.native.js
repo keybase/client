@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'

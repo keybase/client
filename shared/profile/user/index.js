@@ -7,7 +7,7 @@ import * as Styles from '../../styles'
 import {chunk} from 'lodash-es'
 import Bio from '../../tracker2/bio/container'
 import Assertion from '../../tracker2/assertion/container'
-import Actions from './actions'
+import Actions from './actions/container'
 import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
@@ -53,18 +53,7 @@ const BioLayout = p => (
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
-      <Actions
-        followThem={p.followThem}
-        onFollow={p.onFollow}
-        onUnfollow={p.onUnfollow}
-        onBack={p.onBack}
-        onChat={p.onChat}
-        onClose={p.onClose}
-        onReload={p.onReload}
-        onIgnoreFor24Hours={p.onIgnoreFor24Hours}
-        onAccept={p.onAccept}
-        state={p.state}
-      />
+      <Actions username={p.username} />
     </Kb.Box2>
   </Kb.Box2>
 )

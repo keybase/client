@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import Render from '.'
 import {connect} from '../../util/container'
