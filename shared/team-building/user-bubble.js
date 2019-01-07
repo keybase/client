@@ -5,10 +5,6 @@ import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
-// TODO
-// * Add service icons and colors
-// * style
-
 export type Props = {
   username: string,
   prettyName: string,
@@ -53,7 +49,6 @@ const UserBubble = (props: Props) => {
   return <HoverComponent containerStyle={styles.container} />
 }
 
-// TODO update mobile bubble size
 const bubbleSize = 32
 
 const styles = Styles.styleSheetCreate({

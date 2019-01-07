@@ -9,6 +9,7 @@ import TeamBox from './team-box'
 import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
+import * as Styles from '../styles'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -29,11 +30,19 @@ const OutlineWrapper = ({style, children}: any) => (
   </Kb.Box2>
 )
 
+const wrapperStyle = Styles.platformStyles({
+  isElectron: {
+    height: 434,
+    marginTop: 20,
+    width: 460,
+  },
+})
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
-      <OutlineWrapper style={{height: 434, marginTop: 20, width: 460}}>
+      <OutlineWrapper style={wrapperStyle}>
         <TeamBuilding
           searchString="chris"
           selectedService="keybase"
@@ -85,6 +94,7 @@ const load = () => {
                 facebook: 'chriscoyne on Facebook',
                 github: 'malgorithms on GitHub',
                 hackernews: 'malgorithms on HackerNews',
+                keybase: 'chris',
                 reddit: 'malgorithms on Reddit',
                 twitter: 'malgorithms on Twitter',
               },
@@ -98,6 +108,7 @@ const load = () => {
               services: {
                 github: 'chrismikacle on GitHub',
                 hackernews: 'chrismikacle on HackerNews',
+                keybase: 'chrismikacle',
                 reddit: 'chrismikacle on Reddit',
                 twitter: 'chrismikacle on Twitter',
               },
@@ -111,6 +122,7 @@ const load = () => {
               services: {
                 github: 'cnojima on GitHub',
                 hackernews: 'cnojima on HackerNews',
+                keybase: 'chrisnojima',
                 reddit: 'cnojima on Reddit',
                 twitter: 'cnojima on Twitter',
               },
@@ -185,6 +197,7 @@ const load = () => {
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{
           hackernews: 10,
+          keybase: 15,
           reddit: 10,
         }}
         showServiceResultCount={true}

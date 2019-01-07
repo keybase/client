@@ -8,9 +8,6 @@ import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
-// * Add service icons and colors
-// * style
-// * style for mobile
 // * Use ListItem2
 // * maybe move realCSS up?
 
@@ -95,6 +92,7 @@ class Row extends React.Component<Props, LocalState> {
   }
 }
 
+const AvatarSize = 32
 const Avatar = ({
   resultForService,
   keybaseUsername,
@@ -103,12 +101,12 @@ const Avatar = ({
   resultForService: ServiceIdWithContact,
 }) => {
   if (keybaseUsername) {
-    return <Kb.Avatar size={32} username={keybaseUsername} style={{}} />
+    return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
   }
 
   return (
     <Kb.Icon
-      fontSize={32}
+      fontSize={AvatarSize}
       type={serviceIdToIconFont(resultForService)}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
@@ -128,7 +126,7 @@ const Username = (props: {
     >
       {props.username}
     </Kb.Text>
-    <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>
+    {!!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>}
   </Kb.Box2>
 )
 
@@ -229,7 +227,7 @@ const ActionButtonUserInTeam = Kb.HoverHoc(AlreadyAddedIconButton, RemoveButton)
 const ActionButtonUserNotInTeam = Kb.HoverHoc(AddButton, AddButtonHover)
 
 // TODO fix size for mobile
-const ActionButtonSize = isMobile ? 32 : 32
+const ActionButtonSize = isMobile ? 40 : 32
 const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({
     common: {
