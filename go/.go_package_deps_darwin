@@ -1919,13 +1919,7 @@
    },
    "github.com/keybase/client/go/libcmdline" : {
       "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/install" : 1,
-      "github.com/keybase/client/go/install/libnativeinstaller" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
-      "github.com/keybase/client/go/kbfs/libfuse" : 1,
-      "github.com/keybase/client/go/kbnm" : 1,
       "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/launchd" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
@@ -4300,13 +4294,7 @@
    },
    "github.com/keybase/client/go/vendor/github.com/keybase/cli" : {
       "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/install" : 1,
-      "github.com/keybase/client/go/install/libnativeinstaller" : 1,
-      "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
-      "github.com/keybase/client/go/kbfs/libfuse" : 1,
-      "github.com/keybase/client/go/kbnm" : 1,
       "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/launchd" : 1,
       "github.com/keybase/client/go/libcmdline" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1

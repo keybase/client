@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -260,7 +259,7 @@ func chooseBinPath(bp string) (string, error) {
 // BinPath returns path to the keybase executable. If the executable path is a
 // symlink, the target path is returned.
 func BinPath() (string, error) {
-	return libcmdline.BinPath()
+	return libkb.BinPath()
 }
 
 func binName() (string, error) {

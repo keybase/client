@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
 var errKeybaseNotFound = errors.New("failed to find the keybase binary")
@@ -14,7 +14,7 @@ var errKeybaseNotFound = errors.New("failed to find the keybase binary")
 // findKeybaseBinary returns the path to a Keybase binary, if it finds it.
 func findKeybaseBinary(name string) (string, error) {
 	// Is it near the kbnm binary?
-	dir, err := libcmdline.BinPath()
+	dir, err := libkb.BinPath()
 	if err == nil {
 		path := filepath.Join(dir, name)
 		if _, err := os.Stat(path); !os.IsNotExist(err) {

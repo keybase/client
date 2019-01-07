@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -36,7 +35,7 @@ type Context interface {
 
 // AppBundleForPath returns path to app bundle
 func AppBundleForPath() (string, error) {
-	path, err := libcmdline.BinPath()
+	path, err := libkb.BinPath()
 	if err != nil {
 		return "", err
 	}

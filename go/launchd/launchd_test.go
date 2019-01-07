@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
 func validExecutableForTest() (string, error) {
-	return libcmdline.BinPath()
+	return libkb.BinPath()
 }
 
 func TestPlist(t *testing.T) {

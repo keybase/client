@@ -17,7 +17,7 @@ import (
 
 	"unicode/utf16"
 
-	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
@@ -214,7 +214,7 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	if err != nil {
 		return err
 	}
-	keybaseExe, err := libcmdline.BinPath()
+	keybaseExe, err := libkb.BinPath()
 	if err != nil {
 		return err
 	}
