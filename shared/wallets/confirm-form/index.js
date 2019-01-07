@@ -26,8 +26,8 @@ type ConfirmSendProps = {|
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    {Styles.isMobile && <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />}
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+    <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
+    <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
       <Header
         onBack={props.onBack}
         sendingIntentionXLM={props.sendingIntentionXLM}
@@ -87,10 +87,12 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         )}
       </Kb.Box2>
     </Kb.Box2>
+    <Kb.SafeAreaView />
   </Kb.MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
@@ -116,13 +118,13 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
     isMobile: {
+      backgroundColor: Styles.globalColors.white,
       flexGrow: 1,
       flexShrink: 1,
       maxHeight: '100%',
       width: '100%',
     },
   }),
-  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
   scrollView: {
     flexBasis: 'auto',
     flexGrow: 0,
