@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kardianos/osext"
+	"github.com/keybase/client/go/libcmdline"
 )
 
 func validExecutableForTest() (string, error) {
-	return osext.Executable()
+	return libcmdline.BinPath()
 }
 
 func TestPlist(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kardianos/osext"
+	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -36,7 +36,7 @@ type Context interface {
 
 // AppBundleForPath returns path to app bundle
 func AppBundleForPath() (string, error) {
-	path, err := osext.Executable()
+	path, err := libcmdline.BinPath()
 	if err != nil {
 		return "", err
 	}
