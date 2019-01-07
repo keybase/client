@@ -129,13 +129,13 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 }
 
 func formatWorthAtSendTime(mctx libkb.MetaContext, p stellar1.PaymentSummaryDirect, isSender bool) (worthAtSendTime, worthCurrencyAtSendTime string, err error) {
-	switch {
-	case isSender && (p.DisplayCurrency == nil || p.FromDisplayCurrency != *p.DisplayCurrency):
-		return formatWorth(mctx, &p.FromDisplayAmount, &p.FromDisplayCurrency)
-	case !isSender && (p.DisplayCurrency == nil || p.ToDisplayCurrency != *p.DisplayCurrency):
+	if p.DisplayCurrency == nil || len(*p.DisplayCurrency) == 0 {
+		if isSender {
+			return formatWorth(mctx, &p.FromDisplayAmount, &p.FromDisplayCurrency)
+		}
 		return formatWorth(mctx, &p.ToDisplayAmount, &p.ToDisplayCurrency)
 	}
-	// payment display currency matches user's, don't need this field
+	// payment has a display currency, don't need this field
 	return "", "", nil
 }
 
