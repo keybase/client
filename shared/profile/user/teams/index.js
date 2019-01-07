@@ -10,6 +10,9 @@ type Props = {|
   onJoinTeam: string => void,
 |}
 
+const OpenMeta = ({isOpen}) =>
+  isOpen && <Kb.Meta backgroundColor={Styles.globalColors.green} title="open" style={styles.meta} />
+
 const TeamInfo = p => (
   <Kb.FloatingMenu
     attachTo={p.attachTo}
@@ -25,16 +28,23 @@ const TeamInfo = p => (
           gap="tiny"
           gapStart={true}
           gapEnd={true}
-          style={styles.info}
+          style={styles.infoPopup}
         >
           <Kb.NameWithIcon
             avatarSize={48}
             teamname={p.name}
             title={p.name}
-            metaOne={<Kb.Text type="BodySmall">TEAM</Kb.Text>}
+            metaOne={
+              <Kb.Box2 direction="horizontal" gap="tiny">
+                <Kb.Text type="BodySmall">TEAM</Kb.Text>
+                <OpenMeta isOpen={p.isOpen} />
+              </Kb.Box2>
+            }
             metaTwo={<Kb.Text type="BodySmall">{p.membersCount} members</Kb.Text>}
           />
-          <Kb.Text type="Body">{p.description}</Kb.Text>
+          <Kb.Text type="Body" style={styles.description}>
+            {p.description}
+          </Kb.Text>
           <Kb.WaitingButton
             type="Primary"
             waitingKey={Constants.waitingKey}
@@ -49,8 +59,8 @@ const TeamInfo = p => (
                 colorFollowing={true}
                 colorBroken={true}
                 onUsernameClicked="profile"
-                usernames={[p.publicAdmins]}
-                inline={true}
+                usernames={p.publicAdmins}
+                containerStyle={styles.publicAdmins}
               />
             }
           </Kb.Text>
@@ -70,6 +80,7 @@ const _TeamShowcase = p => (
       <Kb.Text type="BodySemiboldLink" style={styles.link}>
         {p.name}
       </Kb.Text>
+      <OpenMeta isOpen={p.isOpen} />
     </Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -86,8 +97,16 @@ const Teams = (p: Props) =>
   ) : null
 
 const styles = Styles.styleSheetCreate({
-  info: {padding: Styles.globalMargins.small},
+  description: {textAlign: 'center'},
+  infoPopup: {
+    maxWidth: 225,
+    padding: Styles.globalMargins.small,
+  },
   link: {color: Styles.globalColors.black_75},
+  meta: {alignSelf: 'center'},
+  publicAdmins: Styles.platformStyles({
+    isElectron: {display: 'unset'},
+  }),
   showcase: {alignItems: 'center'},
   showcases: {
     flexShrink: 0,
