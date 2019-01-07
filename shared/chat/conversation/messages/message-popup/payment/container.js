@@ -119,7 +119,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   const youAreReceiver = you === paymentInfo.toUsername
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
-    approxWorth: '',
+    approxWorth: paymentInfo.worthAtSendTime,
     attachTo: ownProps.attachTo,
     balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
