@@ -25,6 +25,7 @@ import popupDialog from './popup-dialog.stories'
 import radiobutton from './radio-button.stories'
 import reload from './reload.stories'
 import saveIndicator from './save-indicator.stories'
+import sectionList from './section-list.stories'
 import standardScreen from './standard-screen.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
@@ -57,6 +58,7 @@ const load = () => {
     radiobutton,
     reload,
     saveIndicator,
+    sectionList,
     standardScreen,
     text,
     tooltip,

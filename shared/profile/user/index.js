@@ -137,53 +137,10 @@ class FriendshipTabs extends React.Component<LayoutProps> {
 }
 
 const widthToDimentions = width => {
-  const itemsInARow = Math.floor(Math.max(1, width / 105))
+  const itemsInARow = Math.floor(Math.max(1, width / (Styles.isMobile ? 105 : 120)))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}
 }
-
-// class DesktopLayout extends React.PureComponent<LayoutProps, {|width: number|}> {
-// state = {width: 0}
-// _itemWidth = 0
-// _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
-// _renderItem = (index, item) => <FriendRow key={index} usernames={item} itemWidth={this._itemWidth} />
-
-// render() {
-// const friends = this.props.selectedFollowing ? this.props.following : this.props.followers
-// const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
-// this._itemWidth = itemWidth
-// // $ForceType
-// const chunks = this.state.width ? chunk(friends, itemsInARow) : []
-// return (
-// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-// <Header
-// onBack={this.props.onBack}
-// state={this.props.state}
-// backgroundColor={this.props.backgroundColor}
-// />
-// <Kb.ScrollView>
-// <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-// <Kb.Box2
-// direction="vertical"
-// fullWidth={true}
-// style={Styles.collapseStyles([
-// styles.backgroundColor,
-// {backgroundColor: this.props.backgroundColor},
-// ])}
-// />
-// <BioLayout {...this.props} />
-// <Kb.Box2 direction="vertical" style={styles.proofs}>
-// <Teams {...this.props} />
-// <Proofs {...this.props} />
-// </Kb.Box2>
-// </Kb.Box2>
-// <FriendshipTabs {...this.props} />
-// <Kb.List items={chunks} renderItem={this._renderItem} />
-// </Kb.ScrollView>
-// </Kb.Box2>
-// )
-// }
-// }
 
 class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidth: number|}> {
   render() {
@@ -400,6 +357,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomWidth: 1,
     },
     isElectron: {
+      alignSelf: 'flex-start',
       borderBottomStyle: 'solid',
     },
     isMobile: {

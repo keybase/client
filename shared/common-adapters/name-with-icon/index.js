@@ -100,6 +100,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
+        style={styles.fullWidthText}
       />
     ) : (
       <Text
@@ -184,7 +185,9 @@ const TextOrComponent = (props: {
 }
 
 const styles = Styles.styleSheetCreate({
-  fullWidthText: Styles.platformStyles({isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%'}}),
+  fullWidthText: Styles.platformStyles({
+    isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
+  }),
   fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
     isElectron: {marginRight: Styles.globalMargins.tiny},
