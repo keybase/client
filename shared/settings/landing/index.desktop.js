@@ -294,6 +294,19 @@ function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void
   )
 }
 
+function FirstPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
+  return (
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
+      <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
+        Your account has no passphrase.
+      </Text>
+      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
+        Set passphrase
+      </Text>
+    </Box>
+  )
+}
+
 function Account({
   email,
   isVerified,

@@ -60,12 +60,14 @@ const mapDispatchToProps = (dispatch: (a: any) => void) => ({
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassphrase())
+    dispatch(SettingsGen.createLoadHasRandomPw())
   },
   onChangeEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changeEmail']})),
   onChangePassphrase: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassphrase']})),
   onChangeRememberPassphrase: (checked: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassphrase({remember: checked})),
-  onInfo: selectedLevel => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {selectedLevel}, selected: 'changePlan'}]})),
+  onInfo: selectedLevel =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {selectedLevel}, selected: 'changePlan'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

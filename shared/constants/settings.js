@@ -39,6 +39,7 @@ const initialState: Types.State = {
     rememberPassphrase: true,
   },
   waitingForResponse: false,
+  randomPW: false,
 }
 
 const traceInProgressKey = 'traceInProgress'

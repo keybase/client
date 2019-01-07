@@ -228,6 +228,9 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
           },
         },
       }
+    case SettingsGen.loadedHasRandomPw:
+      const {randomPW} = action.payload
+      return {...state, randomPW}
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -247,6 +250,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:
+    case SettingsGen.loadHasRandomPw:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
