@@ -1513,8 +1513,8 @@ const _maybeAutoselectNewestConversation = (state, action) => {
   ) {
     // Stay with our existing convo if it was not empty or pending, or the
     // selected convo already doesn't belong to the team we're trying to switch
-    // away from
-    return
+    // away from, or we're not avoiding it because it's a channel we're leaving
+    if (!(action.type === Chat2Gen.setPendingMode && selected !== action.avoidConversationID)) return
   }
 
   const isEligibleConvo = meta => {
