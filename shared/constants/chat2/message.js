@@ -247,6 +247,7 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   toUsername: '',
   type: 'paymentInfo',
   worth: '',
+  worthAtSendTime: '',
 })
 
 export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
@@ -390,6 +391,7 @@ export const uiPaymentInfoToChatPaymentInfo = (
     statusDetail: p.statusDetail,
     toUsername: p.toUsername,
     worth: p.worth,
+    worthAtSendTime: p.worthAtSendTime,
   })
 }
 
