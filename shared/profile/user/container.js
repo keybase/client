@@ -4,10 +4,12 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as Styles from '../../styles'
 import Profile2 from '.'
 import type {RouteProps} from '../../route-tree/render-route'
+import type {Response} from 'react-native-image-picker'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
@@ -27,7 +29,8 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     _assertions: d.assertions,
-    backgroundColor: headerBackgroundColor(d.state),
+    _userIsYou: username === state.config.username,
+    backgroundColor: headerBackgroundColor(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
     following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
@@ -42,6 +45,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
+  _onEditAvatar: (image?: Response) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
+  _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['editProfile']})),
   _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
   _onReload: (assertion: string) => {
@@ -67,6 +73,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: () => dispatchProps.onBack(),
   onChat: () => dispatchProps._onChat(stateProps.username),
   onClose: () => dispatchProps._onClose(stateProps.guiID),
+  onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
+  onEditProfile: stateProps._userIsYou ? dispatchProps._onEditProfile : null,
   onFollow: () => dispatchProps._onFollow(stateProps.guiID, true),
   onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
   onReload: () => dispatchProps._onReload(stateProps.username),
