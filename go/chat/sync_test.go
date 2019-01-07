@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -386,9 +387,7 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.NoError(t, syncer.Sync(context.TODO(), ri, uid, &res.Chat))
 		}
 
-		// Put our version into the context so the server knows we
-		// understand NEVER_JOINED
-		ctx := Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+		ctx := context.TODO()
 		doAuthedSync(ctx, g1, syncer1, ctc1.ri, uid1)
 		select {
 		case sres := <-listener1.inboxSynced:
@@ -405,7 +404,8 @@ func TestSyncerNeverJoined(t *testing.T) {
 		}
 
 		// simulate an old client that doesn't understand NEVER_JOINED
-		ctx = context.TODO()
+		libkb.UserAgent = "old:ua:2.12.1"
+		ctx = Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
 		case sres := <-listener2.inboxSynced:
@@ -420,7 +420,7 @@ func TestSyncerNeverJoined(t *testing.T) {
 		}
 
 		// New clients get a CLEAR here.
-		ctx = Context(context.TODO(), g2, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+		ctx = context.TODO()
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
 		case sres := <-listener2.inboxSynced:
