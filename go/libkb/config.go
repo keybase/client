@@ -794,6 +794,10 @@ func (f *JSONConfigFile) GetMountDir() string {
 	return f.GetTopLevelString("mountdir")
 }
 
+func (f *JSONConfigFile) GetMountDirDefault() string {
+	return f.GetTopLevelString("mountdirdefault")
+}
+
 func bug3964path(un NormalizedUsername) string {
 	return fmt.Sprintf("maintenance.%s.bug_3964_repair_time", un)
 }

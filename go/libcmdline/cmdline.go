@@ -365,6 +365,10 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
+func (p CommandLine) GetMountDirDefault() string {
+	return p.GetGString("mountdirdefault")
+}
+
 func (p CommandLine) GetRememberPassphrase() (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
 }

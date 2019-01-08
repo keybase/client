@@ -666,6 +666,13 @@ export const resetResetType = {
   delete: 2,
 }
 
+export const runtimeRuntimeGroup = {
+  unknown: 0,
+  linuxlike: 1,
+  darwinlike: 2,
+  windowslike: 3,
+}
+
 export const saltpackAuthenticityType = {
   signed: 0,
   repudiable: 1,

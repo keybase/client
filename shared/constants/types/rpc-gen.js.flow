@@ -1654,6 +1654,13 @@ export const resetResetType = {
   delete: 2,
 }
 
+export const runtimeRuntimeGroup = {
+  unknown: 0,
+  linuxlike: 1,
+  darwinlike: 2,
+  windowslike: 3,
+}
+
 export const saltpackAuthenticityType = {
   signed: 0,
   repudiable: 1,
@@ -2539,6 +2546,12 @@ export type RevisionSpanType =
 export type RevokeWarning = $ReadOnly<{endangeredTLFs?: ?Array<TLF>}>
 export type RevokedKey = $ReadOnly<{key: PublicKey, time: KeybaseTime, by: KID}>
 export type RevokedProof = $ReadOnly<{proof: RemoteProof, diff: TrackDiff, snoozed: Boolean}>
+export type RuntimeGroup =
+  | 0 // UNKNOWN_0
+  | 1 // LINUXLIKE_1
+  | 2 // DARWINLIKE_2
+  | 3 // WINDOWSLIKE_3
+
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = $ReadOnly<{interactive: Boolean, forceRemoteCheck: Boolean, usePaperKey: Boolean}>
 export type SaltpackEncryptOptions = $ReadOnly<{recipients?: ?Array<String>, teamRecipients?: ?Array<String>, authenticityType: AuthenticityType, useEntityKeys: Boolean, useDeviceKeys: Boolean, usePaperKeys: Boolean, noSelfEncrypt: Boolean, binary: Boolean, saltpackVersion: Int, useKBFSKeysOnlyForTesting: Boolean}>

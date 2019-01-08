@@ -97,6 +97,7 @@ func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)     { re
 func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetMountDir() string                             { return "" }
+func (n NullConfiguration) GetMountDirDefault() string                      { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
@@ -273,41 +274,52 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 	return e.updaterConfig
 }
 
+func (e *Env) GetOldMountDirDefault() string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetDataDir(), "fs")
+	default:
+		return e.GetMountDirDefault()
+	}
+}
+
+func (e *Env) GetMountDirDefault() string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		volumes := "/Volumes"
+		user, err := user.Current()
+		if err != nil {
+			panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+		}
+		var runmodeName string
+		switch e.GetRunMode() {
+		case DevelRunMode:
+			runmodeName = "KeybaseDevel"
+		case StagingRunMode:
+			runmodeName = "KeybaseStaging"
+		case ProductionRunMode:
+			runmodeName = "Keybase"
+		default:
+			panic("Invalid run mode")
+		}
+		return filepath.Join(volumes, fmt.Sprintf(
+			"%s (%s)", runmodeName, user.Username))
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetRuntimeDir(), "kbfs")
+	// kbfsdokan depends on an empty default
+	case keybase1.RuntimeGroup_WINDOWSLIKE:
+		return ""
+	default:
+		return filepath.Join(e.GetRuntimeDir(), "kbfs")
+	}
+}
+
 func (e *Env) GetMountDir() (string, error) {
 	return e.GetString(
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
-		func() string {
-			switch runtime.GOOS {
-			case "darwin":
-				volumes := "/Volumes"
-				user, err := user.Current()
-				if err != nil {
-					panic(fmt.Sprintf("Couldn't get current user: %+v", err))
-				}
-				var runmodeName string
-				switch e.GetRunMode() {
-				case DevelRunMode:
-					runmodeName = "KeybaseDevel"
-				case StagingRunMode:
-					runmodeName = "KeybaseStaging"
-				case ProductionRunMode:
-					runmodeName = "Keybase"
-				default:
-					panic("Invalid run mode")
-				}
-				return filepath.Join(volumes, fmt.Sprintf(
-					"%s (%s)", runmodeName, user.Username))
-			case "linux":
-				return filepath.Join(e.GetRuntimeDir(), "kbfs")
-			// kbfsdokan depends on an empty default
-			case "windows":
-				return ""
-			default:
-				return filepath.Join(e.GetRuntimeDir(), "kbfs")
-			}
-		},
+		func() string { return e.GetMountDirDefault() },
 	), nil
 }
 
