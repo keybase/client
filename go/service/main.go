@@ -858,7 +858,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 		m.CDebugf("Service#OnLogout: %s", s)
 	}
 
-	log("cancelling live RPCs")
+	log("canceling live RPCs")
 	d.G().RPCCanceler.CancelLiveContexts(libkb.RPCCancelerReasonLogout)
 
 	log("shutting down chat modules")
