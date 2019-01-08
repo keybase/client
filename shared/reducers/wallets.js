@@ -301,9 +301,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           })
     case WalletsGen.sentPaymentError:
       return state.merge({sentPaymentError: action.payload.error})
-    case WalletsGen.requestDetailReceived:
-      const request = Constants.requestResultToRequest(action.payload.request)
-      return request ? state.update('requests', r => r.set(request.id, request)) : state
     case WalletsGen.loadMorePayments:
       return state.paymentCursorMap.get(action.payload.accountID)
         ? state.setIn(['paymentLoadingMoreMap', action.payload.accountID], true)
@@ -345,7 +342,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadAccounts:
     case WalletsGen.loadWalletDisclaimer:
     case WalletsGen.setAccountAsDefault:
-    case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
