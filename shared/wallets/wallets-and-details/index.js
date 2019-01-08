@@ -20,7 +20,7 @@ const RealWallets = (props: Props) => (
 )
 
 const Wallets = (props: Props) => (
-  <Reloadable waitingKeys={loadAccountsWaitingKey} onReload={props.reload} reloadOnMount={false}>
+  <Reloadable waitingKeys={loadAccountsWaitingKey} onReload={props.reload} reloadOnMount={true}>
     <RealWallets {...props} />
   </Reloadable>
 )

@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import {type AccountID} from '../../constants/types/wallets'
-import {loadAccountsWaitingKey} from '../../constants/wallets'
 import WalletRow from './wallet-row/container'
 
 type AddProps = {
@@ -77,7 +76,7 @@ type Props = {
 
 type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
 
-class RealWalletList extends React.Component<Props> {
+class WalletList extends React.Component<Props> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'wallet':
@@ -118,12 +117,6 @@ class RealWalletList extends React.Component<Props> {
     )
   }
 }
-
-const WalletList = (props: Props) => (
-  <Kb.Reloadable waitingKeys={loadAccountsWaitingKey} onReload={props.refresh} reloadOnMount={true}>
-    <RealWalletList {...props} />
-  </Kb.Reloadable>
-)
 
 const styles = Styles.styleSheetCreate({
   addContainerBox: {alignItems: 'center', height: rowHeight},
