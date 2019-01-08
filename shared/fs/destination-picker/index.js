@@ -62,7 +62,7 @@ const DestinationPicker = (props: Props) => (
       <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={props.onBackUp}>
         <Kb.Icon
           type="iconfont-folder-up"
-          color={Styles.globalColors.black_40}
+          color={Styles.globalColors.black_50}
           fontSize={32}
           style={RowCommon.rowStyles.pathItemIcon}
         />

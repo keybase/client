@@ -81,7 +81,7 @@ const styles = Styles.styleSheetCreate({
   },
   team: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.black_60,
+      color: Styles.globalColors.black_50,
       marginLeft: Styles.globalMargins.tiny,
       marginRight: Styles.globalMargins.tiny,
     },

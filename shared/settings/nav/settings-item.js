@@ -67,7 +67,7 @@ const styles = Style.styleSheetCreate({
   }),
   itemText: Style.platformStyles({
     isElectron: {
-      color: Style.globalColors.black_60,
+      color: Style.globalColors.black_50,
     },
     isMobile: {
       color: Style.globalColors.black_75,

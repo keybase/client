@@ -74,7 +74,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
     .menu-hover .title { color: ${globalColors.black_75}; }
     .menu-hover-danger .title { color: ${globalColors.red}; }
     .menu-hover-danger:hover .title { color: ${globalColors.white}; }
-    .menu-hover-danger .subtitle { color: ${globalColors.black_40}; }
+    .menu-hover-danger .subtitle { color: ${globalColors.black_50}; }
     .menu-hover-danger:hover .subtitle { color: ${globalColors.white}; }
     `
 

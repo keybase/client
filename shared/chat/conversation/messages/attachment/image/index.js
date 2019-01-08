@@ -221,7 +221,7 @@ const styles = Styles.styleSheetCreate({
   },
   durationContainer: {
     alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.black_60,
+    backgroundColor: Styles.globalColors.black_50,
     borderRadius: 2,
     bottom: Styles.globalMargins.tiny,
     padding: 1,
@@ -248,7 +248,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   link: {
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
   },
   playButton: {
     bottom: '50%',
@@ -278,7 +278,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   progressLabel: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     marginRight: Styles.globalMargins.tiny,
   },
   title: Styles.platformStyles({

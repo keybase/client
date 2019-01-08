@@ -75,14 +75,14 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   linkStyle: {
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
   },
   progressContainerStyle: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
   },
   progressLabelStyle: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     marginRight: Styles.globalMargins.tiny,
   },
   titleStyle: {

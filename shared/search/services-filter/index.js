@@ -158,7 +158,7 @@ const serviceTooltipPlatformStyle = platformStyles({
 const serviceTooltipStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  backgroundColor: globalColors.black_60,
+  backgroundColor: globalColors.black_50,
   borderRadius: 20,
   justifyContent: 'center',
   position: 'absolute',

@@ -101,7 +101,7 @@ const styleUploadContainer = {
 }
 
 const styleUploadTextSublabel = {
-  color: Styles.globalColors.black_40,
+  color: Styles.globalColors.black_50,
   marginLeft: CHECKBOX_SIZE + CHECKBOX_MARGIN,
 }
 

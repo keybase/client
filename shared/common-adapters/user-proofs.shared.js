@@ -26,7 +26,7 @@ function metaColor(proof: Proof): string {
     case metaUnreachable:
       return globalColors.red
     case metaPending:
-      return globalColors.black_40
+      return globalColors.black_50
     case metaDeleted:
       return globalColors.red
     case metaIgnored:
@@ -53,7 +53,7 @@ function proofColor(proof: Proof, forIcon: boolean): string {
       break
   }
   if (proof.state === proofChecking) {
-    color = globalColors.black_40
+    color = globalColors.black_50
   }
   return color
 }

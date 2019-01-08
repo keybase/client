@@ -83,7 +83,7 @@ const _backButtonIconStyleThemed = {
     color: globalColors.white,
   },
   light: {
-    color: globalColors.black_40,
+    color: globalColors.black_50,
   },
 }
 
