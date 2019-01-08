@@ -36,7 +36,7 @@ const initialState: Types.State = {
     newPassphraseConfirm: new HiddenString(''),
     newPassphraseConfirmError: null,
     newPassphraseError: null,
-    randomPW: false,
+    randomPW: null,
     rememberPassphrase: true,
   },
   waitingForResponse: false,

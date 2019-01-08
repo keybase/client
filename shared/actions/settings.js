@@ -414,8 +414,16 @@ const unfurlSettingsSaved = (state, action) =>
       })
     )
 
-const loadHasRandomPW = () =>
-  RPCTypes.userLoadHasRandomPwRpcPromise().then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
+const loadHasRandomPW = state => {
+  if (state.settings.passphrase.randomPW === null) {
+    // Once loaded, do not issue this RPC again. This field can only go true ->
+    // false (never the opposite way), and there are notifications set up when
+    // this happens.
+    return RPCTypes.userLoadHasRandomPwRpcPromise().then(randomPW =>
+      SettingsGen.createLoadedHasRandomPw({randomPW})
+    )
+  }
+}
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
