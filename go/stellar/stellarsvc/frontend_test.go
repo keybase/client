@@ -761,7 +761,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87 USD", p.Worth, "Worth")
-		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, "", p.WorthAtSendTime, "WorthAtSendTIme")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 		require.Equal(t, accountIDSender, p.FromAccountID)
@@ -863,7 +863,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
 		require.Equal(t, "$321.87 USD", p.Worth, "Worth")
-		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, "", p.WorthAtSendTime, "WorthAtSendTime")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 		require.Equal(t, accountIDSender, p.FromAccountID)
@@ -1186,7 +1186,7 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
 	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
 	require.Equal(t, "$160.93 USD", detailsRes.Worth)
-	require.Equal(t, "USD", detailsRes.WorthCurrency)
+	require.Equal(t, "", detailsRes.WorthAtSendTime)
 	require.Equal(t, secretNote, detailsRes.Note)
 	require.Equal(t, "", detailsRes.NoteErr)
 }
