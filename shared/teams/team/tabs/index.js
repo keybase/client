@@ -35,7 +35,7 @@ type TeamTabsProps = {
   yourOperations: RPCTypes.TeamOperation,
 }
 
-const TabText = ({ selected, text }: { selected: boolean, text: string }) => (
+const TabText = ({selected, text}: {selected: boolean, text: string}) => (
   <Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : styles.tabText}>
     {text}
   </Text>
@@ -44,7 +44,7 @@ const TabText = ({ selected, text }: { selected: boolean, text: string }) => (
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs = [
     <Box key="members" style={styles.tabTextContainer}>
-      <TabText selected={props.selectedTab === "members"} text={`MEMBERS (${props.memberCount})`} />
+      <TabText selected={props.selectedTab === 'members'} text={`MEMBERS (${props.memberCount})`} />
       {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
@@ -61,7 +61,10 @@ const TeamTabs = (props: TeamTabsProps) => {
   if (props.admin) {
     tabs.push(
       <Box key="invites" style={styles.tabTextContainer}>
-        <TabText selected={props.selectedTab === "invites"} text={`INVITES (${props.numInvites + props.numRequests})`} />
+        <TabText
+          selected={props.selectedTab === 'invites'}
+          text={`INVITES (${props.numInvites + props.numRequests})`}
+        />
         {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
       </Box>
     )
@@ -69,16 +72,24 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   if (props.numSubteams > 0 || props.yourOperations.manageSubteams) {
     tabs.push(
-      <TabText key="subteams" selected={props.selectedTab === "subteams"} text={`SUBTEAMS (${props.numSubteams})`} />
+      <TabText
+        key="subteams"
+        selected={props.selectedTab === 'subteams'}
+        text={`SUBTEAMS (${props.numSubteams})`}
+      />
     )
   }
 
   tabs.push(
     isMobile ? (
-      <Icon key="settings" type="iconfont-nav-settings" style={iconCastPlatformStyles(props.selectedTab === "settings" ? styles.iconSelected : styles.icon)} />
+      <Icon
+        key="settings"
+        type="iconfont-nav-settings"
+        style={iconCastPlatformStyles(props.selectedTab === 'settings' ? styles.iconSelected : styles.icon)}
+      />
     ) : (
-        <TabText key="settings" selected={props.selectedTab === "settings"} text={"SETTINGS"} />
-      )
+      <TabText key="settings" selected={props.selectedTab === 'settings'} text={'SETTINGS'} />
+    )
   )
 
   if (!isMobile && props.loading) {
@@ -151,13 +162,12 @@ const styles = styleSheetCreate({
     flexBasis: '100%',
     marginTop: globalMargins.small,
   },
-  tabText: {
-  },
-  tabTextSelected: { color: globalColors.black_75 },
+  tabText: {},
   tabTextContainer: {
     ...globalStyles.flexBoxRow,
     justifyContent: 'center',
   },
+  tabTextSelected: {color: globalColors.black_75},
 })
 
 export default TeamTabs
