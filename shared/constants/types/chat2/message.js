@@ -170,6 +170,7 @@ export type _ChatRequestInfo = {
   asset: WalletTypes.Asset,
   canceled: boolean,
   currencyCode: string, // set if asset === 'currency'
+  done: boolean,
   type: 'requestInfo',
 }
 export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
