@@ -1,14 +1,14 @@
 // @flow
-import {globalStyles, globalColors} from '../styles'
+import { globalStyles, globalColors } from '../styles'
 
-import type {MetaType, TextType, Background} from './text'
+import type { MetaType, TextType, Background } from './text'
 
 function defaultColor(backgroundMode: ?Background) {
   return {
     Announcements: globalColors.white,
     Documentation: globalColors.white,
     HighRisk: globalColors.white,
-    Information: globalColors.brown_60,
+    Information: globalColors.brown_75,
     Normal: globalColors.white,
     Success: globalColors.white,
     Terminal: globalColors.white,
@@ -91,7 +91,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontRegular,
   },
   BodySecondaryLink: {
-    colorForBackgroundMode: {Normal: globalColors.black_60},
+    colorForBackgroundMode: { Normal: globalColors.black_50 },
     fontSize: 16,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
@@ -140,7 +140,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontExtrabold,
   },
   BodySmallExtraboldSecondaryLink: {
-    colorForBackgroundMode: {Normal: globalColors.black_60},
+    colorForBackgroundMode: { Normal: globalColors.black_50 },
     fontSize: 14,
     isLink: true,
     styleOverride: globalStyles.fontExtrabold,
@@ -166,7 +166,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontRegular,
   },
   BodySmallSecondaryLink: {
-    colorForBackgroundMode: {Normal: globalColors.black_60},
+    colorForBackgroundMode: { Normal: globalColors.black_50 },
     fontSize: 14,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
