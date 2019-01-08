@@ -597,11 +597,15 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
   return sign + balanceChange
 }
 
-const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab] // tab for wallets
-const rootWalletPath = [...rootWalletTab, ...(isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
+const rootWalletTab = isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
+const rootWalletPath = [rootWalletTab, ...(isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
+const walletPath = isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 
-const isLookingAtWallet = (routeState: ?RouteStateNode) =>
-  getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
+const walletPathList = I.List(walletPath)
+const isLookingAtWallet = (routeState: ?RouteStateNode) => {
+  const path = getPath(routeState, [rootWalletTab])
+  return path.equals(walletPathList)
+}
 
 export {
   acceptDisclaimerWaitingKey,
@@ -678,4 +682,5 @@ export {
   updatePaymentsReceived,
   validateAccountNameWaitingKey,
   validateSecretKeyWaitingKey,
+  walletPath,
 }
