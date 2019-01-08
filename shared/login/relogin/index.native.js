@@ -57,6 +57,7 @@ class LoginRender extends Component<Props> {
               checkboxesProps={checkboxProps}
             />
             <Kb.WaitingButton
+              disabled={!this.props.passphrase}
               waitingKey={Constants.waitingKey}
               style={{marginTop: 0}}
               fullWidth={true}

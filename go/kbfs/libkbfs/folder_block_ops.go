@@ -3653,6 +3653,49 @@ func (fbo *folderBlockOps) GetInvalidationChangesForAll(
 	return fbo.getInvalidationChangesForNodes(ctx, lState, childNodes)
 }
 
+// MarkNode marks all the blocks in the node's block tree with the
+// given tag.
+func (fbo *folderBlockOps) MarkNode(
+	ctx context.Context, lState *lockState, node Node, kmd KeyMetadata,
+	tag string, cacheType DiskBlockCacheType) error {
+	dbc := fbo.config.DiskBlockCache()
+	if dbc == nil {
+		return nil
+	}
+
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
+	if err != nil {
+		return err
+	}
+	p := fbo.nodeCache.PathFromNode(node)
+	err = dbc.Mark(ctx, p.tailPointer().ID, tag, cacheType)
+	if err != nil {
+		return err
+	}
+	var infos []BlockInfo
+	if node.EntryType() == Dir {
+		dd := fbo.newDirDataLocked(lState, p, chargedTo, kmd)
+		infos, err = dd.getIndirectDirBlockInfos(ctx)
+	} else {
+		fd := fbo.newFileData(lState, p, chargedTo, kmd)
+		infos, err = fd.getIndirectFileBlockInfos(ctx)
+	}
+	if err != nil {
+		return err
+	}
+
+	for _, info := range infos {
+		err = dbc.Mark(ctx, info.BlockPointer.ID, tag, cacheType)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type chainsPathPopulator interface {
 	populateChainPaths(context.Context, logger.Logger, *crChains, bool) error
 }

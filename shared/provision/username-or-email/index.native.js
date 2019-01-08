@@ -55,7 +55,7 @@ class UsernameOrEmail extends Component<Props, State> {
             label="Continue"
             type="Primary"
             onClick={() => this.onSubmit()}
-            enabled={this.state.usernameOrEmail}
+            disabled={!this.state.usernameOrEmail}
             waitingKey={Constants.waitingKey}
           />
         </UserCard>

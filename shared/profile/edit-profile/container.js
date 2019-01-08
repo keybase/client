@@ -58,7 +58,7 @@ class Wrapper extends React.Component<Props, State> {
   onSubmit = () => this.props._onSubmit(this.state.bio, this.state.fullname, this.state.location)
 
   render() {
-    const bioLengthLeft = this.props.bio ? maxProfileBioChars - this.props.bio.length : maxProfileBioChars
+    const bioLengthLeft = this.state.bio ? maxProfileBioChars - this.state.bio.length : maxProfileBioChars
     const extra = isMobile ? {} : {onCancel: this.props.onBack}
 
     return (

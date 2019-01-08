@@ -58,6 +58,7 @@ export type Props = {|
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 
   // Mobile only
+  onKeyPress?: (event: {nativeEvent: {key: 'Enter' | 'Backspace' | string}}) => void,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
   keyboardType?: KeyboardType,
