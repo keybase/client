@@ -1509,12 +1509,13 @@ const _maybeAutoselectNewestConversation = (state, action) => {
     // Intentional fall-through -- force select a new one
   } else if (
     Constants.isValidConversationIDKey(selected) &&
-    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
+    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam)) &&
+    !(action.type === Chat2Gen.navigateToInbox && selected !== action.payload.avoidConversationID)
   ) {
     // Stay with our existing convo if it was not empty or pending, or the
     // selected convo already doesn't belong to the team we're trying to switch
     // away from, or we're not avoiding it because it's a channel we're leaving
-    if (!(action.type === Chat2Gen.setPendingMode && selected !== action.avoidConversationID)) return
+    return
   }
 
   const isEligibleConvo = meta => {
