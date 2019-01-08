@@ -22,9 +22,9 @@ type CmdChatAPIListen struct {
 	libkb.Contextified
 
 	// Print exploding messages? false by default. We want API consumer to make
-	// a concious choice that they want to process exploding messages, which
-	// depending on their use case might require extra care to keep secrecy
-	// of chat participants.
+	// a conscious choice that they want to process exploding messages, which
+	// depending on their use case might require extra care to keep secrecy of
+	// chat participants.
 	showExploding bool
 
 	showLocal    bool
@@ -54,7 +54,7 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			},
 			cli.BoolFlag{
 				Name:  "dev",
-				Usage: "Also subscribe to notifications from dev channel",
+				Usage: "Subscribe to notifications for chat dev channels",
 			},
 		},
 	}
@@ -87,10 +87,6 @@ func (c *CmdChatAPIListen) Run() error {
 	protocols := []rpc.Protocol{
 		chat1.NotifyChatProtocol(display),
 	}
-	channels := keybase1.NotificationChannels{
-		Chat:    true,
-		Chatdev: c.subscribeDev,
-	}
 
 	sessionClient, err := GetSessionClient(c.G())
 	if err != nil {
@@ -103,6 +99,10 @@ func (c *CmdChatAPIListen) Run() error {
 	cli, err := GetNotifyCtlClient(c.G())
 	if err != nil {
 		return err
+	}
+	channels := keybase1.NotificationChannels{
+		Chat:    true,
+		Chatdev: c.subscribeDev,
 	}
 	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
@@ -145,7 +145,17 @@ type msgNotification struct {
 }
 
 func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Message {
-	if inMsg.Message.IsValid() {
+	state, err := inMsg.Message.State()
+	if err != nil {
+		errStr := err.Error()
+		return &Message{Error: &errStr}
+	}
+
+	switch state {
+	case chat1.MessageUnboxedState_ERROR:
+		errStr := inMsg.Message.Error().ErrMsg
+		return &Message{Error: &errStr}
+	case chat1.MessageUnboxedState_VALID:
 		mv := inMsg.Message.Valid()
 		summary := &MsgSummary{
 			ID: mv.MessageID,
@@ -178,16 +188,6 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 			summary.Reactions = &mv.Reactions
 		}
 		return &Message{Msg: summary}
-	}
-
-	state, err := inMsg.Message.State()
-	switch {
-	case err != nil:
-		errStr := err.Error()
-		return &Message{Error: &errStr}
-	case state == chat1.MessageUnboxedState_ERROR:
-		errStr := inMsg.Message.Error().ErrMsg
-		return &Message{Error: &errStr}
 	default:
 		return nil
 	}
@@ -201,32 +201,30 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 
 	activity := arg.Activity
 	typ, err := activity.ActivityType()
-	if err == nil {
-		switch typ {
-		case chat1.ChatActivityType_INCOMING_MESSAGE:
-			inMsg := activity.IncomingMessage()
-			if inMsg.Message.IsValid() {
-				mv := inMsg.Message.Valid()
-				if !d.cmd.showExploding && !mv.Etime.IsZero() {
-					// Skip exploding message
-					return nil
-				}
-			}
-			msg := d.formatMessage(inMsg)
-			if msg == nil {
-				return nil
-			}
-			notif := msgNotification{
-				Source:     strings.ToLower(arg.Source.String()),
-				Msg:        msg.Msg,
-				Error:      msg.Error,
-				Pagination: inMsg.Pagination,
-			}
-			if jsonStr, err := json.Marshal(notif); err == nil {
-				d.printf("%s\n", string(jsonStr))
-			} else {
-				d.errorf("Error while marshaling JSON: %s\n", err)
-			}
+	if err != nil {
+		return err
+	}
+	switch typ {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
+		inMsg := activity.IncomingMessage()
+		if !d.cmd.showExploding && inMsg.Message.IsEphemeral() {
+			// Skip exploding message
+			return nil
+		}
+		msg := d.formatMessage(inMsg)
+		if msg == nil {
+			return nil
+		}
+		notif := msgNotification{
+			Source:     strings.ToLower(arg.Source.String()),
+			Msg:        msg.Msg,
+			Error:      msg.Error,
+			Pagination: inMsg.Pagination,
+		}
+		if jsonStr, err := json.Marshal(notif); err == nil {
+			d.printf("%s\n", string(jsonStr))
+		} else {
+			d.errorf("Error while marshaling JSON: %s\n", err)
 		}
 	}
 	return nil
