@@ -5,12 +5,14 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {connect, isMobile} from '../../util/container'
-import {getAccountIDs} from '../../constants/wallets'
+import {getAccountIDs, loadAccountsWaitingKey} from '../../constants/wallets'
+import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {style: Styles.StylesCrossPlatform}
 
 const mapStateToProps = state => ({
   accounts: getAccountIDs(state),
+  loading: anyWaiting(state, loadAccountsWaitingKey),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -33,6 +35,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   accountIDs: stateProps.accounts.toArray(),
+  loading: stateProps.loading,
   onAddNew: dispatchProps.onAddNew,
   onBack: dispatchProps.onBack,
   onLinkExisting: dispatchProps.onLinkExisting,

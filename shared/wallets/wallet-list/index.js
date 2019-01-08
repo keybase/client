@@ -66,6 +66,7 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
 type Props = {
   accountIDs: Array<AccountID>,
   style?: Styles.StylesCrossPlatform,
+  loading: boolean,
   onAddNew: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
@@ -99,8 +100,7 @@ class _WalletList extends React.Component<Props> {
   }
 
   render = () => {
-    if (this.props.accountIDs.length === 0) {
-      // loading
+    if (this.props.loading) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator style={styles.progressIndicator} />
