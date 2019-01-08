@@ -20,6 +20,7 @@ export type Props = {|
   following: $ReadOnlyArray<string>,
   onBack: () => void,
   onReload: () => void,
+  onEditAvatar: () => void,
   state: Types.DetailsState,
   username: string,
 |}
@@ -41,6 +42,8 @@ const BioLayout = p => (
       username={p.username}
       colorFollowing={true}
       notFollowingColorOverride={Styles.globalColors.orange}
+      editableIcon={!!p.onEditAvatar}
+      onEditIcon={p.onEditAvatar}
       avatarSize={avatarSize}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">

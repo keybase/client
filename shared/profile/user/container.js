@@ -1,7 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -40,6 +38,8 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
+  _onEditAvatar: (image?: Response) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
   _onReload: (assertion: string) => {
     dispatch(
       Tracker2Gen.createLoad({
@@ -60,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followers: stateProps.followers.toArray(),
   following: stateProps.following.toArray(),
   onBack: () => dispatchProps.onBack(),
+  onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username),
   state: stateProps.state,
   username: stateProps.username,
