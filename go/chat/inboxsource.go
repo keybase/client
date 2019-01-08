@@ -449,8 +449,8 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 	}
 }
 
-func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
-	p *chat1.Pagination) (types.Inbox, error) {
+func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
+	query *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, error) {
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
@@ -481,20 +481,27 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, err
 	}
 
-	for index, conv := range ib.Inbox.Full().Conversations {
+	bgEnqueued := 0
+	for _, conv := range ib.Inbox.Full().Conversations {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
 		}
-		// Queue all these convs up to be loaded by the background loader
-		// Only load first 100 so we don't get the conv loader too backed up
-		if index < 100 {
+		if query != nil && query.SkipBgLoads {
+			continue
+		}
+		// Queue all these convs up to be loaded by the background loader Only
+		// load first 100 non KBFS convs so we don't get the conv loader too
+		// backed up
+		if bgEnqueued < 100 &&
+			conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}
+			bgEnqueued++
 		}
 	}
 
