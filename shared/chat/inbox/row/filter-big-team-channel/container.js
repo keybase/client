@@ -1,21 +1,17 @@
 // @flow
-import {FilterBigTeamChannel} from '.'
+import SelectableBigTeamChannel from '../../../common/selectable-big-team-channel-container'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {connect, isMobile} from '../../../../util/container'
+import {namedConnect, isMobile} from '../../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  teamname: string,
-  channelname: string,
 |}
 
-const mapStateToProps = (state, {conversationIDKey, teamname, channelname}) => ({
-  channelname,
+const mapStateToProps = (state, {conversationIDKey}) => ({
   isSelected: Constants.getSelectedConversation(state) === conversationIDKey,
-  teamname,
 })
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
@@ -27,15 +23,15 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  channelname: stateProps.channelname || '',
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  conversationIDKey: ownProps.conversationIDKey,
   isSelected: stateProps.isSelected,
   onSelectConversation: dispatchProps.onSelectConversation,
-  teamname: stateProps.teamname || '',
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
-)(FilterBigTeamChannel)
+  mergeProps,
+  'FilterBigTeamChannel'
+)(SelectableBigTeamChannel)

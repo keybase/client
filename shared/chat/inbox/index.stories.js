@@ -327,6 +327,7 @@ const getPropProviderProps = own => {
     const props = mapPropProviderProps[own.conversationIDKey]
     return {
       ...props,
+      conversationIDKey: own.conversationIDKey,
       key: props.conversationIDKey,
     }
   }
@@ -519,6 +520,8 @@ const provider = Sb.createPropProviderWithCommon({
   BigTeamChannel: getPropProviderProps,
   FilterSmallTeam: getPropProviderProps,
   FilterBigTeamChannel: getPropProviderProps,
+  SelectableSmallTeam: getPropProviderProps,
+  SelectableBigTeamChannel: getPropProviderProps,
 })
 
 class Wrapper extends React.Component<any, any> {

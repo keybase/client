@@ -1,9 +1,9 @@
 // @flow
 import React, {PureComponent} from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import {TeamAvatar} from '../avatars'
-import * as RowSizes from '../sizes'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import {TeamAvatar} from './avatars'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   isSelected: boolean,
@@ -16,7 +16,7 @@ type State = {
   isHovered: boolean,
 }
 
-class FilterBigTeamChannel extends PureComponent<Props, State> {
+class SelectableBigTeamChannel extends PureComponent<Props, State> {
   state = {
     isHovered: false,
   }
@@ -69,6 +69,8 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
   }
 }
 
+const smallRowHeight = isMobile ? 64 : 56
+
 const styles = Styles.styleSheetCreate({
   channelname: Styles.platformStyles({
     common: {flexBasis: '70%'},
@@ -82,7 +84,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
-    height: RowSizes.smallRowHeight,
+    height: smallRowHeight,
     paddingRight: Styles.globalMargins.tiny,
     width: '100%',
   },
@@ -96,4 +98,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {FilterBigTeamChannel}
+export default SelectableBigTeamChannel

@@ -4,7 +4,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
-import {Avatars, TeamAvatar} from '../avatars'
+import {Avatars, TeamAvatar} from '../../../common/avatars'
 import * as RowSizes from '../sizes'
 
 export type Props = {

@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {FilteredTopLine} from './top-line'
-import {Avatars, TeamAvatar} from '../avatars'
-import * as RowSizes from '../sizes'
+import {Avatars, TeamAvatar} from './avatars'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   backgroundColor: ?string,
@@ -22,7 +22,7 @@ type State = {
   isHovered: boolean,
 }
 
-class FilterSmallTeam extends React.PureComponent<Props, State> {
+class SelectableSmallTeam extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
   }
@@ -72,10 +72,12 @@ class FilterSmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
+const smallRowHeight = isMobile ? 64 : 56
+
 const styles = Styles.styleSheetCreate({
   container: {
     flexShrink: 0,
-    height: RowSizes.smallRowHeight,
+    height: smallRowHeight,
   },
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -95,4 +97,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {FilterSmallTeam}
+export default SelectableSmallTeam
