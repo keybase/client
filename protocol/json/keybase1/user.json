@@ -231,6 +231,101 @@
     },
     {
       "type": "record",
+      "name": "ProfileProofSuggestionsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ProfileProofSuggestion"
+          },
+          "name": "suggestions"
+        },
+        {
+          "type": "boolean",
+          "name": "showMore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProfileProofSuggestion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "icon"
+        },
+        {
+          "type": "string",
+          "name": "iconFont"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofSuggestion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "string",
+          "name": "subtext"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "icon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SizedImage",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NextMerkleRootRes",
       "fields": [
         {
@@ -575,6 +670,27 @@
         }
       ],
       "response": null
+    },
+    "profileProofSuggestions": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "ProfileProofSuggestionsRes"
+    },
+    "proofSuggestions": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProofSuggestion"
+      }
     },
     "findNextMerkleRootAfterRevoke": {
       "request": [

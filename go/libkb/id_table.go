@@ -1451,6 +1451,15 @@ func (idt *IdentityTable) AllActiveCryptocurrency() []CryptocurrencyChainLink {
 	return ret
 }
 
+func (idt *IdentityTable) HasActiveCryptocurrencyFamily(family CryptocurrencyFamily) bool {
+	for _, link := range idt.AllActiveCryptocurrency() {
+		if link.typ.ToCryptocurrencyFamily() == family {
+			return true
+		}
+	}
+	return false
+}
+
 func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyChainLink {
 	ret := []CryptocurrencyChainLink{}
 	for _, link := range idt.cryptocurrency {

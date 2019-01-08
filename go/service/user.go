@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
@@ -342,6 +343,248 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop)
+}
+
+func (h *UserHandler) ProfileProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProfileProofSuggestionsRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
+	defer mctx.CTraceTimed("ProfileProofSuggestions", func() error { return err })()
+	suggestions, err := h.profileProofSuggestionsHelper(mctx)
+	if err != nil {
+		return ret, err
+	}
+	foldPriority := mctx.G().GetProofServices().SuggestionFoldPriority()
+	for _, suggestion := range suggestions {
+		if foldPriority > 0 && suggestion.Priority >= foldPriority {
+			ret.ShowMore = true
+			continue
+		}
+		ret.Suggestions = append(ret.Suggestions, keybase1.ProfileProofSuggestion{
+			Key:  suggestion.Key,
+			Text: suggestion.ProfileText,
+			Icon: suggestion.ProfileIcon,
+		})
+	}
+	return ret, nil
+}
+
+func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret []keybase1.ProofSuggestion, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
+	defer mctx.CTraceTimed("ProofSuggestions", func() error { return err })()
+	suggestions, err := h.profileProofSuggestionsHelper(mctx)
+	if err != nil {
+		return ret, err
+	}
+	for _, suggestion := range suggestions {
+		ret = append(ret, keybase1.ProofSuggestion{
+			Key:     suggestion.Key,
+			Text:    suggestion.PickerText,
+			Subtext: suggestion.PickerSubtext,
+			Icon:    suggestion.PickerIcon,
+		})
+	}
+	return ret, nil
+}
+
+type ProofSuggestion struct {
+	Key           string
+	ProfileText   string                // "Prove your Twitter", "Add a PGP key"
+	ProfileIcon   []keybase1.SizedImage // xxx fill these in
+	PickerText    string                // "Twitter", "Your own website", "octodon.xyz"
+	PickerSubtext string                // "twitter.com", "Mastodon instance"
+	PickerIcon    []keybase1.SizedImage // xxx fill these in
+	Priority      int
+}
+
+func (h *UserHandler) profileProofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
+	user, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional())
+	if err != nil {
+		return ret, err
+	}
+	if user == nil {
+		return ret, fmt.Errorf("could not load logged-in user")
+	}
+
+	var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
+	var suggestions []ProofSuggestion
+	ossifiedSocial := map[string]ProofSuggestion{
+		"github": {
+			Key:           "github",
+			ProfileText:   "Prove your GitHub",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "GitHub",
+			PickerSubtext: "github.com",
+			PickerIcon:    dummyIcon,
+		},
+		"hackernews": {
+			Key:           "hackernews",
+			ProfileText:   "Prove your Hacker News",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "Hacker News",
+			PickerSubtext: "news.ycombinator.com",
+			PickerIcon:    dummyIcon,
+		},
+		"reddit": {
+			Key:           "reddit",
+			ProfileText:   "Prove your Reddit",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "Reddit",
+			PickerSubtext: "reddit.com",
+			PickerIcon:    dummyIcon,
+		},
+		"twitter": {
+			Key:           "twitter",
+			ProfileText:   "Prove your Twitter",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "Twitter",
+			PickerSubtext: "twitter.com",
+			PickerIcon:    dummyIcon,
+		},
+		"rooter": {
+			Key:           "rooter",
+			ProfileText:   "Prove your Rooter",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "Rooter",
+			PickerSubtext: "",
+			PickerIcon:    dummyIcon,
+		}}
+	serviceKeys := mctx.G().GetProofServices().ListServicesThatAcceptNewProofs()
+	for _, service := range serviceKeys {
+		switch service {
+		case "web", "dns", "http", "https":
+			// These are under the "web" umbrella.
+			// "web" is added below.
+			continue
+		}
+		serviceType := mctx.G().GetProofServices().GetServiceType(service)
+		if serviceType == nil {
+			mctx.CDebugf("missing proof service type: %v", service)
+			continue
+		}
+		if len(user.IDTable().GetActiveProofsFor(serviceType)) > 0 {
+			mctx.CDebugf("user has an active proof: %v", serviceType.Key())
+			continue
+		}
+		if suggestion, ok := ossifiedSocial[service]; ok {
+			// Ignore the server and use hardcoded markup.
+			suggestions = append(suggestions, suggestion)
+		} else {
+			suggestions = append(suggestions, ProofSuggestion{
+				Key:           service,
+				ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
+				ProfileIcon:   dummyIcon,
+				PickerText:    serviceType.DisplayName(),
+				PickerSubtext: serviceType.GetTypeName(), // xxx url or mastodon
+				PickerIcon:    dummyIcon,
+			})
+		}
+	}
+	hasPGP := len(user.GetActivePGPKeys(true)) > 0
+	if !hasPGP {
+		suggestions = append(suggestions, ProofSuggestion{
+			Key:           "pgp",
+			ProfileText:   "Add a PGP key",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "PGP key",
+			PickerSubtext: "",
+			PickerIcon:    dummyIcon,
+		})
+	}
+	// Always show the option to create a new web proof.
+	suggestions = append(suggestions, ProofSuggestion{
+		Key:           "web",
+		ProfileText:   "Prove your website",
+		ProfileIcon:   dummyIcon,
+		PickerText:    "Your own website",
+		PickerSubtext: "",
+		PickerIcon:    dummyIcon,
+	})
+	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyBitcoin) {
+		suggestions = append(suggestions, ProofSuggestion{
+			Key:           "bitcoin",
+			ProfileText:   "Set a Bitcoin address",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "Bitcoin address",
+			PickerSubtext: "",
+			PickerIcon:    dummyIcon,
+		})
+	}
+	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
+		suggestions = append(suggestions, ProofSuggestion{
+			Key:           "zcash",
+			ProfileText:   "Set a Zcash address",
+			ProfileIcon:   dummyIcon,
+			PickerText:    "Zcash address",
+			PickerSubtext: "",
+			PickerIcon:    dummyIcon,
+		})
+	}
+
+	// Alphabetize so that ties later on in SliceStable are deterministic.
+	sort.Slice(suggestions, func(i, j int) bool {
+		return suggestions[i].Key < suggestions[j].Key
+	})
+
+	// Priorities from the server.
+	serverPriority := make(map[string]int) // key -> server priority
+	maxServerPriority := 0
+	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
+		if displayConfig.Priority <= 0 {
+			continue
+		}
+		var altKey string
+		switch displayConfig.Key {
+		case "zcash.t", "zcash.z", "zcash.s":
+			altKey = "zcash"
+		case "http", "https", "dns":
+			altKey = "web"
+		}
+		serverPriority[displayConfig.Key] = displayConfig.Priority
+		if len(altKey) > 0 {
+			if _, ok := serverPriority[altKey]; !ok {
+				serverPriority[altKey] = displayConfig.Priority
+			}
+		}
+		if displayConfig.Priority > maxServerPriority {
+			maxServerPriority = displayConfig.Priority
+		}
+	}
+
+	// Fallback priorities for rows the server missed.
+	// Fallback priorities are placed after server priorities.
+	offlineOrder := []string{
+		"twitter",
+		"github",
+		"reddit",
+		"hackernews",
+		"rooter",
+		"web",
+		"pgp",
+		"bitcoin",
+		"zcash",
+		"~other~",
+	}
+	offlineOrderMap := make(map[string]int) // key -> offline priority
+	for i, k := range offlineOrder {
+		offlineOrderMap[k] = i
+	}
+
+	priorityFn := func(key string) int {
+		if p, ok := serverPriority[key]; ok {
+			return p
+		} else if p, ok := offlineOrderMap[key]; ok {
+			return p + maxServerPriority + 1
+		} else {
+			return offlineOrderMap["~other~"] + maxServerPriority + 1
+		}
+	}
+	for i := range suggestions {
+		suggestions[i].Priority = priorityFn(suggestions[i].Key)
+	}
+
+	sort.Slice(suggestions, func(i, j int) bool {
+		return suggestions[i].Priority < suggestions[j].Priority
+	})
+	return suggestions, nil
 }
 
 func (h *UserHandler) FindNextMerkleRootAfterRevoke(ctx context.Context, arg keybase1.FindNextMerkleRootAfterRevokeArg) (ret keybase1.NextMerkleRootRes, err error) {

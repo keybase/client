@@ -601,6 +601,8 @@ type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
 	ListServicesThatAcceptNewProofs() []string
+	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
+	SuggestionFoldPriority() int
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

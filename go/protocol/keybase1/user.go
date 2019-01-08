@@ -220,6 +220,114 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 	}
 }
 
+type ProfileProofSuggestionsRes struct {
+	Suggestions []ProfileProofSuggestion `codec:"suggestions" json:"suggestions"`
+	ShowMore    bool                     `codec:"showMore" json:"showMore"`
+}
+
+func (o ProfileProofSuggestionsRes) DeepCopy() ProfileProofSuggestionsRes {
+	return ProfileProofSuggestionsRes{
+		Suggestions: (func(x []ProfileProofSuggestion) []ProfileProofSuggestion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ProfileProofSuggestion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Suggestions),
+		ShowMore: o.ShowMore,
+	}
+}
+
+type ProfileProofSuggestion struct {
+	Key   string             `codec:"key" json:"key"`
+	Text  string             `codec:"text" json:"text"`
+	Icon  []SizedImage       `codec:"icon" json:"icon"`
+	Metas []Identify3RowMeta `codec:"metas" json:"metas"`
+}
+
+func (o ProfileProofSuggestion) DeepCopy() ProfileProofSuggestion {
+	return ProfileProofSuggestion{
+		Key:  o.Key,
+		Text: o.Text,
+		Icon: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Icon),
+		Metas: (func(x []Identify3RowMeta) []Identify3RowMeta {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Identify3RowMeta, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Metas),
+	}
+}
+
+type ProofSuggestion struct {
+	Key     string             `codec:"key" json:"key"`
+	Text    string             `codec:"text" json:"text"`
+	Subtext string             `codec:"subtext" json:"subtext"`
+	Icon    []SizedImage       `codec:"icon" json:"icon"`
+	Metas   []Identify3RowMeta `codec:"metas" json:"metas"`
+}
+
+func (o ProofSuggestion) DeepCopy() ProofSuggestion {
+	return ProofSuggestion{
+		Key:     o.Key,
+		Text:    o.Text,
+		Subtext: o.Subtext,
+		Icon: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Icon),
+		Metas: (func(x []Identify3RowMeta) []Identify3RowMeta {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Identify3RowMeta, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Metas),
+	}
+}
+
+type SizedImage struct {
+	Path  string `codec:"path" json:"path"`
+	Width int    `codec:"width" json:"width"`
+}
+
+func (o SizedImage) DeepCopy() SizedImage {
+	return SizedImage{
+		Path:  o.Path,
+		Width: o.Width,
+	}
+}
+
 type NextMerkleRootRes struct {
 	Res *MerkleRootV2 `codec:"res,omitempty" json:"res,omitempty"`
 }
@@ -349,6 +457,14 @@ type UploadUserAvatarArg struct {
 	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
 }
 
+type ProfileProofSuggestionsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type ProofSuggestionsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type FindNextMerkleRootAfterRevokeArg struct {
 	Uid  UID              `codec:"uid" json:"uid"`
 	Kid  KID              `codec:"kid" json:"kid"`
@@ -400,6 +516,8 @@ type UserInterface interface {
 	// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
 	GetUPAKLite(context.Context, UID) (UPKLiteV1AllIncarnations, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
+	ProfileProofSuggestions(context.Context, int) (ProfileProofSuggestionsRes, error)
+	ProofSuggestions(context.Context, int) ([]ProofSuggestion, error)
 	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 	// we'll start our search. Usually it's the next one, but not always
@@ -729,6 +847,36 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"profileProofSuggestions": {
+				MakeArg: func() interface{} {
+					var ret [1]ProfileProofSuggestionsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ProfileProofSuggestionsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ProfileProofSuggestionsArg)(nil), args)
+						return
+					}
+					ret, err = i.ProfileProofSuggestions(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"proofSuggestions": {
+				MakeArg: func() interface{} {
+					var ret [1]ProofSuggestionsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ProofSuggestionsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ProofSuggestionsArg)(nil), args)
+						return
+					}
+					ret, err = i.ProofSuggestions(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"findNextMerkleRootAfterRevoke": {
 				MakeArg: func() interface{} {
 					var ret [1]FindNextMerkleRootAfterRevokeArg
@@ -891,6 +1039,18 @@ func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllI
 
 func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) ProfileProofSuggestions(ctx context.Context, sessionID int) (res ProfileProofSuggestionsRes, err error) {
+	__arg := ProfileProofSuggestionsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.profileProofSuggestions", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res []ProofSuggestion, err error) {
+	__arg := ProofSuggestionsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res)
 	return
 }
 

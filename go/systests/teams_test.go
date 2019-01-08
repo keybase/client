@@ -204,6 +204,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.NoError(tt.t, err)
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
 
 	g.ConfigureConfig()
@@ -240,6 +241,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	userClient               keybase1.UserClient
 	stellarClient            stellar1.LocalInterface
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
