@@ -27,7 +27,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/src-d/go-billy.v4"
+	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -45,6 +45,7 @@ const (
 )
 
 // simpleFSError wraps errors for SimpleFS
+// TODO: remove this before merging
 type simpleFSError struct {
 	reason string
 }
