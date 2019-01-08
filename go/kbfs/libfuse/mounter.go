@@ -89,7 +89,8 @@ func (m *mounter) Unmount() (err error) {
 			_, err = exec.Command(
 				"/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
 		case "linux":
-			_, err = exec.Command("fusermount", "-ul", dir).Output()
+			// Lazy unmount; will unmount when KBFS is no longer in use
+			_, err = exec.Command("fusermount", "-u", "-z", dir).Output()
 		default:
 			err = errors.New("Forced unmount is not supported on this platform yet")
 		}
