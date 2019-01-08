@@ -17,6 +17,11 @@ type Props = {
   searchString: string,
 }
 
+const formatNameForUserBubble = (username: string, service: ServiceIdWithContact, prettyName: ?string) => {
+  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
+  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+}
+
 const TeamBox = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
     {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
@@ -26,7 +31,7 @@ const TeamBox = (props: Props) => (
         onRemove={() => props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={u.service === 'keybase' ? u.username : `${u.username} on ${u.service}`}
+        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
       />
     ))}
     <Input
