@@ -6,8 +6,9 @@ import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} 
 
 type Props = {
   background: Background,
-  onReviewProofs?: () => void,
+  onAction?: ?() => void,
   reviewProofs?: boolean,
+  sendFailed?: boolean,
   text: string,
 }
 
@@ -25,12 +26,22 @@ const Banner = (props: Props) => (
           type="BodySmallSemiboldPrimaryLink"
           style={styles.secondText}
           backgroundMode={props.background}
-          onClick={props.onReviewProofs}
+          onClick={props.onAction}
         >
           Please review.
         </Text>
       )}
     </Text>
+    {props.sendFailed && (
+      <Text
+        type="BodySmallSemiboldPrimaryLink"
+        style={styles.secondText}
+        backgroundMode={props.background}
+        onClick={props.onAction}
+      >
+        Review payments
+      </Text>
+    )}
   </Box2>
 )
 

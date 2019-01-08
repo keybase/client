@@ -216,9 +216,11 @@ export type Assets = I.RecordOf<_Assets>
 export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 
 export type Banner = {|
+  action?: () => void,
   bannerBackground: BannerBackground,
   bannerText: string,
   reviewProofs?: boolean,
+  sendFailed?: boolean,
 |}
 
 export type Building = I.RecordOf<_Building>

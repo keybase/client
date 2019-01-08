@@ -36,7 +36,7 @@
     },
     "buildingPaymentIDReceived": {
       "_description": "Update our store with an ID for a new building payment",
-      "bid": "string",
+      "bid": "string"
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
@@ -94,6 +94,9 @@
         "name": "string",
         "error": "string"
       }
+    },
+    "exitFailedPayment": {
+      "_description": "Close the send form and show the user their transactions so they can review."
     },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
@@ -239,7 +242,7 @@
       "reviewID": "number",
       "seqno": "number",
       "nextButton": "string",
-      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>",
+      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>"
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",

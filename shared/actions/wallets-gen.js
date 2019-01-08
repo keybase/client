@@ -42,6 +42,7 @@ export const deletedAccount = 'wallets:deletedAccount'
 export const didSetAccountAsDefault = 'wallets:didSetAccountAsDefault'
 export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
+export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
@@ -127,6 +128,7 @@ type _DeletedAccountPayload = void
 type _DidSetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Currency>|}>
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
+type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
@@ -264,6 +266,10 @@ export const createSecretKeySeen = (payload: _SecretKeySeenPayload) => ({payload
  * Clear our idea of which payments have not been seen by the user yet
  */
 export const createClearNewPayments = (payload: _ClearNewPaymentsPayload) => ({payload, type: clearNewPayments})
+/**
+ * Close the send form and show the user their transactions so they can review.
+ */
+export const createExitFailedPayment = (payload: _ExitFailedPaymentPayload) => ({payload, type: exitFailedPayment})
 /**
  * Delete an account
  */
@@ -546,6 +552,7 @@ export type DeletedAccountPayload = {|+payload: _DeletedAccountPayload, +type: '
 export type DidSetAccountAsDefaultPayload = {|+payload: _DidSetAccountAsDefaultPayload, +type: 'wallets:didSetAccountAsDefault'|}
 export type DisplayCurrenciesReceivedPayload = {|+payload: _DisplayCurrenciesReceivedPayload, +type: 'wallets:displayCurrenciesReceived'|}
 export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceivedPayload, +type: 'wallets:displayCurrencyReceived'|}
+export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
 export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
 export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
 export type LinkedExistingAccountPayload = {|+payload: _LinkedExistingAccountPayload, +type: 'wallets:linkedExistingAccount'|}
@@ -636,6 +643,7 @@ export type Actions =
   | DidSetAccountAsDefaultPayload
   | DisplayCurrenciesReceivedPayload
   | DisplayCurrencyReceivedPayload
+  | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
