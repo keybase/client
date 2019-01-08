@@ -12,7 +12,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/pprof"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
@@ -506,37 +508,53 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // use the default RPC implementation.
 func InitWithLogPrefix(
 	ctx context.Context, kbCtx Context, params InitParams,
-	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
+	keybaseServiceCn KeybaseServiceCn, onInterruptFn func() error,
 	log logger.Logger, logPrefix string) (cfg Config, err error) {
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
-	signal.Notify(interruptChan, os.Interrupt)
+
+	SIGINT := os.Interrupt
+	signal.Notify(interruptChan, SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGABRT)
+	if SIGPWR != NonexistentSignal {
+		signal.Notify(interruptChan, SIGPWR)
+	}
+
+	var initInterruptSignal os.Signal
+	var interruptErr error
 	go func() {
-		_ = <-interruptChan
+		closed := false
+		for sig := range interruptChan {
+			initInterruptSignal = sig
 
-		close(done)
+			if !closed {
+				close(done)
+				closed = true
+			}
 
-		if onInterruptFn != nil {
-			onInterruptFn()
+			// Restore stacktraces of signals that are supposed to print them
+			// https://golang.org/pkg/os/signal/#hdr-Default_behavior_of_signals_in_Go_programs
+			switch sig {
+			case syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT:
+				pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+			}
 
-			// Unmount can fail if there are open file handles. In
-			// this case, the files need to be closed before calling
-			// unmount again. We keep listening on the signal channel
-			// in case unmount fails the first time, so user can press
-			// Ctrl-C again after closing open files.
-			//
-			// Not closing the channel here because we need to keep it
-			// open to handle further incoming signals. We don't
-			// explicitly call os.Exit here so that the process exits
-			// through normal workflow as a result of Ctrl-C.  If the
-			// process needs to exit immediately no matter unmount
-			// succeeds or not, a different interrupt (e.g. SIGTERM)
-			// can be used to skip this.
-			for range interruptChan {
-				onInterruptFn()
+			if onInterruptFn != nil {
+				interruptErr = onInterruptFn()
+			}
+
+			// Continue loop only on SIGINT; exit immediately on other codes
+			// even if unmount has failed.
+			switch sig {
+			case SIGINT:
+			default:
+				if interruptErr != nil {
+					os.Exit(1)
+				} else {
+					// Do not return 128 + signal since kbfsfuse is not a shell command
+					os.Exit(0)
+				}
 			}
 		}
-
 	}()
 
 	// Spawn a new goroutine for `doInit` so that we can `select` on
@@ -554,7 +572,7 @@ func InitWithLogPrefix(
 
 	select {
 	case <-done:
-		return nil, errors.New(os.Interrupt.String())
+		return nil, fmt.Errorf("kbfsfuse received signal=<%s>", initInterruptSignal)
 	case err = <-errCh:
 		return cfg, err
 	}
@@ -574,7 +592,7 @@ func InitWithLogPrefix(
 // use the default RPC implementation.
 func Init(
 	ctx context.Context, kbCtx Context, params InitParams,
-	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
+	keybaseServiceCn KeybaseServiceCn, onInterruptFn func() error,
 	log logger.Logger) (cfg Config, err error) {
 	return InitWithLogPrefix(
 		ctx, kbCtx, params, keybaseServiceCn, onInterruptFn, log, "kbfs")
