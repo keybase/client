@@ -116,8 +116,6 @@ export const WalletSwitcher = (props: Props) => {
     })),
   ]
 
-  const selectedIndex = props.accountIDs.findIndex(accountID => accountID === props.selectedAccount)
-
   // Menu items plus pinned cancel item on bottom.
   const height = rowHeight * (menuItems.length + 1)
 
@@ -137,7 +135,6 @@ export const WalletSwitcher = (props: Props) => {
           fixedHeight={rowHeight}
           items={menuItems}
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
-          selectedIndex={selectedIndex}
           bounces={false}
         />
         {renderItem(

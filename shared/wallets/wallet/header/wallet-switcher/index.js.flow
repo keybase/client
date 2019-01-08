@@ -9,7 +9,6 @@ export type Props = {|
   onAddNew: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
-  selectedAccount: ?Types.AccountID,
   showingMenu: boolean,
 |}
 
