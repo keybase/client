@@ -36,6 +36,7 @@ export type Props = {|
   onSend: () => void,
   pending: boolean,
   sendButtonLabel: string, // empty string if disabled
+  showCoinsIcon: boolean,
 |}
 
 const ButtonText = (props: {text: string, amount: string}) => (
@@ -84,7 +85,7 @@ const AccountPayment = (props: Props) => {
               {props.balanceChange}
             </Text>
           )}
-          <Icon type="icon-stellar-coins-stacked-16" />
+          {props.showCoinsIcon && <Icon type="icon-stellar-coins-stacked-16" />}
         </Box2>
       </Box2>
       <MarkdownMemo memo={props.memo} />
