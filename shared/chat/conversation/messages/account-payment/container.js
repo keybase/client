@@ -100,7 +100,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it
         return loadingProps
       }
-      const {amountDescription, asset, canceled} = requestInfo
+      const {amountDescription, asset, canceled, done} = requestInfo
       return {
         _paymentID: null,
         action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
@@ -116,7 +116,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         memo: message.note.stringValue(),
         pending: false,
         sendButtonLabel:
-          youAreSender || canceled ? '' : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
+          youAreSender || canceled || done
+            ? ''
+            : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
       }
     }
     default:

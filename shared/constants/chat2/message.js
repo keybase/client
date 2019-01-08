@@ -221,6 +221,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   asset: 'native',
   canceled: false,
   currencyCode: '',
+  done: false,
   type: 'requestInfo',
 })
 
@@ -366,6 +367,7 @@ export const uiRequestInfoToChatRequestInfo = (
     asset,
     canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
+    done: r.status === RPCStellarTypes.commonRequestStatus.done,
   })
 }
 
