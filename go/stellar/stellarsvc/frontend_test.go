@@ -1065,6 +1065,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "office lunch money", p.ToAccountName)
 	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
+	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
 	p = page.Payments[1].Payment
 	require.Equal(t, "200 XLM", p.AmountDescription)
@@ -1077,6 +1078,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "savings", p.ToAccountName)
 	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
+	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
 	p = page.Payments[0].Payment
 	require.Equal(t, "300 XLM", p.AmountDescription)
@@ -1089,6 +1091,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "office lunch money", p.ToAccountName)
 	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
+	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
 	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[2].Payment.Id,
@@ -1105,6 +1108,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "office lunch money", pd.ToAccountName)
 	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
+	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[1].Payment.Id,
@@ -1121,6 +1125,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "savings", pd.ToAccountName)
 	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
+	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[0].Payment.Id,
@@ -1137,6 +1142,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "office lunch money", pd.ToAccountName)
 	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
+	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 }
 
 func TestPaymentDetailsEmptyAccId(t *testing.T) {
