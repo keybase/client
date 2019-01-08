@@ -3,7 +3,7 @@ import * as React from 'react'
 
 export type Props = {|
   following?: boolean,
-  waitingKey?: string,
+  waitingKey: string,
   style?: Object,
   onFollow?: () => void,
   onUnfollow?: () => void,

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from '.'
-import WaitingButton from '../../common-adapters/button'
+import {WaitingButton} from '../../common-adapters'
 
 class FollowButton extends Component<Props> {
   render() {

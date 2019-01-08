@@ -20,7 +20,7 @@ export type Props = {|
   following: $ReadOnlyArray<string>,
   onBack: () => void,
   onReload: () => void,
-  onEditAvatar: () => void,
+  onEditAvatar: ?() => void,
   state: Types.DetailsState,
   username: string,
 |}
