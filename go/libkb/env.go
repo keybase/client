@@ -530,6 +530,24 @@ func (e *Env) GetRootConfigFilename() string {
 	}
 }
 
+func (e *Env) GetEnvfileName() (string, error) {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetConfigDir(), "keybase.autogen.env"), nil
+	default:
+		return "", fmt.Errorf("No envfile for %s.", runtime.GOOS)
+	}
+}
+
+func (e *Env) GetOverrideEnvfileName() (string, error) {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetConfigDir(), "keybase.env"), nil
+	default:
+		return "", fmt.Errorf("No envfile override for %s.", runtime.GOOS)
+	}
+}
+
 func (e *Env) GetConfigFilename() string {
 	return e.GetString(
 		func() string {
@@ -1584,8 +1602,11 @@ func (e *Env) RunningInCI() bool {
 }
 
 func (e *Env) WantsSystemd() bool {
-	return (e.GetRunMode() == ProductionRunMode &&
-		systemd.IsRunningSystemd() &&
+	return (e.GetRunMode() == ProductionRunMode && e.ModelessWantsSystemd())
+}
+
+func (e *Env) ModelessWantsSystemd() bool {
+	return (systemd.IsRunningSystemd() &&
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
