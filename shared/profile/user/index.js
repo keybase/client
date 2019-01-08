@@ -50,19 +50,6 @@ const BioLayout = p => (
   </Kb.Box2>
 )
 
-// const ShowcaseTeamsOffer = ({onClickShowcaseOffer}) => (
-// <Kb.ClickableBox onClick={onClickShowcaseOffer} style={{}}>
-// <Kb.Box>
-// <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
-// </Kb.Box>
-// <Kb.Box>
-// <Kb.Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
-// Publish the teams you're in
-// </Kb.Text>
-// </Kb.Box>
-// </Kb.ClickableBox>
-// )
-
 const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
@@ -319,7 +306,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomWidth: 1,
     },
     isElectron: {
-      alignSelf: 'flex-start',
+      alignSelf: 'stretch',
       borderBottomStyle: 'solid',
     },
     isMobile: {

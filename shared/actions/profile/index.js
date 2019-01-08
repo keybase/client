@@ -5,7 +5,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
+import * as TrackerConstants from '../../constants/tracker2'
 import * as TrackerGen from '../tracker-gen'
+import * as Tracker2Gen from '../tracker2-gen'
 import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
 import openURL from '../../util/open-url'
@@ -14,13 +16,29 @@ import type {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
+import flags from '../../util/feature-flags'
 
-const editProfile = (_, action) =>
-  RPCTypes.userProfileEditRpcPromise({
-    bio: action.payload.bio,
-    fullName: action.payload.fullname,
-    location: action.payload.location,
-  }).then(() => RouteTreeGen.createNavigateUp())
+const editProfile = (state, action) =>
+  RPCTypes.userProfileEditRpcPromise(
+    {
+      bio: action.payload.bio,
+      fullName: action.payload.fullname,
+      location: action.payload.location,
+    },
+    TrackerConstants.waitingKey
+  ).then(() => {
+    if (flags.identify3) {
+      return Tracker2Gen.createLoad({
+        assertion: state.config.username,
+        guiID: TrackerConstants.generateGUIID(),
+        ignoreCache: true,
+        inTracker: false,
+        reason: '',
+      })
+    } else {
+      return TrackerGen.createGetMyProfile({ignoreCache: true})
+    }
+  })
 
 const uploadAvatar = (_, action) =>
   RPCTypes.userUploadUserAvatarRpcPromise({

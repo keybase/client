@@ -16,8 +16,10 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onCancel: () => dispatch(ownProps.navigateUp()),
-  onSubmit: (bio: string, fullname: string, location: string) =>
-    dispatch(ProfileGen.createEditProfile({bio, fullname, location})),
+  onSubmit: (bio: string, fullname: string, location: string) => {
+    dispatch(ProfileGen.createEditProfile({bio, fullname, location}))
+    dispatch(ownProps.navigateUp())
+  },
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   bio: stateProps.bio,

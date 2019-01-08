@@ -43,6 +43,10 @@ class EditProfile extends React.Component<Props, State> {
   _updateBio = bio => this.setState({bio})
   _updateLocation = location => this.setState({location})
 
+  _submit = () => {
+    this.props.onSubmit(this.state.bio, this.state.fullname, this.state.location)
+  }
+
   render() {
     return (
       <Kb.Box2 direction="vertical" style={styles.container}>
@@ -72,6 +76,7 @@ class EditProfile extends React.Component<Props, State> {
           placeholder="Location"
           style={styles.location}
           onChangeText={this._updateLocation}
+          onEnterKeyDown={this._submit}
         />
         <Kb.Box2 direction="vertical" style={styles.gap} />
         <Kb.WaitingButton
@@ -79,6 +84,7 @@ class EditProfile extends React.Component<Props, State> {
           type="Primary"
           label="Save"
           disabled={this._disabled()}
+          onClick={this._submit}
         />
       </Kb.Box2>
     )
