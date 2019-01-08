@@ -1,8 +1,7 @@
 // @flow
 
-// TEMP
-const timeToConsiderActiveForAwhile = 10000 // 300000
-const timeToConsiderInactive = 2000 // 60000
+const timeToConsiderActiveForAwhile = 300000
+const timeToConsiderInactive = 60000
 
 type NotifyActiveFunction = (isActive: boolean) => void
 // 5 minutes after being active, consider us inactive after
