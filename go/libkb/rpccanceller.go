@@ -9,11 +9,12 @@ import (
 type RPCCancelerReason uint
 
 const (
-	RPCCancelerReasonLogout RPCCancelerReason = iota
+	RPCCancelerReasonLogout RPCCancelerReason = 1 << iota
 	RPCCancelerReasonBackground
+	RPCCancelerReasonMax
 )
 
-const RPCCancelerReasonAll = 0xffffffff
+const RPCCancelerReasonAll = RPCCancelerReasonMax - 1
 
 type RPCCancelerKey string
 
@@ -62,7 +63,9 @@ func (r *RPCCanceler) CancelLiveContexts(reason RPCCancelerReason) {
 	r.Lock()
 	defer r.Unlock()
 	for id, liveCtx := range r.liveCtxs {
-		liveCtx.cancelFn()
-		delete(r.liveCtxs, id)
+		if liveCtx.reason&reason != 0 {
+			liveCtx.cancelFn()
+			delete(r.liveCtxs, id)
+		}
 	}
 }

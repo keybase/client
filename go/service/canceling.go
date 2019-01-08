@@ -6,7 +6,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func CancelingProtocol(g *libkb.GlobalContext, prot rpc.Protocol) (res rpc.Protocol) {
+func CancelingProtocol(g *libkb.GlobalContext, prot rpc.Protocol, reason libkb.RPCCancelerReason) (res rpc.Protocol) {
 	res.Name = prot.Name
 	res.WrapError = prot.WrapError
 	res.Methods = make(map[string]rpc.ServeHandlerDescription)
@@ -16,7 +16,7 @@ func CancelingProtocol(g *libkb.GlobalContext, prot rpc.Protocol) (res rpc.Proto
 		newDesc.MakeArg = desc.MakeArg
 		newDesc.Handler = func(ctx context.Context, arg interface{}) (interface{}, error) {
 			var ctxID libkb.RPCCancelerKey
-			ctx, ctxID = g.RPCCanceler.RegisterContext(ctx)
+			ctx, ctxID = g.RPCCanceler.RegisterContext(ctx, reason)
 			defer g.RPCCanceler.UnregisterContext(ctxID)
 			return desc.Handler(ctx, arg)
 		}
