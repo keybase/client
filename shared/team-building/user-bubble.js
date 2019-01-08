@@ -134,8 +134,8 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isMobile: {
-      flex: 1,
       alignItems: 'center',
+      flex: 1,
     },
   }),
 
