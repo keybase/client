@@ -15,6 +15,7 @@ const mapStateToProps = state => {
   if (emails.length > 0) {
     accountProps = {
       email: emails[0].email,
+      hasRandomPW: state.settings.passphrase.randomPW,
       isVerified: emails[0].isVerified,
       onChangeEmail: () => logger.debug('todo'),
       onChangePassphrase: () => logger.debug('todo'),

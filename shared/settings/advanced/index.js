@@ -19,6 +19,7 @@ type Props = {
   onBack: () => void,
   traceInProgress: boolean,
   processorProfileInProgress: boolean,
+  hasRandomPW: boolean,
 }
 
 const Advanced = (props: Props) => (
@@ -26,8 +27,11 @@ const Advanced = (props: Props) => (
     <Kb.Box style={styles.checkboxContainer}>
       <Kb.Checkbox
         checked={!!props.lockdownModeEnabled}
-        disabled={props.lockdownModeEnabled == null}
-        label="Forbid account changes from the website"
+        disabled={props.lockdownModeEnabled == null || props.hasRandomPW}
+        label={
+          'Forbid account changes from the website' +
+          (props.hasRandomPW ? ' (you need to set passphrase first)' : '')
+        }
         onCheck={props.onChangeLockdownMode}
         style={styles.checkbox}
       />

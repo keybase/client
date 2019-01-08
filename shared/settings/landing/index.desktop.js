@@ -294,14 +294,18 @@ function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void
   )
 }
 
-function FirstPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
+function AccountFirstPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
-        Your account has no passphrase.
+        Passphrase:
       </Text>
-      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
-        Set passphrase
+      <Text type="Body">
+        Not set! You should{' '}
+        <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
+          set a passphrase
+        </Text>
+        .
       </Text>
     </Box>
   )
@@ -314,19 +318,23 @@ function Account({
   onChangePassphrase,
   onChangeRememberPassphrase,
   rememberPassphrase,
+  hasRandomPW,
 }: AccountProps) {
+  const Passphrase = !hasRandomPW ? AccountPassphrase : AccountFirstPassphrase
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider />
-      <AccountPassphrase onChangePassphrase={onChangePassphrase} />
-      <Divider />
-      <Checkbox
-        checked={rememberPassphrase}
-        label="Remember my passphrase"
-        onCheck={onChangeRememberPassphrase}
-        style={{paddingTop: globalMargins.small}}
-      />
+      <Passphrase onChangePassphrase={onChangePassphrase} />
+      {!hasRandomPW && <Divider />}
+      {!hasRandomPW && (
+        <Checkbox
+          checked={rememberPassphrase}
+          label="Remember my passphrase"
+          onCheck={onChangeRememberPassphrase}
+          style={{paddingTop: globalMargins.small}}
+        />
+      )}
     </Box>
   )
 }

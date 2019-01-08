@@ -36,10 +36,10 @@ const initialState: Types.State = {
     newPassphraseConfirm: new HiddenString(''),
     newPassphraseConfirmError: null,
     newPassphraseError: null,
+    randomPW: false,
     rememberPassphrase: true,
   },
   waitingForResponse: false,
-  randomPW: false,
 }
 
 const traceInProgressKey = 'traceInProgress'

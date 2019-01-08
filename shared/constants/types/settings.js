@@ -67,6 +67,7 @@ export type PassphraseState = {
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
   rememberPassphrase: boolean,
+  randomPW: boolean,
 }
 
 export type EmailState = {
@@ -93,7 +94,6 @@ export type State = {
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
-  randomPW: boolean,
 }
 
 type AboutTab = 'settingsTabs:aboutTab'

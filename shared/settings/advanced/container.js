@@ -4,6 +4,7 @@ import {
   createTrace,
   createProcessorProfile,
   createLoadLockdownMode,
+  createLoadHasRandomPw,
   createOnChangeLockdownMode,
 } from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -15,6 +16,7 @@ import {connect, lifecycle} from '../../util/container'
 
 type OwnProps = {||}
 const mapStateToProps = state => ({
+  hasRandomPW: state.settings.passphrase.randomPW,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
   openAtLogin: state.config.openAtLogin,
   processorProfileInProgress: Constants.processorProfileInProgress(state),
@@ -22,6 +24,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
@@ -40,6 +43,7 @@ export default compose(
   lifecycle({
     componentDidMount() {
       this.props._loadLockdownMode()
+      this.props._loadHasRandomPW()
     },
   }),
   HeaderHoc
