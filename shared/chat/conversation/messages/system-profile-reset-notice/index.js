@@ -17,7 +17,7 @@ const ProfileResetNotice = ({username, onOpenOlderConversation}: Props) => (
     <Text
       type="BodySmallPrimaryLink"
       backgroundMode="Announcements"
-      style={{color: globalColors.black_60}}
+      style={{color: globalColors.black_50}}
       onClick={onOpenOlderConversation}
     >
       View older conversation

@@ -35,7 +35,7 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
         {` `} created a new team repository called {` `}
         <Text
           type="BodySmallSemibold"
-          style={repoID ? {color: globalColors.black_60} : undefined}
+          style={repoID ? {color: globalColors.black_50} : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >
           {repo}
@@ -55,7 +55,7 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
         <Text
           type="BodySmallSemibold"
-          style={repoID ? {color: globalColors.black_60} : undefined}
+          style={repoID ? {color: globalColors.black_50} : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >{` ${repo}/${branchName}`}</Text>
         :

@@ -482,7 +482,7 @@ class Profile extends Component<Props, State> {
                   color:
                     this.state.currentFriendshipsTab === f
                       ? Styles.globalColors.black_75
-                      : Styles.globalColors.black_60,
+                      : Styles.globalColors.black_50,
                   padding: 10,
                 }}
               >

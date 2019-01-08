@@ -94,7 +94,7 @@ const YouAddedToTeam = (props: Props) => {
           <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
           <Kb.Text
             onClick={onViewTeam}
-            style={{color: Styles.globalColors.black_60}}
+            style={{color: Styles.globalColors.black_50}}
             type="BodySmallSemiboldSecondaryLink"
           >
             {teamname}

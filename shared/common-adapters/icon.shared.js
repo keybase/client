@@ -22,7 +22,7 @@ export function defaultHoverColor(type: IconType): ?string {
     case 'iconfont-proof-pending':
       return defaultColor(type)
     case 'iconfont-close':
-      return globalColors.black_60
+      return globalColors.black_50
     default:
       return null
   }

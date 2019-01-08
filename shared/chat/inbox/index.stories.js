@@ -37,7 +37,7 @@ const commonSmallTeam = {
   conversationIDKey: '',
   hasResetUsers: false,
   hasUnread: false,
-  iconHoverColor: globalColors.black_60,
+  iconHoverColor: globalColors.black_50,
   isLocked: false,
   isMuted: false,
   isSelected: false,

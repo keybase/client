@@ -192,7 +192,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
               <Icon
                 key={iconName}
                 type={iconName}
-                color={this.state.hovering ? Styles.globalColors.black_60 : Styles.globalColors.black_50}
+                color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
                 fontSize={16}
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([

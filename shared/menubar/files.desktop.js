@@ -174,7 +174,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
   fileUpdateName: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

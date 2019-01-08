@@ -139,7 +139,7 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         </Kb.Text>
         <Kb.Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          color={Styles.globalColors.black_60}
+          color={Styles.globalColors.black_50}
           fontSize={10}
         />
       </Kb.Box2>
@@ -158,7 +158,7 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     textAlign: 'center',
   },
-  text: {color: Styles.globalColors.black_60},
+  text: {color: Styles.globalColors.black_50},
   textContainer: {
     alignItems: 'center',
     minHeight: Styles.isMobile ? 32 : 24,

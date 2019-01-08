@@ -57,7 +57,7 @@ const styles = Styles.styleSheetCreate({
   },
   breadcrumbNonLastItemBox: Styles.platformStyles({
     isElectron: {
-      color: Styles.globalColors.black_60,
+      color: Styles.globalColors.black_50,
       flexShrink: 0,
       maxWidth: 120,
       overflow: 'hidden',

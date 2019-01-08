@@ -70,7 +70,7 @@ const JoinedUserNotice = (props: Props) => (
       {props.isBigTeam ? (
         `#${props.channelname}`
       ) : (
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_60}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_50}}>
           {props.teamname}
         </Kb.Text>
       )}

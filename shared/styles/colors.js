@@ -1,6 +1,6 @@
 // @flow strict
 // the _on_white are precomputed colors so we can do less blending on mobile
-import { isIOS } from '../constants/platform'
+import {isIOS} from '../constants/platform'
 
 const colors = {
   beige: '#FAF2ED',

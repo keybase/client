@@ -48,7 +48,7 @@ const YouInviteAddedToTeamNotice = (props: Props) => {
   const copy = (
     <Kb.Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
       Welcome to{' '}
-      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_60}}>
+      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_50}}>
         {teamname}
       </Kb.Text>
       . Say hi!{' '}

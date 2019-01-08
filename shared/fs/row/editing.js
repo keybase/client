@@ -21,7 +21,7 @@ const HoverClickableBox = Styles.isMobile
   ? Kb.ClickableBox
   : Styles.styled(Kb.ClickableBox)({
       '& .fs-path-item-editing-trash-icon': {color: Styles.globalColors.black_50},
-      '& .fs-path-item-editing-trash-icon:hover': {color: Styles.globalColors.black_60},
+      '& .fs-path-item-editing-trash-icon:hover': {color: Styles.globalColors.black_50},
     })
 
 const Editing = (props: EditingProps) => (

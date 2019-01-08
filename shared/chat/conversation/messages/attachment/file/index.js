@@ -74,7 +74,7 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   linkStyle: {
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
   },
   progressContainerStyle: {
     ...Styles.globalStyles.flexBoxRow,
