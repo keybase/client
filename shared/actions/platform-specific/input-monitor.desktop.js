@@ -1,62 +1,74 @@
 // @flow
 
+// TEMP
+const timeToConsiderActiveForAwhile = 10000 // 300000
+const timeToConsiderInactive = 2000 // 60000
+
 type NotifyActiveFunction = (isActive: boolean) => void
 // 5 minutes after being active, consider us inactive after
 // an additional minute of no input
 // for the purpose of marking chat messages read
 class InputMonitor {
-  active: boolean
+  active = true
   notifyActive: NotifyActiveFunction
-  activeTimeoutID: ?number
-  inactiveTimeoutID: ?number
-  constructor(notifyActiveFunction: NotifyActiveFunction) {
-    this.notifyActive = notifyActiveFunction
-    this.active = true
+  activeTimeoutID: ?TimeoutID
+  inactiveTimeoutID: ?TimeoutID
+
+  constructor() {
+    // go into listening mode again
+    window.addEventListener('focus', this.goListening)
+    window.addEventListener('blur', this.goInactive)
+    this.goListening()
   }
 
-  startActiveTimer = () => {
-    // wait 5 minutes before adding listeners
-    if (this.activeTimeoutID) window.clearTimeout(this.activeTimeoutID)
-    this.activeTimeoutID = window.setTimeout(this.goListening, 300000)
+  _clearTimers = () => {
+    if (this.activeTimeoutID) {
+      window.clearTimeout(this.activeTimeoutID)
+      this.activeTimeoutID = null
+    }
+    if (this.inactiveTimeoutID) {
+      window.clearTimeout(this.inactiveTimeoutID)
+      this.inactiveTimeoutID = null
+    }
   }
 
   resetInactiveTimer = () => {
+    console.log('InputMonitor received input! Going back active')
     this.goActive()
   }
 
   goInactive = () => {
     console.log('InputMonitor going inactive due to 1 minute of no input')
-    window.clearTimeout(this.inactiveTimeoutID)
-    this.inactiveTimeoutID = 0
+    this._clearTimers()
     if (this.active) {
-      this.notifyActive(false)
       this.active = false
+      this.notifyActive(false)
     }
   }
 
   goListening = () => {
     console.log('InputMonitor adding input listeners after 5 active minutes')
-    window.clearTimeout(this.activeTimeoutID)
+    this._clearTimers()
 
     window.addEventListener('mousemove', this.resetInactiveTimer, true)
     window.addEventListener('keypress', this.resetInactiveTimer, true)
 
     // wait 1 minute before calling goInactive
-    if (this.inactiveTimeoutID) window.clearTimeout(this.inactiveTimeoutID)
-    this.inactiveTimeoutID = window.setTimeout(this.goInactive, 60000)
+    this.inactiveTimeoutID = window.setTimeout(this.goInactive, timeToConsiderInactive)
   }
 
   goActive = () => {
-    window.clearTimeout(this.inactiveTimeoutID)
-    this.inactiveTimeoutID = 0
+    this._clearTimers()
     window.removeEventListener('mousemove', this.resetInactiveTimer, true)
     window.removeEventListener('keypress', this.resetInactiveTimer, true)
     if (!this.active) {
       console.log('InputMonitor going active')
-      this.notifyActive(true)
       this.active = true
+      this.notifyActive(true)
     }
-    this.startActiveTimer()
+    // wait 5 minutes before adding listeners
+    this._clearTimers()
+    this.activeTimeoutID = window.setTimeout(this.goListening, timeToConsiderActiveForAwhile)
   }
 }
 
