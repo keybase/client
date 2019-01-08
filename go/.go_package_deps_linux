@@ -2908,6 +2908,7 @@
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/install" : 1,
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/kbfs/redirector" : 1,
       "github.com/keybase/client/go/kbnm" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,

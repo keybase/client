@@ -2956,6 +2956,7 @@
       "github.com/keybase/client/go/install/libnativeinstaller" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/libfuse" : 1,
+      "github.com/keybase/client/go/kbfs/redirector" : 1,
       "github.com/keybase/client/go/kbnm" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/launchd" : 1,
