@@ -242,18 +242,28 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 
 // Delete implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
-	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+	blockIDs []kbfsblock.ID, cacheType DiskBlockCacheType) (
+	numRemoved int, sizeRemoved int64, err error) {
 	// This is a write operation but we are only reading the pointers to the
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	numRemoved, sizeRemoved, err = cache.workingSetCache.Delete(ctx, blockIDs)
-	if cache.syncCache == nil || err != nil {
-		return numRemoved, sizeRemoved, err
+	if cacheType == DiskBlockAnyCache || cacheType == DiskBlockSyncCache {
+		numRemoved, sizeRemoved, err = cache.syncCache.Delete(ctx, blockIDs)
+		if err != nil {
+			return 0, 0, err
+		}
+		if cacheType == DiskBlockSyncCache {
+			return numRemoved, sizeRemoved, err
+		}
 	}
-	syncNumRemoved, syncSizeRemoved, err :=
-		cache.syncCache.Delete(ctx, blockIDs)
-	return numRemoved + syncNumRemoved, sizeRemoved + syncSizeRemoved, err
+
+	wsNumRemoved, wsSizeRemoved, err := cache.workingSetCache.Delete(
+		ctx, blockIDs)
+	if err != nil {
+		return 0, 0, err
+	}
+	return wsNumRemoved + numRemoved, wsSizeRemoved + sizeRemoved, nil
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for

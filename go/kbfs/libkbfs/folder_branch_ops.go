@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	stdpath "path"
 	"path/filepath"
@@ -99,6 +100,8 @@ const (
 	// If there are more than this many new revisions, fast forward
 	// rather than downloading them all.
 	fastForwardRevThresh = 50
+	// Period between mark-and-sweep attempts.
+	markAndSweepPeriod = 1 * time.Hour
 )
 
 type fboMutexLevel mutexLevel
@@ -277,7 +280,8 @@ type folderBranchOps struct {
 	// Has this folder ever been cleared?
 	hasBeenCleared bool
 
-	syncLock leveledRWMutex
+	syncLock            leveledRWMutex
+	markAndSweepTrigger chan<- struct{}
 
 	blocks  folderBlockOps
 	prepper folderUpdatePrepper
@@ -1030,6 +1034,15 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 			}
 		}()
 	}
+
+	// Kick off amark-and-sweep if one doesn't exist yet.
+	fbo.syncLock.Lock(lState)
+	defer fbo.syncLock.Unlock(lState)
+	if fbo.markAndSweepTrigger == nil {
+		trigger := make(chan struct{}, 1)
+		fbo.markAndSweepTrigger = trigger
+		go fbo.partialMarkAndSweepLoop(trigger)
+	}
 }
 
 func (fbo *folderBranchOps) makeRecentFilesSyncConfig(
@@ -1091,6 +1104,296 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 	}
 
 	fbo.kickOffPartialSync(ctx, lState, syncConfig, rmd)
+}
+
+func (fbo *folderBranchOps) markRecursive(
+	ctx context.Context, lState *lockState, node Node,
+	rmd ImmutableRootMetadata, tag string, cacheType DiskBlockCacheType) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	err := fbo.blocks.MarkNode(ctx, lState, node, rmd, tag, cacheType)
+	if err != nil {
+		return err
+	}
+
+	if node.EntryType() != Dir {
+		return nil
+	}
+
+	p := fbo.nodeCache.PathFromNode(node)
+	children, err := fbo.blocks.GetChildren(ctx, lState, rmd, p)
+	if err != nil {
+		return err
+	}
+	for child := range children {
+		childNode, _, err := fbo.Lookup(ctx, node, child)
+		if err != nil {
+			return err
+		}
+		err = fbo.markRecursive(ctx, lState, childNode, rmd, tag, cacheType)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// doPartialMarkAndSweep runs a mark-and-sweep algorithm against all
+// the currently-synced paths, to delete any blocks not reachable from
+// one of these paths.
+func (fbo *folderBranchOps) doPartialMarkAndSweep(
+	ctx context.Context, syncConfig keybase1.FolderSyncConfig,
+	latestMerged ImmutableRootMetadata) (err error) {
+	fbo.log.CDebugf(
+		ctx, "Starting partial mark-and-sweep at revision %d",
+		latestMerged.Revision())
+	defer func() {
+		fbo.deferLog.CDebugf(ctx, "Partial mark-and-sweep done: %+v", err)
+	}()
+
+	if syncConfig.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return errors.Errorf(
+			"Bad mode passed to partial unsync: %+v", syncConfig.Mode)
+	} else if len(syncConfig.Paths) == 0 {
+		return nil
+	}
+
+	rootNode, _, _, err := fbo.getRootNode(ctx)
+	if err != nil {
+		return err
+	}
+	tag := ctx.Value(CtxFBOIDKey).(string)
+	lState := makeFBOLockState()
+	cacheType := DiskBlockSyncCache
+	err = fbo.blocks.MarkNode(
+		ctx, lState, rootNode, latestMerged, tag, cacheType)
+	if err != nil {
+		return err
+	}
+
+pathLoop:
+	for _, p := range syncConfig.Paths {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		fbo.log.CDebugf(ctx, "Marking %s", p)
+
+		// Mark the parent directories.
+		parentPath, syncedElem := stdpath.Split(p)
+		parents := strings.Split(strings.TrimSuffix(parentPath, "/"), "/")
+		currNode := rootNode
+		for _, parent := range parents {
+			if len(parent) == 0 {
+				continue
+			}
+			// TODO: parallelize the parent fetches and lookups.
+			currNode, _, err = fbo.Lookup(ctx, currNode, parent)
+			switch errors.Cause(err).(type) {
+			case NoSuchNameError:
+				fbo.log.CDebugf(ctx, "Synced path %s doesn't exist yet", p)
+				continue pathLoop
+			case nil:
+			default:
+				return err
+			}
+
+			err = fbo.blocks.MarkNode(
+				ctx, lState, currNode, latestMerged, tag, cacheType)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Now mark everything rooted at this path.
+		currNode, _, err = fbo.Lookup(ctx, currNode, syncedElem)
+		switch errors.Cause(err).(type) {
+		case NoSuchNameError:
+			fbo.log.CDebugf(ctx, "Synced element %s doesn't exist yet", p)
+			continue pathLoop
+		case nil:
+		default:
+			return err
+		}
+
+		err = fbo.markRecursive(
+			ctx, lState, currNode, latestMerged, tag, cacheType)
+		if err != nil {
+			return err
+		}
+	}
+
+	return fbo.config.DiskBlockCache().DeleteUnmarked(
+		ctx, fbo.id(), tag, cacheType)
+}
+
+func (fbo *folderBranchOps) kickOffPartialMarkAndSweep(
+	ctx context.Context, lState *lockState,
+	syncConfig keybase1.FolderSyncConfig, rmd ImmutableRootMetadata) (
+	<-chan struct{}, context.CancelFunc) {
+	// Kick off a background mark-and-sweep.
+	partialMSCtx, cancel := context.WithCancel(
+		fbo.ctxWithFBOID(context.Background()))
+	fbo.log.CDebugf(
+		ctx, "Partial mark-and-sweep with a new context: FBOID=%s",
+		partialMSCtx.Value(CtxFBOIDKey))
+	fbo.partialSyncs.Add(1)
+	go func() {
+		defer cancel()
+		defer fbo.partialSyncs.Done()
+		_ = fbo.doPartialMarkAndSweep(partialMSCtx, syncConfig, rmd)
+	}()
+
+	// Cancel the partial sync if the latest merged revision is updated.
+	updatedCh := func() <-chan struct{} {
+		fbo.headLock.Lock(lState)
+		defer fbo.headLock.Unlock(lState)
+		if rmd.Revision() != fbo.latestMergedRevision {
+			fbo.log.CDebugf(
+				partialMSCtx, "Latest merged changed is now %d, not %d; "+
+					"aborting partial mark-and-sweep", fbo.latestMergedRevision,
+				rmd.Revision())
+			return nil
+		}
+		return fbo.latestMergedUpdated
+	}()
+	if updatedCh == nil {
+		cancel()
+	} else {
+		go func() {
+			select {
+			case <-updatedCh:
+				cancel()
+			case <-partialMSCtx.Done():
+			}
+		}()
+	}
+	return partialMSCtx.Done(), cancel
+}
+
+func (fbo *folderBranchOps) kickOffPartialMarkAndSweepIfNeeded(
+	ctx context.Context, lState *lockState, triggered bool,
+	lastMDRev kbfsmd.Revision) (
+	<-chan struct{}, context.CancelFunc, kbfsmd.Revision, error) {
+	if triggered {
+		defer fbo.partialSyncs.Done()
+	}
+
+	md, err := fbo.getLatestMergedMD(ctx, lState)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't get latest merged MD: %+v", err)
+		return nil, nil, 0, nil
+	}
+	if md == (ImmutableRootMetadata{}) ||
+		md.Revision() == kbfsmd.RevisionUninitialized {
+		return nil, nil, 0, errors.New("Unexpectedly no merged revision")
+	}
+
+	// Skip mark-and-sweep if we were woken up by the timer and
+	// the revision hasn't changed since last time.
+	if !triggered && md.Revision() == lastMDRev {
+		fbo.log.CDebugf(
+			ctx, "Revision hasn't changed since last mark-and-sweep")
+		return nil, nil, 0, nil
+	}
+
+	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	if syncConfig.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return nil, nil, 0, errors.New("No partial sync config")
+	}
+
+	// Kick off the mark-and-sweep, and wait for it to finish or
+	// be pre-empted.
+	currMarkAndSweepCtxDone, currMarkAndSweepCancel :=
+		fbo.kickOffPartialMarkAndSweep(ctx, lState, syncConfig, md)
+	return currMarkAndSweepCtxDone, currMarkAndSweepCancel, md.Revision(), nil
+}
+
+func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
+	// For partially-synced TLFs, run this:
+	// * Once an hour-ish, only if the latest merged revision has changed.
+	// * When a path is removed from the config.
+	//
+	// Cancel the running mark-and-sweep when:
+	// * The latest merged revision changes.
+	// * The config changes.
+	//
+	// Exit this loop:
+	// * On shutdown.
+	// * When no longer configured to be partially syncing.
+	ctx, cancel := context.WithCancel(fbo.ctxWithFBOID(context.Background()))
+	defer cancel()
+	fbo.log.CDebugf(ctx, "Starting mark-and-sweep loop")
+
+	// Set the first timer to be some random duration less than the
+	// period, to spread out the work of different TLFs.
+	d := time.Duration(rand.Int63n(int64(markAndSweepPeriod)))
+	timer := time.NewTimer(d)
+
+	var currMarkAndSweepCtxDone <-chan struct{}
+	var currMarkAndSweepCancel context.CancelFunc
+	defer func() {
+		if currMarkAndSweepCancel != nil {
+			currMarkAndSweepCancel()
+		}
+		timer.Stop()
+	}()
+
+	lastMDRev := kbfsmd.RevisionUninitialized
+
+	fbo.log.CDebugf(ctx, "Scheduling first timer for %s", d)
+	lState := makeFBOLockState()
+	for {
+		triggered := false
+		select {
+		case <-currMarkAndSweepCtxDone:
+			fbo.log.CDebugf(ctx, "Mark-and-sweep finished; resetting timer")
+			timer = time.NewTimer(markAndSweepPeriod)
+			currMarkAndSweepCtxDone = nil
+			continue
+		case _, ok := <-trigger:
+			if !ok {
+				fbo.log.CDebugf(ctx, "Mark-and-sweep is shutting down.")
+				return
+			}
+			fbo.log.CDebugf(ctx, "New mark-and-sweep triggered")
+			triggered = true
+		case <-timer.C:
+			fbo.log.CDebugf(ctx, "Mark-and-sweep timer fired")
+		case <-fbo.shutdownChan:
+			fbo.log.CDebugf(ctx, "Shutdown")
+			return
+		}
+
+		if currMarkAndSweepCancel != nil {
+			currMarkAndSweepCancel()
+		}
+		timer.Stop()
+
+		// Kick off the mark-and-sweep, and wait for it to finish or
+		// be pre-empted.
+		done, cancel, rev, err := fbo.kickOffPartialMarkAndSweepIfNeeded(
+			ctx, lState, triggered, lastMDRev)
+		if err != nil {
+			return
+		}
+		if rev == 0 {
+			fbo.log.CDebugf(
+				ctx, "No mark-and-sweep was launched; resetting timer")
+			timer = time.NewTimer(markAndSweepPeriod)
+			continue
+		}
+		currMarkAndSweepCtxDone, currMarkAndSweepCancel = done, cancel
+		lastMDRev = rev
+	}
 }
 
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
@@ -5661,12 +5964,6 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
 			}
 		}
-		diskCache := fbo.config.DiskBlockCache()
-		if diskCache != nil {
-			// Delete from the working set cache.  (The sync cache is
-			// managed by `folderBlockManager`.)
-			go diskCache.Delete(ctx, idsToDelete)
-		}
 	case *resolutionOp:
 		// If there are any unrefs of blocks that have a node, this is an
 		// implied rmOp (see KBFS-1424).
@@ -5964,6 +6261,16 @@ func (fbo *folderBranchOps) getLatestMergedRevision(lState *lockState) kbfsmd.Re
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
 	return fbo.latestMergedRevision
+}
+
+func (fbo *folderBranchOps) getLatestMergedMD(
+	ctx context.Context, lState *lockState) (ImmutableRootMetadata, error) {
+	rev := fbo.getLatestMergedRevision(lState)
+	if rev == kbfsmd.RevisionUninitialized {
+		return ImmutableRootMetadata{}, nil
+	}
+	return getSingleMD(
+		ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID, rev, kbfsmd.Merged, nil)
 }
 
 // caller should have held fbo.headLock
@@ -7888,6 +8195,15 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 	}, nil
 }
 
+func (fbo *folderBranchOps) triggerMarkAndSweepLocked() {
+	fbo.partialSyncs.Add(1)
+	select {
+	case fbo.markAndSweepTrigger <- struct{}{}:
+	default:
+		fbo.partialSyncs.Done()
+	}
+}
+
 // SetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
 func (fbo *folderBranchOps) SetSyncConfig(
 	ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
@@ -7898,7 +8214,10 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	}
 
 	lState := makeFBOLockState()
-	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
+	md, err := fbo.getLatestMergedMD(ctx, lState)
+	if err != nil {
+		return nil, err
+	}
 	if md == (ImmutableRootMetadata{}) ||
 		md.Revision() == kbfsmd.RevisionUninitialized {
 		return nil, errors.New(
@@ -7910,8 +8229,6 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	defer func() {
 		if err == nil && config.Mode == keybase1.FolderSyncMode_PARTIAL {
 			fbo.kickOffPartialSync(ctx, lState, config, md)
-			// TODO(KBFS-3644): Somehow un-sync the paths that were
-			// removed from this config.
 		}
 	}()
 
@@ -7929,6 +8246,57 @@ func (fbo *folderBranchOps) SetSyncConfig(
 			return nil, err
 		}
 		newConfig.Paths = paths
+	}
+
+	oldConfig, err := fbo.getProtocolSyncConfig(ctx, lState, md)
+	if err != nil {
+		return nil, err
+	}
+
+	oldPartial := oldConfig.Mode == keybase1.FolderSyncMode_PARTIAL
+	newPartial := newConfig.Mode == keybase1.FolderSyncMode_PARTIAL
+	if oldPartial && !newPartial {
+		if fbo.markAndSweepTrigger == nil {
+			return nil, errors.New(
+				"Unexpected sync config; mark-and-sweep already started")
+		}
+
+		fbo.log.CDebugf(ctx, "Exiting partial mode, stopping mark-and-sweep")
+		close(fbo.markAndSweepTrigger)
+		fbo.markAndSweepTrigger = nil
+	} else if !oldPartial && newPartial {
+		if fbo.markAndSweepTrigger != nil {
+			return nil, errors.New(
+				"Unexpected sync config; mark-and-sweep already started")
+		}
+		if oldConfig.Mode == keybase1.FolderSyncMode_ENABLED {
+			return nil, errors.New(
+				"Cannot enable partial syncing while fully-synced")
+		}
+
+		fbo.log.CDebugf(ctx, "Entering partial mode, starting mark-and-sweep")
+		// `kickOffPartialSync` call above will start the mark and sweep.
+	} else if oldPartial && newPartial {
+		if fbo.markAndSweepTrigger == nil {
+			return nil, errors.New(
+				"Unexpected sync config; mark-and-sweep already started")
+		}
+
+		// See if there are any missing paths from the new config.
+		oldPaths := make(map[string]bool, len(oldConfig.Paths))
+		for _, p := range oldConfig.Paths {
+			oldPaths[p] = true
+		}
+		for _, p := range config.Paths {
+			delete(oldPaths, p)
+		}
+		if len(oldPaths) > 0 {
+			for _, p := range oldPaths {
+				fbo.log.CDebugf(
+					ctx, "Path %s removed from partial config", p)
+			}
+			fbo.triggerMarkAndSweepLocked()
+		}
 	}
 
 	ch, err = fbo.config.SetTlfSyncState(tlfID, newConfig)
