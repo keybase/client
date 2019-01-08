@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
@@ -51,7 +50,6 @@ func NewSyncer(g *globals.Context) *Syncer {
 	}
 
 	go s.sendNotificationLoop()
-	go s.monitorAppState()
 	return s
 }
 
@@ -62,20 +60,6 @@ func (s *Syncer) SetClock(clock clockwork.Clock) {
 func (s *Syncer) Shutdown() {
 	s.Debug(context.Background(), "shutting down")
 	close(s.shutdownCh)
-}
-
-func (s *Syncer) monitorAppState() {
-	ctx := context.Background()
-	s.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
-	for {
-		state = <-s.G().AppState.NextUpdate(&state)
-		switch state {
-		case keybase1.AppState_FOREGROUND:
-			s.Debug(ctx, "monitorAppState: foregrounded, flushing")
-			s.flushCh <- struct{}{}
-		}
-	}
 }
 
 func (s *Syncer) dedupUpdates(updates []chat1.ConversationStaleUpdate) (res []chat1.ConversationStaleUpdate) {
@@ -102,31 +86,25 @@ func (s *Syncer) sendNotificationsOnce() {
 	s.notificationLock.Lock()
 	defer s.notificationLock.Unlock()
 
-	state := s.G().AppState.State()
-	// Only actually flush notifications if the state of the app is in the foreground. In the desktop
-	// app this is always true, but on the mobile app this might not be.
-	if state == keybase1.AppState_FOREGROUND {
-		// Broadcast full reloads
-		for uid := range s.fullReload {
-			s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
-			b, _ := hex.DecodeString(uid)
-			s.G().ActivityNotifier.InboxStale(context.Background(), gregor1.UID(b))
-		}
-		s.fullReload = make(map[string]bool)
-
-		// Broadcast conversation stales
-		for uid, updates := range s.notificationQueue {
-			updates = s.dedupUpdates(updates)
-			b, _ := hex.DecodeString(uid)
-			s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(updates))
-			for _, update := range updates {
-				s.Debug(context.Background(), "flushing: uid: %s convID: %s type: %v", uid,
-					update.ConvID, update.UpdateType)
-			}
-			s.G().ActivityNotifier.ThreadsStale(context.Background(), gregor1.UID(b), updates)
-		}
-		s.notificationQueue = make(map[string][]chat1.ConversationStaleUpdate)
+	// Broadcast full reloads
+	for uid := range s.fullReload {
+		s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
+		b, _ := hex.DecodeString(uid)
+		s.G().ActivityNotifier.InboxStale(context.Background(), gregor1.UID(b))
 	}
+	s.fullReload = make(map[string]bool)
+	// Broadcast conversation stales
+	for uid, updates := range s.notificationQueue {
+		updates = s.dedupUpdates(updates)
+		b, _ := hex.DecodeString(uid)
+		s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(updates))
+		for _, update := range updates {
+			s.Debug(context.Background(), "flushing: uid: %s convID: %s type: %v", uid,
+				update.ConvID, update.UpdateType)
+		}
+		s.G().ActivityNotifier.ThreadsStale(context.Background(), gregor1.UID(b), updates)
+	}
+	s.notificationQueue = make(map[string][]chat1.ConversationStaleUpdate)
 }
 
 func (s *Syncer) sendNotificationLoop() {
