@@ -154,7 +154,7 @@ export const WalletSwitcher = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   container: {
     justifyContent: 'flex-end',
-    maxHeight: '50%',
+    maxHeight: '100%',
   },
   infoText: {
     paddingLeft: Styles.globalMargins.tiny,
