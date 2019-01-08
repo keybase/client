@@ -54,7 +54,7 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
               type="Primary"
               fullWidth={true}
               onClick={this._onSubmit}
-              enabled={!!this.state.paperKey}
+              disabled={!this.state.paperKey}
               waitingKey={Constants.waitingKey}
             />
           </Kb.ButtonBar>

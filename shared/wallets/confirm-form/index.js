@@ -12,7 +12,6 @@ type ConfirmSendProps = {|
   onClose: () => void,
   onSendClick: () => void,
   onBack: () => void,
-  onReviewProofs?: () => void,
   encryptedNote?: string,
   publicMemo?: string,
   banners?: Array<BannerType>,
@@ -38,8 +37,9 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         <Banner
           background={banner.bannerBackground}
           key={banner.bannerText}
-          onReviewProofs={props.onReviewProofs}
+          onAction={banner.action}
           reviewProofs={banner.reviewProofs}
+          sendFailed={banner.sendFailed}
           text={banner.bannerText}
         />
       ))}

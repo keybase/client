@@ -102,7 +102,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.reviewPayment:
       return state
         .setIn(['builtPayment', 'reviewBanners'], [])
-        .set('reviewCounter', state.reviewCounter + 1).set('reviewLastSeqno', null)
+        .set('reviewCounter', state.reviewCounter + 1)
+        .set('reviewLastSeqno', null)
     case WalletsGen.reviewedPaymentReceived: {
       // paymentReviewed notifications can arrive out of order, so check their freshness.
       const {bid, reviewID, seqno, banners, nextButton} = action.payload
@@ -353,6 +354,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadSendAssetChoices:
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
+    case WalletsGen.exitFailedPayment:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

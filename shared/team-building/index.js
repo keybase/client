@@ -9,11 +9,6 @@ import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
-// TODO
-// Services Search Results count bar
-// Handle pending state
-// Handle No search results
-
 type SearchResult = {
   userId: string,
   username: string,
@@ -69,7 +64,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             onBackspace={props.onBackspace}
             searchString={props.searchString}
           />
-          {!!props.teamSoFar.length && <GoButton onClick={props.onFinishTeamBuilding} />}
+          {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
         </Kb.Box2>
         {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
@@ -128,12 +123,12 @@ const styles = Styles.styleSheetCreate({
     common: {
       flex: 1,
       minHeight: 200,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
     },
     isElectron: {
       height: 434,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
       width: 470,
     },
   }),

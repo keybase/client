@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import {noop} from 'lodash-es'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
@@ -12,26 +13,26 @@ type Props = {
   searchString: string,
 }
 
-const handleKeyDown = (e: any, key: string, props: Props) => {
+const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string, props: Props) => {
   switch (key) {
     case 'p':
-      if (e.ctrlKey) {
-        e.preventDefault()
+      if (ctrlKey) {
+        preventDefault()
         props.onUpArrowKeyDown()
       }
       break
     case 'n':
-      if (e.ctrlKey) {
-        e.preventDefault()
+      if (ctrlKey) {
+        preventDefault()
         props.onDownArrowKeyDown()
       }
       break
     case 'ArrowDown':
-      e.preventDefault()
+      preventDefault()
       props.onDownArrowKeyDown()
       break
     case 'ArrowUp':
-      e.preventDefault()
+      preventDefault()
       props.onUpArrowKeyDown()
       break
     case 'Backspace':
@@ -52,7 +53,10 @@ const Input = (props: Props) => (
       maxLength={50}
       onEnterKeyDown={props.onEnterKeyDown}
       onKeyDown={e => {
-        handleKeyDown(e, e.key, props)
+        handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
+      }}
+      onKeyPress={e => {
+        handleKeyDown(noop, false, e.nativeEvent.key, props)
       }}
     />
   </Kb.Box2>

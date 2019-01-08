@@ -5156,9 +5156,9 @@ func (mr *MockDiskBlockCacheMockRecorder) Put(ctx, tlfID, blockID, buf, serverHa
 }
 
 // Delete mocks base method
-func (m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID) (int, int64, error) {
+func (m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID, cacheType DiskBlockCacheType) (int, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, blockIDs)
+	ret := m.ctrl.Call(m, "Delete", ctx, blockIDs, cacheType)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -5166,9 +5166,9 @@ func (m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockDiskBlockCacheMockRecorder) Delete(ctx, blockIDs interface{}) *gomock.Call {
+func (mr *MockDiskBlockCacheMockRecorder) Delete(ctx, blockIDs, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDiskBlockCache)(nil).Delete), ctx, blockIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDiskBlockCache)(nil).Delete), ctx, blockIDs, cacheType)
 }
 
 // UpdateMetadata mocks base method
@@ -5283,6 +5283,34 @@ func (m *MockDiskBlockCache) DeleteUnmarked(ctx context.Context, tlfID tlf.ID, t
 func (mr *MockDiskBlockCacheMockRecorder) DeleteUnmarked(ctx, tlfID, tag, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnmarked", reflect.TypeOf((*MockDiskBlockCache)(nil).DeleteUnmarked), ctx, tlfID, tag, cacheType)
+}
+
+// AddHomeTLF mocks base method
+func (m *MockDiskBlockCache) AddHomeTLF(ctx context.Context, tlfID tlf.ID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddHomeTLF", ctx, tlfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddHomeTLF indicates an expected call of AddHomeTLF
+func (mr *MockDiskBlockCacheMockRecorder) AddHomeTLF(ctx, tlfID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddHomeTLF", reflect.TypeOf((*MockDiskBlockCache)(nil).AddHomeTLF), ctx, tlfID)
+}
+
+// ClearHomeTLFs mocks base method
+func (m *MockDiskBlockCache) ClearHomeTLFs(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearHomeTLFs", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearHomeTLFs indicates an expected call of ClearHomeTLFs
+func (mr *MockDiskBlockCacheMockRecorder) ClearHomeTLFs(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearHomeTLFs", reflect.TypeOf((*MockDiskBlockCache)(nil).ClearHomeTLFs), ctx)
 }
 
 // Shutdown mocks base method
@@ -6594,6 +6622,21 @@ func (mr *MockBlockOpsMockRecorder) Archive(ctx, tlfID, ptrs interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Archive", reflect.TypeOf((*MockBlockOps)(nil).Archive), ctx, tlfID, ptrs)
 }
 
+// GetLiveCount mocks base method
+func (m *MockBlockOps) GetLiveCount(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (map[kbfsblock.ID]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLiveCount", ctx, tlfID, ptrs)
+	ret0, _ := ret[0].(map[kbfsblock.ID]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLiveCount indicates an expected call of GetLiveCount
+func (mr *MockBlockOpsMockRecorder) GetLiveCount(ctx, tlfID, ptrs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLiveCount", reflect.TypeOf((*MockBlockOps)(nil).GetLiveCount), ctx, tlfID, ptrs)
+}
+
 // TogglePrefetcher mocks base method
 func (m *MockBlockOps) TogglePrefetcher(enable bool) <-chan struct{} {
 	m.ctrl.T.Helper()
@@ -7642,6 +7685,21 @@ func (mr *MockBlockServerMockRecorder) ArchiveBlockReferences(ctx, tlfID, contex
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).ArchiveBlockReferences), ctx, tlfID, contexts)
 }
 
+// GetLiveBlockReferences mocks base method
+func (m *MockBlockServer) GetLiveBlockReferences(ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (map[kbfsblock.ID]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLiveBlockReferences", ctx, tlfID, contexts)
+	ret0, _ := ret[0].(map[kbfsblock.ID]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLiveBlockReferences indicates an expected call of GetLiveBlockReferences
+func (mr *MockBlockServerMockRecorder) GetLiveBlockReferences(ctx, tlfID, contexts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLiveBlockReferences", reflect.TypeOf((*MockBlockServer)(nil).GetLiveBlockReferences), ctx, tlfID, contexts)
+}
+
 // IsUnflushed mocks base method
 func (m *MockBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (bool, error) {
 	m.ctrl.T.Helper()
@@ -7835,6 +7893,21 @@ func (m *MockblockServerLocal) ArchiveBlockReferences(ctx context.Context, tlfID
 func (mr *MockblockServerLocalMockRecorder) ArchiveBlockReferences(ctx, tlfID, contexts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveBlockReferences", reflect.TypeOf((*MockblockServerLocal)(nil).ArchiveBlockReferences), ctx, tlfID, contexts)
+}
+
+// GetLiveBlockReferences mocks base method
+func (m *MockblockServerLocal) GetLiveBlockReferences(ctx context.Context, tlfID tlf.ID, contexts kbfsblock.ContextMap) (map[kbfsblock.ID]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLiveBlockReferences", ctx, tlfID, contexts)
+	ret0, _ := ret[0].(map[kbfsblock.ID]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLiveBlockReferences indicates an expected call of GetLiveBlockReferences
+func (mr *MockblockServerLocalMockRecorder) GetLiveBlockReferences(ctx, tlfID, contexts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLiveBlockReferences", reflect.TypeOf((*MockblockServerLocal)(nil).GetLiveBlockReferences), ctx, tlfID, contexts)
 }
 
 // IsUnflushed mocks base method

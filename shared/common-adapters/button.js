@@ -16,7 +16,7 @@ import {
   styleSheetCreate,
 } from '../styles'
 
-export type Props = {
+export type Props = {|
   children?: React.Node,
   onClick?: null | ((event: SyntheticEvent<>) => void),
   onPress?: void,
@@ -42,7 +42,7 @@ export type Props = {
   fullWidth?: boolean,
   backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',
   className?: string,
-}
+|}
 
 const Progress = ({small, white}) => (
   <Box style={styles.progressContainer}>

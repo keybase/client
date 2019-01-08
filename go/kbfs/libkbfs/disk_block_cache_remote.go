@@ -95,8 +95,10 @@ func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheRemote.
-func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
-	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+func (dbcr *DiskBlockCacheRemote) Delete(
+	ctx context.Context, blockIDs []kbfsblock.ID,
+	cacheType DiskBlockCacheType) (
+	numRemoved int, sizeRemoved int64, err error) {
 	numBlocks := len(blockIDs)
 	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Delete %s block(s)",
 		numBlocks)
@@ -176,6 +178,20 @@ func (dbcr *DiskBlockCacheRemote) Mark(
 func (dbcr *DiskBlockCacheRemote) DeleteUnmarked(
 	_ context.Context, _ tlf.ID, _ string, _ DiskBlockCacheType) error {
 	panic("DeleteUnmarked() not implemented in DiskBlockCacheRemote")
+}
+
+// AddHomeTLF implements the DiskBlockCache interface for DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) AddHomeTLF(ctx context.Context,
+	tlfID tlf.ID) error {
+	// Let the local cache care about home TLFs.
+	return nil
+}
+
+// ClearHomeTLFs implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) ClearHomeTLFs(ctx context.Context) error {
+	// Let the local cache care about home TLFs.
+	return nil
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.

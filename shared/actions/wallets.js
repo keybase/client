@@ -644,8 +644,11 @@ const maybeClearNewTxs = (state, action) => {
   const rootTab = I.List(action.payload.path).first()
   // If we're leaving from the Wallets tab, and the Wallets tab route
   // was the main transaction list for an account, clear new txs.
-  // FIXME: The hardcoded routes here are fragile if routes change.
-  if (rootTab !== Constants.rootWalletTab && Constants.isLookingAtWallet(state.routeTree.routeState)) {
+  if (
+    state.routeTree.previousTab === Constants.rootWalletTab &&
+    rootTab !== Constants.rootWalletTab &&
+    Constants.isLookingAtWallet(state.routeTree.routeState)
+  ) {
     const accountID = state.wallets.selectedAccount
     if (accountID !== Types.noAccountID) {
       return WalletsGen.createClearNewPayments({accountID})
@@ -720,6 +723,15 @@ const readLastSentXLM = () => {
         ? null
         : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
     })
+}
+
+const exitFailedPayment = (state, action) => {
+  const accountID = state.wallets.builtPayment.from
+  return [
+    WalletsGen.createAbandonPayment(),
+    WalletsGen.createSelectAccount({accountID, show: true}),
+    WalletsGen.createLoadPayments({accountID}),
+  ]
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
@@ -901,6 +913,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   // Effects of abandoning payments
   yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(WalletsGen.abandonPayment, stopPayment)
+
+  yield* Saga.chainAction<WalletsGen.ExitFailedPaymentPayload>(
+    WalletsGen.exitFailedPayment,
+    exitFailedPayment
+  )
 
   yield* Saga.chainAction<WalletsGen.LoadRequestDetailPayload>(
     WalletsGen.loadRequestDetail,

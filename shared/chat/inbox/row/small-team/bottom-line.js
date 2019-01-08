@@ -211,9 +211,7 @@ const styles = styleSheetCreate({
       lineHeight: 14,
     },
   }),
-  typingSnippet: {
-    fontStyle: 'italic',
-  },
+  typingSnippet: {},
   youAreResetText: platformStyles({
     isElectron: {
       fontSize: 12,
