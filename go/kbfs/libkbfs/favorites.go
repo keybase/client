@@ -12,14 +12,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -146,9 +147,15 @@ type favoritesCacheEncryptedForDisk struct {
 
 func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	// Read the encrypted cache from disk
-	db, err := openVersionedLevelDB(f.log, f.config.StorageRoot(),
-		kbfsFavoritesCacheSubfolder, favoritesDiskCacheStorageVersion,
-		favoritesDiskCacheFilename)
+	var db *levelDb
+	var err error
+	if f.config.IsTestMode() {
+		db, err = openLevelDB(storage.NewMemStorage())
+	} else {
+		db, err = openVersionedLevelDB(f.log, f.config.StorageRoot(),
+			kbfsFavoritesCacheSubfolder, favoritesDiskCacheStorageVersion,
+			favoritesDiskCacheFilename)
+	}
 	if err != nil {
 		return err
 	}
