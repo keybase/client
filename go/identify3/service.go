@@ -17,6 +17,7 @@ func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg ke
 		ForceRemoteCheck: arg.IgnoreCache,
 		ForceDisplay:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI_PROFILE,
+		NoSkipSelf:       true,
 	}
 	mctx = mctx.WithIdentifyUI(ui1)
 	eng := engine.NewResolveThenIdentify2(mctx.G(), &i2arg)
