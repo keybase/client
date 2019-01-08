@@ -35,8 +35,6 @@ const makeRow = (options: MakeRowOptions) => {
           <FilterBigTeamChannel
             key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
-            channelname={options.channelname}
-            teamname={options.teamname}
           />
         )
       case 'small':
@@ -44,8 +42,6 @@ const makeRow = (options: MakeRowOptions) => {
           <FilterSmallTeamChannel
             key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
-            channelname={options.channelname}
-            teamname={options.teamname}
           />
         )
     }
