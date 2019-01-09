@@ -381,27 +381,47 @@ const rootReducer = (
         return state
       }
       return state.withMutations(s => {
-        if (action.payload.conversationIDKey) {
-          const {readMsgID, maxMsgID} = state.metaMap.get(
-            action.payload.conversationIDKey,
+        const conversationIDKey = action.payload.conversationIDKey
+        if (conversationIDKey) {
+          const {readMsgID, maxVisibleMsgID} = state.metaMap.get(
+            conversationIDKey,
             Constants.makeConversationMeta()
           )
           logger.info(
-            `rootReducer: selectConversation: setting orange line: convID: ${
-              action.payload.conversationIDKey
-            } max: ${maxMsgID} read: ${readMsgID}`
+            `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
           )
-          if (maxMsgID > readMsgID) {
-            // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
+          if (maxVisibleMsgID > readMsgID) {
+            // Store the message ID that will display the orange line above it,
+            // which is the first message after the last read message. We can't
+            // just increment `readMsgID` since that msgID might be a
+            // non-visible (edit, delete, reaction...) message so we scan the
+            // ordinals for the appropriate value.
+            const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+            const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
+            const ord = ordinals.find(o => {
+              const message = messageMap.get(o)
+              return message && message.id >= readMsgID + 1
+            })
+            const message = messageMap.get(ord)
+            if (message && message.id) {
+              s.setIn(['orangeLineMap', conversationIDKey], message.id)
+            } else {
+              s.deleteIn(['orangeLineMap', conversationIDKey])
+            }
           } else {
-            // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
-            s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+            // If there aren't any new messages, we don't want to display an
+            // orange line so remove its entry from orangeLineMap
+            s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
-
-        s.set('selectedConversation', action.payload.conversationIDKey)
+        s.set('selectedConversation', conversationIDKey)
       })
+    case Chat2Gen.updateOrangeLine:
+      if (action.payload.messageID > 0) {
+        return state.setIn(['orangeLineMap', action.payload.conversationIDKey], action.payload.messageID)
+      } else {
+        return state.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+      }
     case Chat2Gen.unfurlTogglePrompt:
       const {show, domain} = action.payload
       return state.updateIn(
