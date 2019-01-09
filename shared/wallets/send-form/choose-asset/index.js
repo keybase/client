@@ -1,23 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  ClickableBox,
-  Divider,
-  Icon,
-  iconCastPlatformStyles,
-  MaybePopup,
-  SectionList,
-  Text,
-} from '../../../common-adapters'
-import {
-  borderRadius,
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import Header from '../header'
 
 const unexpandedNumDisplayOptions = 4
@@ -85,15 +69,15 @@ class ChooseAsset extends React.Component<Props, State> {
         )
       case 'expander':
         return (
-          <ClickableBox key={item.key} onClick={item.onClick}>
-            <Box2 direction="horizontal" style={styles.choiceContainer}>
-              <Box2 direction="horizontal" centerChildren={true} style={styles.expanderContainer}>
-                <Text type="BodySmallSemibold" style={styles.expanderText}>
+          <Kb.ClickableBox key={item.key} onClick={item.onClick}>
+            <Kb.Box2 direction="horizontal" style={styles.choiceContainer}>
+              <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.expanderContainer}>
+                <Kb.Text type="BodySmallSemibold" style={styles.expanderText}>
                   {item.text}
-                </Text>
-              </Box2>
-            </Box2>
-          </ClickableBox>
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+          </Kb.ClickableBox>
         )
       default:
         throw new Error(`ChooseAsset: impossible item type encountered: ${item.type}`)
@@ -113,7 +97,7 @@ class ChooseAsset extends React.Component<Props, State> {
       case 'other choices':
         return <SectionHeader key={section.key} title="Other assets" subtitle="" />
       case 'divider':
-        return <Divider key={section.key} />
+        return <Kb.Divider key={section.key} />
     }
     return null
   }
@@ -162,19 +146,20 @@ class ChooseAsset extends React.Component<Props, State> {
           ]),
     ]
     return (
-      <MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
-        <Box2 direction="vertical" style={styles.container}>
+      <Kb.MaybePopup onClose={Styles.isMobile ? undefined : this.props.onBack} style={styles.mobileFlex}>
+        <Kb.Box2 direction="vertical" style={styles.container}>
           <Header onBack={this.props.onBack} whiteBackground={true} />
-          <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-            <SectionList
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+            <Kb.SectionList
               sections={sections}
               renderItem={this._renderItem}
               renderSectionHeader={this._renderSectionHeader}
               contentContainerStyle={styles.sectionList}
+              stickySectionHeadersEnabled={false}
             />
-          </Box2>
-        </Box2>
-      </MaybePopup>
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.MaybePopup>
     )
   }
 }
@@ -184,7 +169,7 @@ type SectionHeaderProps = {
   title: string,
 }
 const SectionHeader = (props: SectionHeaderProps) => (
-  <Box2
+  <Kb.Box2
     direction="vertical"
     fullWidth={true}
     gap="xtiny"
@@ -192,9 +177,9 @@ const SectionHeader = (props: SectionHeaderProps) => (
     gapEnd={true}
     style={styles.sectionHeaderContainer}
   >
-    <Text type="BodySmallSemibold">{props.title}</Text>
-    {!!props.subtitle && <Text type="BodySmall">{props.subtitle}</Text>}
-  </Box2>
+    <Kb.Text type="BodySmallSemibold">{props.title}</Kb.Text>
+    {!!props.subtitle && <Kb.Text type="BodySmall">{props.subtitle}</Kb.Text>}
+  </Kb.Box2>
 )
 
 type DisplayChoiceProps = {
@@ -204,8 +189,12 @@ type DisplayChoiceProps = {
   symbol: string,
 }
 const DisplayChoice = (props: DisplayChoiceProps) => (
-  <ClickableBox hoverColor={globalColors.blue4} onClick={props.onClick}>
-    <Box2
+  <Kb.ClickableBox
+    hoverColor={Styles.globalColors.blue4}
+    onClick={props.onClick}
+    style={styles.displayChoice}
+  >
+    <Kb.Box2
       direction="horizontal"
       style={styles.choiceContainer}
       fullWidth={true}
@@ -213,22 +202,21 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
       gapStart={true}
       gapEnd={true}
     >
-      <Text type="Body" style={props.selected ? styles.blue : undefined}>
+      <Kb.Text type="Body" style={props.selected ? styles.blue : undefined}>
         {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
-        <Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-          {props.currencyCode} ({props.symbol})
-        </Text>
-      </Text>
-      <Box2 direction="horizontal" style={styles.spacer} />
-      {props.selected && (
-        <Icon
-          type="iconfont-check"
-          color={globalColors.blue}
-          style={iconCastPlatformStyles(styles.checkIcon)}
-        />
-      )}
-    </Box2>
-  </ClickableBox>
+        <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
+          {props.currencyCode} ({props.symbol}){' '}
+        </Kb.Text>
+        {props.selected && (
+          <Kb.Icon
+            type="iconfont-check"
+            color={Styles.globalColors.blue}
+            boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
+          />
+        )}
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 
 type OtherChoiceProps = {
@@ -239,11 +227,11 @@ type OtherChoiceProps = {
   selected: boolean,
 }
 const OtherChoice = (props: OtherChoiceProps) => (
-  <ClickableBox
-    hoverColor={!props.disabledExplanation ? globalColors.blue4 : null}
+  <Kb.ClickableBox
+    hoverColor={!props.disabledExplanation ? Styles.globalColors.blue4 : null}
     onClick={!props.disabledExplanation ? props.onClick : null}
   >
-    <Box2
+    <Kb.Box2
       direction="horizontal"
       style={styles.choiceContainer}
       fullWidth={true}
@@ -251,58 +239,66 @@ const OtherChoice = (props: OtherChoiceProps) => (
       gapStart={true}
       gapEnd={true}
     >
-      <Box2 direction="vertical">
-        <Text
+      <Kb.Box2 direction="vertical">
+        <Kb.Text
           type="Body"
-          style={collapseStyles([props.selected && styles.blue, !!props.disabledExplanation && styles.grey])}
+          style={Styles.collapseStyles([
+            props.selected && styles.blue,
+            !!props.disabledExplanation && styles.grey,
+          ])}
         >
-          <Text
+          <Kb.Text
             type="BodyExtrabold"
-            style={collapseStyles([
+            style={Styles.collapseStyles([
               props.selected && styles.blue,
               !!props.disabledExplanation && styles.grey,
             ])}
           >
             {props.currencyCode}
-          </Text>
+          </Kb.Text>
           /{props.issuer}
-        </Text>
+        </Kb.Text>
         {!!props.disabledExplanation && (
-          <Text type="BodySmall" style={styles.grey}>
+          <Kb.Text type="BodySmall" style={styles.grey}>
             {props.disabledExplanation}
-          </Text>
+          </Kb.Text>
         )}
-      </Box2>
-      <Box2 direction="horizontal" style={styles.spacer} />
+      </Kb.Box2>
       {props.selected && (
-        <Icon
+        <Kb.Icon
           type="iconfont-check"
-          color={globalColors.blue}
-          style={iconCastPlatformStyles(styles.checkIcon)}
+          color={Styles.globalColors.blue}
+          style={Kb.iconCastPlatformStyles(styles.checkIcon)}
         />
       )}
-    </Box2>
-  </ClickableBox>
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   blue: {
-    color: globalColors.blue,
+    color: Styles.globalColors.blue,
   },
-  checkIcon: platformStyles({
+  checkIcon: Styles.platformStyles({
     isMobile: {
-      position: 'absolute',
-      right: 16,
-      top: 12,
+      marginLeft: Styles.globalMargins.tiny,
     },
   }),
-  choiceContainer: {
-    alignItems: 'center',
-    height: 40,
-    // needed to get on top of absolutely positioned background color
-    position: 'relative',
-  },
-  container: platformStyles({
+  choiceContainer: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      // needed to get on top of absolutely positioned background color
+      position: 'relative',
+      width: '100%',
+    },
+    isElectron: {
+      height: 40,
+    },
+    isMobile: {
+      minHeight: 56,
+    },
+  }),
+  container: Styles.platformStyles({
     isElectron: {
       height: 525,
       width: 360,
@@ -312,20 +308,23 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
+  displayChoice: {
+    width: '100%',
+  },
   expanderContainer: {
-    backgroundColor: globalColors.black_05,
-    borderRadius,
+    backgroundColor: Styles.globalColors.black_05,
+    borderRadius: Styles.borderRadius,
     height: 22,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
-  expanderText: {color: globalColors.black_50},
+  expanderText: {color: Styles.globalColors.black_50},
   grey: {
-    color: globalColors.black_50,
+    color: Styles.globalColors.black_50,
   },
-  listContainer: platformStyles({
+  listContainer: Styles.platformStyles({
     common: {
-      paddingTop: globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
       maxHeight: 525 - 48,
@@ -334,23 +333,24 @@ const styles = styleSheetCreate({
       flex: 1,
     },
   }),
-  mobileFlex: platformStyles({
-    isMobile: {
-      flex: 1,
-    },
+  mobileFlex: Styles.platformStyles({
+    isMobile: {flex: 1},
   }),
-  sectionHeaderContainer: platformStyles({
+  sectionHeaderContainer: Styles.platformStyles({
     common: {
       alignItems: 'flex-start',
-      backgroundColor: globalColors.white,
       justifyContent: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
     isElectron: {
+      backgroundColor: Styles.globalColors.white,
       // must be uniform height with current SectionList implementation
       // so first doesn't peek out from under the second
       height: 40,
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.blue5,
     },
   }),
   sectionList: {

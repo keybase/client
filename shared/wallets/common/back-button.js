@@ -5,11 +5,16 @@ import * as Styles from '../../styles'
 
 type Props = {
   onBack: () => void,
+  isOnWhiteBackground?: boolean,
 }
 
 const WalletBackButton = (props: Props) =>
   Styles.isMobile ? (
-    <Kb.Text onClick={props.onBack} style={styles.backButton} textStyle={styles.backButtonText} type="Header">
+    <Kb.Text
+      onClick={props.onBack}
+      style={Styles.collapseStyles([styles.backButton, !props.isOnWhiteBackground && styles.whiteText])}
+      type="Header"
+    >
       Cancel
     </Kb.Text>
   ) : (
@@ -17,26 +22,26 @@ const WalletBackButton = (props: Props) =>
       onClick={props.onBack}
       style={styles.backButton}
       iconColor={Styles.globalColors.white}
-      textStyle={styles.backButtonText}
+      textStyle={Styles.collapseStyles([
+        styles.backButtonText,
+        !props.isOnWhiteBackground && styles.whiteText,
+      ])}
     />
   )
 
 const styles = Styles.styleSheetCreate({
   backButton: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
+    common: {position: 'absolute'},
     isElectron: {
       left: Styles.globalMargins.small,
       top: Styles.globalMargins.small,
     },
     isMobile: {
-      color: Styles.globalColors.white,
       left: 12,
       top: 12,
     },
   }),
-  backButtonText: {
+  whiteText: {
     color: Styles.globalColors.white,
   },
 })
