@@ -111,8 +111,6 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 }
 
 func (s *TeamEKBoxStorage) getCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) (cache teamEKBoxCache, found bool, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#getCacheForTeamID: teamID:%v", teamID), func() error { return err })()
-
 	cache, found = s.cache.GetMap(teamID)
 	if found {
 		return cache, found, nil
