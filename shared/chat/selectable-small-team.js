@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from './avatars'
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '../constants/platform'
 
 type Props = {
   backgroundColor: ?string,
@@ -72,12 +72,12 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
-const smallRowHeight = isMobile ? 64 : 56
+export const rowHeight = isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate({
   container: {
     flexShrink: 0,
-    height: smallRowHeight,
+    height: rowHeight,
   },
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,

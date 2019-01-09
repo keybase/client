@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 
 type Props = {
   isLoading: boolean,
@@ -170,11 +170,11 @@ const styles = Styles.styleSheetCreate({
       minHeight: 48,
       position: 'relative',
     },
-    isMobile: {
-      backgroundColor: Styles.globalColors.fastBlank,
-    },
     isElectron: {
       backgroundColor: Styles.globalColors.blueGrey,
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
   filterContainer: Styles.platformStyles({
