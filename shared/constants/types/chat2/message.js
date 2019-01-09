@@ -208,6 +208,7 @@ export type _ChatPaymentInfo = {
   toUsername: string,
   type: 'paymentInfo',
   worth: string,
+  worthAtSendTime: string,
 }
 
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>

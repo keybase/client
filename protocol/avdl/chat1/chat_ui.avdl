@@ -117,6 +117,7 @@ protocol chatUi {
     union { null, stellar1.AccountID } accountID; // "GXXXXXXX..."
     string amountDescription;                     // "1,323.1234567 XLM"
     string worth;                                 // "$123.23"
+    string worthAtSendTime;                       // "$123.23 CLP", amount in current user's display currency if this is a pure XLM tx
     stellar1.BalanceDelta delta;                  // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string note;                                  // secret note
     stellar1.PaymentID paymentID;                 // opaque paymentID

@@ -425,6 +425,7 @@ type UIPaymentInfo struct {
 	AccountID         *stellar1.AccountID    `codec:"accountID,omitempty" json:"accountID,omitempty"`
 	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
 	Worth             string                 `codec:"worth" json:"worth"`
+	WorthAtSendTime   string                 `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
 	Note              string                 `codec:"note" json:"note"`
 	PaymentID         stellar1.PaymentID     `codec:"paymentID" json:"paymentID"`
@@ -447,6 +448,7 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 		})(o.AccountID),
 		AmountDescription: o.AmountDescription,
 		Worth:             o.Worth,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		Delta:             o.Delta.DeepCopy(),
 		Note:              o.Note,
 		PaymentID:         o.PaymentID.DeepCopy(),

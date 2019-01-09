@@ -469,6 +469,10 @@
           "name": "worth"
         },
         {
+          "type": "string",
+          "name": "worthAtSendTime"
+        },
+        {
           "type": "stellar1.BalanceDelta",
           "name": "delta"
         },
