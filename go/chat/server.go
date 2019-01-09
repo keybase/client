@@ -586,19 +586,9 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
-func (h *Server) squashGetThreadNonblockError(err error) bool {
-	switch err {
-	case errConvLockTabDeadlock:
-		// We don't want this error to leak up to the UI, it is really only used to get
-		// GetThreadNonblock to retry whatever operation was queued up, so let's squash it.
-		return true
-	}
-	return false
-}
-
 func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (res *chat1.MessageID) {
-	// dont waste any time trying the server, if we don't have this convo for some reason, then we
+	// don't waste any time trying the server, if we don't have this convo for some reason, then we
 	// don't draw the line
 	conv, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, convID)
 	if err != nil {
@@ -610,6 +600,7 @@ func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID,
 		return nil
 	}
 	for i := len(msgs) - 1; i >= 0; i-- {
+		msg := msgs[i]
 		if utils.IsVisibleChatMessageType(msg.GetMessageType()) && msg.GetMessageID() > readMsgID {
 			res = new(chat1.MessageID)
 			*res = msg.GetMessageID()
