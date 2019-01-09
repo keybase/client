@@ -455,7 +455,8 @@ type FindNextMerkleRootAfterResetArg struct {
 }
 
 type LoadHasRandomPwArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID   int  `codec:"sessionID" json:"sessionID"`
+	ForceRepoll bool `codec:"forceRepoll" json:"forceRepoll"`
 }
 
 type UserInterface interface {
@@ -505,7 +506,7 @@ type UserInterface interface {
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
-	LoadHasRandomPw(context.Context, int) (bool, error)
+	LoadHasRandomPw(context.Context, LoadHasRandomPwArg) (bool, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -883,7 +884,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LoadHasRandomPwArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadHasRandomPw(ctx, typedArgs[0].SessionID)
+					ret, err = i.LoadHasRandomPw(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1044,8 +1045,7 @@ func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg Find
 	return
 }
 
-func (c UserClient) LoadHasRandomPw(ctx context.Context, sessionID int) (res bool, err error) {
-	__arg := LoadHasRandomPwArg{SessionID: sessionID}
+func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res)
 	return
 }

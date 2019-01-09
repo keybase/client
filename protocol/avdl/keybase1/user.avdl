@@ -186,5 +186,5 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
-  boolean loadHasRandomPw(int sessionID);
+  boolean loadHasRandomPw(int sessionID, boolean forceRepoll);
 }

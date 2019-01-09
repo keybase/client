@@ -973,7 +973,7 @@ export type MessageTypes = {|
     outParam: UserSummary2Set,
   |},
   'keybase.1.user.loadHasRandomPw': {|
-    inParam: void,
+    inParam: $ReadOnly<{|forceRepoll: Boolean|}>,
     outParam: Boolean,
   |},
   'keybase.1.user.loadMySettings': {|

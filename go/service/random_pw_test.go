@@ -27,7 +27,17 @@ func TestSignupRandomPWUser(t *testing.T) {
 	require.NoError(t, err)
 
 	userHandler := NewUserHandler(nil, tc.G, nil)
-	ret, err := userHandler.LoadHasRandomPw(context.Background(), 0)
+	ret, err := userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	require.NoError(t, err)
+	require.True(t, ret)
+
+	// Another call to test the caching
+	ret, err = userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	require.NoError(t, err)
+	require.True(t, ret)
+
+	// Another one with ForceRepoll
+	ret, err = userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{ForceRepoll: true})
 	require.NoError(t, err)
 	require.True(t, ret)
 

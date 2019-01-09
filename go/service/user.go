@@ -540,7 +540,31 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
 }
 
-func (h *UserHandler) LoadHasRandomPw(ctx context.Context, sessionID int) (res bool, err error) {
+func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasRandomPwArg) (res bool, err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+	m = m.WithLogTag("HASRPW")
+	defer m.CTraceTimed(fmt.Sprintf("UserHandler#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
+
+	meUID := m.G().ActiveDevice.UID()
+	cacheKey := libkb.DbKey{
+		Typ: libkb.DBHasRandomPW,
+		Key: fmt.Sprintf("%v", meUID),
+	}
+
+	if !arg.ForceRepoll {
+		var cachedValue bool
+		if found, err := m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
+			if found && !cachedValue {
+				m.CDebugf("Returning HasRandomPW=false from KVStore cache")
+				return false, nil
+			}
+			// If it was never cached or user *IS* RandomPW right now, pass through
+			// and call the API.
+		} else {
+			m.CDebugf("Unable to get cached value for HasRandomPW: %v", err)
+		}
+	}
+
 	type hasRandomPWRes struct {
 		libkb.AppStatusEmbed
 		RandomPW bool `json:"random_pw"`
@@ -552,5 +576,22 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, sessionID int) (res b
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
 	}, &ret)
+	if err != nil {
+		return res, err
+	}
+
+	if !ret.RandomPW {
+		// Cache that we are not a RandomPW user, so this RPC never has to call
+		// API endpoint anymore. Once user is not RandomPW, they will never be.
+		// RandomPW state change only goes `true -> false` when a passphrase is
+		// set.
+		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
+			m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
+		} else {
+			m.CDebugf("Unable to add HasRandomPW state to KVStore")
+		}
+	}
+
 	return ret.RandomPW, err
+	//return ret.RandomPW, errors.New("random pw test err")
 }

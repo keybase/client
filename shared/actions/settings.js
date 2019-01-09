@@ -419,7 +419,7 @@ const loadHasRandomPW = state => {
     // Once loaded, do not issue this RPC again. This field can only go true ->
     // false (never the opposite way), and there are notifications set up when
     // this happens.
-    return RPCTypes.userLoadHasRandomPwRpcPromise().then(randomPW =>
+    return RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false}).then(randomPW =>
       SettingsGen.createLoadedHasRandomPw({randomPW})
     )
   }
