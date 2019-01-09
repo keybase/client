@@ -70,7 +70,7 @@ const Header = (props: HeaderProps) =>
         direction="vertical"
         fullWidth={true}
         centerChildren={true}
-        style={{paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small}}
+        style={styles.messageInfoContainer}
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
           <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
@@ -208,6 +208,10 @@ const styles = Styles.styleSheetCreate({
   loadingIndicator: {
     height: 80,
     width: 80,
+  },
+  messageInfoContainer: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   popupContainer: Styles.platformStyles({
     isElectron: {maxWidth: 240, minWidth: 200},

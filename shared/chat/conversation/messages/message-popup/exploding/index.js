@@ -87,10 +87,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
           type={isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
         />
-        <Box2
-          direction="vertical"
-          style={{paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}
-        >
+        <Box2 direction="vertical" style={styleMessageInfoContainer}>
           <Box2 direction="vertical">
             <Text type="BodySmall" style={{color: globalColors.black_75}}>
               EXPLODING MESSAGE
@@ -98,7 +95,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           </Box2>
           <Box2 direction="horizontal">
             <Text type="BodySmall">by</Text>
-            <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+            <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styleUser}>
               <Avatar username={author} size={16} clickToProfile="tracker" />
               <ConnectedUsernames
                 onUsernameClicked="profile"
@@ -186,6 +183,11 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
 
 const oneMinuteInS = 60
 
+const styleMessageInfoContainer = {
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+}
+
 const styleRevokedAt = {
   borderBottomLeftRadius: 3,
   borderBottomRightRadius: 3,
@@ -216,4 +218,7 @@ const styleTimerBox = platformStyles({
   },
 })
 
+const styleUser = {
+  alignItems: 'center',
+}
 export default HOCTimers(ExplodingPopupMenu)
