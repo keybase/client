@@ -106,6 +106,10 @@ helpers.rootLinuxNode(env, {
                 def packagesToTest = [:]
                 if (hasGoChanges) {
                   packagesToTest = getPackagesToTest()
+                } else {
+                  // Ensure that the change target branch has been fetched,
+                  // since Jenkins only does a sparse checkout by default.
+                  fetchChangeTarget()
                 }
                 parallel (
                   check_deps: {
@@ -304,13 +308,19 @@ def getTestDirsWindows() {
   return dirs.tokenize()
 }
 
+def fetchChangeTarget() {
+  if (env.CHANGE_TARGET) {
+    // Load list of packages that changed.
+    sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
+    sh "git fetch origin ${env.CHANGE_TARGET}"
+  }
+}
+
 def getPackagesToTest() {
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET) {
-      // Load list of packages that changed.
-      sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
-      sh "git fetch origin ${env.CHANGE_TARGET}"
+      fetchChangeTarget()
       def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
       def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree ${BASE_COMMIT_HASH} ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
       def diffPackagesAsString = diffPackageList.join(' ')
