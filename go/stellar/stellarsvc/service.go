@@ -122,7 +122,15 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(mctx, arg.SecretKey, arg.MakePrimary, arg.Name)
+	err = stellar.ImportSecretKey(mctx, arg.SecretKey, arg.MakePrimary, arg.Name)
+	if err != nil {
+		return err
+	}
+
+	s.walletState.RefreshBundle(mctx, "ImportSecretKeyLocal")
+	s.walletState.RefreshAll(mctx, "ImportSecretKeyLocal")
+
+	return nil
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -162,7 +170,7 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return isOwn, err
 	}
-	isOwn, _, err = stellar.OwnAccount(mctx, accountID)
+	isOwn, _, err = stellar.OwnAccount(mctx, accountID, s.remoter)
 	return isOwn, err
 }
 

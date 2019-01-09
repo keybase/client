@@ -24,13 +24,15 @@ var ErrAccountNotFound = errors.New("account not found for user")
 type WalletState struct {
 	libkb.Contextified
 	remote.Remoter
-	accounts     map[stellar1.AccountID]*AccountState
-	rates        map[string]rateEntry
-	refreshGroup *singleflight.Group
-	refreshReqs  chan stellar1.AccountID
-	refreshCount int
-	rateGroup    *singleflight.Group
-	shutdownOnce sync.Once
+	secretlessBundle      *stellar1.Bundle
+	secretlessBundleCtime time.Time
+	accounts              map[stellar1.AccountID]*AccountState
+	rates                 map[string]rateEntry
+	refreshGroup          *singleflight.Group
+	refreshReqs           chan stellar1.AccountID
+	refreshCount          int
+	rateGroup             *singleflight.Group
+	shutdownOnce          sync.Once
 	sync.Mutex
 }
 
@@ -124,6 +126,18 @@ func (w *WalletState) Primed() bool {
 	return w.refreshCount > 0
 }
 
+// RefreshBundle refreshes the account bundle.
+func (w *WalletState) RefreshBundle(mctx libkb.MetaContext, reason string) error {
+	_, err := w.refreshGroup.Do("RefreshBundle", func() (interface{}, error) {
+		mctx.CDebugf("RefreshBundle [%s]", reason)
+		w.Lock()
+		w.secretlessBundleCtime = time.Time{}
+		w.Unlock()
+		return w.FetchSecretlessBundle(mctx.Ctx())
+	})
+	return err
+}
+
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {
@@ -135,7 +149,7 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
 	defer mctx.CTraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
-	bundle, err := remote.FetchSecretlessBundle(mctx)
+	bundle, err := w.FetchSecretlessBundle(mctx.Ctx())
 	if err != nil {
 		return err
 	}
@@ -351,6 +365,28 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 	return rate, err
 }
 
+// FetchSecretlessBundle will return a bundle of all the user's account information
+// (without any secrets).  Override of remote.FetchSecretlessBundle.
+func (w *WalletState) FetchSecretlessBundle(ctx context.Context) (*stellar1.Bundle, error) {
+	w.Lock()
+	defer w.Unlock()
+	if w.secretlessBundle != nil && time.Since(w.secretlessBundleCtime) < 24*time.Hour {
+		// use the cached version
+		return w.secretlessBundle, nil
+	}
+
+	// fetch a new bundle
+	mctx := libkb.NewMetaContext(ctx, w.G())
+	bundle, err := remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return nil, err
+	}
+	w.secretlessBundle = bundle
+	w.secretlessBundleCtime = time.Now()
+
+	return w.secretlessBundle, nil
+}
+
 // DumpToLog outputs a summary of WalletState to the debug log.
 func (w *WalletState) DumpToLog(mctx libkb.MetaContext) {
 	mctx.CDebugf(w.String())
@@ -379,6 +415,8 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	}
 
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
+	w.secretlessBundle = nil
+	w.secretlessBundleCtime = time.Time{}
 }
 
 // AccountState holds the current data for a stellar account.

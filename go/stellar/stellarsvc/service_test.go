@@ -422,6 +422,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	}
 	require.Equal(t, "9899.9999900", balances[0].Amount)
 
+	srvRecip.walletState.RefreshAll(tcs[1].MetaContext(), "test")
 	balances, err = srvRecip.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)

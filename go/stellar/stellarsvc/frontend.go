@@ -278,6 +278,7 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return fmt.Errorf("user wallet not created")
 	}
 
+	s.walletState.RefreshBundle(mctx, "AcceptDisclaimer")
 	s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
 
 	return nil
@@ -304,6 +305,7 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
+	s.walletState.RefreshBundle(mctx, "LinkNewWalletAccount")
 	s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
 
 	return accountID, nil
@@ -617,7 +619,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, _, err := stellar.OwnAccount(mctx, arg.From)
+	owns, _, err := stellar.OwnAccount(mctx, arg.From, s.remoter)
 	if err != nil {
 		return res, err
 	}

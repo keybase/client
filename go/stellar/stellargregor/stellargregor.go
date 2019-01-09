@@ -37,6 +37,8 @@ func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, cat
 		return true, h.paymentNotification(mctx, cli, category, item)
 	case stellar1.PushRequestStatus:
 		return true, h.requestStatus(mctx, cli, category, item)
+	case stellar1.PushAccountChange:
+		return true, h.accountChange(mctx, cli, category, item)
 	default:
 		if strings.HasPrefix(category, "stellar.") {
 			return false, fmt.Errorf("unknown handler category: %q", category)
@@ -64,6 +66,15 @@ func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterfac
 	return nil
 }
 
+func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	mctx.CDebugf("%v: %v received", h.Name(), category)
+
+	// XXX do something
+
+	return nil
+}
+
+// paymentStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
 
@@ -75,6 +86,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	return nil
 }
 
+// paymentNotification is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%s: %s received IBM, ignoring it", h.Name(), category)
 
@@ -86,6 +98,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	return nil
 }
 
+// requestStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
 
