@@ -12,13 +12,7 @@ import {
   type PropsWithTimer,
   PopupHeaderText,
 } from '../../../../../common-adapters/'
-import {
-  collapseStyles,
-  isMobile,
-  platformStyles,
-  Styles,
-  type StylesCrossPlatform,
-} from '../../../../../styles'
+import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
@@ -36,7 +30,7 @@ type Props = {
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   position: Position,
-  style?: StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
@@ -84,7 +78,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
       <Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
         <Icon
           style={styles.bombIllustration}
-          type={isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
+          type={Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
         />
         <Box2 direction="vertical" style={styles.messageInfoContainer}>
           <Box2 direction="vertical">
@@ -131,7 +125,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           fullWidth={true}
           gapEnd={true}
           gapStart={true}
-          style={collapseStyles([
+          style={Styles.collapseStyles([
             styles.timerBox,
             {
               backgroundColor:
@@ -147,7 +141,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             <Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
               <Icon
                 type="iconfont-timer"
-                fontSize={isMobile ? 22 : 16}
+                fontSize={Styles.isMobile ? 22 : 16}
                 color={Styles.globalColors.white_40}
               />
               <Text style={{alignSelf: 'center', color: Styles.globalColors.white}} type="BodySemibold">
@@ -197,7 +191,7 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
-  popupContainer: platformStyles({
+  popupContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
     },
@@ -214,7 +208,7 @@ const styles = Styles.styleSheetCreate({
     minHeight: 40,
     width: '100%',
   },
-  timerBox: platformStyles({
+  timerBox: Styles.platformStyles({
     common: {
       alignItems: 'center',
       justifyContent: 'center',
