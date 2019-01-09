@@ -609,7 +609,7 @@ func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID,
 	if !conv.Conv.IsUnread() {
 		return nil
 	}
-	for _, msg := range msgs {
+	for i := len(msgs) - 1; i >= 0; i-- {
 		if utils.IsVisibleChatMessageType(msg.GetMessageType()) && msg.GetMessageID() > readMsgID {
 			res = new(chat1.MessageID)
 			*res = msg.GetMessageID()
