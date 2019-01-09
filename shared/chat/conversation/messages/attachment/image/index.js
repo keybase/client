@@ -69,7 +69,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <React.Fragment>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ClickableBox
           style={styles.imageContainer}
           onClick={this._onClick}
@@ -145,14 +145,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     style={Kb.iconCastPlatformStyles(styles.playButton)}
                   />
                 )}
-                {this.props.videoDuration.length > 0 &&
-                  this.state.loaded && (
-                    <Kb.Box style={styles.durationContainer}>
-                      <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                        {this.props.videoDuration}
-                      </Kb.Text>
-                    </Kb.Box>
-                  )}
+                {this.props.videoDuration.length > 0 && this.state.loaded && (
+                  <Kb.Box style={styles.durationContainer}>
+                    <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                      {this.props.videoDuration}
+                    </Kb.Text>
+                  </Kb.Box>
+                )}
                 {!!this.props.arrowColor && (
                   <Kb.Box style={styles.downloadedIconWrapper}>
                     <Kb.Icon
@@ -188,7 +187,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             Show in {Styles.fileUIName}
           </Kb.Text>
         )}
-      </React.Fragment>
+      </Kb.Box2>
     )
   }
 }
