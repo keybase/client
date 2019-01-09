@@ -23,7 +23,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
       <Box style={{...stylesTab, ...this.props.style}}>
         <Text
           type="BodySmallSemibold"
-          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_40}}
+          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_50}}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>

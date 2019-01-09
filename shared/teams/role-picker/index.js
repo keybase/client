@@ -78,7 +78,7 @@ const makeRoleOption = (
           {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
         </Text>
       </Box>
-      <Text style={{color: selected === role ? globalColors.white : globalColors.black_40}} type="BodySmall">
+      <Text style={{color: selected === role ? globalColors.white : globalColors.black_50}} type="BodySmall">
         {role && roleDescMap[role]}
       </Text>
     </Box>
@@ -246,7 +246,7 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
   },
   headerTitle: {
-    color: globalColors.black_40,
+    color: globalColors.black_50,
   },
   promptBox: {
     margin: globalMargins.tiny,

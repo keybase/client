@@ -274,12 +274,12 @@ func kbfsLibdokanFindFilesImpl(
 		fdata.nFileSizeHigh = C.DWORD(ns.FileSize >> 32)
 		fdata.nFileSizeLow = C.DWORD(ns.FileSize)
 		fdata.dwReserved0 = C.DWORD(ns.ReparsePointTag)
-		stringToUtf16Buffer(ns.Name,
-			C.LPWSTR(unsafe.Pointer(&fdata.cFileName)),
+		stringToUtf16BufferPtr(ns.Name,
+			unsafe.Pointer(&fdata.cFileName),
 			C.DWORD(C.MAX_PATH))
 		if ns.ShortName != "" {
-			stringToUtf16Buffer(ns.ShortName,
-				C.LPWSTR(unsafe.Pointer(&fdata.cFileName)),
+			stringToUtf16BufferPtr(ns.ShortName,
+				unsafe.Pointer(&fdata.cFileName),
 				C.DWORD(14))
 		}
 
@@ -758,18 +758,21 @@ func lpcwstrToString(ptr C.LPCWSTR) string {
 	for tmp := ptr; *tmp != 0; tmp = (C.LPCWSTR)(unsafe.Pointer((uintptr(unsafe.Pointer(tmp)) + 2))) {
 		len++
 	}
-	raw := ptrUcs2Slice(ptr, len)
+	raw := ptrUcs2Slice(unsafe.Pointer(ptr), len)
 	return string(utf16.Decode(raw))
 }
 
 // stringToUtf16Buffer pokes a string into a Windows wide string buffer.
 // On overflow does not poke anything and returns false.
 func stringToUtf16Buffer(s string, ptr C.LPWSTR, blenUcs2 C.DWORD) bool {
+	return stringToUtf16BufferPtr(s, unsafe.Pointer(ptr), blenUcs2)
+}
+func stringToUtf16BufferPtr(s string, ptr unsafe.Pointer, blenUcs2 C.DWORD) bool {
 	if ptr == nil || blenUcs2 == 0 {
 		return false
 	}
 	src := utf16.Encode([]rune(s))
-	tgt := ptrUcs2Slice(C.LPCWSTR(unsafe.Pointer(ptr)), int(blenUcs2))
+	tgt := ptrUcs2Slice(ptr, int(blenUcs2))
 	if len(src)+1 >= len(tgt) {
 		tgt[0] = 0
 		return false
@@ -788,9 +791,9 @@ func stringToUtf16Ptr(s string) unsafe.Pointer {
 
 // ptrUcs2Slice takes a C Windows wide string and length in UCS2
 // and returns it aliased as a uint16 slice.
-func ptrUcs2Slice(ptr C.LPCWSTR, lenUcs2 int) []uint16 {
+func ptrUcs2Slice(ptr unsafe.Pointer, lenUcs2 int) []uint16 {
 	return *(*[]uint16)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(ptr)),
+		Data: uintptr(ptr),
 		Len:  lenUcs2,
 		Cap:  lenUcs2}))
 }

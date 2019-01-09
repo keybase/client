@@ -22,7 +22,7 @@ const Downloads = (props: DownloadsProps) =>
         {props.thereAreMore ? (
           <WithTooltip text="Open Downloads folder">
             <ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
-              <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_40} />
+              <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_50} />
             </ClickableBox>
           </WithTooltip>
         ) : (
@@ -33,7 +33,7 @@ const Downloads = (props: DownloadsProps) =>
             <Icon
               type="iconfont-folder-downloads"
               hint="Open downloads folder"
-              color={globalColors.black_40}
+              color={globalColors.black_50}
             />
           </ClickableBox>
         </WithTooltip>

@@ -11,13 +11,13 @@ type Props = {
 
 const ProfileResetNotice = ({username, onOpenOlderConversation}: Props) => (
   <UserNotice username={username} bgColor={globalColors.blue4}>
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_50}}>
       {username} reset their profile
     </Text>
     <Text
       type="BodySmallPrimaryLink"
       backgroundMode="Announcements"
-      style={{color: globalColors.black_60}}
+      style={{color: globalColors.black_50}}
       onClick={onOpenOlderConversation}
     >
       View older conversation

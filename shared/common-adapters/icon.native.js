@@ -27,7 +27,7 @@ const styles = NativeStyleSheet.create(fontSizes)
 const Text = Styles.styled(NativeText)(
   // static styles
   {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     fontFamily: 'kb',
   },
   // dynamic styles. check for undefined and send null
