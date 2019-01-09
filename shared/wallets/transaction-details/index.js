@@ -369,7 +369,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             />
           )}
           {props.status === 'error' && (
-            <Kb.Text type='BodySmallError' selectable={true}>
+            <Kb.Text type="BodySmallError" selectable={true}>
               {props.statusDetail}
             </Kb.Text>
           )}
@@ -422,6 +422,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
 class LoadTransactionDetails extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
+  }
+  componentDidUpdate(prevProps: Props) {
+    // An erased transaction ID likely means the payment was updated,
+    // which means details need to be retrieved again
+    if (
+      (!this.props.transactionID || !this.props.senderAccountID) &&
+      prevProps.transactionID &&
+      prevProps.senderAccountID &&
+      !this.props.loading
+    ) {
+      this.props.onLoadPaymentDetail()
+    }
   }
   render() {
     if (this.props.loading) {
