@@ -14,7 +14,6 @@ const People = (props: Props) => (
       {...props}
       styleRowContainer={{left: 80}}
       styleSearchContainer={{minHeight: 24, width: 240}}
-      styleSearchText={{fontSize: 13}}
     />
     <PeoplePageList {...props} />
   </ScrollView>

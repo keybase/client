@@ -48,9 +48,7 @@ const styles = styleSheetCreate({
   searchRow: {
     left: 0,
   },
-  searchText: {
-    fontSize: 16,
-  },
+  searchText: {},
 })
 
 export default People
