@@ -79,35 +79,12 @@ const spawnBuildPayment = (state, action) => {
 const openSendRequestForm = (state, action) =>
   state.wallets.acceptedDisclaimer
     ? [
-        action.payload.isRequest
-          ? WalletsGen.createClearBuiltRequest()
-          : WalletsGen.createClearBuiltPayment(),
-        WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-        WalletsGen.createSetBuildingCurrency({
-          currency:
-            action.payload.currency ||
-            (state.wallets.lastSentXLM && 'XLM') ||
-            (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
-            'XLM',
-        }),
         WalletsGen.createLoadDisplayCurrency({
           // in case from account differs
           accountID: action.payload.from || Types.noAccountID,
           setBuildingCurrency: !action.payload.currency,
         }),
         WalletsGen.createLoadDisplayCurrencies(),
-        WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
-        WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
-        WalletsGen.createSetBuildingPublicMemo({
-          publicMemo: action.payload.publicMemo || new HiddenString(''),
-        }),
-        WalletsGen.createSetBuildingRecipientType({
-          recipientType: action.payload.recipientType || 'keybaseUser',
-        }),
-        WalletsGen.createSetBuildingSecretNote({
-          secretNote: action.payload.secretNote || new HiddenString(''),
-        }),
-        WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
         RouteTreeGen.createNavigateAppend({
           path: [Constants.sendRequestFormRouteKey],
         }),
@@ -196,9 +173,10 @@ const requestPayment = state =>
   )
 
 const startPayment = () =>
-  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
-    WalletsGen.createBuildingPaymentIDReceived({bid})
-  )
+  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
+    WalletsGen.createBuildingPaymentIDReceived({bid}),
+    WalletsGen.createBuildPayment(),
+  ])
 
 const reviewPayment = state =>
   RPCStellarTypes.localReviewPaymentLocalRpcPromise({
