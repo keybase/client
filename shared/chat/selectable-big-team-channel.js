@@ -1,9 +1,9 @@
 // @flow
 import React, {PureComponent} from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {TeamAvatar} from './avatars'
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '../constants/platform'
 
 type Props = {
   isSelected: boolean,
@@ -69,7 +69,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
   }
 }
 
-const smallRowHeight = isMobile ? 64 : 56
+export const rowHeight = isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate({
   channelname: Styles.platformStyles({
@@ -84,7 +84,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
-    height: smallRowHeight,
+    height: rowHeight,
     paddingRight: Styles.globalMargins.tiny,
     width: '100%',
   },

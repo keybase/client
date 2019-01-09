@@ -2,7 +2,7 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
-import SelectableSmallTeam from '../../../common/selectable-small-team-container'
+import SelectableSmallTeam from '../../../selectable-small-team-container'
 import {namedConnect} from '../../../../util/container'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}

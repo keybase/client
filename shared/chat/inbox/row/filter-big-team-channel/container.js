@@ -1,5 +1,5 @@
 // @flow
-import SelectableBigTeamChannel from '../../../common/selectable-big-team-channel-container'
+import SelectableBigTeamChannel from '../../../selectable-big-team-channel-container'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'

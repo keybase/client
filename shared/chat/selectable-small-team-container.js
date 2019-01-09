@@ -1,8 +1,8 @@
 // @flow
-import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
+import * as Constants from '../constants/chat2'
+import * as Types from '../constants/types/chat2'
 import SelectableSmallTeam from './selectable-small-team'
-import {namedConnect} from '../../util/container'
+import {namedConnect} from '../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
