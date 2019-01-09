@@ -302,9 +302,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     let explodedBy = null
     switch (message.type) {
       case 'text':
-        exploding = true // message.exploding
-        exploded = false // message.exploded
-        explodedBy = null // message.explodedBy
+        exploding = message.exploding
+        exploded = message.exploded
+        explodedBy = message.explodedBy
         child = <TextMessage key="text" message={message} />
         break
       case 'attachment':
