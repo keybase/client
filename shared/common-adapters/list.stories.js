@@ -8,7 +8,6 @@ import * as Styles from '../styles'
 
 const load = () =>
   Sb.storiesOf('Common/List2', module)
-    .addDecorator(Sb.scrollViewDecorator)
     .add('fixed - small', () => (
       <Box style={styles.listContainer}>
         <List2
