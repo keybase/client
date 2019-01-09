@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -426,7 +425,7 @@ func (c *sendOptions) Check() error {
 			return ErrInvalidAccountID
 		}
 	}
-	if len(c.Message) > msgchecker.PaymentTextMaxLength {
+	if len(c.Message) > libkb.MaxStellarPaymentNoteLength {
 		return ErrMessageTooLong
 	}
 
