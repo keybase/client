@@ -206,11 +206,14 @@ const requestPayment = state =>
     })
   )
 
+// buildPaymentWaitingKey because this must happen before buildPayment can be called
 const startPayment = () =>
-  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
-    WalletsGen.createBuildingPaymentIDReceived({bid}),
-    WalletsGen.createBuildPayment(), // ensure we call buildPayment once with the ID
-  ])
+  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise(undefined, Constants.buildPaymentWaitingKey).then(
+    bid => [
+      WalletsGen.createBuildingPaymentIDReceived({bid}),
+      WalletsGen.createBuildPayment(), // ensure we call buildPayment once with the ID
+    ]
+  )
 
 const reviewPayment = state =>
   RPCStellarTypes.localReviewPaymentLocalRpcPromise({
