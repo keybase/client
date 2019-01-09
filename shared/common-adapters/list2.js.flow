@@ -2,6 +2,19 @@
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 
+export type VariableItemHeight<Item> = {
+  getItemLayout: (index: number, item: Item) => ({|
+    height: number,
+    offset: number,
+  |}),
+  type: 'variable',
+}
+
+export type FixedHeight = {
+  height: number,
+  type: 'fixed',
+}
+
 export type Props<Item> = {
   style?: StylesCrossPlatform,
 
@@ -10,7 +23,7 @@ export type Props<Item> = {
 
   items: Array<Item>,
   renderItem: (index: number, item: Item) => React.Node,
-  itemHeight: number | (index: number, item: Item) => number,
+  itemHeight: VariableItemHeight<Item> | FixedHeight,
   estimatedItemHeight?: number,
 
   selectedIndex?: number, // TODO 

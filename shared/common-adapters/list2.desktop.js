@@ -1,11 +1,11 @@
 // @flow
 import React, {PureComponent} from 'react'
+import * as Flow from '../util/flow'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import * as Styles from '../styles'
 import {FixedSizeList, VariableSizeList} from 'react-window'
 import type {Props} from './list2'
 
-class List2 extends PureComponent<Props<any>, void> {
+class List2<T> extends PureComponent<Props<T>, void> {
   _keyExtractor = index => {
     const item = this.props.items[index]
     if (this.props.indexAsKey || !item) {
@@ -16,29 +16,27 @@ class List2 extends PureComponent<Props<any>, void> {
     return item[keyProp]
   }
 
-  _fixed = ({height, width}) => (
+  _fixed = ({height, width, itemHeight}) => (
     <FixedSizeList
-      style={Styles.collapseStyles([styles.list, this.props.style])}
+      style={this.props.style}
       height={height}
       width={width}
       itemCount={this.props.items.length}
       itemKey={this._keyExtractor}
-      itemSize={this.props.itemHeight}
+      itemSize={itemHeight}
     >
       {({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>}
     </FixedSizeList>
   )
 
-  // $FlowIssue doesn't know itemHeight can't be number here -- we only call this when it's a function.
-  _variableItemSize = index => this.props.itemHeight(index, this.props.items[index])
-  _variable = ({height, width}) => (
+  _variable = ({height, width, getItemLayout}) => (
     <VariableSizeList
       style={this.props.style}
       height={height}
       width={width}
       itemCount={this.props.items.length}
       itemKey={this._keyExtractor}
-      itemSize={this._variableItemSize}
+      itemSize={index => getItemLayout(index, this.props.items[index]).height}
       estimatedItemSize={this.props.estimatedItemHeight}
     >
       {({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>}
@@ -46,14 +44,24 @@ class List2 extends PureComponent<Props<any>, void> {
   )
 
   render() {
-    return typeof this.props.itemHeight === 'number' ? (
-      <AutoSizer>{this._fixed}</AutoSizer>
-    ) : (
-      <AutoSizer>{this._variable}</AutoSizer>
+    return (
+      <AutoSizer>
+        {({height, width}) => {
+          switch (this.props.itemHeight.type) {
+            case 'fixed':
+              return this._fixed({height, itemHeight: this.props.itemHeight.height, width})
+            case 'variable':
+              return this._variable({getItemLayout: this.props.itemHeight.getItemLayout, height, width})
+            default:
+              Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(
+                this.props.itemHeight.type
+              )
+              return null
+          }
+        }}
+      </AutoSizer>
     )
   }
 }
-
-const styles = Styles.styleSheetCreate({})
 
 export default List2

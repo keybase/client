@@ -14,7 +14,7 @@ const load = () =>
           items={['a', 'b', 'c', 'd', 'e']}
           bounces={true}
           indexAsKey={true}
-          itemHeight={32}
+          itemHeight={{height: 32, type: 'fixed'}}
           renderItem={(index, item) => (
             <Box2 direction="horizontal" style={styles.listItem} centerChildren={true} fullWidth={true}>
               <Text type="Body">{item}</Text>
@@ -29,7 +29,7 @@ const load = () =>
           items={['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']}
           bounces={true}
           indexAsKey={true}
-          itemHeight={32}
+          itemHeight={{height: 32, type: 'fixed'}}
           renderItem={(index, item) => (
             <Box2 direction="horizontal" style={styles.listItem} centerChildren={true} fullWidth={true}>
               <Text type="Body">{item}</Text>
@@ -44,7 +44,13 @@ const load = () =>
           items={['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']}
           bounces={true}
           indexAsKey={true}
-          itemHeight={index => (index % 2 === 0 ? 32 : 64)}
+          itemHeight={{
+            getItemLayout: index => ({
+              height: index % 2 === 0 ? 32 : 64,
+              offset: Math.floor(index / 2) * (32 + 64) + (index % 2) * 32,
+            }),
+            type: 'variable',
+          }}
           renderItem={(index, item) => (
             <Box2
               direction="horizontal"
