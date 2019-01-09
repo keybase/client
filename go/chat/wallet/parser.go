@@ -31,13 +31,17 @@ type ChatTxCandidate struct {
 }
 
 func FindChatTxCandidates(xs string) []ChatTxCandidate {
-	// A string that does not appear in the candidate regex so we don't get false positives from concatenations.
+	// A string that does not appear in the candidate regex so we don't get
+	// false positives from concatenations.
 	replaced := replaceQuotedSubstrings(xs)
 
 	allRawIndices := txPattern.FindAllStringSubmatchIndex(replaced, maxTxsPerMessage)
 	matches := make([]ChatTxCandidate, 0, len(allRawIndices))
 	for _, rawIndices := range allRawIndices {
 		amount := xs[rawIndices[2]:rawIndices[3]]
+		if amount == "0" {
+			continue
+		}
 		currencyCode := strings.ToUpper(xs[rawIndices[4]:rawIndices[5]])
 		var username, atSign string
 		endIndex := rawIndices[5]
