@@ -517,12 +517,14 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       marginTop: -12,
+      paddingBottom: 3,
       paddingLeft:
         // Space for below the avatar
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: 3,
     },
   }),
   edited: {color: Styles.globalColors.black_20},
