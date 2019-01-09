@@ -282,7 +282,14 @@ const rules = {
     },
     order: SimpleMarkdown.defaultRules.newline.order + 0.5,
     parse: function(capture, parse, state) {
-      return {afterProtocol: capture[3], protocol: capture[2] || '', spaceInFront: capture[1]}
+      const ret = {
+        afterProtocol: capture[3],
+        content: undefined,
+        protocol: capture[2] || '',
+        spaceInFront: capture[1],
+      }
+      ret.content = ret.protocol + ret.afterProtocol
+      return ret
     },
   },
   mailto: {
