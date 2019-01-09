@@ -43,6 +43,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           })
         : state
     case WalletsGen.openSendRequestForm:
+      if (!state.acceptedDisclaimer) {
+        return state
+      }
       const initialBuilding = Constants.makeBuilding()
       return state.merge({
         building: initialBuilding.merge({

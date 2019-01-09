@@ -172,11 +172,13 @@ const requestPayment = state =>
     })
   )
 
-const startPayment = () =>
-  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
-    WalletsGen.createBuildingPaymentIDReceived({bid}),
-    WalletsGen.createBuildPayment(),
-  ])
+const startPayment = state =>
+  state.wallets.acceptedDisclaimer
+    ? RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
+        WalletsGen.createBuildingPaymentIDReceived({bid}),
+        WalletsGen.createBuildPayment(),
+      ])
+    : null
 
 const reviewPayment = state =>
   RPCStellarTypes.localReviewPaymentLocalRpcPromise({
