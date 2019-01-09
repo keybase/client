@@ -18,7 +18,7 @@ import (
 )
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfoUntrusted) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfo) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
@@ -99,7 +99,7 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 }
 
 func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info types.NameInfoUntrusted, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info types.NameInfo, err error) {
 
 	if lquery == nil {
 		return nil, info, nil
@@ -110,7 +110,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		var err error
 		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
 			lquery.Name.MembersType)
-		info, err = CreateNameInfoSource(ctx, b.G(), lquery.Name.MembersType).LookupIDUntrusted(ctx, tlfName,
+		info, err = CreateNameInfoSource(ctx, b.G(), lquery.Name.MembersType).LookupID(ctx, tlfName,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			b.Debug(ctx, "GetInboxQueryLocalToRemote: failed: %s", err)
@@ -211,11 +211,11 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
-	lquery *chat1.GetInboxLocalQuery) (res types.NameInfoUntrusted, err error) {
+	lquery *chat1.GetInboxLocalQuery) (res types.NameInfo, err error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
 		return res, errors.New("invalid name query")
 	}
-	return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupIDUntrusted(ctx, lquery.Name.Name,
+	return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
 		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
@@ -449,8 +449,8 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 	}
 }
 
-func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
-	p *chat1.Pagination) (types.Inbox, error) {
+func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
+	query *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, error) {
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
@@ -481,20 +481,27 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, err
 	}
 
-	for index, conv := range ib.Inbox.Full().Conversations {
+	bgEnqueued := 0
+	for _, conv := range ib.Inbox.Full().Conversations {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
 		}
-		// Queue all these convs up to be loaded by the background loader
-		// Only load first 100 so we don't get the conv loader too backed up
-		if index < 100 {
+		if query != nil && query.SkipBgLoads {
+			continue
+		}
+		// Queue all these convs up to be loaded by the background loader Only
+		// load first 100 non KBFS convs so we don't get the conv loader too
+		// backed up
+		if bgEnqueued < 100 &&
+			conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}
+			bgEnqueued++
 		}
 	}
 
@@ -601,7 +608,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 	defer func() {
 		if ferr != nil {
 			// Only do this aggressive clear if the error we get is not some kind of network error
-			if IsOfflineError(ferr) == OfflineErrorKindOnline {
+			if ferr != context.Canceled && IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
 				s.createInbox().Clear(ctx, uid)
 			} else {

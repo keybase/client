@@ -95,26 +95,25 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return ret, nil
 }
 
-func (u *UIRouter) getIdentify3UIClient(m libkb.MetaContext) (keybase1.Identify3UiClient, error) {
+func (u *UIRouter) GetIdentify3UI(m libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
 	x, _ := u.getUI(libkb.Identify3UIKind)
 	if x == nil {
-		return keybase1.Identify3UiClient{}, nil
+		return nil, nil
 	}
 	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
 	id3cli := keybase1.Identify3UiClient{Cli: cli}
 	return id3cli, nil
 }
 
-func (u *UIRouter) GetIdentify3UI(m libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
-	return u.getIdentify3UIClient(m)
-}
-
-func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext, id keybase1.Identify3GUIID) (libkb.IdentifyUI, error) {
-	id3cli, err := u.getIdentify3UIClient(m)
+func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI, error) {
+	id3i, err := u.GetIdentify3UI(m)
 	if err != nil {
 		return nil, err
 	}
-	return identify3.NewUIAdapter(m, id3cli)
+	if id3i == nil {
+		return nil, nil
+	}
+	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3i)
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

@@ -1,6 +1,6 @@
 // @flow
 import Footer from '.'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {namedConnect} from '../../../util/container'
@@ -15,7 +15,7 @@ const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
   const isReady = isRequest
     ? state.wallets.builtRequest.readyToRequest
-    : state.wallets.builtPayment.readyToSend
+    : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
   return {
     calculating: !!state.wallets.building.amount,
@@ -30,17 +30,20 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickRequest: () => {
+    dispatch(WalletsGen.createBuildPayment())
     dispatch(WalletsGen.createRequestPayment())
   },
   onClickSend: () => {
-    dispatch(WalletsGen.createBuildPayment())
+    dispatch(WalletsGen.createReviewPayment())
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {},
-          selected: Constants.confirmFormRouteKey,
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: Constants.confirmFormRouteKey,
+          },
+        ],
+      })
     )
   },
 })

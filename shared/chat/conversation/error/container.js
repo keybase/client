@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {connect} from '../../../util/container'
 import Error from '.'
 
@@ -14,7 +14,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(Route.navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

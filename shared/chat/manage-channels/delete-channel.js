@@ -101,7 +101,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.large,
     },
   }),
-  headerTextBottom: {color: Styles.globalColors.black_40, textAlign: 'center'},
+  headerTextBottom: {color: Styles.globalColors.black_50, textAlign: 'center'},
   headerTextTop: {color: Styles.globalColors.black, textAlign: 'center'},
   menuContainer: {width: 196},
   trashIcon: {height: 14, marginRight: Styles.globalMargins.tiny},

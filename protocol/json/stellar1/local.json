@@ -165,7 +165,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "worthAtSendTime"
         },
         {
           "type": "string",
@@ -328,7 +328,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "worthAtSendTime"
         },
         {
           "type": "string",
@@ -1317,6 +1317,10 @@
       "request": [
         {
           "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "reviewID",
           "type": "int"
         },
         {

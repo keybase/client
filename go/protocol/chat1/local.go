@@ -4611,6 +4611,7 @@ type GenerateOutboxIDArg struct {
 }
 
 type PostLocalNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
@@ -4757,29 +4758,10 @@ type PostFileAttachmentLocalArg struct {
 	Arg       PostFileAttachmentArg `codec:"arg" json:"arg"`
 }
 
-type PostFileAttachmentMessageLocalNonblockArg struct {
-	SessionID         int                          `codec:"sessionID" json:"sessionID"`
-	ConvID            ConversationID               `codec:"convID" json:"convID"`
-	TlfName           string                       `codec:"tlfName" json:"tlfName"`
-	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	Filename          string                       `codec:"filename" json:"filename"`
-	Title             string                       `codec:"title" json:"title"`
-	Metadata          []byte                       `codec:"metadata" json:"metadata"`
-	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
-type PostFileAttachmentUploadLocalNonblockArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConvID           ConversationID               `codec:"convID" json:"convID"`
-	OutboxID         OutboxID                     `codec:"outboxID" json:"outboxID"`
-	Filename         string                       `codec:"filename" json:"filename"`
-	Title            string                       `codec:"title" json:"title"`
-	Metadata         []byte                       `codec:"metadata" json:"metadata"`
-	CallerPreview    *MakePreviewRes              `codec:"callerPreview,omitempty" json:"callerPreview,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+type PostFileAttachmentLocalNonblockArg struct {
+	SessionID  int                   `codec:"sessionID" json:"sessionID"`
+	Arg        PostFileAttachmentArg `codec:"arg" json:"arg"`
+	ClientPrev MessageID             `codec:"clientPrev" json:"clientPrev"`
 }
 
 type GetNextAttachmentMessageLocalArg struct {
@@ -5001,8 +4983,7 @@ type LocalInterface interface {
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
-	PostFileAttachmentMessageLocalNonblock(context.Context, PostFileAttachmentMessageLocalNonblockArg) (PostLocalNonblockRes, error)
-	PostFileAttachmentUploadLocalNonblock(context.Context, PostFileAttachmentUploadLocalNonblockArg) error
+	PostFileAttachmentLocalNonblock(context.Context, PostFileAttachmentLocalNonblockArg) (PostLocalNonblockRes, error)
 	GetNextAttachmentMessageLocal(context.Context, GetNextAttachmentMessageLocalArg) (GetNextAttachmentMessageLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
@@ -5428,33 +5409,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"postFileAttachmentMessageLocalNonblock": {
+			"postFileAttachmentLocalNonblock": {
 				MakeArg: func() interface{} {
-					var ret [1]PostFileAttachmentMessageLocalNonblockArg
+					var ret [1]PostFileAttachmentLocalNonblockArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PostFileAttachmentMessageLocalNonblockArg)
+					typedArgs, ok := args.(*[1]PostFileAttachmentLocalNonblockArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]PostFileAttachmentMessageLocalNonblockArg)(nil), args)
+						err = rpc.NewTypeError((*[1]PostFileAttachmentLocalNonblockArg)(nil), args)
 						return
 					}
-					ret, err = i.PostFileAttachmentMessageLocalNonblock(ctx, typedArgs[0])
-					return
-				},
-			},
-			"postFileAttachmentUploadLocalNonblock": {
-				MakeArg: func() interface{} {
-					var ret [1]PostFileAttachmentUploadLocalNonblockArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PostFileAttachmentUploadLocalNonblockArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]PostFileAttachmentUploadLocalNonblockArg)(nil), args)
-						return
-					}
-					err = i.PostFileAttachmentUploadLocalNonblock(ctx, typedArgs[0])
+					ret, err = i.PostFileAttachmentLocalNonblock(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6093,13 +6059,8 @@ func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFile
 	return
 }
 
-func (c LocalClient) PostFileAttachmentMessageLocalNonblock(ctx context.Context, __arg PostFileAttachmentMessageLocalNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentMessageLocalNonblock", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocalClient) PostFileAttachmentUploadLocalNonblock(ctx context.Context, __arg PostFileAttachmentUploadLocalNonblockArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentUploadLocalNonblock", []interface{}{__arg}, nil)
+func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg PostFileAttachmentLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res)
 	return
 }
 

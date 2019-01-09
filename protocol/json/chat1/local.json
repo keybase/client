@@ -2943,6 +2943,10 @@
     "postLocalNonblock": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "conversationID",
           "type": "ConversationID"
         },
@@ -3434,100 +3438,22 @@
       ],
       "response": "PostLocalRes"
     },
-    "postFileAttachmentMessageLocalNonblock": {
+    "postFileAttachmentLocalNonblock": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "visibility",
-          "type": "keybase1.TLFVisibility"
-        },
-        {
-          "name": "outboxID",
-          "type": [
-            null,
-            "OutboxID"
-          ]
+          "name": "arg",
+          "type": "PostFileAttachmentArg"
         },
         {
           "name": "clientPrev",
           "type": "MessageID"
-        },
-        {
-          "name": "filename",
-          "type": "string"
-        },
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "bytes"
-        },
-        {
-          "name": "ephemeralLifetime",
-          "type": [
-            null,
-            "gregor1.DurationSec"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalNonblockRes"
-    },
-    "postFileAttachmentUploadLocalNonblock": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "outboxID",
-          "type": "OutboxID"
-        },
-        {
-          "name": "filename",
-          "type": "string"
-        },
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "bytes"
-        },
-        {
-          "name": "callerPreview",
-          "type": [
-            null,
-            "MakePreviewRes"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": null
     },
     "getNextAttachmentMessageLocal": {
       "request": [

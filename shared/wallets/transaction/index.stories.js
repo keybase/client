@@ -63,6 +63,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
             }
             components.push(
               storyFn({
+                approxWorth: '',
                 issuerDescription: '',
                 ...r,
                 ...st,

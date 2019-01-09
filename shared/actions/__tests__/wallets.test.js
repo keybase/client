@@ -6,13 +6,13 @@ import * as Tabs from '../../constants/tabs'
 import * as WalletsGen from '../wallets-gen'
 import * as RPCStellarTypes from '../../constants/types/rpc-stellar-gen'
 import * as Types from '../../constants/types/wallets'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import walletsSaga from '../wallets'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath} from '../../route-tree'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 const blankStore = Testing.getInitialStore()
 const initialStore = {
@@ -26,8 +26,8 @@ const initialStore = {
 }
 
 const startOnWalletsTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.walletsTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.walletsTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
@@ -37,7 +37,7 @@ const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs
 const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
   amountAvailable: '',
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   from: 'fake account ID',
@@ -113,7 +113,7 @@ it('disclaimer', () => {
       dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
       expect(getState().wallets.building.to).toEqual('fake recipient')
       expect(getRoute(getState)).toEqual(
-        I.List([Tabs.walletsTab, 'wallet', Constants.sendReceiveFormRouteKey])
+        I.List([Tabs.walletsTab, 'wallet', Constants.sendRequestFormRouteKey])
       )
       return Testing.flushPromises({buildRPC, getCurrenciesRPC, getCurrencyRPC})
     })
@@ -154,7 +154,7 @@ it('build and send payment', () => {
 
 const buildRequestRes: RPCStellarTypes.BuildRequestResLocal = {
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
   readyToRequest: false,

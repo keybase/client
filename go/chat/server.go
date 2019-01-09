@@ -91,7 +91,12 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	if err == nil {
 		return nil
 	}
-
+	switch err {
+	case errConvLockTabDeadlock, context.Canceled:
+		// these are not offline errors, but we never want the JS to receive them and potentiall
+		// display a black bar
+		return nil
+	}
 	errKind := IsOfflineError(err)
 	h.Debug(ctx, "handleOfflineError: errType: %T", err)
 	if errKind != OfflineErrorKindOnline {
@@ -109,7 +114,6 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 		}
 		return nil
 	}
-
 	return err
 }
 
@@ -138,10 +142,6 @@ func (h *Server) suspendConvLoader(ctx context.Context) func() {
 
 func (h *Server) suspendInboxSource(ctx context.Context) func() {
 	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
-}
-
-func (h *Server) getUID() gregor1.UID {
-	return gregor1.UID(h.G().Env.GetUID().ToBytes())
 }
 
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
@@ -586,16 +586,6 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
-func (h *Server) squashGetThreadNonblockError(err error) bool {
-	switch err {
-	case errConvLockTabDeadlock:
-		// We don't want this error to leak up to the UI, it is really only used to get
-		// GetThreadNonblock to retry whatever operation was queued up, so let's squash it.
-		return true
-	}
-	return false
-}
-
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var pagination, resultPagination *chat1.Pagination
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -605,15 +595,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() {
+		origErr := fullErr
 		fullErr = h.handleOfflineError(ctx, fullErr, &res)
-
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
-		if res.Offline || fullErr != nil {
-			// Some errors we just don't want to send up to the UI, let's check for those here.
-			if h.squashGetThreadNonblockError(fullErr) {
-				fullErr = nil
-			}
+		if origErr != nil {
+			h.Debug(ctx, "GetThreadNonblock: queueing retry because of: %s", origErr)
 			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
@@ -1125,17 +1112,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Run Stellar UI on any payments in the body
-	bodyTyp, err := arg.Msg.MessageBody.MessageType()
-	if err == nil && bodyTyp == chat1.MessageType_TEXT {
-		text := arg.Msg.MessageBody.Text().Body
-		payments, err := h.runStellarSendUI(ctx, 0, uid, arg.ConversationID, text)
-		if err != nil {
-			return res, err
-		}
-		arg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:     text,
-			Payments: payments,
-		})
+	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, 0, uid, arg.ConversationID, arg.Msg.MessageBody); err != nil {
+		return res, err
 	}
 
 	// Make sure sender is set
@@ -1208,19 +1186,26 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
-	convID chat1.ConversationID, body string) (res []chat1.TextPayment, err error) {
-	ui := h.getChatUI(sessionID)
+	convID chat1.ConversationID, msgBody chat1.MessageBody) (res chat1.MessageBody, err error) {
 	defer h.Trace(ctx, func() error { return err }, "runStellarSendUI")()
+	ui := h.getChatUI(sessionID)
+	bodyTyp, err := msgBody.MessageType()
+	if err != nil || bodyTyp != chat1.MessageType_TEXT {
+		return msgBody, nil
+	}
+	body := msgBody.Text().Body
 	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body)
 	if len(parsedPayments) == 0 {
 		h.Debug(ctx, "runStellarSendUI: no payments")
-		return nil, nil
+		return msgBody, nil
 	}
 	h.Debug(ctx, "runStellarSendUI: payments found, showing confirm screen")
 	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
 		return res, err
 	}
-	defer ui.ChatStellarDone(ctx)
+	defer func() {
+		ui.ChatStellarDone(ctx, err != nil)
+	}()
 	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
 	if err != nil {
 		ui.ChatStellarDataError(ctx, err.Error())
@@ -1239,29 +1224,20 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	if err != nil {
 		// Send regardless here
 		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
-		return nil, nil
+		return msgBody, nil
 	}
-	return payments, nil
+	return chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body:     body,
+		Payments: payments,
+	}), nil
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostTextNonblock")()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-
-	// Determine if the messages contains any Stellar payments, and execute them if so
-	payments, err := h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID, arg.Body)
-	if err != nil {
-		return res, err
-	}
-	if err = h.getChatUI(arg.SessionID).ChatPostReadyToSend(ctx); err != nil {
-		return res, err
-	}
 
 	var parg chat1.PostLocalNonblockArg
+	parg.SessionID = arg.SessionID
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
@@ -1270,8 +1246,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body:     arg.Body,
-		Payments: payments,
+		Body: arg.Body,
 	})
 	if arg.EphemeralLifetime != nil {
 		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
@@ -1437,6 +1412,12 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Determine if the messages contains any Stellar payments, and execute them if so
+	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+		arg.Msg.MessageBody); err != nil {
+		return res, err
+	}
+
 	// Add outbox information
 	var prevMsgID chat1.MessageID
 	if arg.ClientPrev == 0 {
@@ -1461,7 +1442,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, prevMsgID, arg.OutboxID)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
@@ -1492,42 +1473,35 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 	return res, ioutil.WriteFile(res, arg.Data, 0644)
 }
 
-func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
-	arg chat1.PostFileAttachmentMessageLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
+	arg chat1.PostFileAttachmentLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentMessageLocalNonblock")()
+	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
 
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, arg.OutboxID, arg.Filename, arg.Title, arg.Metadata,
-		arg.ClientPrev, arg.EphemeralLifetime)
+		arg.Arg.ConversationID, arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename,
+		arg.Arg.Title, arg.Arg.Metadata, arg.ClientPrev, arg.Arg.EphemeralLifetime,
+		arg.Arg.CallerPreview)
 	if err != nil {
+		return res, err
+	}
+	if _, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
+		arg.Arg.Filename, nil, arg.Arg.CallerPreview); err != nil {
 		return res, err
 	}
 	return chat1.PostLocalNonblockRes{
 		OutboxID:         outboxID,
 		IdentifyFailures: identBreaks,
 	}, nil
-}
-
-func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
-	arg chat1.PostFileAttachmentUploadLocalNonblockArg) (err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err },
-		fmt.Sprintf("PostFileAttachmentUploadLocalNonblock(%s)", arg.OutboxID))()
-	defer h.suspendConvLoader(ctx)()
-
-	uid := h.getUID()
-	if _, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConvID, arg.OutboxID, arg.Title,
-		arg.Filename, arg.Metadata, arg.CallerPreview); err != nil {
-		return err
-	}
-	return nil
 }
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
@@ -1537,9 +1511,12 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
 
 	// Get base of message we are going to send
-	uid := h.getUID()
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	_, msgID, err := attachments.NewSender(h.G()).PostFileAttachment(ctx, sender, uid, arg.Arg.ConversationID,
 		arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename, arg.Arg.Title,

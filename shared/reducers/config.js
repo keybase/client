@@ -198,6 +198,9 @@ export default function(
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
+    case ConfigGen.swapRouter: {
+      return state.set('useNewRouter', action.payload.useNewRouter)
+    }
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
     case ConfigGen.updateNow:
@@ -224,12 +227,11 @@ export default function(
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
-    case ConfigGen._avatarQueue:
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
       return state
     default:
-     Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-     return state
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      return state
   }
 }

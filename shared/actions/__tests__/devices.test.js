@@ -6,14 +6,14 @@ import * as Constants from '../../constants/devices'
 import * as Tabs from '../../constants/tabs'
 import * as DevicesGen from '../devices-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import devicesSaga from '../devices'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath} from '../../route-tree'
 import HiddenString from '../../util/hidden-string'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 // We want to be logged in usually
 const blankStore = Testing.getInitialStore()
@@ -128,8 +128,8 @@ const details = [
 ]
 
 const startOnDevicesTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, startOnDevicesTab)

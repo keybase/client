@@ -425,6 +425,7 @@ type UIPaymentInfo struct {
 	AccountID         *stellar1.AccountID    `codec:"accountID,omitempty" json:"accountID,omitempty"`
 	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
 	Worth             string                 `codec:"worth" json:"worth"`
+	WorthAtSendTime   string                 `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
 	Note              string                 `codec:"note" json:"note"`
 	PaymentID         stellar1.PaymentID     `codec:"paymentID" json:"paymentID"`
@@ -447,6 +448,7 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 		})(o.AccountID),
 		AmountDescription: o.AmountDescription,
 		Worth:             o.Worth,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		Delta:             o.Delta.DeepCopy(),
 		Note:              o.Note,
 		PaymentID:         o.PaymentID.DeepCopy(),
@@ -1058,10 +1060,6 @@ type ChatConfirmChannelDeleteArg struct {
 	Channel   string `codec:"channel" json:"channel"`
 }
 
-type ChatPostReadyToSendArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ChatStellarShowConfirmArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1077,7 +1075,8 @@ type ChatStellarDataErrorArg struct {
 }
 
 type ChatStellarDoneArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Canceled  bool `codec:"canceled" json:"canceled"`
 }
 
 type ChatUiInterface interface {
@@ -1095,11 +1094,10 @@ type ChatUiInterface interface {
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
-	ChatPostReadyToSend(context.Context, int) error
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
-	ChatStellarDone(context.Context, int) error
+	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1316,21 +1314,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatPostReadyToSend": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatPostReadyToSendArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatPostReadyToSendArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatPostReadyToSendArg)(nil), args)
-						return
-					}
-					err = i.ChatPostReadyToSend(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"chatStellarShowConfirm": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatStellarShowConfirmArg
@@ -1387,7 +1370,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatStellarDoneArg)(nil), args)
 						return
 					}
-					err = i.ChatStellarDone(ctx, typedArgs[0].SessionID)
+					err = i.ChatStellarDone(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1471,12 +1454,6 @@ func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatCo
 	return
 }
 
-func (c ChatUiClient) ChatPostReadyToSend(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatPostReadyToSendArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatPostReadyToSend", []interface{}{__arg}, nil)
-	return
-}
-
 func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil)
@@ -1493,8 +1470,7 @@ func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStella
 	return
 }
 
-func (c ChatUiClient) ChatStellarDone(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatStellarDoneArg{SessionID: sessionID}
+func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil)
 	return
 }

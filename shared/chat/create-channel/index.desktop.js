@@ -106,7 +106,7 @@ const _backStyle = {
 
 const _styleCover = {
   alignItems: 'center',
-  backgroundColor: globalColors.black_60,
+  backgroundColor: globalColors.black_50,
   justifyContent: 'center',
 }
 

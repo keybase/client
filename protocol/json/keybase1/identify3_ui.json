@@ -44,12 +44,20 @@
     {
       "type": "record",
       "name": "Identify3RowMeta",
-      "fields": [],
-      "typedef": "string"
+      "fields": [
+        {
+          "type": "Identify3RowColor",
+          "name": "color"
+        },
+        {
+          "type": "string",
+          "name": "label"
+        }
+      ]
     }
   ],
   "messages": {
-    "showTracker": {
+    "identify3ShowTracker": {
       "request": [
         {
           "name": "guiID",
@@ -61,11 +69,15 @@
         },
         {
           "name": "reason",
-          "type": "string"
+          "type": "IdentifyReason"
+        },
+        {
+          "name": "forceDisplay",
+          "type": "boolean",
+          "default": false
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "identify3UpdateRow": {
       "request": [
@@ -150,6 +162,10 @@
     },
     "identify3Result": {
       "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
         {
           "name": "result",
           "type": "Identify3ResultType"

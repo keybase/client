@@ -14,6 +14,7 @@ export type Props<Item> = {
   itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
   windowSize?: number, // Mobile only, has a non-RN default
+  onEndReached?: () => void,
 }
 
 export default class List<Item> extends React.Component<Props<Item>, void> {}

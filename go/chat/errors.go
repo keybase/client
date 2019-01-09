@@ -501,8 +501,6 @@ func IsOfflineError(err error) OfflineErrorKind {
 	switch err {
 	case context.DeadlineExceeded:
 		fallthrough
-	case context.Canceled:
-		fallthrough
 	case ErrChatServerTimeout:
 		return OfflineErrorKindOfflineReconnect
 	case ErrDuplicateConnection:

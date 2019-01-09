@@ -6,9 +6,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
-// TODO
-// * Add styles for mobile
-
 type Props = {
   onChangeText: (newText: string) => void,
   onEnterKeyDown: () => void,
@@ -22,6 +19,7 @@ type Props = {
 
 const TeamBox = (props: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
+    {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
     {props.teamSoFar.map(u => (
       <UserBubble
         key={u.userId}
@@ -54,7 +52,14 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 40,
     },
+    isMobile: {
+      height: 45,
+    },
   }),
+  searchIcon: {
+    alignSelf: 'center',
+    marginLeft: 10,
+  },
 })
 
 export default TeamBox

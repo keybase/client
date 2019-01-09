@@ -6,6 +6,9 @@ import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} 
 
 type Props = {
   background: Background,
+  onAction?: ?() => void,
+  reviewProofs?: boolean,
+  sendFailed?: boolean,
   text: string,
 }
 
@@ -18,7 +21,27 @@ const Banner = (props: Props) => (
   >
     <Text type="BodySmallSemibold" style={styles.text} backgroundMode={props.background}>
       {props.text}
+      {props.reviewProofs && (
+        <Text
+          type="BodySmallSemiboldPrimaryLink"
+          style={styles.secondText}
+          backgroundMode={props.background}
+          onClick={props.onAction}
+        >
+          Please review.
+        </Text>
+      )}
     </Text>
+    {props.sendFailed && (
+      <Text
+        type="BodySmallSemiboldPrimaryLink"
+        style={styles.secondText}
+        backgroundMode={props.background}
+        onClick={props.onAction}
+      >
+        Review payments
+      </Text>
+    )}
   </Box2>
 )
 
@@ -28,6 +51,10 @@ const styles = styleSheetCreate({
     padding: globalMargins.small,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
+  },
+  secondText: {
+    paddingLeft: globalMargins.xtiny,
+    textAlign: 'center',
   },
   text: {
     textAlign: 'center',

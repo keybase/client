@@ -5,14 +5,14 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {Box, ClickableBox, Text, ProgressIndicator} from '../../common-adapters'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, {onBack}, {routeProps, routePath}) => ({

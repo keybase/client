@@ -82,10 +82,18 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 
+type AddressState = {
+  storedAttachmentRef: any,
+}
+
 class _StellarFederatedAddress extends React.PureComponent<
-  StellarFederatedAddressProps & Kb.OverlayParentProps
+  StellarFederatedAddressProps & Kb.OverlayParentProps,
+  AddressState
 > {
-  _attachmentRef = null
+  state: AddressState = {
+    storedAttachmentRef: null,
+  }
+
   _toastRef: ?Kb._ToastContainer = null
   _onCopyAddress = () => {
     this._toastRef && this._toastRef.copy()
@@ -97,7 +105,10 @@ class _StellarFederatedAddress extends React.PureComponent<
     stellarAddress: this.props.stellarAddress,
   })
 
-  _getAttachmentRef = () => this._attachmentRef
+  _storeAttachmentRef = r => {
+    this.setState({storedAttachmentRef: r})
+  }
+  _getAttachmentRef = () => this.state.storedAttachmentRef
 
   render() {
     const stellarAddressNameStyle = {
@@ -105,8 +116,11 @@ class _StellarFederatedAddress extends React.PureComponent<
       color: this.props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
     }
     return (
-      <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
-        <Kb.ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+      <Kb.Box2 direction="horizontal" ref={r => this._storeAttachmentRef(r)}>
+        <Kb.ToastContainer
+          ref={r => (this._toastRef = r)}
+          getAttachmentRef={this.state.storedAttachmentRef && this._getAttachmentRef}
+        />
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
@@ -136,7 +150,7 @@ class _StellarFederatedAddress extends React.PureComponent<
                 </Kb.Text>
               </Kb.WithTooltip>
               <Kb.FloatingMenu
-                attachTo={this.props.getAttachmentRef}
+                attachTo={this.state.storedAttachmentRef && this._getAttachmentRef}
                 closeOnSelect={true}
                 containerStyle={styles.floatingStellarAddressMenu}
                 items={this._menuItems}
@@ -233,7 +247,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_40, textAlign: 'center'}}>
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_50, textAlign: 'center'}}>
                   Posted on
                   <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
@@ -343,7 +357,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
             </Kb.Box2>
             <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
               <Kb.Icon
-                color={Styles.globalColors.black_40}
+                color={Styles.globalColors.black_50}
                 onClick={this.props.onClearAddUserToTeamsResults}
                 style={{padding: Styles.globalMargins.tiny}}
                 type="iconfont-close"

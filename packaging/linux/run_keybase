@@ -121,8 +121,8 @@ kill_all() {
     # Remove any existing legacy mount.  This should never happen
     # because it should have already been done by post_install.sh.
     # Just in case, let the user know how to fix it.
-    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown root:root /keybase` and then run this command again.
-    exit -1
+    echo "Unmounting /keybase.  Run \`sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown root:root /keybase\` and then run this command again."
+    exit 1
   fi
   if fusermount -uz $mountdir &> /dev/null ; then
     echo Unmounting $mountdir...

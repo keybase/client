@@ -2118,6 +2118,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				created = ncres.Conv.Info
 				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
+				consumeNewPendingMsg(t, listener)
 				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			default:
@@ -2135,6 +2136,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			var unboxed chat1.UIMessage
 			select {
 			case info := <-listener.newMessageRemote:
@@ -2162,6 +2164,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT) // pending message
 
 			select {
 			case info := <-listener.newMessageRemote:
@@ -2192,6 +2195,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2231,6 +2235,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2248,6 +2253,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			t.Logf("repost reaction = delete reaction")
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2272,6 +2278,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2296,6 +2303,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2324,6 +2332,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
 			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
 			select {
 			case info := <-listener.newMessageRemote:
 				unboxed = info.Message
@@ -2537,6 +2546,51 @@ func TestChatSrvFindConversations(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res.Conversations), "conv found")
+		require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
+	})
+}
+
+func TestChatSrvFindConversationsWithSBS(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_KBFS:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "FindConversations", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Create a conversation between both users. Attempt to send to
+		// `user1,user2@rooter` and make sure we resolve and find the
+		// conversation correctly.
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, users[1])
+		tc1 := ctc.world.Tcs[users[1].Username]
+		sbsName := strings.Join([]string{users[0].Username, fmt.Sprintf("%s@rooter", users[1].Username)}, ",")
+
+		ctx := ctc.as(t, users[0]).startCtx
+		// Fail since we haven't proved rooter yet
+		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          sbsName,
+				MembersType:      mt,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Zero(t, len(res.Conversations))
+
+		proveRooter(t, tc1.Context().ExternalG(), users[1])
+		res, err = ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          sbsName,
+				MembersType:      mt,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(res.Conversations), "no conv found")
 		require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 	})
 }
@@ -3571,6 +3625,15 @@ func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {
 		}
 	}
 	return false
+}
+
+func consumeNewPendingMsg(t *testing.T, listener *serverChatListener) {
+	select {
+	case msg := <-listener.newMessageLocal:
+		require.True(t, msg.Message.IsOutbox())
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get new pending message notification")
+	}
 }
 
 func consumeNewMsgLocal(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
@@ -5512,11 +5575,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 			require.Fail(t, "no done")
 		}
 		if !expectError {
-			select {
-			case <-ui.PostReadyToSend:
-			case <-time.After(delay):
-				require.Fail(t, "no ready to send")
-			}
+			consumeNewPendingMsg(t, listener)
 			select {
 			case msg := <-listener.newMessageLocal:
 				require.True(t, msg.Message.IsValid())
@@ -5581,11 +5640,7 @@ func TestChatSrvStellarUI(t *testing.T) {
 		require.Fail(t, "confirm")
 	default:
 	}
-	select {
-	case <-ui.PostReadyToSend:
-	case <-time.After(delay):
-		require.Fail(t, "no confirm")
-	}
+	consumeNewPendingMsg(t, listener)
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {

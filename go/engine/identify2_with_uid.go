@@ -524,7 +524,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	// since it will the foreground context will disappear after we unblock.
 	m = m.BackgroundWithLogTags()
 
-	if (!e.useTracking || e.arg.IdentifyBehavior.UnblockDespiteTracking()) && !e.useRemoteAssertions() && e.allowEarlyOuts() {
+	if (!e.useTracking && !e.useRemoteAssertions() && e.allowEarlyOuts()) || e.arg.IdentifyBehavior.UnblockThenForceIDTable() {
 		e.unblock(m /* isFinal */, false, nil)
 	}
 
@@ -532,7 +532,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 }
 
 func (e *Identify2WithUID) allowEarlyOuts() bool {
-	return !e.arg.NeedProofSet
+	return !e.arg.NeedProofSet && !e.arg.IdentifyBehavior.UnblockThenForceIDTable()
 }
 
 func (e *Identify2WithUID) getNow(m libkb.MetaContext) time.Time {

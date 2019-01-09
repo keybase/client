@@ -48,6 +48,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
+  unsentTextMap: I.Map(),
 
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
@@ -257,6 +258,7 @@ export {
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
+  isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,

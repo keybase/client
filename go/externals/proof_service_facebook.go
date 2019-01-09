@@ -39,7 +39,7 @@ func (rc *FacebookChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, 
 
 type FacebookServiceType struct{ libkb.BaseServiceType }
 
-func (t *FacebookServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *FacebookServiceType) Key() string { return t.GetTypeName() }
 
 var facebookUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9.]{1,50})$`)
 

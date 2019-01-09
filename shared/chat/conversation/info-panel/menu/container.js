@@ -1,10 +1,10 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
 import * as React from 'react'
-import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
-import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
 export type OwnProps = {
@@ -68,35 +68,37 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
-  loadOperations: () => dispatch(createGetTeamOperations({teamname})),
+  loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(
-      navigateTo(
-        [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
-        [teamsTab]
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab],
+        path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+      })
     )
-    dispatch(switchTo([teamsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
   onInvite: () => {
     dispatch(
-      navigateTo(
-        [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
-        [teamsTab]
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab],
+        path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
+      })
     )
-    dispatch(switchTo([teamsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
   onLeaveTeam: () => {
-    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
   },
   onManageChannels: () => {
-    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}]))
-    dispatch(createAddTeamWithChosenChannels({teamname}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]}))
+    dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
   onViewTeam: () => {
-    dispatch(navigateTo([{props: {teamname}, selected: 'team'}], [teamsTab]))
-    dispatch(switchTo([teamsTab]))
+    dispatch(
+      RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: [{props: {teamname}, selected: 'team'}]})
+    )
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
 })
 

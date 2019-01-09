@@ -28,6 +28,7 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
+  readyToSend: 'enabled',
   sendFailed: false,
   sendingIntentionXLM: true,
   waitingKey: 'false',
@@ -41,6 +42,14 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit.
 const banner = {
   bannerBackground: 'Announcements',
   bannerText: 'The conversion rate has changed since you got to this screen.',
+}
+
+const sendFailedBanner = {
+  action: Sb.action('onExitFailed'),
+  bannerBackground: 'HighRisk',
+  bannerText:
+    'The request to the stellar network timed out. Please make sure your payment failed before trying again.',
+  sendFailed: true,
 }
 
 const load = () => {
@@ -63,6 +72,7 @@ const load = () => {
         banners={[banner]}
       />
     ))
+    .add('With a payment failed banner', () => <ConfirmSend {...confirmProps} banners={[sendFailedBanner]} />)
 }
 
 export default load

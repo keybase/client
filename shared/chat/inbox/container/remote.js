@@ -99,6 +99,7 @@ export const serialize = ({
     isMuted: conversation.isMuted,
     // excluding onSelectConversation
     isSelected: false,
+    isTypingSnippet: false,
     participantNeedToRekey,
     participants: conversation.teamname
       ? []

@@ -228,7 +228,7 @@ const styles = Styles.styleSheetCreate({
 const _deviceStyle = {
   ...Styles.globalStyles.fontSemibold,
   ...Styles.globalStyles.italic,
-  color: Styles.globalColors.black_60,
+  color: Styles.globalColors.black_50,
 }
 
 const _rowBottomStyle = {

@@ -22,6 +22,7 @@ import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
+import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactButton from '../react-button/container'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
@@ -42,6 +43,7 @@ export type Props = {|
   failureDescription: string,
   forceAsh: boolean,
   hasUnfurlPrompts: boolean,
+  isPendingPayment: boolean,
   isRevoked: boolean,
   showUsername: string,
   measure: ?() => void,
@@ -82,8 +84,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _onAuthorClick = () => this.props.onAuthorClick()
 
   _authorAndContent = children => {
+    let result
     if (this.props.showUsername) {
-      return (
+      result = (
         <React.Fragment key="authorAndContent">
           <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
             <Kb.Avatar
@@ -100,7 +103,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               type="BodySmallSemibold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
-              containerStyle={styles.fast}
             />
             <Kb.Text type="BodyTiny" style={styles.timestamp}>
               {formatTimeForChat(this.props.message.timestamp)}
@@ -117,8 +119,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         </React.Fragment>
       )
     } else {
-      return children
+      result = children
     }
+    return this.props.isPendingPayment ? (
+      <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
+    ) : (
+      result
+    )
   }
 
   _isEdited = () =>
@@ -208,7 +215,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _containerProps = () => {
     if (Styles.isMobile) {
       const props = {
-        style: this.props.showUsername ? null : styles.containerNoUsername,
+        style: Styles.collapseStyles([
+          styles.container,
+          !this.props.showUsername && styles.containerNoUsername,
+        ]),
       }
       return this.props.decorate
         ? {
@@ -224,6 +234,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           {
             'WrapperMessage-author': this.props.showUsername,
             'WrapperMessage-decorated': this.props.decorate,
+            'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             active: this.props.showingMenu || this.state.showingPicker,
           },
           'WrapperMessage-hoverBox'
@@ -480,11 +491,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       marginLeft: Styles.globalMargins.small,
     },
-    isMobile: {
-      ...fast,
-      marginLeft: Styles.globalMargins.tiny,
-    },
+    isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
+  container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
       paddingBottom: 3,
@@ -513,7 +522,7 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   edited: {color: Styles.globalColors.black_20},
@@ -559,7 +568,6 @@ const styles = Styles.styleSheetCreate({
   }),
   timestamp: Styles.platformStyles({
     isMobile: {
-      ...fast,
       position: 'relative',
       top: 2,
     },

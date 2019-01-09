@@ -469,6 +469,10 @@
           "name": "worth"
         },
         {
+          "type": "string",
+          "name": "worthAtSendTime"
+        },
+        {
           "type": "stellar1.BalanceDelta",
           "name": "delta"
         },
@@ -1072,15 +1076,6 @@
       ],
       "response": "boolean"
     },
-    "chatPostReadyToSend": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "chatStellarShowConfirm": {
       "request": [
         {
@@ -1121,6 +1116,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "canceled",
+          "type": "boolean"
         }
       ],
       "response": null

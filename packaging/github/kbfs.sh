@@ -35,7 +35,7 @@ build() {
   cd "$build_dir"
 
   echo "Downloading source archive"
-  src_url="https://github.com/keybase/kbfs/archive/v$version.tar.gz"
+  src_url="https://github.com/keybase/client/go/kbfs/archive/v$version.tar.gz"
   curl -O -J -L "$src_url"
 
   src_tgz="kbfs-$version.tar.gz"
@@ -49,7 +49,7 @@ build() {
   mv "kbfs-$version" "$go_dir/src/github.com/keybase"
 
   echo "Building kbfs"
-  GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/kbfs/kbfsfuse
+  GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/client/go/kbfs/kbfsfuse
 
   echo "Packaging"
   rm -rf "$tgz"

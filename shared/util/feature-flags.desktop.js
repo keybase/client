@@ -20,6 +20,7 @@ const ff: FeatureFlags = {
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
+  useNewRouter: false,
   walletsEnabled: false,
 }
 
@@ -28,6 +29,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   foldersInProfileTab: true,
   kbfsChatIntegration: true,
   moveOrCopy: true,
+  newTeamBuildingForChat: true,
   walletsEnabled: true,
 }
 

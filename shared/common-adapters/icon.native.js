@@ -27,7 +27,7 @@ const styles = NativeStyleSheet.create(fontSizes)
 const Text = Styles.styled(NativeText)(
   // static styles
   {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     fontFamily: 'kb',
   },
   // dynamic styles. check for undefined and send null
@@ -39,7 +39,10 @@ const Text = Styles.styled(NativeText)(
       : null,
   props => {
     const color =
-      props.color || Shared.defaultColor(props.type) || (props.opacity && Styles.globalColors.lightGrey)
+      props.colorOverride ||
+      props.color ||
+      Shared.defaultColor(props.type) ||
+      (props.opacity && Styles.globalColors.lightGrey)
     if (color) {
       return {color}
     } else return null

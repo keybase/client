@@ -8,13 +8,7 @@ import (
 )
 
 func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg keybase1.Identify3Arg) (err error) {
-	sess := libkb.NewIdentify3SessionWithID(mctx, arg.GuiID)
-	err = mctx.G().Identify3State.Put(sess)
-	if err != nil {
-		return err
-	}
-
-	ui1, err := NewUIAdapterWithSession(mctx, ui3, sess)
+	ui1, err := NewUIAdapterMakeSession(mctx, ui3, arg.GuiID)
 	if err != nil {
 		return err
 	}
@@ -23,6 +17,7 @@ func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg ke
 		ForceRemoteCheck: arg.IgnoreCache,
 		ForceDisplay:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI_PROFILE,
+		NoSkipSelf:       true,
 	}
 	mctx = mctx.WithIdentifyUI(ui1)
 	eng := engine.NewResolveThenIdentify2(mctx.G(), &i2arg)

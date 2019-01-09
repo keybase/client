@@ -14,7 +14,7 @@ type Props = {|
 
 const styles = Styles.styleSheetCreate({
   amount: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   containerBox: {

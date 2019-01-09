@@ -81,7 +81,7 @@ const userEntryUsernameStyle = following => ({
 })
 
 const userEntryFullnameStyle = {
-  color: globalColors.black_40,
+  color: globalColors.black_50,
   textAlign: 'center',
 }
 

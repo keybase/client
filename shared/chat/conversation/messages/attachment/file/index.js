@@ -17,7 +17,7 @@ class FileAttachment extends React.PureComponent<Props> {
   render() {
     const iconType = 'icon-file-24' // TODO other states
     return (
-      <Kb.ClickableBox onClick={this.props.onDownload}>
+      <Kb.ClickableBox onClick={this.props.onDownload} style={styles.fullWidth}>
         <Kb.Box style={styles.containerStyle}>
           <Kb.Box style={styles.titleStyle}>
             <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
@@ -69,19 +69,20 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
+  fullWidth: {width: '100%'},
   iconStyle: {
     height: 24,
     marginRight: Styles.globalMargins.tiny,
   },
   linkStyle: {
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
   },
   progressContainerStyle: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
   },
   progressLabelStyle: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     marginRight: Styles.globalMargins.tiny,
   },
   titleStyle: {

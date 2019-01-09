@@ -119,7 +119,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           />
           <Kb.Text
             type="Body"
-            style={{color: Styles.globalColors.black_40, marginLeft: Styles.globalMargins.tiny}}
+            style={{color: Styles.globalColors.black_50, marginLeft: Styles.globalMargins.tiny}}
           >
             Jump to chat
           </Kb.Text>

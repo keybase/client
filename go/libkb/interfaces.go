@@ -396,8 +396,7 @@ type ChatUI interface {
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
-	ChatStellarDone(context.Context) error
-	ChatPostReadyToSend(context.Context) error
+	ChatStellarDone(context.Context, bool) error
 }
 
 type PromptDefault int
@@ -462,7 +461,7 @@ type UIRouter interface {
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 	GetHomeUI() (keybase1.HomeUIInterface, error)
-	GetIdentify3UIAdapter(MetaContext, keybase1.Identify3GUIID) (IdentifyUI, error)
+	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 
 	Shutdown()
@@ -560,7 +559,7 @@ type ProofChecker interface {
 // ServiceType is an interface for describing an external proof service, like 'Twitter'
 // or 'GitHub', etc.
 type ServiceType interface {
-	AllStringKeys() []string
+	Key() string
 
 	// NormalizeUsername normalizes the given username, assuming
 	// that it's free of any leading strings like '@' or 'dns://'.

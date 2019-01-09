@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {connect} from '../../../../util/container'
 import Input, {type Props} from '.'
@@ -36,7 +36,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0
-
+  const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   return {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
@@ -53,19 +53,23 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
+    unsentText: unsentText ? unsentText.stringValue() : '',
   }
 }
 
 const mapDispatchToProps = dispatch => ({
+  _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString('')}))
+  },
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
       outboxID: null,
       path: p,
     }))
     dispatch(
-      RouteTree.navigateAppend([
-        {props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      })
     )
   },
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
@@ -105,7 +109,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   editText: stateProps.editText,
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
-  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  getUnsentText: () =>
+    stateProps.unsentText.length > 0 ? stateProps.unsentText : getUnsentText(stateProps.conversationIDKey),
   isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
@@ -134,12 +139,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
+    if (stateProps.unsentText.length > 0) {
+      dispatchProps._clearUnsentText(stateProps.conversationIDKey)
+    }
     setUnsentText(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestUsers: stateProps.suggestUsers,
   typing: stateProps.typing,
+  unsentTextRefresh: stateProps.unsentText.length > 0,
 })
 
 export default connect<OwnProps, _, _, _, _>(

@@ -115,7 +115,7 @@ const styles = Styles.styleSheetCreate({
   },
   membershipText: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.black_40,
+      color: Styles.globalColors.black_50,
     },
     isElectron: {
       textAlign: 'right',

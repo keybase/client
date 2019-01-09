@@ -91,8 +91,13 @@ func (n *extensionNotifyListener) NewChatActivity(uid keybase1.UID, activity cha
 	}
 	switch st {
 	case chat1.ChatActivityType_INCOMING_MESSAGE:
+		msg := activity.IncomingMessage().Message
+		if msg.IsOutbox() {
+			// skip pending message notification
+			return
+		}
 		strConvID := activity.IncomingMessage().ConvID.String()
-		outboxID := activity.IncomingMessage().Message.GetOutboxID()
+		outboxID := msg.GetOutboxID()
 		if outboxID != nil {
 			n.trigger(*outboxID)
 		}
@@ -648,7 +653,7 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 	}
 	sender := extensionNewSender(gc)
 	if _, _, err = attachments.NewSender(gc).PostFileAttachmentMessage(ctx, sender, convID, name, vis,
-		&outboxID, filename, caption, nil, 0, nil); err != nil {
+		&outboxID, filename, caption, nil, 0, nil, callerPreview); err != nil {
 		return err
 	}
 	cb := extensionListener.listenFor(outboxID)
