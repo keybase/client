@@ -73,18 +73,12 @@ class BottomLine extends PureComponent<Props> {
       switch (this.props.snippetDecoration) {
         case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
           snippetDecoration = (
-            <Icon
-              type="iconfont-boom"
-              fontSize={isMobile ? 40 : 28}
-              style={platformStyles({
-                common: {
-                  color: this.props.isSelected ? globalColors.white : globalColors.black_50,
-                },
-                isMobile: {
-                  marginTop: -8,
-                },
-              })}
-            />
+            <Text
+              type="BodySmall"
+              style={{color: this.props.isSelected ? globalColors.white : globalColors.black_50}}
+            >
+              Message exploded.
+            </Text>
           )
           exploded = true
           break
