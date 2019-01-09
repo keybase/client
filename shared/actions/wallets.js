@@ -196,9 +196,10 @@ const requestPayment = state =>
   )
 
 const startPayment = () =>
-  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
-    WalletsGen.createBuildingPaymentIDReceived({bid})
-  )
+  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
+    WalletsGen.createBuildingPaymentIDReceived({bid}),
+    WalletsGen.createBuildPayment(), // ensure we call buildPayment once with the ID
+  ])
 
 const reviewPayment = state =>
   RPCStellarTypes.localReviewPaymentLocalRpcPromise({
