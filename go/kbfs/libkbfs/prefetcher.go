@@ -56,8 +56,11 @@ type prefetch struct {
 	subtreeBlockCount int
 	subtreeTriggered  bool
 	req               *prefetchRequest
-	// Each refnonce for this block ID can have a different set of parents.
-	parents map[kbfsblock.RefNonce]map[BlockPointer]bool
+	// Each refnonce for this block ID can have a different set of
+	// parents.  Track the channel for the specific instance of the
+	// prefetch that counted us in its progress (since a parent may be
+	// canceled and rescheduled later).
+	parents map[kbfsblock.RefNonce]map[BlockPointer]<-chan struct{}
 	ctx     context.Context
 	cancel  context.CancelFunc
 	waitCh  chan struct{}
@@ -161,7 +164,7 @@ func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
 		subtreeBlockCount: count,
 		subtreeTriggered:  triggered,
 		req:               req,
-		parents:           make(map[kbfsblock.RefNonce]map[BlockPointer]bool),
+		parents:           make(map[kbfsblock.RefNonce]map[BlockPointer]<-chan struct{}),
 		ctx:               ctx,
 		cancel:            cancel,
 		waitCh:            make(chan struct{}),
@@ -184,9 +187,16 @@ func (p *blockPrefetcher) applyToPtrParentsRecursive(
 			panic(r)
 		}
 	}()
-	for pptr := range pre.parents[ptr.RefNonce] {
+	for pptr, ch := range pre.parents[ptr.RefNonce] {
+		parentDone := false
+		select {
+		case <-ch:
+			parentDone = true
+		default:
+		}
+
 		parent, ok := p.prefetches[pptr.ID]
-		if !ok {
+		if parentDone || !ok {
 			// Note that the parent (or some other ancestor) might be
 			// rescheduled for later and have been removed from
 			// `prefetches`.  In that case still delete it from the
@@ -220,9 +230,16 @@ func (p *blockPrefetcher) applyToParentsRecursive(
 		}
 	}()
 	for refNonce, refMap := range pre.parents {
-		for pptr := range refMap {
+		for pptr, ch := range refMap {
+			parentDone := false
+			select {
+			case <-ch:
+				parentDone = true
+			default:
+			}
+
 			parent, ok := p.prefetches[pptr.ID]
-			if !ok {
+			if parentDone || !ok {
 				// Note that the parent (or some other ancestor) might be
 				// rescheduled for later and have been removed from
 				// `prefetches`.  In that case still delete it from the
@@ -382,14 +399,14 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 			pre.ctx, priority, kmd, ptr, block.NewEmpty(), lifetime, action)
 		p.inFlightFetches.In() <- ch
 	}
-	_, isParentWaiting := p.prefetches[parentPtr.ID]
+	parentPre, isParentWaiting := p.prefetches[parentPtr.ID]
 	if !isParentWaiting {
 		p.log.CDebugf(pre.ctx, "prefetcher doesn't know about parent block "+
 			"%s for child block %s", parentPtr, ptr.ID)
 		panic("prefetcher doesn't know about parent block when trying to " +
 			"record parent-child relationship")
 	}
-	if !pre.parents[ptr.RefNonce][parentPtr] || isParentNew {
+	if pre.parents[ptr.RefNonce][parentPtr] == nil || isParentNew {
 		// The new parent needs its subtree block count increased. This can
 		// happen either when:
 		// 1. The child doesn't know about the parent when the child is first
@@ -399,9 +416,9 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// 2. The parent is newly created but the child _did_ know about it,
 		// like when the parent previously had a prefetch but was canceled.
 		if len(pre.parents[ptr.RefNonce]) == 0 {
-			pre.parents[ptr.RefNonce] = make(map[BlockPointer]bool)
+			pre.parents[ptr.RefNonce] = make(map[BlockPointer]<-chan struct{})
 		}
-		pre.parents[ptr.RefNonce][parentPtr] = true
+		pre.parents[ptr.RefNonce][parentPtr] = parentPre.waitCh
 		p.log.CDebugf(ctx, "%d blocks to prefetch %t", pre.subtreeBlockCount, isParentNew)
 		return pre.subtreeBlockCount
 	}
