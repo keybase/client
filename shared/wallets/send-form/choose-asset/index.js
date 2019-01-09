@@ -319,9 +319,9 @@ const styles = styleSheetCreate({
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
   },
-  expanderText: {color: globalColors.black_60},
+  expanderText: {color: globalColors.black_50},
   grey: {
-    color: globalColors.black_40,
+    color: globalColors.black_50,
   },
   listContainer: platformStyles({
     common: {

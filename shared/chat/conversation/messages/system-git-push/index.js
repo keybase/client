@@ -35,7 +35,7 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
         {` `} created a new team repository called {` `}
         <Text
           type="BodySmallSemibold"
-          style={repoID ? {color: globalColors.black_60} : undefined}
+          style={repoID ? {color: globalColors.black_50} : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >
           {repo}
@@ -55,7 +55,7 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
         <Text
           type="BodySmallSemibold"
-          style={repoID ? {color: globalColors.black_60} : undefined}
+          style={repoID ? {color: globalColors.black_50} : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >{` ${repo}/${branchName}`}</Text>
         :
@@ -121,7 +121,7 @@ const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCom
     onClickAvatar={() => onClickUserAvatar(pusher)}
   >
     {!isMobile && <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -12, zIndex: 999}} />}
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_50}}>
       {formatTimeForMessages(timestamp)}
     </Text>
     {children}

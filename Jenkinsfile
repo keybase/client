@@ -312,7 +312,7 @@ def getPackagesToTest() {
       sh "git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10"
       sh "git fetch origin ${env.CHANGE_TARGET}"
       def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-      def diffPackageList = sh(returnStdout: true, script: "git --no-pager diff --diff-filter=d --name-only ${BASE_COMMIT_HASH} -- . | sed \'s/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/\' | sort | uniq").trim().split()
+      def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
       def diffPackagesAsString = diffPackageList.join(' ')
       println "Go packages changed:\n${diffPackagesAsString}"
 

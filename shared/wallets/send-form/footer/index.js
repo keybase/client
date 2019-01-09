@@ -37,7 +37,7 @@ const Footer = (props: Props) => (
           {/* <Kb.Icon
             type="iconfont-question-mark"
             color={Styles.globalColors.black_20}
-            hoverColor={Styles.globalColors.black_40}
+            hoverColor={Styles.globalColors.black_50}
             fontSize={12}
             style={Kb.iconCastPlatformStyles(styles.questionIcon)}
             onClick={() => {

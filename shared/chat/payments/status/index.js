@@ -140,7 +140,7 @@ const styles = Styles.styleSheetCreate({
   pending: {
     backgroundColor: Styles.globalColors.black_05,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   pendingIcon: {},
 })

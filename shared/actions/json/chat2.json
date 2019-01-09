@@ -374,6 +374,7 @@
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {
+      "avoidConversationID?": "Types.ConversationIDKey",
       "findNewConversation": "boolean"
     },
     "navigateToThread": {},

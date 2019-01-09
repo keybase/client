@@ -221,7 +221,7 @@ class ProofsRender extends React.Component<Props> {
         } !important; /* Must use important because Text has a default color which is set inline */
       }
       .user-proof-row:hover .user-proof-row__name, .user-proof-row:hover .user-proof-row__icon {
-        color: ${globalColors.black_60} !important;
+        color: ${globalColors.black_50} !important;
       }
     `
 

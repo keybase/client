@@ -87,7 +87,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_60,
+    backgroundColor: Styles.globalColors.black_50,
     justifyContent: 'center',
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,

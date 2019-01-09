@@ -80,8 +80,7 @@ const sendMapDispatchToProps = dispatch => ({
     dispatch(
       RouteTreeGen.createNavigateTo({
         path: [
-          ...WalletConstants.rootWalletPath,
-          'wallet',
+          ...WalletConstants.walletPath,
           {props: {accountID, paymentID}, selected: 'transactionDetails'},
         ],
       })

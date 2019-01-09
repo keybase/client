@@ -96,8 +96,8 @@ const HoverBox = Styles.isMobile
   ? Kb.Box
   : Styles.styled(Kb.Box)({
       '& .fs-path-item-hover-icon': {color: Styles.globalColors.white},
-      '& .fs-path-item-hover-icon:hover': {color: Styles.globalColors.black_60},
-      ':hover .fs-path-item-hover-icon': {color: Styles.globalColors.black_40},
+      '& .fs-path-item-hover-icon:hover': {color: Styles.globalColors.black_50},
+      ':hover .fs-path-item-hover-icon': {color: Styles.globalColors.black_50},
     })
 
 export type StillCommonProps = {

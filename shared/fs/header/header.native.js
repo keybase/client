@@ -22,7 +22,7 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
           <Icon
             type="iconfont-chat"
             style={collapseStyles([styles.stylesIcons])}
-            color={globalColors.black_40}
+            color={globalColors.black_50}
             fontSize={22}
             onClick={onChat}
           />

@@ -53,7 +53,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
                 common: {marginLeft: globalMargins.tiny},
                 isElectron: {cursor: 'pointer'},
               })}
-              color={globalColors.black_40}
+              color={globalColors.black_50}
               onClick={this.props.toggleShowingMenu}
             />
             <MessagePopup
@@ -103,7 +103,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
           {!this._isLoaded() && <ProgressIndicator style={{margin: 'auto'}} />}
           <Box style={headerFooterStyle}>
             {!!this.props.progressLabel && (
-              <Text type="BodySmall" style={{color: globalColors.black_60, marginRight: globalMargins.tiny}}>
+              <Text type="BodySmall" style={{color: globalColors.black_50, marginRight: globalMargins.tiny}}>
                 {this.props.progressLabel}
               </Text>
             )}
@@ -127,7 +127,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
 const Fullscreen: any = KeyHandler(OverlayParentHOC((_Fullscreen: any)))
 
 const linkStyle = platformStyles({
-  isElectron: {color: globalColors.black_60, cursor: 'pointer'},
+  isElectron: {color: globalColors.black_50, cursor: 'pointer'},
 })
 
 const containerStyle = {

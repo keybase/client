@@ -40,7 +40,7 @@ class SearchResultsList extends Component<Props> {
       <Box style={{height: 240, width: '100%', ...style}}>
         {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
               Recommendations
             </Text>
           </Box>

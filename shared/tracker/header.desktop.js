@@ -45,7 +45,7 @@ export default class HeaderRender extends PureComponent<Props, State> {
       ? globalColors.yellow
       : trackerStateColors.header.background
     const headerTextColor = isWarningAboutTrackerShowingUpLater
-      ? globalColors.brown_60
+      ? globalColors.brown_75
       : trackerStateColors.header.text
 
     return (

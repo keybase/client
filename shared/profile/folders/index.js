@@ -69,7 +69,7 @@ const styles = Styles.styleSheetCreate({
   },
   itemText: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.black_60,
+      color: Styles.globalColors.black_50,
       marginLeft: Styles.globalMargins.tiny,
       overflow: 'hidden',
     },

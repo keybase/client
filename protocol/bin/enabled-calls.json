@@ -198,7 +198,6 @@
   "stellar.1.local.getPaymentDetailsLocal": {"promise": true},
   "stellar.1.local.getPaymentsLocal": {"promise": true},
   "stellar.1.local.getPendingPaymentsLocal": {"promise": true},
-  "stellar.1.local.getRequestDetailsLocal": {"promise": true},
   "stellar.1.local.getSendAssetChoicesLocal": {"promise": true},
   "stellar.1.local.getWalletAccountLocal": {"promise": true},
   "stellar.1.local.getWalletAccountSecretKeyLocal": {"promise": true},

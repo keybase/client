@@ -250,7 +250,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_40, textAlign: 'center'}}>
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_50, textAlign: 'center'}}>
                   Posted on
                   <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
@@ -360,7 +360,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
             </Kb.Box2>
             <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
               <Kb.Icon
-                color={Styles.globalColors.black_40}
+                color={Styles.globalColors.black_50}
                 onClick={this.props.onClearAddUserToTeamsResults}
                 style={{padding: Styles.globalMargins.tiny}}
                 type="iconfont-close"

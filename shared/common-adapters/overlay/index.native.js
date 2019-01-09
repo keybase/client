@@ -35,7 +35,7 @@ const styles = styleSheetCreate({
   container: {
     ...globalStyles.fillAbsolute,
     alignItems: 'stretch',
-    backgroundColor: globalColors.black_60,
+    backgroundColor: globalColors.black_50,
     justifyContent: 'flex-end',
   },
   touchArea: {

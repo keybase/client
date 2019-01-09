@@ -130,7 +130,8 @@
       "name": "RequestStatus",
       "symbols": [
         "OK_0",
-        "CANCELED_1"
+        "CANCELED_1",
+        "DONE_2"
       ]
     },
     {

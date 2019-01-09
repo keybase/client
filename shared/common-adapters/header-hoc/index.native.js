@@ -91,7 +91,7 @@ const LeftAction = ({
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
-          iconColor={theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
+          iconColor={theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_50}
           style={styles.action}
           onClick={onLeftAction}
         />

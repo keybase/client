@@ -164,7 +164,7 @@ const ButtonBox = Styles.styled(Box)(props => ({
   borderRadius: Styles.borderRadius,
   borderStyle: 'solid',
   borderWidth: 1,
-  color: Styles.globalColors.black_40,
+  color: Styles.globalColors.black_50,
   paddingRight: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.small,
   width: '100%',
 }))

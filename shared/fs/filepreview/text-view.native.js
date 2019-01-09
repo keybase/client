@@ -24,7 +24,7 @@ body{
   background-color: ${globalColors.white};
   padding: ${globalMargins.medium};
   margin: 0;
-  color: ${globalColors.black_60};
+  color: ${globalColors.black_50};
   font-size: 15;
   line-height: 1.6;
 `
