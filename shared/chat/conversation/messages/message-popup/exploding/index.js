@@ -14,10 +14,9 @@ import {
 } from '../../../../../common-adapters/'
 import {
   collapseStyles,
-  globalColors,
-  globalMargins,
   isMobile,
   platformStyles,
+  Styles,
   type StylesCrossPlatform,
 } from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
@@ -82,20 +81,20 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
     const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
     return (
-      <Box2 direction="vertical" fullWidth={true} style={stylePopupContainer}>
+      <Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
         <Icon
-          style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+          style={styles.bombIllustration}
           type={isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
         />
-        <Box2 direction="vertical" style={styleMessageInfoContainer}>
+        <Box2 direction="vertical" style={styles.messageInfoContainer}>
           <Box2 direction="vertical">
-            <Text type="BodySmall" style={{color: globalColors.black_75}}>
+            <Text type="BodySmall" style={{color: Styles.globalColors.black_75}}>
               EXPLODING MESSAGE
             </Text>
           </Box2>
           <Box2 direction="horizontal">
             <Text type="BodySmall">by</Text>
-            <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styleUser}>
+            <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
               <Avatar username={author} size={16} clickToProfile="tracker" />
               <ConnectedUsernames
                 onUsernameClicked="profile"
@@ -119,9 +118,9 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
         </Box2>
         {!!deviceRevokedAt && (
           <PopupHeaderText
-            color={globalColors.white}
-            backgroundColor={globalColors.blue}
-            style={styleRevokedAt}
+            color={Styles.globalColors.white}
+            backgroundColor={Styles.globalColors.blue}
+            style={styles.revokedAt}
           >
             {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
           </PopupHeaderText>
@@ -133,10 +132,12 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           gapEnd={true}
           gapStart={true}
           style={collapseStyles([
-            styleTimerBox,
+            styles.timerBox,
             {
               backgroundColor:
-                this.state.secondsLeft < oneMinuteInS ? globalColors.red : globalColors.black_75,
+                this.state.secondsLeft < oneMinuteInS
+                  ? Styles.globalColors.red
+                  : Styles.globalColors.black_75,
             },
           ])}
         >
@@ -144,8 +145,12 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             <ProgressIndicator white={true} style={{height: 17, width: 17}} />
           ) : (
             <Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
-              <Icon type="iconfont-timer" fontSize={isMobile ? 22 : 16} color={globalColors.white_40} />
-              <Text style={{alignSelf: 'center', color: globalColors.white}} type="BodySemibold">
+              <Icon
+                type="iconfont-timer"
+                fontSize={isMobile ? 22 : 16}
+                color={Styles.globalColors.white_40}
+              />
+              <Text style={{alignSelf: 'center', color: Styles.globalColors.white}} type="BodySemibold">
                 {msToDHMS(this.props.explodesAt - Date.now())}
               </Text>
             </Box2>
@@ -183,42 +188,45 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
 
 const oneMinuteInS = 60
 
-const styleMessageInfoContainer = {
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-}
-
-const styleRevokedAt = {
-  borderBottomLeftRadius: 3,
-  borderBottomRightRadius: 3,
-  marginBottom: -globalMargins.small,
-  marginTop: globalMargins.small,
-  minHeight: 40,
-  width: '100%',
-}
-
-const stylePopupContainer = platformStyles({
-  common: {
-    alignItems: 'center',
+const styles = Styles.styleSheetCreate({
+  bombIllustration: {
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
   },
-  isElectron: {
-    maxWidth: 240,
-    minWidth: 200,
+  messageInfoContainer: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  popupContainer: platformStyles({
+    common: {
+      alignItems: 'center',
+    },
+    isElectron: {
+      maxWidth: 240,
+      minWidth: 200,
+    },
+  }),
+  revokedAt: {
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    marginBottom: -Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
+    minHeight: 40,
+    width: '100%',
+  },
+  timerBox: platformStyles({
+    common: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      height: 46,
+    },
+  }),
+  user: {
+    alignItems: 'center',
   },
 })
 
-const styleTimerBox = platformStyles({
-  common: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: globalMargins.tiny,
-  },
-  isMobile: {
-    height: 46,
-  },
-})
-
-const styleUser = {
-  alignItems: 'center',
-}
 export default HOCTimers(ExplodingPopupMenu)
