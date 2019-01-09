@@ -35,6 +35,17 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         ]
       : null
 
+    // temp this is a short term hack to even out the spacing on the right side so the title is centered
+    // if there is no right action (most places) we add padding on the right to match the left side
+    let rightStyle = null
+    if (!rightActions) {
+      if (leftAction === 'back') {
+        rightStyle = styles.rightActionOnBack
+      } else if (leftAction === 'cancel') {
+        rightStyle = styles.rightActionOnCancel
+      }
+    }
+
     return (
       <Box
         style={Styles.collapseStyles([
@@ -65,6 +76,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           hideFloatingMenu={this._hideFloatingMenu}
           rightActions={rightActions}
           showFloatingMenu={this._showFloatingMenu}
+          style={rightStyle}
         />
       </Box>
     )
@@ -91,7 +103,7 @@ const LeftAction = ({
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
-          iconColor={theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_40}
+          iconColor={theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_50}
           style={styles.action}
           onClick={onLeftAction}
         />
@@ -117,8 +129,9 @@ const RightActions = ({
   hideFloatingMenu,
   rightActions,
   showFloatingMenu,
+  style,
 }): React.Node => (
-  <Box style={Styles.collapseStyles([styles.rightActions, hasTitleComponent && styles.unflex])}>
+  <Box style={Styles.collapseStyles([styles.rightActions, hasTitleComponent && styles.unflex, style])}>
     <Box style={styles.rightActionsWrapper}>
       {rightActions &&
         rightActions
@@ -249,10 +262,11 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'flex-start',
     },
     isIOS: {
-      flex: 1,
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
+  rightActionOnBack: {minWidth: 53},
+  rightActionOnCancel: {minWidth: 83},
   rightActions: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -261,7 +275,6 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'flex-end',
     },
     isIOS: {
-      flex: 1,
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
@@ -275,9 +288,8 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      flex: 1,
+      flexGrow: 1,
       justifyContent: 'center',
-      width: '100%',
     },
     isAndroid: {
       alignItems: 'flex-start',

@@ -157,7 +157,7 @@ export type _PaymentCommon = {|
   targetType: string,
   time: ?number,
   worth: string,
-  worthCurrency: string,
+  worthAtSendTime: string, // for "(APPROXIMATELY $X.XX)" strings
   // issuer, for non-xlm assets
   issuerDescription: string,
   issuerAccountID: ?AccountID,
@@ -195,20 +195,6 @@ export type AssetDescription = I.RecordOf<_AssetDescription>
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
-export type _Request = {
-  amount: string, // The number alone
-  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
-  asset: Asset,
-  completed: boolean,
-  completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
-  currencyCode: string, // set if asset === 'currency'
-  id: StellarRPCTypes.KeybaseRequestID,
-  requestee: string, // username or assertion
-  requesteeType: string,
-  sender: string,
-  status: 'ok' | 'canceled',
-}
-
 export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
@@ -234,7 +220,6 @@ export type PaymentDetail = I.RecordOf<_PaymentDetail>
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
-export type Request = I.RecordOf<_Request>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
@@ -262,7 +247,6 @@ export type _State = {
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
-  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
   reviewCounter: number, // increments when we call reviewPayment
   reviewLastSeqno: ?number, // last UIPaymentReviewed.seqno received from the active review
   secretKey: HiddenString,

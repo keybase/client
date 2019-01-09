@@ -12,6 +12,7 @@ import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../uti
 export type NotLoadingProps = {|
   amountUser: string,
   amountXLM: string,
+  approxWorth: string,
   counterparty: string,
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: ?string,
@@ -277,6 +278,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
+          approxWorth={props.approxWorth}
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}

@@ -539,11 +539,6 @@ const loadDisplayCurrencyForAccounts = (state, action) =>
   // load the display currency of each wallet, now that we have the IDs
   action.payload.accounts.map(account => WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
 
-const loadRequestDetail = (state, action) =>
-  RPCStellarTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
-    .then(request => WalletsGen.createRequestDetailReceived({request}))
-    .catch(err => logger.error(`Error loading request detail: ${err.message}`))
-
 const cancelPayment = (state, action) => {
   const {paymentID, showAccount} = action.payload
   const pid = Types.paymentIDToString(paymentID)
@@ -920,11 +915,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.ExitFailedPaymentPayload>(
     WalletsGen.exitFailedPayment,
     exitFailedPayment
-  )
-
-  yield* Saga.chainAction<WalletsGen.LoadRequestDetailPayload>(
-    WalletsGen.loadRequestDetail,
-    loadRequestDetail
   )
   yield* Saga.chainAction<WalletsGen.CancelRequestPayload>(WalletsGen.cancelRequest, cancelRequest)
   yield* Saga.chainAction<WalletsGen.CancelPaymentPayload>(WalletsGen.cancelPayment, cancelPayment)

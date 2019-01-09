@@ -11,7 +11,6 @@ import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import {getPath, type RouteStateNode} from '../route-tree'
-import logger from '../logger'
 
 const balanceDeltaToString: {[key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>} = invert(
   RPCTypes.localBalanceDelta
@@ -22,9 +21,6 @@ const statusSimplifiedToString: {
 const partyTypeToString: {
   [key: RPCTypes.ParticipantType]: $Keys<typeof RPCTypes.localParticipantType>,
 } = invert(RPCTypes.localParticipantType)
-const requestStatusToString: {
-  [key: RPCTypes.RequestStatus]: $Keys<typeof RPCTypes.commonRequestStatus>,
-} = invert(RPCTypes.commonRequestStatus)
 
 const sendRequestFormRouteKey = 'sendReceiveForm'
 const chooseAssetFormRouteKey = 'chooseAssetForm'
@@ -107,7 +103,6 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   paymentLoadingMoreMap: I.Map(),
   paymentOldestUnreadMap: I.Map(),
   paymentsMap: I.Map(),
-  requests: I.Map(),
   reviewCounter: 0,
   reviewLastSeqno: null,
   secretKey: new HiddenString(''),
@@ -232,6 +227,7 @@ const _defaultPaymentCommon = {
   targetType: '',
   time: null,
   worth: '',
+  worthAtSendTime: '',
 }
 
 const _defaultPaymentResult = {
@@ -343,6 +339,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetType,
     time: p.time,
     worth: p.worth,
+    worthAtSendTime: p.worthAtSendTime,
   }
 }
 
@@ -352,51 +349,6 @@ const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record(
   issuerName: '',
   issuerVerifiedDomain: '',
 })
-
-const makeRequest: I.RecordFactory<Types._Request> = I.Record({
-  amount: '',
-  amountDescription: '',
-  asset: 'native',
-  completed: false,
-  completedTransactionID: null,
-  currencyCode: '',
-  id: '',
-  requestee: '',
-  requesteeType: '',
-  sender: '',
-  status: 'ok',
-})
-
-const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
-  let asset = 'native'
-  let currencyCode = ''
-  if (!(r.asset || r.currency)) {
-    logger.error('Received requestDetails with no asset or currency code')
-    return null
-  } else if (r.asset && r.asset.type !== 'native') {
-    const assetResult = r.asset
-    asset = makeAssetDescription({
-      code: assetResult.code,
-      issuerAccountID: Types.stringToAccountID(assetResult.issuer),
-      issuerName: assetResult.issuerName,
-      issuerVerifiedDomain: assetResult.verifiedDomain,
-    })
-  } else if (r.currency) {
-    asset = 'currency'
-    currencyCode = r.currency
-  }
-  return makeRequest({
-    amount: r.amount,
-    amountDescription: r.amountDescription,
-    asset,
-    currencyCode,
-    id: r.id,
-    requestee: r.toAssertion,
-    requesteeType: partyTypeToString[r.toUserType],
-    sender: r.fromAssertion,
-    status: requestStatusToString[r.status],
-  })
-}
 
 const bannerLevelToBackground = (level: string) => {
   switch (level) {
@@ -533,9 +485,6 @@ const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
-const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
-  state.wallets.requests.get(requestID, null)
-
 const getAccount = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.get(accountID, unknownAccount)
 
@@ -642,7 +591,6 @@ export {
   getPayment,
   getPayments,
   getOldestUnread,
-  getRequest,
   getRequestDetailsWaitingKey,
   getSecretKey,
   getSelectedAccount,
@@ -663,11 +611,9 @@ export {
   makePaymentResult,
   makePaymentDetail,
   makePayment,
-  makeRequest,
   makeReserve,
   makeState,
   paymentToYourInfoAndCounterparty,
-  requestResultToRequest,
   requestPaymentWaitingKey,
   rootWalletPath,
   rootWalletTab,

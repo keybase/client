@@ -608,7 +608,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 	defer func() {
 		if ferr != nil {
 			// Only do this aggressive clear if the error we get is not some kind of network error
-			if IsOfflineError(ferr) == OfflineErrorKindOnline {
+			if ferr != context.Canceled && IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
 				s.createInbox().Clear(ctx, uid)
 			} else {

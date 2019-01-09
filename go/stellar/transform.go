@@ -128,6 +128,17 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	return loc, nil
 }
 
+func formatWorthAtSendTime(mctx libkb.MetaContext, p stellar1.PaymentSummaryDirect, isSender bool) (worthAtSendTime, worthCurrencyAtSendTime string, err error) {
+	if p.DisplayCurrency == nil || len(*p.DisplayCurrency) == 0 {
+		if isSender {
+			return formatWorth(mctx, &p.FromDisplayAmount, &p.FromDisplayCurrency)
+		}
+		return formatWorth(mctx, &p.ToDisplayAmount, &p.ToDisplayCurrency)
+	}
+	// payment has a display currency, don't need this field
+	return "", "", nil
+}
+
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
@@ -146,7 +157,7 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
-	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
+	loc.Worth, _, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +179,17 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	}
 
 	fillOwnAccounts(mctx, loc, oc)
+	switch {
+	case loc.FromAccountName != "":
+		// we are sender
+		loc.WorthAtSendTime, _, err = formatWorthAtSendTime(mctx, p, true)
+	case loc.ToAccountName != "":
+		// we are recipient
+		loc.WorthAtSendTime, _, err = formatWorthAtSendTime(mctx, p, false)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
@@ -192,7 +214,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.Delta = stellar1.BalanceDelta_DECREASE
 	}
 
-	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
+	loc.Worth, _, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {
 		return nil, err
 	}

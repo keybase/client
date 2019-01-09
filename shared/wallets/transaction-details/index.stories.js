@@ -17,6 +17,7 @@ const memo =
 const props = {
   amountUser: '',
   amountXLM: '',
+  approxWorth: '',
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',

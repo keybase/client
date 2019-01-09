@@ -99,7 +99,7 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
             />
             {!this.state.searchText && this.props.onScanQRCode && (
               <Kb.Icon
-                color={Styles.globalColors.black_40}
+                color={Styles.globalColors.black_50}
                 type="iconfont-qr-code"
                 fontSize={24}
                 onClick={this.props.onScanQRCode}

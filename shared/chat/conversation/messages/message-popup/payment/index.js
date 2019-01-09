@@ -16,6 +16,7 @@ const iconHeight = Styles.isMobile ? 129 : 86
 
 type HeaderProps = {|
   amountNominal: string,
+  approxWorth: string,
   balanceChange: string, // may be empty
   balanceChangeColor: string,
   bottomLine: string, // may be empty
@@ -65,6 +66,11 @@ const Header = (props: HeaderProps) =>
         {!!props.bottomLine && (
           <Kb.Text type="BodyTiny" style={styles.colorWhite}>
             {toUpper(props.bottomLine)}
+          </Kb.Text>
+        )}
+        {!!props.approxWorth && (
+          <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+            (APPROXIMATELY {props.approxWorth})
           </Kb.Text>
         )}
       </Kb.Box2>

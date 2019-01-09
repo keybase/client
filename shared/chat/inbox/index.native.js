@@ -25,7 +25,7 @@ const NoChats = () => (
     }}
   >
     <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
-    <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: Styles.globalColors.black_40}}>
+    <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: Styles.globalColors.black_50}}>
       All conversations are end-to-end encrypted.
     </Kb.Text>
   </Kb.Box>

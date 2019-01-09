@@ -133,7 +133,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: 36,
   },
   historyPlaceholderText: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   loadingBox: {
     alignItems: 'center',

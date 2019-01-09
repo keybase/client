@@ -16,6 +16,7 @@ const loadingProps = {
   _paymentID: null,
   action: '',
   amount: '',
+  approxWorth: '',
   balanceChange: '',
   balanceChangeColor: '',
   cancelButtonInfo: '',
@@ -75,6 +76,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
+        approxWorth: paymentInfo.worthAtSendTime,
         balanceChange: completed
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`
           : '',
@@ -100,11 +102,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it
         return loadingProps
       }
-      const {amountDescription, asset, canceled} = requestInfo
+      const {amountDescription, asset, canceled, done} = requestInfo
       return {
         _paymentID: null,
         action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: amountDescription,
+        approxWorth: '',
         balanceChange: '',
         balanceChangeColor: '',
         cancelButtonInfo: '',
@@ -116,7 +119,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         memo: message.note.stringValue(),
         pending: false,
         sendButtonLabel:
-          youAreSender || canceled ? '' : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
+          youAreSender || canceled || done
+            ? ''
+            : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
       }
     }
     default:
@@ -142,6 +147,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   action: stateProps.action,
   amount: stateProps.amount,
+  approxWorth: stateProps.approxWorth,
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
   cancelButtonInfo: stateProps.cancelButtonInfo,

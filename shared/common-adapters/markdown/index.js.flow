@@ -57,7 +57,7 @@ export type Props = {
   allowFontScaling?: boolean,
   meta?: ?MarkdownMeta,
   // This changes the specific style for specific types of text
-  // for example you may want to make paragraphs, italics, etc to be black_40
+  // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code
   styleOverride?: StyleOverride,
 }
