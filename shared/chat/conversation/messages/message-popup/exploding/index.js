@@ -82,38 +82,43 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
     const {author, deviceName, deviceRevokedAt, hideTimer, timestamp, yourMessage} = this.props
     const whoRevoked = yourMessage ? 'You' : author
     return (
-      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
+      <Box2 direction="vertical" fullWidth={true} style={stylePopupContainer}>
         <Icon
           style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
           type={isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
         />
-        <Box2 direction="vertical">
-          <Text type="BodySmall" style={{color: globalColors.black_75}}>
-            EXPLODING MESSAGE
-          </Text>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall">by</Text>
-          <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
-            <Avatar username={author} size={16} clickToProfile="tracker" />
-            <ConnectedUsernames
-              onUsernameClicked="profile"
-              colorFollowing={true}
-              colorYou={true}
-              usernames={[author]}
-              underline={true}
-              type="BodySmallSemibold"
-            />
+        <Box2
+          direction="vertical"
+          style={{paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}
+        >
+          <Box2 direction="vertical">
+            <Text type="BodySmall" style={{color: globalColors.black_75}}>
+              EXPLODING MESSAGE
+            </Text>
           </Box2>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall">from device {deviceName}</Text>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall">using exploding key</Text>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall">by</Text>
+            <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
+              <Avatar username={author} size={16} clickToProfile="tracker" />
+              <ConnectedUsernames
+                onUsernameClicked="profile"
+                colorFollowing={true}
+                colorYou={true}
+                usernames={[author]}
+                underline={true}
+                type="BodySmallSemibold"
+              />
+            </Box2>
+          </Box2>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall">from device {deviceName}</Text>
+          </Box2>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall">using exploding key</Text>
+          </Box2>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
+          </Box2>
         </Box2>
         {!!deviceRevokedAt && (
           <PopupHeaderText
@@ -186,8 +191,19 @@ const styleRevokedAt = {
   borderBottomRightRadius: 3,
   marginBottom: -globalMargins.small,
   marginTop: globalMargins.small,
+  minHeight: 40,
   width: '100%',
 }
+
+const stylePopupContainer = platformStyles({
+  common: {
+    alignItems: 'center',
+  },
+  isElectron: {
+    maxWidth: 240,
+    minWidth: 200,
+  },
+})
 
 const styleTimerBox = platformStyles({
   common: {
