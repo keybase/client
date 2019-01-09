@@ -133,6 +133,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     return (
       <WalletPopup
         bottomButtons={this._getBottomButtons()}
+        onCancel={this.props.onCancel}
         onExit={this.state.view === 'name' ? () => this._onViewChange('key') : this.props.onCancel}
         backButtonType={this.state.view === 'name' ? 'back' : 'cancel'}
         headerTitle={isLargeScreen ? 'Link an existing account' : 'Link account'}
