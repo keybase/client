@@ -302,9 +302,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     let explodedBy = null
     switch (message.type) {
       case 'text':
-        exploding = message.exploding
-        exploded = message.exploded
-        explodedBy = message.explodedBy
+        exploding = true // message.exploding
+        exploded = false // message.exploded
+        explodedBy = null // message.explodedBy
         child = <TextMessage key="text" message={message} />
         break
       case 'attachment':
@@ -522,7 +522,7 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // right margin
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
   edited: {color: Styles.globalColors.black_20},

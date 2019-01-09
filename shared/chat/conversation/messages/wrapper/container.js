@@ -143,7 +143,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     forceAsh,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
     isPendingPayment: stateProps.isPendingPayment,
-    isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
+    isRevoked: true, // (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,
     message: message,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
