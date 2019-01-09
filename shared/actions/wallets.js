@@ -23,50 +23,61 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state, action) =>
-  (state.wallets.building.isRequest
-    ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
-        {
-          amount: state.wallets.building.amount,
-          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-          secretNote: state.wallets.building.secretNote.stringValue(),
-          to: state.wallets.building.to,
-        },
-        Constants.buildPaymentWaitingKey
-      ).then(build =>
+const buildPayment = (state, action) => {
+  const catchFcn = error => {
+    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+      // ignore cancellation
+    } else {
+      logger.error('Error in buildPayment: ', error.message)
+      throw error
+    }
+  }
+  if (state.wallets.building.isRequest) {
+    return RPCStellarTypes.localBuildRequestLocalRpcPromise(
+      {
+        amount: state.wallets.building.amount,
+        currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+        secretNote: state.wallets.building.secretNote.stringValue(),
+        to: state.wallets.building.to,
+      },
+      Constants.buildPaymentWaitingKey
+    )
+      .then(build =>
         WalletsGen.createBuiltRequestReceived({
           build: Constants.buildRequestResultToBuiltRequest(build),
           forBuildCounter: state.wallets.buildCounter,
         })
       )
-    : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
-        {
-          amount: state.wallets.building.amount,
-          bid: state.wallets.building.bid,
-          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-          from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
-          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
-          publicMemo: state.wallets.building.publicMemo.stringValue(),
-          secretNote: state.wallets.building.secretNote.stringValue(),
-          to: state.wallets.building.to,
-          toIsAccountID:
-            state.wallets.building.recipientType !== 'keybaseUser' &&
-            !Constants.isFederatedAddress(state.wallets.building.to),
-        },
-        Constants.buildPaymentWaitingKey
-      ).then(build =>
-        WalletsGen.createBuiltPaymentReceived({
-          build: Constants.buildPaymentResultToBuiltPayment(build),
-          forBuildCounter: state.wallets.buildCounter,
-        })
-      )
-  ).catch(error => {
-    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
-      // ignore cancellation
-    } else {
-      throw error
-    }
-  })
+      .catch(catchFcn)
+  } else if (!state.wallets.building.bid) {
+    // don't call buildPayment without a bid
+    logger.info('bailing buildPayment call without a bid')
+    return
+  }
+  return RPCStellarTypes.localBuildPaymentLocalRpcPromise(
+    {
+      amount: state.wallets.building.amount,
+      bid: state.wallets.building.bid,
+      currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+      from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
+      fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
+      publicMemo: state.wallets.building.publicMemo.stringValue(),
+      secretNote: state.wallets.building.secretNote.stringValue(),
+      to: state.wallets.building.to,
+      toIsAccountID:
+        state.wallets.building.recipientType !== 'keybaseUser' &&
+        !Constants.isFederatedAddress(state.wallets.building.to),
+    },
+    Constants.buildPaymentWaitingKey
+  )
+    .then(build =>
+      WalletsGen.createBuiltPaymentReceived({
+        build: Constants.buildPaymentResultToBuiltPayment(build),
+        forBuildCounter: state.wallets.buildCounter,
+      })
+    )
+    .catch(catchFcn)
+}
 
 const spawnBuildPayment = (state, action) => {
   if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
