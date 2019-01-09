@@ -26,6 +26,7 @@ export type _ConversationMeta = {
   offline: boolean,
   participants: I.List<string>, // was OrderedSet but is quite slow
   maxMsgID: number,
+  maxVisibleMsgID: number,
   readMsgID: number,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,

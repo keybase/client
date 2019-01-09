@@ -526,6 +526,11 @@
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
+    },
+    "updateOrangeLine": {
+      "_description": "Update the orange line position for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     }
   }
 }

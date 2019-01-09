@@ -412,6 +412,10 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 	if IsOfflineError(err) != OfflineErrorKindOnline {
 		return true
 	}
+	switch err {
+	case context.Canceled:
+		return true
+	}
 	switch err.(type) {
 	case storage.AbortedError:
 		return true

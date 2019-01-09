@@ -170,7 +170,7 @@ func (t *RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.P
 	return
 }
 
-func (t *RedditServiceType) DisplayName(un string) string { return "Reddit" }
+func (t *RedditServiceType) DisplayName() string { return "Reddit" }
 
 func (t *RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)

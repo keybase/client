@@ -50,10 +50,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
             color={Styles.globalColors.black_50}
           />
           <Kb.Box
-            style={Styles.collapseStyles([
-              styles.badge,
-              props.badgeSubscribe && {backgroundColor: Styles.globalColors.blue},
-            ])}
+            style={Styles.collapseStyles([styles.badge, props.badgeSubscribe && styles.badgeVisible])}
           />
         </Kb.ClickableBox>
       </Kb.Box>
@@ -66,16 +63,18 @@ const iconFontSize = Styles.isMobile ? 20 : 14
 
 const styles = Styles.styleSheetCreate({
   badge: {
-    backgroundColor: Styles.globalColors.blue,
-    borderColor: Styles.globalColors.blueGrey,
-    borderRadius: Styles.borderRadius,
-    borderStyle: `solid`,
-    borderWidth: 1,
     height: 8,
     position: 'absolute',
     right: Styles.isMobile ? 4 : 2,
     top: Styles.isMobile ? 7 : 4,
     width: 8,
+  },
+  badgeVisible: {
+    backgroundColor: Styles.globalColors.blue,
+    borderColor: Styles.globalColors.blueGrey,
+    borderRadius: Styles.borderRadius,
+    borderStyle: `solid`,
+    borderWidth: 1,
   },
   showMenu: {
     ...Styles.globalStyles.flexBoxRow,

@@ -272,6 +272,7 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		AccountID:         &summary.FromAccountID,
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
+		WorthAtSendTime:   summary.WorthAtSendTime,
 		Delta:             summary.Delta,
 		Note:              summary.Note,
 		PaymentID:         summary.Id,

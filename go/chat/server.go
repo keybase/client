@@ -91,7 +91,12 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	if err == nil {
 		return nil
 	}
-
+	switch err {
+	case errConvLockTabDeadlock, context.Canceled:
+		// these are not offline errors, but we never want the JS to receive them and potentiall
+		// display a black bar
+		return nil
+	}
 	errKind := IsOfflineError(err)
 	h.Debug(ctx, "handleOfflineError: errType: %T", err)
 	if errKind != OfflineErrorKindOnline {
@@ -109,7 +114,6 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 		}
 		return nil
 	}
-
 	return err
 }
 
@@ -582,14 +586,28 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
-func (h *Server) squashGetThreadNonblockError(err error) bool {
-	switch err {
-	case errConvLockTabDeadlock:
-		// We don't want this error to leak up to the UI, it is really only used to get
-		// GetThreadNonblock to retry whatever operation was queued up, so let's squash it.
-		return true
+func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (res *chat1.MessageID) {
+	// don't waste any time trying the server, if we don't have this convo for some reason, then we
+	// don't draw the line
+	conv, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, convID)
+	if err != nil {
+		h.Debug(ctx, "getUnreadLine: failed to get conv: %s", err)
+		return nil
 	}
-	return false
+	readMsgID := conv.Conv.ReaderInfo.ReadMsgid
+	if !conv.Conv.IsUnread() {
+		return nil
+	}
+	for i := len(msgs) - 1; i >= 0; i-- {
+		msg := msgs[i]
+		if utils.IsVisibleChatMessageType(msg.GetMessageType()) && msg.GetMessageID() > readMsgID {
+			res = new(chat1.MessageID)
+			*res = msg.GetMessageID()
+			return res
+		}
+	}
+	return nil
 }
 
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
@@ -601,15 +619,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() {
+		origErr := fullErr
 		fullErr = h.handleOfflineError(ctx, fullErr, &res)
-
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
-		if res.Offline || fullErr != nil {
-			// Some errors we just don't want to send up to the UI, let's check for those here.
-			if h.squashGetThreadNonblockError(fullErr) {
-				fullErr = nil
-			}
+		if origErr != nil {
+			h.Debug(ctx, "GetThreadNonblock: queueing retry because of: %s", origErr)
 			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
@@ -726,6 +741,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			var jsonPt []byte
 			var err error
 
+			resThread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, resThread.Messages)
 			localSentThread = resThread
 			pt := utils.PresentThreadView(ctx, h.G(), uid, *resThread, arg.ConversationID)
 			if jsonPt, err = json.Marshal(pt); err != nil {
@@ -770,6 +786,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
+		rthread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, rthread.Messages)
 		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
 		uires := utils.PresentThreadView(bctx, h.G(), uid, rthread, arg.ConversationID)

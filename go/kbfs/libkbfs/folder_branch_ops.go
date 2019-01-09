@@ -663,7 +663,7 @@ func (fbo *folderBranchOps) commitHeadLocked(
 	id := fbo.id()
 	log := fbo.log
 	go func() {
-		err := diskMDCache.Commit(ctx, id, rev)
+		err := diskMDCache.Commit(context.Background(), id, rev)
 		if err != nil {
 			log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
 		}

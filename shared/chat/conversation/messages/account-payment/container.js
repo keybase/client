@@ -16,6 +16,7 @@ const loadingProps = {
   _paymentID: null,
   action: '',
   amount: '',
+  approxWorth: '',
   balanceChange: '',
   balanceChangeColor: '',
   cancelButtonInfo: '',
@@ -75,6 +76,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
+        approxWorth: paymentInfo.worthAtSendTime,
         balanceChange: completed
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`
           : '',
@@ -105,6 +107,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         _paymentID: null,
         action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: amountDescription,
+        approxWorth: '',
         balanceChange: '',
         balanceChangeColor: '',
         cancelButtonInfo: '',
@@ -144,6 +147,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   action: stateProps.action,
   amount: stateProps.amount,
+  approxWorth: stateProps.approxWorth,
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
   cancelButtonInfo: stateProps.cancelButtonInfo,

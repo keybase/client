@@ -969,7 +969,16 @@ function* loadMoreMessages(state, action) {
       shouldClearOthers = true
       calledClear = true
     }
-
+    if (uiMessages.unreadLineID) {
+      actions.push(
+        Saga.put(
+          Chat2Gen.createUpdateOrangeLine({
+            conversationIDKey,
+            messageID: Types.numberToMessageID(uiMessages.unreadLineID),
+          })
+        )
+      )
+    }
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
       const message = conversationIDKey ? Constants.uiMessageToMessage(state, conversationIDKey, m) : null
       if (message) {

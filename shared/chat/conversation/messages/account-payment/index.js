@@ -21,6 +21,7 @@ import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {|
   action: string,
+  approxWorth: string,
   amount: string,
   balanceChange: string,
   balanceChangeColor: string,
@@ -74,6 +75,16 @@ const AccountPayment = (props: Props) => {
             <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
               {props.amount}
             </Text>
+            {props.approxWorth && (
+              <Text type="BodySmall" style={styles.purple}>
+                {' '}
+                (approximately{' '}
+                <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
+                  {props.approxWorth}
+                </Text>
+                )
+              </Text>
+            )}
             {props.pending ? '...' : '.'}
           </Text>
         </Box2>
