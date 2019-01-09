@@ -265,6 +265,8 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
+  rightActionOnBack: {minWidth: 53},
+  rightActionOnCancel: {minWidth: 83},
   rightActions: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -276,12 +278,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-  rightActionOnBack: {
-    minWidth: 53,
-  },
-  rightActionOnCancel: {
-    minWidth: 83,
-  },
   rightActionsWrapper: {
     ...Styles.globalStyles.flexBoxRow,
   },
