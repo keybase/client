@@ -48,7 +48,6 @@ func NewSyncer(g *globals.Context) *Syncer {
 		fullReload:        make(map[string]bool),
 		sendDelay:         time.Millisecond * 1000,
 	}
-
 	go s.sendNotificationLoop()
 	return s
 }
