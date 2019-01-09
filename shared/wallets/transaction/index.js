@@ -422,7 +422,7 @@ export const Transaction = (props: Props) => {
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
-                <Box2 direction="vertical" gap="tiny">
+                <Box2 direction="vertical" gap="tiny" style={styles.flexOne}>
                   <Text type="BodySmall">
                     {props.counterparty} can claim this when they set up their wallet.
                   </Text>
@@ -439,7 +439,7 @@ export const Transaction = (props: Props) => {
                   />
                 </Box2>
               )}
-              <Box2 direction="horizontal" style={{flex: 1}} />
+              <Box2 direction="horizontal" style={styles.marginLeftAuto} />
               {props.status !== 'error' && (
                 <AmountXLM
                   selectableText={props.selectableText}
@@ -468,9 +468,11 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  flexOne: {flex: 1},
   lineThrough: {
     textDecorationLine: 'line-through',
   },
+  marginLeftAuto: {marginLeft: 'auto'},
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
   },
