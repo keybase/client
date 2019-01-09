@@ -1,6 +1,7 @@
 // @flow
 import * as Container from '../../../util/container'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
 import Teams from '.'
 
@@ -15,9 +16,11 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
+  onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  onEdit: null, // dispatchProps.onEdit,
   onJoinTeam: dispatchProps.onJoinTeam,
   teamShowcase: stateProps._teamShowcase ? stateProps._teamShowcase.map(t => t.toObject()).toArray() : null,
 })

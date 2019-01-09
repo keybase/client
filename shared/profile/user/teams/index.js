@@ -8,6 +8,7 @@ import * as Styles from '../../../styles'
 type Props = {|
   teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
   onJoinTeam: string => void,
+  onEdit: ?() => void,
 |}
 
 const OpenMeta = ({isOpen}) =>
@@ -90,6 +91,7 @@ const Teams = (p: Props) =>
   p.teamShowcase && p.teamShowcase.length > 0 ? (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
+      {!!p.onEdit && <Kb.Icon type="iconfont-edit" onClick={p.onEdit} />}
       {p.teamShowcase.map(t => (
         <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} />
       ))}
