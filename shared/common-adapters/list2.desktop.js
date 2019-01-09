@@ -46,8 +46,6 @@ class List2 extends PureComponent<Props<any>, void> {
   )
 
   render() {
-    // TODO: make this work after just-in-time measurement is merged in
-    // react-window.
     return typeof this.props.itemHeight === 'number' ? (
       <AutoSizer>{this._fixed}</AutoSizer>
     ) : (
