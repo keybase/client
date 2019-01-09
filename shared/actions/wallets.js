@@ -173,7 +173,7 @@ const requestPayment = state =>
   )
 
 const startPayment = state =>
-  state.wallets.acceptedDisclaimer
+  state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
     ? RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
         WalletsGen.createBuildingPaymentIDReceived({bid}),
         WalletsGen.createBuildPayment(),
