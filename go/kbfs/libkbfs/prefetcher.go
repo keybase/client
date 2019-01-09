@@ -33,14 +33,13 @@ type prefetcherConfig interface {
 }
 
 type prefetchRequest struct {
-	ptr            BlockPointer
-	newBlock       func() Block
-	kmd            KeyMetadata
-	priority       int
-	lifetime       BlockCacheLifetime
-	prefetchStatus PrefetchStatus
-	action         BlockRequestAction
-	sendCh         chan<- <-chan struct{}
+	ptr      BlockPointer
+	newBlock func() Block
+	kmd      KeyMetadata
+	priority int
+	lifetime BlockCacheLifetime
+	action   BlockRequestAction
+	sendCh   chan<- <-chan struct{}
 }
 
 type ctxPrefetcherTagKey int
@@ -360,8 +359,8 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	if !isPrefetchWaiting {
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
-		req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority,
-			lifetime, NoPrefetch, action, nil}
+		req := &prefetchRequest{
+			ptr, block.NewEmptier(), kmd, priority, lifetime, action, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -727,9 +726,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 
 			// Ensure the block is in the right cache.
 			b := req.newBlock()
-			err := <-p.retriever.Request(
+			var prefetchStatus PrefetchStatus
+			err := <-p.retriever.RequestWithPrefetchStatus(
 				ctx, defaultOnDemandRequestPriority, req.kmd,
-				req.ptr, b, req.lifetime, req.action.SoloAction())
+				req.ptr, b, &prefetchStatus, req.lifetime,
+				req.action.SoloAction())
 			if err != nil {
 				p.log.CWarningf(ctx, "error requesting for block %s: "+
 					"%+v", req.ptr.ID, err)
@@ -740,7 +741,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// If the request is finished (i.e., if it's marked as
 			// finished or if it has no child blocks to fetch), then
 			// complete the prefetch.
-			if req.prefetchStatus == FinishedPrefetch || b.IsTail() {
+			if prefetchStatus == FinishedPrefetch || b.IsTail() {
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
 					if pre.subtreeBlockCount < 0 {
@@ -760,7 +761,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				} else {
 					p.log.CDebugf(ctx, "skipping prefetch for finished block "+
 						"%s", req.ptr.ID)
-					if req.prefetchStatus != FinishedPrefetch {
+					if prefetchStatus != FinishedPrefetch {
 						// Mark this block as finished in the cache.
 						err = p.retriever.PutInCaches(
 							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
@@ -788,7 +789,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				}
 				continue
 			}
-			if req.prefetchStatus == TriggeredPrefetch &&
+			if prefetchStatus == TriggeredPrefetch &&
 				!req.action.DeepSync() &&
 				(isPrefetchWaiting &&
 					req.action.Sync() == pre.req.action.Sync() &&
@@ -971,8 +972,8 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
 	action BlockRequestAction) {
-	req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority, lifetime,
-		prefetchStatus, action, nil}
+	req := &prefetchRequest{
+		ptr, block.NewEmptier(), kmd, priority, lifetime, action, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -1007,7 +1008,7 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c}
+		ptr, nil, nil, 0, TransientEntry, BlockRequestSolo, c}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:
