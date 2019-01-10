@@ -1198,6 +1198,13 @@ func (c Conversation) IsUnread() bool {
 	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
 }
 
+func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
+	if c.ReaderInfo != nil {
+		return c.ReaderInfo.Status == status
+	}
+	return false
+}
+
 func (m MessageSummary) GetMessageID() MessageID {
 	return m.MsgID
 }
