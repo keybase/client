@@ -90,6 +90,7 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
   }
 }
 
+const bottomPadding = 8
 const cancelRowHeight = 48
 const infoTextRowHeight = 48
 const rowHeight = 56
@@ -124,8 +125,11 @@ export const WalletSwitcher = (props: Props) => {
     })),
   ]
 
-  // Menu items plus pinned cancel item on bottom.
-  const height = cancelRowHeight + infoTextRowHeight + rowHeight * (menuItems.length - 1) + 1 + 8 * 2
+  // Kind of a pain we have to calculate the height manually.
+  const dividerHeight = 2 * bottomPadding + 1
+  const cancelRowHeightWithPadding = cancelRowHeight + bottomPadding
+  const height =
+    infoTextRowHeight + rowHeight * (menuItems.length - 1) + dividerHeight + cancelRowHeightWithPadding
 
   return (
     <Kb.Overlay
@@ -158,7 +162,7 @@ export const WalletSwitcher = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   cancelRow: {
     height: cancelRowHeight,
-    marginBottom: 8,
+    marginBottom: bottomPadding,
   },
   container: {
     backgroundColor: Styles.globalColors.white,
@@ -168,8 +172,8 @@ const styles = Styles.styleSheetCreate({
   },
   divider: {
     backgroundColor: Styles.globalColors.black_05,
-    marginBottom: 8,
-    marginTop: 8,
+    marginBottom: bottomPadding,
+    marginTop: bottomPadding,
   },
   infoText: {
     color: Styles.globalColors.black_60,
