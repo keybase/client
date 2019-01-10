@@ -19,9 +19,7 @@ import {throttle, merge} from 'lodash-es'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
-import InputMonitor from './input-monitor.desktop'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
-import {skipAppFocusActions} from '../../local-debug.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
 // Top level HMR accept
@@ -90,28 +88,6 @@ function setupApp(store, runSagas) {
     store.dispatch(ConfigGen.createInstallerRan())
   })
   SafeElectron.getIpcRenderer().send('install-check')
-
-  var inputMonitor = new InputMonitor(function(isActive) {
-    store.dispatch(ConfigGen.createChangedActive({userActive: isActive}))
-    SafeElectron.getIpcRenderer().send('setAppState', {isUserActive: isActive})
-  })
-  inputMonitor.startActiveTimer()
-
-  window.addEventListener('focus', () => {
-    inputMonitor.goActive()
-    if (skipAppFocusActions) {
-      console.log('Skipping app focus actions!')
-    } else {
-      store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
-    }
-  })
-  window.addEventListener('blur', () => {
-    if (skipAppFocusActions) {
-      console.log('Skipping app focus actions!')
-    } else {
-      store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
-    }
-  })
 
   const subsetsRemotesCareAbout = store => {
     return {
