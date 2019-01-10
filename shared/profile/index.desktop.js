@@ -479,7 +479,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 )}
                 {!!this.props.stellarAddress && !loading && (
                   <StellarFederatedAddress
-                    currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
+                    currentlyFollowing={!this.props.isYou && this.props.currentlyFollowing}
                     stellarAddress={this.props.stellarAddress}
                     onSendOrRequest={this.props.onSendOrRequestStellarAddress}
                     onCopyAddress={this.props.onCopyStellarAddress}
