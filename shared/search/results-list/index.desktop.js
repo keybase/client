@@ -53,7 +53,7 @@ class SearchResultsList extends Component<Props> {
           ref={this._setRef}
           length={items.length}
           itemSizeGetter={this._itemSizeGetter}
-          type="uniform"
+          type="variable"
         />
       </Box>
     )
