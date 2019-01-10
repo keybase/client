@@ -166,6 +166,7 @@ const styles = Styles.styleSheetCreate({
     maxHeight: '100%',
   },
   divider: {
+    backgroundColor: Styles.globalColors.black_05,
     marginBottom: 8,
     marginTop: 8,
   },
