@@ -27,7 +27,11 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
   render() {
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation}>
-        <Kb.Box
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          centerChildren={true}
+          gap="tiny"
           className="hover_background_color_blueGrey2"
           style={Styles.collapseStyles([
             styles.filteredRow,
@@ -42,28 +46,34 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
             isSelected={false}
             isHovered={this.state.isHovered}
           />
-          <Kb.Text
-            type="BodySemibold"
-            style={Styles.collapseStyles([
-              styles.teamname,
-              {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
-            ])}
-            title={this.props.teamname}
-          >
-            {this.props.teamname}
-          </Kb.Text>
-          <Kb.Text
-            type="Body"
-            style={Styles.collapseStyles([
-              styles.channelname,
-              {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
-            ])}
-            title={`#${this.props.channelname}`}
-          >
-            &nbsp;#
-            {this.props.channelname}
-          </Kb.Text>
-        </Kb.Box>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.textContainer}>
+            <Kb.Text
+              type="BodySemibold"
+              style={Styles.collapseStyles([
+                styles.teamname,
+                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
+              ])}
+              title={this.props.teamname}
+              lineClamp={isMobile ? 1 : undefined}
+              ellipsizeMode="tail"
+            >
+              {this.props.teamname}
+            </Kb.Text>
+            <Kb.Text
+              type="Body"
+              style={Styles.collapseStyles([
+                styles.channelname,
+                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
+              ])}
+              title={`#${this.props.channelname}`}
+              lineClamp={isMobile ? 1 : undefined}
+              ellipsizeMode="tail"
+            >
+              &nbsp;#
+              {this.props.channelname}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.ClickableBox>
     )
   }
@@ -73,7 +83,10 @@ export const rowHeight = isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate({
   channelname: Styles.platformStyles({
-    common: {flexBasis: '70%'},
+    common: {
+      flexBasis: '70%',
+      flexShrink: 0.3,
+    },
     isElectron: {
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -81,21 +94,23 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   filteredRow: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexShrink: 0,
     height: rowHeight,
-    paddingRight: Styles.globalMargins.tiny,
-    width: '100%',
   },
   teamname: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_75},
+    common: {
+      color: Styles.globalColors.black_75,
+      flexShrink: 0.7,
+    },
     isElectron: {
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
     },
   }),
+  textContainer: {
+    flexShrink: 1,
+    overflow: 'hidden',
+  },
 })
 
 export default SelectableBigTeamChannel
