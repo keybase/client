@@ -1320,6 +1320,10 @@ type DiskBlockCache interface {
 		preferredCacheType DiskBlockCacheType) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
+	// GetPrefetchStatus returns just the prefetchStatus for the block.
+	GetPrefetchStatus(
+		ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+		cacheType DiskBlockCacheType) (PrefetchStatus, error)
 	// Put puts a block to the disk cache. Returns after it has
 	// updated the metadata but before it has finished writing the
 	// block.  If cacheType is specified, the block is put into that

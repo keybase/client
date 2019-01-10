@@ -67,6 +67,38 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	}, nil
 }
 
+// GetPrefetchStatus implements the DiskBlockCacheInterface interface
+// for DiskBlockCacheService.
+func (cache *DiskBlockCacheService) GetPrefetchStatus(
+	ctx context.Context, arg kbgitkbfs.GetPrefetchStatusArg) (
+	prefetchStatus kbgitkbfs.PrefetchStatus, err error) {
+	dbc := cache.config.DiskBlockCache()
+	if dbc == nil {
+		return NoPrefetch.ToProtocol(), DiskBlockCacheError{"Disk cache is nil"}
+	}
+	tlfID := tlf.ID{}
+	err = tlfID.UnmarshalBinary(arg.TlfID)
+	if err != nil {
+		return NoPrefetch.ToProtocol(), newDiskBlockCacheError(err)
+	}
+	blockID := kbfsblock.ID{}
+	err = blockID.UnmarshalBinary(arg.BlockID)
+	if err != nil {
+		return NoPrefetch.ToProtocol(), newDiskBlockCacheError(err)
+	}
+
+	cacheType := DiskBlockAnyCache
+	if cache.config.IsSyncedTlf(tlfID) {
+		cacheType = DiskBlockSyncCache
+	}
+
+	dbStatus, err := dbc.GetPrefetchStatus(ctx, tlfID, blockID, cacheType)
+	if err != nil {
+		return NoPrefetch.ToProtocol(), newDiskBlockCacheError(err)
+	}
+	return dbStatus.ToProtocol(), nil
+}
+
 // PutBlock implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
