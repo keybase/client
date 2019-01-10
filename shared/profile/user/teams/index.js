@@ -6,7 +6,7 @@ import * as Constants from '../../../constants/tracker2'
 import * as Styles from '../../../styles'
 
 type Props = {|
-  teamShowcase: ?$ReadOnlyArray<Types._TeamShowcase>,
+  teamShowcase: $ReadOnlyArray<Types._TeamShowcase>,
   onJoinTeam: string => void,
   onEdit: ?() => void,
 |}
@@ -41,7 +41,11 @@ const TeamInfo = p => (
                 <OpenMeta isOpen={p.isOpen} />
               </Kb.Box2>
             }
-            metaTwo={<Kb.Text type="BodySmall">{p.membersCount} member{p.membersCount > 1 ? 's' : ''}</Kb.Text>}
+            metaTwo={
+              <Kb.Text type="BodySmall">
+                {p.membersCount} member{p.membersCount > 1 ? 's' : ''}
+              </Kb.Text>
+            }
           />
           <Kb.Text type="Body" style={styles.description}>
             {p.description}
@@ -87,11 +91,27 @@ const _TeamShowcase = p => (
 )
 const TeamShowcase = Kb.OverlayParentHOC(_TeamShowcase)
 
+const ShowcaseTeamsOffer = p => (
+  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+    <Kb.ClickableBox onClick={p.onEdit}>
+      <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} />
+        <Kb.Text style={styles.youPublishTeam} type="BodyPrimaryLink">
+          Publish the teams you're in
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  </Kb.Box2>
+)
+
 const Teams = (p: Props) =>
-  p.teamShowcase && p.teamShowcase.length > 0 ? (
+  p.onEdit || p.teamShowcase.length > 0 ? (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
-      <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
-      {!!p.onEdit && <Kb.Icon type="iconfont-edit" onClick={p.onEdit} />}
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
+        {!!p.onEdit && <Kb.Icon type="iconfont-edit" onClick={p.onEdit} />}
+      </Kb.Box2>
+      {!!p.onEdit && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
       {p.teamShowcase.map(t => (
         <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} />
       ))}
@@ -113,6 +133,10 @@ const styles = Styles.styleSheetCreate({
   showcases: {
     flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
+  },
+  youPublishTeam: {
+    alignSelf: 'center',
+    color: Styles.globalColors.black_20,
   },
 })
 

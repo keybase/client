@@ -9,9 +9,12 @@ type OwnProps = {|
   username: string,
 |}
 
+const noTeams = []
+
 const mapStateToProps = (state, ownProps) => {
   const d = state.tracker2.usernameToDetails.get(ownProps.username, Constants.noDetails)
   return {
+    _isYou: state.config.username === ownProps.username,
     _teamShowcase: d.teamShowcase,
   }
 }
@@ -20,9 +23,11 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  onEdit: null, // dispatchProps.onEdit,
+  onEdit: stateProps._isYou ? dispatchProps.onEdit : null,
   onJoinTeam: dispatchProps.onJoinTeam,
-  teamShowcase: stateProps._teamShowcase ? stateProps._teamShowcase.map(t => t.toObject()).toArray() : null,
+  teamShowcase: stateProps._teamShowcase
+    ? stateProps._teamShowcase.map(t => t.toObject()).toArray()
+    : noTeams,
 })
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(

@@ -269,7 +269,7 @@ const styles = Styles.styleSheetCreate({
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
-    isElectron: {maxWidth: 350},
+    isElectron: {width: 350},
     isMobile: {width: '100%'},
   }),
   bioAndProofs: Styles.platformStyles({
