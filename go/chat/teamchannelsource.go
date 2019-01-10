@@ -40,7 +40,7 @@ func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1
 
 func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
-	defer c.Trace(ctx, func() error { return err }, "GetChannelsFull", res)()
+	defer c.Trace(ctx, func() error { return err }, "GetChannelsFull")()
 
 	inbox, err := c.getTLFConversations(ctx, uid, teamID, topicType)
 	if err != nil {
@@ -54,6 +54,7 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 	}
 	convs = append(convs, inbox.Convs...)
 	sort.Sort(utils.ConvLocalByTopicName(convs))
+	c.Debug(ctx, "GetChannelsFull: found %d convs", len(convs))
 	return convs, nil
 }
 
