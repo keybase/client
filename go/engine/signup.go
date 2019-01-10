@@ -173,7 +173,6 @@ func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase strin
 		if err != nil {
 			return err
 		}
-		fmt.Printf("REMOVE THIS Using %q as random passphrase\n", passphrase)
 	}
 	if len(passphrase) < libkb.MinPassphraseLength {
 		return libkb.PassphraseError{Msg: fmt.Sprintf("Passphrase must be at least %d characters", libkb.MinPassphraseLength)}
