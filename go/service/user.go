@@ -548,7 +548,7 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	meUID := m.G().ActiveDevice.UID()
 	cacheKey := libkb.DbKey{
 		Typ: libkb.DBHasRandomPW,
-		Key: fmt.Sprintf("%v", meUID),
+		Key: meUID.String(),
 	}
 
 	if !arg.ForceRepoll {
@@ -582,7 +582,7 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 
 	if !ret.RandomPW {
 		// Cache that we are not a RandomPW user, so this RPC never has to call
-		// API endpoint anymore. Once user is not RandomPW, they will never be.
+		// API endpoint again. Once user is not RandomPW, they will never be.
 		// RandomPW state change only goes `true -> false` when a passphrase is
 		// set.
 		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
@@ -593,5 +593,4 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	}
 
 	return ret.RandomPW, err
-	//return ret.RandomPW, errors.New("random pw test err")
 }

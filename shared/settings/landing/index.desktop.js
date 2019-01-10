@@ -320,7 +320,7 @@ function Account({
   rememberPassphrase,
   hasRandomPW,
 }: AccountProps) {
-  const Passphrase = !hasRandomPW ? AccountPassphrase : AccountFirstPassphrase
+  const Passphrase = hasRandomPW ? AccountFirstPassphrase : AccountPassphrase
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
