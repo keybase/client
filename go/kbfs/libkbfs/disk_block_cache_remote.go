@@ -8,6 +8,7 @@ import (
 	"context"
 	"net"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -21,12 +22,26 @@ type diskBlockCacheRemoteConfig interface {
 	logMaker
 }
 
+const (
+	diskBlockCacheRemoteStatusCacheCapacity = 5000
+)
+
 // DiskBlockCacheRemote implements a client to access a remote
 // DiskBlockCacheService. It implements the DiskBlockCache interface.
 type DiskBlockCacheRemote struct {
 	conn   net.Conn
 	client kbgitkbfs.DiskBlockCacheClient
 	log    traceLogger
+
+	// Keep an LRU cache of the prefetch statuses for each block, so
+	// we can avoid making an RPC to get them unless necessary.  For
+	// most efficient performance, this assumes that the process using
+	// this remote will basically be the only one prefetching the
+	// blocks in the cache (as is the case most of the time with the
+	// git helper, for example); if not, the cache might get out of
+	// date, resulting in extra prefetching work to be done by this
+	// process.
+	statuses *lru.Cache
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheRemote)(nil)
@@ -42,10 +57,16 @@ func NewDiskBlockCacheRemote(kbCtx Context, config diskBlockCacheRemoteConfig) (
 		libkb.LogTagsFromContext)
 	client := kbgitkbfs.DiskBlockCacheClient{Cli: cli}
 
+	statuses, err := lru.New(diskBlockCacheRemoteStatusCacheCapacity)
+	if err != nil {
+		return nil, err
+	}
+
 	return &DiskBlockCacheRemote{
-		conn:   conn,
-		client: client,
-		log:    traceLogger{config.MakeLogger("DBR")},
+		conn:     conn,
+		client:   client,
+		log:      traceLogger{config.MakeLogger("DBR")},
+		statuses: statuses,
 	}, nil
 }
 
@@ -72,7 +93,7 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 	prefetchStatus = PrefetchStatusFromProtocol(res.PrefetchStatus)
-
+	dbcr.statuses.Add(blockID, prefetchStatus)
 	return res.Buf, serverHalf, prefetchStatus, nil
 }
 
@@ -82,6 +103,11 @@ func (dbcr *DiskBlockCacheRemote) GetPrefetchStatus(
 	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
 	cacheType DiskBlockCacheType) (
 	prefetchStatus PrefetchStatus, err error) {
+	if tmp, ok := dbcr.statuses.Get(blockID); ok {
+		prefetchStatus := tmp.(PrefetchStatus)
+		return prefetchStatus, nil
+	}
+
 	dbcr.log.LazyTrace(
 		ctx, "DiskBlockCacheRemote: GetPrefetchStatus %s", blockID)
 	defer func() {
@@ -147,6 +173,7 @@ func (dbcr *DiskBlockCacheRemote) Delete(
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
+	dbcr.statuses.Add(blockID, prefetchStatus)
 	return dbcr.client.UpdateBlockMetadata(ctx,
 		kbgitkbfs.UpdateBlockMetadataArg{
 			BlockID:        blockID.Bytes(),
