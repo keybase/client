@@ -32,7 +32,7 @@ const selectableSmalls = {
   small3: {
     isLocked: false,
     isMuted: false,
-    participants: ['alice', 'bob', 'charlie', 'duh'],
+    participants: ['alice', 'bob', 'charlie', 'duh', 'eee', 'fff', 'ggg'],
     showBold: false,
     teamname: '',
     usernameColor: Styles.globalColors.black_75,
@@ -110,18 +110,18 @@ const getRows = (numShown, upstreamOnSelect) => {
 }
 
 const filter = {
-  isLoading: false,
   filter: '',
   filterFocusCount: 0,
-  onSetFilter: Sb.action('onSetFilter'),
+  isLoading: false,
+  onEnsureSelection: Sb.action('onEnsureSelection'),
   onSelectDown: Sb.action('onSelectDown'),
   onSelectUp: Sb.action('onSelectUp'),
-  onEnsureSelection: Sb.action('onEnsureSelection'),
+  onSetFilter: Sb.action('onSetFilter'),
 }
 export const provider = {
   ConversationList: ({onSelect}: {onSelect?: () => void}) => ({
-    rows: getRows(5, onSelect),
     filter,
+    rows: getRows(5, onSelect),
   }),
   SelectableBigTeamChannel: bigProvider,
   SelectableSmallTeam: smallProvider,

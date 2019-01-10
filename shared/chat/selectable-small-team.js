@@ -34,7 +34,11 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
     const props = this.props
     return (
       <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
-        <Kb.Box
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          fullHeight={true}
+          gap="tiny"
           className={Styles.classNames('hover_background_color_blueGrey2', {
             background_color_blue: props.isSelected,
           })}
@@ -66,7 +70,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
           </Kb.Box>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ClickableBox>
     )
   }
@@ -88,11 +92,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 8,
   },
   rowContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      ...Styles.globalStyles.flexBoxRow,
-      height: '100%',
-    },
     isElectron: Styles.desktopStyles.clickable,
   }),
 })

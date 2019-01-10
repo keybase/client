@@ -82,7 +82,7 @@ const ConversationList = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {!!props.filter && <ConversationFilterInput {...props.filter} />}
+      {!!props.filter && <ConversationFilterInput style={styles.filter} {...props.filter} />}
       <Kb.List2
         itemHeight={{height: rowHeight, type: 'fixed'}}
         items={props.rows}
@@ -100,6 +100,9 @@ const styles = Styles.styleSheetCreate({
       width: 240,
     },
   }),
+  filter: {
+    backgroundColor: Styles.globalColors.fastBlank,
+  },
   moreLessContainer: {
     height: rowHeight,
   },

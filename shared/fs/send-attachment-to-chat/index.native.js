@@ -2,22 +2,19 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
-import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import ConversationList from '../../chat/conversation-list/conversation-list-container'
 import type {Props} from '.'
 
 const Header = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
+  <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
     <Kb.Text type="BodyBigLink" style={styles.button} onClick={props.onCancel}>
       Cancel
     </Kb.Text>
-    <Kb.Box2 direction="vertical" style={styles.headerContent} fullWidth={true} centerChildren={true}>
-      <Kb.Box2 direction="horizontal" gap="xtiny">
-        <Kbfs.PathItemIcon path={props.path} size={16} />
-        <Kb.Text type="BodySmallSemibold">{Types.getPathName(props.path)}</Kb.Text>
-      </Kb.Box2>
-      <Kb.Text type="BodySemibold">Send to ...</Kb.Text>
+    <Kb.Box2 direction="horizontal" style={styles.headerContent} fullWidth={true} centerChildren={true}>
+      <Kb.Text type="BodySemibold" style={styles.filename}>
+        {Types.getPathName(props.path)}
+      </Kb.Text>
     </Kb.Box2>
     <Kb.Text type="BodyBigLink" style={styles.button} onClick={props.send}>
       Send
@@ -37,8 +34,15 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
+  filename: {
+    textAlign: 'center',
+  },
+  headerContainer: {
+    minHeight: 44,
+  },
   headerContent: {
     flex: 1,
+    flexShrink: 1,
     padding: Styles.globalMargins.xtiny,
   },
 })

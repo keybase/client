@@ -12,6 +12,7 @@ export type Props = {
   onSelectDown: () => void,
   onSelectUp: () => void,
   onEnsureSelection: () => void,
+  style?: Styles.StylesCrossPlatform,
 }
 
 type State = {
@@ -139,7 +140,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
         direction="horizontal"
         centerChildren={true}
         gap="small"
-        style={styles.container}
+        style={Styles.collapseStyles([styles.container, this.props.style])}
         gapStart={true}
         gapEnd={true}
         fullWidth={true}
