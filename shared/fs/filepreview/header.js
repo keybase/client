@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {Box, Text, BackButton} from '../../common-adapters'
-import {PathItemInfo, PathItemAction, OpenInSystemFileManager} from '../common'
+import * as Kbfs from '../common'
 import {isMobile} from '../../constants/platform'
 
 type HeaderProps = {
@@ -20,11 +20,12 @@ const Header = (props: HeaderProps) => (
       <Text type="BodyBig" selectable={true}>
         {props.name}
       </Text>
-      {!isMobile && <PathItemInfo path={props.path} startWithLastModified={true} />}
+      {!isMobile && <Kbfs.PathItemInfo path={props.path} startWithLastModified={true} />}
     </Box>
     <Box style={stylesHeaderIcons}>
-      <OpenInSystemFileManager path={props.path} />
-      <PathItemAction path={props.path} fontSize={16} />
+      <Kbfs.OpenInSystemFileManager path={props.path} />
+      <Kbfs.SendInAppAction path={props.path} sendIconClassName="" />
+      <Kbfs.PathItemAction path={props.path} fontSize={16} />
     </Box>
   </Box>
 )
