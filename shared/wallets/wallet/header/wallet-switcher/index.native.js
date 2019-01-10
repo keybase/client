@@ -25,11 +25,6 @@ const Row = (props: RowProps) => (
 
 type MenuItem =
   | {|
-      key: 'whatIsStellar',
-      onPress: () => void,
-      type: 'whatIsStellar',
-    |}
-  | {|
       key: string,
       onPress: () => void,
       title: string,
@@ -43,27 +38,6 @@ type MenuItem =
 
 const renderItem = (item: MenuItem, hideMenu: () => void) => {
   switch (item.type) {
-    case 'whatIsStellar': {
-      const onPress = () => {
-        hideMenu()
-        item.onPress()
-      }
-      return (
-        <Row
-          key={item.key}
-          onPress={onPress}
-          containerStyle={styles.infoTextRowContainer}
-          style={styles.infoTextRow}
-        >
-          <Kb.Box2 centerChildren={true} direction="horizontal">
-            <Kb.Icon size={16} type="iconfont-info" />
-            <Kb.Text style={styles.infoText} type="BodySemibold">
-              What is Stellar?
-            </Kb.Text>
-          </Kb.Box2>
-        </Row>
-      )
-    }
     case 'item': {
       const onPress = () => {
         hideMenu()
@@ -102,11 +76,6 @@ export const WalletSwitcher = (props: Props) => {
 
   const menuItems = [
     {
-      key: 'whatIsStellar',
-      onPress: props.onWhatIsStellar,
-      type: 'whatIsStellar',
-    },
-    {
       key: 'newAccount',
       onPress: props.onAddNew,
       title: 'Create a new account',
@@ -128,8 +97,12 @@ export const WalletSwitcher = (props: Props) => {
   // Kind of a pain we have to calculate the height manually.
   const dividerHeight = 2 * bottomPadding + 1
   const cancelRowHeightWithPadding = cancelRowHeight + bottomPadding
-  const height =
-    infoTextRowHeight + rowHeight * (menuItems.length - 1) + dividerHeight + cancelRowHeightWithPadding
+  const height = infoTextRowHeight + rowHeight * menuItems.length + dividerHeight + cancelRowHeightWithPadding
+
+  const whatOnPress = () => {
+    props.hideMenu()
+    props.onWhatIsStellar()
+  }
 
   return (
     <Kb.Overlay
@@ -143,6 +116,14 @@ export const WalletSwitcher = (props: Props) => {
         style={Styles.collapseStyles([styles.container, {height}])}
         fullWidth={true}
       >
+        <Row onPress={whatOnPress} containerStyle={styles.infoTextRowContainer} style={styles.infoTextRow}>
+          <Kb.Box2 centerChildren={true} direction="horizontal">
+            <Kb.Icon size={16} type="iconfont-info" />
+            <Kb.Text style={styles.infoText} type="BodySemibold">
+              What is Stellar?
+            </Kb.Text>
+          </Kb.Box2>
+        </Row>
         <Kb.List
           items={menuItems}
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
