@@ -11,11 +11,11 @@ import {type Props} from '.'
 type RowProps = {|
   children: React.Node,
   onPress?: () => void,
-  style?: Styles.StylesCrossPlatform,
+  containerStyle?: Styles.StylesCrossPlatform,
 |}
 
 const Row = (props: RowProps) => (
-  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.style])}>
+  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.containerStyle])}>
     <TouchableOpacity onPress={props.onPress} style={styles.row}>
       {props.children}
     </TouchableOpacity>
@@ -48,7 +48,7 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
         item.onPress()
       }
       return (
-        <Row key={item.key} onPress={onPress} style={styles.infoTextRow}>
+        <Row key={item.key} onPress={onPress} containerStyle={styles.infoTextRowContainer}>
           <Kb.Box2 centerChildren={true} direction="horizontal">
             <Kb.Icon size={16} type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
@@ -159,7 +159,7 @@ const styles = Styles.styleSheetCreate({
   infoText: {
     paddingLeft: Styles.globalMargins.tiny,
   },
-  infoTextRow: {
+  infoTextRowContainer: {
     backgroundColor: Styles.globalColors.lightGrey,
   },
   row: {
