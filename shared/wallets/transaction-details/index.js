@@ -386,7 +386,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
             props.yourRole === 'receiverOnly' &&
             props.counterpartyType === 'stellarPublicKey' && (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
-                <Kb.Text type="BodySemibold" backgroundMode="Information" style={styles.warningBannerText}>
+                <Kb.Text
+                  type="BodySmallSemibold"
+                  backgroundMode="Information"
+                  style={styles.warningBannerText}
+                >
                   Watch out for phishing attacks and dangerous websites.
                 </Kb.Text>
               </Kb.Box2>
