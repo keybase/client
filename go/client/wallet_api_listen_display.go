@@ -7,16 +7,27 @@ import (
 )
 
 const (
+	notifTypeWallet     = "wallet"
 	sourcePayment       = "payment"
 	sourcePaymentStatus = "payment_status"
 	sourceRequest       = "request"
 )
 
 type walletNotification struct {
+	// wallet
+	Type string `json:"type"`
 	// payment, request, etc
 	Source       string      `json:"source"`
 	Notification interface{} `json:"notification,omitempty"`
 	Error        *string     `json:"error,omitempty"`
+}
+
+func newWalletNotification(source string) *walletNotification {
+	return &walletNotification{
+		Source:       source,
+		Type:         notifTypeWallet,
+		Notification: nil,
+	}
 }
 
 type walletNotificationDisplay struct {
@@ -37,10 +48,7 @@ func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDis
 
 func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, source string,
 	accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	notif := &walletNotification{
-		Source:       source,
-		Notification: nil,
-	}
+	notif := newWalletNotification(source)
 	if details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
 		AccountID: &accountID,
 		Id:        paymentID,
@@ -63,10 +71,7 @@ func (d *walletNotificationDisplay) PaymentStatusNotification(ctx context.Contex
 }
 
 func (d *walletNotificationDisplay) RequestStatusNotification(ctx context.Context, reqID stellar1.KeybaseRequestID) error {
-	notif := &walletNotification{
-		Source:       sourceRequest,
-		Notification: nil,
-	}
+	notif := newWalletNotification(sourceRequest)
 	if details, err := d.cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
 		ReqID: reqID,
 	}); err != nil {

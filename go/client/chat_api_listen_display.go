@@ -25,11 +25,23 @@ func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, showExploding
 	}
 }
 
+const notifTypeChat = "chat"
+
 type msgNotification struct {
-	Source     string              `json:"source,omitempty"`
+	// always `chat`
+	Type string `json:"type"`
+	// `local` or  `remote`
+	Source     string              `json:"source"`
 	Msg        *MsgSummary         `json:"msg,omitempty"`
 	Error      *string             `json:"error,omitempty"`
 	Pagination *chat1.UIPagination `json:"pagination,omitempty"`
+}
+
+func newMsgNotification(source string) *msgNotification {
+	return &msgNotification{
+		Type:   notifTypeChat,
+		Source: source,
+	}
 }
 
 func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Message {
@@ -103,12 +115,11 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 		if msg == nil {
 			return nil
 		}
-		notif := msgNotification{
-			Source:     strings.ToLower(arg.Source.String()),
-			Msg:        msg.Msg,
-			Error:      msg.Error,
-			Pagination: inMsg.Pagination,
-		}
+		source := strings.ToLower(arg.Source.String())
+		notif := newMsgNotification(source)
+		notif.Msg = msg.Msg
+		notif.Error = msg.Error
+		notif.Pagination = inMsg.Pagination
 		d.printJSON(notif)
 	}
 	return nil
