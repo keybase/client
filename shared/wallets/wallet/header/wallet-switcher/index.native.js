@@ -10,6 +10,7 @@ import {type Props} from '.'
 
 type RowProps = {|
   children: React.Node,
+  isLast?: boolean,
   onPress?: () => void,
   containerStyle?: Styles.StylesCrossPlatform,
   style?: Styles.StylesCrossPlatform,
@@ -17,7 +18,10 @@ type RowProps = {|
 
 const Row = (props: RowProps) => (
   <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.containerStyle])}>
-    <TouchableOpacity onPress={props.onPress} style={Styles.collapseStyles([styles.row, props.style])}>
+    <TouchableOpacity
+      onPress={props.onPress}
+      style={Styles.collapseStyles([styles.row, props.isLast && styles.lastRow, props.style])}
+    >
       {props.children}
     </TouchableOpacity>
   </Kb.Box2>
@@ -44,7 +48,7 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
         item.onPress()
       }
       return (
-        <Row key={item.key} onPress={onPress}>
+        <Row isLast={isLast} key={item.key} onPress={onPress}>
           <Kb.Text type="BodyBig" style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
             {item.title}
           </Kb.Text>
@@ -54,7 +58,7 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
     case 'wallet':
       // No need to pass down onPress.
       return (
-        <Row key={item.key} style={Styles.collapseStyles([styles.row, styles.lastRow])}>
+        <Row isLast={isLast} key={item.key}>
           <WalletRow accountID={item.accountID} hideMenu={hideMenu} />
         </Row>
       )
