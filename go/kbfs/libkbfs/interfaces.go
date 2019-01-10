@@ -2233,6 +2233,9 @@ type InitMode interface {
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.
 	PrefetchWorkers() int
+	// ThrottledPrefetchTime returns the period for each prefetch
+	// worker to start a throttled prefetch request.
+	ThrottledPrefetchPeriod() time.Duration
 	// DefaultBlockRequestAction returns the action to be used by
 	// default whenever fetching a block.
 	DefaultBlockRequestAction() BlockRequestAction

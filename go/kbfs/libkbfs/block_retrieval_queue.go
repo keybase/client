@@ -9,6 +9,7 @@ import (
 	"io"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -25,8 +26,11 @@ const (
 	testBlockRetrievalWorkerQueueSize    int = 5
 	testPrefetchWorkerQueueSize          int = 1
 	defaultOnDemandRequestPriority       int = 1 << 30
+	throttleRequestPriority              int = 1 << 15
 	// Channel buffer size can be big because we use the empty struct.
 	workerQueueSize int = 1<<31 - 1
+
+	defaultThrottledPrefetchPeriod = 1 * time.Second
 )
 
 type blockRetrievalPartialConfig interface {
@@ -122,6 +126,7 @@ type blockRetrievalQueue struct {
 	// request only exits the heap once a worker is ready.
 	workerCh         chan<- struct{}
 	prefetchWorkerCh chan<- struct{}
+
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
@@ -141,10 +146,13 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than
 // numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
+func newBlockRetrievalQueue(
+	numWorkers int, numPrefetchWorkers int,
+	throttledPrefetchPeriod time.Duration,
 	config blockRetrievalConfig) *blockRetrievalQueue {
 	workerCh := make(chan struct{}, workerQueueSize)
 	prefetchWorkerCh := make(chan struct{}, workerQueueSize)
+
 	q := &blockRetrievalQueue{
 		config:           config,
 		log:              config.MakeLogger(""),

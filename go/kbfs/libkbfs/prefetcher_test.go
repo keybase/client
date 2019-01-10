@@ -73,7 +73,7 @@ func initPrefetcherTestWithDiskCache(t *testing.T, dbc DiskBlockCache) (
 	// _actually_ completed.
 	bg := newFakeBlockGetter(false)
 	config := newTestBlockRetrievalConfig(t, bg, dbc)
-	q := newBlockRetrievalQueue(1, 1, config)
+	q := newBlockRetrievalQueue(1, 1, 0, config)
 	require.NotNil(t, q)
 
 	return q, bg, config
