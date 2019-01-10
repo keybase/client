@@ -227,7 +227,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	tc.T.Logf("proof for %s", serviceName)
 	g := tc.G
 	sv := keybase1.SigVersion(sigVersion)
-	proofService := g.GetProofServices().GetServiceType(serviceName)
+	proofService := g.GetProofServices().GetServiceType(libkb.NewMetaContext(context.Background(), g), serviceName)
 	require.NotNil(tc.T, proofService)
 
 	// Post a proof to the testing generic social service
@@ -308,7 +308,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 
 func proveGubbleSocialFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, error) {
 	sv := keybase1.SigVersion(sigVersion)
-	proofService := g.GetProofServices().GetServiceType("gubble.social")
+	proofService := g.GetProofServices().GetServiceType(libkb.NewMetaContext(context.Background(), g), "gubble.social")
 	if proofService == nil {
 		return nil, fmt.Errorf("Unable to find gubble.social service")
 	}

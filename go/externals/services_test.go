@@ -15,11 +15,11 @@ func TestLoadParamServices(t *testing.T) {
 
 	m := libkb.NewMetaContextForTest(tc)
 
-	proofServices := newProofServices(tc.G)
+	proofServices := newProofServices()
 	entry, err := tc.G.GetParamProofStore().GetLatestEntry(m)
 	require.NoError(t, err)
 
-	proofConfigs, displayConfigs, err := proofServices.parseServiceConfigs(entry)
+	proofConfigs, displayConfigs, err := proofServices.parseServiceConfigs(m, entry)
 	require.NoError(t, err)
 	require.NotNil(t, proofConfigs)
 	require.NotNil(t, displayConfigs)

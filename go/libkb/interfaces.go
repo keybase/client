@@ -598,9 +598,9 @@ type ServiceType interface {
 }
 
 type ExternalServicesCollector interface {
-	GetServiceType(n string) ServiceType
-	ListProofCheckers() []string
-	ListServicesThatAcceptNewProofs() []string
+	GetServiceType(MetaContext, string) ServiceType
+	ListProofCheckers(MetaContext) []string
+	ListServicesThatAcceptNewProofs(MetaContext) []string
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

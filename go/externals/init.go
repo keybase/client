@@ -23,7 +23,7 @@ func NewParamProofStoreAndInstall(g *libkb.GlobalContext) libkb.MerkleStore {
 
 func NewGlobalContextInit() *libkb.GlobalContext {
 	g := libkb.NewGlobalContext().Init()
-	g.SetProofServices(NewProofServices(g))
+	g.SetProofServices(NewProofServices())
 	g.ConfigureMerkleClient()
 	pvl.NewPvlSourceAndInstall(g)
 	NewParamProofStoreAndInstall(g)

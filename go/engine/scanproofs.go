@@ -385,7 +385,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 		return nil, foundhint, err
 	}
 
-	pc, err := libkb.MakeProofChecker(m.G().GetProofServices(), link)
+	pc, err := libkb.MakeProofChecker(m, m.G().GetProofServices(), link)
 	if err != nil {
 		return nil, foundhint, err
 	}

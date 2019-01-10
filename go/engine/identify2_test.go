@@ -78,9 +78,11 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) ListProofCheckers() []string               { return nil }
-func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs() []string { return nil }
-func (i *Identify2WithUIDTester) Key() string                               { return i.GetTypeName() }
+func (i *Identify2WithUIDTester) ListProofCheckers(libkb.MetaContext) []string { return nil }
+func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs(libkb.MetaContext) []string {
+	return nil
+}
+func (i *Identify2WithUIDTester) Key() string { return i.GetTypeName() }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
@@ -101,7 +103,9 @@ func (i *Identify2WithUIDTester) ToServiceJSON(remotename string) *jsonw.Wrapper
 func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return i
 }
-func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
+func (i *Identify2WithUIDTester) GetServiceType(mctx libkb.MetaContext, n string) libkb.ServiceType {
+	return i
+}
 
 func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
 	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {

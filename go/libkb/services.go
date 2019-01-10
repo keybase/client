@@ -11,17 +11,18 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 //=============================================================================
 
-func MakeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
+func MakeProofChecker(mctx MetaContext, c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
 	if c == nil {
 		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
 			"No proof services configured")
 	}
 	k := l.TableKey()
-	st := c.GetServiceType(k)
+	st := c.GetServiceType(mctx, k)
 	if st == nil {
 		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
 			"No proof service for type: %s", k)
@@ -161,42 +162,21 @@ func (t *BaseServiceType) CanMakeNewProofs() bool {
 //=============================================================================
 
 type assertionContext struct {
+	Contextified
 	esc ExternalServicesCollector
 }
 
-func MakeAssertionContext(s ExternalServicesCollector) AssertionContext {
-	return assertionContext{esc: s}
+func MakeAssertionContext(g *GlobalContext, s ExternalServicesCollector) AssertionContext {
+	return assertionContext{
+		Contextified: NewContextified(g),
+		esc:          s,
+	}
 }
 
 func (a assertionContext) NormalizeSocialName(service string, username string) (string, error) {
-	st := a.esc.GetServiceType(service)
+	st := a.esc.GetServiceType(NewMetaContext(context.TODO(), a.G()), service)
 	if st == nil {
 		return "", fmt.Errorf("Unknown social network: %s", service)
 	}
 	return st.NormalizeUsername(username)
 }
-
-//=============================================================================
-
-// NOTE the static methods should only be used in tests or as a basic sanity
-// check for the syntactical correctness of an assertion. All other callers
-// should use the non-static versions.
-// This uses only the 'static' services which exclude any parameterized proofs.
-type staticAssertionContext struct {
-	esc ExternalServicesCollector
-}
-
-func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
-	return staticAssertionContext{esc: s}
-}
-
-func (a staticAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
-	st := a.esc.GetServiceType(service)
-	if st == nil {
-		// If we don't know about this service, normalize by going to lowercase
-		return strings.ToLower(username), nil
-	}
-	return st.NormalizeUsername(username)
-}
-
-//=============================================================================

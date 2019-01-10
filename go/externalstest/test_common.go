@@ -17,7 +17,7 @@ func SetupTest(tb libkb.TestingTB, name string, depthIgnored int) (tc libkb.Test
 	// libkb.SetupTest ignores the third argument (depth).
 	tc = libkb.SetupTest(tb, name, depthIgnored)
 
-	tc.G.SetProofServices(externals.NewProofServices(tc.G))
+	tc.G.SetProofServices(externals.NewProofServices())
 	tc.G.SetUIDMapper(uidmap.NewUIDMap(10000))
 	pvl.NewPvlSourceAndInstall(tc.G)
 	externals.NewParamProofStoreAndInstall(tc.G)

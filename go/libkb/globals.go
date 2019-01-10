@@ -1074,7 +1074,7 @@ func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.proofServices)
+	return MakeAssertionContext(g, g.proofServices)
 }
 
 func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {

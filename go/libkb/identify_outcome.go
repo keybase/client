@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 type IdentifyOutcome struct {
@@ -111,7 +112,7 @@ func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResul
 	for _, lcr := range pc {
 		key := lcr.link.DisplayPriorityKey()
 		if _, ok := serviceTypes[key]; !ok {
-			st := proofServices.GetServiceType(key)
+			st := proofServices.GetServiceType(NewMetaContext(context.TODO(), i.G()), key)
 			displayPriority := 0
 			if st != nil {
 				displayPriority = st.DisplayPriority()
