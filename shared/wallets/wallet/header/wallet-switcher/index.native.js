@@ -163,7 +163,8 @@ const styles = Styles.styleSheetCreate({
   container: {
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-end',
-    maxHeight: '100%',
+    // TODO: Justify.
+    maxHeight: '95%',
   },
   divider: {
     backgroundColor: Styles.globalColors.black_05,
