@@ -119,6 +119,7 @@ class Wallet extends React.Component<Props> {
           sections={this.props.sections}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
+          stickySectionHeadersEnabled={false}
           keyExtractor={this._keyExtractor}
           onEndReached={this._onEndReached}
         />

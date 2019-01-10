@@ -74,7 +74,10 @@ class SectionList extends React.Component<Props, State> {
     }
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header' ? (
-      <Box key={item.key || key} style={this.props.stickySectionHeadersEnabled && styles.stickySectionHeader}>
+      <Box
+        key={item.key || key}
+        style={this.props.stickySectionHeadersEnabled ? styles.stickySectionHeader : null}
+      >
         {this.props.renderSectionHeader({section})}
       </Box>
     ) : (
