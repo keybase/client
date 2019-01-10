@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
-import {Box, Icon, Text, WithTooltip} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
@@ -10,29 +10,29 @@ import {type FolderHeaderProps} from './header'
 import {OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
 
 const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
-  <Box style={styles.headerContainer}>
-    <Box style={styles.folderHeader}>
+  <Kb.Box style={styles.headerContainer}>
+    <Kb.Box style={styles.folderHeader}>
       {Types.pathToString(path) === '/keybase' ? (
-        <Box style={styles.folderHeaderContainer}>
-          <Box style={styles.folderHeaderRoot}>
-            <Text type="BodyBig">Keybase Files</Text>
-          </Box>
-          <Box style={styles.folderHeaderEnd}>
-            <WithTooltip text="Show in Finder">
+        <Kb.Box style={styles.folderHeaderContainer}>
+          <Kb.Box style={styles.folderHeaderRoot}>
+            <Kb.Text type="BodyBig">Keybase Files</Kb.Text>
+          </Kb.Box>
+          <Kb.Box style={styles.folderHeaderEnd}>
+            <Kb.WithTooltip text="Show in Finder">
               <OpenInSystemFileManager path={path} />
-            </WithTooltip>
-          </Box>
-        </Box>
+            </Kb.WithTooltip>
+          </Kb.Box>
+        </Kb.Box>
       ) : (
-        <Box style={styles.folderHeaderContainer}>
+        <Kb.Box style={styles.folderHeaderContainer}>
           <Breadcrumb path={path} routePath={routePath} />
-          <Box style={styles.folderHeaderEnd}>
+          <Kb.Box style={styles.folderHeaderEnd}>
             <AddNew path={path} style={styles.addNew} />
-            <WithTooltip text="Show in Finder">
+            <Kb.WithTooltip text="Show in Finder">
               <OpenInSystemFileManager path={path} />
-            </WithTooltip>
+            </Kb.WithTooltip>
             {onChat && (
-              <Icon
+              <Kb.Icon
                 type="iconfont-chat"
                 color={Styles.globalColors.black_50}
                 fontSize={16}
@@ -42,12 +42,12 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
             )}
             <SendInAppAction path={path} sendIconClassName="" />
             <PathItemAction path={path} actionIconClassName="" />
-          </Box>
-        </Box>
+          </Kb.Box>
+        </Kb.Box>
       )}
-    </Box>
+    </Kb.Box>
     <ConnectedFilesBanner path={path} />
-  </Box>
+  </Kb.Box>
 )
 
 const styleCommonRow = {
