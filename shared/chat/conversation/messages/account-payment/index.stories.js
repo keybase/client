@@ -42,6 +42,7 @@ const sentXLMProps = {
   loading: false,
   memo: 'here you go',
   pending: false,
+  showCoinsIcon: true,
 }
 
 const sentNoMemoProps = {

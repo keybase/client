@@ -232,13 +232,9 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
     return false
   }
-  for (let paymentID of message.inlinePaymentIDs) {
-    const paymentInfo = state.chat2.paymentStatusMap.get(paymentID)
-    if (paymentInfo && successfulInlinePaymentStatuses.includes(paymentInfo.status)) {
-      return true
-    }
-  }
-  return false
+  return message.inlinePaymentIDs.some(id =>
+    successfulInlinePaymentStatuses.includes(state.chat2.paymentStatusMap.get(id)?.status)
+  )
 }
 
 export const threadRoute = isMobile
