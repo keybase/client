@@ -178,7 +178,7 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
   },
   headerContainer: {
-    height: 48,
+    height: Styles.isMobile ? 56 : 48,
     padding: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.small,
   },
