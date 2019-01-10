@@ -88,28 +88,25 @@ function* handleWindowFocusEvents(): Generator<any, void, any> {
   }, Saga.buffers.expanding(1))
   while (true) {
     const type = yield Saga.take(channel)
-    switch (type) {
-      case 'focus':
-        if (skipAppFocusActions) {
-          console.log('Skipping app focus actions!')
-        } else {
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      switch (type) {
+        case 'focus':
           yield Saga.put(ConfigGen.createChangedFocus({appFocused: true}))
-        }
-        break
-      case 'blur':
-        if (skipAppFocusActions) {
-          console.log('Skipping app focus actions!')
-        } else {
+          break
+        case 'blur':
           yield Saga.put(ConfigGen.createChangedFocus({appFocused: false}))
-        }
+          break
+      }
     }
   }
 }
 
 function* initializeInputMonitor(): Generator<any, void, any> {
-  const inputMonitor = new InputMonitor()
   const channel = Saga.eventChannel(emitter => {
-    inputMonitor.notifyActive = isActive => emitter(isActive ? 'active' : 'inactive')
+    // eslint-disable-next-line no-new
+    new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
     return () => {}
   }, Saga.buffers.expanding(1))
 

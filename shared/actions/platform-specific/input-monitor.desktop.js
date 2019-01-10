@@ -13,7 +13,8 @@ class InputMonitor {
   activeTimeoutID: ?TimeoutID
   inactiveTimeoutID: ?TimeoutID
 
-  constructor() {
+  constructor(notifyActive: NotifyActiveFunction) {
+    this.notifyActive = notifyActive
     // go into listening mode again
     window.addEventListener('focus', this.goListening)
     window.addEventListener('blur', this.goInactive)
@@ -21,14 +22,11 @@ class InputMonitor {
   }
 
   _clearTimers = () => {
-    if (this.activeTimeoutID) {
-      window.clearTimeout(this.activeTimeoutID)
-      this.activeTimeoutID = null
-    }
-    if (this.inactiveTimeoutID) {
-      window.clearTimeout(this.inactiveTimeoutID)
-      this.inactiveTimeoutID = null
-    }
+    window.clearTimeout(this.activeTimeoutID)
+    this.activeTimeoutID = null
+
+    window.clearTimeout(this.inactiveTimeoutID)
+    this.inactiveTimeoutID = null
   }
 
   resetInactiveTimer = () => {
