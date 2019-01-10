@@ -11,6 +11,7 @@ import walletsSaga from '../wallets'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath} from '../../route-tree'
+import HiddenString from '../../util/hidden-string'
 
 jest.mock('../../engine/require')
 
@@ -187,5 +188,71 @@ it('build and send request', () => {
     .then(({requestRPC}) => {
       expect(getState().wallets.builtRequest).toEqual(Constants.makeBuiltRequest())
       expect(requestRPC).toHaveBeenCalled()
+    })
+})
+
+const buildingResSecretNote = new HiddenString('please send')
+const buildingRes = {
+  amount: '5',
+  bid: 'fake build ID',
+  currency: '123',
+  from: Types.noAccountID,
+  isRequest: false,
+  publicMemo: new HiddenString(''),
+  recipientType: 'keybaseUser',
+  secretNote: buildingResSecretNote,
+  to: 'akalin',
+}
+
+it('primes send/request form', () => {
+  const {dispatch, getState} = startReduxSaga()
+  // accept disclaimer
+  const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
+  acceptRPC.mockImplementation(() => Promise.resolve())
+
+  const checkRPC = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
+  checkRPC.mockImplementation(() => Promise.resolve(true))
+
+  dispatch(WalletsGen.createAcceptDisclaimer())
+  dispatch(WalletsGen.createCheckDisclaimer({nextScreen: 'openWallet'}))
+  return Testing.flushPromises()
+    .then(() => {
+      const startPaymentRPC = jest.spyOn(RPCStellarTypes, 'localStartBuildPaymentLocalRpcPromise')
+      startPaymentRPC.mockImplementation(() => Promise.resolve('fake build ID'))
+
+      const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
+      buildRPC.mockImplementation(() => Promise.resolve(buildPaymentRes))
+
+      dispatch(
+        WalletsGen.createOpenSendRequestForm({
+          amount: '5',
+          currency: '123',
+          secretNote: buildingResSecretNote,
+          to: 'akalin',
+        })
+      )
+      return Testing.flushPromises({buildRPC, startPaymentRPC})
+    })
+    .then(({buildRPC, startPaymentRPC}) => {
+      expect(startPaymentRPC).toHaveBeenCalled()
+
+      const state = getState()
+      const expectedBuildRes = Constants.makeBuilding(buildingRes)
+      expect(state.wallets.building).toEqual(expectedBuildRes)
+      // build RPC should have been called last with buildRes
+      expect(buildRPC.mock.calls[buildRPC.mock.calls.length - 1]).toEqual([
+        {
+          amount: expectedBuildRes.amount,
+          bid: 'fake build ID',
+          currency: '123',
+          from: '',
+          fromPrimaryAccount: true,
+          publicMemo: '',
+          secretNote: expectedBuildRes.secretNote.stringValue(),
+          to: 'akalin',
+          toIsAccountID: false,
+        },
+        Constants.buildPaymentWaitingKey,
+      ])
     })
 })
