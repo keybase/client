@@ -669,7 +669,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		i.Debug(ctx, "Read: queryExists: error hashing query: %s", err.Error())
 		return false
 	}
-	i.Debug(ctx, "Read: queryExists: query hash: %s p: %v", hquery, p)
+	i.Debug(ctx, "Read: queryExists: query: %+v,\n query hash: %s p: %v", query, hquery, p)
 
 	qp := inboxDiskQuery{QueryHash: hquery, Pagination: p}
 	for _, q := range ibox.Queries {
@@ -1521,6 +1521,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			}
 
 			ibox.Conversations[index].Conv = newConv
+			i.Debug(ctx, "Sync:  %v", newConv)
 			delete(convMap, conv.GetConvID().String())
 		}
 	}
@@ -1554,7 +1555,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d", len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
+	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
+		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
