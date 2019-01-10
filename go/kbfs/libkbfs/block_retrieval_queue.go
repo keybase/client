@@ -289,22 +289,27 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
 	PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
-	if dbc == nil {
-		// Attempt to retrieve the block from the memory cache, but
-		// only if the disk cache is nil, since if it's not nil we
-		// need to get the prefetch status from the disk anyway.  Just
-		// use a simple cache for storing the prefetch status; the
-		// most likely reason we have no disk block cache is that
-		// we're testing.
-		cachedBlock, err := brq.config.BlockCache().Get(ptr)
-		if err != nil {
-			return NoPrefetch, err
-		}
+	preferredCacheType := action.CacheType()
+
+	cachedBlock, err := brq.config.BlockCache().Get(ptr)
+	if err == nil {
 		block.Set(cachedBlock)
-		return brq.getPrefetchStatus(ptr.ID), nil
+		if dbc == nil {
+			return brq.getPrefetchStatus(ptr.ID), nil
+		}
+
+		prefetchStatus, err := dbc.GetPrefetchStatus(
+			ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
+		if err == nil {
+			return prefetchStatus, nil
+		}
+		// If the prefetch status wasn't in the preferred cache, do a
+		// full `Get()` below in an attempt to move the full block
+		// into the preferred cache.
+	} else if dbc == nil {
+		return NoPrefetch, err
 	}
 
-	preferredCacheType := action.CacheType()
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
 		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {
