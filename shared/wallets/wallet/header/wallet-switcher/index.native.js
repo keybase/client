@@ -12,11 +12,12 @@ type RowProps = {|
   children: React.Node,
   onPress?: () => void,
   containerStyle?: Styles.StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
 |}
 
 const Row = (props: RowProps) => (
   <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.containerStyle])}>
-    <TouchableOpacity onPress={props.onPress} style={styles.row}>
+    <TouchableOpacity onPress={props.onPress} style={Styles.collapseStyles([styles.row, props.style])}>
       {props.children}
     </TouchableOpacity>
   </Kb.Box2>
@@ -48,7 +49,12 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
         item.onPress()
       }
       return (
-        <Row key={item.key} onPress={onPress} containerStyle={styles.infoTextRowContainer}>
+        <Row
+          key={item.key}
+          onPress={onPress}
+          containerStyle={styles.infoTextRowContainer}
+          style={styles.infoTextRow}
+        >
           <Kb.Box2 centerChildren={true} direction="horizontal">
             <Kb.Icon size={16} type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
@@ -84,7 +90,8 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
   }
 }
 
-const rowHeight = 48
+const infoTextRowHeight = 48
+const rowHeight = 56
 
 export const WalletSwitcher = (props: Props) => {
   if (!props.showingMenu) {
@@ -117,7 +124,7 @@ export const WalletSwitcher = (props: Props) => {
   ]
 
   // Menu items plus pinned cancel item on bottom.
-  const height = rowHeight * (menuItems.length + 1)
+  const height = infoTextRowHeight + rowHeight * menuItems.length
 
   return (
     <Kb.Overlay
@@ -132,7 +139,6 @@ export const WalletSwitcher = (props: Props) => {
         fullWidth={true}
       >
         <Kb.List
-          fixedHeight={rowHeight}
           items={menuItems}
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
           bounces={false}
@@ -158,6 +164,9 @@ const styles = Styles.styleSheetCreate({
   },
   infoText: {
     paddingLeft: Styles.globalMargins.tiny,
+  },
+  infoTextRow: {
+    height: infoTextRowHeight,
   },
   infoTextRowContainer: {
     backgroundColor: Styles.globalColors.lightGrey,
