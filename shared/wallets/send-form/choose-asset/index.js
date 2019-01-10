@@ -146,7 +146,7 @@ class ChooseAsset extends React.Component<Props, State> {
           ]),
     ]
     return (
-      <Kb.MaybePopup onClose={Styles.isMobile ? undefined : this.props.onBack} style={styles.mobileFlex}>
+      <Kb.MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
           <Header onBack={this.props.onBack} whiteBackground={true} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
@@ -282,11 +282,11 @@ const styles = Styles.styleSheetCreate({
   choice: {width: '100%'},
   choiceContainer: Styles.platformStyles({
     common: {
-      alignItems: 'center',
       // needed to get on top of absolutely positioned background color
-      position: 'relative',
+      alignItems: 'center',
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+      position: 'relative',
       width: '100%',
     },
     isElectron: {
