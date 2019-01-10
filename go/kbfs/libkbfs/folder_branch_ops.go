@@ -856,7 +856,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfigUnlocked(
 
 func (fbo *folderBranchOps) syncOneNode(
 	ctx context.Context, node Node, rmd ImmutableRootMetadata,
-	action BlockRequestAction) (BlockPointer, error) {
+	priority int, action BlockRequestAction) (BlockPointer, error) {
 	nodePath := fbo.nodeCache.PathFromNode(node)
 	var b Block
 	if node.EntryType() == Dir {
@@ -866,8 +866,7 @@ func (fbo *folderBranchOps) syncOneNode(
 	}
 	ptr := nodePath.tailPointer()
 	ch := fbo.config.BlockOps().BlockRetriever().Request(
-		ctx, defaultOnDemandRequestPriority-1, rmd,
-		ptr, b, TransientEntry, action)
+		ctx, priority, rmd, ptr, b, TransientEntry, action)
 	select {
 	case err := <-ch:
 		if err != nil {
@@ -891,6 +890,7 @@ func (fbo *folderBranchOps) doPartialSync(
 	}()
 
 	var parentSyncAction, pathSyncAction BlockRequestAction
+	var priority int
 	switch syncConfig.Mode {
 	case keybase1.FolderSyncMode_ENABLED:
 		return errors.Errorf("Enabled mode passed to partial sync")
@@ -899,12 +899,17 @@ func (fbo *folderBranchOps) doPartialSync(
 		// blocks in the directory itself get prefetched.
 		parentSyncAction = BlockRequestPrefetchTailWithSync
 		pathSyncAction = BlockRequestWithDeepSync
+		priority = defaultOnDemandRequestPriority - 1
 	default:
 		// For TLFs that aren't explicitly configured to be synced in
 		// some way, use the working set cache.
 		parentSyncAction = BlockRequestPrefetchTail
 		// If we run out of space while prefetching the paths, just stop.
 		pathSyncAction = BlockRequestPrefetchUntilFull
+		// Don't flood outselves with prefetch requests when we're not
+		// explicitly trying to sync the folder, just throttle them in
+		// the background.
+		priority = throttleRequestPriority
 	}
 
 	rootNode, _, _, err := fbo.getRootNode(ctx)
@@ -912,7 +917,7 @@ func (fbo *folderBranchOps) doPartialSync(
 		return err
 	}
 	_, err = fbo.syncOneNode(
-		ctx, rootNode, latestMerged, parentSyncAction)
+		ctx, rootNode, latestMerged, priority, parentSyncAction)
 	if err != nil {
 		return err
 	}
@@ -950,7 +955,7 @@ pathLoop:
 			// any child blocks in the directory itself get
 			// prefetched.
 			_, err = fbo.syncOneNode(
-				ctx, currNode, latestMerged, parentSyncAction)
+				ctx, currNode, latestMerged, priority, parentSyncAction)
 			if err != nil {
 				return err
 			}
@@ -967,7 +972,8 @@ pathLoop:
 			return err
 		}
 
-		ptr, err := fbo.syncOneNode(ctx, elemNode, latestMerged, pathSyncAction)
+		ptr, err := fbo.syncOneNode(
+			ctx, elemNode, latestMerged, priority, pathSyncAction)
 		if err != nil {
 			return err
 		}
