@@ -89,6 +89,8 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
   menuGroup: {
     ...Styles.globalStyles.flexBoxColumn,
