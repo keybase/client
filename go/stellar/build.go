@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -385,9 +386,12 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 
 	notify(nil, reviewButtonSpinning)
 
+	wantFollowingCheck := true
+
 	if data.Frozen.ToIsAccountID {
 		mctx.CDebugf("skipping identify for account ID recipient: %v", data.Frozen.To)
 		data.ReadyToSend = true
+		wantFollowingCheck = false
 	}
 
 	recipientAssertion := data.Frozen.To
@@ -403,10 +407,23 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 			if domain != "keybase.io" {
 				mctx.CDebugf("skipping identify for federation address recipient: %s", data.Frozen.To)
 				data.ReadyToSend = true
+				wantFollowingCheck = false
 			} else {
 				mctx.CDebugf("identifying keybase user %s in federation address recipient: %s", name, data.Frozen.To)
 				recipientAssertion = name
 			}
+		}
+	}
+
+	mctx.CDebugf("wantFollowingCheck: %v", wantFollowingCheck)
+	var stickyBanners []stellar1.SendBannerLocal
+	if wantFollowingCheck {
+		if isFollowing, err := isFollowingForReview(mctx, recipientAssertion); err == nil && !isFollowing {
+			stickyBanners = []stellar1.SendBannerLocal{{
+				Level:   "warning",
+				Message: fmt.Sprintf("You are not following %v. Are you sure this is the right person?", recipientAssertion),
+			}}
+			notify(stickyBanners, reviewButtonSpinning)
 		}
 	}
 
@@ -449,11 +466,13 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 			case <-mctx.Ctx().Done():
 				return mctx.Ctx().Err()
 			case <-identifyErrCh:
+				stickyBanners = nil
 				notify([]stellar1.SendBannerLocal{{
 					Level:   "error",
 					Message: fmt.Sprintf("Error while identifying %v", recipientAssertion),
 				}}, reviewButtonDisabled)
 			case <-identifyTrackFailCh:
+				stickyBanners = nil
 				notify([]stellar1.SendBannerLocal{{
 					Level:         "error",
 					Message:       fmt.Sprintf("Some of %v's proofs have changed since you last followed them.", recipientAssertion),
@@ -469,7 +488,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 	if err := mctx.Ctx().Err(); err != nil {
 		return err
 	}
-	receivedEnableCh := notify(nil, reviewButtonEnabled)
+	receivedEnableCh := notify(stickyBanners, reviewButtonEnabled)
 
 	// Stay open until this call gets canceled or until frontend
 	// acks a notification that enables the button.
@@ -539,6 +558,32 @@ func identifyForReview(mctx libkb.MetaContext, assertion string,
 		return
 	}
 	sendSuccess()
+}
+
+// Whether the logged-in user following the recipient.
+// Unresolved assertions will false negative.
+func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing bool, err error) {
+	// The 'following' check blocks sending, and is not that important, so impose a timeout.
+	var cancel func()
+	mctx, cancel = mctx.WithTimeout(time.Second * 5)
+	defer cancel()
+	err = mctx.G().GetFullSelfer().WithSelf(mctx.Ctx(), func(u *libkb.User) error {
+		idTable := u.IDTable()
+		if idTable == nil {
+			return nil
+		}
+		targetUsername := libkb.NewNormalizedUsername(assertion)
+		for _, track := range idTable.GetTrackList() {
+			if trackedUsername, err := track.GetTrackedUsername(); err == nil {
+				if trackedUsername.Eq(targetUsername) {
+					isFollowing = true
+					return nil
+				}
+			}
+		}
+		return nil
+	})
+	return isFollowing, err
 }
 
 func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
