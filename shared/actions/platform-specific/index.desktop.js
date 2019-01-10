@@ -112,7 +112,11 @@ function* initializeInputMonitor(): Generator<any, void, any> {
 
   while (true) {
     const type = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createChangedActive({userActive: type === 'active'}))
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      yield Saga.put(ConfigGen.createChangedActive({userActive: type === 'active'}))
+    }
   }
 }
 
