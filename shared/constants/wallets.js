@@ -605,6 +605,7 @@ export {
   makeAssetDescription,
   makeAssets,
   makeCurrencies,
+  makeCurrency,
   makeBuilding,
   makeBuiltPayment,
   makeBuiltRequest,

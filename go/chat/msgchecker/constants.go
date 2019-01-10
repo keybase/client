@@ -3,12 +3,12 @@ package msgchecker
 import "github.com/keybase/client/go/protocol/chat1"
 
 const (
-	TextMessageMaxLength     = 10000
-	DevTextMessageMaxLength  = 1000000
-	ReactionMessageMaxLength = 50
-	HeadlineMaxLength        = 280
-	TopicMaxLength           = 20
-	PaymentTextMaxLength     = 240
+	TextMessageMaxLength        = 10000
+	DevTextMessageMaxLength     = 1000000
+	ReactionMessageMaxLength    = 50
+	HeadlineMaxLength           = 280
+	TopicMaxLength              = 20
+	RequestPaymentTextMaxLength = 240
 )
 
 const (

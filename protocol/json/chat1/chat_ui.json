@@ -141,6 +141,10 @@
         },
         {
           "type": "MessageID",
+          "name": "maxVisibleMsgID"
+        },
+        {
+          "type": "MessageID",
           "name": "readMsgID"
         },
         {
@@ -300,6 +304,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxVisibleMsgID"
         },
         {
           "type": "MessageID",
@@ -799,6 +807,13 @@
             "items": "UIMessage"
           },
           "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadLineID"
         },
         {
           "type": [

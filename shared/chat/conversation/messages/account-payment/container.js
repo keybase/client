@@ -27,6 +27,7 @@ const loadingProps = {
   loading: true,
   memo: '',
   pending: false,
+  showCoinsIcon: false,
 }
 
 // Info text for cancelable payments
@@ -93,6 +94,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         memo: paymentInfo.note.stringValue(),
         pending: pending || canceled,
         sendButtonLabel: '',
+        showCoinsIcon: completed,
       }
     }
     case 'requestPayment': {
@@ -122,6 +124,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           youAreSender || canceled || done
             ? ''
             : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}`,
+        showCoinsIcon: false,
       }
     }
     default:
@@ -162,6 +165,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSend: dispatchProps.onSend,
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
+  showCoinsIcon: stateProps.showCoinsIcon,
 })
 
 const ConnectedAccountPayment = Container.connect<OwnProps, _, _, _, _>(

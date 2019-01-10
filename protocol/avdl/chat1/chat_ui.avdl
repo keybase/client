@@ -37,6 +37,7 @@ protocol chatUi {
     gregor1.Time time;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
 
@@ -73,6 +74,7 @@ protocol chatUi {
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
@@ -202,6 +204,7 @@ protocol chatUi {
 
   record UIMessages {
     array<UIMessage> messages;
+    union { null, MessageID } unreadLineID;
     union { null, UIPagination } pagination;
   }
 

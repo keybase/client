@@ -969,7 +969,16 @@ function* loadMoreMessages(state, action) {
       shouldClearOthers = true
       calledClear = true
     }
-
+    if (uiMessages.unreadLineID) {
+      actions.push(
+        Saga.put(
+          Chat2Gen.createUpdateOrangeLine({
+            conversationIDKey,
+            messageID: Types.numberToMessageID(uiMessages.unreadLineID),
+          })
+        )
+      )
+    }
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
       const message = conversationIDKey ? Constants.uiMessageToMessage(state, conversationIDKey, m) : null
       if (message) {
@@ -2748,6 +2757,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
+    | ConfigGen.ChangedActivePayload
     | RouteTreeGen.Actions
   >(
     [
@@ -2756,6 +2766,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
+      ConfigGen.changedActive,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],
     markThreadAsRead

@@ -159,7 +159,7 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	localizerTyp types.ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan types.AsyncInboxResult, error) {
 	localizeCb := make(chan types.AsyncInboxResult, len(convs))
 	localizer := b.createConversationLocalizer(ctx, localizerTyp, localizeCb)
-	b.Debug(ctx, "Localize: using localizer: %s", localizer.Name())
+	b.Debug(ctx, "Localize: using localizer: %s, convs: %d", localizer.Name(), len(convs))
 
 	res, err := localizer.Localize(ctx, uid, types.Inbox{
 		ConvsUnverified: convs,
@@ -491,11 +491,13 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		if query != nil && query.SkipBgLoads {
 			continue
 		}
-		// Queue all these convs up to be loaded by the background loader Only
-		// load first 100 non KBFS convs so we don't get the conv loader too
-		// backed up
-		if bgEnqueued < 100 &&
-			conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS {
+		// Queue all these convs up to be loaded by the background loader. Only
+		// load first 100 non KBFS convs, ACTIVE convs so we don't get the conv
+		// loader too backed up.
+		if conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS &&
+			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
+				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
+			bgEnqueued < 100 {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {

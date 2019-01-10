@@ -453,7 +453,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
-	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
+	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
