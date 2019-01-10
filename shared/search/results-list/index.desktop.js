@@ -28,6 +28,7 @@ class SearchResultsList extends Component<Props> {
 
   _list = null
   _setRef = r => (this._list = r)
+  _itemSizeGetter = () => 48
 
   render() {
     const {showSearchSuggestions, style, items} = this.props
@@ -51,7 +52,8 @@ class SearchResultsList extends Component<Props> {
           itemRenderer={this._itemRenderer}
           ref={this._setRef}
           length={items.length}
-          type="uniform"
+          itemSizeGetter={this._itemSizeGetter}
+          type="variable"
         />
       </Box>
     )
