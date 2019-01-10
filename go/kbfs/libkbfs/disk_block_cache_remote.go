@@ -76,6 +76,32 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 	return res.Buf, serverHalf, prefetchStatus, nil
 }
 
+// GetPefetchStatus implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetPrefetchStatus(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+	cacheType DiskBlockCacheType) (
+	prefetchStatus PrefetchStatus, err error) {
+	dbcr.log.LazyTrace(
+		ctx, "DiskBlockCacheRemote: GetPrefetchStatus %s", blockID)
+	defer func() {
+		dbcr.log.LazyTrace(
+			ctx, "DiskBlockCacheRemote: GetPrefetchStatus %s done (err=%+v)",
+			blockID, err)
+	}()
+
+	res, err := dbcr.client.GetPrefetchStatus(
+		ctx, kbgitkbfs.GetPrefetchStatusArg{
+			TlfID:   tlfID.Bytes(),
+			BlockID: blockID.Bytes(),
+		})
+	if err != nil {
+		return NoPrefetch, err
+	}
+
+	return PrefetchStatusFromProtocol(res), nil
+}
+
 // Put implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
