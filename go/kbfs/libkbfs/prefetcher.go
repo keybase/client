@@ -338,6 +338,11 @@ top:
 // high priority for a synced TLF.
 func (p *blockPrefetcher) calculatePriority(
 	basePriority int, action BlockRequestAction) int {
+	// A prefetched, non-deep-synced child always gets throttled for
+	// now, until we fix the database performance issues.
+	if basePriority > throttleRequestPriority && !action.DeepSync() {
+		basePriority = throttleRequestPriority
+	}
 	return basePriority - 1
 }
 

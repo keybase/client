@@ -126,6 +126,7 @@ type blockRetrievalQueue struct {
 	// request only exits the heap once a worker is ready.
 	workerCh         chan<- struct{}
 	prefetchWorkerCh chan<- struct{}
+	throttledWorkCh  chan<- struct{}
 
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
@@ -152,6 +153,10 @@ func newBlockRetrievalQueue(
 	config blockRetrievalConfig) *blockRetrievalQueue {
 	workerCh := make(chan struct{}, workerQueueSize)
 	prefetchWorkerCh := make(chan struct{}, workerQueueSize)
+	var throttledWorkCh chan struct{}
+	if numPrefetchWorkers > 0 {
+		throttledWorkCh = make(chan struct{}, workerQueueSize)
+	}
 
 	q := &blockRetrievalQueue{
 		config:           config,
@@ -160,6 +165,7 @@ func newBlockRetrievalQueue(
 		heap:             &blockRetrievalHeap{},
 		workerCh:         workerCh,
 		prefetchWorkerCh: prefetchWorkerCh,
+		throttledWorkCh:  throttledWorkCh,
 		doneCh:           make(chan struct{}),
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
@@ -173,7 +179,52 @@ func newBlockRetrievalQueue(
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, prefetchWorkerCh))
 	}
+	if numPrefetchWorkers > 0 {
+		go q.throttleReleaseLoop(
+			throttledPrefetchPeriod/time.Duration(numPrefetchWorkers),
+			throttledWorkCh)
+	}
 	return q
+}
+
+func (brq *blockRetrievalQueue) sendWork(workerCh chan<- struct{}) {
+	select {
+	case <-brq.doneCh:
+		brq.shutdownRetrieval()
+	// Notify the next queued worker.
+	case workerCh <- struct{}{}:
+	default:
+		panic("sendWork() would have blocked, which means we somehow " +
+			"have around MaxInt32 requests already waiting.")
+	}
+}
+
+func (brq *blockRetrievalQueue) throttleReleaseLoop(
+	period time.Duration, ch <-chan struct{}) {
+	var tickerCh <-chan time.Time
+	if period > 0 {
+		t := time.NewTicker(period)
+		defer t.Stop()
+		tickerCh = t.C
+	} else {
+		fullTickerCh := make(chan time.Time)
+		close(fullTickerCh)
+		tickerCh = fullTickerCh
+	}
+	for {
+		select {
+		case <-brq.doneCh:
+			return
+		case <-tickerCh:
+		}
+
+		select {
+		case <-ch:
+			brq.sendWork(brq.prefetchWorkerCh)
+		case <-brq.doneCh:
+			return
+		}
+	}
 }
 
 func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
@@ -211,18 +262,12 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	// because there are far more on-demand workers than prefetch workers, this
 	// should never actually happen.
 	workerCh := brq.workerCh
-	if priority < defaultOnDemandRequestPriority {
+	if priority <= throttleRequestPriority && brq.throttledWorkCh != nil {
+		workerCh = brq.throttledWorkCh
+	} else if priority < defaultOnDemandRequestPriority {
 		workerCh = brq.prefetchWorkerCh
 	}
-	select {
-	case <-brq.doneCh:
-		brq.shutdownRetrieval()
-	// Notify the next queued worker.
-	case workerCh <- struct{}{}:
-	default:
-		panic("notifyWorker() would have blocked, which means we somehow " +
-			"have around MaxInt32 requests already waiting.")
-	}
+	brq.sendWork(workerCh)
 }
 
 func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
@@ -338,7 +383,8 @@ func (brq *blockRetrievalQueue) request(
 	ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer,
 	block Block, ps *PrefetchStatus, lifetime BlockCacheLifetime,
 	action BlockRequestAction) <-chan error {
-	brq.log.CDebugf(ctx, "Request of %v, action=%s", ptr, action)
+	brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
+		ptr, action, priority)
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
@@ -440,8 +486,10 @@ func (brq *blockRetrievalQueue) request(
 		// means it's actively being processed).
 		if br.index != -1 {
 			heap.Fix(brq.heap, br.index)
-			if oldPriority < defaultOnDemandRequestPriority &&
-				priority >= defaultOnDemandRequestPriority {
+			if (oldPriority < defaultOnDemandRequestPriority &&
+				priority >= defaultOnDemandRequestPriority) ||
+				(oldPriority <= throttleRequestPriority &&
+					priority > throttleRequestPriority) {
 				// We've crossed the priority threshold for prefetch workers,
 				// so we now need an on-demand worker to pick up the request.
 				// This means that we might have up to two workers "activated"
