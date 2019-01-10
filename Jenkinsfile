@@ -79,8 +79,9 @@ helpers.rootLinuxNode(env, {
       }
     }
 
+    def hasJenkinsfileChanges = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET).findIndexOf{ name -> name =~ /Jenkinsfile/ } >= 0
     def goChanges = helpers.getChangesForSubdir('go', env)
-    def hasGoChanges = goChanges.size() != 0
+    def hasGoChanges = goChanges.size() != 0 || hasJenkinsfileChanges
     def hasJSChanges = helpers.hasChanges('shared', env)
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
@@ -322,28 +323,34 @@ def getPackagesToTest() {
     if (env.CHANGE_TARGET) {
       fetchChangeTarget()
       def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-      def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
-      def diffPackagesAsString = diffPackageList.join(' ')
-      println "Go packages changed:\n${diffPackagesAsString}"
+      def diffFileList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
+      if (!diffFileList.contains('Jenkinsfile')) {
+        // The Jenkinsfile hasn't changed, so we try to run a minimal set of
+        // tests to capture the changes in this PR.
+        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | sed 's/^\\(.*\\)\\/[^\\/]*\$/github.com\\/keybase\\/client\\/\\1/' | sort | uniq\"").trim().split()
+        def diffPackagesAsString = diffPackageList.join(' ')
+        println "Go packages changed:\n${diffPackagesAsString}"
 
-      // Load list of dependencies and mark all dependent packages to test.
-      def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-      def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
-      def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
-      diffPackageList.each { pkg ->
-        // pkg changed; we need to load it from dependencyMap to see
-        // which tests should be run.
-        dependencyMap[pkg].each { dep, _ ->
-          packagesToTest[dep] = 1
+        // Load list of dependencies and mark all dependent packages to test.
+        def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+        def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
+        def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
+        diffPackageList.each { pkg ->
+          // pkg changed; we need to load it from dependencyMap to see
+          // which tests should be run.
+          dependencyMap[pkg].each { dep, _ ->
+            packagesToTest[dep] = 1
+          }
         }
+        return packagesToTest
       }
-    } else {
-      println "This is a merge to a branch, so we are running all tests."
-      def diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
-      diffPackageList.each { pkg ->
-        if (pkg != 'github.com/keybase/client/go/bind') {
-          packagesToTest[pkg] = 1
-        }
+    }
+    println "This is a branch build or the Jenkinsfile has changed, so we are running all tests."
+    diffPackageList = sh(returnStdout: true, script: 'go list ./... | grep -v vendor').trim().split()
+    // If we get here, just run all the tests in `diffPackageList`
+    diffPackageList.each { pkg ->
+      if (pkg != 'github.com/keybase/client/go/bind') {
+        packagesToTest[pkg] = 1
       }
     }
   }
