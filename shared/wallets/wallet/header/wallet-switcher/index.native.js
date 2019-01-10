@@ -143,15 +143,12 @@ export const WalletSwitcher = (props: Props) => {
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
           bounces={false}
         />
-        {renderItem(
-          {
-            key: 'cancel',
-            onPress: () => {},
-            title: 'Cancel',
-            type: 'item',
-          },
-          props.hideMenu
-        )}
+        <Kb.Divider />
+        <Row onPress={props.hideMenu}>
+          <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+            Cancel
+          </Kb.Text>
+        </Row>
       </Kb.Box2>
     </Kb.Overlay>
   )
