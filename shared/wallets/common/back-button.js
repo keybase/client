@@ -13,7 +13,7 @@ const WalletBackButton = (props: Props) =>
     <Kb.Text
       onClick={props.onBack}
       style={Styles.collapseStyles([styles.backButton, !props.isOnWhiteBackground && styles.whiteText])}
-      type="Header"
+      type="BodyPrimaryLink"
     >
       Cancel
     </Kb.Text>

@@ -88,14 +88,21 @@ class ChooseAsset extends React.Component<Props, State> {
     switch (section.key) {
       case 'display choices':
         return (
-          <SectionHeader
-            key={section.key}
-            title="Lumens (XLM)"
-            subtitle="Pick your display currency for this transaction:"
-          />
+          <Kb.Box2 direction="vertical" style={styles.sectionHeaderContainer} fullWidth={true}>
+            <Kb.Text key="choices" type="BodySmallSemibold">
+              Lumens (XLM)
+            </Kb.Text>
+            <Kb.Text type="BodySmall">Pick your display currency for this transaction:</Kb.Text>
+          </Kb.Box2>
         )
       case 'other choices':
-        return <SectionHeader key={section.key} title="Other assets" subtitle="" />
+        return (
+          <Kb.Box2 direction="vertical" style={styles.sectionHeaderContainer} fullWidth={true}>
+            <Kb.Text key="other" type="BodySmallSemibold">
+              Other assets
+            </Kb.Text>
+          </Kb.Box2>
+        )
       case 'divider':
         return <Kb.Divider key={section.key} />
     }
@@ -164,24 +171,6 @@ class ChooseAsset extends React.Component<Props, State> {
   }
 }
 
-type SectionHeaderProps = {
-  subtitle: string,
-  title: string,
-}
-const SectionHeader = (props: SectionHeaderProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    gap="xtiny"
-    gapStart={true}
-    gapEnd={true}
-    style={styles.sectionHeaderContainer}
-  >
-    <Kb.Text type="BodySmallSemibold">{props.title}</Kb.Text>
-    {!!props.subtitle && <Kb.Text type="BodySmall">{props.subtitle}</Kb.Text>}
-  </Kb.Box2>
-)
-
 type DisplayChoiceProps = {
   currencyCode: string,
   onClick: () => void,
@@ -195,22 +184,26 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
     style={styles.displayChoice}
   >
     <Kb.Box2 direction="horizontal" style={styles.choiceContainer} fullWidth={true}>
-      <Kb.Text
-        type="Body"
-        style={Styles.collapseStyles([styles.choice, props.selected ? styles.blue : undefined])}
-      >
-        {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens displayed as '}
-        <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-          {props.currencyCode} ({props.symbol}){' '}
-        </Kb.Text>
-        {props.selected && (
-          <Kb.Icon
-            type="iconfont-check"
-            color={Styles.globalColors.blue}
-            boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
-          />
-        )}
-      </Kb.Text>
+      <Kb.BoxGrow style={styles.growContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <Kb.Text
+            type="Body"
+            style={Styles.collapseStyles([styles.choice, props.selected ? styles.blue : undefined])}
+          >
+            {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens displayed as '}
+            <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
+              {props.currencyCode} ({props.symbol}){' '}
+            </Kb.Text>
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.BoxGrow>
+      {props.selected && (
+        <Kb.Icon
+          type="iconfont-check"
+          color={Styles.globalColors.blue}
+          boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
+        />
+      )}
     </Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -293,7 +286,7 @@ const styles = Styles.styleSheetCreate({
       height: 40,
     },
     isMobile: {
-      minHeight: 56,
+      height: 56,
     },
   }),
   container: Styles.platformStyles({
@@ -317,13 +310,12 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.tiny,
   },
   expanderText: {color: Styles.globalColors.black_50},
-  grey: {
-    color: Styles.globalColors.black_50,
+  grey: {color: Styles.globalColors.black_50},
+  growContainer: {
+    alignItems: 'center',
+    height: '100%',
   },
   listContainer: Styles.platformStyles({
-    common: {
-      paddingTop: Styles.globalMargins.tiny,
-    },
     isElectron: {
       maxHeight: 525 - 48,
     },
@@ -338,8 +330,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'flex-start',
       justifyContent: 'center',
+      paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
       backgroundColor: Styles.globalColors.white,
