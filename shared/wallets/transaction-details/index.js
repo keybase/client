@@ -514,11 +514,10 @@ const styles = Styles.styleSheetCreate({
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
-    borderRadius: 4,
     marginTop: Styles.globalMargins.xsmall,
     padding: Styles.globalMargins.xsmall,
   },
   warningBannerText: {
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.brown_75,
   },
 })
