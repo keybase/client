@@ -35,6 +35,12 @@ func ParseAssertionList(g *libkb.GlobalContext, s string) ([]libkb.AssertionExpr
 	return libkb.ParseAssertionList(MakeAssertionContext(g), s)
 }
 
+// NOTE The 'Static' methods should only be used in tests or as a basic sanity
+// check for the syntactical correctness of an assertion. All other callers
+// should use the non-static versions.
+// This uses only the 'static' services which exclude any parameterized proofs.
+//=============================================================================
+
 type staticAssertionContext struct {
 	services map[string]libkb.ServiceType
 }
@@ -58,13 +64,6 @@ func (a staticAssertionContext) NormalizeSocialName(service string, username str
 	}
 	return st.NormalizeUsername(username)
 }
-
-// NOTE the static methods should only be used in tests or as a basic sanity
-// check for the syntactical correctness of an assertion. All other callers
-// should use the non-static versions.
-// This uses only the 'static' services which exclude any parameterized proofs.
-
-//=============================================================================
 
 func NormalizeSocialAssertionStatic(s string) (keybase1.SocialAssertion, bool) {
 	return libkb.NormalizeSocialAssertion(makeStaticAssertionContext(), s)
