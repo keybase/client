@@ -156,11 +156,11 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
       flexGrow: 1,
       position: 'relative',
+      width: '100%',
     },
     isElectron: {
       maxWidth: 460,
       overflow: 'hidden',
-      width: '100%',
     },
     isMobile: {
       minHeight: 40,
