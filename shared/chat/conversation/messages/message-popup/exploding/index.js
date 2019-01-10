@@ -141,8 +141,8 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             <Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
               <Icon
                 type="iconfont-timer"
-                fontSize={Styles.isMobile ? 22 : 16}
-                color={Styles.globalColors.white_40}
+                fontSize={Styles.isMobile ? 20 : 16}
+                color={Styles.globalColors.white}
               />
               <Text style={{alignSelf: 'center', color: Styles.globalColors.white}} type="BodySemibold">
                 {msToDHMS(this.props.explodesAt - Date.now())}

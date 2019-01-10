@@ -97,7 +97,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     let children
     switch (this.state.mode) {
       case 'countdown':
-        const stopWatchIconSize = Styles.isMobile ? 21 : 14
+        const stopWatchIconSize = Styles.isMobile ? 16 : 14
         children = (
           <Kb.Box2 direction="horizontal" gap="xtiny">
             {this.props.pending ? (
@@ -219,26 +219,24 @@ const styles = Styles.styleSheetCreate({
   }),
   countdown: Styles.platformStyles({
     common: {color: Styles.globalColors.white, fontWeight: 'bold'},
-    isAndroid: {fontSize: 11},
     isElectron: {fontSize: 10, lineHeight: 14},
-    isIOS: {fontSize: 12},
-    isMobile: {lineHeight: 17},
+    isMobile: {fontSize: 11, lineHeight: 16},
   }),
   countdownContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
       borderRadius: 2,
       justifyContent: 'center',
-      paddingLeft: 4,
-      paddingRight: 4,
+      paddingLeft: 2,
+      paddingRight: 2,
     },
     isElectron: {
       height: 14,
       width: 28,
     },
     isMobile: {
-      height: 17,
-      width: 32,
+      height: 16,
+      width: 30,
     },
   }),
   progressContainer: Styles.platformStyles({
