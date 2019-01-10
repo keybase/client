@@ -25,8 +25,9 @@ const Header = (props: Props) => (
   </Kb.Box2>
 )
 
-const WithHeader = Kb.HeaderOrPopup(ConversationList)
+const WithHeader = Kb.HeaderHoc(ConversationList)
 
+// $FlowIssue TODO: fix HeaderHoc typing
 export default (props: Props) => <WithHeader customComponent={<Header {...props} />} />
 
 const styles = Styles.styleSheetCreate({

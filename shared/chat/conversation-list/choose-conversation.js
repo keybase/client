@@ -3,7 +3,15 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import ConversationList from './conversation-list-container'
-import type {Props} from './choose-conversation'
+import type {Position} from '../../common-adapters/relative-popup-hoc.types'
+
+export type Props = {
+  dropdownButtonDefaultText: string,
+  dropdownButtonStyle?: Styles.StylesCrossPlatform,
+  overlayStyle?: Styles.StylesCrossPlatform,
+  disabled?: boolean,
+  position?: Position,
+}
 
 type State = {expanded: boolean}
 

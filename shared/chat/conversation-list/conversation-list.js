@@ -42,9 +42,21 @@ type Props = {
 const _itemRenderer = (index, row) => {
   switch (row.type) {
     case 'small':
-      return <SelectableSmallTeam {...row} />
+      return (
+        <SelectableSmallTeam
+          conversationIDKey={row.conversationIDKey}
+          isSelected={row.isSelected}
+          onSelectConversation={row.onSelectConversation}
+        />
+      )
     case 'big':
-      return <SelectableBigTeamChannel {...row} />
+      return (
+        <SelectableBigTeamChannel
+          conversationIDKey={row.conversationIDKey}
+          isSelected={row.isSelected}
+          onSelectConversation={row.onSelectConversation}
+        />
+      )
     case 'more-less':
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.moreLessContainer}>
