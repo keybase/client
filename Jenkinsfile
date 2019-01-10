@@ -389,7 +389,6 @@ def testGo(prefix, packagesToTest) {
           timeout: '15m',
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          name: 'kbfs_libfuse',
           flags: '',
           timeout: '3m',
         ],
@@ -399,7 +398,80 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/kbfs/libfuse': [
           disable: true,
         ],
-        // TODO: put all the -race tests here
+        'github.com/keybase/client/go/kbfs/kbfsblock': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfscodec': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfscrypto': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfsedits': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfsgit': [
+          flags: '-race',
+          timeout: '10m',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfshash': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfsmd': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbfssync': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/kbpagesconfig': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/libfs': [
+          flags: '-race',
+          timeout: '10m',
+        ],
+        'github.com/keybase/client/go/kbfs/libgit': [
+          flags: '-race',
+          timeout: '10m',
+        ],
+        'github.com/keybase/client/go/kbfs/libhttpserver': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/libkbfs': [
+          flags: '-race',
+          timeout: '5m',
+        ],
+        'github.com/keybase/client/go/kbfs/libpages': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/libpages/config': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/simplefs': [
+          // TODO: fix races and enable -race
+          flags: '',
+          timeout: '2m',
+        ],
+        'github.com/keybase/client/go/kbfs/test': [
+          name: 'kbfs_test_race',
+          flags: '-race',
+          timeout: '12m',
+        ],
+        'github.com/keybase/client/go/kbfs/tlf': [
+          flags: '-race',
+          timeout: '30s',
+        ],
       ],
       test_windows_go_: [
         '*': [],
@@ -422,8 +494,7 @@ def testGo(prefix, packagesToTest) {
           if (testSpec['disable']) {
             return false
           }
-          testSpec['dirPath'] = pkg.replaceAll('github.com/keybase/client/go/', '')
-          return testSpec
+          return defaultPackageTestSpec(pkg) + testSpec
         }
         return defaultPackageTestSpec(pkg)
       }
