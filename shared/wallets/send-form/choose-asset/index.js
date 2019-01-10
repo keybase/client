@@ -194,27 +194,23 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
     onClick={props.onClick}
     style={styles.displayChoice}
   >
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.choiceContainer}
-      fullWidth={true}
-      gap="small"
-      gapStart={true}
-      gapEnd={true}
-    >
-      <Kb.Text type="Body" style={props.selected ? styles.blue : undefined}>
-        {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
+    <Kb.Box2 direction="horizontal" style={styles.choiceContainer} fullWidth={true}>
+      <Kb.Text
+        type="Body"
+        style={Styles.collapseStyles([styles.choice, props.selected ? styles.blue : undefined])}
+      >
+        {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens displayed as '}
         <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-          {props.currencyCode} ({props.symbol})
+          {props.currencyCode} ({props.symbol}){' '}
         </Kb.Text>
+        {props.selected && (
+          <Kb.Icon
+            type="iconfont-check"
+            color={Styles.globalColors.blue}
+            boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
+          />
+        )}
       </Kb.Text>
-      {props.selected && (
-        <Kb.Icon
-          type="iconfont-check"
-          color={Styles.globalColors.blue}
-          boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
-        />
-      )}
     </Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -280,15 +276,17 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.blue,
   },
   checkIcon: Styles.platformStyles({
-    isMobile: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
+    isElectron: {display: 'inline-flex'},
+    isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
+  choice: {width: '100%'},
   choiceContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
       // needed to get on top of absolutely positioned background color
       position: 'relative',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
       width: '100%',
     },
     isElectron: {
