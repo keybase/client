@@ -23,9 +23,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   reload: dispatchProps.reload,
 })
 
-// TODO: This component is used only on desktop, so merge it with
-// WalletList and remove the isMobile checks.
-
 const WalletsOrOnboarding = props =>
   props.acceptedDisclaimer ? <Wallets children={props.children} reload={props.reload} /> : <Onboarding />
 

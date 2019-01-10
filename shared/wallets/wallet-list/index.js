@@ -11,7 +11,7 @@ type AddProps = {
   onLinkExisting: () => void,
 }
 
-const rowHeight = Styles.isMobile ? 56 : 48
+const rowHeight = 48
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
@@ -70,7 +70,6 @@ type Props = {
   onAddNew: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
-  refresh: () => void,
   title: string,
 }
 

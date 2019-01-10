@@ -57,7 +57,6 @@ const load = () => {
     .add('Wallet List', () => (
       <WalletList
         loading={false}
-        refresh={Sb.action('refresh')}
         accountIDs={accountIDs}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
