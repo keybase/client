@@ -94,7 +94,7 @@ class WalletList extends React.Component<Props> {
     }
   }
 
-  render = () => {
+  render() {
     if (this.props.loading) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
