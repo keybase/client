@@ -1030,9 +1030,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			return res, err
 		}
 
-		// Clear team channel source
-		n.G().TeamChannelSource.ChannelsChanged(ctx, updateConv.Conv.Metadata.IdTriple.Tlfid)
-
 		if res.Error != nil {
 			return res, errors.New(res.Error.Message)
 		}

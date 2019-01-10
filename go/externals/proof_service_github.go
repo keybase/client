@@ -69,8 +69,8 @@ func (t *GithubServiceType) PostInstructions(un string) *libkb.Markup {
 and name it <strong><color name="red">keybase.md</color></strong>`)
 }
 
-func (t *GithubServiceType) DisplayName(un string) string { return "Github" }
-func (t *GithubServiceType) GetTypeName() string          { return "github" }
+func (t *GithubServiceType) DisplayName() string { return "Github" }
+func (t *GithubServiceType) GetTypeName() string { return "github" }
 
 func (t *GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {

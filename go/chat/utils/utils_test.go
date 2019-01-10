@@ -74,15 +74,6 @@ func (t *testTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1
 	return res, nil
 }
 
-func (t *testTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {}
-
-func (t *testTeamChannelSource) IsOffline(ctx context.Context) bool {
-	return false
-}
-
-func (t *testTeamChannelSource) Connected(ctx context.Context)    {}
-func (t *testTeamChannelSource) Disconnected(ctx context.Context) {}
-
 func TestParseChannelNameMentions(t *testing.T) {
 	uid := gregor1.UID{0}
 	teamID := chat1.TLFID{0}

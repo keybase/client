@@ -157,14 +157,16 @@ func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
 }
 
+var visibleMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+}
+
 func VisibleChatMessageTypes() []MessageType {
-	return []MessageType{
-		MessageType_TEXT,
-		MessageType_ATTACHMENT,
-		MessageType_SYSTEM,
-		MessageType_SENDPAYMENT,
-		MessageType_REQUESTPAYMENT,
-	}
+	return visibleMessageTypes
 }
 
 func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
@@ -1080,6 +1082,21 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 	return maxDelHID
 }
 
+func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+	visibleTyps := VisibleChatMessageTypes()
+	visibleTypsMap := map[MessageType]bool{}
+	for _, typ := range visibleTyps {
+		visibleTypsMap[typ] = true
+	}
+	maxMsgID := MessageID(0)
+	for _, msg := range c.MaxMessages {
+		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+	return maxMsgID
+}
+
 func (c ConversationLocal) Names() (res []string) {
 	for _, p := range c.Info.Participants {
 		res = append(res, p.Username)
@@ -1179,6 +1196,13 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 func (c Conversation) IsUnread() bool {
 	maxMsgID := c.MaxVisibleMsgID()
 	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+}
+
+func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
+	if c.ReaderInfo != nil {
+		return c.ReaderInfo.Status == status
+	}
+	return false
 }
 
 func (m MessageSummary) GetMessageID() MessageID {

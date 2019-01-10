@@ -1005,8 +1005,9 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
-	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
@@ -1074,6 +1075,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
@@ -1094,6 +1096,7 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
+	res.UnreadLineID = tv.UnreadLineID
 	return res
 }
 

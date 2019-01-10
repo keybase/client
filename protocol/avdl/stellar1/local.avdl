@@ -74,8 +74,9 @@ protocol local {
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23 CLP" (worth at the time the payment was created)
-    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
+    string worth;                   // "$123.23 CLP", senders intended amount if this was made as a lumens-worth-currency payment
+    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an 
+                                    // (APPROXIMATELY $X.XX) message i.e. if this is a pure-XLM payment.
 
     string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.
@@ -132,8 +133,9 @@ protocol local {
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23 CLP", amount in local currency at the time of sending, or empty if no OutsideCurrency
-    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
+    string worth;                   // "$123.23 CLP", senders intended amount if this was made as a lumens-worth-currency payment
+    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an 
+                                    // (APPROXIMATELY $X.XX) message i.e. if this is a pure-XLM payment.
 
     string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
                                     // ("example.com") if domain is verified by stellard.

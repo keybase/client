@@ -385,7 +385,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		AmountDescription:   summary.AmountDescription,
 		Delta:               summary.Delta,
 		Worth:               summary.Worth,
-		WorthCurrency:       summary.WorthCurrency,
+		WorthAtSendTime:     summary.WorthAtSendTime,
 		FromType:            summary.FromType,
 		ToType:              summary.ToType,
 		FromAccountID:       summary.FromAccountID,

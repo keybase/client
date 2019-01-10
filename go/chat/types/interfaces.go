@@ -247,12 +247,9 @@ type AppState interface {
 }
 
 type TeamChannelSource interface {
-	Offlinable
-
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ChannelNameMention, error)
 	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, error)
-	ChannelsChanged(context.Context, chat1.TLFID)
 }
 
 type ActivityNotifier interface {

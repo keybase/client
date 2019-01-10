@@ -69,23 +69,24 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 }
 
 type UnverifiedInboxUIItem struct {
-	ConvID        string                         `codec:"convID" json:"convID"`
-	TopicType     TopicType                      `codec:"topicType" json:"topicType"`
-	Name          string                         `codec:"name" json:"name"`
-	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
-	Status        ConversationStatus             `codec:"status" json:"status"`
-	MembersType   ConversationMembersType        `codec:"membersType" json:"membersType"`
-	MemberStatus  ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
-	TeamType      TeamType                       `codec:"teamType" json:"teamType"`
-	Notifications *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	Time          gregor1.Time                   `codec:"time" json:"time"`
-	Version       ConversationVers               `codec:"version" json:"version"`
-	MaxMsgID      MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
-	ReadMsgID     MessageID                      `codec:"readMsgID" json:"readMsgID"`
-	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
-	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	Supersedes    []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
-	SupersededBy  []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
+	ConvID          string                         `codec:"convID" json:"convID"`
+	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
+	Name            string                         `codec:"name" json:"name"`
+	Visibility      keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	Status          ConversationStatus             `codec:"status" json:"status"`
+	MembersType     ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus    ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType        TeamType                       `codec:"teamType" json:"teamType"`
+	Notifications   *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Time            gregor1.Time                   `codec:"time" json:"time"`
+	Version         ConversationVers               `codec:"version" json:"version"`
+	MaxMsgID        MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
+	MaxVisibleMsgID MessageID                      `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
+	ReadMsgID       MessageID                      `codec:"readMsgID" json:"readMsgID"`
+	LocalMetadata   *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
+	FinalizeInfo    *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes      []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
+	SupersededBy    []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
 }
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
@@ -105,10 +106,11 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:      o.Time.DeepCopy(),
-		Version:   o.Version.DeepCopy(),
-		MaxMsgID:  o.MaxMsgID.DeepCopy(),
-		ReadMsgID: o.ReadMsgID.DeepCopy(),
+		Time:            o.Time.DeepCopy(),
+		Version:         o.Version.DeepCopy(),
+		MaxMsgID:        o.MaxMsgID.DeepCopy(),
+		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
+		ReadMsgID:       o.ReadMsgID.DeepCopy(),
 		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
 			if x == nil {
 				return nil
@@ -200,6 +202,7 @@ type InboxUIItem struct {
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
 	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
+	MaxVisibleMsgID   MessageID                     `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID         MessageID                     `codec:"readMsgID" json:"readMsgID"`
 	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention     *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
@@ -273,9 +276,10 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
-		Version:   o.Version.DeepCopy(),
-		MaxMsgID:  o.MaxMsgID.DeepCopy(),
-		ReadMsgID: o.ReadMsgID.DeepCopy(),
+		Version:         o.Version.DeepCopy(),
+		MaxMsgID:        o.MaxMsgID.DeepCopy(),
+		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
+		ReadMsgID:       o.ReadMsgID.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
 			if x == nil {
 				return nil
@@ -425,6 +429,7 @@ type UIPaymentInfo struct {
 	AccountID         *stellar1.AccountID    `codec:"accountID,omitempty" json:"accountID,omitempty"`
 	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
 	Worth             string                 `codec:"worth" json:"worth"`
+	WorthAtSendTime   string                 `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
 	Note              string                 `codec:"note" json:"note"`
 	PaymentID         stellar1.PaymentID     `codec:"paymentID" json:"paymentID"`
@@ -447,6 +452,7 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 		})(o.AccountID),
 		AmountDescription: o.AmountDescription,
 		Worth:             o.Worth,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		Delta:             o.Delta.DeepCopy(),
 		Note:              o.Note,
 		PaymentID:         o.PaymentID.DeepCopy(),
@@ -838,8 +844,9 @@ func (o UIMessage) DeepCopy() UIMessage {
 }
 
 type UIMessages struct {
-	Messages   []UIMessage   `codec:"messages" json:"messages"`
-	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages     []UIMessage   `codec:"messages" json:"messages"`
+	UnreadLineID *MessageID    `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
+	Pagination   *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o UIMessages) DeepCopy() UIMessages {
@@ -855,6 +862,13 @@ func (o UIMessages) DeepCopy() UIMessages {
 			}
 			return ret
 		})(o.Messages),
+		UnreadLineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadLineID),
 		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil

@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -385,7 +386,8 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, syncer.Sync(context.TODO(), ri, uid, &res.Chat))
 		}
-		ctx := Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+
+		ctx := context.TODO()
 		doAuthedSync(ctx, g1, syncer1, ctc1.ri, uid1)
 		select {
 		case sres := <-listener1.inboxSynced:
@@ -394,11 +396,16 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 2)
 			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
 			require.Equal(t, chanID.String(), sres.Incremental().Items[1].Conv.ConvID)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[1].Conv.MemberStatus)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}
 
+		// simulate an old client that doesn't understand NEVER_JOINED
+		libkb.UserAgent = "old:ua:2.12.1"
+		ctx = Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
 		case sres := <-listener2.inboxSynced:
@@ -407,6 +414,19 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 1)
 			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no inbox synced received")
+		}
+
+		// New clients get a CLEAR here.
+		ctx = context.TODO()
+		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
+		select {
+		case sres := <-listener2.inboxSynced:
+			typ, err := sres.SyncType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}

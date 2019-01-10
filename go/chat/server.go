@@ -586,6 +586,30 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
+func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (res *chat1.MessageID) {
+	// don't waste any time trying the server, if we don't have this convo for some reason, then we
+	// don't draw the line
+	conv, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, convID)
+	if err != nil {
+		h.Debug(ctx, "getUnreadLine: failed to get conv: %s", err)
+		return nil
+	}
+	readMsgID := conv.Conv.ReaderInfo.ReadMsgid
+	if !conv.Conv.IsUnread() {
+		return nil
+	}
+	for i := len(msgs) - 1; i >= 0; i-- {
+		msg := msgs[i]
+		if utils.IsVisibleChatMessageType(msg.GetMessageType()) && msg.GetMessageID() > readMsgID {
+			res = new(chat1.MessageID)
+			*res = msg.GetMessageID()
+			return res
+		}
+	}
+	return nil
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var pagination, resultPagination *chat1.Pagination
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -717,6 +741,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			var jsonPt []byte
 			var err error
 
+			resThread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, resThread.Messages)
 			localSentThread = resThread
 			pt := utils.PresentThreadView(ctx, h.G(), uid, *resThread, arg.ConversationID)
 			if jsonPt, err = json.Marshal(pt); err != nil {
@@ -761,6 +786,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
+		rthread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, rthread.Messages)
 		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
 		uires := utils.PresentThreadView(bctx, h.G(), uid, rthread, arg.ConversationID)
@@ -1793,29 +1819,12 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// List all the conversations on the team
-	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            nameInfo.ID,
-		TopicType:        arg.TopicType,
-		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
-	})
+	convs, err := h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
 	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
 		return res, err
 	}
-	if teamConvs.RateLimit != nil {
-		res.RateLimits = append(res.RateLimits, *teamConvs.RateLimit)
-	}
-
-	// Localize the conversations so we can find the conversation ID
-	teamConvsLocal, _, err := h.G().InboxSource.Localize(ctx, uid,
-		utils.RemoteConvs(teamConvs.Conversations), types.ConversationLocalizerBlocking)
-	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
-		return res, err
-	}
-
 	var convID chat1.ConversationID
-	for _, conv := range teamConvsLocal {
+	for _, conv := range convs {
 		topicName := utils.GetTopicName(conv)
 		if topicName != "" && topicName == arg.TopicName {
 			convID = conv.GetConvID()
@@ -1825,8 +1834,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
 	}
 
-	err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
-	if err != nil {
+	if err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
@@ -1931,7 +1939,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversations(%s)",
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversationsLocal(%s)",
 		arg.TlfName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()

@@ -165,7 +165,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "worthAtSendTime"
         },
         {
           "type": "string",
@@ -328,7 +328,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "worthAtSendTime"
         },
         {
           "type": "string",
