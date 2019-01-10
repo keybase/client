@@ -171,6 +171,8 @@ const styles = Styles.styleSheetCreate({
     marginTop: 8,
   },
   infoText: {
+    color: Styles.globalColors.black_60,
+    fontSize: 14,
     paddingLeft: Styles.globalMargins.tiny,
   },
   infoTextRow: {
