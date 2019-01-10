@@ -425,7 +425,7 @@ func (c *sendOptions) Check() error {
 			return ErrInvalidAccountID
 		}
 	}
-	if len(c.Message) > 400 {
+	if len(c.Message) > libkb.MaxStellarPaymentNoteLength {
 		return ErrMessageTooLong
 	}
 

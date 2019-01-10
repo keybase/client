@@ -1348,7 +1348,7 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		require.Error(t, err)
 
 		// request payment
-		maxPaymentNote := strings.Repeat(".", msgchecker.PaymentTextMaxLength)
+		maxPaymentNote := strings.Repeat(".", msgchecker.RequestPaymentTextMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithRequestpayment(
 			chat1.MessageRequestPayment{
 				RequestID: stellar1.KeybaseRequestID("dummy id"),

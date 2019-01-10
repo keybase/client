@@ -722,28 +722,25 @@ func (m UIMessage) GetOutboxID() *OutboxID {
 }
 
 func (m UIMessage) GetMessageType() MessageType {
-	if state, err := m.State(); err == nil {
-		if state == MessageUnboxedState_VALID {
-			body := m.Valid().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				return MessageType_NONE
-			}
-			return typ
-		}
-		if state == MessageUnboxedState_ERROR {
-			return m.Error().MessageType
-		}
-		if state == MessageUnboxedState_OUTBOX {
-			return m.Outbox().MessageType
-		}
-		if state == MessageUnboxedState_PLACEHOLDER {
-			// All we know about a place holder is the ID, so just
-			// call it type NONE
+	state, err := m.State()
+	if err != nil {
+		return MessageType_NONE
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		body := m.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
 			return MessageType_NONE
 		}
+		return typ
+	case MessageUnboxedState_ERROR:
+		return m.Error().MessageType
+	case MessageUnboxedState_OUTBOX:
+		return m.Outbox().MessageType
+	default:
+		return MessageType_NONE
 	}
-	return MessageType_NONE
 }
 
 func (m UIMessage) SearchableText() string {
@@ -751,6 +748,21 @@ func (m UIMessage) SearchableText() string {
 		return ""
 	}
 	return m.Valid().MessageBody.SearchableText()
+}
+
+func (m UIMessage) IsEphemeral() bool {
+	state, err := m.State()
+	if err != nil {
+		return false
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		return m.Valid().IsEphemeral
+	case MessageUnboxedState_ERROR:
+		return m.Error().IsEphemeral
+	default:
+		return false
+	}
 }
 
 func (m MessageBoxed) GetMessageID() MessageID {
