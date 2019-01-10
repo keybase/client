@@ -28,7 +28,6 @@ const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _loadHasRandomPW: dispatchProps._loadHasRandomPW,
   badgeNotifications: stateProps.badgeNotifications,
-  // $FlowIssue fix badgeNumbers
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   children: ownProps.children,
   hasRandomPW: stateProps.hasRandomPW,
