@@ -66,7 +66,7 @@ const WalletRow = (props: Props) => {
               username={props.keybaseUser}
             />
           )}
-          <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
+          <Kb.Text type="BodyBig" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
           </Kb.Text>
         </Kb.Box2>

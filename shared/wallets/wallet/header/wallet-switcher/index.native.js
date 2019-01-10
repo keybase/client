@@ -71,7 +71,7 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
       }
       return (
         <Row key={item.key} onPress={onPress}>
-          <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+          <Kb.Text type="BodyBig" style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
             {item.title}
           </Kb.Text>
         </Row>
