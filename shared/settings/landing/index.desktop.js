@@ -326,14 +326,16 @@ function Account({
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider />
       <Passphrase onChangePassphrase={onChangePassphrase} />
-      {!hasRandomPW && <Divider />}
       {!hasRandomPW && (
-        <Checkbox
-          checked={rememberPassphrase}
-          label="Remember my passphrase"
-          onCheck={onChangeRememberPassphrase}
-          style={{paddingTop: globalMargins.small}}
-        />
+        <>
+          <Divider />
+          <Checkbox
+            checked={rememberPassphrase}
+            label="Remember my passphrase"
+            onCheck={onChangeRememberPassphrase}
+            style={{paddingTop: globalMargins.small}}
+          />
+        </>
       )}
     </Box>
   )
