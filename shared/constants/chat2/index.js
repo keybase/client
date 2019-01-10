@@ -227,6 +227,20 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
   }
 }
 
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
+export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message) => {
+  if (message.type !== 'text' || !message.inlinePaymentIDs) {
+    return false
+  }
+  for (let paymentID of message.inlinePaymentIDs) {
+    const paymentInfo = state.chat2.paymentStatusMap.get(paymentID)
+    if (paymentInfo && successfulInlinePaymentStatuses.includes(paymentInfo.status)) {
+      return true
+    }
+  }
+  return false
+}
+
 export const threadRoute = isMobile
   ? [chatTab, 'conversation']
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
