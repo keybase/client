@@ -36,7 +36,7 @@ type MenuItem =
       type: 'wallet',
     |}
 
-const renderItem = (item: MenuItem, hideMenu: () => void) => {
+const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
   switch (item.type) {
     case 'item': {
       const onPress = () => {
@@ -54,7 +54,7 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
     case 'wallet':
       // No need to pass down onPress.
       return (
-        <Row key={item.key}>
+        <Row key={item.key} style={Styles.collapseStyles([styles.row, styles.lastRow])}>
           <WalletRow accountID={item.accountID} hideMenu={hideMenu} />
         </Row>
       )
@@ -126,9 +126,8 @@ export const WalletSwitcher = (props: Props) => {
         </Row>
         <Kb.List
           items={menuItems}
-          renderItem={(index, item) => renderItem(item, props.hideMenu)}
+          renderItem={(index, item) => renderItem(item, index === menuItems.length - 1, props.hideMenu)}
           bounces={false}
-          style={styles.list}
         />
         <Kb.Divider style={styles.divider} />
         <Row onPress={props.hideMenu} style={styles.cancelRow}>
@@ -167,10 +166,10 @@ const styles = Styles.styleSheetCreate({
   infoTextRowContainer: {
     backgroundColor: Styles.globalColors.lightGrey,
   },
-  list: {
+  lastRow: {
     // Have this instead of a top margin on the divider to maximize
     // the area of the scrollview.
-    paddingBottom: bottomPadding,
+    marginBottom: bottomPadding,
   },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
