@@ -2,9 +2,9 @@
 import {namedConnect} from '../../util/container'
 import ConversationList from './conversation-list'
 
-type OwnProps = {
+type OwnProps = {|
   onSelect?: () => void,
-}
+|}
 
 const mapStateToProps = state => ({})
 const mapDispatchToProps = dispatch => ({})

@@ -58,14 +58,7 @@ const makeRow = (options: MakeRowOptions) => {
           />
         )
       case 'small':
-        return (
-          <SmallTeam
-            key={options.conversationIDKey}
-            conversationIDKey={options.conversationIDKey}
-            channelname={options.channelname}
-            teamname={options.teamname}
-          />
-        )
+        return <SmallTeam key={options.conversationIDKey} conversationIDKey={options.conversationIDKey} />
     }
   }
   logger.error(`Unhandled row type ${options.type}`)
