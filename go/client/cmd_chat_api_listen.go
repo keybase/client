@@ -115,10 +115,11 @@ func (c *CmdChatAPIListen) Run() error {
 	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
 	}
-	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("Listening for chat notifications. Config: showExploding: %v, showLocal: %v, subscribeDevChannels: %v\n", c.showExploding, c.showLocal, c.subscribeDev)
+	errWriter := c.G().UI.GetTerminalUI().ErrorWriter()
+	errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: showExploding: %v, showLocal: %v, subscribeDevChannels: %v\n",
+		c.showExploding, c.showLocal, c.subscribeDev)))
 	if c.subscribeWallet {
-		ui.Printf("Listening for wallet notifications\n")
+		errWriter.Write([]byte("Listening for wallet notifications\n"))
 	}
 
 	for {
