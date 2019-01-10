@@ -174,10 +174,9 @@ const requestPayment = state =>
 
 const startPayment = state =>
   state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
-    ? RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid => [
-        WalletsGen.createBuildingPaymentIDReceived({bid}),
-        WalletsGen.createBuildPayment(),
-      ])
+    ? RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
+        WalletsGen.createBuildingPaymentIDReceived({bid})
+      )
     : null
 
 const reviewPayment = state =>
@@ -836,6 +835,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.SetBuildingIsRequestPayload
     | WalletsGen.SetBuildingToPayload
     | WalletsGen.DisplayCurrencyReceivedPayload
+    | WalletsGen.BuildingPaymentIDReceivedPayload
   >(
     [
       WalletsGen.setBuildingAmount,
@@ -844,6 +844,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingIsRequest,
       WalletsGen.setBuildingTo,
       WalletsGen.displayCurrencyReceived,
+      WalletsGen.buildingPaymentIDReceived,
     ],
     spawnBuildPayment
   )
