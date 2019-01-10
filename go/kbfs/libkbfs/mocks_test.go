@@ -8467,6 +8467,20 @@ func (mr *MockInitModeMockRecorder) PrefetchWorkers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrefetchWorkers", reflect.TypeOf((*MockInitMode)(nil).PrefetchWorkers))
 }
 
+// ThrottledPrefetchPeriod mocks base method
+func (m *MockInitMode) ThrottledPrefetchPeriod() time.Duration {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ThrottledPrefetchPeriod")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// ThrottledPrefetchPeriod indicates an expected call of ThrottledPrefetchPeriod
+func (mr *MockInitModeMockRecorder) ThrottledPrefetchPeriod() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ThrottledPrefetchPeriod", reflect.TypeOf((*MockInitMode)(nil).ThrottledPrefetchPeriod))
+}
+
 // DefaultBlockRequestAction mocks base method
 func (m *MockInitMode) DefaultBlockRequestAction() BlockRequestAction {
 	m.ctrl.T.Helper()

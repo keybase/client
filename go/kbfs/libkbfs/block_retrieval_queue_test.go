@@ -72,7 +72,8 @@ func makeKMD() KeyMetadata {
 }
 
 func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := newBlockRetrievalQueue(
+		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil))
 	<-q.TogglePrefetcher(false, nil)
 	return q
 }
