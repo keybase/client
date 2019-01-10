@@ -167,7 +167,7 @@ const styles = Styles.styleSheetCreate({
   container: {
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-end',
-    // TODO: Justify.
+    // Leave some space for the status bar.
     maxHeight: '95%',
   },
   divider: {
