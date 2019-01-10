@@ -205,16 +205,16 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
       <Kb.Text type="Body" style={props.selected ? styles.blue : undefined}>
         {props.symbol === 'XLM' ? 'Purely strictly ' : 'Lumens (XLM) displayed as '}
         <Kb.Text type="BodyExtrabold" style={props.selected ? styles.blue : undefined}>
-          {props.currencyCode} ({props.symbol}){' '}
+          {props.currencyCode} ({props.symbol})
         </Kb.Text>
-        {props.selected && (
-          <Kb.Icon
-            type="iconfont-check"
-            color={Styles.globalColors.blue}
-            boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
-          />
-        )}
       </Kb.Text>
+      {props.selected && (
+        <Kb.Icon
+          type="iconfont-check"
+          color={Styles.globalColors.blue}
+          boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
+        />
+      )}
     </Kb.Box2>
   </Kb.ClickableBox>
 )

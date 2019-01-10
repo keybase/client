@@ -21,11 +21,8 @@ const WalletBackButton = (props: Props) =>
     <Kb.BackButton
       onClick={props.onBack}
       style={styles.backButton}
-      iconColor={Styles.globalColors.white}
-      textStyle={Styles.collapseStyles([
-        styles.backButtonText,
-        !props.isOnWhiteBackground && styles.whiteText,
-      ])}
+      iconColor={props.isOnWhiteBackground ? undefined : Styles.globalColors.white}
+      textStyle={props.isOnWhiteBackground ? undefined : styles.whiteText}
     />
   )
 
