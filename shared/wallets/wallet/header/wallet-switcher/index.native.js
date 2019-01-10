@@ -147,6 +147,7 @@ export const WalletSwitcher = (props: Props) => {
           items={menuItems}
           renderItem={(index, item) => renderItem(item, props.hideMenu)}
           bounces={false}
+          style={styles.list}
         />
         <Kb.Divider style={styles.divider} />
         <Row onPress={props.hideMenu} style={styles.cancelRow}>
@@ -173,7 +174,6 @@ const styles = Styles.styleSheetCreate({
   divider: {
     backgroundColor: Styles.globalColors.black_05,
     marginBottom: bottomPadding,
-    marginTop: bottomPadding,
   },
   infoText: {
     color: Styles.globalColors.black_60,
@@ -185,6 +185,11 @@ const styles = Styles.styleSheetCreate({
   },
   infoTextRowContainer: {
     backgroundColor: Styles.globalColors.lightGrey,
+  },
+  list: {
+    // Have this instead of a top margin on the divider to maximize
+    // the area of the scrollview.
+    paddingBottom: bottomPadding,
   },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
