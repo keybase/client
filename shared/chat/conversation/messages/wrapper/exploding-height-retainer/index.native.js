@@ -237,6 +237,7 @@ const styles = Styles.styleSheetCreate({
   exploded: {
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black_20_on_white,
+    paddingLeft: Styles.globalMargins.tiny,
   },
   retaining: {
     overflow: 'hidden',

@@ -12,8 +12,6 @@ const receiveIcon = Styles.isMobile
   ? 'icon-fancy-stellar-receiving-mobile-149-129'
   : 'icon-fancy-stellar-receiving-desktop-98-86'
 
-const iconHeight = Styles.isMobile ? 129 : 86
-
 type HeaderProps = {|
   amountNominal: string,
   approxWorth: string,
@@ -45,13 +43,13 @@ type Props = {|
 
 const Header = (props: HeaderProps) =>
   props.loading ? (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.loadingHeaderTop}>
         <Kb.ProgressIndicator white={true} style={styles.loadingIndicator} />
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical">
+    <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical" style={styles.popupContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
         <Kb.Icon
           type={props.icon === 'sending' ? sendIcon : receiveIcon}
@@ -74,7 +72,12 @@ const Header = (props: HeaderProps) =>
           </Kb.Text>
         )}
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        centerChildren={true}
+        style={styles.messageInfoContainer}
+      >
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
           <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
           <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
@@ -181,23 +184,20 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.purple,
-      paddingBottom: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
-      paddingTop: iconHeight - 6,
+      paddingTop: Styles.globalMargins.small,
     },
   }),
   icon: Styles.platformStyles({
     isAndroid: {
       marginTop: Styles.globalMargins.tiny,
     },
-    isElectron: {
-      position: 'absolute',
-      top: -12,
-    },
+    isElectron: {paddingBottom: Styles.globalMargins.small},
     isMobile: {
-      marginBottom: 6,
-      marginTop: -15,
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
     },
   }),
   loadingHeaderTop: Styles.platformStyles({
@@ -215,6 +215,13 @@ const styles = Styles.styleSheetCreate({
     height: 80,
     width: 80,
   },
+  messageInfoContainer: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  popupContainer: Styles.platformStyles({
+    isElectron: {maxWidth: 240, minWidth: 200},
+  }),
   textAlignCenter: {
     textAlign: 'center',
   },

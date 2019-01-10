@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
 	"testing"
 	"time"
@@ -1841,7 +1842,19 @@ func reviewPaymentExpectQuickSuccess(t testing.TB, tc *TestContext, arg stellar1
 	reviewSuccessCh := make(chan struct{}, 1)
 	mockUI.PaymentReviewedHandler = func(ctx context.Context, notification stellar1.PaymentReviewedArg) error {
 		assert.Equal(t, arg.Bid, notification.Msg.Bid)
-		assert.Nil(t, notification.Msg.Banners)
+		// Allow the not-following warning banner.
+		if len(notification.Msg.Banners) == 1 {
+			assert.True(t, regexp.MustCompile(
+				`^You are not following .*\. Are you sure this is the right person\?$`,
+			).MatchString(notification.Msg.Banners[0].Message))
+			expect := []stellar1.SendBannerLocal{{
+				Level:   "warning",
+				Message: notification.Msg.Banners[0].Message,
+			}}
+			assert.Equal(t, expect, notification.Msg.Banners)
+		} else {
+			assert.Len(t, notification.Msg.Banners, 0)
+		}
 		switch notification.Msg.NextButton {
 		case "spinning":
 		case "enabled":

@@ -121,7 +121,7 @@ export const isUserActivelyLookingAtThisThread = (
   conversationIDKey: Types.ConversationIDKey
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  const appFocused = state.config.appFocused
+
   const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
   if (isMobile) {
@@ -132,7 +132,8 @@ export const isUserActivelyLookingAtThisThread = (
   }
 
   return (
-    appFocused && // app focused?
+    state.config.appFocused && // app focused?
+    state.config.userActive && // actually interacting w/ the app
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
