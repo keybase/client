@@ -20,4 +20,7 @@ protocol notify {
 
   @notify("")
   void recentPaymentsUpdate(AccountID accountID, PaymentsPageLocal firstPage);
+  
+  @notify("")
+  void autoclaimComplete(AccountID accountID);
 }

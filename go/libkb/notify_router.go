@@ -85,6 +85,7 @@ type NotifyListener interface {
 	WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal)
 	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
 	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
+	WalletAutoclaimComplete()
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
@@ -181,6 +182,7 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
+func (n *NoopNotifyListener) WalletAutoclaimComplete()                               {}
 func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
 func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
