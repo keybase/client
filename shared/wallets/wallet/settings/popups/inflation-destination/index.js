@@ -21,12 +21,20 @@ type State = {|
 |}
 
 class InflationDestinationPopup extends React.Component<Props, State> {
-  state = {
-    address: '',
+  constructor(props) {
+    super(props)
+
+    const reco = props.options.find(o => o.recommended)
+
+    this.state = {
+      address: reco ? reco.address : '',
+    }
   }
+
   _submit = () => {
     this.props.onSubmit(this.state.address)
   }
+
   render() {
     const props = this.props
     const buttons = [
@@ -71,7 +79,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
           <Kb.Icon
             type={
               Styles.isMobile
-                ? 'icon-stellar-coins-stacked-inflation-48' // TODO asset misnamed
+                ? 'icon-stellar-coins-stacked-inflation-64'
                 : 'icon-stellar-coins-stacked-inflation-48'
             }
           />
@@ -92,7 +100,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
           )}
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             {this.props.options.map(o => (
-              <Kb.Box2 key={o.name} direction="horizontal" fullWidth={true} gap="tiny">
+              <Kb.Box2 key={o.name} direction="horizontal" fullWidth={true} gap="xtiny">
                 <Kb.RadioButton
                   onSelect={() => this.setState({address: o.address})}
                   selected={this.state.address === o.address}

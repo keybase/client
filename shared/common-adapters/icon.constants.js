@@ -1561,6 +1561,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-inflation-48.png'),
   },
+  'icon-stellar-coins-stacked-inflation-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
+  },
   'icon-stellar-logo-16': {
     extension: 'png',
     isFont: false,
