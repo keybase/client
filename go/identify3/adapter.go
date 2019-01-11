@@ -2,9 +2,10 @@ package identify3
 
 import (
 	"encoding/hex"
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"sync"
 )
 
 // UIAdapter converts between the Identify2 UI that Identify2 engine expects, and the
@@ -191,6 +192,12 @@ func (i *UIAdapter) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, 
 
 func (i *UIAdapter) DisplayCryptocurrency(cc keybase1.Cryptocurrency) error {
 	i.plumbCryptocurrency(cc)
+	return nil
+}
+
+func (i *UIAdapter) DisplayStellarAccount(s keybase1.StellarAccount) error {
+	// TODO ADD STELLAR ACCOUNT TO IDENTIFY 3
+	//i.plumbCryptocurrency(cc)
 	return nil
 }
 

@@ -345,6 +345,17 @@ function _serverCallMap(
         }
       })
     },
+    'keybase.1.identifyUi.displayStellarAccount': (
+      {a: {accountID, federatedAddress, sigID, type, family}},
+      response
+    ) => {
+      response.result()
+      addToIdleResponseQueue(() => {
+        console.log('::::: STELLAR', accountID, federatedAddress, sigID, username)
+        dispatch(TrackerGen.createUpdateStellarAddress({accountID, federatedAddress, sigID, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
+      })
+    },
     'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
       response.result()
       addToIdleResponseQueue(() => {

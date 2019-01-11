@@ -147,6 +147,7 @@ const props = {
   reason: '',
   refresh: Sb.action('refresh'),
   serverActive: false,
+  stellarFederatedAddress: null,
   trackerState: normal,
   waiting: false,
   youAreInTeams: false,

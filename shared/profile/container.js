@@ -21,7 +21,6 @@ import {isTesting} from '../local-debug'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {peopleTab} from '../constants/tabs'
 import {connect} from '../util/container'
-import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -66,8 +65,6 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
     myUsername,
     profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
-    // TODO: use real federated stellar address
-    stellarAddress: flags.walletsEnabled ? username + '*keybase.io' : '',
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
     username,
     youAreInTeams,
@@ -183,7 +180,10 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
-    onCopyStellarAddress: () => dispatchProps._copyStellarAddress(stateProps.stellarAddress),
+    onCopyStellarAddress: () => {
+      const maybeAddr = stateProps.trackerState.stellarFederatedAddress
+      maybeAddr && dispatchProps._copyStellarAddress(maybeAddr)
+    },
     onFollow: () => dispatchProps._onFollow(username),
     onOpenPrivateFolder: () => {
       stateProps.myUsername && dispatchProps._onOpenPrivateFolder(stateProps.myUsername || '', username || '')
@@ -191,12 +191,12 @@ const mergeProps = (stateProps, dispatchProps) => {
     onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true, 'keybaseUser'),
     onSearch: () => dispatchProps.onSearch(),
     onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false, 'keybaseUser'),
-    // TODO: shouldn't there be 'stellarFederatedAddress'?
-    onSendOrRequestStellarAddress: (isRequest: boolean) =>
-      dispatchProps._onSendOrRequestLumens(stateProps.stellarAddress, isRequest, 'stellarPublicKey'),
+    onSendOrRequestStellarAddress: (isRequest: boolean) => {
+      const maybeAddr = stateProps.trackerState.stellarFederatedAddress
+      maybeAddr && dispatchProps._onSendOrRequestLumens(maybeAddr, isRequest, 'stellarPublicKey')
+    },
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
-    stellarAddress: stateProps.stellarAddress ? stateProps.stellarAddress : '',
     username,
     youAreInTeams: stateProps.youAreInTeams,
   }

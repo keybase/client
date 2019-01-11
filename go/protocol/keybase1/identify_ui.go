@@ -94,6 +94,20 @@ func (o Cryptocurrency) DeepCopy() Cryptocurrency {
 	}
 }
 
+type StellarAccount struct {
+	AccountID        string `codec:"accountID" json:"accountID"`
+	FederatedAddress string `codec:"federatedAddress" json:"federatedAddress"`
+	SigID            SigID  `codec:"sigID" json:"sigID"`
+}
+
+func (o StellarAccount) DeepCopy() StellarAccount {
+	return StellarAccount{
+		AccountID:        o.AccountID,
+		FederatedAddress: o.FederatedAddress,
+		SigID:            o.SigID.DeepCopy(),
+	}
+}
+
 type RevokedProof struct {
 	Proof   RemoteProof `codec:"proof" json:"proof"`
 	Diff    TrackDiff   `codec:"diff" json:"diff"`
@@ -473,6 +487,11 @@ type DisplayCryptocurrencyArg struct {
 	C         Cryptocurrency `codec:"c" json:"c"`
 }
 
+type DisplayStellarAccountArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	A         StellarAccount `codec:"a" json:"a"`
+}
+
 type ReportTrackTokenArg struct {
 	SessionID  int        `codec:"sessionID" json:"sessionID"`
 	TrackToken TrackToken `codec:"trackToken" json:"trackToken"`
@@ -513,6 +532,7 @@ type IdentifyUiInterface interface {
 	FinishWebProofCheck(context.Context, FinishWebProofCheckArg) error
 	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
+	DisplayStellarAccount(context.Context, DisplayStellarAccountArg) error
 	ReportTrackToken(context.Context, ReportTrackTokenArg) error
 	DisplayUserCard(context.Context, DisplayUserCardArg) error
 	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
@@ -670,6 +690,21 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"displayStellarAccount": {
+				MakeArg: func() interface{} {
+					var ret [1]DisplayStellarAccountArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DisplayStellarAccountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DisplayStellarAccountArg)(nil), args)
+						return
+					}
+					err = i.DisplayStellarAccount(ctx, typedArgs[0])
+					return
+				},
+			},
 			"reportTrackToken": {
 				MakeArg: func() interface{} {
 					var ret [1]ReportTrackTokenArg
@@ -815,6 +850,11 @@ func (c IdentifyUiClient) FinishSocialProofCheck(ctx context.Context, __arg Fini
 
 func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg DisplayCryptocurrencyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) DisplayStellarAccount(ctx context.Context, __arg DisplayStellarAccountArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayStellarAccount", []interface{}{__arg}, nil)
 	return
 }
 

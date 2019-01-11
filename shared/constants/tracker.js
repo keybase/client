@@ -79,6 +79,7 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
   selectedTeam: '',
   serverActive: true,
   shouldFollow: true,
+  stellarFederatedAddress: null,
   tlfs: [],
   trackToken: null,
   trackerState: checking,

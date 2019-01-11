@@ -404,6 +404,14 @@ export default function(
         }))
       }
     }
+    case TrackerGen.updateStellarAddress: {
+      const {federatedAddress, accountID, sigID} = action.payload
+      console.log('::::::: Got TrackerGen.updateStellarAddress: ', federatedAddress, accountID, sigID)
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
+        stellarFederatedAddress: federatedAddress,
+      }))
+    }
     // Saga only actions
     case TrackerGen.follow:
     case TrackerGen.getMyProfile:

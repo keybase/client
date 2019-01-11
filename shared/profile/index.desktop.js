@@ -477,10 +477,10 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
-                {!!this.props.stellarAddress && !loading && (
+                {!!this.props.stellarFederatedAddress && !loading && (
                   <StellarFederatedAddress
                     currentlyFollowing={!this.props.isYou && this.props.currentlyFollowing}
-                    stellarAddress={this.props.stellarAddress}
+                    stellarAddress={this.props.stellarFederatedAddress}
                     onSendOrRequest={this.props.onSendOrRequestStellarAddress}
                     onCopyAddress={this.props.onCopyStellarAddress}
                   />

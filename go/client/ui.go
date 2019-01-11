@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/terminalescaper"
-	"github.com/mattn/go-isatty"
+	isatty "github.com/mattn/go-isatty"
 
 	"golang.org/x/net/context"
 
@@ -522,6 +522,12 @@ func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1
 
 func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
 	msg := (BTC + " " + " " + l.Family + " " + ColorString(ui.G(), "green", l.Address))
+	ui.ReportHook(msg)
+	return nil
+}
+
+func (ui *BaseIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
+	msg := fmt.Sprintf("%s Stellar %s (%s)", BTC, ColorString(ui.G(), "green", l.AccountID), l.FederatedAddress)
 	ui.ReportHook(msg)
 	return nil
 }

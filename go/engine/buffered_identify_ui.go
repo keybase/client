@@ -184,6 +184,14 @@ func (b *bufferedIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) er
 	return b.flush(false)
 }
 
+func (b *bufferedIdentifyUI) DisplayStellarAccount(c keybase1.StellarAccount) error {
+	b.Lock()
+	defer b.Unlock()
+	//b.cryptocurrency = append(b.cryptocurrency, c)
+	//  TODO STELLAR ACCOUNT IN BUFFERED UI
+	return b.flush(false)
+}
+
 func (b *bufferedIdentifyUI) DisplayKey(k keybase1.IdentifyKey) error {
 	b.Lock()
 	defer b.Unlock()
