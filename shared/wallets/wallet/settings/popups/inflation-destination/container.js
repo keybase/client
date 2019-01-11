@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  option: stateProps.options,
+  options: stateProps.options,
   onClose: () => dispatchProps._onClose(),
   onSubmit: (address: string) => dispatchProps._onSubmit(stateProps.accountID, address),
 })
