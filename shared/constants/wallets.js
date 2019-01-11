@@ -476,11 +476,22 @@ const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
+const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
+  state.accountMap.get(accountID, unknownAccount)
+
 const getAccount = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID, unknownAccount)
+  getAccountInner(state.wallets, accountID)
+
+const getDisplayCurrencyInner = (state: Types.State, accountID: Types.AccountID) =>
+  getAccountInner(state, accountID).displayCurrency
 
 const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
-  getAccount(state, accountID).displayCurrency
+  getDisplayCurrencyInner(state.wallets, accountID)
+
+const getDefaultDisplayCurrencyInner = (state: Types.State) => {
+  const defaultAccount = state.accountMap.find(a => a.isDefault)
+  return defaultAccount ? defaultAccount.displayCurrency : unknownCurrency
+}
 
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
@@ -512,6 +523,8 @@ const isPaymentUnread = (state: TypedState, accountID: Types.AccountID, paymentI
   const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
   return newPaymentsForAccount && newPaymentsForAccount.has(paymentID)
 }
+
+const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.size > 0
 
 const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {
@@ -571,16 +584,20 @@ export {
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
+  displayCurrenciesLoaded,
   getAcceptedDisclaimer,
   getAccountIDs,
   getAccounts,
   getAccount,
+  getAccountInner,
   getAssets,
   getCurrencyAndSymbol,
   getDisplayCurrencies,
   getDisplayCurrency,
+  getDisplayCurrencyInner,
   getDisplayCurrencyWaitingKey,
   getDefaultAccountID,
+  getDefaultDisplayCurrencyInner,
   getFederatedAddress,
   getPayment,
   getPayments,

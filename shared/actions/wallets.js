@@ -76,22 +76,19 @@ const spawnBuildPayment = (state, action) => {
   return WalletsGen.createBuildPayment()
 }
 
-const openSendRequestForm = (state, action) =>
-  state.wallets.acceptedDisclaimer
-    ? [
-        WalletsGen.createLoadDisplayCurrency({
-          // in case from account differs
-          accountID: action.payload.from || Types.noAccountID,
-          setBuildingCurrency: !action.payload.currency,
-        }),
-        WalletsGen.createLoadDisplayCurrencies(),
-        RouteTreeGen.createNavigateAppend({
-          path: [Constants.sendRequestFormRouteKey],
-        }),
-      ]
-    : isMobile
-    ? RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, SettingsConstants.walletsTab]})
-    : RouteTreeGen.createSwitchTo({path: [Tabs.walletsTab]})
+const openSendRequestForm = (state, action) => {
+  if (!state.wallets.acceptedDisclaimer) {
+    // redirect to disclaimer
+    return RouteTreeGen.createNavigateTo({path: Constants.rootWalletPath})
+  }
+
+  // load accounts for default display currency
+  const accountsLoaded = Constants.getAccounts(state).size > 0
+  return [
+    !accountsLoaded && WalletsGen.createLoadAccounts(),
+    RouteTreeGen.createNavigateAppend({path: [Constants.sendRequestFormRouteKey]}),
+  ]
+}
 
 const createNewAccount = (state, action) => {
   const {name} = action.payload
@@ -317,7 +314,9 @@ const loadMorePayments = (state, action) => {
   )
 }
 
+// We only need to load these once per session
 const loadDisplayCurrencies = (state, action) =>
+  !Constants.displayCurrenciesLoaded(state) &&
   RPCStellarTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
     WalletsGen.createDisplayCurrenciesReceived({
       currencies: (res || []).map(c => Constants.currencyResultToCurrency(c)),
@@ -513,10 +512,6 @@ const maybeSelectDefaultAccount = (state, action) => {
     }
   }
 }
-
-const loadDisplayCurrencyForAccounts = (state, action) =>
-  // load the display currency of each wallet, now that we have the IDs
-  action.payload.accounts.map(account => WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
 
 const cancelPayment = (state, action) => {
   const {paymentID, showAccount} = action.payload
@@ -730,6 +725,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.DidSetAccountAsDefaultPayload
     | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload
+    | WalletsGen.OpenSendRequestFormPayload
   >(
     [
       WalletsGen.loadAccounts,
@@ -739,6 +735,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.didSetAccountAsDefault,
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
+      WalletsGen.openSendRequestForm,
     ],
     loadAccounts
   )
@@ -782,8 +779,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     validateSecretKey
   )
   yield* Saga.chainAction<WalletsGen.ExportSecretKeyPayload>(WalletsGen.exportSecretKey, exportSecretKey)
-  yield* Saga.chainAction<WalletsGen.LoadDisplayCurrenciesPayload>(
-    WalletsGen.loadDisplayCurrencies,
+  yield* Saga.chainAction<WalletsGen.LoadDisplayCurrenciesPayload, WalletsGen.OpenSendRequestFormPayload>(
+    [WalletsGen.loadDisplayCurrencies, WalletsGen.openSendRequestForm],
     loadDisplayCurrencies
   )
   yield* Saga.chainAction<WalletsGen.LoadSendAssetChoicesPayload>(
@@ -822,10 +819,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.AccountsReceivedPayload>(
     WalletsGen.accountsReceived,
     maybeSelectDefaultAccount
-  )
-  yield* Saga.chainAction<WalletsGen.AccountsReceivedPayload>(
-    WalletsGen.accountsReceived,
-    loadDisplayCurrencyForAccounts
   )
 
   // We don't call this for publicMemo/secretNote so the button doesn't
