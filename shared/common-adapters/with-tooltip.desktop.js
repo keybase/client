@@ -9,21 +9,23 @@ import {type Props} from './with-tooltip'
 type State = {
   mouseIn: boolean,
   visible: boolean,
+  attachmentRef: ?React.Component<any>,
 }
 
 class WithTooltip extends React.Component<Props, State> {
   state = {
+    attachmentRef: null,
     mouseIn: false,
     visible: false,
   }
-  _attachmentRef: ?React.Component<any> = null
   _onMouseEnter = () => {
     this.setState({mouseIn: true})
   }
   _onMouseLeave = () => {
     this.setState({mouseIn: false, visible: false})
   }
-  _setAttachmentRef = attachmentRef => (this._attachmentRef = attachmentRef)
+  _setAttachmentRef = attachmentRef => this.setState({attachmentRef})
+  _getAttachmentRef = () => this.state.attachmentRef
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (!prevState.mouseIn && this.state.mouseIn) {
       // Set visible after Toast is mounted, to trigger transition on opacity.
@@ -39,7 +41,7 @@ class WithTooltip extends React.Component<Props, State> {
       <>
         <Box
           style={this.props.containerStyle}
-          ref={this._setAttachmentRef}
+          forwardedRef={this._setAttachmentRef}
           onMouseEnter={this._onMouseEnter}
           onMouseLeave={this._onMouseLeave}
           className={this.props.className}
@@ -53,7 +55,7 @@ class WithTooltip extends React.Component<Props, State> {
               this.props.multiline && styles.containerMultiline,
             ])}
             visible={!!this.props.text && this.state.visible}
-            attachTo={() => this._attachmentRef}
+            attachTo={this.state.attachmentRef && this._getAttachmentRef}
             position={this.props.position || 'top center'}
           >
             <Text type="BodySmall" style={Styles.collapseStyles([styles.text, this.props.textStyle])}>

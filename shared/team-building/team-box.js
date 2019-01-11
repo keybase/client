@@ -17,8 +17,13 @@ type Props = {
   searchString: string,
 }
 
+const formatNameForUserBubble = (username: string, service: ServiceIdWithContact, prettyName: ?string) => {
+  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
+  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+}
+
 const TeamBox = (props: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container}>
+  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
     {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
     {props.teamSoFar.map(u => (
       <UserBubble
@@ -26,7 +31,7 @@ const TeamBox = (props: Props) => (
         onRemove={() => props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={u.prettyName}
+        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
       />
     ))}
     <Input
