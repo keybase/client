@@ -86,6 +86,13 @@ const NonExistent = (props: Props) => (
       </Kb.Box2>
     )}
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
+      <Kb.Icon
+        type={
+          isMobile
+            ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
+            : 'icon-fancy-folder-file-inexistant-desktop-153-94'
+        }
+      />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
         This file or folder doesn't exist.
       </Kb.Text>
