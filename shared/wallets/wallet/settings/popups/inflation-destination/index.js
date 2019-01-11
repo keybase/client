@@ -78,7 +78,13 @@ class InflationDestinationPopup extends React.Component<Props, State> {
         containerStyle={styles.container}
         bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
       >
-        <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} fullHeight={true} gap="small">
+        <Kb.Box2
+          centerChildren={true}
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={!Styles.isMobile}
+          gap="small"
+        >
           <Kb.Icon
             type={
               Styles.isMobile
@@ -161,7 +167,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.medium,
       textAlign: 'center',
     },
-    isMobile: {},
+    isMobile: {
+      padding: Styles.globalMargins.small,
+    },
   }),
   header: {borderBottomWidth: 0},
   otherContainer: {alignItems: 'flex-start'},
@@ -174,10 +182,13 @@ const styles = Styles.styleSheetCreate({
     borderWidth: 1,
     marginLeft: Styles.globalMargins.medium,
     marginRight: Styles.globalMargins.medium,
-    minHeight: Styles.isMobile ? 0 : 88,
+    minHeight: 88,
     padding: Styles.globalMargins.tiny,
   },
-  row: {flexShrink: 0},
+  row: {
+    alignItems: 'center',
+    flexShrink: 0,
+  },
 })
 
 export default InflationDestinationPopup
