@@ -515,6 +515,10 @@ func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx
 	return r.Backend.SetInflationDestination(ctx, r.Tc, signedTx)
 }
 
+func (r *RemoteClientMock) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
+	return r.Backend.GetInflationDestinations(ctx, r.Tc)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (
@@ -1174,6 +1178,11 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 
 	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)
 	return nil
+}
+
+func (r *BackendMock) GetInflationDestinations(ctx context.Context, tc *TestContext) ([]stellar1.PredefinedInflationDestination, error) {
+	// Call into real server for integration testing.
+	return remote.GetInflationDestinations(ctx, tc.G)
 }
 
 // Friendbot sends someone XLM

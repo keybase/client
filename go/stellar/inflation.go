@@ -8,27 +8,8 @@ import (
 	"github.com/keybase/stellarnet"
 )
 
-// https://pool.lumenaut.net/
-const lumenautPoolAccountID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")
-
-var predefinedInflationDestinations = [...]stellar1.PredefinedInflationDestination{
-	stellar1.PredefinedInflationDestination{
-		Tag:         stellar1.InflationDestinationTag("lumenaut"),
-		Name:        "Lumenaut",
-		Recommended: true,
-		AccountID:   stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"),
-		Url:         "https://pool.lumenaut.net/",
-	},
-	stellar1.PredefinedInflationDestination{
-		Tag:       stellar1.InflationDestinationTag("sdf"),
-		Name:      "Stellar Developer Foundation",
-		AccountID: stellar1.AccountID("GDWNY2POLGK65VVKIH5KQSH7VWLKRTQ5M6ADLJAYC2UEHEBEARCZJWWI"),
-		Url:       "https://www.stellar.org",
-	},
-}
-
 func GetPredefinedInflationDestinations(mctx libkb.MetaContext) (ret []stellar1.PredefinedInflationDestination, err error) {
-	return predefinedInflationDestinations[:], nil
+	return getGlobal(mctx.G()).walletState.GetInflationDestinations(mctx.Ctx())
 }
 
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
@@ -87,7 +68,11 @@ func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountI
 	if dest.Eq(accountID) {
 		res.Self = true
 	} else {
-		for _, known := range predefinedInflationDestinations {
+		destinations, err := GetPredefinedInflationDestinations(mctx)
+		if err != nil {
+			return res, err
+		}
+		for _, known := range destinations {
 			if dest.Eq(known.AccountID) {
 				obj := known // make a copy
 				res.KnownDestination = &obj

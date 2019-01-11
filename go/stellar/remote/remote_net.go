@@ -109,3 +109,7 @@ func (r *RemoteNet) ServerTimeboundsRecommendation(ctx context.Context) (stellar
 func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string) error {
 	return SetInflationDestination(ctx, r.G(), signedTx)
 }
+
+func (r *RemoteNet) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
+	return GetInflationDestinations(ctx, r.G())
+}
