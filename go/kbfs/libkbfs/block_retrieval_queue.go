@@ -264,12 +264,11 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 }
 
 func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
-	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
-		// Only panic if we're not using SingleOp mode.
-		panic("A disk block cache is required outside of tests")
-	}
 	if brq.prefetchStatusForTest != nil {
 		return
+	}
+	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
+		brq.log.Warning("No disk block cache is initialized when not testing")
 	}
 	brq.log.CDebugf(nil, "Using a local cache for prefetch status")
 	brq.prefetchStatusForTest = make(map[kbfsblock.ID]PrefetchStatus)
