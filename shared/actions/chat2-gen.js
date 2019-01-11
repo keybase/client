@@ -104,6 +104,7 @@ export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateOrangeLine = 'chat2:updateOrangeLine'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 
@@ -158,7 +159,7 @@ type _MetaRequestTrustedPayload = $ReadOnly<{|force?: boolean, conversationIDKey
 type _MetaRequestingTrustedPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
 type _MetasReceivedPayload = $ReadOnly<{|metas: Array<Types.ConversationMeta>, neverCreate?: boolean, clearExistingMetas?: boolean, clearExistingMessages?: boolean, fromExpunge?: boolean, fromInboxRefresh?: boolean|}>
 type _MuteConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, muted: boolean|}>
-type _NavigateToInboxPayload = $ReadOnly<{|findNewConversation: boolean|}>
+type _NavigateToInboxPayload = $ReadOnly<{|avoidConversationID?: Types.ConversationIDKey, findNewConversation: boolean|}>
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, settings: RPCChatTypes.ConversationNotificationInfo|}>
 type _OpenChatFromWidgetPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey|}>
@@ -203,6 +204,7 @@ type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUII
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, moreToLoad: boolean|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, notificationsDesktop: Types.NotificationsType, notificationsMobile: Types.NotificationsType, notificationsGlobalIgnoreMentions: boolean|}>
+type _UpdateOrangeLinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UpdateReactionsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
 
@@ -312,6 +314,10 @@ export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({paylo
  * Update the minWriterRole stored with the conversation metadata.
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({payload, type: saveMinWriterRole})
+/**
+ * Update the orange line position for a conversation
+ */
+export const createUpdateOrangeLine = (payload: _UpdateOrangeLinePayload) => ({payload, type: updateOrangeLine})
 /**
  * User responded to the chat Stellar confirm screen
  */
@@ -485,6 +491,7 @@ export type UpdateConvRetentionPolicyPayload = {|+payload: _UpdateConvRetentionP
 export type UpdateMessagesPayload = {|+payload: _UpdateMessagesPayload, +type: 'chat2:updateMessages'|}
 export type UpdateMoreToLoadPayload = {|+payload: _UpdateMoreToLoadPayload, +type: 'chat2:updateMoreToLoad'|}
 export type UpdateNotificationSettingsPayload = {|+payload: _UpdateNotificationSettingsPayload, +type: 'chat2:updateNotificationSettings'|}
+export type UpdateOrangeLinePayload = {|+payload: _UpdateOrangeLinePayload, +type: 'chat2:updateOrangeLine'|}
 export type UpdateReactionsPayload = {|+payload: _UpdateReactionsPayload, +type: 'chat2:updateReactions'|}
 export type UpdateTeamRetentionPolicyPayload = {|+payload: _UpdateTeamRetentionPolicyPayload, +type: 'chat2:updateTeamRetentionPolicy'|}
 
@@ -583,6 +590,7 @@ export type Actions =
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
+  | UpdateOrangeLinePayload
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
   | {type: 'common:resetStore', payload: null}

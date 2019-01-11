@@ -34,7 +34,7 @@ class Passphrase extends Component<Props> {
             label="Continue"
             type="Primary"
             onClick={() => this.props.onSubmit()}
-            enabled={this.props.passphrase && this.props.passphrase.length}
+            disabled={!(this.props.passphrase && this.props.passphrase.length)}
           />
           <Text style={stylesForgot} type="BodySmallSecondaryLink" onClick={this.props.onForgotPassphrase}>
             Forgot passphrase?

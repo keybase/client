@@ -138,6 +138,7 @@ type InboxSource interface {
 	Resumable
 	Suspendable
 
+	Clear(ctx context.Context, uid gregor1.UID) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp, useLocalData bool,
 		maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
@@ -247,12 +248,9 @@ type AppState interface {
 }
 
 type TeamChannelSource interface {
-	Offlinable
-
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ChannelNameMention, error)
 	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, error)
-	ChannelsChanged(context.Context, chat1.TLFID)
 }
 
 type ActivityNotifier interface {

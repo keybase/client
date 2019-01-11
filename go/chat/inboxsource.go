@@ -159,7 +159,7 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	localizerTyp types.ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan types.AsyncInboxResult, error) {
 	localizeCb := make(chan types.AsyncInboxResult, len(convs))
 	localizer := b.createConversationLocalizer(ctx, localizerTyp, localizeCb)
-	b.Debug(ctx, "Localize: using localizer: %s", localizer.Name())
+	b.Debug(ctx, "Localize: using localizer: %s, convs: %d", localizer.Name(), len(convs))
 
 	res, err := localizer.Localize(ctx, uid, types.Inbox{
 		ConvsUnverified: convs,
@@ -235,6 +235,10 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, ri)
 	return s
+}
+
+func (s *RemoteInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+	return nil
 }
 
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
@@ -397,6 +401,10 @@ func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(), storage.FlushMode(storage.InboxFlushModeDelegate))
 }
 
+func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+	return s.createInbox().Clear(ctx, uid)
+}
+
 func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	s.baseInboxSource.Start(ctx, uid)
 	s.Lock()
@@ -449,8 +457,8 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 	}
 }
 
-func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
-	p *chat1.Pagination) (types.Inbox, error) {
+func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
+	query *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, error) {
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
@@ -481,20 +489,29 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, err
 	}
 
-	for index, conv := range ib.Inbox.Full().Conversations {
+	bgEnqueued := 0
+	for _, conv := range ib.Inbox.Full().Conversations {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
 		}
-		// Queue all these convs up to be loaded by the background loader
-		// Only load first 100 so we don't get the conv loader too backed up
-		if index < 100 {
+		if query != nil && query.SkipBgLoads {
+			continue
+		}
+		// Queue all these convs up to be loaded by the background loader. Only
+		// load first 100 non KBFS convs, ACTIVE convs so we don't get the conv
+		// loader too backed up.
+		if conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS &&
+			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
+				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
+			bgEnqueued < 100 {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}
+			bgEnqueued++
 		}
 	}
 
@@ -524,7 +541,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	// on this channel
 	localizeCb = make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified)+1)
 	localizer := s.createConversationLocalizer(ctx, localizerTyp, localizeCb)
-	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
+	s.Debug(ctx, "Read: using localizer: %s on %d convs", localizer.Name(), len(inbox.ConvsUnverified))
 
 	// Localize
 	inbox.Convs, err = localizer.Localize(ctx, uid, inbox, maxLocalize)
@@ -601,7 +618,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 	defer func() {
 		if ferr != nil {
 			// Only do this aggressive clear if the error we get is not some kind of network error
-			if IsOfflineError(ferr) == OfflineErrorKindOnline {
+			if ferr != context.Canceled && IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
 				s.createInbox().Clear(ctx, uid)
 			} else {

@@ -1,0 +1,261 @@
+# mow.cli
+[![Build Status](https://travis-ci.org/{{.RepoPath}}.svg?branch=master)](https://travis-ci.org/{{.RepoPath}})
+[![GoDoc](https://godoc.org/github.com/{{.Import}}?status.svg)](https://godoc.org/{{.Import}})
+[![Coverage Status](https://coveralls.io/repos/github/{{.RepoPath}}/badge.svg?branch=master)](https://coveralls.io/github/{{.RepoPath}}?branch=master)
+
+{{.Synopsis}}
+
+
+## Getting Started
+The following examples demonstrate basic usage the package.
+
+
+### Simple Application
+In this simple application, we mimic the argument parsing of the standard UNIX
+cp command. Our application requires the user to specify one or more source
+files followed by a destination.  An optional recursive flag may be provided.
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/jawher/mow.cli"
+)
+
+func main() {
+	// create an app
+	app := cli.App("cp", "Copy files around")
+
+	// Here's what differentiates mow.cli from other CLI libraries:
+	// This line is not just for help message generation.
+	// It also validates the call to reject calls with less than 2 arguments
+	// and split the arguments between SRC or DST
+	app.Spec = "[-r] SRC... DST"
+
+	var (
+		// declare the -r flag as a boolean flag
+		recursive = app.BoolOpt("r recursive", false, "Copy files recursively")
+		// declare the SRC argument as a multi-string argument
+		src = app.StringsArg("SRC", nil, "Source files to copy")
+		// declare the DST argument as a single string (string slice) arguments
+		dst = app.StringArg("DST", "", "Destination where to copy files to")
+	)
+
+	// Specify the action to execute when the app is invoked correctly
+	app.Action = func() {
+		fmt.Printf("Copying %v to %s [recursively: %v]\n", *src, *dst, *recursive)
+	}
+
+	// Invoke the app passing in os.Args
+	app.Run(os.Args)
+}
+```
+
+
+### Multi-Command Application
+In the next example, we create a multi-command application in the same style as
+familiar commands such as git and docker.  We build a fictional utility called
+uman to manage users in a system.  It provides two commands that can be invoked:
+list and get. The list command takes an optional flag to specify all users
+including disabled ones.  The get command requries one argument, the user ID,
+and takes an optional flag to specify a detailed listing.
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/jawher/mow.cli"
+)
+
+func main() {
+	app := cli.App("uman", "User Manager")
+
+	app.Spec = "[-v]"
+
+	var (
+		verbose = app.BoolOpt("v verbose", false, "Verbose debug mode")
+	)
+
+	app.Before = func() {
+		if *verbose {
+			// Here we can enable debug output in our logger for example
+			fmt.Println("Verbose mode enabled")
+		}
+	}
+
+	// Declare our first command, which is invocable with "uman list"
+	app.Command("list", "list the users", func(cmd *cli.Cmd) {
+		// These are the command-specific options and args, nicely scoped
+		// inside a func so they don't pollute the namespace
+		var (
+			all = cmd.BoolOpt("all", false, "List all users, including disabled")
+		)
+
+		// Run this function when the command is invoked
+		cmd.Action = func() {
+			// Inside the action, and only inside, we can safely access the
+			// values of the options and arguments
+			fmt.Printf("user list (including disabled ones: %v)\n", *all)
+		}
+	})
+
+	// Declare our second command, which is invocable with "uman get"
+	app.Command("get", "get a user details", func(cmd *cli.Cmd) {
+		var (
+			detailed = cmd.BoolOpt("detailed", false, "Disaply detailed info")
+			id       = cmd.StringArg("ID", "", "The user id to display")
+		)
+
+		cmd.Action = func() {
+			fmt.Printf("user %q details (detailed mode: %v)\n", *id, *detailed)
+		}
+	})
+
+	// With the app configured, execute it, passing in the os.Args array
+	app.Run(os.Args)
+}
+
+```
+
+
+### A Larger Multi-Command Example
+This example shows an alternate way of organizing our code when dealing with a
+larger number of commands and subcommands. This layout emphasizes the command
+structure and defers the details of each command to subsequent functions. Like
+the prior examples, options and arguments are still scoped to their respective
+functions and don't pollute the global namespace.
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/jawher/mow.cli"
+)
+
+// Global options available to any of the commands
+var filename *string
+
+func main() {
+	app := cli.App("vault", "Password Keeper")
+
+	// Define our top-level global options
+	filename = app.StringOpt("f file", os.Getenv("HOME")+"/.safe", "Path to safe")
+
+	// Define our command structure for usage like this:
+	app.Command("list", "list accounts", cmdList)
+	app.Command("creds", "display account credentials", cmdCreds)
+	app.Command("config", "manage accounts", func(config *cli.Cmd) {
+		config.Command("list", "list accounts", cmdList)
+		config.Command("add", "add an account", cmdAdd)
+		config.Command("remove", "remove an account(s)", cmdRemove)
+	})
+
+	app.Run(os.Args)
+}
+
+// Sample use: vault list OR vault config list
+func cmdList(cmd *cli.Cmd) {
+	cmd.Action = func() {
+		fmt.Printf("list the contents of the safe here")
+	}
+}
+
+// Sample use: vault creds reddit.com
+func cmdCreds(cmd *cli.Cmd) {
+	cmd.Spec = "ACCOUNT"
+	account := cmd.StringArg("ACCOUNT", "", "Name of account")
+	cmd.Action = func() {
+		fmt.Printf("display account info for %s\n", *account)
+	}
+}
+
+// Sample use: vault config add reddit.com -u username -p password
+func cmdAdd(cmd *cli.Cmd) {
+	cmd.Spec = "ACCOUNT [ -u=<username> ] [ -p=<password> ]"
+	var (
+		account  = cmd.StringArg("ACCOUNT", "", "Account name")
+		username = cmd.StringOpt("u username", "admin", "Account username")
+		password = cmd.StringOpt("p password", "admin", "Account password")
+	)
+	cmd.Action = func() {
+		fmt.Printf("Adding account %s:%s@%s", *username, *password, *account)
+	}
+}
+
+// Sample use: vault config remove reddit.com twitter.com
+func cmdRemove(cmd *cli.Cmd) {
+	cmd.Spec = "ACCOUNT..."
+	var (
+		accounts = cmd.StringsArg("ACCOUNT", nil, "Account names to remove")
+	)
+	cmd.Action = func() {
+		fmt.Printf("Deleting accounts: %v", *accounts)
+	}
+}
+```
+
+
+## Comparison to Other Tools
+There are several tools in the Go ecosystem to facilitate the creation of
+command line tools.  The following is a comparison to the built-in flag package
+as well as the popular urfave/cli (formerly known as codegangsta/cli):
+
+|                                                                     | mow.cli | urfave/cli | flag |
+|---------------------------------------------------------------------|---------|------------|------|
+| Contextual help                                                     | ✓       | ✓          |      |
+| Commands                                                            | ✓       | ✓          |      |
+| Option folding `-xyz`                                               | ✓       |            |      |
+| Option value folding `-fValue`                                      | ✓       |            |      |
+| Option exclusion `--start ❘ --stop`                                 | ✓       |            |      |
+| Option dependency `[-a -b]` or `[-a [-b]]`                          | ✓       |            |      |
+| Arguments validation `SRC DST`                                      | ✓       |            |      |
+| Argument optionality `SRC [DST]`                                    | ✓       |            |      |
+| Argument repetition `SRC... DST`                                    | ✓       |            |      |
+| Option/argument dependency `SRC [-f DST]`                           | ✓       |            |      |
+| Any combination of the above `[-d ❘ --rm] IMAGE [COMMAND [ARG...]]` | ✓       |            |      |
+
+Unlike the simple packages above, docopt is another library that supports rich
+set of flag and argument validation. It does, however, fall short for many use
+cases including:
+
+|                            | mow.cli | docopt |
+|----------------------------|---------|--------|
+| Contextual help            | ✓       |        |
+| Backtracking `SRC... DST`  | ✓       |        |
+| Backtracking `[SRC] DST`   | ✓       |        |
+| Branching `(SRC ❘ -f DST)` | ✓       |        |
+
+
+## Installation
+To install this package, run the following:
+
+```shell
+go get {{.Import}}
+```
+
+# Package Documentation
+
+<!-- Do NOT edit past here. This is replaced by the contents of the package documentation -->
+{{.Doc}}
+
+{{if .Bugs}}
+# Bugs
+{{range .Bugs}}* {{.}}{{end}}
+{{end}}
+
+## License
+This work is published under the MIT license.
+
+Please see the `LICENSE` file for details.
+
+* * *
+Automatically generated by [autoreadme](https://github.com/jimmyfrasche/autoreadme) on {{.Today}}

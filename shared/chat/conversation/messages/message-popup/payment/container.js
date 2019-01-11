@@ -37,6 +37,7 @@ type RequestOwnProps = {
 
 const commonLoadingProps = {
   amountNominal: '',
+  approxWorth: '',
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: '',
@@ -80,8 +81,7 @@ const sendMapDispatchToProps = dispatch => ({
     dispatch(
       RouteTreeGen.createNavigateTo({
         path: [
-          ...WalletConstants.rootWalletPath,
-          'wallet',
+          ...WalletConstants.walletPath,
           {props: {accountID, paymentID}, selected: 'transactionDetails'},
         ],
       })
@@ -118,6 +118,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   const youAreReceiver = you === paymentInfo.toUsername
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
+    approxWorth: paymentInfo.worthAtSendTime,
     attachTo: ownProps.attachTo,
     balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
@@ -210,6 +211,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
 
   return {
     amountNominal: requestInfo.amountDescription,
+    approxWorth: '',
     attachTo: ownProps.attachTo,
     balanceChange: '',
     balanceChangeColor: '',

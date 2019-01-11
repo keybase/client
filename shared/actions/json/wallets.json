@@ -36,7 +36,7 @@
     },
     "buildingPaymentIDReceived": {
       "_description": "Update our store with an ID for a new building payment",
-      "bid": "string",
+      "bid": "string"
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
@@ -94,6 +94,9 @@
         "name": "string",
         "error": "string"
       }
+    },
+    "exitFailedPayment": {
+      "_description": "Close the send form and show the user their transactions so they can review."
     },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
@@ -191,10 +194,6 @@
       "accountID": "Types.AccountID",
       "code": "Types.CurrencyCode"
     },
-    "loadRequestDetail": {
-      "_description": "Load a request's details",
-      "requestID": "StellarRPCTypes.KeybaseRequestID"
-    },
     "requestPayment": {
       "_description": "Request payment"
     },
@@ -229,9 +228,13 @@
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>"
     },
-    "requestDetailReceived": {
-      "_description": "Store a request's details",
-      "request": "StellarRPCTypes.RequestDetailsLocal"
+    "reviewedPaymentReceived": {
+      "_description": "Update our store with the results of reviewing a built payment",
+      "bid": "string",
+      "reviewID": "number",
+      "seqno": "number",
+      "nextButton": "string",
+      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>"
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
@@ -304,9 +307,12 @@
       "lastSentXLM": "boolean",
       "writeFile": "boolean"
     },
-    "setReadyToSend": {
-      "_description": "Set whether the payment is ready to send",
-      "readyToSend": "boolean"
+    "setReadyToReview": {
+      "_description": "Set whether the payment is ready to review",
+      "readyToReview": "boolean"
+    },
+    "reviewPayment": {
+      "_description": "Move to the confirm screen on a built payment."
     },
     "openSendRequestForm": {
       "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",

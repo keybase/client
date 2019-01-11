@@ -214,7 +214,7 @@ const styles = Styles.styleSheetCreate({
     right: 0,
   },
   text: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     marginLeft: Styles.globalMargins.tiny,
   },
 })

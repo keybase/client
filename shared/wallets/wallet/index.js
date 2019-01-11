@@ -54,7 +54,14 @@ class Wallet extends React.Component<Props> {
   _renderItem = ({item, index, section}) => {
     const children = []
     if (item === 'notLoadedYet') {
-      children.push(<Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />)
+      children.push(
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.loadingBox} gap="tiny" gapStart={true}>
+          <Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />
+          <Kb.Text type="BodySmall">
+            {section.title === 'Your assets' ? 'Loading assets...' : 'Loading payments...'}
+          </Kb.Text>
+        </Kb.Box2>
+      )
     } else if (item === 'noPayments') {
       children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'Your assets') {
@@ -112,6 +119,7 @@ class Wallet extends React.Component<Props> {
           sections={this.props.sections}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
+          stickySectionHeadersEnabled={false}
           keyExtractor={this._keyExtractor}
           onEndReached={this._onEndReached}
         />
@@ -126,7 +134,11 @@ const styles = Styles.styleSheetCreate({
     marginTop: 36,
   },
   historyPlaceholderText: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
+  },
+  loadingBox: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   loadingMore: {
     bottom: 10,
@@ -138,7 +150,10 @@ const styles = Styles.styleSheetCreate({
   sectionHeader: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.blue5,
-    padding: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
     width: '100%',
   },
   spinner: {

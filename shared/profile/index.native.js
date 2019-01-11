@@ -305,7 +305,7 @@ class Profile extends Component<Props, State> {
             </Kb.Box>
             <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: 8}}>
               <Kb.Icon
-                color={Styles.globalColors.black_40}
+                color={Styles.globalColors.black_50}
                 onClick={this.props.onClearAddUserToTeamsResults}
                 type="iconfont-close"
               />
@@ -438,7 +438,7 @@ class Profile extends Component<Props, State> {
           )}
           <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
             <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Kb.Text style={styleSearchText} type="Body">
+            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
               Search people
             </Kb.Text>
           </Kb.ClickableBox>
@@ -482,7 +482,7 @@ class Profile extends Component<Props, State> {
                   color:
                     this.state.currentFriendshipsTab === f
                       ? Styles.globalColors.black_75
-                      : Styles.globalColors.black_60,
+                      : Styles.globalColors.black_50,
                   padding: 10,
                 }}
               >
@@ -673,7 +673,7 @@ const styles = Styles.styleSheetCreate({
     width: 105,
   },
   userEntryFullname: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     textAlign: 'center',
   },
   userEntryInnerContainer: {
@@ -745,7 +745,6 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   color: Styles.globalColors.white_75,
-  fontSize: 16,
   position: 'relative',
   top: -1,
 }

@@ -148,8 +148,7 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return metadata, err
 	}
 
-	err = postNewTeamEK(ctx, g, teamID, sig, boxes)
-	if err != nil {
+	if err = postNewTeamEK(ctx, g, teamID, sig, boxes); err != nil {
 		return metadata, err
 	}
 

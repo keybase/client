@@ -1,6 +1,7 @@
 // @flow
 export {default as AccountEntry} from './account-entry'
 export {default as AccountPageHeader} from './account-page-header'
+export {default as WalletBackButton} from './back-button'
 export {default as EnterName} from './enter-name'
 export {default as MarkdownMemo} from './markdown-memo'
 export {default as ParticipantsRow} from './participants-row'

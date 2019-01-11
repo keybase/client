@@ -63,7 +63,7 @@ type GlobalContext struct {
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
-	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
+	RPCCanceler      *RPCCanceler         // register live RPCs so they can be cancelleed en masse
 	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
 	Identify3State   *Identify3State      // keep track of Identify3 sessions
 
@@ -233,7 +233,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
-	g.RPCCanceller = NewRPCCanceller()
+	g.RPCCanceler = NewRPCCanceler()
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 

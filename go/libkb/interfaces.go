@@ -559,7 +559,7 @@ type ProofChecker interface {
 // ServiceType is an interface for describing an external proof service, like 'Twitter'
 // or 'GitHub', etc.
 type ServiceType interface {
-	AllStringKeys() []string
+	Key() string
 
 	// NormalizeUsername normalizes the given username, assuming
 	// that it's free of any leading strings like '@' or 'dns://'.
@@ -581,7 +581,7 @@ type ServiceType interface {
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
-	DisplayName(remotename string) string
+	DisplayName() string
 	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string

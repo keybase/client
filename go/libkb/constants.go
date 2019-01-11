@@ -73,7 +73,7 @@ const (
 )
 
 // Right now reddit is the only site that seems to have any requirements for
-// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.)If
+// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.) If
 // something else comes up, we'll want to make this more configurable.
 var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 

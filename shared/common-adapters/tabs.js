@@ -31,7 +31,9 @@ const Tabs = ({clickableBoxStyle, tabs, selected, onSelect, style, tabStyle}: Pr
         return (
           <ClickableBox onClick={() => onSelect(t)} key={key} style={clickableBoxStyle}>
             <Box style={styles.tabContainer}>
-              <Box style={collapseStyles([styles.tab, tabStyle])}>{t}</Box>
+              <Box style={collapseStyles([styles.tab, t === selected && styles.tabSelected, tabStyle])}>
+                {t}
+              </Box>
               <Divider
                 style={collapseStyles([
                   styles.divider,
@@ -81,6 +83,9 @@ const styles = styleSheetCreate({
       height: 48,
     },
   }),
+  tabSelected: {
+    color: globalColors.black_75,
+  },
 })
 
 export default Tabs

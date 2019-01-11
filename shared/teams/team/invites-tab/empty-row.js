@@ -9,7 +9,7 @@ const Empty = () => (
       type="BodySmall"
       key="noRequestsOrInvites"
       style={{
-        color: globalColors.black_40,
+        color: globalColors.black_50,
         paddingTop: globalMargins.large,
       }}
     >

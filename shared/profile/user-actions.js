@@ -334,7 +334,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_75,
   },
   styleServiceSubscript: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
 })
 

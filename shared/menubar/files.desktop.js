@@ -174,7 +174,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
   fileUpdateName: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
@@ -218,7 +218,7 @@ const styles = Styles.styleSheetCreate({
   },
   tlfSectionHeader: {
     backgroundColor: Styles.globalColors.black_05,
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.xtiny,

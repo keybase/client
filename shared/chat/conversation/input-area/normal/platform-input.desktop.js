@@ -235,17 +235,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 onKeyDown={this._onKeyDown}
               />
             </Kb.Box2>
-            {this.props.isExploding && !this.props.isEditing && !this.state.hasText && (
-              // This is the `boom!` icon in the placeholder: “Write an exploding message boom!”
-              <Kb.Icon
-                color={Styles.globalColors.black_20}
-                fontSize={34}
-                hoverColor={Styles.globalColors.black_20}
-                onClick={this._inputFocus}
-                style={Kb.iconCastPlatformStyles(styles.boomIcon)}
-                type="iconfont-boom"
-              />
-            )}
             {this.props.showingMenu && (
               <SetExplodingMessagePopup
                 attachTo={this.props.getAttachmentRef}
@@ -435,6 +424,7 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   input: {
+    backgroundColor: Styles.globalColors.transparent,
     height: 21,
     minHeight: 21,
   },

@@ -69,9 +69,12 @@ export const PeoplePageSearchBar = (
       <Kb.Icon
         style={Styles.collapseStyles([styleSearch, props.styleSearch])}
         type="iconfont-search"
-        color={Styles.globalColors.black_20}
+        color={Styles.globalColors.black_50}
       />
-      <Kb.Text style={Styles.collapseStyles([styleSearchText, props.styleSearchText])} type="Body">
+      <Kb.Text
+        style={Styles.collapseStyles([styleSearchText, props.styleSearchText])}
+        type="BodySmallSemibold"
+      >
         Search people
       </Kb.Text>
     </Kb.ClickableBox>
@@ -115,7 +118,4 @@ const styleSearch = {
 
 const styleSearchText = {
   ...styleSearch,
-  color: Styles.globalColors.black_40,
-  position: 'relative',
-  top: -1,
 }

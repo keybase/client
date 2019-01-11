@@ -231,8 +231,6 @@ func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) getCache(ctx context.Context) (cache deviceEKCache, err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#getCache", func() error { return err })()
-
 	if !s.indexed {
 		keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 		if err != nil {
@@ -495,8 +493,6 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 }
 
 func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#deletedWrongEldestSeqno", func() error { return err })()
-
 	keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 	if err != nil {
 		return err
@@ -509,7 +505,6 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	for _, key := range keys {
 		eldestSeqno := s.keyToEldestSeqno(key)
 		if eldestSeqno < 0 {
-			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: skipping delete, invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {

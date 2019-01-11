@@ -2981,8 +2981,9 @@ func (o NonblockFetchRes) DeepCopy() NonblockFetchRes {
 }
 
 type ThreadView struct {
-	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
-	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages     []MessageUnboxed `codec:"messages" json:"messages"`
+	UnreadLineID *MessageID       `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
+	Pagination   *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o ThreadView) DeepCopy() ThreadView {
@@ -2998,6 +2999,13 @@ func (o ThreadView) DeepCopy() ThreadView {
 			}
 			return ret
 		})(o.Messages),
+		UnreadLineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadLineID),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -4611,6 +4619,7 @@ type GenerateOutboxIDArg struct {
 }
 
 type PostLocalNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`

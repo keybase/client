@@ -142,7 +142,7 @@ const styles = Styles.styleSheetCreate({
   }),
   warningText: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.brown_60,
+      color: Styles.globalColors.brown_75,
       textAlign: 'center',
     },
     isMobile: {

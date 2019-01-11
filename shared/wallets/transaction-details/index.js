@@ -12,6 +12,7 @@ import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../uti
 export type NotLoadingProps = {|
   amountUser: string,
   amountXLM: string,
+  approxWorth: string,
   counterparty: string,
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: ?string,
@@ -277,6 +278,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
+          approxWorth={props.approxWorth}
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
@@ -369,7 +371,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             />
           )}
           {props.status === 'error' && (
-            <Kb.Text type='BodySmallError' selectable={true}>
+            <Kb.Text type="BodySmallError" selectable={true}>
               {props.statusDetail}
             </Kb.Text>
           )}
@@ -384,7 +386,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
             props.yourRole === 'receiverOnly' &&
             props.counterpartyType === 'stellarPublicKey' && (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
-                <Kb.Text type="BodySemibold" backgroundMode="Information" style={styles.warningBannerText}>
+                <Kb.Text
+                  type="BodySmallSemibold"
+                  backgroundMode="Information"
+                  style={styles.warningBannerText}
+                >
                   Watch out for phishing attacks and dangerous websites.
                 </Kb.Text>
               </Kb.Box2>
@@ -422,6 +428,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
 class LoadTransactionDetails extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
+  }
+  componentDidUpdate(prevProps: Props) {
+    // An erased transaction ID likely means the payment was updated,
+    // which means details need to be retrieved again
+    if (
+      (!this.props.transactionID || !this.props.senderAccountID) &&
+      prevProps.transactionID &&
+      prevProps.senderAccountID &&
+      !this.props.loading
+    ) {
+      this.props.onLoadPaymentDetail()
+    }
   }
   render() {
     if (this.props.loading) {
@@ -512,11 +530,10 @@ const styles = Styles.styleSheetCreate({
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
-    borderRadius: 4,
     marginTop: Styles.globalMargins.xsmall,
     padding: Styles.globalMargins.xsmall,
   },
   warningBannerText: {
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.brown_75,
   },
 })

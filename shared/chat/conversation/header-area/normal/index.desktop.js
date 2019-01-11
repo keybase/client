@@ -29,7 +29,7 @@ const ChannelHeader = (props: Props) => (
     >
       <Text
         type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
-        style={props.smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_40}}
+        style={props.smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_50}}
       >
         {props.teamName}
       </Text>
@@ -58,7 +58,7 @@ const UsernameHeader = (props: Props) => (
         colorFollowing={true}
         underline={true}
         inline={false}
-        commaColor={globalColors.black_40}
+        commaColor={globalColors.black_50}
         type="BodyBig"
         usernames={props.participants}
         containerStyle={styleCenter}

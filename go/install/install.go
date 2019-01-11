@@ -294,3 +294,8 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 	}
 	return filepath.Join(filepath.Dir(path), kbfsBinName()), nil
 }
+
+type CommonLsofResult struct {
+	PID     string
+	Command string
+}

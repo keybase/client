@@ -128,7 +128,14 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	if err != nil {
 		return metadata, err
 	}
-	pukSigning, err := pukKeyring.GetLatestSigningKey(libkb.NewMetaContext(ctx, g))
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := pukKeyring.Sync(mctx); err != nil {
+		return metadata, err
+	}
+	if !pukKeyring.HasAnyKeys() {
+		return metadata, fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
+	}
+	pukSigning, err := pukKeyring.GetLatestSigningKey(mctx)
 	if err != nil {
 		return metadata, err
 	}

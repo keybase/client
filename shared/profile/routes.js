@@ -19,10 +19,8 @@ const profileRoute = () => {
   const ShowcaseTeamOffer = require('./showcase-team-offer/container').default
   const ControlledRolePicker = require('../teams/role-picker/controlled-container').default
   const WalletConstants = require('../constants/wallets')
-  const SendForm = require('../wallets/send-form/container').default
-  const ConfirmForm = require('../wallets/confirm-form/container').default
-  const ChooseAsset = require('../wallets/send-form/choose-asset/container').default
-  const QRScan = require('../wallets/qr-scan/container').default
+
+  const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
   const proveEnterUsername = makeRouteDefNode({
     children: {
@@ -92,26 +90,7 @@ const profileRoute = () => {
         component: ShowcaseTeamOffer,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      [WalletConstants.sendReceiveFormRouteKey]: {
-        children: {
-          [WalletConstants.confirmFormRouteKey]: {
-            children: {},
-            component: ConfirmForm,
-            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
-          },
-          [WalletConstants.chooseAssetFormRouteKey]: {
-            children: {},
-            component: ChooseAsset,
-            tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile, renderTopmostOnly: true}),
-          },
-          qrScan: {
-            component: QRScan,
-            tags: makeLeafTags({layerOnTop: true, underNotch: true}),
-          },
-        },
-        component: SendForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, underNotch: true}),
-      },
+      [WalletConstants.sendRequestFormRouteKey]: SendRequestFormRoutes,
     },
     component: Profile,
     initialState: {currentFriendshipsTab: 'Followers'},

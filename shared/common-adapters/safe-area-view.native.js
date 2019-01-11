@@ -1,14 +1,11 @@
 // @flow
 import * as React from 'react'
 import {SafeAreaView, View, StatusBar} from 'react-native'
+import type {Props} from './safe-area-view'
 import * as Styles from '../styles'
 
 // Android doesn't have an implementation for SafeAreaView, so add a special case for handling the top of the screen
-type SafeAreaViewTopProps = {
-  style?: ?Styles.StylesCrossPlatform,
-  children?: React.Node,
-}
-export const SafeAreaViewTop = ({style, children}: SafeAreaViewTopProps) =>
+export const SafeAreaViewTop = ({style, children}: Props) =>
   Styles.isAndroid ? (
     <View style={Styles.collapseStyles([styles.androidTopSafeArea, style])}>{children}</View>
   ) : (

@@ -969,7 +969,16 @@ function* loadMoreMessages(state, action) {
       shouldClearOthers = true
       calledClear = true
     }
-
+    if (uiMessages.unreadLineID) {
+      actions.push(
+        Saga.put(
+          Chat2Gen.createUpdateOrangeLine({
+            conversationIDKey,
+            messageID: Types.numberToMessageID(uiMessages.unreadLineID),
+          })
+        )
+      )
+    }
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
       const message = conversationIDKey ? Constants.uiMessageToMessage(state, conversationIDKey, m) : null
       if (message) {
@@ -1417,6 +1426,8 @@ function* previewConversationFindExisting(state, action) {
       ...params,
     })
     yield* previewConversationAfterFindExisting(state, action, results, users)
+  } else {
+    yield* previewConversationAfterFindExisting(state, action, undefined, [])
   }
 }
 
@@ -1507,11 +1518,12 @@ const _maybeAutoselectNewestConversation = (state, action) => {
     // Intentional fall-through -- force select a new one
   } else if (
     Constants.isValidConversationIDKey(selected) &&
-    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
+    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam)) &&
+    !(action.type === Chat2Gen.navigateToInbox && selected !== action.payload.avoidConversationID)
   ) {
     // Stay with our existing convo if it was not empty or pending, or the
     // selected convo already doesn't belong to the team we're trying to switch
-    // away from
+    // away from, or we're not avoiding it because it's a channel we're leaving
     return
   }
 
@@ -2745,6 +2757,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
+    | ConfigGen.ChangedActivePayload
     | RouteTreeGen.Actions
   >(
     [
@@ -2753,6 +2766,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
+      ConfigGen.changedActive,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],
     markThreadAsRead
