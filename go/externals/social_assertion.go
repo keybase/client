@@ -1,6 +1,8 @@
 package externals
 
 import (
+	"strings"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -33,12 +35,34 @@ func ParseAssertionList(g *libkb.GlobalContext, s string) ([]libkb.AssertionExpr
 	return libkb.ParseAssertionList(MakeAssertionContext(g), s)
 }
 
-// NOTE the static methods should only be used in tests or as a basic sanity
+// NOTE The 'Static' methods should only be used in tests or as a basic sanity
 // check for the syntactical correctness of an assertion. All other callers
 // should use the non-static versions.
 // This uses only the 'static' services which exclude any parameterized proofs.
+//=============================================================================
+
+type staticAssertionContext struct {
+	services map[string]libkb.ServiceType
+}
+
 func makeStaticAssertionContext() libkb.AssertionContext {
-	return libkb.MakeStaticAssertionContext(newStaticProofServices())
+	services := make(map[string]libkb.ServiceType)
+	for _, st := range getStaticProofServices() {
+		if !useDevelProofCheckers && st.IsDevelOnly() {
+			continue
+		}
+		services[st.Key()] = st
+	}
+	return staticAssertionContext{services: services}
+}
+
+func (a staticAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	st := a.services[strings.ToLower(service)]
+	if st == nil {
+		// If we don't know about this service, normalize by going to lowercase
+		return strings.ToLower(username), nil
+	}
+	return st.NormalizeUsername(username)
 }
 
 func NormalizeSocialAssertionStatic(s string) (keybase1.SocialAssertion, bool) {
@@ -48,3 +72,5 @@ func NormalizeSocialAssertionStatic(s string) (keybase1.SocialAssertion, bool) {
 func AssertionParseAndOnlyStatic(s string) (libkb.AssertionExpression, error) {
 	return libkb.AssertionParseAndOnly(makeStaticAssertionContext(), s)
 }
+
+//=============================================================================

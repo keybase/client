@@ -393,8 +393,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
             }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Kb.Text style={styleSearchText} type="Body">
+            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white} />
+            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
               Search people
             </Kb.Text>
           </Kb.Box>
@@ -481,7 +481,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 )}
                 {!!this.props.stellarAddress && !loading && (
                   <StellarFederatedAddress
-                    currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
+                    currentlyFollowing={!this.props.isYou && this.props.currentlyFollowing}
                     stellarAddress={this.props.stellarAddress}
                     onSendOrRequest={this.props.onSendOrRequestStellarAddress}
                     onCopyAddress={this.props.onCopyStellarAddress}
@@ -629,8 +629,6 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   color: Styles.globalColors.white_75,
-  position: 'relative',
-  top: -1,
 }
 
 const styleShowcasedTeamContainer = {

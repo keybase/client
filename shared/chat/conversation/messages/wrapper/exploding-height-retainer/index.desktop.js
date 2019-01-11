@@ -216,6 +216,7 @@ const styles = Styles.styleSheetCreate({
       bottom: 0,
       color: Styles.globalColors.black_20_on_white,
       padding: 2,
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: 0,
       position: 'absolute',
       right: 0,

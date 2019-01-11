@@ -16,6 +16,8 @@ import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
+import InputMonitor from './input-monitor.desktop'
+import {skipAppFocusActions} from '../../local-debug.desktop'
 
 export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -77,6 +79,46 @@ const writeElectronSettingsOpenAtLogin = (_, action) =>
 const writeElectronSettingsNotifySound = (_, action) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+
+function* handleWindowFocusEvents(): Generator<any, void, any> {
+  const channel = Saga.eventChannel(emitter => {
+    window.addEventListener('focus', () => emitter('focus'))
+    window.addEventListener('blur', () => emitter('blur'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+  while (true) {
+    const type = yield Saga.take(channel)
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      switch (type) {
+        case 'focus':
+          yield Saga.put(ConfigGen.createChangedFocus({appFocused: true}))
+          break
+        case 'blur':
+          yield Saga.put(ConfigGen.createChangedFocus({appFocused: false}))
+          break
+      }
+    }
+  }
+}
+
+function* initializeInputMonitor(): Generator<any, void, any> {
+  const channel = Saga.eventChannel(emitter => {
+    // eslint-disable-next-line no-new
+    new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+
+  while (true) {
+    const type = yield Saga.take(channel)
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      yield Saga.put(ConfigGen.createChangedActive({userActive: type === 'active'}))
+    }
+  }
+}
 
 // get this value from electron and update our store version
 function* initializeAppSettingsState(): Generator<any, void, any> {
@@ -310,6 +352,8 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
 
+  yield Saga.spawn(initializeInputMonitor)
+  yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(initializeAppSettingsState)
   // Start this immediately
   yield Saga.spawn(loadStartupDetails)

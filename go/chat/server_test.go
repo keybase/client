@@ -1348,7 +1348,7 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		require.Error(t, err)
 
 		// request payment
-		maxPaymentNote := strings.Repeat(".", msgchecker.PaymentTextMaxLength)
+		maxPaymentNote := strings.Repeat(".", msgchecker.RequestPaymentTextMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithRequestpayment(
 			chat1.MessageRequestPayment{
 				RequestID: stellar1.KeybaseRequestID("dummy id"),
@@ -4792,17 +4792,28 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 func TestChatSrvTopicNameState(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvTopicNameState", 1)
-		defer ctc.cleanup()
-		users := ctc.users()
-
 		// Only run this test for teams
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 		default:
 			return
 		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvTopicNameState", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ui := kbtest.NewChatUI()
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		tc := ctc.world.Tcs[users[0].Username]
+		uid := users[0].User.GetUID().ToBytes()
+		ri := ctc.as(t, users[0]).ri
+
 		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
 		topicName := "MIKE"
 		ctx := ctc.as(t, users[0]).startCtx
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -4815,10 +4826,32 @@ func TestChatSrvTopicNameState(t *testing.T) {
 			})
 		require.NoError(t, err)
 		conv := ncres.Conv.Info
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeTeamType(t, listener0)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
-		tc := ctc.world.Tcs[users[0].Username]
-		uid := users[0].User.GetUID().ToBytes()
-		ri := ctc.as(t, users[0]).ri
+		// Delete the conv, make sure we can still create a new channel after
+		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID: conv.Id,
+			})
+		require.NoError(t, err)
+		consumeLeaveConv(t, listener0)
+		consumeTeamType(t, listener0)
+		t.Logf("Deleted conv")
+
+		topicName = "josh"
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       firstConv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		conv = ncres.Conv.Info
+
 		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
 		require.NoError(t, err)
 
@@ -4833,10 +4866,14 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		}
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+
 		randomConvID := ncres.Conv.GetConvID()
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
@@ -4861,6 +4898,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
 		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
 
 		// Create race with topic name state, and make sure we do the right thing
 		plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
@@ -4878,18 +4916,14 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		ts2 := prepareRes.TopicNameState
 		require.True(t, ts1.Eq(*ts2))
 
-		/*_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-			ConversationID: conv.Id,
-			MessageBoxed:   *msg1,
-		})
-		require.Error(t, err)
-		require.IsType(t, libkb.ChatClientError{}, err)*/
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
 			MessageBoxed:   msg1,
 			TopicNameState: ts1,
 		})
 		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
+
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
 			MessageBoxed:   msg2,
@@ -4897,7 +4931,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		require.Error(t, err)
 		require.IsType(t, libkb.ChatStalePreviousStateError{}, err)
-
 	})
 }
 
@@ -5183,16 +5216,16 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 
 func TestChatSrvDeleteConversation(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvTeamTypeChanged", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-
 		// Only run this test for teams
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 		default:
 			return
 		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvTeamTypeChanged", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
@@ -5233,8 +5266,19 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
+		uid := users[0].User.GetUID().ToBytes()
+		g := ctc.world.Tcs[users[0].Username].Context()
+		channelConvID := channel.Conv.GetConvID()
+		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
+			ConvID: &channelConvID,
+		}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(lconvs))
+		require.Equal(t, lconvs[0].GetConvID(), channelConvID)
+		require.Equal(t, chat1.ConversationExistence_ACTIVE, lconvs[0].Conv.Metadata.Existence)
+
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
-			channel.Conv.GetConvID())
+			channelConvID)
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
@@ -5243,14 +5287,14 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().DeleteConversationLocal(ctx1,
 			chat1.DeleteConversationLocalArg{
-				ConvID: channel.Conv.GetConvID(),
+				ConvID: channelConvID,
 			})
 		require.Error(t, err)
 		require.IsType(t, libkb.ChatClientError{}, err)
 
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
 			chat1.DeleteConversationLocalArg{
-				ConvID: channel.Conv.GetConvID(),
+				ConvID: channelConvID,
 			})
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener0)

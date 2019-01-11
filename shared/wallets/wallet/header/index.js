@@ -69,7 +69,14 @@ const Header = (props: Props) => {
     </Kb.Box2>
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapStart={true} style={styles.noShrink}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      gap="tiny"
+      gapStart={true}
+      gapEnd={true}
+      style={styles.container}
+    >
       {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
         <SendButton
@@ -85,7 +92,6 @@ const Header = (props: Props) => {
           disabled={!props.walletName}
         />
       </Kb.Box2>
-      <Kb.Divider />
     </Kb.Box2>
   )
 }
@@ -195,6 +201,12 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     width: 10,
   },
+  container: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    flexShrink: 0,
+  },
   dropdownButton: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -205,7 +217,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.xsmall,
     },
   }),
-  noShrink: {flexShrink: 0},
   smallAccountID: {
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,

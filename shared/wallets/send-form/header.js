@@ -13,7 +13,7 @@ const Header = (props: Props) => (
       style={Styles.collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
       fullWidth={true}
     >
-      {props.onBack && <WalletBackButton onBack={props.onBack} />}
+      {props.onBack && <WalletBackButton onBack={props.onBack} isOnWhiteBackground={props.whiteBackground} />}
       <Kb.Icon
         type={Styles.isMobile ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
         style={Kb.iconCastPlatformStyles(styles.icon)}

@@ -440,7 +440,7 @@ class Profile extends Component<Props, State> {
           )}
           <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
             <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Kb.Text style={styleSearchText} type="Body">
+            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
               Search people
             </Kb.Text>
           </Kb.ClickableBox>
@@ -747,7 +747,6 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   color: Styles.globalColors.white_75,
-  fontSize: 16,
   position: 'relative',
   top: -1,
 }

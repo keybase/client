@@ -79,35 +79,12 @@ const spawnBuildPayment = (state, action) => {
 const openSendRequestForm = (state, action) =>
   state.wallets.acceptedDisclaimer
     ? [
-        action.payload.isRequest
-          ? WalletsGen.createClearBuiltRequest()
-          : WalletsGen.createClearBuiltPayment(),
-        WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-        WalletsGen.createSetBuildingCurrency({
-          currency:
-            action.payload.currency ||
-            (state.wallets.lastSentXLM && 'XLM') ||
-            (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
-            'XLM',
-        }),
         WalletsGen.createLoadDisplayCurrency({
           // in case from account differs
           accountID: action.payload.from || Types.noAccountID,
           setBuildingCurrency: !action.payload.currency,
         }),
         WalletsGen.createLoadDisplayCurrencies(),
-        WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
-        WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
-        WalletsGen.createSetBuildingPublicMemo({
-          publicMemo: action.payload.publicMemo || new HiddenString(''),
-        }),
-        WalletsGen.createSetBuildingRecipientType({
-          recipientType: action.payload.recipientType || 'keybaseUser',
-        }),
-        WalletsGen.createSetBuildingSecretNote({
-          secretNote: action.payload.secretNote || new HiddenString(''),
-        }),
-        WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
         RouteTreeGen.createNavigateAppend({
           path: [Constants.sendRequestFormRouteKey],
         }),
@@ -195,10 +172,12 @@ const requestPayment = state =>
     })
   )
 
-const startPayment = () =>
-  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
-    WalletsGen.createBuildingPaymentIDReceived({bid})
-  )
+const startPayment = state =>
+  state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
+    ? RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
+        WalletsGen.createBuildingPaymentIDReceived({bid})
+      )
+    : null
 
 const reviewPayment = state =>
   RPCStellarTypes.localReviewPaymentLocalRpcPromise({
@@ -407,10 +386,13 @@ const setAccountAsDefault = (state, action) =>
   ).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state, action) =>
-  RPCStellarTypes.localGetPaymentDetailsLocalRpcPromise({
-    accountID: action.payload.accountID,
-    id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
-  }).then(res =>
+  RPCStellarTypes.localGetPaymentDetailsLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
+    },
+    Constants.getRequestDetailsWaitingKey(action.payload.paymentID)
+  ).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
       payment: Constants.rpcPaymentDetailToPaymentDetail(res),
@@ -856,6 +838,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.SetBuildingIsRequestPayload
     | WalletsGen.SetBuildingToPayload
     | WalletsGen.DisplayCurrencyReceivedPayload
+    | WalletsGen.BuildingPaymentIDReceivedPayload
   >(
     [
       WalletsGen.setBuildingAmount,
@@ -864,6 +847,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingIsRequest,
       WalletsGen.setBuildingTo,
       WalletsGen.displayCurrencyReceived,
+      WalletsGen.buildingPaymentIDReceived,
     ],
     spawnBuildPayment
   )

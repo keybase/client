@@ -33,14 +33,13 @@ type prefetcherConfig interface {
 }
 
 type prefetchRequest struct {
-	ptr            BlockPointer
-	newBlock       func() Block
-	kmd            KeyMetadata
-	priority       int
-	lifetime       BlockCacheLifetime
-	prefetchStatus PrefetchStatus
-	action         BlockRequestAction
-	sendCh         chan<- <-chan struct{}
+	ptr      BlockPointer
+	newBlock func() Block
+	kmd      KeyMetadata
+	priority int
+	lifetime BlockCacheLifetime
+	action   BlockRequestAction
+	sendCh   chan<- <-chan struct{}
 }
 
 type ctxPrefetcherTagKey int
@@ -57,8 +56,11 @@ type prefetch struct {
 	subtreeBlockCount int
 	subtreeTriggered  bool
 	req               *prefetchRequest
-	// Each refnonce for this block ID can have a different set of parents.
-	parents map[kbfsblock.RefNonce]map[BlockPointer]bool
+	// Each refnonce for this block ID can have a different set of
+	// parents.  Track the channel for the specific instance of the
+	// prefetch that counted us in its progress (since a parent may be
+	// canceled and rescheduled later).
+	parents map[kbfsblock.RefNonce]map[BlockPointer]<-chan struct{}
 	ctx     context.Context
 	cancel  context.CancelFunc
 	waitCh  chan struct{}
@@ -162,11 +164,46 @@ func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
 		subtreeBlockCount: count,
 		subtreeTriggered:  triggered,
 		req:               req,
-		parents:           make(map[kbfsblock.RefNonce]map[BlockPointer]bool),
+		parents:           make(map[kbfsblock.RefNonce]map[BlockPointer]<-chan struct{}),
 		ctx:               ctx,
 		cancel:            cancel,
 		waitCh:            make(chan struct{}),
 	}
+}
+
+func (p *blockPrefetcher) getParentForApply(
+	pptr BlockPointer, refMap map[BlockPointer]<-chan struct{},
+	ch <-chan struct{}) *prefetch {
+	// Check if the particular prefetch for our parent that we're
+	// tracking has already completed or been canceled, and if so,
+	// don't apply to that parent.  This can happen in the following
+	// scenario:
+	//
+	// * A path `a/b/c` gets prefetched.
+	// * The path gets updated via another write to `a'/b'/c`.
+	// * `a` and `b` get canceled.
+	// * `a` gets re-fetched, and `b` gets added to the prefetch list.
+	// * `c` completes and tries to complete its old parent `b`, which
+	//   prematurely closes the new prefetches for `b` and `c` (which
+	//   are now only expecting one block, the new `b` prefetch).
+	parentDone := false
+	select {
+	case <-ch:
+		parentDone = true
+	default:
+	}
+
+	parent, ok := p.prefetches[pptr.ID]
+	if parentDone || !ok {
+		// Note that the parent (or some other ancestor) might be
+		// rescheduled for later and have been removed from
+		// `prefetches`.  In that case still delete it from the
+		// `parents` list as normal; the reschedule will add it
+		// back in later as needed.
+		delete(refMap, pptr)
+		return nil
+	}
+	return parent
 }
 
 // applyToPtrParentsRecursive applies a function just to the parents
@@ -185,18 +222,12 @@ func (p *blockPrefetcher) applyToPtrParentsRecursive(
 			panic(r)
 		}
 	}()
-	for pptr := range pre.parents[ptr.RefNonce] {
-		parent, ok := p.prefetches[pptr.ID]
-		if !ok {
-			// Note that the parent (or some other ancestor) might be
-			// rescheduled for later and have been removed from
-			// `prefetches`.  In that case still delete it from the
-			// `parents` list as normal; the reschedule will add it
-			// back in later as needed.
-			delete(pre.parents[ptr.RefNonce], pptr)
-			continue
+	refMap := pre.parents[ptr.RefNonce]
+	for pptr, ch := range refMap {
+		parent := p.getParentForApply(pptr, refMap, ch)
+		if parent != nil {
+			p.applyToPtrParentsRecursive(f, pptr, parent)
 		}
-		p.applyToPtrParentsRecursive(f, pptr, parent)
 	}
 	if len(pre.parents[ptr.RefNonce]) == 0 {
 		delete(pre.parents, ptr.RefNonce)
@@ -221,18 +252,11 @@ func (p *blockPrefetcher) applyToParentsRecursive(
 		}
 	}()
 	for refNonce, refMap := range pre.parents {
-		for pptr := range refMap {
-			parent, ok := p.prefetches[pptr.ID]
-			if !ok {
-				// Note that the parent (or some other ancestor) might be
-				// rescheduled for later and have been removed from
-				// `prefetches`.  In that case still delete it from the
-				// `parents` list as normal; the reschedule will add it
-				// back in later as needed.
-				delete(refMap, pptr)
-				continue
+		for pptr, ch := range refMap {
+			parent := p.getParentForApply(pptr, refMap, ch)
+			if parent != nil {
+				p.applyToParentsRecursive(f, pptr.ID, parent)
 			}
-			p.applyToParentsRecursive(f, pptr.ID, parent)
 		}
 		if len(refMap) == 0 {
 			delete(pre.parents, refNonce)
@@ -339,6 +363,11 @@ top:
 // high priority for a synced TLF.
 func (p *blockPrefetcher) calculatePriority(
 	basePriority int, action BlockRequestAction) int {
+	// A prefetched, non-deep-synced child always gets throttled for
+	// now, until we fix the database performance issues.
+	if basePriority > throttleRequestPriority && !action.DeepSync() {
+		basePriority = throttleRequestPriority
+	}
 	return basePriority - 1
 }
 
@@ -360,8 +389,8 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	if !isPrefetchWaiting {
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
-		req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority,
-			lifetime, NoPrefetch, action, nil}
+		req := &prefetchRequest{
+			ptr, block.NewEmptier(), kmd, priority, lifetime, action, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -378,14 +407,14 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 			pre.ctx, priority, kmd, ptr, block.NewEmpty(), lifetime, action)
 		p.inFlightFetches.In() <- ch
 	}
-	_, isParentWaiting := p.prefetches[parentPtr.ID]
+	parentPre, isParentWaiting := p.prefetches[parentPtr.ID]
 	if !isParentWaiting {
 		p.log.CDebugf(pre.ctx, "prefetcher doesn't know about parent block "+
 			"%s for child block %s", parentPtr, ptr.ID)
 		panic("prefetcher doesn't know about parent block when trying to " +
 			"record parent-child relationship")
 	}
-	if !pre.parents[ptr.RefNonce][parentPtr] || isParentNew {
+	if pre.parents[ptr.RefNonce][parentPtr] == nil || isParentNew {
 		// The new parent needs its subtree block count increased. This can
 		// happen either when:
 		// 1. The child doesn't know about the parent when the child is first
@@ -395,9 +424,9 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// 2. The parent is newly created but the child _did_ know about it,
 		// like when the parent previously had a prefetch but was canceled.
 		if len(pre.parents[ptr.RefNonce]) == 0 {
-			pre.parents[ptr.RefNonce] = make(map[BlockPointer]bool)
+			pre.parents[ptr.RefNonce] = make(map[BlockPointer]<-chan struct{})
 		}
-		pre.parents[ptr.RefNonce][parentPtr] = true
+		pre.parents[ptr.RefNonce][parentPtr] = parentPre.waitCh
 		p.log.CDebugf(ctx, "%d blocks to prefetch %t", pre.subtreeBlockCount, isParentNew)
 		return pre.subtreeBlockCount
 	}
@@ -727,9 +756,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 
 			// Ensure the block is in the right cache.
 			b := req.newBlock()
-			err := <-p.retriever.Request(
+			var prefetchStatus PrefetchStatus
+			err := <-p.retriever.RequestWithPrefetchStatus(
 				ctx, defaultOnDemandRequestPriority, req.kmd,
-				req.ptr, b, req.lifetime, req.action.SoloAction())
+				req.ptr, b, &prefetchStatus, req.lifetime,
+				req.action.SoloAction())
 			if err != nil {
 				p.log.CWarningf(ctx, "error requesting for block %s: "+
 					"%+v", req.ptr.ID, err)
@@ -740,7 +771,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// If the request is finished (i.e., if it's marked as
 			// finished or if it has no child blocks to fetch), then
 			// complete the prefetch.
-			if req.prefetchStatus == FinishedPrefetch || b.IsTail() {
+			if prefetchStatus == FinishedPrefetch || b.IsTail() {
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
 					if pre.subtreeBlockCount < 0 {
@@ -760,7 +791,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				} else {
 					p.log.CDebugf(ctx, "skipping prefetch for finished block "+
 						"%s", req.ptr.ID)
-					if req.prefetchStatus != FinishedPrefetch {
+					if prefetchStatus != FinishedPrefetch {
 						// Mark this block as finished in the cache.
 						err = p.retriever.PutInCaches(
 							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
@@ -788,7 +819,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				}
 				continue
 			}
-			if req.prefetchStatus == TriggeredPrefetch &&
+			if prefetchStatus == TriggeredPrefetch &&
 				!req.action.DeepSync() &&
 				(isPrefetchWaiting &&
 					req.action.Sync() == pre.req.action.Sync() &&
@@ -971,8 +1002,8 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
 	action BlockRequestAction) {
-	req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority, lifetime,
-		prefetchStatus, action, nil}
+	req := &prefetchRequest{
+		ptr, block.NewEmptier(), kmd, priority, lifetime, action, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -1007,7 +1038,7 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c}
+		ptr, nil, nil, 0, TransientEntry, BlockRequestSolo, c}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:

@@ -42,9 +42,32 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
           })
         : state
+    case WalletsGen.openSendRequestForm:
+      if (!state.acceptedDisclaimer) {
+        return state
+      }
+      const initialBuilding = Constants.makeBuilding()
+      return state.merge({
+        building: initialBuilding.merge({
+          amount: action.payload.amount || '',
+          currency:
+            action.payload.currency ||
+            (state.lastSentXLM && 'XLM') ||
+            (action.payload.from &&
+              state.currencyMap.get(action.payload.from, Constants.makeCurrency()).code) ||
+            'XLM',
+          from: action.payload.from || Types.noAccountID,
+          isRequest: !!action.payload.isRequest,
+          publicMemo: action.payload.publicMemo || new HiddenString(''),
+          recipientType: action.payload.recipientType || 'keybaseUser',
+          secretNote: action.payload.secretNote || new HiddenString(''),
+          to: action.payload.to || '',
+        }),
+        builtPayment: Constants.makeBuiltPayment(),
+        builtRequest: Constants.makeBuiltRequest(),
+      })
     case WalletsGen.abandonPayment:
     case WalletsGen.clearBuilding:
-    case WalletsGen.openSendRequestForm:
       return state.merge({building: Constants.makeBuilding()})
     case WalletsGen.clearBuiltPayment:
       return state.merge({builtPayment: Constants.makeBuiltPayment()})

@@ -15,6 +15,7 @@ const common = {
   onClaim: action('onClaim'),
   onSend: action('onSend'),
   sendButtonLabel: '',
+  showCoinsIcon: false,
 }
 
 const sentProps = {
@@ -27,6 +28,7 @@ const sentProps = {
   loading: false,
   memo: ':beer:',
   pending: false,
+  showCoinsIcon: true,
 }
 
 const sentXLMProps = {
@@ -40,6 +42,7 @@ const sentXLMProps = {
   loading: false,
   memo: 'here you go',
   pending: false,
+  showCoinsIcon: true,
 }
 
 const sentNoMemoProps = {
@@ -105,6 +108,7 @@ const sentAssetProps = {
   loading: false,
   memo: '₿',
   pending: false,
+  showCoinsIcon: true,
 }
 
 const loadingProps = {

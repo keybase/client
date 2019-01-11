@@ -47,8 +47,9 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 	mode := modeTest{NewInitModeFromType(modeType)}
 	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
 
-	bops := NewBlockOpsStandard(config,
-		testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize)
+	bops := NewBlockOpsStandard(
+		config, testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize,
+		0)
 	config.SetBlockOps(bops)
 
 	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()

@@ -64,8 +64,8 @@ class Box2 extends React.Component<Box2Props> {
     return box2(this.props)
   }
 }
-const VBoxGap = ({gap}) => <View style={{height: globalMargins[gap]}} />
-const HBoxGap = ({gap}) => <View style={{width: globalMargins[gap]}} />
+const VBoxGap = ({gap}) => <View style={{flexShrink: 0, height: globalMargins[gap]}} />
+const HBoxGap = ({gap}) => <View style={{flexShrink: 0, width: globalMargins[gap]}} />
 
 const styles = {
   centered: {alignSelf: 'center'},

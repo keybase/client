@@ -117,7 +117,8 @@ func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(0, 1, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(
+		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -138,7 +139,8 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(2, 0, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(
+		2, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -185,7 +187,8 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	t.Log("Test the ability of a worker and queue to work correctly together.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(
+		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -249,7 +252,8 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	t.Log("Test the ability of a worker to handle a request cancelation.")
 	bg := newFakeBlockGetter(true)
-	q := newBlockRetrievalQueue(0, 1, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(
+		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -269,7 +273,8 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	t.Log("Test that worker shutdown works.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(
+		1, 0, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -316,7 +321,8 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 	t.Log("Test that we can escalate the priority of a request and it " +
 		"correctly switches workers.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(1, 1, newTestBlockRetrievalConfig(t, bg, nil))
+	q := newBlockRetrievalQueue(
+		1, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 

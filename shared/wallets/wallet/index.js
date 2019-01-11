@@ -119,6 +119,7 @@ class Wallet extends React.Component<Props> {
           sections={this.props.sections}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
+          stickySectionHeadersEnabled={false}
           keyExtractor={this._keyExtractor}
           onEndReached={this._onEndReached}
           stickySectionHeadersEnabled={true}
@@ -150,7 +151,10 @@ const styles = Styles.styleSheetCreate({
   sectionHeader: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.blue5,
-    padding: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
     width: '100%',
   },
   spinner: {

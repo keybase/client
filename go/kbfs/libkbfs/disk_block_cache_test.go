@@ -549,7 +549,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 
 	t.Log("Create a queue with 0 workers to rule it out from serving blocks.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, bg, cache))
+	q := newBlockRetrievalQueue(
+		0, 0, 0, newTestBlockRetrievalConfig(t, bg, cache))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 

@@ -2757,6 +2757,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
+    | ConfigGen.ChangedActivePayload
     | RouteTreeGen.Actions
   >(
     [
@@ -2765,6 +2766,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
+      ConfigGen.changedActive,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],
     markThreadAsRead

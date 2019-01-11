@@ -7,7 +7,9 @@ package libkbfs
 import (
 	"io"
 	"testing"
+	"time"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -72,7 +74,8 @@ func makeKMD() KeyMetadata {
 }
 
 func initBlockRetrievalQueueTest(t *testing.T) *blockRetrievalQueue {
-	q := newBlockRetrievalQueue(0, 0, newTestBlockRetrievalConfig(t, nil, nil))
+	q := newBlockRetrievalQueue(
+		0, 0, 0, newTestBlockRetrievalConfig(t, nil, nil))
 	<-q.TogglePrefetcher(false, nil)
 	return q
 }
@@ -308,4 +311,45 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.Equal(t, uint64(1), br.insertionOrder)
 	require.Len(t, br.requests, 1)
 	require.Equal(t, block, br.requests[0].block)
+}
+
+func TestBlockRetrievalQueueThrottling(t *testing.T) {
+	t.Log("Start test with no throttling channel so we can pass in our own")
+	q := initBlockRetrievalQueueTest(t)
+	require.NotNil(t, q)
+	defer q.Shutdown()
+
+	throttleCh := channels.NewInfiniteChannel()
+	q.throttledWorkCh = throttleCh
+
+	t.Log("Make a few throttled requests that won't be serviced until we " +
+		"start the background loop.")
+
+	ctx := context.Background()
+	ptr1 := makeRandomBlockPointer(t)
+	block1 := &FileBlock{}
+	_ = q.Request(
+		ctx, throttleRequestPriority, makeKMD(), ptr1, block1,
+		NoCacheEntry, BlockRequestSolo)
+	ptr2 := makeRandomBlockPointer(t)
+	block2 := &FileBlock{}
+	_ = q.Request(
+		ctx, throttleRequestPriority-100, makeKMD(), ptr2, block2,
+		NoCacheEntry, BlockRequestSolo)
+
+	t.Log("Make sure they are queued to be throttled")
+	require.Equal(t, 2, throttleCh.Len())
+
+	t.Log("Start background loop with short period")
+	go q.throttleReleaseLoop(1 * time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+	for throttleCh.Len() > 0 {
+		time.Sleep(1 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		default:
+		}
+	}
 }

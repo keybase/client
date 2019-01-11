@@ -7,6 +7,11 @@ import * as Styles from '../../../styles'
 
 type Props = {|
   teamShowcase: $ReadOnlyArray<Types._TeamShowcase>,
+  teamMeta: {
+    [name: string]: {
+      inTeam: boolean,
+    },
+  },
   onJoinTeam: string => void,
   onEdit: ?() => void,
 |}
@@ -50,12 +55,14 @@ const TeamInfo = p => (
           <Kb.Text type="Body" style={styles.description}>
             {p.description}
           </Kb.Text>
-          <Kb.WaitingButton
-            type="Primary"
-            waitingKey={Constants.waitingKey}
-            label="Request to join"
-            onClick={() => p.onJoinTeam(p.name)}
-          />
+          {!p.inTeam && (
+            <Kb.WaitingButton
+              type="Primary"
+              waitingKey={Constants.waitingKey}
+              label="Request to join"
+              onClick={() => p.onJoinTeam(p.name)}
+            />
+          )}
           <Kb.Text type="BodySmall">
             Public admins:{' '}
             {
@@ -80,8 +87,15 @@ const TeamInfo = p => (
 const _TeamShowcase = p => (
   <Kb.ClickableBox ref={p.setAttachmentRef} onClick={p.toggleShowingMenu}>
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
-      <TeamInfo {...p} attachTo={p.getAttachmentRef} onHidden={p.toggleShowingMenu} visible={p.showingMenu} />
-      <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
+      <>
+        <TeamInfo
+          {...p}
+          attachTo={p.getAttachmentRef}
+          onHidden={p.toggleShowingMenu}
+          visible={p.showingMenu}
+        />
+        <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
+      </>
       <Kb.Text type="BodySemiboldLink" style={styles.link}>
         {p.name}
       </Kb.Text>
@@ -113,7 +127,7 @@ const Teams = (p: Props) =>
       </Kb.Box2>
       {!!p.onEdit && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
       {p.teamShowcase.map(t => (
-        <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} />
+        <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} inTeam={p.teamMeta[t.name].inTeam} />
       ))}
     </Kb.Box2>
   ) : null
@@ -131,6 +145,7 @@ const styles = Styles.styleSheetCreate({
   }),
   showcase: {alignItems: 'center'},
   showcases: {
+    alignItems: 'flex-start',
     flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
   },

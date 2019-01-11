@@ -9,7 +9,9 @@ import (
 	"io"
 	"reflect"
 	"sync"
+	"time"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -25,8 +27,9 @@ const (
 	testBlockRetrievalWorkerQueueSize    int = 5
 	testPrefetchWorkerQueueSize          int = 1
 	defaultOnDemandRequestPriority       int = 1 << 30
-	// Channel buffer size can be big because we use the empty struct.
-	workerQueueSize int = 1<<31 - 1
+	throttleRequestPriority              int = 1 << 15
+
+	defaultThrottledPrefetchPeriod = 1 * time.Second
 )
 
 type blockRetrievalPartialConfig interface {
@@ -54,8 +57,9 @@ func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
 
 // blockRetrievalRequest represents one consumer's request for a block.
 type blockRetrievalRequest struct {
-	block  Block
-	doneCh chan error
+	block          Block
+	prefetchStatus *PrefetchStatus
+	doneCh         chan error
 }
 
 // blockRetrieval contains the metadata for a given block retrieval. May
@@ -119,8 +123,10 @@ type blockRetrievalQueue struct {
 	// These are notification channels to maximize the time that each request
 	// is in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerCh         chan<- struct{}
-	prefetchWorkerCh chan<- struct{}
+	workerCh         channels.Channel
+	prefetchWorkerCh channels.Channel
+	throttledWorkCh  channels.Channel
+
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
@@ -140,17 +146,23 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than
 // numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
+func newBlockRetrievalQueue(
+	numWorkers int, numPrefetchWorkers int,
+	throttledPrefetchPeriod time.Duration,
 	config blockRetrievalConfig) *blockRetrievalQueue {
-	workerCh := make(chan struct{}, workerQueueSize)
-	prefetchWorkerCh := make(chan struct{}, workerQueueSize)
+	var throttledWorkCh channels.Channel
+	if numPrefetchWorkers > 0 {
+		throttledWorkCh = NewInfiniteChannelWrapper()
+	}
+
 	q := &blockRetrievalQueue{
 		config:           config,
 		log:              config.MakeLogger(""),
 		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
 		heap:             &blockRetrievalHeap{},
-		workerCh:         workerCh,
-		prefetchWorkerCh: prefetchWorkerCh,
+		workerCh:         NewInfiniteChannelWrapper(),
+		prefetchWorkerCh: NewInfiniteChannelWrapper(),
+		throttledWorkCh:  throttledWorkCh,
 		doneCh:           make(chan struct{}),
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
@@ -158,13 +170,54 @@ func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 	q.prefetcher = newBlockPrefetcher(q, config, nil)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
-			config.blockGetter(), q, workerCh))
+			config.blockGetter(), q, q.workerCh))
 	}
 	for i := 0; i < numPrefetchWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
-			config.blockGetter(), q, prefetchWorkerCh))
+			config.blockGetter(), q, q.prefetchWorkerCh))
+	}
+	if numPrefetchWorkers > 0 {
+		go q.throttleReleaseLoop(
+			throttledPrefetchPeriod / time.Duration(numPrefetchWorkers))
 	}
 	return q
+}
+
+func (brq *blockRetrievalQueue) sendWork(workerCh channels.Channel) {
+	select {
+	case <-brq.doneCh:
+		brq.shutdownRetrieval()
+	// Notify the next queued worker.
+	case workerCh.In() <- struct{}{}:
+	}
+}
+
+func (brq *blockRetrievalQueue) throttleReleaseLoop(
+	period time.Duration) {
+	var tickerCh <-chan time.Time
+	if period > 0 {
+		t := time.NewTicker(period)
+		defer t.Stop()
+		tickerCh = t.C
+	} else {
+		fullTickerCh := make(chan time.Time)
+		close(fullTickerCh)
+		tickerCh = fullTickerCh
+	}
+	for {
+		select {
+		case <-brq.doneCh:
+			return
+		case <-tickerCh:
+		}
+
+		select {
+		case <-brq.throttledWorkCh.Out():
+			brq.sendWork(brq.prefetchWorkerCh)
+		case <-brq.doneCh:
+			return
+		}
+	}
 }
 
 func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
@@ -202,27 +255,24 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	// because there are far more on-demand workers than prefetch workers, this
 	// should never actually happen.
 	workerCh := brq.workerCh
-	if priority < defaultOnDemandRequestPriority {
+	if priority <= throttleRequestPriority && brq.throttledWorkCh != nil {
+		workerCh = brq.throttledWorkCh
+	} else if priority < defaultOnDemandRequestPriority {
 		workerCh = brq.prefetchWorkerCh
 	}
-	select {
-	case <-brq.doneCh:
-		brq.shutdownRetrieval()
-	// Notify the next queued worker.
-	case workerCh <- struct{}{}:
-	default:
-		panic("notifyWorker() would have blocked, which means we somehow " +
-			"have around MaxInt32 requests already waiting.")
-	}
+	brq.sendWork(workerCh)
 }
 
 func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
-	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
-		// Only panic if we're not using SingleOp mode.
-		panic("A disk block cache is required outside of tests")
-	}
 	if brq.prefetchStatusForTest != nil {
 		return
+	}
+	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
+		// If the disk block cache directory can't be accessed due to
+		// permission errors (happens sometimes on iOS for some
+		// reason), we might need to rely on this in-memory map.
+		// TODO(KBFS-3750): make it an LRU cache.
+		brq.log.Warning("No disk block cache is initialized when not testing")
 	}
 	brq.log.CDebugf(nil, "Using a local cache for prefetch status")
 	brq.prefetchStatusForTest = make(map[kbfsblock.ID]PrefetchStatus)
@@ -325,10 +375,12 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 }
 
 // request retrieves blocks asynchronously.
-func (brq *blockRetrievalQueue) request(ctx context.Context,
-	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	brq.log.CDebugf(ctx, "Request of %v, action=%s", ptr, action)
+func (brq *blockRetrievalQueue) request(
+	ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer,
+	block Block, ps *PrefetchStatus, lifetime BlockCacheLifetime,
+	action BlockRequestAction) <-chan error {
+	brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
+		ptr, action, priority)
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
@@ -356,6 +408,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
 				priority, lifetime, prefetchStatus, action)
+		}
+		if ps != nil {
+			*ps = prefetchStatus
 		}
 		ch <- nil
 		return ch
@@ -412,8 +467,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	br.reqMtx.Lock()
 	defer br.reqMtx.Unlock()
 	br.requests = append(br.requests, &blockRetrievalRequest{
-		block:  block,
-		doneCh: ch,
+		block:          block,
+		prefetchStatus: ps,
+		doneCh:         ch,
 	})
 	if lifetime > br.cacheLifetime {
 		br.cacheLifetime = lifetime
@@ -426,13 +482,17 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		// means it's actively being processed).
 		if br.index != -1 {
 			heap.Fix(brq.heap, br.index)
-			if oldPriority < defaultOnDemandRequestPriority &&
-				priority >= defaultOnDemandRequestPriority {
-				// We've crossed the priority threshold for prefetch workers,
-				// so we now need an on-demand worker to pick up the request.
-				// This means that we might have up to two workers "activated"
-				// per request. However, they won't leak because if a worker
-				// sees an empty queue, it continues merrily along.
+			if (oldPriority < defaultOnDemandRequestPriority &&
+				priority >= defaultOnDemandRequestPriority) ||
+				(oldPriority <= throttleRequestPriority &&
+					priority > throttleRequestPriority) {
+				// We've crossed the priority threshold for a given
+				// worker type, so we now need a worker for the new
+				// priority level to pick up the request.  This means
+				// that we might have up to two workers "activated"
+				// per request. However, they won't leak because if a
+				// worker sees an empty queue, it continues merrily
+				// along.
 				brq.notifyWorker(priority)
 			}
 		}
@@ -451,7 +511,20 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	if brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
-	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
+	return brq.request(ctx, priority, kmd, ptr, block, nil, lifetime, action)
+}
+
+// RequestWithPrefetchStatus implements the BlockRetriever interface
+// for blockRetrievalQueue.
+func (brq *blockRetrievalQueue) RequestWithPrefetchStatus(
+	ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer,
+	block Block, prefetchStatus *PrefetchStatus,
+	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
+	if brq.config.IsSyncedTlf(kmd.TlfID()) {
+		action = action.AddSync()
+	}
+	return brq.request(
+		ctx, priority, kmd, ptr, block, prefetchStatus, lifetime, action)
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
@@ -501,6 +574,9 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 			// Copy the decrypted block to the caller
 			req.block.Set(block)
 		}
+		if req.prefetchStatus != nil {
+			*req.prefetchStatus = NoPrefetch
+		}
 		// Since we created this channel with a buffer size of 1, this won't
 		// block.
 		req.doneCh <- err
@@ -526,6 +602,12 @@ func (brq *blockRetrievalQueue) Shutdown() {
 		brq.prefetchMtx.Lock()
 		defer brq.prefetchMtx.Unlock()
 		brq.prefetcher.Shutdown()
+
+		brq.workerCh.Close()
+		brq.prefetchWorkerCh.Close()
+		if brq.throttledWorkCh != nil {
+			brq.throttledWorkCh.Close()
+		}
 	}
 }
 

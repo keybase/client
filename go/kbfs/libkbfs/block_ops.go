@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -36,14 +38,16 @@ type BlockOpsStandard struct {
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // NewBlockOpsStandard creates a new BlockOpsStandard
-func NewBlockOpsStandard(config blockOpsConfig,
-	queueSize, prefetchQueueSize int) *BlockOpsStandard {
+func NewBlockOpsStandard(
+	config blockOpsConfig, queueSize, prefetchQueueSize int,
+	throttledPrefetchPeriod time.Duration) *BlockOpsStandard {
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
 		bg: bg,
 	}
-	q := newBlockRetrievalQueue(queueSize, prefetchQueueSize, qConfig)
+	q := newBlockRetrievalQueue(
+		queueSize, prefetchQueueSize, throttledPrefetchPeriod, qConfig)
 	bops := &BlockOpsStandard{
 		config: config,
 		log:    traceLogger{config.MakeLogger("")},

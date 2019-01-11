@@ -45,6 +45,7 @@ export type Props = {|
   hasUnfurlPrompts: boolean,
   isPendingPayment: boolean,
   isRevoked: boolean,
+  showCoinsIcon: boolean,
   showUsername: string,
   measure: ?() => void,
   message: Types.Message,
@@ -266,13 +267,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
   }
 
-  _showCoinsIcon = () => this.props.message.type === 'text' && this.props.message.hasInlinePayments
-
   _cachedMenuStyles = {}
   _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
-      this._showCoinsIcon() ? 16 : 0, // coin stack
+      this.props.showCoinsIcon ? 16 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // reactji
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
@@ -401,7 +400,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 style={styles.marginLeftTiny}
               />
             )}
-            {this._showCoinsIcon() && (
+            {this.props.showCoinsIcon && (
               <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.marginLeftTiny} />
             )}
             {showMenuButton ? (

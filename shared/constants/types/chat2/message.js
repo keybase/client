@@ -99,8 +99,8 @@ export type _MessageText = {
   explodingTime: number,
   explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
-  hasInlinePayments: boolean,
   id: MessageID,
+  inlinePaymentIDs: ?I.List<WalletTypes.PaymentID>,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
   mentionsAt: MentionsAt,

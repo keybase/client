@@ -113,20 +113,23 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
             attachTo={this._getRef}
             position="bottom center"
             positionFallbacks={[]}
-            containerStyle={styles.resultsFloatingContainer}
             propagateOutsideClicks={true}
           >
-            <Kb.Box2 direction="vertical" style={styles.resultsFloatingInnerContainer}>
-              <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
-                <ResultsList
-                  searchKey={searchKey}
-                  onClick={this.props.onClickResult}
-                  onShowTracker={this.props.onShowTracker}
-                  disableListBuilding={true}
-                  style={styles.list}
-                />
+            {/* If changing layout here, make sure to test on a notched and un-notched phone */}
+            <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
+            <Kb.Box pointerEvents="box-none" style={styles.resultsFloatingContainer}>
+              <Kb.Box2 direction="vertical" style={styles.resultsFloatingInnerContainer}>
+                <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
+                  <ResultsList
+                    searchKey={searchKey}
+                    onClick={this.props.onClickResult}
+                    onShowTracker={this.props.onShowTracker}
+                    disableListBuilding={true}
+                    style={styles.list}
+                  />
+                </Kb.Box2>
               </Kb.Box2>
-            </Kb.Box2>
+            </Kb.Box>
           </Kb.FloatingBox>
         )}
       </React.Fragment>
@@ -135,6 +138,7 @@ class Search extends React.Component<SearchPropsInner, SearchState> {
 }
 
 const styles = Styles.styleSheetCreate({
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
   input: {
     alignSelf: 'center',
     borderBottomWidth: 0,
@@ -162,7 +166,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   resultsFloatingContainer: Styles.platformStyles({
-    isMobile: {marginTop: 146},
+    isMobile: {marginTop: 96},
   }),
   resultsFloatingInnerContainer: Styles.platformStyles({
     isElectron: {

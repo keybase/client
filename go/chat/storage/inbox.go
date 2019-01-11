@@ -660,8 +660,12 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
 	// of them on the disk
 	if query != nil && (len(query.ConvIDs) > 0 || query.ConvID != nil) {
-		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
-		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
+		convIDs := query.ConvIDs
+		if query.ConvID != nil {
+			convIDs = append(convIDs, *query.ConvID)
+		}
+		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(convIDs))
+		return i.queryConvIDsExist(ctx, ibox, convIDs)
 	}
 
 	hquery, err := i.hashQuery(ctx, query)
@@ -1554,7 +1558,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d", len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
+	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
+		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {

@@ -2233,6 +2233,9 @@ type InitMode interface {
 	BlockWorkers() int
 	// PrefetchWorkers returns the number of prefetch workers to run.
 	PrefetchWorkers() int
+	// ThrottledPrefetchTime returns the period for each prefetch
+	// worker to start a throttled prefetch request.
+	ThrottledPrefetchPeriod() time.Duration
 	// DefaultBlockRequestAction returns the action to be used by
 	// default whenever fetching a block.
 	DefaultBlockRequestAction() BlockRequestAction
@@ -2647,6 +2650,12 @@ type BlockRetriever interface {
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		action BlockRequestAction) <-chan error
+	// RequestWithPrefetchStatus is like `Request`, but also fills in
+	// a prefetch status.
+	RequestWithPrefetchStatus(
+		ctx context.Context, priority int, kmd KeyMetadata,
+		ptr BlockPointer, block Block, prefetchStatus *PrefetchStatus,
+		lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that
 	// the disk cache metadata is updated.
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,

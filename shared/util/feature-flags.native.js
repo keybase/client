@@ -11,7 +11,6 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   foldersInProfileTab: false,
   identify3: true,
-  kbfsChatIntegration: true,
   moveOrCopy: false,
   newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,

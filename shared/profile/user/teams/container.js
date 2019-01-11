@@ -15,6 +15,7 @@ const mapStateToProps = (state, ownProps) => {
   const d = state.tracker2.usernameToDetails.get(ownProps.username, Constants.noDetails)
   return {
     _isYou: state.config.username === ownProps.username,
+    _roles: state.teams.teamNameToRole,
     _teamShowcase: d.teamShowcase,
   }
 }
@@ -25,6 +26,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onEdit: stateProps._isYou ? dispatchProps.onEdit : null,
   onJoinTeam: dispatchProps.onJoinTeam,
+  teamMeta: (stateProps._teamShowcase || []).reduce((map, t) => {
+    map[t.name] = {
+      inTeam: stateProps._roles.get(t.name) || false,
+    }
+    return map
+  }, {}),
   teamShowcase: stateProps._teamShowcase
     ? stateProps._teamShowcase.map(t => t.toObject()).toArray()
     : noTeams,

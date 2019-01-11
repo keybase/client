@@ -16,52 +16,6 @@ import (
 // SupportedVersion is which version of ParamProofs is supported by this client.
 const SupportedVersion int = 1
 
-// staticProofServies are only used for testing or for basic assertion
-// validation
-type staticProofServices struct {
-	externalServices map[string]libkb.ServiceType
-}
-
-func newStaticProofServices() libkb.ExternalServicesCollector {
-	staticServices := getStaticProofServices()
-	p := staticProofServices{
-		externalServices: make(map[string]libkb.ServiceType),
-	}
-	p.register(staticServices)
-	return &p
-}
-
-func (p *staticProofServices) register(services []libkb.ServiceType) {
-	for _, st := range services {
-		if !useDevelProofCheckers && st.IsDevelOnly() {
-			continue
-		}
-		p.externalServices[st.Key()] = st
-	}
-}
-
-func (p *staticProofServices) GetServiceType(s string) libkb.ServiceType {
-	return p.externalServices[strings.ToLower(s)]
-}
-
-func (p *staticProofServices) ListProofCheckers() []string {
-	var ret []string
-	for k := range p.externalServices {
-		ret = append(ret, k)
-	}
-	return ret
-}
-
-func (p *staticProofServices) ListServicesThatAcceptNewProofs() []string {
-	var ret []string
-	for k, v := range p.externalServices {
-		if v.CanMakeNewProofs() {
-			ret = append(ret, k)
-		}
-	}
-	return ret
-}
-
 // Contains both the statically known services and loads the configurations for
 // known services from the server
 type proofServices struct {

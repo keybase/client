@@ -53,6 +53,10 @@ func (md modeDefault) PrefetchWorkers() int {
 	return defaultPrefetchWorkerQueueSize
 }
 
+func (md modeDefault) ThrottledPrefetchPeriod() time.Duration {
+	return defaultThrottledPrefetchPeriod
+}
+
 func (md modeDefault) DefaultBlockRequestAction() BlockRequestAction {
 	return BlockRequestWithPrefetch
 }
@@ -168,6 +172,10 @@ func (mm modeMinimal) BlockWorkers() int {
 }
 
 func (mm modeMinimal) PrefetchWorkers() int {
+	return 0
+}
+
+func (mm modeMinimal) ThrottledPrefetchPeriod() time.Duration {
 	return 0
 }
 
