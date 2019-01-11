@@ -55,7 +55,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             (state.lastSentXLM && 'XLM') || // lastSentXLM override
             (action.payload.from && Constants.getDisplayCurrencyInner(state, action.payload.from).code) || // display currency of explicitly set 'from' account
             Constants.getDefaultDisplayCurrencyInner(state).code || // display currency of default account
-            'XLM', // XLM fallback
+            '', // Empty string -> not loaded
           from: action.payload.from || Types.noAccountID,
           isRequest: !!action.payload.isRequest,
           publicMemo: action.payload.publicMemo || new HiddenString(''),

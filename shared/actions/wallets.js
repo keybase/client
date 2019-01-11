@@ -90,6 +90,11 @@ const openSendRequestForm = (state, action) => {
   ]
 }
 
+const maybePopulateBuildingCurrency = (state, action) =>
+  state.wallets.building.bid && !state.wallets.building.currency // building a payment and haven't set currency yet
+    ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
+    : null
+
 const createNewAccount = (state, action) => {
   const {name} = action.payload
   return RPCStellarTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
@@ -850,6 +855,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<WalletsGen.ReviewPaymentPayload>(WalletsGen.reviewPayment, reviewPayment)
   yield* Saga.chainAction<WalletsGen.OpenSendRequestFormPayload>(WalletsGen.openSendRequestForm, startPayment)
+  yield* Saga.chainAction<WalletsGen.AccountsReceivedPayload>(
+    WalletsGen.accountsReceived,
+    maybePopulateBuildingCurrency
+  )
 
   yield* Saga.chainAction<WalletsGen.DeletedAccountPayload>(WalletsGen.deletedAccount, deletedAccount)
 
