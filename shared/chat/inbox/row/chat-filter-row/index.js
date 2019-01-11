@@ -112,7 +112,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           <Kb.Icon
             type="iconfont-search"
             style={styles.icon}
-            color={Styles.globalColors.black_20}
+            color={Styles.globalColors.black_50}
             fontSize={16}
           />
           <Kb.Text
