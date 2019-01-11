@@ -95,3 +95,7 @@ func (d *walletNotificationDisplay) PendingPaymentsUpdate(ctx context.Context, a
 func (d *walletNotificationDisplay) RecentPaymentsUpdate(ctx context.Context, arg stellar1.RecentPaymentsUpdateArg) error {
 	return nil
 }
+
+func (d *walletNotificationDisplay) AutoclaimComplete(ctx context.Context) error {
+	return nil
+}

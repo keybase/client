@@ -90,6 +90,11 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "autoclaimComplete": {
+      "request": [],
+      "response": null,
+      "notify": ""
     }
   },
   "namespace": "stellar.1"

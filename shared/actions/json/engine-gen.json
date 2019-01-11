@@ -462,6 +462,9 @@
         "stellar1NotifyRecentPaymentsUpdate": {
             "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>, 'inParam'>>"
         },
+        "stellar1NotifyAutoclaimComplete": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.autoclaimComplete'>, 'inParam'>>"
+        },
         "stellar1UiPaymentReviewed": {
             "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'>>"
         }

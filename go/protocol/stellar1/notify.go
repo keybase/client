@@ -37,6 +37,9 @@ type RecentPaymentsUpdateArg struct {
 	FirstPage PaymentsPageLocal `codec:"firstPage" json:"firstPage"`
 }
 
+type AutoclaimCompleteArg struct {
+}
+
 type NotifyInterface interface {
 	PaymentNotification(context.Context, PaymentNotificationArg) error
 	PaymentStatusNotification(context.Context, PaymentStatusNotificationArg) error
@@ -44,6 +47,7 @@ type NotifyInterface interface {
 	AccountDetailsUpdate(context.Context, AccountDetailsUpdateArg) error
 	PendingPaymentsUpdate(context.Context, PendingPaymentsUpdateArg) error
 	RecentPaymentsUpdate(context.Context, RecentPaymentsUpdateArg) error
+	AutoclaimComplete(context.Context) error
 }
 
 func NotifyProtocol(i NotifyInterface) rpc.Protocol {
@@ -140,6 +144,16 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 					return
 				},
 			},
+			"autoclaimComplete": {
+				MakeArg: func() interface{} {
+					var ret [1]AutoclaimCompleteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.AutoclaimComplete(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -176,5 +190,10 @@ func (c NotifyClient) PendingPaymentsUpdate(ctx context.Context, __arg PendingPa
 
 func (c NotifyClient) RecentPaymentsUpdate(ctx context.Context, __arg RecentPaymentsUpdateArg) (err error) {
 	err = c.Cli.Notify(ctx, "stellar.1.notify.recentPaymentsUpdate", []interface{}{__arg})
+	return
+}
+
+func (c NotifyClient) AutoclaimComplete(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "stellar.1.notify.autoclaimComplete", []interface{}{AutoclaimCompleteArg{}})
 	return
 }

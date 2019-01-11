@@ -1347,6 +1347,30 @@ func (n *NotifyRouter) HandleWalletRecentPaymentsUpdate(ctx context.Context, acc
 	n.G().Log.CDebugf(ctx, "- Sent wallet RecentPaymentsUpdate")
 }
 
+// HandleWalletAutoclaimComplete sends a WalletAutoclaimComplete notification.
+func (n *NotifyRouter) HandleWalletAutoclaimComplete(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet AutoclaimComplete")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).AutoclaimComplete(context.Background())
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletAutoclaimComplete()
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet AutoclaimComplete")
+}
+
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {

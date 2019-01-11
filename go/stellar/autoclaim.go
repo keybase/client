@@ -133,7 +133,7 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 			log("successfully dismissed kick")
 
 			log("notifying autoclaim complete")
-			mctx.G().NotifyRouter.WalletAutoclaimComplete()
+			mctx.G().NotifyRouter.HandleWalletAutoclaimComplete(mctx.Ctx())
 		}
 		return autoClaimLoopActionHibernate, nil
 	}
