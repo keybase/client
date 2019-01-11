@@ -943,6 +943,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		TopicID:   make(chat1.TopicID, 16),
 	}
 
+	// If we get a ChatStalePreviousStateError we blow away in the box cache
+	// once to allow the retry to get fresh data.
+	clearedCache := false
 	for i := 0; i < 5; i++ {
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
@@ -982,6 +985,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			switch cerr := reserr.(type) {
 			case libkb.ChatStalePreviousStateError:
 				n.Debug(ctx, "stale topic name state, trying again")
+				if !clearedCache {
+					n.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
+					n.G().InboxSource.Clear(ctx, n.uid)
+					clearedCache = true
+				}
 				continue
 			case libkb.ChatConvExistsError:
 				// This triple already exists.

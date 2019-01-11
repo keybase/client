@@ -71,6 +71,10 @@ the easiest way to fix it is simply to install watchman:
 brew install watchman
 ```
 
+## clang: error: no such file or directory: ... 
+
+If you have Xcode 10 or later and see an error that `.../node_modules/react-native/third-party/double-conversion-1.1.6/src/strtod.cc` is missing, set Build System to `Legacy Build System` under file -> Workspace Settings.
+
 ## Also see general react-native troubleshooting
 [Here](../react-native/troubleshooting.md)
 
