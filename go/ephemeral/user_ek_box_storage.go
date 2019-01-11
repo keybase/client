@@ -81,7 +81,6 @@ func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err er
 }
 
 func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache userEKBoxCache, err error) {
-	defer s.G().CTraceTimed(ctx, "UserEKBoxStorage#getCache", func() error { return err })()
 	if !s.indexed {
 		key, err := s.dbKey(ctx)
 		if err != nil {
