@@ -9,7 +9,7 @@ const routeTree = () => {
   const SecurityPrefs = require('./common/security-prefs-container').default
   const DestinationPicker = require('./destination-picker/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
-  const OopsNoAccess = require('./oops-no-access/container').default
+  const Oops = require('./oops/container').default
 
   const _destinationPicker = {
     children: {
@@ -51,9 +51,9 @@ const routeTree = () => {
           }),
         }),
       main: () => makeRouteDefNode(_mainRoute),
-      oopsNoAccess: () =>
+      oops: () =>
         makeRouteDefNode({
-          component: OopsNoAccess,
+          component: Oops,
           tags: makeLeafTags({
             layerOnTop: !isMobile,
             renderTopmostOnly: !isMobile,
