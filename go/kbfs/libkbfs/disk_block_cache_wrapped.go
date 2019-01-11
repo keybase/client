@@ -214,11 +214,24 @@ func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
 	cacheType DiskBlockCacheType) (prefetchStatus PrefetchStatus, err error) {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	c, err := cache.getCacheLocked(cacheType)
-	if err != nil {
-		return NoPrefetch, err
+
+	// Try the sync cache first unless working set cache is required.
+	if cacheType != DiskBlockWorkingSetCache {
+		md, err := cache.syncCache.GetMetadata(ctx, blockID)
+		switch errors.Cause(err).(type) {
+		case nil:
+			return md.PrefetchStatus(), nil
+		case NoSuchBlockError:
+			if cacheType == DiskBlockSyncCache {
+				return NoPrefetch, err
+			}
+			// Otherwise try the working set cache below.
+		default:
+			return NoPrefetch, err
+		}
 	}
-	md, err := c.GetMetadata(ctx, blockID)
+
+	md, err := cache.workingSetCache.GetMetadata(ctx, blockID)
 	if err != nil {
 		return NoPrefetch, err
 	}
