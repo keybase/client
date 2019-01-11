@@ -533,7 +533,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	// on this channel
 	localizeCb = make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified)+1)
 	localizer := s.createConversationLocalizer(ctx, localizerTyp, localizeCb)
-	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
+	s.Debug(ctx, "Read: using localizer: %s on %d convs", localizer.Name(), len(inbox.ConvsUnverified))
 
 	// Localize
 	inbox.Convs, err = localizer.Localize(ctx, uid, inbox, maxLocalize)
