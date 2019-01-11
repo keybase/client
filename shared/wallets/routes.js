@@ -74,7 +74,7 @@ const routeTree = () => {
         setInflation: {
           children: {},
           component: InflationDestination,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
       },
       component: AccountSettings,
