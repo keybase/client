@@ -9,7 +9,7 @@ type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const options = [] // TODO
-  return {accountID, options}
+  return {accountID, inflationDestination: state.wallets.inflationDestination, options}
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -21,6 +21,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  inflationDestination: stateProps.inflationDestination,
   options: stateProps.options,
   onClose: () => dispatchProps._onClose(),
   onSubmit: (address: string) => dispatchProps._onSubmit(stateProps.accountID, address),

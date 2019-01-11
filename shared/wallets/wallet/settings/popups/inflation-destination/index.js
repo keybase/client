@@ -6,6 +6,7 @@ import {WalletPopup} from '../../../../common'
 import openUrl from '../../../../../util/open-url'
 
 export type Props = {|
+  inflationDestination: string,
   options: Array<{
     name: string,
     recommended: boolean,
@@ -25,12 +26,13 @@ class InflationDestinationPopup extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
-    const reco = props.options.find(o => o.recommended)
-
-    this.state = {
-      address: reco ? reco.address : '',
-      otherAddress: '',
+    let address = props.inflationDestination
+    if (!address) {
+      const reco = props.options.find(o => o.recommended)
+      address = reco?.address || ''
     }
+
+    this.state = {address, otherAddress: ''}
   }
 
   _submit = () => {
