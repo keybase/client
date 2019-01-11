@@ -15,7 +15,8 @@ import {
   iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import {PathItemIcon, PathItemInfo} from '../common'
+import PathItemInfo from './path-item-info-container'
+import PathItemIcon from './path-item-icon-container'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'

@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import {
   Box,
   ClickableBox,
-  Divider,
   Text,
   Icon,
   iconCastPlatformStyles,
@@ -56,7 +55,6 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
   const {sortSettingIconType, sortSettingText} = Types.sortSettingToIconTypeAndText(props.sortSetting)
   return (
     <Box>
-      <Divider />
       <Box style={styles.sortBar}>
         <ClickableBox
           onClick={props.toggleShowingMenu}
@@ -99,8 +97,6 @@ const styles = Styles.styleSheetCreate({
   sortBar: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
-    borderTopColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
     paddingLeft: 16,
   },
   sortSetting: {
