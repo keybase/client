@@ -264,12 +264,15 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 }
 
 func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
-	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
-		// Only panic if we're not using SingleOp mode.
-		panic("A disk block cache is required outside of tests")
-	}
 	if brq.prefetchStatusForTest != nil {
 		return
+	}
+	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
+		// If the disk block cache directory can't be accessed due to
+		// permission errors (happens sometimes on iOS for some
+		// reason), we might need to rely on this in-memory map.
+		// TODO(KBFS-3750): make it an LRU cache.
+		brq.log.Warning("No disk block cache is initialized when not testing")
 	}
 	brq.log.CDebugf(nil, "Using a local cache for prefetch status")
 	brq.prefetchStatusForTest = make(map[kbfsblock.ID]PrefetchStatus)
@@ -335,22 +338,27 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
 	PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
-	if dbc == nil {
-		// Attempt to retrieve the block from the memory cache, but
-		// only if the disk cache is nil, since if it's not nil we
-		// need to get the prefetch status from the disk anyway.  Just
-		// use a simple cache for storing the prefetch status; the
-		// most likely reason we have no disk block cache is that
-		// we're testing.
-		cachedBlock, err := brq.config.BlockCache().Get(ptr)
-		if err != nil {
-			return NoPrefetch, err
-		}
+	preferredCacheType := action.CacheType()
+
+	cachedBlock, err := brq.config.BlockCache().Get(ptr)
+	if err == nil {
 		block.Set(cachedBlock)
-		return brq.getPrefetchStatus(ptr.ID), nil
+		if dbc == nil {
+			return brq.getPrefetchStatus(ptr.ID), nil
+		}
+
+		prefetchStatus, err := dbc.GetPrefetchStatus(
+			ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
+		if err == nil {
+			return prefetchStatus, nil
+		}
+		// If the prefetch status wasn't in the preferred cache, do a
+		// full `Get()` below in an attempt to move the full block
+		// into the preferred cache.
+	} else if dbc == nil {
+		return NoPrefetch, err
 	}
 
-	preferredCacheType := action.CacheType()
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
 		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {

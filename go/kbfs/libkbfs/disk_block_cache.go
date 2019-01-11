@@ -582,13 +582,7 @@ func (cache *DiskBlockCacheLocal) Get(
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 	buf, serverHalf, err = cache.decodeBlockCacheEntry(entry)
-	prefetchStatus = NoPrefetch
-	if md.FinishedPrefetch {
-		prefetchStatus = FinishedPrefetch
-	} else if md.TriggeredPrefetch {
-		prefetchStatus = TriggeredPrefetch
-	}
-	return buf, serverHalf, prefetchStatus, err
+	return buf, serverHalf, md.PrefetchStatus(), err
 }
 
 func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(

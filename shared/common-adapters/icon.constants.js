@@ -226,6 +226,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
   },
+  'icon-fancy-folder-file-inexistant-desktop-153-94': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png'),
+  },
+  'icon-fancy-folder-file-inexistant-mobile-188-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png'),
+  },
   'icon-fancy-no-access-desktop-96-94': {
     extension: 'png',
     isFont: false,

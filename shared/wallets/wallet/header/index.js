@@ -17,7 +17,8 @@ type Props = {
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSettings: () => void,
-  onShowSecretKey: () => void,
+  onShowSecretKey: ?() => void,
+  sendDisabled: boolean,
   keybaseUser: string,
   walletName: ?string,
 }
@@ -79,12 +80,14 @@ const Header = (props: Props) => {
     >
       {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        <SendButton
-          onSendToKeybaseUser={props.onSendToKeybaseUser}
-          onSendToStellarAddress={props.onSendToStellarAddress}
-          onSendToAnotherAccount={props.onSendToAnotherAccount}
-          disabled={!props.walletName}
-        />
+        {!props.sendDisabled && (
+          <SendButton
+            onSendToKeybaseUser={props.onSendToKeybaseUser}
+            onSendToStellarAddress={props.onSendToStellarAddress}
+            onSendToAnotherAccount={props.onSendToAnotherAccount}
+            disabled={!props.walletName}
+          />
+        )}
         <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
         <DropdownButton
           onSettings={props.onSettings}
@@ -142,24 +145,27 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
 }
 
 type DropdownProps = {|
-  onShowSecretKey: () => void,
+  onShowSecretKey: ?() => void,
   onSettings: () => void,
   disabled: boolean,
 |}
 
 class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
-  _menuItems = [
-    {
-      onClick: () => this.props.onShowSecretKey(),
-      title: 'Show secret key',
-    },
-    {
-      onClick: () => this.props.onSettings(),
-      title: 'Settings',
-    },
-  ]
-
   render() {
+    const onShowSecretKey = this.props.onShowSecretKey
+    const _menuItems = [
+      onShowSecretKey
+        ? {
+            onClick: () => onShowSecretKey(),
+            title: 'Show secret key',
+          }
+        : null,
+      {
+        onClick: () => this.props.onSettings(),
+        title: 'Settings',
+      },
+    ].filter(Boolean)
+
     return (
       <Kb.ClickableBox
         onClick={!this.props.disabled ? this.props.toggleShowingMenu : undefined}
@@ -182,7 +188,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
         <Kb.FloatingMenu
           attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
-          items={this._menuItems}
+          items={_menuItems}
           onHidden={this.props.toggleShowingMenu}
           visible={this.props.showingMenu}
           position="bottom center"
