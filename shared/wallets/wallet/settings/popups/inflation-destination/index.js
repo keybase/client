@@ -147,7 +147,9 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                 label="Other"
               />
               <Kb.Box2 direction="vertical" gap="xtiny" style={styles.otherInput}>
-                <Kb.Text type="BodySmallPrimaryLink">Specify:</Kb.Text>
+                <Kb.Text type="BodyTinySemibold" style={styles.specify}>
+                  Specify:
+                </Kb.Text>
                 <Kb.PlainInput
                   placeholder="Enter a Stellar address..."
                   multiline={true}
@@ -197,6 +199,9 @@ const styles = Styles.styleSheetCreate({
   row: {
     alignItems: 'center',
     flexShrink: 0,
+  },
+  specify: {
+    color: Styles.globalColors.blue,
   },
 })
 
