@@ -21,7 +21,9 @@ const mapStateToProps = state => {
     calculating: !!state.wallets.building.amount,
     disabled: !isReady || currencyWaiting,
     isRequest,
-    waitingKey: Constants.buildPaymentWaitingKey,
+    waitingKey: state.wallets.building.isRequest
+      ? Constants.requestPaymentWaitingKey
+      : Constants.buildPaymentWaitingKey,
     worthDescription: isRequest
       ? state.wallets.builtRequest.worthDescription
       : state.wallets.builtPayment.worthDescription,
