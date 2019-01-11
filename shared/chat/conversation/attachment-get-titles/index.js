@@ -101,7 +101,7 @@ class GetTitles extends React.Component<Props, State> {
           <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, height: 150, width: 150}}>
             {info.type === 'image' ? (
               <Kb.OrientedImage
-                src={path}
+                src={Styles.isAndroid ? `file://${path}` : path}
                 style={Styles.isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
               />
             ) : (
@@ -117,9 +117,9 @@ class GetTitles extends React.Component<Props, State> {
                 maxWidth: Styles.isMobile ? 300 : undefined,
               }}
             >
-              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+              {!Styles.isMobile && <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>}
               <Kb.Text type="BodySmall">
-                {info.filename} ({this.state.index + 1} of {paths.length})
+                {Styles.isMobile ? '' : `${info.filename} `}({this.state.index + 1} of {paths.length})
               </Kb.Text>
             </Kb.Box2>
           )}
@@ -127,6 +127,7 @@ class GetTitles extends React.Component<Props, State> {
             style={Styles.isMobile ? stylesInputMobile : stylesInputDesktop}
             autoFocus={true}
             floatingHintTextOverride={titleHint}
+            hideLabel={Styles.isMobile}
             hintText={titleHint}
             value={info.title}
             onEnterKeyDown={this._onNext}
@@ -170,11 +171,10 @@ const stylesMobile = {
   alignItems: 'center',
   flex: 1,
   justifyContent: 'flex-start',
-  marginTop: 40,
+  marginTop: 4,
 }
 
 const stylesInputMobile = {
-  marginTop: 40,
   minWidth: 320,
   paddingLeft: 20,
   paddingRight: 20,
