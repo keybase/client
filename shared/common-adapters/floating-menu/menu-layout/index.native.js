@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import {TouchableOpacity, SafeAreaView} from 'react-native'
 import Box from '../../box'
 import Text from '../../text'
+import Divider from '../../divider'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -56,7 +57,8 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
               />
             ))}
           </Box>
-          <Box style={styles.closeGroup}>
+          <Divider style={styles.divider} />
+          <Box style={styles.menuGroup}>
             <MenuRow
               title="Close"
               index={0}
@@ -78,18 +80,17 @@ const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: b
 }
 
 const styles = Styles.styleSheetCreate({
-  closeGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    borderColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-    justifyContent: 'flex-end',
+  divider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   menuBox: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.small,
   },
   menuGroup: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -101,10 +102,12 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
-    height: 56,
     justifyContent: 'center',
+    minHeight: 56,
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
   },
   safeArea: {
     backgroundColor: Styles.globalColors.white,

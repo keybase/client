@@ -41,8 +41,8 @@ IF %ERRORLEVEL% NEQ 0 (
 popd
 
 call:dosignexe %PathName%
-call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
 :: Browser Extension
@@ -59,13 +59,13 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that kbfs is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+signtool verify /pa %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that git-remote-keybase is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
+signtool verify /pa %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

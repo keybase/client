@@ -31,7 +31,7 @@ const Wrapper = (props: {
       <Icon
         type="iconfont-arrow-left"
         fontSize={24}
-        color={globalColors.black_40}
+        color={globalColors.black_50}
         style={iconCastPlatformStyles(styles.arrow)}
       />
       {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
@@ -94,7 +94,7 @@ const UsernameHeader = (props: Props) => (
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
-        commaColor={globalColors.black_40}
+        commaColor={globalColors.black_50}
         type={isMobile ? 'BodySemibold' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
@@ -123,7 +123,7 @@ const styles = styleSheetCreate({
     color: globalColors.black_75,
   },
   channelNameLight: {
-    color: globalColors.black_40,
+    color: globalColors.black_50,
   },
   container: {
     alignItems: 'stretch',

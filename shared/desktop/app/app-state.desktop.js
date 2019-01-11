@@ -19,7 +19,6 @@ export type State = {
   dockHidden: boolean,
   notifySound: boolean,
   openAtLogin: boolean,
-  isUserActive: ?boolean,
 }
 
 export type Config = {
@@ -54,7 +53,6 @@ export default class AppState {
       height: 600,
       isFullScreen: null,
       isMaximized: null,
-      isUserActive: true,
       notifySound: false,
       openAtLogin: true,
       tab: null,
@@ -251,9 +249,6 @@ export default class AppState {
         stateLoaded.openAtLogin = true
       }
 
-      // assume active on startup
-      stateLoaded.isUserActive = true
-
       this.state = stateLoaded
     } catch (e) {
       console.warn('Error loading app state:', e)
@@ -292,7 +287,6 @@ export default class AppState {
 
   _closedHandler() {
     this._clearWindow()
-    this.state.isUserActive = false
     this.saveState()
   }
 

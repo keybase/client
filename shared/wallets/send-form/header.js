@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {WalletBackButton} from '../common'
 
 type Props = {onBack?: ?() => void, whiteBackground?: boolean}
 
@@ -12,7 +13,7 @@ const Header = (props: Props) => (
       style={Styles.collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
       fullWidth={true}
     >
-      {props.onBack && <Kb.BackButton style={styles.backButton} onClick={props.onBack} />}
+      {props.onBack && <WalletBackButton onBack={props.onBack} isOnWhiteBackground={props.whiteBackground} />}
       <Kb.Icon
         type={Styles.isMobile ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
         style={Kb.iconCastPlatformStyles(styles.icon)}
@@ -22,18 +23,6 @@ const Header = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  backButton: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      left: 16,
-      top: 18,
-    },
-    isMobile: {
-      left: 4,
-    },
-  }),
   header: Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',

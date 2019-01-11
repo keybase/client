@@ -75,7 +75,7 @@ const rightColumnStyle = Styles.platformStyles({
 const styles = Styles.styleSheetCreate({
   amount: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   amountCenter: {
     textAlign: 'center',

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {WalletBackButton} from '../common'
 
 type HeaderProps = {|
   onBack: () => void,
@@ -33,31 +34,11 @@ const Header = (props: HeaderProps) => (
         </Kb.Text>
       )}
     </Kb.Box2>
-    <Kb.BackButton
-      onClick={props.onBack}
-      style={styles.backButton}
-      iconColor={Styles.globalColors.white}
-      textStyle={styles.backButtonText}
-    />
+    <WalletBackButton onBack={props.onBack} />
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  backButton: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      left: Styles.globalMargins.small,
-      top: Styles.globalMargins.small,
-    },
-    isMobile: {
-      left: Styles.globalMargins.xtiny,
-    },
-  }),
-  backButtonText: {
-    color: Styles.globalColors.white,
-  },
   header: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.purple,

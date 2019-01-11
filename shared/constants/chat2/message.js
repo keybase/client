@@ -179,7 +179,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
-  hasInlinePayments: false,
+  inlinePaymentIDs: null,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -221,6 +221,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   asset: 'native',
   canceled: false,
   currencyCode: '',
+  done: false,
   type: 'requestInfo',
 })
 
@@ -247,6 +248,7 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   toUsername: '',
   type: 'paymentInfo',
   worth: '',
+  worthAtSendTime: '',
 })
 
 export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
@@ -366,6 +368,7 @@ export const uiRequestInfoToChatRequestInfo = (
     asset,
     canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
+    done: r.status === RPCStellarTypes.commonRequestStatus.done,
   })
 }
 
@@ -390,6 +393,7 @@ export const uiPaymentInfoToChatPaymentInfo = (
     statusDetail: p.statusDetail,
     toUsername: p.toUsername,
     worth: p.worth,
+    worthAtSendTime: p.worthAtSendTime,
   })
 }
 
@@ -633,7 +637,9 @@ const validUIMessagetoMessage = (
         ...explodable,
         decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         hasBeenEdited: m.superseded,
-        hasInlinePayments: !!m.paymentInfos,
+        inlinePaymentIDs: m.paymentInfos
+          ? I.List(m.paymentInfos.map(pi => WalletTypes.rpcPaymentIDToPaymentID(pi.paymentID)))
+          : null,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(

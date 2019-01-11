@@ -374,6 +374,7 @@
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {
+      "avoidConversationID?": "Types.ConversationIDKey",
       "findNewConversation": "boolean"
     },
     "navigateToThread": {},
@@ -525,6 +526,11 @@
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
+    },
+    "updateOrangeLine": {
+      "_description": "Update the orange line position for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     }
   }
 }

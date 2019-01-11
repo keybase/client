@@ -15,7 +15,8 @@ import {
   iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import {PathItemIcon, PathItemInfo} from '../common'
+import PathItemInfo from './path-item-info-container'
+import PathItemIcon from './path-item-icon-container'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
@@ -208,7 +209,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
         <Icon
           type="iconfont-ellipsis"
-          color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_40}
+          color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
           style={iconCastPlatformStyles(styles.actionIcon)}
           fontSize={props.actionIconFontSize}
           className={props.actionIconClassName}

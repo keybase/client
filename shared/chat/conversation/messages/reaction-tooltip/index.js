@@ -74,7 +74,7 @@ export const ReactionTooltip = (props: Props) => {
             >
               <Kb.Icon
                 type="iconfont-reacji"
-                color={Styles.globalColors.black_40}
+                color={Styles.globalColors.black_50}
                 fontSize={22}
                 style={Kb.iconCastPlatformStyles(styles.addReactionButtonIcon)}
               />
@@ -152,7 +152,7 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   addReactionButtonText: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -167,7 +167,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.small,
   },
   emojiText: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     flex: -1,
   },
   list: Styles.platformStyles({

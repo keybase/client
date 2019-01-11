@@ -599,6 +599,7 @@ type GetInboxQuery struct {
 	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
 	SummarizeMaxMsgs  bool                       `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	SkipBgLoads       bool                       `codec:"skipBgLoads" json:"skipBgLoads"`
 }
 
 func (o GetInboxQuery) DeepCopy() GetInboxQuery {
@@ -711,6 +712,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 		ReadOnly:          o.ReadOnly,
 		ComputeActiveList: o.ComputeActiveList,
 		SummarizeMaxMsgs:  o.SummarizeMaxMsgs,
+		SkipBgLoads:       o.SkipBgLoads,
 	}
 }
 

@@ -23,12 +23,12 @@ type ChatServiceHandler interface {
 	ListV1(context.Context, listOptionsV1) Reply
 	ReadV1(context.Context, readOptionsV1) Reply
 	GetV1(context.Context, getOptionsV1) Reply
-	SendV1(context.Context, sendOptionsV1) Reply
+	SendV1(context.Context, sendOptionsV1, chat1.ChatUiInterface) Reply
 	EditV1(context.Context, editOptionsV1) Reply
 	ReactionV1(context.Context, reactionOptionsV1) Reply
 	DeleteV1(context.Context, deleteOptionsV1) Reply
-	AttachV1(context.Context, attachOptionsV1) Reply
-	DownloadV1(context.Context, downloadOptionsV1) Reply
+	AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterface, chat1.NotifyChatInterface) Reply
+	DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
@@ -325,7 +325,7 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 }
 
 // SendV1 implements ChatServiceHandler.SendV1.
-func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
+func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui chat1.ChatUiInterface) Reply {
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -340,17 +340,15 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 		ephemeralLifetime: opts.EphemeralLifetime,
 	}
 
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, ui)
 }
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
-
 	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
-
 	messages := []chat1.MessageID{opts.MessageID}
 	arg := sendArgV1{
 		conversationID: convID,
@@ -363,7 +361,7 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 		// NOTE: The service will fill in the IDs of edit messages that also need to be deleted.
 		body: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 	}
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // EditV1 implements ChatServiceHandler.EditV1.
@@ -380,7 +378,7 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 		supersedes:     opts.MessageID,
 		response:       "message edited",
 	}
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // ReactionV1 implements ChatServiceHandler.ReactionV1.
@@ -397,11 +395,12 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 		supersedes:     opts.MessageID,
 		response:       "message reacted to",
 	}
-	return c.sendV1(ctx, arg)
+	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
-func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
+	chatUI chat1.ChatUiInterface, notifyUI chat1.NotifyChatInterface) Reply {
 	var rl []chat1.RateLimit
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
@@ -449,23 +448,14 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		}
 	}
 
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
-	notify := &ChatNotifications{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
-
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
-		chat1.NotifyChatProtocol(notify),
+		chat1.ChatUiProtocol(chatUI),
+		chat1.NotifyChatProtocol(notifyUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -501,9 +491,10 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 }
 
 // DownloadV1 implements ChatServiceHandler.DownloadV1.
-func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1) Reply {
+func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1,
+	chatUI chat1.ChatUiInterface) Reply {
 	if opts.NoStream && opts.Output != "-" {
-		return c.downloadV1NoStream(ctx, opts)
+		return c.downloadV1NoStream(ctx, opts, chatUI)
 	}
 	var fsink Sink
 	if opts.Output == "-" {
@@ -514,17 +505,13 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	defer fsink.Close()
 	sink := c.G().XStreams.ExportWriter(fsink)
 
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
+		chat1.ChatUiProtocol(chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -561,18 +548,15 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 }
 
 // downloadV1NoStream uses DownloadFileAttachmentLocal instead of DownloadAttachmentLocal.
-func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1) Reply {
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
+func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1,
+	chatUI chat1.ChatUiInterface) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(ui),
+		chat1.ChatUiProtocol(chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -818,7 +802,18 @@ type sendArgV1 struct {
 	ephemeralLifetime ephemeralLifetime
 }
 
-func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
+func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI chat1.ChatUiInterface) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		chat1.ChatUiProtocol(chatUI),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+
 	var rl []chat1.RateLimit
 	existing, existingRl, err := c.getExistingConvs(ctx, arg.conversationID, arg.channel)
 	if err != nil {
@@ -840,11 +835,6 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
-	client, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return c.errReply(err)
-	}
-
 	var idFails []keybase1.TLFIdentifyFailure
 	if arg.nonblock {
 		var nbarg chat1.PostLocalNonblockArg

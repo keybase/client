@@ -104,6 +104,6 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   searchText: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
 })

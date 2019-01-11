@@ -69,7 +69,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <React.Fragment>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ClickableBox
           style={styles.imageContainer}
           onClick={this._onClick}
@@ -145,14 +145,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     style={Kb.iconCastPlatformStyles(styles.playButton)}
                   />
                 )}
-                {this.props.videoDuration.length > 0 &&
-                  this.state.loaded && (
-                    <Kb.Box style={styles.durationContainer}>
-                      <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                        {this.props.videoDuration}
-                      </Kb.Text>
-                    </Kb.Box>
-                  )}
+                {this.props.videoDuration.length > 0 && this.state.loaded && (
+                  <Kb.Box style={styles.durationContainer}>
+                    <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                      {this.props.videoDuration}
+                    </Kb.Text>
+                  </Kb.Box>
+                )}
                 {!!this.props.arrowColor && (
                   <Kb.Box style={styles.downloadedIconWrapper}>
                     <Kb.Icon
@@ -188,7 +187,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             Show in {Styles.fileUIName}
           </Kb.Text>
         )}
-      </React.Fragment>
+      </Kb.Box2>
     )
   }
 }
@@ -221,7 +220,7 @@ const styles = Styles.styleSheetCreate({
   },
   durationContainer: {
     alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.black_60,
+    backgroundColor: Styles.globalColors.black_50,
     borderRadius: 2,
     bottom: Styles.globalMargins.tiny,
     padding: 1,
@@ -248,7 +247,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   link: {
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
   },
   playButton: {
     bottom: '50%',
@@ -278,7 +277,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   progressLabel: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     marginRight: Styles.globalMargins.tiny,
   },
   title: Styles.platformStyles({

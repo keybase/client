@@ -17,6 +17,10 @@
         },
         {
           "type": "int",
+          "name": "reviewID"
+        },
+        {
+          "type": "int",
           "name": "seqno"
         },
         {

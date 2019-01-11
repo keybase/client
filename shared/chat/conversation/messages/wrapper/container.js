@@ -38,6 +38,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     orangeLineAbove,
     previous,
     shouldShowPopup: Constants.shouldShowPopup(state, message),
+    showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
   }
 }
 
@@ -153,6 +154,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     orangeLineAbove: stateProps.orangeLineAbove,
     previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
+    showCoinsIcon: stateProps.showCoinsIcon,
     showSendIndicator,
     showUsername,
   }

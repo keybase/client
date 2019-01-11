@@ -166,10 +166,10 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body" style={styles.centerText}>
-            The username you provided doesn't exist on Keybase.
+            The username or email you provided doesn't exist on Keybase.
           </Text>
           <Text type="Body" style={styles.centerText}>
-            Please try logging in again with a different username.
+            Please try logging in again with a different one.
           </Text>
         </Wrapper>
       )

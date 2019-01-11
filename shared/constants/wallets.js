@@ -11,7 +11,6 @@ import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import {getPath, type RouteStateNode} from '../route-tree'
-import logger from '../logger'
 
 const balanceDeltaToString: {[key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>} = invert(
   RPCTypes.localBalanceDelta
@@ -22,14 +21,11 @@ const statusSimplifiedToString: {
 const partyTypeToString: {
   [key: RPCTypes.ParticipantType]: $Keys<typeof RPCTypes.localParticipantType>,
 } = invert(RPCTypes.localParticipantType)
-const requestStatusToString: {
-  [key: RPCTypes.RequestStatus]: $Keys<typeof RPCTypes.commonRequestStatus>,
-} = invert(RPCTypes.commonRequestStatus)
 
-const sendReceiveFormRouteKey = 'sendReceiveForm'
+const sendRequestFormRouteKey = 'sendReceiveForm'
 const chooseAssetFormRouteKey = 'chooseAssetForm'
 const confirmFormRouteKey = 'confirmForm'
-const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
+const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
@@ -52,12 +48,14 @@ const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountAvailable: '',
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '',
   displayAmountXLM: '',
   from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
-  readyToSend: false,
+  readyToReview: false,
+  readyToSend: 'spinning',
+  reviewBanners: null,
   secretNoteErrMsg: new HiddenString(''),
   sendingIntentionXLM: false,
   toErrMsg: '',
@@ -69,7 +67,7 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
 
 const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   amountErrMsg: '',
-  banners: null,
+  builtBanners: null,
   displayAmountFiat: '',
   displayAmountXLM: '',
   readyToRequest: false,
@@ -105,7 +103,8 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   paymentLoadingMoreMap: I.Map(),
   paymentOldestUnreadMap: I.Map(),
   paymentsMap: I.Map(),
-  requests: I.Map(),
+  reviewCounter: 0,
+  reviewLastSeqno: null,
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
@@ -119,12 +118,12 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountAvailable: b.amountAvailable,
     amountErrMsg: b.amountErrMsg,
-    banners: b.banners,
+    builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
     from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
-    readyToSend: b.readyToReview, // DESKTOP-8556
+    readyToReview: b.readyToReview,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     sendingIntentionXLM: b.sendingIntentionXLM,
     toErrMsg: b.toErrMsg,
@@ -137,7 +136,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
 const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
   makeBuiltRequest({
     amountErrMsg: b.amountErrMsg,
-    banners: b.banners,
+    builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
     readyToRequest: b.readyToRequest,
@@ -228,6 +227,7 @@ const _defaultPaymentCommon = {
   targetType: '',
   time: null,
   worth: '',
+  worthAtSendTime: '',
 }
 
 const _defaultPaymentResult = {
@@ -339,6 +339,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetType,
     time: p.time,
     worth: p.worth,
+    worthAtSendTime: p.worthAtSendTime,
   }
 }
 
@@ -348,51 +349,6 @@ const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record(
   issuerName: '',
   issuerVerifiedDomain: '',
 })
-
-const makeRequest: I.RecordFactory<Types._Request> = I.Record({
-  amount: '',
-  amountDescription: '',
-  asset: 'native',
-  completed: false,
-  completedTransactionID: null,
-  currencyCode: '',
-  id: '',
-  requestee: '',
-  requesteeType: '',
-  sender: '',
-  status: 'ok',
-})
-
-const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
-  let asset = 'native'
-  let currencyCode = ''
-  if (!(r.asset || r.currency)) {
-    logger.error('Received requestDetails with no asset or currency code')
-    return null
-  } else if (r.asset && r.asset.type !== 'native') {
-    const assetResult = r.asset
-    asset = makeAssetDescription({
-      code: assetResult.code,
-      issuerAccountID: Types.stringToAccountID(assetResult.issuer),
-      issuerName: assetResult.issuerName,
-      issuerVerifiedDomain: assetResult.verifiedDomain,
-    })
-  } else if (r.currency) {
-    asset = 'currency'
-    currencyCode = r.currency
-  }
-  return makeRequest({
-    amount: r.amount,
-    amountDescription: r.amountDescription,
-    asset,
-    currencyCode,
-    id: r.id,
-    requestee: r.toAssertion,
-    requesteeType: partyTypeToString[r.toUserType],
-    sender: r.fromAssertion,
-    status: requestStatusToString[r.status],
-  })
-}
 
 const bannerLevelToBackground = (level: string) => {
   switch (level) {
@@ -527,9 +483,6 @@ const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
-const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
-  state.wallets.requests.get(requestID, null)
-
 const getAccount = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.get(accountID, unknownAccount)
 
@@ -593,11 +546,15 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
   return sign + balanceChange
 }
 
-const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab] // tab for wallets
-const rootWalletPath = [...rootWalletTab, ...(isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
+const rootWalletTab = isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
+const rootWalletPath = [rootWalletTab, ...(isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
+const walletPath = isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 
-const isLookingAtWallet = (routeState: ?RouteStateNode) =>
-  getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
+const walletPathList = I.List(walletPath)
+const isLookingAtWallet = (routeState: ?RouteStateNode) => {
+  const path = getPath(routeState, [rootWalletTab])
+  return path.equals(walletPathList)
+}
 
 export {
   acceptDisclaimerWaitingKey,
@@ -632,7 +589,6 @@ export {
   getPayment,
   getPayments,
   getOldestUnread,
-  getRequest,
   getSecretKey,
   getSelectedAccount,
   isAccountLoaded,
@@ -646,25 +602,24 @@ export {
   makeAssetDescription,
   makeAssets,
   makeCurrencies,
+  makeCurrency,
   makeBuilding,
   makeBuiltPayment,
   makeBuiltRequest,
   makePaymentResult,
   makePaymentDetail,
   makePayment,
-  makeRequest,
   makeReserve,
   makeState,
   paymentToYourInfoAndCounterparty,
-  requestResultToRequest,
   requestPaymentWaitingKey,
   rootWalletPath,
   rootWalletTab,
   rpcPaymentDetailToPaymentDetail,
   rpcPaymentResultToPaymentResult,
   sendPaymentWaitingKey,
-  sendReceiveFormRouteKey,
-  sendReceiveFormRoutes,
+  sendRequestFormRouteKey,
+  sendRequestFormRoutes,
   setAccountAsDefaultWaitingKey,
   searchKey,
   shortenAccountID,
@@ -674,4 +629,5 @@ export {
   updatePaymentsReceived,
   validateAccountNameWaitingKey,
   validateSecretKeyWaitingKey,
+  walletPath,
 }

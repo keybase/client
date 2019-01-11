@@ -609,15 +609,6 @@ func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 	return "", nil
 }
 
-func (d dummyChannelSource) ChannelsChanged(ctx context.Context, tlfID chat1.TLFID) {}
-
-func (d dummyChannelSource) IsOffline(ctx context.Context) bool {
-	return false
-}
-
-func (d dummyChannelSource) Connected(ctx context.Context)    {}
-func (d dummyChannelSource) Disconnected(ctx context.Context) {}
-
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)

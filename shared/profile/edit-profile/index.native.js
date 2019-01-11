@@ -38,7 +38,7 @@ const EditProfileRender = (props: Props) => (
     )}
     <Kb.ButtonBar fullWidth={true}>
       <Kb.Button
-        disabled={props.bioLengthLeft <= 0}
+        disabled={props.bioLengthLeft < 0}
         style={styles.button}
         type="Primary"
         onClick={props.onSubmit}

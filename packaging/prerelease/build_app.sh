@@ -10,7 +10,6 @@ nobuild=${NOBUILD:-} # Don't build go binaries
 istest=${TEST:-} # If set to true, only build (for testing)
 nopull=${NOPULL:-} # Don't git pull
 client_commit=${CLIENT_COMMIT:-} # Commit on client to build from
-kbfs_commit=${KBFS_COMMIT:-} # Commit on kbfs to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this script)
 nos3=${NOS3:-} # Don't sync to S3
@@ -48,11 +47,10 @@ build_dir_kbfs="/tmp/build_kbfs"
 build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
 client_dir="$gopath/src/github.com/keybase/client"
-kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 updater_dir="$gopath/src/github.com/keybase/go-updater"
 
 if [ ! "$nopull" = "1" ]; then
-  "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
 fi
 
@@ -61,10 +59,8 @@ echo "Loading release tool"
 release_bin="$GOPATH/bin/release"
 
 client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
-kbfs_branch=`cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD`
 function reset {
   (cd "$client_dir" && git checkout $client_branch)
-  (cd "$kbfs_dir" && git checkout $kbfs_branch)
 }
 trap reset EXIT
 
@@ -72,15 +68,6 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
-  # If commit is hash, this fails and is unnecessary, if branch it's needed to
-  # update if it has changed.
-  git pull || true
-fi
-
-if [ -n "$kbfs_commit" ]; then
-  cd "$kbfs_dir"
-  echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
-  git checkout "$kbfs_commit"
   # If commit is hash, this fails and is unnecessary, if branch it's needed to
   # update if it has changed.
   git pull || true

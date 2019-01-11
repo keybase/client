@@ -70,6 +70,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
+    maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     participants,
     readMsgID: i.readMsgID,
@@ -250,6 +251,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
+    maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
     notificationsDesktop,
@@ -280,6 +282,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   inboxVersion: -1,
   isMuted: false,
   maxMsgID: -1,
+  maxVisibleMsgID: -1,
   membershipType: 'active',
   minWriterRole: 'reader',
   notificationsDesktop: 'never',
@@ -343,7 +346,7 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     ? globalColors.white
     : hasUnread
     ? globalColors.black_75
-    : globalColors.black_40
+    : globalColors.black_50
   const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 

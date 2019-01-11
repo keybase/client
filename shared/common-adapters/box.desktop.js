@@ -3,9 +3,10 @@ import * as React from 'react'
 import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
-class Box extends React.Component<any> {
+class Box extends React.PureComponent<any> {
   render() {
-    return <div {...this.props} />
+    const {forwardedRef, ...rest} = this.props
+    return <div {...rest} ref={this.props.forwardedRef} />
   }
 }
 

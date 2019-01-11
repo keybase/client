@@ -205,7 +205,7 @@ const styleIcon = {
 }
 
 const stylePickerContainer = {
-  backgroundColor: globalColors.black_40,
+  backgroundColor: globalColors.black_50,
   flex: 1,
   justifyContent: 'flex-end',
 }

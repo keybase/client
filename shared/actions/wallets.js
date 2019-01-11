@@ -79,37 +79,14 @@ const spawnBuildPayment = (state, action) => {
 const openSendRequestForm = (state, action) =>
   state.wallets.acceptedDisclaimer
     ? [
-        action.payload.isRequest
-          ? WalletsGen.createClearBuiltRequest()
-          : WalletsGen.createClearBuiltPayment(),
-        WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-        WalletsGen.createSetBuildingCurrency({
-          currency:
-            action.payload.currency ||
-            (state.wallets.lastSentXLM && 'XLM') ||
-            (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
-            'XLM',
-        }),
         WalletsGen.createLoadDisplayCurrency({
           // in case from account differs
           accountID: action.payload.from || Types.noAccountID,
           setBuildingCurrency: !action.payload.currency,
         }),
         WalletsGen.createLoadDisplayCurrencies(),
-        WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
-        WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
-        WalletsGen.createSetBuildingPublicMemo({
-          publicMemo: action.payload.publicMemo || new HiddenString(''),
-        }),
-        WalletsGen.createSetBuildingRecipientType({
-          recipientType: action.payload.recipientType || 'keybaseUser',
-        }),
-        WalletsGen.createSetBuildingSecretNote({
-          secretNote: action.payload.secretNote || new HiddenString(''),
-        }),
-        WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
         RouteTreeGen.createNavigateAppend({
-          path: [Constants.sendReceiveFormRouteKey],
+          path: [Constants.sendRequestFormRouteKey],
         }),
       ]
     : isMobile
@@ -144,7 +121,7 @@ const sendPayment = state => {
       // FIXME -- support other assets.
       bid: state.wallets.building.bid,
       bypassBid: false,
-      bypassReview: true, // DESKTOP-8556
+      bypassReview: false,
       from: state.wallets.builtPayment.from,
       publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
@@ -195,10 +172,25 @@ const requestPayment = state =>
     })
   )
 
-const startPayment = () =>
-  RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
-    WalletsGen.createBuildingPaymentIDReceived({bid})
-  )
+const startPayment = state =>
+  state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
+    ? RPCStellarTypes.localStartBuildPaymentLocalRpcPromise().then(bid =>
+        WalletsGen.createBuildingPaymentIDReceived({bid})
+      )
+    : null
+
+const reviewPayment = state =>
+  RPCStellarTypes.localReviewPaymentLocalRpcPromise({
+    bid: state.wallets.building.bid,
+    reviewID: state.wallets.reviewCounter,
+  }).catch(error => {
+    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+      // ignore cancellation, which is expected in the case where we have a
+      // failing review and then we build or stop a payment
+    } else {
+      throw error
+    }
+  })
 
 const stopPayment = (state, action) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
@@ -523,11 +515,6 @@ const loadDisplayCurrencyForAccounts = (state, action) =>
   // load the display currency of each wallet, now that we have the IDs
   action.payload.accounts.map(account => WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
 
-const loadRequestDetail = (state, action) =>
-  RPCStellarTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
-    .then(request => WalletsGen.createRequestDetailReceived({request}))
-    .catch(err => logger.error(`Error loading request detail: ${err.message}`))
-
 const cancelPayment = (state, action) => {
   const {paymentID, showAccount} = action.payload
   const pid = Types.paymentIDToString(paymentID)
@@ -557,7 +544,7 @@ const maybeNavigateAwayFromSendForm = state => {
   const routeState = state.routeTree.routeState
   const path = getPath(routeState)
   const lastNode = path.last()
-  if (Constants.sendReceiveFormRoutes.includes(lastNode)) {
+  if (Constants.sendRequestFormRoutes.includes(lastNode)) {
     if (path.first() === Tabs.walletsTab) {
       // User is on send form in wallets tab, navigate back to root of tab
       return RouteTreeGen.createNavigateTo({
@@ -565,7 +552,7 @@ const maybeNavigateAwayFromSendForm = state => {
       })
     }
     // User is somewhere else, send them to most recent parent that isn't a form route
-    const firstFormIndex = path.findIndex(node => Constants.sendReceiveFormRoutes.includes(node))
+    const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
     const pathAboveForm = path.slice(0, firstFormIndex)
     return RouteTreeGen.createNavigateTo({path: pathAboveForm})
   }
@@ -614,6 +601,8 @@ const setupEngineListeners = () => {
             .filter(Boolean),
         })
       ),
+    'stellar.1.ui.paymentReviewed': ({msg: {bid, reviewID, seqno, banners, nextButton}}) =>
+      Saga.put(WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})),
   })
 }
 
@@ -629,8 +618,11 @@ const maybeClearNewTxs = (state, action) => {
   const rootTab = I.List(action.payload.path).first()
   // If we're leaving from the Wallets tab, and the Wallets tab route
   // was the main transaction list for an account, clear new txs.
-  // FIXME: The hardcoded routes here are fragile if routes change.
-  if (rootTab !== Constants.rootWalletTab && Constants.isLookingAtWallet(state.routeTree.routeState)) {
+  if (
+    state.routeTree.previousTab === Constants.rootWalletTab &&
+    rootTab !== Constants.rootWalletTab &&
+    Constants.isLookingAtWallet(state.routeTree.routeState)
+  ) {
     const accountID = state.wallets.selectedAccount
     if (accountID !== Types.noAccountID) {
       return WalletsGen.createClearNewPayments({accountID})
@@ -705,6 +697,15 @@ const readLastSentXLM = () => {
         ? null
         : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
     })
+}
+
+const exitFailedPayment = (state, action) => {
+  const accountID = state.wallets.builtPayment.from
+  return [
+    WalletsGen.createAbandonPayment(),
+    WalletsGen.createSelectAccount({accountID, show: true}),
+    WalletsGen.createLoadPayments({accountID}),
+  ]
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
@@ -834,6 +835,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.SetBuildingIsRequestPayload
     | WalletsGen.SetBuildingToPayload
     | WalletsGen.DisplayCurrencyReceivedPayload
+    | WalletsGen.BuildingPaymentIDReceivedPayload
   >(
     [
       WalletsGen.setBuildingAmount,
@@ -842,6 +844,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingIsRequest,
       WalletsGen.setBuildingTo,
       WalletsGen.displayCurrencyReceived,
+      WalletsGen.buildingPaymentIDReceived,
     ],
     spawnBuildPayment
   )
@@ -849,6 +852,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.openSendRequestForm,
     openSendRequestForm
   )
+  yield* Saga.chainAction<WalletsGen.ReviewPaymentPayload>(WalletsGen.reviewPayment, reviewPayment)
   yield* Saga.chainAction<WalletsGen.OpenSendRequestFormPayload>(WalletsGen.openSendRequestForm, startPayment)
 
   yield* Saga.chainAction<WalletsGen.DeletedAccountPayload>(WalletsGen.deletedAccount, deletedAccount)
@@ -886,9 +890,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   // Effects of abandoning payments
   yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(WalletsGen.abandonPayment, stopPayment)
 
-  yield* Saga.chainAction<WalletsGen.LoadRequestDetailPayload>(
-    WalletsGen.loadRequestDetail,
-    loadRequestDetail
+  yield* Saga.chainAction<WalletsGen.ExitFailedPaymentPayload>(
+    WalletsGen.exitFailedPayment,
+    exitFailedPayment
   )
   yield* Saga.chainAction<WalletsGen.CancelRequestPayload>(WalletsGen.cancelRequest, cancelRequest)
   yield* Saga.chainAction<WalletsGen.CancelPaymentPayload>(WalletsGen.cancelPayment, cancelPayment)

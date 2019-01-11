@@ -18,6 +18,7 @@ export type Props = {
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
+  isTypingSnippet: boolean,
   onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: Array<string>,
@@ -137,6 +138,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 youNeedToRekey={props.youNeedToRekey}
                 isSelected={props.isSelected}
                 isDecryptingSnippet={props.isDecryptingSnippet}
+                isTypingSnippet={props.isTypingSnippet}
               />
             </Kb.Box>
           </Kb.Box>

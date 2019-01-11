@@ -84,10 +84,6 @@ func (t *BaseServiceType) BaseGetProofType(st ServiceType) string {
 	return "web_service_binding." + st.GetTypeName()
 }
 
-func (t *BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
-	return []string{st.GetTypeName()}
-}
-
 func (t *BaseServiceType) LastWriterWins() bool                               { return true }
 func (t *BaseServiceType) PreProofCheck(MetaContext, string) (*Markup, error) { return nil, nil }
 func (t *BaseServiceType) PreProofWarning(remotename string) *Markup          { return nil }

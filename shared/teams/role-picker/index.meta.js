@@ -19,7 +19,7 @@ export const roleIconMap = {
 }
 
 export const roleIconColorMap = {
-  admin: globalColors.black_40,
+  admin: globalColors.black_50,
   owner: globalColors.yellow2,
   reader: '',
   writer: '',

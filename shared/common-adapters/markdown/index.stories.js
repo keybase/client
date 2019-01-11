@@ -113,6 +113,11 @@ Include:
   https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us
   http://abc.io
   http://cbs.io/
+  Http://cbs.io/
+  HTTP://cbs.io/
+  Https://cbs.io/
+  HTTPs://cbs.io/
+  httpS://cbs.io/
   *http://cnn.io*
   *http://fox.io/~test*
   _http://dog.io_

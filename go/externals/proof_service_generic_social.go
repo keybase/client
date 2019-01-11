@@ -242,7 +242,7 @@ func NewGenericSocialProofServiceType(config *GenericSocialProofConfig) *Generic
 	}
 }
 
-func (t *GenericSocialProofServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *GenericSocialProofServiceType) Key() string { return t.GetTypeName() }
 
 func (t *GenericSocialProofServiceType) NormalizeUsername(s string) (string, error) {
 	if err := t.config.validateRemoteUsername(s); err != nil {
@@ -267,7 +267,7 @@ func (t *GenericSocialProofServiceType) PostInstructions(username string) *libkb
 	return libkb.FmtMarkup(`Please click on the following link to post to %v:`, t.config.DisplayName)
 }
 
-func (t *GenericSocialProofServiceType) DisplayName(username string) string {
+func (t *GenericSocialProofServiceType) DisplayName() string {
 	return t.config.DisplayName
 }
 func (t *GenericSocialProofServiceType) GetTypeName() string { return t.config.Domain }

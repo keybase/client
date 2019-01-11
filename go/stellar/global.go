@@ -286,7 +286,7 @@ func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutO
 	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, msg.PaymentID); err != nil {
 		return err
 	}
-	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, msg.PaymentID)
+	s.G().NotifyRouter.HandleWalletPaymentNotification(ctx, msg.AccountID, msg.PaymentID)
 
 	return nil
 }

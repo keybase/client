@@ -184,7 +184,7 @@ type PaymentLocal struct {
 	AmountDescription   string          `codec:"amountDescription" json:"amountDescription"`
 	Delta               BalanceDelta    `codec:"delta" json:"delta"`
 	Worth               string          `codec:"worth" json:"worth"`
-	WorthCurrency       string          `codec:"worthCurrency" json:"worthCurrency"`
+	WorthAtSendTime     string          `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	IssuerDescription   string          `codec:"issuerDescription" json:"issuerDescription"`
 	IssuerAccountID     *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType            ParticipantType `codec:"fromType" json:"fromType"`
@@ -213,7 +213,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		AmountDescription: o.AmountDescription,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
-		WorthCurrency:     o.WorthCurrency,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		IssuerDescription: o.IssuerDescription,
 		IssuerAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
@@ -315,7 +315,7 @@ type PaymentDetailsLocal struct {
 	AmountDescription   string          `codec:"amountDescription" json:"amountDescription"`
 	Delta               BalanceDelta    `codec:"delta" json:"delta"`
 	Worth               string          `codec:"worth" json:"worth"`
-	WorthCurrency       string          `codec:"worthCurrency" json:"worthCurrency"`
+	WorthAtSendTime     string          `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	IssuerDescription   string          `codec:"issuerDescription" json:"issuerDescription"`
 	IssuerAccountID     *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType            ParticipantType `codec:"fromType" json:"fromType"`
@@ -347,7 +347,7 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		AmountDescription: o.AmountDescription,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
-		WorthCurrency:     o.WorthCurrency,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		IssuerDescription: o.IssuerDescription,
 		IssuerAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
@@ -985,6 +985,7 @@ type BuildPaymentLocalArg struct {
 
 type ReviewPaymentLocalArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ReviewID  int            `codec:"reviewID" json:"reviewID"`
 	Bid       BuildPaymentID `codec:"bid" json:"bid"`
 }
 

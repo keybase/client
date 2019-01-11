@@ -3,7 +3,17 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 
-const allServices: Array<Types.ServiceIdWithContact> = Object.keys(Types._services)
+const allServices: Array<Types.ServiceIdWithContact> = [
+  'keybase',
+  'contact',
+  'twitter',
+  'facebook',
+  'github',
+  'reddit',
+  'hackernews',
+  'pgp',
+]
+
 // We don't search pgp explicitly, and contact isn't implemented yet
 const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 

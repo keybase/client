@@ -157,14 +157,16 @@ func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
 }
 
+var visibleMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+}
+
 func VisibleChatMessageTypes() []MessageType {
-	return []MessageType{
-		MessageType_TEXT,
-		MessageType_ATTACHMENT,
-		MessageType_SYSTEM,
-		MessageType_SENDPAYMENT,
-		MessageType_REQUESTPAYMENT,
-	}
+	return visibleMessageTypes
 }
 
 func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
@@ -720,28 +722,25 @@ func (m UIMessage) GetOutboxID() *OutboxID {
 }
 
 func (m UIMessage) GetMessageType() MessageType {
-	if state, err := m.State(); err == nil {
-		if state == MessageUnboxedState_VALID {
-			body := m.Valid().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				return MessageType_NONE
-			}
-			return typ
-		}
-		if state == MessageUnboxedState_ERROR {
-			return m.Error().MessageType
-		}
-		if state == MessageUnboxedState_OUTBOX {
-			return m.Outbox().MessageType
-		}
-		if state == MessageUnboxedState_PLACEHOLDER {
-			// All we know about a place holder is the ID, so just
-			// call it type NONE
+	state, err := m.State()
+	if err != nil {
+		return MessageType_NONE
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		body := m.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
 			return MessageType_NONE
 		}
+		return typ
+	case MessageUnboxedState_ERROR:
+		return m.Error().MessageType
+	case MessageUnboxedState_OUTBOX:
+		return m.Outbox().MessageType
+	default:
+		return MessageType_NONE
 	}
-	return MessageType_NONE
 }
 
 func (m UIMessage) SearchableText() string {
@@ -749,6 +748,21 @@ func (m UIMessage) SearchableText() string {
 		return ""
 	}
 	return m.Valid().MessageBody.SearchableText()
+}
+
+func (m UIMessage) IsEphemeral() bool {
+	state, err := m.State()
+	if err != nil {
+		return false
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		return m.Valid().IsEphemeral
+	case MessageUnboxedState_ERROR:
+		return m.Error().IsEphemeral
+	default:
+		return false
+	}
 }
 
 func (m MessageBoxed) GetMessageID() MessageID {
@@ -1080,6 +1094,21 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 	return maxDelHID
 }
 
+func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+	visibleTyps := VisibleChatMessageTypes()
+	visibleTypsMap := map[MessageType]bool{}
+	for _, typ := range visibleTyps {
+		visibleTypsMap[typ] = true
+	}
+	maxMsgID := MessageID(0)
+	for _, msg := range c.MaxMessages {
+		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+	return maxMsgID
+}
+
 func (c ConversationLocal) Names() (res []string) {
 	for _, p := range c.Info.Participants {
 		res = append(res, p.Username)
@@ -1179,6 +1208,13 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 func (c Conversation) IsUnread() bool {
 	maxMsgID := c.MaxVisibleMsgID()
 	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+}
+
+func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
+	if c.ReaderInfo != nil {
+		return c.ReaderInfo.Status == status
+	}
+	return false
 }
 
 func (m MessageSummary) GetMessageID() MessageID {
