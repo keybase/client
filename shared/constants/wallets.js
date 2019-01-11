@@ -27,6 +27,13 @@ export const chooseAssetFormRouteKey = 'chooseAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 
+export const makeInflationDestination: I.RecordFactory<Types._InflationDestination> = I.Record({
+  address: '',
+  link: '',
+  name: '',
+  recommended: false,
+})
+
 export const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
   description: '',

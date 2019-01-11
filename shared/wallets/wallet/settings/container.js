@@ -35,8 +35,8 @@ const mapStateToProps = (state, {routeProps}) => {
     currencies,
     currency,
     currencyWaiting,
-    isDefault: account.isDefault,
     inflationDestination,
+    isDefault: account.isDefault,
     mobileOnlyMode,
     name,
     saveCurrencyWaiting,
@@ -62,9 +62,11 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
   _onSetupInflation: (accountID: Types.AccountID) =>
     dispatch(navigateAppend([{props: {accountID}, selected: 'setInflation'}])),
   _refresh: () => {
+    const accountID = routeProps.get('accountID')
     dispatch(WalletsGen.createLoadDisplayCurrencies())
-    dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
-    dispatch(WalletsGen.createLoadMobileOnlyMode({accountID: routeProps.get('accountID')}))
+    dispatch(WalletsGen.createLoadInflationDestination({accountID}))
+    dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
+    dispatch(WalletsGen.createLoadMobileOnlyMode({accountID}))
   },
 })
 

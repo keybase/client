@@ -221,13 +221,13 @@ export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
 
-type _InflationDestination = {
+export type _InflationDestination = {
   name: string,
   recommended: boolean,
   address: string,
   link: string,
 }
-type InflationDestination = I.RecordOf<_InflationDestination>
+export type InflationDestination = I.RecordOf<_InflationDestination>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 

@@ -44,12 +44,14 @@ export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
 export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
+export const inflationDestinationReceived = 'wallets:inflationDestinationReceived'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
+export const loadInflationDestination = 'wallets:loadInflationDestination'
 export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
@@ -85,6 +87,7 @@ export const setBuildingPublicMemo = 'wallets:setBuildingPublicMemo'
 export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
+export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
 export const validateAccountName = 'wallets:validateAccountName'
@@ -128,6 +131,7 @@ type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Cur
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _InflationDestinationReceivedPayload = $ReadOnly<{|selected: string, options?: Array<Types.InflationDestination>|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayloadError = $ReadOnly<{|name: string, secretKey: HiddenString, error: string|}>
@@ -135,6 +139,7 @@ type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
+type _LoadInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
@@ -170,6 +175,7 @@ type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
+type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -283,6 +289,10 @@ export const createExportSecretKey = (payload: _ExportSecretKeyPayload) => ({pay
  */
 export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({payload, type: sentPaymentError})
 /**
+ * Got inflation destination
+ */
+export const createInflationDestinationReceived = (payload: _InflationDestinationReceivedPayload) => ({payload, type: inflationDestinationReceived})
+/**
  * In response to a notification, resync payment info
  */
 export const createRefreshPayments = (payload: _RefreshPaymentsPayload) => ({payload, type: refreshPayments})
@@ -342,6 +352,10 @@ export const createPendingPaymentsReceived = (payload: _PendingPaymentsReceivedP
  * Received wallet disclaimer
  */
 export const createWalletDisclaimerReceived = (payload: _WalletDisclaimerReceivedPayload) => ({payload, type: walletDisclaimerReceived})
+/**
+ * Refresh inflation destination and options
+ */
+export const createLoadInflationDestination = (payload: _LoadInflationDestinationPayload) => ({payload, type: loadInflationDestination})
 /**
  * Refresh our list of accounts
  */
@@ -406,6 +420,10 @@ export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePaylo
  * Set building to -- depends on recipientType
  */
 export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({payload, type: setBuildingTo})
+/**
+ * Set our inflation destination
+ */
+export const createSetInflationDestination = (payload: _SetInflationDestinationPayload) => ({payload, type: setInflationDestination})
 /**
  * Set whether last currency used to send was XLM
  */
@@ -542,6 +560,7 @@ export type DisplayCurrenciesReceivedPayload = {|+payload: _DisplayCurrenciesRec
 export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceivedPayload, +type: 'wallets:displayCurrencyReceived'|}
 export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
 export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
+export type InflationDestinationReceivedPayload = {|+payload: _InflationDestinationReceivedPayload, +type: 'wallets:inflationDestinationReceived'|}
 export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
 export type LinkedExistingAccountPayload = {|+payload: _LinkedExistingAccountPayload, +type: 'wallets:linkedExistingAccount'|}
 export type LinkedExistingAccountPayloadError = {|+error: true, +payload: _LinkedExistingAccountPayloadError, +type: 'wallets:linkedExistingAccount'|}
@@ -549,6 +568,7 @@ export type LoadAccountsPayload = {|+payload: _LoadAccountsPayload, +type: 'wall
 export type LoadAssetsPayload = {|+payload: _LoadAssetsPayload, +type: 'wallets:loadAssets'|}
 export type LoadDisplayCurrenciesPayload = {|+payload: _LoadDisplayCurrenciesPayload, +type: 'wallets:loadDisplayCurrencies'|}
 export type LoadDisplayCurrencyPayload = {|+payload: _LoadDisplayCurrencyPayload, +type: 'wallets:loadDisplayCurrency'|}
+export type LoadInflationDestinationPayload = {|+payload: _LoadInflationDestinationPayload, +type: 'wallets:loadInflationDestination'|}
 export type LoadMobileOnlyModePayload = {|+payload: _LoadMobileOnlyModePayload, +type: 'wallets:loadMobileOnlyMode'|}
 export type LoadMorePaymentsPayload = {|+payload: _LoadMorePaymentsPayload, +type: 'wallets:loadMorePayments'|}
 export type LoadPaymentDetailPayload = {|+payload: _LoadPaymentDetailPayload, +type: 'wallets:loadPaymentDetail'|}
@@ -584,6 +604,7 @@ export type SetBuildingPublicMemoPayload = {|+payload: _SetBuildingPublicMemoPay
 export type SetBuildingRecipientTypePayload = {|+payload: _SetBuildingRecipientTypePayload, +type: 'wallets:setBuildingRecipientType'|}
 export type SetBuildingSecretNotePayload = {|+payload: _SetBuildingSecretNotePayload, +type: 'wallets:setBuildingSecretNote'|}
 export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wallets:setBuildingTo'|}
+export type SetInflationDestinationPayload = {|+payload: _SetInflationDestinationPayload, +type: 'wallets:setInflationDestination'|}
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
 export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
 export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
@@ -631,6 +652,7 @@ export type Actions =
   | DisplayCurrencyReceivedPayload
   | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
+  | InflationDestinationReceivedPayload
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LinkedExistingAccountPayloadError
@@ -638,6 +660,7 @@ export type Actions =
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
+  | LoadInflationDestinationPayload
   | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload
   | LoadPaymentDetailPayload
@@ -673,6 +696,7 @@ export type Actions =
   | SetBuildingRecipientTypePayload
   | SetBuildingSecretNotePayload
   | SetBuildingToPayload
+  | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
   | ValidateAccountNamePayload

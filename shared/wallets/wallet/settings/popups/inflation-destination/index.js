@@ -39,6 +39,13 @@ class InflationDestinationPopup extends React.Component<Props, State> {
     this.props.onSubmit(this.state.address)
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // got updated
+    if (this.props.inflationDestination !== prevProps.inflationDestination) {
+      this.props.onClose()
+    }
+  }
+
   render() {
     const props = this.props
     const buttons = [

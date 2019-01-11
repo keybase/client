@@ -25,13 +25,23 @@ const reallyProps = {
 
 const inflationProps = {
   inflationDestination: '',
-  options: [
-    {name: 'Lumenaut', address: 'L', recommended: true, link: 'keybase.io/lumenaut'},
-    {name: 'The Stellar Development Foundation', address: 'SDF', recommended: false, link: 'keybase.io/sdf'},
-    {name: 'Keybase', address: 'K', recommended: false, link: ''},
-  ],
-  onSubmit: Sb.action('onSubmit'),
   onClose: Sb.action('onClose'),
+  onSubmit: Sb.action('onSubmit'),
+  options: [
+    {
+      address: 'L',
+      link: 'keybase.io/lumenaut',
+      name: 'Lumenaut',
+      recommended: true,
+    },
+    {
+      address: 'SDF',
+      link: 'keybase.io/sdf',
+      name: 'The Stellar Development Foundation',
+      recommended: false,
+    },
+    {address: 'K', link: '', name: 'Keybase', recommended: false},
+  ],
 }
 
 const load = () => {

@@ -343,6 +343,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
+    case WalletsGen.inflationDestinationReceived:
+      return state.merge({
+        inflationDestination: action.payload.selected,
+        inflationDestinations: action.payload.options
+          ? I.List(action.payload.options)
+          : state.inflationDestinations,
+      })
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -374,6 +381,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
     case WalletsGen.exitFailedPayment:
+    case WalletsGen.loadInflationDestination:
+    case WalletsGen.setInflationDestination:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
