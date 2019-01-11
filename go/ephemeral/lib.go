@@ -552,14 +552,15 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 			e.G().Log.Debug(err.Error())
 			// If we are unable to get the current max generation, try to kick
 			// off creation of a new key.
+			bgctx := libkb.CopyTagsToBackground(ctx)
 			go func() {
-				maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
+				maxGeneration, err := teamEKBoxStorage.MaxGeneration(bgctx, teamID)
 				if err != nil {
-					e.G().Log.CDebugf(ctx, "Unable to get MaxGeneration: %v", err)
+					e.G().Log.CDebugf(bgctx, "Unable to get MaxGeneration: %v", err)
 					return
 				}
 				if generation == maxGeneration {
-					if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
+					if _, cerr := e.GetOrCreateLatestTeamEK(bgctx, teamID); cerr != nil {
 						e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
 					}
 				}
