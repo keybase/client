@@ -11,6 +11,7 @@ export type SettingsProps = {|
   accountID: Types.AccountID,
   name: string,
   user: string,
+  inflationDestination: string,
   isDefault: boolean,
   currencyWaiting: boolean,
   currency: Types.Currency,
@@ -151,9 +152,12 @@ class AccountSettings extends React.Component<SettingsProps> {
                   <Kb.Icon type="iconfont-question-mark" />
                 </Kb.WithTooltip>
               </Kb.Box2>
+              {!!props.inflationDestination && (
+                <Kb.Text type="BodySemibold">{props.inflationDestination}</Kb.Text>
+              )}
               <Kb.Button
                 type="Secondary"
-                label="Set up"
+                label={props.inflationDestination ? 'Change' : 'Set up'}
                 onClick={props.onSetupInflation}
                 style={styles.setupInflation}
               />

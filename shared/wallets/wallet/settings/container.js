@@ -24,12 +24,19 @@ const mapStateToProps = (state, {routeProps}) => {
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
 
+  let inflationDestination = state.wallets.inflationDestination
+  const dest = state.wallets.inflationDestinations.find(d => d.address === inflationDestination)
+  if (dest) {
+    inflationDestination = dest.name
+  }
+
   return {
     accountID,
     currencies,
     currency,
     currencyWaiting,
     isDefault: account.isDefault,
+    inflationDestination,
     mobileOnlyMode,
     name,
     saveCurrencyWaiting,
