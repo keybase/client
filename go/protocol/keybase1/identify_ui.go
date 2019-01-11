@@ -95,16 +95,16 @@ func (o Cryptocurrency) DeepCopy() Cryptocurrency {
 }
 
 type StellarAccount struct {
-	AccountID        string `codec:"accountID" json:"accountID"`
-	FederatedAddress string `codec:"federatedAddress" json:"federatedAddress"`
-	SigID            SigID  `codec:"sigID" json:"sigID"`
+	AccountID         string `codec:"accountID" json:"accountID"`
+	FederationAddress string `codec:"federationAddress" json:"federationAddress"`
+	SigID             SigID  `codec:"sigID" json:"sigID"`
 }
 
 func (o StellarAccount) DeepCopy() StellarAccount {
 	return StellarAccount{
-		AccountID:        o.AccountID,
-		FederatedAddress: o.FederatedAddress,
-		SigID:            o.SigID.DeepCopy(),
+		AccountID:         o.AccountID,
+		FederationAddress: o.FederationAddress,
+		SigID:             o.SigID.DeepCopy(),
 	}
 }
 

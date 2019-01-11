@@ -46,7 +46,7 @@ export type Props = {
   followers: Array<Types.FriendshipUserInfo>,
   following: Array<Types.FriendshipUserInfo>,
   reason: ?string,
-  stellarFederatedAddress: ?string,
+  stellarFederationAddress: ?string,
   error: ?string,
   onEditAvatar: (image?: any) => void,
   onFilePickerError: (error: Error) => void,

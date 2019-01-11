@@ -118,7 +118,7 @@
         },
         {
           "type": "string",
-          "name": "federatedAddress"
+          "name": "federationAddress"
         },
         {
           "type": "SigID",

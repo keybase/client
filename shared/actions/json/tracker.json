@@ -167,7 +167,7 @@
     "updateStellarAddress": {
       "username": "string",
       "accountID": "string",
-      "federatedAddress": "string",
+      "federationAddress": "string",
       "sigID": "string"
     }
   }

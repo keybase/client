@@ -527,7 +527,7 @@ func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error
 }
 
 func (ui *BaseIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
-	msg := fmt.Sprintf("%s Stellar %s (%s)", BTC, ColorString(ui.G(), "green", l.AccountID), l.FederatedAddress)
+	msg := fmt.Sprintf("%s Stellar %s (%s)", BTC, ColorString(ui.G(), "green", l.AccountID), l.FederationAddress)
 	ui.ReportHook(msg)
 	return nil
 }

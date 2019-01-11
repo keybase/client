@@ -346,13 +346,13 @@ function _serverCallMap(
       })
     },
     'keybase.1.identifyUi.displayStellarAccount': (
-      {a: {accountID, federatedAddress, sigID, type, family}},
+      {a: {accountID, federationAddress, sigID, type, family}},
       response
     ) => {
       response.result()
       addToIdleResponseQueue(() => {
-        console.log('::::: STELLAR', accountID, federatedAddress, sigID, username)
-        dispatch(TrackerGen.createUpdateStellarAddress({accountID, federatedAddress, sigID, username}))
+        console.log('::::: STELLAR', accountID, federationAddress, sigID, username)
+        dispatch(TrackerGen.createUpdateStellarAddress({accountID, federationAddress, sigID, username}))
         dispatch(TrackerGen.createUpdateProofState({username}))
       })
     },

@@ -377,10 +377,10 @@ class Profile extends Component<Props, State> {
             loadingComponent={this._makeUserProofs(true)}
             doneLoadingComponent={this._makeUserProofs(false)}
           />
-          {!!this.props.stellarFederatedAddress && !this.props.loading && (
+          {!!this.props.stellarFederationAddress && !this.props.loading && (
             <StellarFederatedAddress
               currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
-              stellarAddress={this.props.stellarFederatedAddress}
+              stellarAddress={this.props.stellarFederationAddress}
               onSendOrRequest={this.props.onSendOrRequestStellarAddress}
               onCopyAddress={this.props.onCopyStellarAddress}
             />

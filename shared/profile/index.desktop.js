@@ -139,7 +139,7 @@ class _StellarFederatedAddress extends React.PureComponent<
               style={styles.proofName}
               ref={this.props.setAttachmentRef}
             >
-              <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federated Address'}>
+              <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federation Address'}>
                 <Kb.Text
                   inline={true}
                   type="Body"
@@ -477,7 +477,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
-                {!!this.props.stellarFederatedAddress && !loading && (
+                {!!this.props.stellarFederationAddress && !loading && (
                   <StellarFederatedAddress
                     currentlyFollowing={!this.props.isYou && this.props.currentlyFollowing}
                     stellarAddress={this.props.stellarFederatedAddress}

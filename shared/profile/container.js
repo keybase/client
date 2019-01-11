@@ -181,7 +181,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
     onCopyStellarAddress: () => {
-      const maybeAddr = stateProps.trackerState.stellarFederatedAddress
+      const maybeAddr = stateProps.trackerState.stellarFederationAddress
       maybeAddr && dispatchProps._copyStellarAddress(maybeAddr)
     },
     onFollow: () => dispatchProps._onFollow(username),
@@ -192,7 +192,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onSearch: () => dispatchProps.onSearch(),
     onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false, 'keybaseUser'),
     onSendOrRequestStellarAddress: (isRequest: boolean) => {
-      const maybeAddr = stateProps.trackerState.stellarFederatedAddress
+      const maybeAddr = stateProps.trackerState.stellarFederationAddress
       maybeAddr && dispatchProps._onSendOrRequestLumens(maybeAddr, isRequest, 'stellarPublicKey')
     },
     onUnfollow: () => dispatchProps._onUnfollow(username),

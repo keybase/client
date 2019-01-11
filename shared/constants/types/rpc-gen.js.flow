@@ -2802,7 +2802,7 @@ export type StatusCode =
   | 3220 // SCNISTSigBadCtime_3220
   | 3221 // SCBadSignupUsernameDeleted_3221
 
-export type StellarAccount = $ReadOnly<{accountID: String, federatedAddress: String, sigID: SigID}>
+export type StellarAccount = $ReadOnly<{accountID: String, federationAddress: String, sigID: SigID}>
 export type Stream = $ReadOnly<{fd: Int}>
 export type StringKVPair = $ReadOnly<{key: String, value: String}>
 export type SubteamListEntry = $ReadOnly<{name: TeamName, memberCount: Int}>
