@@ -1507,11 +1507,11 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 		}
 	}
 
-	if stellar := idt.StellarAccountID(); stellar != nil {
+	if stellar := idt.stellar; stellar != nil {
 		err := ui.DisplayStellarAccount(keybase1.StellarAccount{
-			AccountID:         stellar.String(),
-			FederationAddress: "HELLO FEDERATED ADDR",
-			SigID:             keybase1.SigID("..."),
+			AccountID:         stellar.address,
+			FederationAddress: fmt.Sprintf("%s*keybase.io", stellar.GetUsername()),
+			SigID:             stellar.GetSigID(),
 		})
 		if err != nil {
 			return err
