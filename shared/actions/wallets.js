@@ -925,8 +925,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<WalletsGen.RejectDisclaimerPayload>(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 
-  yield* Saga.chainAction<WalletsGen.LoadMobileOnlyModePayload>(
-    WalletsGen.loadMobileOnlyMode,
+  yield* Saga.chainAction<WalletsGen.LoadMobileOnlyModePayload, WalletsGen.SelectAccountPayload>(
+    [WalletsGen.loadMobileOnlyMode, WalletsGen.selectAccount],
     loadMobileOnlyMode
   )
   yield* Saga.chainAction<WalletsGen.ChangeMobileOnlyModePayload>(

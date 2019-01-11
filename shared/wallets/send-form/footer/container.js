@@ -3,7 +3,7 @@ import Footer from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {namedConnect} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
@@ -17,9 +17,10 @@ const mapStateToProps = state => {
     ? state.wallets.builtRequest.readyToRequest
     : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
+  const sendDisabledDueToMobileOnly = !isMobile && !!state.wallets.mobileOnlyMap.get(accountID)
   return {
     calculating: !!state.wallets.building.amount,
-    disabled: !isReady || currencyWaiting,
+    disabled: !isReady || currencyWaiting || sendDisabledDueToMobileOnly,
     isRequest,
     waitingKey: state.wallets.building.isRequest
       ? Constants.requestPaymentWaitingKey
