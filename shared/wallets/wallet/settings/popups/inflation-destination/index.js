@@ -49,13 +49,15 @@ class InflationDestinationPopup extends React.Component<Props, State> {
   render() {
     const props = this.props
     const buttons = [
-      <Kb.Button
-        fullWidth={Styles.isMobile}
-        key="Cancel"
-        label="Cancel"
-        onClick={props.onClose}
-        type="Secondary"
-      />,
+      !Styles.isMobile && (
+        <Kb.Button
+          fullWidth={Styles.isMobile}
+          key="Cancel"
+          label="Cancel"
+          onClick={props.onClose}
+          type="Secondary"
+        />
+      ),
       <Kb.WaitingButton
         fullWidth={Styles.isMobile}
         waitingKey={''}
@@ -65,7 +67,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
         disabled={!this.state.address.length}
         type="Wallet"
       />,
-    ]
+    ].filter(Boolean)
 
     // Only show the lumenaut thing if its an option
     let lumenautLink

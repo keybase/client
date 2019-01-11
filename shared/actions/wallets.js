@@ -349,7 +349,7 @@ const loadDisplayCurrency = (state, action) => {
   )
 }
 const setInflationDestination = (_, action) => {
-  let accountID = action.payload.accountID
+  const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
     return
   }
@@ -359,7 +359,7 @@ const setInflationDestination = (_, action) => {
   }).then(() => WalletsGen.createInflationDestinationReceived({selected: action.payload.destination}))
 }
 const loadInflationDestination = (_, action) => {
-  let accountID = action.payload.accountID
+  const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
     return
   }

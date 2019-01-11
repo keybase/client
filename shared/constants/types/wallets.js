@@ -224,7 +224,7 @@ export type Currency = I.RecordOf<_LocalCurrency>
 export type _InflationDestination = {
   name: string,
   recommended: boolean,
-  address: string,
+  address: AccountID,
   link: string,
 }
 export type InflationDestination = I.RecordOf<_InflationDestination>
