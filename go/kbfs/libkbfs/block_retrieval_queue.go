@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -27,8 +28,6 @@ const (
 	testPrefetchWorkerQueueSize          int = 1
 	defaultOnDemandRequestPriority       int = 1 << 30
 	throttleRequestPriority              int = 1 << 15
-	// Channel buffer size can be big because we use the empty struct.
-	workerQueueSize int = 1<<31 - 1
 
 	defaultThrottledPrefetchPeriod = 1 * time.Second
 )
@@ -124,9 +123,9 @@ type blockRetrievalQueue struct {
 	// These are notification channels to maximize the time that each request
 	// is in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerCh         chan<- struct{}
-	prefetchWorkerCh chan<- struct{}
-	throttledWorkCh  chan<- struct{}
+	workerCh         channels.Channel
+	prefetchWorkerCh channels.Channel
+	throttledWorkCh  channels.Channel
 
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
@@ -151,11 +150,9 @@ func newBlockRetrievalQueue(
 	numWorkers int, numPrefetchWorkers int,
 	throttledPrefetchPeriod time.Duration,
 	config blockRetrievalConfig) *blockRetrievalQueue {
-	workerCh := make(chan struct{}, workerQueueSize)
-	prefetchWorkerCh := make(chan struct{}, workerQueueSize)
-	var throttledWorkCh chan struct{}
+	var throttledWorkCh channels.Channel
 	if numPrefetchWorkers > 0 {
-		throttledWorkCh = make(chan struct{}, workerQueueSize)
+		throttledWorkCh = NewInfiniteChannelWrapper()
 	}
 
 	q := &blockRetrievalQueue{
@@ -163,8 +160,8 @@ func newBlockRetrievalQueue(
 		log:              config.MakeLogger(""),
 		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
 		heap:             &blockRetrievalHeap{},
-		workerCh:         workerCh,
-		prefetchWorkerCh: prefetchWorkerCh,
+		workerCh:         NewInfiniteChannelWrapper(),
+		prefetchWorkerCh: NewInfiniteChannelWrapper(),
 		throttledWorkCh:  throttledWorkCh,
 		doneCh:           make(chan struct{}),
 		workers: make([]*blockRetrievalWorker, 0,
@@ -173,34 +170,30 @@ func newBlockRetrievalQueue(
 	q.prefetcher = newBlockPrefetcher(q, config, nil)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
-			config.blockGetter(), q, workerCh))
+			config.blockGetter(), q, q.workerCh))
 	}
 	for i := 0; i < numPrefetchWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
-			config.blockGetter(), q, prefetchWorkerCh))
+			config.blockGetter(), q, q.prefetchWorkerCh))
 	}
 	if numPrefetchWorkers > 0 {
 		go q.throttleReleaseLoop(
-			throttledPrefetchPeriod/time.Duration(numPrefetchWorkers),
-			throttledWorkCh)
+			throttledPrefetchPeriod / time.Duration(numPrefetchWorkers))
 	}
 	return q
 }
 
-func (brq *blockRetrievalQueue) sendWork(workerCh chan<- struct{}) {
+func (brq *blockRetrievalQueue) sendWork(workerCh channels.Channel) {
 	select {
 	case <-brq.doneCh:
 		brq.shutdownRetrieval()
 	// Notify the next queued worker.
-	case workerCh <- struct{}{}:
-	default:
-		panic("sendWork() would have blocked, which means we somehow " +
-			"have around MaxInt32 requests already waiting.")
+	case workerCh.In() <- struct{}{}:
 	}
 }
 
 func (brq *blockRetrievalQueue) throttleReleaseLoop(
-	period time.Duration, ch <-chan struct{}) {
+	period time.Duration) {
 	var tickerCh <-chan time.Time
 	if period > 0 {
 		t := time.NewTicker(period)
@@ -219,7 +212,7 @@ func (brq *blockRetrievalQueue) throttleReleaseLoop(
 		}
 
 		select {
-		case <-ch:
+		case <-brq.throttledWorkCh.Out():
 			brq.sendWork(brq.prefetchWorkerCh)
 		case <-brq.doneCh:
 			return
@@ -606,6 +599,12 @@ func (brq *blockRetrievalQueue) Shutdown() {
 		brq.prefetchMtx.Lock()
 		defer brq.prefetchMtx.Unlock()
 		brq.prefetcher.Shutdown()
+
+		brq.workerCh.Close()
+		brq.prefetchWorkerCh.Close()
+		if brq.throttledWorkCh != nil {
+			brq.throttledWorkCh.Close()
+		}
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -318,7 +319,7 @@ func TestBlockRetrievalQueueThrottling(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	throttleCh := make(chan struct{}, workerQueueSize)
+	throttleCh := channels.NewInfiniteChannel()
 	q.throttledWorkCh = throttleCh
 
 	t.Log("Make a few throttled requests that won't be serviced until we " +
@@ -337,13 +338,13 @@ func TestBlockRetrievalQueueThrottling(t *testing.T) {
 		NoCacheEntry, BlockRequestSolo)
 
 	t.Log("Make sure they are queued to be throttled")
-	require.Len(t, throttleCh, 2)
+	require.Equal(t, 2, throttleCh.Len())
 
 	t.Log("Start background loop with short period")
-	go q.throttleReleaseLoop(1*time.Millisecond, throttleCh)
+	go q.throttleReleaseLoop(1 * time.Millisecond)
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
-	for len(throttleCh) > 0 {
+	for throttleCh.Len() > 0 {
 		time.Sleep(1 * time.Millisecond)
 		select {
 		case <-ctx.Done():

@@ -6,6 +6,8 @@ package libkbfs
 
 import (
 	"io"
+
+	"github.com/eapache/channels"
 )
 
 // blockRetrievalWorker processes blockRetrievalQueue requests
@@ -13,7 +15,7 @@ type blockRetrievalWorker struct {
 	blockGetter
 	stopCh chan struct{}
 	queue  *blockRetrievalQueue
-	workCh <-chan struct{}
+	workCh channels.Channel
 }
 
 // run runs the worker loop until Shutdown is called
@@ -32,7 +34,7 @@ func (brw *blockRetrievalWorker) run() {
 // blockRetrievalQueue, using the passed in blockGetter to obtain blocks for
 // requests.
 func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
-	workCh <-chan struct{}) *blockRetrievalWorker {
+	workCh channels.Channel) *blockRetrievalWorker {
 	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),
@@ -50,7 +52,7 @@ func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
 func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	var retrieval *blockRetrieval
 	select {
-	case <-brw.workCh:
+	case <-brw.workCh.Out():
 		retrieval = brw.queue.popIfNotEmpty()
 		if retrieval == nil {
 			return nil
