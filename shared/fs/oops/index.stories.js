@@ -13,16 +13,16 @@ const load = () =>
   Sb.storiesOf('Files/Oops', module)
     .addDecorator(provider)
     .add('no-access team', () => (
-      <OopsNoAccess {...common} path={Types.stringToPath('/keybase/team/kbkbfstest')} what="no-access" />
+      <OopsNoAccess {...common} path={Types.stringToPath('/keybase/team/kbkbfstest')} reason="no-access" />
     ))
     .add('no-access private', () => (
-      <OopsNoAccess {...common} path={Types.stringToPath('/keybase/private/foo,bar')} what="no-access" />
+      <OopsNoAccess {...common} path={Types.stringToPath('/keybase/private/foo,bar')} reason="no-access" />
     ))
     .add('non-existent', () => (
       <OopsNoAccess
         {...common}
         path={Types.stringToPath('/keybase/team/kbkbfstest/non-existent')}
-        what="non-existent"
+        reason="non-existent"
       />
     ))
 
