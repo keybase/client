@@ -196,15 +196,9 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     maxWidth: '100%',
   },
-  alignSelfFlexStart: {
-    alignSelf: 'flex-start',
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  deleteOpacity: {
-    opacity: 0.3,
-  },
+  alignSelfFlexStart: {alignSelf: 'flex-start'},
+  centerText: {textAlign: 'center'},
+  deleteOpacity: {opacity: 0.3},
   divider: {
     marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
@@ -215,28 +209,21 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
     marginBottom: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
   },
-  icon: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
+  icon: {marginLeft: Styles.globalMargins.xtiny},
   identityBox: {
     flexGrow: 1,
     flexShrink: 1,
   },
-  red: {
-    color: Styles.globalColors.red,
-  },
+  red: {color: Styles.globalColors.red},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
   },
   removeContainer: Styles.platformStyles({
-    isElectron: {
-      marginTop: 'auto',
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.medium,
-    },
+    common: {flexShrink: 0},
+    isElectron: {marginTop: 'auto'},
+    isMobile: {marginTop: Styles.globalMargins.medium},
   }),
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
@@ -248,6 +235,7 @@ const styles = Styles.styleSheetCreate({
   },
   section: {
     alignItems: 'flex-start',
+    flexShrink: 0,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
@@ -258,6 +246,7 @@ const styles = Styles.styleSheetCreate({
   settingsPage: {
     alignSelf: 'flex-start',
     backgroundColor: Styles.globalColors.white,
+    flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
   },

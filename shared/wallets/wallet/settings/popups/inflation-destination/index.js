@@ -101,7 +101,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                 : 'icon-stellar-coins-stacked-inflation-48'
             }
           />
-          <Kb.Text type="Header"> Inflation Destination </Kb.Text>
+          <Kb.Text type="Header"> Inflation destination</Kb.Text>
           <Kb.Text type="Body">
             Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets
             it.
