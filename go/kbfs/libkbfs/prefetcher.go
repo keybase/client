@@ -171,6 +171,41 @@ func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
 	}
 }
 
+func (p *blockPrefetcher) getParentForApply(
+	pptr BlockPointer, refMap map[BlockPointer]<-chan struct{},
+	ch <-chan struct{}) *prefetch {
+	// Check if the particular prefetch for our parent that we're
+	// tracking has already completed or been canceled, and if so,
+	// don't apply to that parent.  This can happen in the following
+	// scenario:
+	//
+	// * A path `a/b/c` gets prefetched.
+	// * The path gets updated via another write to `a'/b'/c`.
+	// * `a` and `b` get canceled.
+	// * `a` gets re-fetched, and `b` gets added to the prefetch list.
+	// * `c` completes and tries to complete its old parent `b`, which
+	//   prematurely closes the new prefetches for `b` and `c` (which
+	//   are now only expecting one block, the new `b` prefetch).
+	parentDone := false
+	select {
+	case <-ch:
+		parentDone = true
+	default:
+	}
+
+	parent, ok := p.prefetches[pptr.ID]
+	if parentDone || !ok {
+		// Note that the parent (or some other ancestor) might be
+		// rescheduled for later and have been removed from
+		// `prefetches`.  In that case still delete it from the
+		// `parents` list as normal; the reschedule will add it
+		// back in later as needed.
+		delete(refMap, pptr)
+		return nil
+	}
+	return parent
+}
+
 // applyToPtrParentsRecursive applies a function just to the parents
 // of the specific pointer (with refnonce).
 func (p *blockPrefetcher) applyToPtrParentsRecursive(
@@ -187,25 +222,12 @@ func (p *blockPrefetcher) applyToPtrParentsRecursive(
 			panic(r)
 		}
 	}()
-	for pptr, ch := range pre.parents[ptr.RefNonce] {
-		parentDone := false
-		select {
-		case <-ch:
-			parentDone = true
-		default:
+	refMap := pre.parents[ptr.RefNonce]
+	for pptr, ch := range refMap {
+		parent := p.getParentForApply(pptr, refMap, ch)
+		if parent != nil {
+			p.applyToPtrParentsRecursive(f, pptr, parent)
 		}
-
-		parent, ok := p.prefetches[pptr.ID]
-		if parentDone || !ok {
-			// Note that the parent (or some other ancestor) might be
-			// rescheduled for later and have been removed from
-			// `prefetches`.  In that case still delete it from the
-			// `parents` list as normal; the reschedule will add it
-			// back in later as needed.
-			delete(pre.parents[ptr.RefNonce], pptr)
-			continue
-		}
-		p.applyToPtrParentsRecursive(f, pptr, parent)
 	}
 	if len(pre.parents[ptr.RefNonce]) == 0 {
 		delete(pre.parents, ptr.RefNonce)
@@ -231,24 +253,10 @@ func (p *blockPrefetcher) applyToParentsRecursive(
 	}()
 	for refNonce, refMap := range pre.parents {
 		for pptr, ch := range refMap {
-			parentDone := false
-			select {
-			case <-ch:
-				parentDone = true
-			default:
+			parent := p.getParentForApply(pptr, refMap, ch)
+			if parent != nil {
+				p.applyToParentsRecursive(f, pptr.ID, parent)
 			}
-
-			parent, ok := p.prefetches[pptr.ID]
-			if parentDone || !ok {
-				// Note that the parent (or some other ancestor) might be
-				// rescheduled for later and have been removed from
-				// `prefetches`.  In that case still delete it from the
-				// `parents` list as normal; the reschedule will add it
-				// back in later as needed.
-				delete(refMap, pptr)
-				continue
-			}
-			p.applyToParentsRecursive(f, pptr.ID, parent)
 		}
 		if len(refMap) == 0 {
 			delete(pre.parents, refNonce)
