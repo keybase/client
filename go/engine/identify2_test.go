@@ -78,9 +78,11 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) ListProofCheckers() []string               { return nil }
-func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs() []string { return nil }
-func (i *Identify2WithUIDTester) Key() string                               { return i.GetTypeName() }
+func (i *Identify2WithUIDTester) ListProofCheckers() []string                         { return nil }
+func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs() []string           { return nil }
+func (i *Identify2WithUIDTester) ListDisplayConfigs() []keybase1.ServiceDisplayConfig { return nil }
+func (i *Identify2WithUIDTester) SuggestionFoldPriority() int                         { return 0 }
+func (i *Identify2WithUIDTester) Key() string                                         { return i.GetTypeName() }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
