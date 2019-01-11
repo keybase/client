@@ -5,30 +5,32 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/kbfs/kbfsedits"
-	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
+
+	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
-func favTestInit(t *testing.T) (mockCtrl *gomock.Controller,
-	config *ConfigMock, ctx context.Context) {
+func favTestInit(t *testing.T, testingDiskCache bool) (
+	mockCtrl *gomock.Controller, config *ConfigMock, ctx context.Context) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	config.mockKbpki.EXPECT().GetCurrentSession(gomock.Any()).AnyTimes().
-		Return(SessionInfo{
-			Name: kbname.NormalizedUsername("tester"),
-			UID:  keybase1.MakeTestUID(16),
-		}, nil)
+	if !testingDiskCache {
+		config.mockKbpki.EXPECT().GetCurrentSession(gomock.
+			Any()).AnyTimes().
+			Return(SessionInfo{
+				Name: kbname.NormalizedUsername("tester"),
+				UID:  keybase1.MakeTestUID(16),
+			}, nil)
+	}
 
 	return mockCtrl, config, context.Background()
 }
@@ -38,20 +40,12 @@ func favTestShutdown(t *testing.T, mockCtrl *gomock.Controller,
 	if err := f.Shutdown(); err != nil {
 		t.Errorf("Couldn't shut down favorites: %v", err)
 	}
-
-	if f.diskCache != nil {
-		err := os.RemoveAll(filepath.Join(f.config.StorageRoot(),
-			kbfsFavoritesCacheSubfolder))
-		require.NoError(t, err,
-			"Future tests will fail if disk favorites cache is not destroyed"+
-				" successfully.")
-	}
 	config.ctr.CheckForFailures()
 	mockCtrl.Finish()
 }
 
 func TestFavoritesAddTwice(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	f := NewFavorites(config)
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
@@ -73,7 +67,7 @@ func TestFavoritesAddTwice(t *testing.T) {
 }
 
 func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	f := NewFavorites(config)
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
@@ -104,7 +98,7 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 }
 
 func TestFavoritesAddCreated(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	f := NewFavorites(config)
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
@@ -126,7 +120,7 @@ func TestFavoritesAddCreated(t *testing.T) {
 }
 
 func TestFavoritesAddRemoveAdd(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	f := NewFavorites(config)
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
@@ -156,7 +150,7 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 }
 
 func TestFavoritesAddAsync(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	// Only one task at a time
 	f := newFavoritesWithChan(config, make(chan *favReq, 1))
 	f.InitForTest()
@@ -185,7 +179,7 @@ func TestFavoritesAddAsync(t *testing.T) {
 }
 
 func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	// Only one task at a time
 	f := newFavoritesWithChan(config, make(chan *favReq, 1))
 	f.InitForTest()
@@ -220,7 +214,7 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 }
 
 func TestFavoritesControlUserHistory(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, false)
 	f := NewFavorites(config)
 	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
@@ -261,7 +255,16 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 }
 
 func TestFavoritesDiskCache(t *testing.T) {
-	mockCtrl, config, ctx := favTestInit(t)
+	mockCtrl, config, ctx := favTestInit(t, true)
+
+	// EXPECT this manually so that we can manually edit the leveldb later
+	config.mockKbpki.EXPECT().GetCurrentSession(gomock.
+		Any()).Times(3).
+		Return(SessionInfo{
+			Name: kbname.NormalizedUsername("tester"),
+			UID:  keybase1.MakeTestUID(16),
+		}, nil)
+
 	f := NewFavorites(config)
 
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
@@ -296,9 +299,24 @@ func TestFavoritesDiskCache(t *testing.T) {
 	err := f.Add(ctx, fav1Add)
 	require.NoError(t, err)
 
+	key := []byte(string(keybase1.MakeTestUID(16)))
+	dataInLeveldb, err := f.diskCache.Get(key, nil)
+	require.NoError(t, err)
+
 	// Shut down the favorites cache to remove the favorites from memory.
 	err = f.Shutdown()
 	require.NoError(t, err)
+
+	// EXPECT this manually so that we can manually edit the leveldb
+	config.mockKbpki.EXPECT().GetCurrentSession(gomock.
+		Any()).Times(1).
+		Return(SessionInfo{
+			Name: kbname.NormalizedUsername("tester"),
+			UID:  keybase1.MakeTestUID(16),
+		}, nil).Do(func(_ context.Context) {
+		err := f.diskCache.Put(key, dataInLeveldb, nil)
+		require.NoError(t, err)
+	})
 
 	// Make a new favorites cache.
 	f = NewFavorites(config)
@@ -316,7 +334,8 @@ func TestFavoritesDiskCache(t *testing.T) {
 	}).Return(nil)
 
 	// Pretend we are offline and cannot retrieve favorites right now.
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, errDisconnected{})
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil,
+		errDisconnected{})
 	f.Initialize(ctx)
 
 	// Ensure that the favorite we added before is still present.
