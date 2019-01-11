@@ -381,7 +381,6 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		incr := syncRes.InboxRes.Incremental()
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
 			vers, incr.Vers, len(incr.Convs))
-		s.Debug(ctx, "incr.Convs: %+v", incr.Convs)
 
 		var iboxSyncRes storage.InboxSyncRes
 		expunges := make(map[string]chat1.Expunge)

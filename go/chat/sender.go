@@ -748,6 +748,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	var prepareRes types.SenderPrepareResult
 	var plres chat1.PostRemoteRes
+	// If we get a ChatStalePreviousStateError we blow away in the box cache
+	// once to allow the retry to get fresh data.
+	clearedCache := false
 	// Try this up to 5 times in case we are trying to set the topic name, and the topic name
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
@@ -789,6 +792,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				// If we hit the stale previous state error, that means we should try again, since our view is
 				// out of date.
 				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
+				if !clearedCache {
+					s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
+					s.G().InboxSource.Clear(ctx, sender)
+					clearedCache = true
+				}
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)

@@ -4808,9 +4808,9 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
-		//tc := ctc.world.Tcs[users[0].Username]
-		//uid := users[0].User.GetUID().ToBytes()
-		//ri := ctc.as(t, users[0]).ri
+		tc := ctc.world.Tcs[users[0].Username]
+		uid := users[0].User.GetUID().ToBytes()
+		ri := ctc.as(t, users[0]).ri
 
 		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 
@@ -4840,97 +4840,97 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeTeamType(t, listener0)
 		t.Logf("Deleted conv")
 
-		//topicName = "josh"
-		//ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
-		//	chat1.NewConversationLocalArg{
-		//		TlfName:       firstConv.TlfName,
-		//		TopicName:     &topicName,
-		//		TopicType:     chat1.TopicType_CHAT,
-		//		TlfVisibility: keybase1.TLFVisibility_PRIVATE,
-		//		MembersType:   chat1.ConversationMembersType_TEAM,
-		//	})
-		//require.NoError(t, err)
-		//conv = ncres.Conv.Info
+		topicName = "josh"
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       firstConv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		conv = ncres.Conv.Info
 
-		// convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
-		// require.NoError(t, err)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		require.NoError(t, err)
 
-		// // Creating a conversation with same topic name just returns the matching one
-		// topicName = "random"
-		// ncarg := chat1.NewConversationLocalArg{
-		// 	TlfName:       conv.TlfName,
-		// 	TopicName:     &topicName,
-		// 	TopicType:     chat1.TopicType_CHAT,
-		// 	TlfVisibility: keybase1.TLFVisibility_PRIVATE,
-		// 	MembersType:   chat1.ConversationMembersType_TEAM,
-		// }
-		// ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
-		// require.NoError(t, err)
-		// consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-		// consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		// Creating a conversation with same topic name just returns the matching one
+		topicName = "random"
+		ncarg := chat1.NewConversationLocalArg{
+			TlfName:       conv.TlfName,
+			TopicName:     &topicName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+			MembersType:   chat1.ConversationMembersType_TEAM,
+		}
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
-		// randomConvID := ncres.Conv.GetConvID()
-		// ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
-		// require.NoError(t, err)
-		// require.Equal(t, randomConvID, ncres.Conv.GetConvID())
-		// consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		randomConvID := ncres.Conv.GetConvID()
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
+		require.NoError(t, err)
+		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 
-		// // Try to change topic name to one that exists
-		// plarg := chat1.PostLocalArg{
-		// 	ConversationID: conv.Id,
-		// 	Msg: chat1.MessagePlaintext{
-		// 		ClientHeader: chat1.MessageClientHeader{
-		// 			Conv:        conv.Triple,
-		// 			MessageType: chat1.MessageType_METADATA,
-		// 			TlfName:     conv.TlfName,
-		// 		},
-		// 		MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
-		// 			ConversationTitle: topicName,
-		// 		}),
-		// 	},
-		// 	IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		// }
-		// _, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
-		// require.Error(t, err)
-		// require.IsType(t, DuplicateTopicNameError{}, err)
-		// plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
-		// 	ConversationTitle: "EULALIA",
-		// })
-		// _, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
-		// require.NoError(t, err)
-		// consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
+		// Try to change topic name to one that exists
+		plarg := chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_METADATA,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+					ConversationTitle: topicName,
+				}),
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
+		require.Error(t, err)
+		require.IsType(t, DuplicateTopicNameError{}, err)
+		plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+			ConversationTitle: "EULALIA",
+		})
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
 
-		// // Create race with topic name state, and make sure we do the right thing
-		// plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
-		// 	ConversationTitle: "ANOTHERONE",
-		// })
-		// sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
-		// 	func() chat1.RemoteInterface { return ri })
-		// prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
-		// require.NoError(t, err)
-		// msg1 := prepareRes.Boxed
-		// ts1 := prepareRes.TopicNameState
-		// prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
-		// require.NoError(t, err)
-		// msg2 := prepareRes.Boxed
-		// ts2 := prepareRes.TopicNameState
-		// require.True(t, ts1.Eq(*ts2))
+		// Create race with topic name state, and make sure we do the right thing
+		plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+			ConversationTitle: "ANOTHERONE",
+		})
+		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
+			func() chat1.RemoteInterface { return ri })
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		require.NoError(t, err)
+		msg1 := prepareRes.Boxed
+		ts1 := prepareRes.TopicNameState
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		require.NoError(t, err)
+		msg2 := prepareRes.Boxed
+		ts2 := prepareRes.TopicNameState
+		require.True(t, ts1.Eq(*ts2))
 
-		// _, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-		// 	ConversationID: conv.Id,
-		// 	MessageBoxed:   msg1,
-		// 	TopicNameState: ts1,
-		// })
-		// require.NoError(t, err)
-		// consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   msg1,
+			TopicNameState: ts1,
+		})
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_METADATA)
 
-		// _, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
-		// 	ConversationID: conv.Id,
-		// 	MessageBoxed:   msg2,
-		// 	TopicNameState: ts2,
-		// })
-		// require.Error(t, err)
-		// require.IsType(t, libkb.ChatStalePreviousStateError{}, err)
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   msg2,
+			TopicNameState: ts2,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.ChatStalePreviousStateError{}, err)
 	})
 }
 
@@ -5303,16 +5303,6 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeMembersUpdate(t, listener1)
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
-
-		t.Logf("READ convID: %v", channelConvID)
-		_, lconvs, _, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
-			ConvID:       &channelConvID,
-			MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
-		}, nil)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(lconvs))
-		require.Equal(t, lconvs[0].GetConvID(), channelConvID)
-		require.Equal(t, chat1.ConversationExistence_ARCHIVED, lconvs[0].Conv.Metadata.Existence)
 
 		iboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{})

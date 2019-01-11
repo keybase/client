@@ -260,8 +260,8 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxD
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
-	i.Debug(ctx, "writeDiskInbox: uid: %s version: %d disk version: %d server version: %d convs: %d: %v",
-		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations), ibox.Conversations)
+	i.Debug(ctx, "writeDiskInbox: uid: %s version: %d disk version: %d server version: %d convs: %d",
+		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	inboxMemCache.Put(uid, &ibox)
 	switch i.flushMode {
 	case InboxFlushModeActive:
@@ -512,7 +512,6 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 	}
 
 	for _, rc := range rcs {
-		i.Debug(ctx, "applyQuery: %v", rc)
 		conv := rc.Conv
 		// Existence check
 		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
@@ -674,7 +673,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		i.Debug(ctx, "Read: queryExists: error hashing query: %s", err.Error())
 		return false
 	}
-	i.Debug(ctx, "Read: queryExists: query: %+v,\n query hash: %s p: %v", query, hquery, p)
+	i.Debug(ctx, "Read: queryExists: query hash: %s p: %v", hquery, p)
 
 	qp := inboxDiskQuery{QueryHash: hquery, Pagination: p}
 	for _, q := range ibox.Queries {
@@ -1526,7 +1525,6 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			}
 
 			ibox.Conversations[index].Conv = newConv
-			i.Debug(ctx, "Sync:  %v", newConv)
 			delete(convMap, conv.GetConvID().String())
 		}
 	}

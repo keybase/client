@@ -237,6 +237,10 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 	return s
 }
 
+func (s *RemoteInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+	return nil
+}
+
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, useLocalData bool, maxLocalize *int,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
@@ -395,6 +399,10 @@ func NewHybridInboxSource(g *globals.Context,
 
 func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(), storage.FlushMode(storage.InboxFlushModeDelegate))
+}
+
+func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+	return s.createInbox().Clear(ctx, uid)
 }
 
 func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {

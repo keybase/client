@@ -21,6 +21,8 @@ type TeamChannelSource struct {
 var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
 
 func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
+	// store this in sorted order so we keep the order consistent for
+	// GetInboxQuery which checks the hash of the query to hit the cache.
 	memberStatus := chat1.AllConversationMemberStatuses()
 	sort.Sort(utils.ByConversationMemberStatus(memberStatus))
 	return &TeamChannelSource{
@@ -60,9 +62,6 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 	convs = append(convs, inbox.Convs...)
 	sort.Sort(utils.ConvLocalByTopicName(convs))
 	c.Debug(ctx, "GetChannelsFull: found %d convs", len(convs))
-	for _, conv := range convs {
-		c.Debug(ctx, "GetChannelsFull: %+v", conv.Info)
-	}
 	return convs, nil
 }
 
