@@ -55,6 +55,7 @@ const routeTree = () => {
         makeRouteDefNode({
           component: Oops,
           tags: makeLeafTags({
+            fullscreen: isMobile,
             layerOnTop: !isMobile,
             renderTopmostOnly: !isMobile,
             title: 'Permission error',

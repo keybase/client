@@ -12,12 +12,12 @@ const fsRootRoute = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Ta
 
 const _getRouteChangeActionForPermissionError = (path: Types.Path) =>
   RouteTreeGen.createNavigateTo({
-    path: [...fsRootRoute, {props: {path, what: 'no-access'}, selected: 'oops'}],
+    path: [...fsRootRoute, {props: {path, reason: 'no-access'}, selected: 'oops'}],
   })
 
 const _getRouteChangeActionForNonExistentError = (path: Types.Path) =>
   RouteTreeGen.createNavigateTo({
-    path: [...fsRootRoute, {props: {path, what: 'non-existent'}, selected: 'oops'}],
+    path: [...fsRootRoute, {props: {path, reason: 'non-existent'}, selected: 'oops'}],
   })
 
 const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: any): TypedActions => {
