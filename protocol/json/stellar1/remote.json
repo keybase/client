@@ -318,6 +318,10 @@
         {
           "type": "string",
           "name": "cursorToken"
+        },
+        {
+          "type": "boolean",
+          "name": "fromPrimary"
         }
       ]
     },
