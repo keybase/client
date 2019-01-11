@@ -18,16 +18,18 @@ export type Props = {|
 
 type State = {|
   address: string,
+  otherAddress: string,
 |}
 
 class InflationDestinationPopup extends React.Component<Props, State> {
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
 
     const reco = props.options.find(o => o.recommended)
 
     this.state = {
       address: reco ? reco.address : '',
+      otherAddress: '',
     }
   }
 
@@ -73,6 +75,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
         onExit={props.onClose}
         backButtonType="cancel"
         headerStyle={styles.header}
+        containerStyle={styles.container}
         bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
       >
         <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} fullHeight={true} gap="small">
@@ -100,7 +103,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
           )}
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             {this.props.options.map(o => (
-              <Kb.Box2 key={o.name} direction="horizontal" fullWidth={true} gap="xtiny">
+              <Kb.Box2 key={o.name} direction="horizontal" fullWidth={true} gap="xtiny" style={styles.row}>
                 <Kb.RadioButton
                   onSelect={() => this.setState({address: o.address})}
                   selected={this.state.address === o.address}
@@ -116,6 +119,28 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                 )}
               </Kb.Box2>
             ))}
+            <Kb.Box2
+              key="other"
+              direction="vertical"
+              fullWidth={true}
+              gap="xtiny"
+              style={styles.otherContainer}
+            >
+              <Kb.RadioButton
+                onSelect={() => this.setState({address: this.state.otherAddress})}
+                selected={this.state.address === this.state.otherAddress}
+                label="Other"
+              />
+              <Kb.Box2 direction="vertical" gap="xtiny" style={styles.otherInput}>
+                <Kb.Text type="BodySmallPrimaryLink">Specify:</Kb.Text>
+                <Kb.PlainInput
+                  placeholder="Enter a Stellar address..."
+                  multiline={true}
+                  value={this.state.otherAddress}
+                  onChangeText={otherAddress => this.setState({address: otherAddress, otherAddress})}
+                />
+              </Kb.Box2>
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       </WalletPopup>
@@ -124,7 +149,35 @@ class InflationDestinationPopup extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    common: {
+      flexGrow: 1,
+    },
+    isElectron: {
+      borderRadius: 'inherit',
+      paddingBottom: Styles.globalMargins.medium,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+      textAlign: 'center',
+    },
+    isMobile: {},
+  }),
   header: {borderBottomWidth: 0},
+  otherContainer: {alignItems: 'flex-start'},
+  otherInput: {
+    alignItems: 'flex-start',
+    alignSelf: 'stretch',
+    borderColor: Styles.globalColors.black_20,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginLeft: Styles.globalMargins.medium,
+    marginRight: Styles.globalMargins.medium,
+    minHeight: Styles.isMobile ? 0 : 88,
+    padding: Styles.globalMargins.tiny,
+  },
+  row: {flexShrink: 0},
 })
 
 export default InflationDestinationPopup

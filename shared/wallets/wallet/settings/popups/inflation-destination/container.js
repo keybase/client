@@ -1,14 +1,15 @@
 // @flow
 import {namedConnect, type RouteProps} from '../../../../../util/container'
 import * as Types from '../../../../../constants/types/wallets'
-import * as WalletsGen from '../../../../../actions/wallets-gen'
+// import * as WalletsGen from '../../../../../actions/wallets-gen'
 import InflationDestination from '.'
 
 type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
-  return {accountID}
+  const options = [] // TODO
+  return {accountID, options}
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -20,6 +21,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  option: stateProps.options,
   onClose: () => dispatchProps._onClose(),
   onSubmit: (address: string) => dispatchProps._onSubmit(stateProps.accountID, address),
 })

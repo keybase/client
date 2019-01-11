@@ -27,7 +27,7 @@ const inflationProps = {
   options: [
     {name: 'Lumenaut', address: 'L', recommended: true, link: 'keybase.io/lumenaut'},
     {name: 'The Stellar Development Foundation', address: 'SDF', recommended: false, link: 'keybase.io/sdf'},
-    {name: 'Keybase', address: 'K', recommended: false},
+    {name: 'Keybase', address: 'K', recommended: false, link: ''},
   ],
   onSubmit: Sb.action('onSubmit'),
   onClose: Sb.action('onClose'),
