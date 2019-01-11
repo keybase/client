@@ -490,11 +490,13 @@ func (brq *blockRetrievalQueue) request(
 				priority >= defaultOnDemandRequestPriority) ||
 				(oldPriority <= throttleRequestPriority &&
 					priority > throttleRequestPriority) {
-				// We've crossed the priority threshold for prefetch workers,
-				// so we now need an on-demand worker to pick up the request.
-				// This means that we might have up to two workers "activated"
-				// per request. However, they won't leak because if a worker
-				// sees an empty queue, it continues merrily along.
+				// We've crossed the priority threshold for a given
+				// worker type, so we now need a worker for the new
+				// priority level to pick up the request.  This means
+				// that we might have up to two workers "activated"
+				// per request. However, they won't leak because if a
+				// worker sees an empty queue, it continues merrily
+				// along.
 				brq.notifyWorker(priority)
 			}
 		}
