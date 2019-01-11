@@ -43,7 +43,9 @@ const buildPayment = (state, action) =>
         {
           amount: state.wallets.building.amount,
           bid: state.wallets.building.bid,
-          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+          currency: ['XLM', ''].includes(state.wallets.building.currency)
+            ? null
+            : state.wallets.building.currency,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           publicMemo: state.wallets.building.publicMemo.stringValue(),
