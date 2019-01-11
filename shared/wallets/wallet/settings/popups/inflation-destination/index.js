@@ -104,12 +104,12 @@ class InflationDestinationPopup extends React.Component<Props, State> {
             }
           />
           <Kb.Text type="Header"> Inflation destination</Kb.Text>
-          <Kb.Text type="Body">
+          <Kb.Text type="Body" style={styles.centerText}>
             Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets
             it.
           </Kb.Text>
           {!!lumenautLink && (
-            <Kb.Text type="Body">
+            <Kb.Text type="Body" style={styles.centerText}>
               One service,{' '}
               <Kb.Text type="BodyPrimaryLink" onClick={lumenautLink}>
                 Lumenaut
@@ -169,6 +169,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  centerText: {textAlign: 'center'},
   container: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -199,10 +200,16 @@ const styles = Styles.styleSheetCreate({
     minHeight: 88,
     padding: Styles.globalMargins.tiny,
   },
-  radioContainer: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
+  radioContainer: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
   row: {
     alignItems: 'center',
     flexShrink: 0,
