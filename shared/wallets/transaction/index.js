@@ -297,7 +297,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   if (!timestamp) {
     return <TimestampPending />
   }
-  const human = formatTimeForMessages(timestamp)
+  const human = formatTimeForMessages(timestamp.getTime())
   const tooltip = formatTimeForStellarTooltip(timestamp)
   let status = capitalize(props.status)
   // 'claimable' -> show 'pending' and completed -> show nothing

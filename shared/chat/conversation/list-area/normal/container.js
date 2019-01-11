@@ -59,6 +59,7 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
+    // $FlowIssue don't use recompose
     {
       _conversationIDKey: Constants.noConversationIDKey,
       _lastLoadMoreOrdinalTime: Date.now(),
