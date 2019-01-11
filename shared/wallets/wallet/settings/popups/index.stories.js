@@ -4,6 +4,7 @@ import * as Sb from '../../../../stories/storybook'
 import RemoveAccountPopup from './remove-account'
 import ReallyRemoveAccountPopup from './really-remove-account'
 import SetDefaultAccountPopup from './set-default'
+import InflationDestination from './inflation-destination'
 
 const warningProps = {
   balance: '0.00 XLM',
@@ -20,6 +21,16 @@ const reallyProps = {
   onFinish: Sb.action('onFinish'),
   onLoadSecretKey: Sb.action('onLoadSecretKey'),
   waiting: false,
+}
+
+const inflationProps = {
+  options: [
+    {name: 'Lumenaut', address: 'L', recommended: true, link: 'keybase.io/lumenaut'},
+    {name: 'The Stellar Development Foundation', address: 'SDF', recommended: false, link: 'keybase.io/sdf'},
+    {name: 'Keybase', address: 'K', recommended: false},
+  ],
+  onSubmit: Sb.action('onSubmit'),
+  onClose: Sb.action('onClose'),
 }
 
 const load = () => {
@@ -45,6 +56,13 @@ const load = () => {
         onClose={Sb.action('onClose')}
         username="cecileb"
         waiting={false}
+      />
+    ))
+    .add('Inflation destination normal', () => <InflationDestination {...inflationProps} />)
+    .add('Inflation destination no lumenaut', () => (
+      <InflationDestination
+        {...inflationProps}
+        options={inflationProps.options.filter(o => o.name !== 'Lumenaut')}
       />
     ))
 }

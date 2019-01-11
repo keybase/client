@@ -3,6 +3,8 @@ import * as Constants from '../constants/wallets'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 
+// TEMP for HRM
+import AccountSettings from './wallet/settings/container'
 const routeTree = () => {
   const CreateNewAccount = require('./create-account/container').default
   const LinkExisting = require('./link-existing/container').default
@@ -10,7 +12,7 @@ const routeTree = () => {
   const ReceiveModal = require('./receive-modal/container').default
   const ExportSecretKey = require('./export-secret-key/container').default
   const TransactionDetails = require('./transaction-details/container').default
-  const AccountSettings = require('./wallet/settings/container').default
+  // const AccountSettings = require('./wallet/settings/container').default
   const {
     SetDefaultAccountPopup,
     RemoveAccountPopup,

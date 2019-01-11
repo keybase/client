@@ -1,6 +1,6 @@
 // @flow
 import Settings, {type SettingsProps} from '.'
-import {compose, namedConnect, lifecycle, safeSubmit, type RouteProps} from '../../../util/container'
+import {compose, namedConnect, safeSubmit, type RouteProps} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
@@ -45,27 +45,15 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
   _onChangeMobileOnlyMode: (accountID: Types.AccountID, enabled: boolean) =>
     dispatch(WalletsGen.createChangeMobileOnlyMode({accountID, enabled})),
   _onDelete: (accountID: Types.AccountID) =>
-    dispatch(
-      navigateAppend([
-        {
-          props: {accountID},
-          selected: 'removeAccount',
-        },
-      ])
-    ),
+    dispatch(navigateAppend([{props: {accountID}, selected: 'removeAccount'}])),
   _onEditName: (accountID: Types.AccountID) =>
     dispatch(navigateAppend([{props: {accountID}, selected: 'renameAccount'}])),
   _onSetDefault: (accountID: Types.AccountID) =>
-    dispatch(
-      navigateAppend([
-        {
-          props: {accountID},
-          selected: 'setDefaultAccount',
-        },
-      ])
-    ),
+    dispatch(navigateAppend([{props: {accountID}, selected: 'setDefaultAccount'}])),
   _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
     dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
+  _onSetupInflation: (accountID: Types.AccountID) =>
+    dispatch(navigateAppend([{props: {accountID}, selected: 'setInflation'}])),
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
@@ -83,15 +71,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   onMobileOnlyModeChange: (enabled: boolean) =>
     dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
+  onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
   refresh: () => dispatchProps._refresh(),
 })
 
 export default compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
-  lifecycle({
-    componentDidMount() {
-      this.props.refresh()
-    },
-  }),
   safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)
