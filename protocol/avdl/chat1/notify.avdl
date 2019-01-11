@@ -99,7 +99,6 @@ protocol NotifyChat {
     array<ReactionUpdate> reactionUpdates;
   }
 
-
   record MessagesUpdated {
     ConversationID convID;
     array<UIMessage> updates;
