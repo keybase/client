@@ -27,7 +27,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/src-d/go-billy.v4"
+	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -50,6 +50,7 @@ type simpleFSError struct {
 }
 
 // Error implements the error interface for simpleFSError
+// TODO: remove this before merging
 func (e simpleFSError) Error() string { return e.reason }
 
 // ToStatus implements the keybase1.ToStatusAble interface for simpleFSError
