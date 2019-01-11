@@ -106,10 +106,6 @@ func (e *EKLib) backgroundKeygen() {
 	}
 }
 
-func (e *EKLib) metaContext(ctx context.Context) libkb.MetaContext {
-	return libkb.NewMetaContext(ctx, e.G())
-}
-
 func (e *EKLib) setClock(clock clockwork.Clock) {
 	e.clock = clock
 }
@@ -122,34 +118,19 @@ func (e *EKLib) setBackgroundDeleteTestCh(ch chan bool) {
 	e.backgroundDeletionTestCh = ch
 }
 
-func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
-	return libkb.NewMetaContext(ctx, e.G())
-}
-
-func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
-	m := e.NewMetaContext(ctx)
+func (e *EKLib) checkLogin(ctx context.Context) error {
 	if isOneshot, err := e.G().IsOneshot(ctx); err != nil {
-		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK unable to check IsOneshot %v", err)
+		e.G().Log.CDebugf(ctx, "EKLib#checkLogin unable to check IsOneshot %v", err)
 		return err
 	} else if isOneshot {
 		return fmt.Errorf("Aborting ephemeral key generation, using oneshot session!")
 	}
 
-	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
+	mctx := e.MetaContext(ctx)
+	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(mctx); err != nil {
 		return err
 	} else if !loggedIn {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
-	}
-
-	pukring, err := e.G().GetPerUserKeyring(ctx)
-	if err != nil {
-		return err
-	}
-	if err := pukring.Sync(m); err != nil {
-		return err
-	}
-	if !pukring.HasAnyKeys() {
-		return fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
 	}
 	return nil
 }
@@ -168,11 +149,11 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 		}
 	}()
 
-	if err = e.checkLoginAndPUK(ctx); err != nil {
+	if err = e.checkLogin(ctx); err != nil {
 		return err
 	}
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
 		merkleRootPtr = &libkb.MerkleRoot{}
@@ -229,7 +210,7 @@ func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context) (err error) {
 	e.Lock()
 	defer e.Unlock()
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting deviceEK deletion with nil root", err)
 		merkleRootPtr = &libkb.MerkleRoot{}
@@ -273,7 +254,7 @@ func (e *EKLib) NewDeviceEKNeeded(ctx context.Context) (needed bool, err error) 
 	e.Lock()
 	defer e.Unlock()
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return false, err
 	}
@@ -318,7 +299,7 @@ func (e *EKLib) NewUserEKNeeded(ctx context.Context) (needed bool, err error) {
 	e.Lock()
 	defer e.Unlock()
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return false, err
 	}
@@ -361,7 +342,7 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 	e.Lock()
 	defer e.Unlock()
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return false, err
 	}
@@ -456,7 +437,10 @@ func (e *EKLib) PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID ke
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	defer e.G().CTraceTimed(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
+	if err = e.checkLogin(ctx); err != nil {
+		return teamEK, err
+	}
+
 	err = teamEKRetryWrapper(ctx, e.G(), func() error {
 		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
 		return err
@@ -468,15 +452,6 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	defer e.G().CTraceTimed(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
 	e.Lock()
 	defer e.Unlock()
-
-	// This can be done with a nil merkleRoot for deviceEKs, otherwise the root
-	// will be updated when if we fetch it.
-	var merkleRoot libkb.MerkleRoot
-	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot) }()
-
-	if err = e.checkLoginAndPUK(ctx); err != nil {
-		return teamEK, err
-	}
 
 	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
 	// Check if we have a cached latest generation
@@ -493,12 +468,12 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		}
 	}
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return teamEK, err
 	}
-	merkleRoot = *merkleRootPtr
-	// always try to deleteExpired
+	merkleRoot := *merkleRootPtr
+	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot) }()
 	defer teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
 
 	// First publish new device or userEKs if we need to. We pass shouldCleanup
@@ -569,14 +544,27 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 	contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	defer e.G().CTraceTimed(ctx, "GetTeamEK", func() error { return err })()
 
-	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation, contentCtime)
+	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
+	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, generation, contentCtime)
 	if err != nil {
 		switch err.(type) {
 		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
-			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
-				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
-			}
+			// If we are unable to get the current max generation, try to kick
+			// off creation of a new key.
+			bgctx := libkb.CopyTagsToBackground(ctx)
+			go func(ctx context.Context) {
+				maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
+				if err != nil {
+					e.G().Log.CDebugf(ctx, "Unable to get MaxGeneration: %v", err)
+					return
+				}
+				if generation == maxGeneration {
+					if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
+						e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
+					}
+				}
+			}(bgctx)
 		}
 	}
 	return teamEK, err
@@ -594,7 +582,7 @@ func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
 func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
 	defer e.G().CTraceTimed(ctx, "SignedDeviceEKStatementFromSeed", func() error { return err })()
 
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return statement, signedStatement, err
 	}
@@ -654,7 +642,7 @@ func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, rec
 	} else if teamEKNeeded {
 		return nil, nil
 	}
-	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.metaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return nil, err
 	}
@@ -731,7 +719,7 @@ func (e *EKLib) ClearCaches() {
 	}
 }
 
-func (e *EKLib) OnLogout(m libkb.MetaContext) error {
+func (e *EKLib) OnLogout(mctx libkb.MetaContext) error {
 	e.ClearCaches()
 	return nil
 }

@@ -237,6 +237,10 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 	return s
 }
 
+func (s *RemoteInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+	return nil
+}
+
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, useLocalData bool, maxLocalize *int,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
@@ -397,6 +401,10 @@ func (s *HybridInboxSource) createInbox() *storage.Inbox {
 	return storage.NewInbox(s.G(), storage.FlushMode(storage.InboxFlushModeDelegate))
 }
 
+func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
+	return s.createInbox().Clear(ctx, uid)
+}
+
 func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	s.baseInboxSource.Start(ctx, uid)
 	s.Lock()
@@ -533,7 +541,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	// on this channel
 	localizeCb = make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified)+1)
 	localizer := s.createConversationLocalizer(ctx, localizerTyp, localizeCb)
-	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
+	s.Debug(ctx, "Read: using localizer: %s on %d convs", localizer.Name(), len(inbox.ConvsUnverified))
 
 	// Localize
 	inbox.Convs, err = localizer.Localize(ctx, uid, inbox, maxLocalize)
