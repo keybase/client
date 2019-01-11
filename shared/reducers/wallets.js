@@ -54,7 +54,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             action.payload.currency ||
             (state.lastSentXLM && 'XLM') ||
             (action.payload.from &&
-              state.currencyMap.get(action.payload.from, Constants.makeCurrency()).code) ||
+              state.accountMap.get(action.payload.from, Constants.unknownAccount).displayCurrency.code) ||
             'XLM',
           from: action.payload.from || Types.noAccountID,
           isRequest: !!action.payload.isRequest,

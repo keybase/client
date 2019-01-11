@@ -188,20 +188,6 @@ export type AssetDescription = I.RecordOf<_AssetDescription>
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
-export type _Request = {
-  amount: string, // The number alone
-  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
-  asset: Asset,
-  completed: boolean,
-  completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
-  currencyCode: string, // set if asset === 'currency'
-  id: StellarRPCTypes.KeybaseRequestID,
-  requestee: string, // username or assertion
-  requesteeType: string,
-  sender: string,
-  status: 'ok' | 'canceled',
-}
-
 export type Assets = I.RecordOf<_Assets>
 
 export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
