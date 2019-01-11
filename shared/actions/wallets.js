@@ -386,10 +386,13 @@ const setAccountAsDefault = (state, action) =>
   ).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state, action) =>
-  RPCStellarTypes.localGetPaymentDetailsLocalRpcPromise({
-    accountID: action.payload.accountID,
-    id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
-  }).then(res =>
+  RPCStellarTypes.localGetPaymentDetailsLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
+    },
+    Constants.getRequestDetailsWaitingKey(action.payload.paymentID)
+  ).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
       payment: Constants.rpcPaymentDetailToPaymentDetail(res),

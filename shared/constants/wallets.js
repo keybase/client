@@ -462,6 +462,8 @@ const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
   `wallets:cancelPayment:${Types.paymentIDToString(id)}`
 const validateAccountNameWaitingKey = 'wallets:validateAccountName'
 const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
+const getRequestDetailsWaitingKey = (id: Types.PaymentID) =>
+  `wallets:requestDetailsWaitingKey:${Types.paymentIDToString(id)}`
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -589,6 +591,7 @@ export {
   getPayment,
   getPayments,
   getOldestUnread,
+  getRequestDetailsWaitingKey,
   getSecretKey,
   getSelectedAccount,
   isAccountLoaded,
