@@ -191,10 +191,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true, 'keybaseUser'),
     onSearch: () => dispatchProps.onSearch(),
     onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false, 'keybaseUser'),
-    onSendOrRequestStellarAddress: (isRequest: boolean) => {
-      const maybeAddr = stateProps.trackerState.stellarFederationAddress
-      maybeAddr && dispatchProps._onSendOrRequestLumens(maybeAddr, isRequest, 'stellarPublicKey')
-    },
+    onSendOrRequestStellarAddress: (isRequest: boolean) =>
+      dispatchProps._onSendOrRequestLumens(username, isRequest, 'keybaseUser'),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,
