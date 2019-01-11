@@ -74,8 +74,7 @@ func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountI
 		}
 		for _, known := range destinations {
 			if dest.Eq(known.AccountID) {
-				obj := known // make a copy
-				res.KnownDestination = &obj
+				res.KnownDestination = &known
 				break
 			}
 		}
