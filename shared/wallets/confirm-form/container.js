@@ -68,7 +68,7 @@ export default connect<OwnProps, _, _, _, _>(
       // Not allowed to go anywhere while waiting for send
       onBack = () => {}
     } else if (stateProps.sendFailed) {
-      // Can't go back to send form if failed
+      // Close out of everything if failed
       onBack = dispatchProps.onAbandonPayment
     }
     return {
@@ -83,7 +83,6 @@ export default connect<OwnProps, _, _, _, _>(
       displayAmountFiat: stateProps.displayAmountFiat,
       displayAmountXLM: stateProps.displayAmountXLM,
       encryptedNote: stateProps.encryptedNote,
-      // Always close send form completely if send failed
       onBack,
       onClose: onBack,
       onSendClick: dispatchProps.onSendClick,
