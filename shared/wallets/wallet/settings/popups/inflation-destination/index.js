@@ -116,7 +116,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
               common choice.
             </Kb.Text>
           )}
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioContainer}>
             {this.props.options.map(o => (
               <Kb.Box2 key={o.name} direction="horizontal" fullWidth={true} gap="xtiny" style={styles.row}>
                 <Kb.RadioButton
@@ -130,6 +130,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                     color={Styles.globalColors.blue}
                     type="iconfont-open-browser"
                     onClick={() => openUrl(o.link)}
+                    fontSize={Styles.isMobile ? 16 : 12}
                   />
                 )}
               </Kb.Box2>
@@ -195,6 +196,10 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.medium,
     minHeight: 88,
     padding: Styles.globalMargins.tiny,
+  },
+  radioContainer: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   row: {
     alignItems: 'center',
