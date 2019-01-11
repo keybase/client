@@ -268,6 +268,10 @@ func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
 		return
 	}
 	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
+		// If the disk block cache directory can't be accessed due to
+		// permission errors (happens sometimes on iOS for some
+		// reason), we might need to rely on this in-memory map.
+		// TODO(KBFS-3750): make it an LRU cache.
 		brq.log.Warning("No disk block cache is initialized when not testing")
 	}
 	brq.log.CDebugf(nil, "Using a local cache for prefetch status")
