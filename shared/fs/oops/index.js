@@ -7,12 +7,12 @@ import * as Flow from '../../util/flow'
 import {withProps} from 'recompose'
 import {isMobile} from '../../constants/platform'
 
-export type What = 'no-access' | 'non-existent'
+export type Reason = 'no-access' | 'non-existent'
 
 type Props = {
   path: Types.Path,
   onCancel: () => void,
-  what: What,
+  reason: Reason,
 }
 
 const Explain = (props: Props) => {
@@ -104,23 +104,23 @@ const NonExistent = (props: Props) => (
 )
 
 const Oops = (props: Props) => {
-  switch (props.what) {
+  switch (props.reason) {
     case 'no-access':
       return <NoAccess {...props} />
     case 'non-existent':
       return <NonExistent {...props} />
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.what)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.reason)
       return null
   }
 }
 
 export default (isMobile
-  ? withProps<Props & {customCancelText: string}, Props>(({path, onCancel, what}) => ({
+  ? withProps<Props & {customCancelText: string}, Props>(({path, onCancel, reason}) => ({
       customCancelText: 'Close',
       onCancel,
       path,
-      what,
+      reason,
     }))(Kb.HeaderOrPopup(Oops))
   : Kb.HeaderOrPopup(Oops))
 
