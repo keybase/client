@@ -18,7 +18,6 @@ import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
-import {anyWaiting} from '../constants/waiting'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
@@ -210,19 +209,6 @@ const loadWalletDisclaimer = () =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
     WalletsGen.createWalletDisclaimerReceived({accepted})
   )
-
-const loadAccount = (state, action) => {
-  const {from: _accountID} = action.payload.build
-  const accountID = Types.stringToAccountID(_accountID)
-
-  // Don't load the account if we already have a call doing this
-  const waitingKey = Constants.loadAccountWaitingKey(accountID)
-  if (!Constants.isAccountLoaded(state, accountID) && !anyWaiting(state, waitingKey)) {
-    return RPCStellarTypes.localGetWalletAccountLocalRpcPromise({accountID: accountID}, waitingKey).then(
-      account => WalletsGen.createAccountsReceived({accounts: [Constants.accountResultToAccount(account)]})
-    )
-  }
-}
 
 const loadAccounts = (state, action) =>
   !actionHasError(action) &&
@@ -720,10 +706,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(WalletsGen.createNewAccount, createNewAccount)
-  yield* Saga.chainAction<WalletsGen.BuiltPaymentReceivedPayload>(
-    WalletsGen.builtPaymentReceived,
-    loadAccount
-  )
   yield* Saga.chainAction<
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
@@ -732,7 +714,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.DidSetAccountAsDefaultPayload
     | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload
-    | WalletsGen.OpenSendRequestFormPayload
   >(
     [
       WalletsGen.loadAccounts,
@@ -742,7 +723,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.didSetAccountAsDefault,
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
-      WalletsGen.openSendRequestForm,
     ],
     loadAccounts
   )
