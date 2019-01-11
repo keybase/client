@@ -896,6 +896,19 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 	return s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID)
 }
 
+func (s *Server) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (ret []stellar1.PredefinedInflationDestination, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetPredefinedInflationDestinations",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return ret, err
+	}
+	return stellar.GetPredefinedInflationDestinations(mctx)
+}
+
 func (s *Server) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "SetInflationDestinationLocal",

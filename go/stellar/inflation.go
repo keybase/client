@@ -1,6 +1,8 @@
 package stellar
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/stellarnet"
@@ -9,8 +11,30 @@ import (
 // https://pool.lumenaut.net/
 const lumenautPoolAccountID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")
 
+var predefinedInflationDestinations = [...]stellar1.PredefinedInflationDestination{
+	stellar1.PredefinedInflationDestination{
+		Tag:         stellar1.InflationDestinationTag("lumenaut"),
+		Name:        "Lumenaut",
+		Recommended: true,
+		AccountID:   stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"),
+		Url:         "https://pool.lumenaut.net/",
+	},
+	stellar1.PredefinedInflationDestination{
+		Tag:       stellar1.InflationDestinationTag("sdf"),
+		Name:      "Stellar Developer Foundation",
+		AccountID: stellar1.AccountID("GDWNY2POLGK65VVKIH5KQSH7VWLKRTQ5M6ADLJAYC2UEHEBEARCZJWWI"),
+		Url:       "https://www.stellar.org",
+	},
+}
+
+func GetPredefinedInflationDestinations(mctx libkb.MetaContext) (ret []stellar1.PredefinedInflationDestination, err error) {
+	return predefinedInflationDestinations[:], nil
+}
+
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
-	defer mctx.CTraceTimed("Stellar.SetInflationDestinationLocal", func() error { return err })()
+	defer mctx.CTraceTimed(
+		fmt.Sprintf("Stellar.SetInflationDestinationLocal(on=%s,to=%s)", arg.AccountID, arg.Destination),
+		func() error { return err })()
 
 	walletState := getGlobal(mctx.G()).walletState
 
@@ -25,22 +49,9 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 		return err
 	}
 
-	inflationType, err := arg.Destination.Typ()
+	destinationAddrStr, err := stellarnet.NewAddressStr(arg.Destination.String())
 	if err != nil {
 		return err
-	}
-
-	var destinationAddrStr stellarnet.AddressStr
-	switch inflationType {
-	case stellar1.InflationDestinationType_SELF:
-		destinationAddrStr = stellarnet.AddressStr(senderEntry.AccountID)
-	case stellar1.InflationDestinationType_LUMENAUT:
-		destinationAddrStr = stellarnet.AddressStr(lumenautPoolAccountID.String())
-	case stellar1.InflationDestinationType_ACCOUNTID:
-		destinationAddrStr, err = stellarnet.NewAddressStr(arg.Destination.Accountid().String())
-		if err != nil {
-			return err
-		}
 	}
 
 	sp := NewSeqnoProvider(mctx, walletState)
@@ -69,15 +80,21 @@ func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountI
 	if dest == nil {
 		// Inflation destination is not set on the account.
 		res.Destination = nil
-		res.Comment = ""
 		return res, nil
 	}
 
 	res.Destination = dest
 	if dest.Eq(accountID) {
-		res.Comment = "self"
-	} else if dest.Eq(lumenautPoolAccountID) {
-		res.Comment = "https://pool.lumenaut.net/"
+		res.Self = true
+	} else {
+		for _, known := range predefinedInflationDestinations {
+			if dest.Eq(known.AccountID) {
+				obj := known // make a copy
+				res.KnownDestination = &obj
+				break
+			}
+		}
 	}
+
 	return res, nil
 }

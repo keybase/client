@@ -65,8 +65,10 @@ func (c *cmdWalletGetInflation) Run() (err error) {
 		formatted = "(not set)"
 	}
 	var maybeComment string
-	if dest.Comment != "" {
-		maybeComment = fmt.Sprintf(" (%s)", dest.Comment)
+	if dest.Self {
+		maybeComment = " (self)"
+	} else if dest.KnownDestination != nil {
+		maybeComment = fmt.Sprintf(" (%s, %s)", dest.KnownDestination.Name, dest.KnownDestination.Url)
 	}
 	dui.Printf("Checking inflation destination for %s\n", accountID)
 	dui.Printf("Inflation destination: %s%s\n", formatted, maybeComment)

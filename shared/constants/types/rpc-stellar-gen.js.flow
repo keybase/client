@@ -245,12 +245,6 @@ export const localBalanceDelta = {
   decrease: 2,
 }
 
-export const localInflationDestinationType = {
-  self: 1,
-  accountid: 2,
-  lumenaut: 3,
-}
-
 export const localParticipantType = {
   none: 0,
   keybase: 1,
@@ -341,13 +335,8 @@ export type EncryptedBundle = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce,
 export type EncryptedNote = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, sender: NoteRecipient, recipient?: ?NoteRecipient}>
 export type EncryptedRelaySecret = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerTeamKeyGeneration}>
 export type Hash = Bytes
-export type InflationDestination = {typ: 1} | {typ: 2, accountid: ?AccountID} | {typ: 3}
-export type InflationDestinationResultLocal = $ReadOnly<{destination?: ?AccountID, comment: String}>
-export type InflationDestinationType =
-  | 1 // SELF_1
-  | 2 // ACCOUNTID_2
-  | 3 // LUMENAUT_3
-
+export type InflationDestinationResultLocal = $ReadOnly<{destination?: ?AccountID, knownDestination?: ?PredefinedInflationDestination, self: Boolean}>
+export type InflationDestinationTag = String
 export type KeybaseRequestID = String
 export type KeybaseTransactionID = String
 export type LookupResultCLILocal = $ReadOnly<{accountID: AccountID, username?: ?String}>
@@ -403,6 +392,7 @@ export type PaymentSummaryType =
 
 export type PaymentsPage = $ReadOnly<{payments?: ?Array<PaymentSummary>, cursor?: ?PageCursor, oldestUnread?: ?TransactionID}>
 export type PaymentsPageLocal = $ReadOnly<{payments?: ?Array<PaymentOrErrorLocal>, cursor?: ?PageCursor, oldestUnread?: ?PaymentID}>
+export type PredefinedInflationDestination = $ReadOnly<{tag: InflationDestinationTag, name: String, recommended: Boolean, accountID: AccountID, url: String}>
 export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String, autoClaimToken?: ?String}>
 export type RelayClaimResult = $ReadOnly<{claimStellarID: TransactionID}>
 export type RelayContents = $ReadOnly<{stellarID: TransactionID, sk: SecretKey, note: String}>
@@ -484,4 +474,4 @@ declare export function localStartBuildPaymentLocalRpcPromise(params: $PropertyT
 declare export function localStopBuildPaymentLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.stopBuildPaymentLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.stopBuildPaymentLocal'>, 'outParam'>>
 declare export function localValidateAccountNameLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.validateAccountNameLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.validateAccountNameLocal'>, 'outParam'>>
 declare export function localValidateSecretKeyLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.validateSecretKeyLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.validateSecretKeyLocal'>, 'outParam'>>
-// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.validateAccountIDLocal' 'stellar.1.local.getWalletAccountPublicKeyLocal' 'stellar.1.local.getRequestDetailsLocal' 'stellar.1.local.setInflationDestinationLocal' 'stellar.1.local.getInflationDestinationLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.local.makeRequestCLILocal' 'stellar.1.local.lookupCLILocal' 'stellar.1.notify.paymentNotification' 'stellar.1.notify.paymentStatusNotification' 'stellar.1.notify.requestStatusNotification' 'stellar.1.notify.accountDetailsUpdate' 'stellar.1.notify.pendingPaymentsUpdate' 'stellar.1.notify.recentPaymentsUpdate' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.pendingPayments' 'stellar.1.remote.markAsRead' 'stellar.1.remote.paymentDetails' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.submitRequest' 'stellar.1.remote.requestDetails' 'stellar.1.remote.cancelRequest' 'stellar.1.remote.setInflationDestination' 'stellar.1.remote.ping' 'stellar.1.ui.paymentReviewed'
+// Not enabled calls. To enable add to enabled-calls.json: 'stellar.1.local.validateAccountIDLocal' 'stellar.1.local.getWalletAccountPublicKeyLocal' 'stellar.1.local.getRequestDetailsLocal' 'stellar.1.local.getPredefinedInflationDestinationsLocal' 'stellar.1.local.setInflationDestinationLocal' 'stellar.1.local.getInflationDestinationLocal' 'stellar.1.local.balancesLocal' 'stellar.1.local.sendCLILocal' 'stellar.1.local.claimCLILocal' 'stellar.1.local.recentPaymentsCLILocal' 'stellar.1.local.paymentDetailCLILocal' 'stellar.1.local.walletInitLocal' 'stellar.1.local.walletDumpLocal' 'stellar.1.local.walletGetAccountsCLILocal' 'stellar.1.local.ownAccountLocal' 'stellar.1.local.importSecretKeyLocal' 'stellar.1.local.exportSecretKeyLocal' 'stellar.1.local.setDisplayCurrency' 'stellar.1.local.exchangeRateLocal' 'stellar.1.local.getAvailableLocalCurrencies' 'stellar.1.local.formatLocalCurrencyString' 'stellar.1.local.makeRequestCLILocal' 'stellar.1.local.lookupCLILocal' 'stellar.1.notify.paymentNotification' 'stellar.1.notify.paymentStatusNotification' 'stellar.1.notify.requestStatusNotification' 'stellar.1.notify.accountDetailsUpdate' 'stellar.1.notify.pendingPaymentsUpdate' 'stellar.1.notify.recentPaymentsUpdate' 'stellar.1.remote.balances' 'stellar.1.remote.details' 'stellar.1.remote.recentPayments' 'stellar.1.remote.pendingPayments' 'stellar.1.remote.markAsRead' 'stellar.1.remote.paymentDetails' 'stellar.1.remote.accountSeqno' 'stellar.1.remote.submitPayment' 'stellar.1.remote.submitRelayPayment' 'stellar.1.remote.submitRelayClaim' 'stellar.1.remote.acquireAutoClaimLock' 'stellar.1.remote.releaseAutoClaimLock' 'stellar.1.remote.nextAutoClaim' 'stellar.1.remote.isMasterKeyActive' 'stellar.1.remote.submitRequest' 'stellar.1.remote.requestDetails' 'stellar.1.remote.cancelRequest' 'stellar.1.remote.setInflationDestination' 'stellar.1.remote.ping' 'stellar.1.ui.paymentReviewed'
