@@ -342,14 +342,15 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 
 	cachedBlock, err := brq.config.BlockCache().Get(ptr)
 	if err == nil {
-		block.Set(cachedBlock)
 		if dbc == nil {
+			block.Set(cachedBlock)
 			return brq.getPrefetchStatus(ptr.ID), nil
 		}
 
 		prefetchStatus, err := dbc.GetPrefetchStatus(
 			ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 		if err == nil {
+			block.Set(cachedBlock)
 			return prefetchStatus, nil
 		}
 		// If the prefetch status wasn't in the preferred cache, do a
