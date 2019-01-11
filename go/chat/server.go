@@ -86,17 +86,29 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 	return h.uiSource.GetStreamUICli()
 }
 
+func (h *Server) shouldSquashError(err error) bool {
+	// these are not offline errors, but we never want the JS to receive them and potentially
+	// display a black bar
+	switch err.(type) {
+	case storage.AbortedError:
+		return true
+	}
+	switch err {
+	case errConvLockTabDeadlock, context.Canceled:
+		return true
+	}
+	return false
+}
+
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 	if err == nil {
 		return nil
 	}
-	switch err {
-	case errConvLockTabDeadlock, context.Canceled:
-		// these are not offline errors, but we never want the JS to receive them and potentiall
-		// display a black bar
+	if h.shouldSquashError(err) {
 		return nil
 	}
+
 	errKind := IsOfflineError(err)
 	h.Debug(ctx, "handleOfflineError: errType: %T", err)
 	if errKind != OfflineErrorKindOnline {
