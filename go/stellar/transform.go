@@ -246,10 +246,12 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 		loc.StatusDetail = p.TxErrMsg
 	} else {
-		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		if isSender {
+			loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 			loc.StatusDetail = fmt.Sprintf("%v can claim this when they set up their wallet.", toName)
 			loc.ShowCancel = true
+		} else {
+			loc.StatusSimplified = stellar1.PaymentStatus_PENDING
 		}
 	}
 	if p.Claim != nil {
