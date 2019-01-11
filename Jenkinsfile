@@ -466,8 +466,7 @@ def testGo(prefix, packagesToTest) {
           timeout: '30s',
         ],
         'github.com/keybase/client/go/kbfs/simplefs': [
-          // TODO: fix races and enable -race
-          flags: '',
+          flags: '-race',
           timeout: '2m',
         ],
         'github.com/keybase/client/go/kbfs/test': [
