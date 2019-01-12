@@ -364,8 +364,7 @@ const setInflationDestination = (_, action) => {
     .then(() => WalletsGen.createInflationDestinationReceived({selected: action.payload.destination}))
     .catch(error =>
       WalletsGen.createInflationDestinationReceived({
-        error: error.description || error.toString(),
-        selected: action.payload.destination,
+        error: error.message,
       })
     )
 }

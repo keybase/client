@@ -120,7 +120,7 @@
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
-      "selected": "string",
+      "selected?": "string",
       "options?": "Array<Types.InflationDestination>",
       "error?": "string"
     },

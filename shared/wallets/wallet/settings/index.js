@@ -155,7 +155,9 @@ class AccountSettings extends React.Component<SettingsProps> {
                 )}
               </Kb.Box2>
               {!!props.inflationDestination && (
-                <Kb.Text type="BodySemibold">{props.inflationDestination}</Kb.Text>
+                <Kb.Text type="BodySemibold" selectable={true}>
+                  {props.inflationDestination}
+                </Kb.Text>
               )}
               <Kb.Button
                 type="Secondary"
