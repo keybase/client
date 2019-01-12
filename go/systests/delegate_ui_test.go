@@ -115,6 +115,9 @@ func (d *delegateUI) FinishSocialProofCheck(_ context.Context, arg keybase1.Fini
 func (d *delegateUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
 	return d.checkStarted()
 }
+func (d *delegateUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
+	return d.checkStarted()
+}
 func (d *delegateUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return d.checkStarted()
 }

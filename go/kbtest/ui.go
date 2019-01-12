@@ -129,6 +129,10 @@ func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
 	return nil
 }
 
+func (ui *FakeIdentifyUI) DisplayStellarAccount(keybase1.StellarAccount) error {
+	return nil
+}
+
 func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
 	ui.Lock()
 	defer ui.Unlock()
