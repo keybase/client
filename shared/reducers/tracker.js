@@ -405,8 +405,7 @@ export default function(
       }
     }
     case TrackerGen.updateStellarAddress: {
-      const {federationAddress, accountID, sigID} = action.payload
-      console.log('::::::: Got TrackerGen.updateStellarAddress: ', federationAddress, accountID, sigID)
+      const {federationAddress} = action.payload
       return updateUserState(state, action.payload.username, s => ({
         ...s,
         stellarFederationAddress: federationAddress,

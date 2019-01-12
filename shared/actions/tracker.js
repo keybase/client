@@ -351,7 +351,6 @@ function _serverCallMap(
     ) => {
       response.result()
       addToIdleResponseQueue(() => {
-        console.log('::::: STELLAR', accountID, federationAddress, sigID, username)
         dispatch(TrackerGen.createUpdateStellarAddress({accountID, federationAddress, sigID, username}))
         dispatch(TrackerGen.createUpdateProofState({username}))
       })
