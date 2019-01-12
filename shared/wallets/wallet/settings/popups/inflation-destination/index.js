@@ -2,6 +2,7 @@
 import React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import * as Types from '../../../../../constants/types/wallets'
 import {WalletPopup} from '../../../../common'
 import openUrl from '../../../../../util/open-url'
 
@@ -10,7 +11,7 @@ export type Props = {|
   options: Array<{
     name: string,
     recommended: boolean,
-    address: string,
+    address: Types.AccountID,
     link: string,
   }>,
   onSubmit: string => void,

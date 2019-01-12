@@ -369,7 +369,7 @@ const loadInflationDestination = (_, action) => {
   ]).then(([dest, predefs]) => {
     const options = (predefs || []).map(p =>
       Constants.makeInflationDestination({
-        address: p.accountID,
+        address: Types.stringToAccountID(p.accountID),
         link: p.url,
         name: p.name,
         recommended: p.recommended,

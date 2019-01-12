@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
+import * as Types from '../../../../constants/types/wallets'
 import RemoveAccountPopup from './remove-account'
 import ReallyRemoveAccountPopup from './really-remove-account'
 import SetDefaultAccountPopup from './set-default'
@@ -29,18 +30,18 @@ const inflationProps = {
   onSubmit: Sb.action('onSubmit'),
   options: [
     {
-      address: 'L',
+      address: Types.stringToAccountID('L'),
       link: 'keybase.io/lumenaut',
       name: 'Lumenaut',
       recommended: true,
     },
     {
-      address: 'SDF',
+      address: Types.stringToAccountID('SDF'),
       link: 'keybase.io/sdf',
       name: 'The Stellar Development Foundation',
       recommended: false,
     },
-    {address: 'K', link: '', name: 'Keybase', recommended: false},
+    {address: Types.stringToAccountID('K'), link: '', name: 'Keybase', recommended: false},
   ],
 }
 
