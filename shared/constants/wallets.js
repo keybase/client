@@ -92,7 +92,6 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
-  currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
   lastSentXLM: false,
@@ -147,19 +146,11 @@ const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
     worthInfo: b.worthInfo,
   })
 
-const makeAccount: I.RecordFactory<Types._Account> = I.Record({
-  accountID: Types.noAccountID,
-  balanceDescription: '',
-  isDefault: false,
-  name: '',
-})
-
-const unknownAccount = makeAccount()
-
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
+    displayCurrency: currencyResultToCurrency(w.currencyLocal),
     isDefault: w.isDefault,
     name: w.name,
   })
@@ -191,15 +182,8 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     worth: w.worth,
   })
 
-const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
-  code: '',
-  description: '',
-  name: '',
-  symbol: '',
-})
-
-const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
-  makeCurrencies({
+const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
+  makeCurrency({
     code: w.code,
     description: w.description,
     name: w.name,
@@ -261,6 +245,16 @@ const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   name: '',
   symbol: '',
 })
+const unknownCurrency = makeCurrency()
+
+const makeAccount: I.RecordFactory<Types._Account> = I.Record({
+  accountID: Types.noAccountID,
+  balanceDescription: '',
+  displayCurrency: unknownCurrency,
+  isDefault: false,
+  name: '',
+})
+const unknownAccount = makeAccount()
 
 const partyToDescription = (type, username, assertion, name, id): string => {
   switch (type) {
@@ -473,9 +467,6 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
-const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.currencyMap.get(accountID, makeCurrency())
-
 const getPayments = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID, null)
 
@@ -485,8 +476,21 @@ const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
+const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
+  state.accountMap.get(accountID, unknownAccount)
 const getAccount = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID, unknownAccount)
+  getAccountInner(state.wallets, accountID)
+
+const getDisplayCurrencyInner = (state: Types.State, accountID: Types.AccountID) =>
+  getAccountInner(state, accountID).displayCurrency
+const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
+  getDisplayCurrencyInner(state.wallets, accountID)
+
+const getDefaultDisplayCurrencyInner = (state: Types.State) => {
+  const defaultAccount = state.accountMap.find(a => a.isDefault)
+  return defaultAccount ? defaultAccount.displayCurrency : unknownCurrency
+}
+const getDefaultDisplayCurrency = (state: TypedState) => getDefaultDisplayCurrencyInner(state.wallets)
 
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
@@ -518,6 +522,8 @@ const isPaymentUnread = (state: TypedState, accountID: Types.AccountID, paymentI
   const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
   return newPaymentsForAccount && newPaymentsForAccount.has(paymentID)
 }
+
+const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.size > 0
 
 const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {
@@ -568,7 +574,7 @@ export {
   buildPaymentWaitingKey,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
-  currenciesResultToCurrencies,
+  currencyResultToCurrency,
   changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
@@ -577,16 +583,21 @@ export {
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
+  displayCurrenciesLoaded,
   getAcceptedDisclaimer,
   getAccountIDs,
   getAccounts,
   getAccount,
+  getAccountInner,
   getAssets,
   getCurrencyAndSymbol,
   getDisplayCurrencies,
   getDisplayCurrency,
+  getDisplayCurrencyInner,
   getDisplayCurrencyWaitingKey,
   getDefaultAccountID,
+  getDefaultDisplayCurrency,
+  getDefaultDisplayCurrencyInner,
   getFederatedAddress,
   getPayment,
   getPayments,
@@ -604,11 +615,10 @@ export {
   makeAccount,
   makeAssetDescription,
   makeAssets,
-  makeCurrencies,
-  makeCurrency,
   makeBuilding,
   makeBuiltPayment,
   makeBuiltRequest,
+  makeCurrency,
   makePaymentResult,
   makePaymentDetail,
   makePayment,
