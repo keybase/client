@@ -16,6 +16,7 @@ const routeTree = () => {
     RemoveAccountPopup,
     ReallyRemoveAccountPopup,
     RenameAccountPopup,
+    InflationDestination,
   } = require('./wallet/settings/popups')
   const Wallet = require('./wallet/container').default
 
@@ -68,6 +69,11 @@ const routeTree = () => {
         setDefaultAccount: {
           children: {},
           component: SetDefaultAccountPopup,
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
+        },
+        setInflation: {
+          children: {},
+          component: InflationDestination,
           tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
       },

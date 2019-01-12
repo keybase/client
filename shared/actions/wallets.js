@@ -348,6 +348,50 @@ const loadDisplayCurrency = (state, action) => {
     })
   )
 }
+const setInflationDestination = (_, action) => {
+  const accountID = action.payload.accountID
+  if (!accountID || !Types.isValidAccountID(accountID)) {
+    return
+  }
+  return RPCStellarTypes.localSetInflationDestinationLocalRpcPromise(
+    {
+      accountID,
+      destination: action.payload.destination,
+    },
+
+    Constants.inflationDestinationWaitingKey
+  )
+    .then(() => WalletsGen.createInflationDestinationReceived({selected: action.payload.destination}))
+    .catch(error =>
+      WalletsGen.createInflationDestinationReceived({
+        error: error.message,
+      })
+    )
+}
+const loadInflationDestination = (_, action) => {
+  const accountID = action.payload.accountID
+  if (!accountID || !Types.isValidAccountID(accountID)) {
+    return
+  }
+  return Promise.all([
+    RPCStellarTypes.localGetInflationDestinationLocalRpcPromise({accountID}),
+    RPCStellarTypes.localGetPredefinedInflationDestinationsLocalRpcPromise(),
+  ]).then(([dest, predefs]) => {
+    const options = (predefs || []).map(p =>
+      Constants.makeInflationDestination({
+        address: Types.stringToAccountID(p.accountID),
+        link: p.url,
+        name: p.name,
+        recommended: p.recommended,
+      })
+    )
+
+    return WalletsGen.createInflationDestinationReceived({
+      options,
+      selected: (dest && dest.destination) || '',
+    })
+  })
+}
 
 const refreshAssets = (state, action) =>
   action.payload.accountID ? WalletsGen.createLoadAssets({accountID: action.payload.accountID}) : undefined
@@ -793,6 +837,14 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.LoadDisplayCurrencyPayload>(
     WalletsGen.loadDisplayCurrency,
     loadDisplayCurrency
+  )
+  yield* Saga.chainAction<WalletsGen.LoadInflationDestinationPayload>(
+    WalletsGen.loadInflationDestination,
+    loadInflationDestination
+  )
+  yield* Saga.chainAction<WalletsGen.SetInflationDestinationPayload>(
+    WalletsGen.setInflationDestination,
+    setInflationDestination
   )
   yield* Saga.chainAction<WalletsGen.DisplayCurrencyReceivedPayload>(
     WalletsGen.displayCurrencyReceived,

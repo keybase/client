@@ -81,7 +81,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       color: Styles.globalColors.white,
       textAlign: 'center',
-      wordBreak: 'break-all',
+      wordBreak: 'break-word',
     },
   }),
 })

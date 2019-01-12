@@ -32,7 +32,7 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 
 	destinationAddrStr, err := stellarnet.NewAddressStr(arg.Destination.String())
 	if err != nil {
-		return err
+		return fmt.Errorf("Malformed destination account ID: %s", err)
 	}
 
 	sp := NewSeqnoProvider(mctx, walletState)

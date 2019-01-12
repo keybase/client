@@ -221,6 +221,14 @@ export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
 
+export type _InflationDestination = {
+  name: string,
+  recommended: boolean,
+  address: AccountID,
+  link: string,
+}
+export type InflationDestination = I.RecordOf<_InflationDestination>
+
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
@@ -240,6 +248,9 @@ export type _State = {
   currencyMap: I.Map<AccountID, Currency>,
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
+  inflationDestinations: I.List<InflationDestination>,
+  inflationDestination: string,
+  inflationDestinationError: string,
   lastSentXLM: boolean,
   linkExistingAccountError: string,
   newPayments: I.Map<AccountID, I.Set<PaymentID>>,
