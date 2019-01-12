@@ -521,13 +521,13 @@ func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1
 }
 
 func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
-	msg := (BTC + " " + " " + l.Family + " " + ColorString(ui.G(), "green", l.Address))
+	msg := fmt.Sprintf("%s  %s %s", BTC, l.Family, ColorString(ui.G(), "green", l.Address))
 	ui.ReportHook(msg)
 	return nil
 }
 
 func (ui *BaseIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
-	msg := fmt.Sprintf("%s Stellar %s (%s)", BTC, ColorString(ui.G(), "green", l.AccountID), l.FederationAddress)
+	msg := fmt.Sprintf("%s  Stellar %s (%s)", XLM, ColorString(ui.G(), "green", l.AccountID), l.FederationAddress)
 	ui.ReportHook(msg)
 	return nil
 }
