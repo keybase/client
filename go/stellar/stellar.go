@@ -2033,7 +2033,7 @@ func WalletAccount(mctx libkb.MetaContext, remoter remote.Remoter, accountID ste
 
 func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
-	details, err := accountDetails(mctx, remoter, entry.AccountID)
+	details, err := AccountDetails(mctx, remoter, entry.AccountID)
 	if err != nil {
 		mctx.CDebugf("remote.Details failed for %q: %s", entry.AccountID, err)
 		return empty, err
@@ -2042,11 +2042,11 @@ func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1
 	return AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
 }
 
-// accountDetails gets stellar1.AccountDetails for accountID.
+// AccountDetails gets stellar1.AccountDetails for accountID.
 //
 // It has the side effect of updating the badge state with the
 // stellar payment unread count for accountID.
-func accountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+func AccountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
 	details, err := remoter.Details(mctx.Ctx(), accountID)
 	details.SetDefaultDisplayCurrency()
 	if err != nil {
