@@ -351,7 +351,7 @@ const changeDisplayCurrency = (state, action) =>
       currency: action.payload.code, // called currency, though it is a code
     },
     Constants.changeDisplayCurrencyWaitingKey
-  ).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
+  )
 
 const changeAccountName = (state, action) =>
   RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
@@ -717,7 +717,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
-    | WalletsGen.DidSetAccountAsDefaultPayload
     | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload
   >(
@@ -726,7 +725,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.refreshPayments,
-      WalletsGen.didSetAccountAsDefault,
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
     ],
