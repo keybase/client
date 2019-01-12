@@ -24,15 +24,15 @@ var ErrAccountNotFound = errors.New("account not found for user")
 type WalletState struct {
 	libkb.Contextified
 	remote.Remoter
-	secretlessBundle      *stellar1.Bundle
-	secretlessBundleCtime time.Time
-	accounts              map[stellar1.AccountID]*AccountState
-	rates                 map[string]rateEntry
-	refreshGroup          *singleflight.Group
-	refreshReqs           chan stellar1.AccountID
-	refreshCount          int
-	rateGroup             *singleflight.Group
-	shutdownOnce          sync.Once
+	// secretlessBundle      *stellar1.Bundle
+	// secretlessBundleCtime time.Time
+	accounts     map[stellar1.AccountID]*AccountState
+	rates        map[string]rateEntry
+	refreshGroup *singleflight.Group
+	refreshReqs  chan stellar1.AccountID
+	refreshCount int
+	rateGroup    *singleflight.Group
+	shutdownOnce sync.Once
 	sync.Mutex
 }
 
@@ -127,6 +127,7 @@ func (w *WalletState) Primed() bool {
 }
 
 // RefreshBundle refreshes the account bundle.
+/*
 func (w *WalletState) RefreshBundle(mctx libkb.MetaContext, reason string) error {
 	_, err := w.refreshGroup.Do("RefreshBundle", func() (interface{}, error) {
 		mctx.CDebugf("RefreshBundle [%s]", reason)
@@ -137,6 +138,7 @@ func (w *WalletState) RefreshBundle(mctx libkb.MetaContext, reason string) error
 	})
 	return err
 }
+*/
 
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
@@ -367,6 +369,7 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 
 // FetchSecretlessBundle will return a bundle of all the user's account information
 // (without any secrets).  Override of remote.FetchSecretlessBundle.
+/*
 func (w *WalletState) FetchSecretlessBundle(ctx context.Context) (*stellar1.Bundle, error) {
 	w.Lock()
 	defer w.Unlock()
@@ -388,6 +391,7 @@ func (w *WalletState) FetchSecretlessBundle(ctx context.Context) (*stellar1.Bund
 
 	return w.secretlessBundle, nil
 }
+*/
 
 // DumpToLog outputs a summary of WalletState to the debug log.
 func (w *WalletState) DumpToLog(mctx libkb.MetaContext) {
@@ -417,8 +421,8 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	}
 
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
-	w.secretlessBundle = nil
-	w.secretlessBundleCtime = time.Time{}
+	// w.secretlessBundle = nil
+	// w.secretlessBundleCtime = time.Time{}
 }
 
 // AccountState holds the current data for a stellar account.

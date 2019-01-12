@@ -127,7 +127,6 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	s.walletState.RefreshBundle(mctx, "ImportSecretKeyLocal")
 	s.walletState.RefreshAll(mctx, "ImportSecretKeyLocal")
 
 	return nil
