@@ -572,6 +572,12 @@ const setupEngineListeners = () => {
           account: Constants.accountResultToAccount(account),
         })
       ),
+    'stellar.1.notify.accountsUpdate': ({accounts}) =>
+      Saga.put(
+        WalletsGen.createAccountsReceived({
+          accounts: (accounts || []).map(account => Constants.accountResultToAccount(account)),
+        })
+      ),
     'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
       if (!_pending) {
         logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
