@@ -196,7 +196,7 @@ func (i *UIAdapter) DisplayCryptocurrency(cc keybase1.Cryptocurrency) error {
 }
 
 func (i *UIAdapter) DisplayStellarAccount(s keybase1.StellarAccount) error {
-	// TODO: Add stellar support to Identify3.
+	i.plumbStellarAccount(s)
 	return nil
 }
 
@@ -310,6 +310,15 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:   crypto.Type,
 		Value: crypto.Address,
+		State: keybase1.Identify3RowState_VALID,
+		Color: keybase1.Identify3RowColor_GREEN,
+	})
+}
+
+func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
+	i.updateRow(keybase1.Identify3UpdateRowArg{
+		Key:   "stellar",
+		Value: str.FederationAddress,
 		State: keybase1.Identify3RowState_VALID,
 		Color: keybase1.Identify3RowColor_GREEN,
 	})
