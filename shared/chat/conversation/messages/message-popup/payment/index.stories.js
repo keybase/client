@@ -19,6 +19,7 @@ const commonProps = {
   onSeeDetails: null,
   position: 'bottom left',
   senderDeviceName: 'iPhone 6',
+  status: 'completed',
   timestamp: 'Yesterday 8:11 PM',
   visible: true,
 }
@@ -139,6 +140,16 @@ const loadingProps = {
   txVerb: 'sent',
 }
 
+const completedProps = {
+  ...theyRequestProps,
+  status: 'completed',
+}
+
+const canceledProps = {
+  ...theyRequestProps,
+  status: 'canceled',
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup/Payments', module)
     .add('They request Lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
@@ -149,6 +160,8 @@ const load = () => {
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
     .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
+    .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
+    .add('Canceled request', () => <PaymentPopupMoved {...canceledProps} />)
     .add('Loading', () => <PaymentPopupMoved {...loadingProps} />)
 }
 

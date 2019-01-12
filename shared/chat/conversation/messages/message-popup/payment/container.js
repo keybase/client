@@ -49,6 +49,7 @@ const commonLoadingProps = {
   onSeeDetails: null,
   sender: '',
   senderDeviceName: '',
+  status: '',
   timestamp: '',
   topLine: '',
   txVerb: 'sent',
@@ -146,6 +147,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    status: '',
     style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${getTopLineUser(paymentInfo, ownProps.message.author, you)}${
@@ -209,6 +211,13 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     requestInfo.asset === 'currency' ? ' Lumens worth' : ''
   }`
 
+  let status = ''
+  if (requestInfo.canceled) {
+    status = 'canceled'
+  } else if (requestInfo.done) {
+    status = 'completed'
+  }
+
   return {
     amountNominal: requestInfo.amountDescription,
     approxWorth: '',
@@ -219,13 +228,17 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     cancelButtonLabel: 'Cancel request',
     icon: 'receiving',
     loading: false,
-    onCancel: ownProps.message.author === you && !requestInfo.done ? dispatchProps.onCancel : null,
+    onCancel:
+      ownProps.message.author === you && !(requestInfo.done || requestInfo.canceled)
+        ? dispatchProps.onCancel
+        : null,
     onClaimLumens: null,
     onHidden: ownProps.onHidden,
     onSeeDetails: null,
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    status,
     style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine,
