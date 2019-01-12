@@ -38,7 +38,7 @@ const testCurrencies = I.List([
     name: 'British Pount',
     symbol: '£',
   },
-]).map(c => Constants.currenciesResultToCurrencies(c))
+]).map(c => Constants.currencyResultToCurrency(c))
 
 const sharedSettingsProps = {
   accountID: Types.noAccountID,

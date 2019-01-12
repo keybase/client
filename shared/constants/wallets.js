@@ -99,7 +99,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
-  currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
   inflationDestination: '',
@@ -157,19 +156,11 @@ export const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLoca
     worthInfo: b.worthInfo,
   })
 
-export const makeAccount: I.RecordFactory<Types._Account> = I.Record({
-  accountID: Types.noAccountID,
-  balanceDescription: '',
-  isDefault: false,
-  name: '',
-})
-
-export const unknownAccount = makeAccount()
-
 export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
+    displayCurrency: currencyResultToCurrency(w.currencyLocal),
     isDefault: w.isDefault,
     name: w.name,
   })
@@ -201,15 +192,8 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     worth: w.worth,
   })
 
-export const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
-  code: '',
-  description: '',
-  name: '',
-  symbol: '',
-})
-
-export const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
-  makeCurrencies({
+export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
+  makeCurrency({
     code: w.code,
     description: w.description,
     name: w.name,
@@ -271,6 +255,16 @@ export const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   name: '',
   symbol: '',
 })
+export const unknownCurrency = makeCurrency()
+
+export const makeAccount: I.RecordFactory<Types._Account> = I.Record({
+  accountID: Types.noAccountID,
+  balanceDescription: '',
+  displayCurrency: unknownCurrency,
+  isDefault: false,
+  name: '',
+})
+export const unknownAccount = makeAccount()
 
 const partyToDescription = (type, username, assertion, name, id): string => {
   switch (type) {
@@ -487,9 +481,6 @@ export const getSelectedAccount = (state: TypedState) => state.wallets.selectedA
 
 export const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
-export const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.currencyMap.get(accountID, makeCurrency())
-
 export const getPayments = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID, null)
 
@@ -499,8 +490,21 @@ export const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =
 export const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
+export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
+  state.accountMap.get(accountID, unknownAccount)
 export const getAccount = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID, unknownAccount)
+  getAccountInner(state.wallets, accountID)
+
+export const getDisplayCurrencyInner = (state: Types.State, accountID: Types.AccountID) =>
+  getAccountInner(state, accountID).displayCurrency
+export const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
+  getDisplayCurrencyInner(state.wallets, accountID)
+
+export const getDefaultDisplayCurrencyInner = (state: Types.State) => {
+  const defaultAccount = state.accountMap.find(a => a.isDefault)
+  return defaultAccount ? defaultAccount.displayCurrency : unknownCurrency
+}
+export const getDefaultDisplayCurrency = (state: TypedState) => getDefaultDisplayCurrencyInner(state.wallets)
 
 export const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
@@ -536,6 +540,8 @@ export const isPaymentUnread = (
   const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
   return newPaymentsForAccount && newPaymentsForAccount.has(paymentID)
 }
+
+export const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.size > 0
 
 export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {

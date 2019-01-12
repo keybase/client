@@ -2,6 +2,8 @@ package stellargregor
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -37,6 +39,8 @@ func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, cat
 		return true, h.paymentNotification(mctx, cli, category, item)
 	case stellar1.PushRequestStatus:
 		return true, h.requestStatus(mctx, cli, category, item)
+	case stellar1.PushAccountChange:
+		return true, h.accountChange(mctx, cli, category, item)
 	default:
 		if strings.HasPrefix(category, "stellar.") {
 			return false, fmt.Errorf("unknown handler category: %q", category)
@@ -64,6 +68,47 @@ func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterfac
 	return nil
 }
 
+type accountChangeMsg struct {
+	AccountID string `json:"account_id"`
+	Reason    string `json:"reason"`
+}
+
+func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+	mctx.CDebugf("%v: %v received", h.Name(), category)
+
+	if item.Body() == nil {
+		return errors.New("stellar handler for account_change: nil message body")
+	}
+	var msgBody accountChangeMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msgBody); err != nil {
+		return err
+	}
+
+	if msgBody.AccountID != "" {
+		account, err := stellar.WalletAccount(mctx, h.walletState, stellar1.AccountID(msgBody.AccountID))
+		if err == nil {
+			h.G().NotifyRouter.HandleWalletAccountDetailsUpdate(mctx.Ctx(), stellar1.AccountID(msgBody.AccountID), account)
+		} else {
+			h.G().Log.CDebugf(mctx.Ctx(), "failed to HandleWalletAccountDetailsUpdate")
+		}
+	} else {
+		accounts, err := stellar.AllWalletAccounts(mctx, h.walletState)
+		if err == nil {
+			h.G().NotifyRouter.HandleWalletAccountsUpdate(mctx.Ctx(), accounts)
+		} else {
+			h.G().Log.CDebugf(mctx.Ctx(), "failed to HandleWalletAccountsUpdate")
+		}
+	}
+
+	// We will locally dismiss for now so that each client only plays them once:
+	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss account_change: %s", err)
+	}
+
+	return nil
+}
+
+// paymentStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
 
@@ -75,6 +120,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	return nil
 }
 
+// paymentNotification is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%s: %s received IBM, ignoring it", h.Name(), category)
 
@@ -86,6 +132,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	return nil
 }
 
+// requestStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
 

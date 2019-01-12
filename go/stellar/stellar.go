@@ -1983,3 +1983,77 @@ func RandomBuildPaymentID() (stellar1.BuildPaymentID, error) {
 	}
 	return stellar1.BuildPaymentID("bb" + hex.EncodeToString(randBytes)), nil
 }
+
+func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stellar1.WalletAccountLocal, error) {
+	bundle, err := remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var accts []stellar1.WalletAccountLocal
+	for _, entry := range bundle.Accounts {
+		acct, err := accountLocal(mctx, remoter, entry)
+		if err != nil {
+			return nil, err
+		}
+
+		accts = append(accts, acct)
+	}
+
+	// Put the primary account first, then sort by name, then by account ID
+	sort.SliceStable(accts, func(i, j int) bool {
+		if accts[i].IsDefault {
+			return true
+		}
+		if accts[j].IsDefault {
+			return false
+		}
+		if accts[i].Name == accts[j].Name {
+			return accts[i].AccountID < accts[j].AccountID
+		}
+		return accts[i].Name < accts[j].Name
+	})
+
+	return accts, nil
+}
+
+// WalletAccount returns stellar1.WalletAccountLocal for accountID.
+func WalletAccount(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.WalletAccountLocal, error) {
+	bundle, err := remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return stellar1.WalletAccountLocal{}, err
+	}
+	entry, err := bundle.Lookup(accountID)
+	if err != nil {
+		return stellar1.WalletAccountLocal{}, err
+	}
+
+	return accountLocal(mctx, remoter, entry)
+}
+
+func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
+	var empty stellar1.WalletAccountLocal
+	details, err := AccountDetails(mctx, remoter, entry.AccountID)
+	if err != nil {
+		mctx.CDebugf("remote.Details failed for %q: %s", entry.AccountID, err)
+		return empty, err
+	}
+
+	return AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
+}
+
+// AccountDetails gets stellar1.AccountDetails for accountID.
+//
+// It has the side effect of updating the badge state with the
+// stellar payment unread count for accountID.
+func AccountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	details, err := remoter.Details(mctx.Ctx(), accountID)
+	details.SetDefaultDisplayCurrency()
+	if err != nil {
+		return details, err
+	}
+
+	mctx.G().GetStellar().UpdateUnreadCount(mctx.Ctx(), accountID, details.UnreadPayments)
+
+	return details, nil
+}

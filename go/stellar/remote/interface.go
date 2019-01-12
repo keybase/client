@@ -19,10 +19,6 @@ type Remoter interface {
 	RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error)
 	PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error)
 	PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error)
-	// GetAccountDisplayCurrency is not used as a mock now - since this
-	// setting only lives in database table on the server, we can do full
-	// integration testing here. Otherwise, all what ChangeDisplayCurrency
-	// test would do is testing a mock.
 	GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error)
 	ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error)
 	SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error)
