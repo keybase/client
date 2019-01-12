@@ -83,6 +83,7 @@ type NotifyListener interface {
 	WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
 	WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal)
+	WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal)
 	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
 	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
 	TeamListUnverifiedChanged(teamName string)
@@ -177,6 +178,7 @@ func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
 func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
 }
+func (n *NoopNotifyListener) WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal) {}
 func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
@@ -1289,6 +1291,36 @@ func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, acc
 		n.listener.WalletAccountDetailsUpdate(accountID, account)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent wallet AccountDetailsUpdate")
+}
+
+func (n *NotifyRouter) HandleWalletAccountsUpdate(ctx context.Context, accounts []stellar1.WalletAccountLocal) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				/*
+					arg := stellar1.AccountDetailsUpdateArg{
+						AccountID: accountID,
+						Account:   account,
+					}
+					(stellar1.NotifyClient{
+						Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+					}).AccountDetailsUpdate(context.Background(), arg)
+				*/
+				// XXX fix this
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletAccountsUpdate(accounts)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet AccountsUpdate")
 }
 
 func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {

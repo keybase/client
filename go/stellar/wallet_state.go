@@ -372,10 +372,12 @@ func (w *WalletState) FetchSecretlessBundle(ctx context.Context) (*stellar1.Bund
 	defer w.Unlock()
 	if w.secretlessBundle != nil && time.Since(w.secretlessBundleCtime) < 24*time.Hour {
 		// use the cached version
+		w.G().Log.CDebugf(ctx, "using cached secretlessBundle")
 		return w.secretlessBundle, nil
 	}
 
 	// fetch a new bundle
+	w.G().Log.CDebugf(ctx, "fetching secretlessBundle from remote")
 	mctx := libkb.NewMetaContext(ctx, w.G())
 	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
