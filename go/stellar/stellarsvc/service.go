@@ -169,7 +169,7 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return isOwn, err
 	}
-	isOwn, _, err = stellar.OwnAccount(mctx, accountID, s.remoter)
+	isOwn, _, err = stellar.OwnAccount(mctx, accountID)
 	return isOwn, err
 }
 

@@ -250,8 +250,8 @@ func ExportSecretKey(mctx libkb.MetaContext, accountID stellar1.AccountID) (res 
 	return res, fmt.Errorf("account not found: %v", accountID)
 }
 
-func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID, remoter remote.Remoter) (own, isPrimary bool, err error) {
-	bundle, err := remoter.FetchSecretlessBundle(mctx.Ctx())
+func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
+	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return false, false, err
 	}
@@ -535,7 +535,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, _, err := OwnAccount(mctx, stellar1.AccountID(recipient.AccountID.String()), walletState)
+	ownRecipient, _, err := OwnAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		mctx.CDebugf("error determining if user own's recipient: %v", err)
 		return res, err

@@ -617,7 +617,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, _, err := stellar.OwnAccount(mctx, arg.From, s.remoter)
+	owns, _, err := stellar.OwnAccount(mctx, arg.From)
 	if err != nil {
 		return res, err
 	}

@@ -87,14 +87,14 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	if msgBody.AccountID != "" {
 		account, err := stellar.WalletAccount(mctx, h.walletState, stellar1.AccountID(msgBody.AccountID))
 		if err == nil {
-			h.G().NotifyRouter.HandleWalletAccountDetailsUpdate(mctx.Ctx(), stellar1.AccountID(msgBody.AccountID), account /*stellar1.WalletAccountLocal*/)
+			h.G().NotifyRouter.HandleWalletAccountDetailsUpdate(mctx.Ctx(), stellar1.AccountID(msgBody.AccountID), account)
 		} else {
 			h.G().Log.CDebugf(mctx.Ctx(), "failed to HandleWalletAccountDetailsUpdate")
 		}
 	} else {
 		accounts, err := stellar.AllWalletAccounts(mctx, h.walletState)
 		if err == nil {
-			h.G().NotifyRouter.HandleWalletAccountsUpdate(mctx.Ctx(), accounts /*stellar1.WalletAccountLocal*/)
+			h.G().NotifyRouter.HandleWalletAccountsUpdate(mctx.Ctx(), accounts)
 		} else {
 			h.G().Log.CDebugf(mctx.Ctx(), "failed to HandleWalletAccountsUpdate")
 		}
