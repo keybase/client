@@ -25,6 +25,7 @@ const reallyProps = {
 }
 
 const inflationProps = {
+  error: '',
   inflationDestination: '',
   onClose: Sb.action('onClose'),
   onSubmit: Sb.action('onSubmit'),

@@ -353,16 +353,15 @@ const setInflationDestination = (_, action) => {
   if (!accountID || !Types.isValidAccountID(accountID)) {
     return
   }
-  return RPCStellarTypes.localSetInflationDestinationLocalRpcPromise({
-    accountID,
-    destination: action.payload.destination,
-  })
-    .then(() =>
-      WalletsGen.createInflationDestinationReceived(
-        {selected: action.payload.destination},
-        Constants.inflationDestinationWaitingKey
-      )
-    )
+  return RPCStellarTypes.localSetInflationDestinationLocalRpcPromise(
+    {
+      accountID,
+      destination: action.payload.destination,
+    },
+
+    Constants.inflationDestinationWaitingKey
+  )
+    .then(() => WalletsGen.createInflationDestinationReceived({selected: action.payload.destination}))
     .catch(error =>
       WalletsGen.createInflationDestinationReceived({
         error: error.description || error.toString(),
