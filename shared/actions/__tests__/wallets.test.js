@@ -96,17 +96,10 @@ it('disclaimer', () => {
       expect(getState().wallets.acceptedDisclaimer).toEqual(true)
       expect(acceptRPC).toHaveBeenCalled()
       expect(checkRPC2).toHaveBeenCalled()
-
-      const getCurrencyRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrencyLocalRpcPromise')
-      const currencyLocal: RPCStellarTypes.CurrencyLocal = {
-        code: 'fake code',
-        description: 'fake description',
-        name: 'fake name',
-        symbol: 'fake symbol',
-      }
-      getCurrencyRPC.mockImplementation(() => Promise.resolve(currencyLocal))
       const getCurrenciesRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrenciesLocalRpcPromise')
       getCurrenciesRPC.mockImplementation(() => Promise.resolve(null))
+      const startPaymentRPC = jest.spyOn(RPCStellarTypes, 'localStartBuildPaymentLocalRpcPromise')
+      startPaymentRPC.mockImplementation(() => Promise.resolve('fake build ID'))
       const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
       buildRPC.mockImplementation(() => Promise.resolve(buildPaymentRes))
 
@@ -116,11 +109,11 @@ it('disclaimer', () => {
       expect(getRoute(getState)).toEqual(
         I.List([Tabs.walletsTab, 'wallet', Constants.sendRequestFormRouteKey])
       )
-      return Testing.flushPromises({buildRPC, getCurrenciesRPC, getCurrencyRPC})
+      return Testing.flushPromises({buildRPC, getCurrenciesRPC, startPaymentRPC})
     })
-    .then(({getCurrencyRPC, getCurrenciesRPC, buildRPC}) => {
-      expect(getCurrencyRPC).toHaveBeenCalled()
+    .then(({getCurrenciesRPC, buildRPC, startPaymentRPC}) => {
       expect(getCurrenciesRPC).toHaveBeenCalled()
+      expect(startPaymentRPC).toHaveBeenCalled()
       expect(buildRPC).toHaveBeenCalled()
     })
 })
