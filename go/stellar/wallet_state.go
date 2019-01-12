@@ -379,8 +379,6 @@ func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	}
 
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
-	// w.secretlessBundle = nil
-	// w.secretlessBundleCtime = time.Time{}
 }
 
 // AccountState holds the current data for a stellar account.
