@@ -104,6 +104,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   inflationDestination: '',
   inflationDestinations: I.List(),
+  inflationDestinationError: '',
   lastSentXLM: false,
   linkExistingAccountError: '',
   mobileOnlyMap: I.Map(),
@@ -476,6 +477,7 @@ export const validateAccountNameWaitingKey = 'wallets:validateAccountName'
 export const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
 export const getRequestDetailsWaitingKey = (id: Types.PaymentID) =>
   `wallets:requestDetailsWaitingKey:${Types.paymentIDToString(id)}`
+export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 

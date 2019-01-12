@@ -71,12 +71,19 @@ const load = () => {
       />
     ))
     .add('Inflation destination normal', () => <InflationDestination {...inflationProps} />)
+    .add('Inflation destination error', () => (
+      <InflationDestination
+        {...inflationProps}
+        error="something something something something something something something something something something something something went wrong"
+      />
+    ))
     .add('Inflation destination sdf', () => (
       <InflationDestination {...inflationProps} inflationDestination="SDF" />
     ))
     .add('Inflation destination no lumenaut', () => (
       <InflationDestination
         {...inflationProps}
+        inflationDestination="OTHERADDRESS"
         options={inflationProps.options.filter(o => o.name !== 'Lumenaut')}
       />
     ))

@@ -11,6 +11,7 @@ const mapStateToProps = (state, {routeProps}) => {
   return {
     _options: state.wallets.inflationDestinations,
     accountID,
+    error: state.wallets.inflationDestinationError,
     inflationDestination: state.wallets.inflationDestination,
   }
 }
@@ -23,6 +24,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  error: stateProps.error,
   inflationDestination: stateProps.inflationDestination,
   onClose: () => dispatchProps._onClose(),
   onSubmit: (address: string) => dispatchProps._onSubmit(stateProps.accountID, address),

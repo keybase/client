@@ -121,7 +121,8 @@
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
       "selected": "string",
-      "options?": "Array<Types.InflationDestination>"
+      "options?": "Array<Types.InflationDestination>",
+      "error?": "string"
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",

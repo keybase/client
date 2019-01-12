@@ -250,6 +250,7 @@ export type _State = {
   exportedSecretKeyAccountID: AccountID,
   inflationDestinations: I.List<InflationDestination>,
   inflationDestination: string,
+  inflationDestinationError: string,
   lastSentXLM: boolean,
   linkExistingAccountError: string,
   newPayments: I.Map<AccountID, I.Set<PaymentID>>,

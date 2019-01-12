@@ -3,10 +3,12 @@ import React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Types from '../../../../../constants/types/wallets'
+import * as Constants from '../../../../../constants/wallets'
 import {WalletPopup} from '../../../../common'
 import openUrl from '../../../../../util/open-url'
 
 export type Props = {|
+  error: string,
   inflationDestination: string,
   options: Array<{
     name: string,
@@ -28,12 +30,21 @@ class InflationDestinationPopup extends React.Component<Props, State> {
     super(props)
 
     let address = props.inflationDestination
+
+    // initialize input
+    let otherAddress = ''
+    const fromOptions = props.options.find(o => o.address === address)
+    if (!fromOptions) {
+      otherAddress = address
+    }
+
+    // choose first recommended
     if (!address) {
       const reco = props.options.find(o => o.recommended)
       address = reco?.address || ''
     }
 
-    this.state = {address, otherAddress: ''}
+    this.state = {address, otherAddress}
   }
 
   _submit = () => {
@@ -61,7 +72,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
       ),
       <Kb.WaitingButton
         fullWidth={Styles.isMobile}
-        waitingKey={''}
+        waitingKey={Constants.inflationDestinationWaitingKey}
         key="Save"
         label="Save"
         onClick={this._submit}
@@ -163,6 +174,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
+          {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
         </Kb.Box2>
       </WalletPopup>
     )
