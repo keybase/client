@@ -44,6 +44,7 @@ const sharedSettingsProps = {
   accountID: Types.noAccountID,
   currencies: testCurrencies,
   currencyWaiting: false,
+  inflationDestination: '',
   mobileOnlyMode: false,
   onBack: Sb.action('onBack'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
@@ -51,6 +52,7 @@ const sharedSettingsProps = {
   onEditName: Sb.action('onEditName'),
   onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
   onSetDefault: Sb.action('setDefault'),
+  onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
   user: 'testuser',
@@ -74,6 +76,9 @@ const secondarySettingsProps = {
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings', module)
     .add('Default', () => <Settings {...defaultSettingsProps} />)
+    .add('Default with inflation dest', () => (
+      <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
+    ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
   popups()
 }

@@ -19,7 +19,7 @@ const StyledRadio = styled.div(
   ({disabled, selected}) => ({
     '&:hover': {border: (selected || !disabled) && `solid 1px ${globalColors.blue}`},
     backgroundColor: selected ? globalColors.blue : 'inherit',
-    border: `solid 1px ${globalColors.black_10}`,
+    border: `solid 1px ${globalColors.black_20}`,
     opacity: disabled ? 0.4 : 1,
   })
 )

@@ -159,6 +159,7 @@ export const keybase1TeamsUiConfirmRootTeamDelete = 'engine-gen:keybase1TeamsUiC
 export const keybase1TeamsUiConfirmSubteamDelete = 'engine-gen:keybase1TeamsUiConfirmSubteamDelete'
 export const keybase1UiPromptYesNo = 'engine-gen:keybase1UiPromptYesNo'
 export const stellar1NotifyAccountDetailsUpdate = 'engine-gen:stellar1NotifyAccountDetailsUpdate'
+export const stellar1NotifyAccountsUpdate = 'engine-gen:stellar1NotifyAccountsUpdate'
 export const stellar1NotifyPaymentNotification = 'engine-gen:stellar1NotifyPaymentNotification'
 export const stellar1NotifyPaymentStatusNotification = 'engine-gen:stellar1NotifyPaymentStatusNotification'
 export const stellar1NotifyPendingPaymentsUpdate = 'engine-gen:stellar1NotifyPendingPaymentsUpdate'
@@ -314,6 +315,7 @@ type _Keybase1TeamsUiConfirmRootTeamDeletePayload = $ReadOnly<{|params: $Exact<$
 type _Keybase1TeamsUiConfirmSubteamDeletePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'>>|}>
 type _Keybase1UiPromptYesNoPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'>>|}>
 type _Stellar1NotifyAccountDetailsUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>>|}>
+type _Stellar1NotifyAccountsUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'>>|}>
 type _Stellar1NotifyPaymentNotificationPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>>|}>
 type _Stellar1NotifyPaymentStatusNotificationPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>>|}>
 type _Stellar1NotifyPendingPaymentsUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>>|}>
@@ -469,6 +471,7 @@ export const createKeybase1TeamsUiConfirmRootTeamDelete = (payload: _Keybase1Tea
 export const createKeybase1TeamsUiConfirmSubteamDelete = (payload: _Keybase1TeamsUiConfirmSubteamDeletePayload) => ({payload, type: keybase1TeamsUiConfirmSubteamDelete})
 export const createKeybase1UiPromptYesNo = (payload: _Keybase1UiPromptYesNoPayload) => ({payload, type: keybase1UiPromptYesNo})
 export const createStellar1NotifyAccountDetailsUpdate = (payload: _Stellar1NotifyAccountDetailsUpdatePayload) => ({payload, type: stellar1NotifyAccountDetailsUpdate})
+export const createStellar1NotifyAccountsUpdate = (payload: _Stellar1NotifyAccountsUpdatePayload) => ({payload, type: stellar1NotifyAccountsUpdate})
 export const createStellar1NotifyPaymentNotification = (payload: _Stellar1NotifyPaymentNotificationPayload) => ({payload, type: stellar1NotifyPaymentNotification})
 export const createStellar1NotifyPaymentStatusNotification = (payload: _Stellar1NotifyPaymentStatusNotificationPayload) => ({payload, type: stellar1NotifyPaymentStatusNotification})
 export const createStellar1NotifyPendingPaymentsUpdate = (payload: _Stellar1NotifyPendingPaymentsUpdatePayload) => ({payload, type: stellar1NotifyPendingPaymentsUpdate})
@@ -624,6 +627,7 @@ export type Keybase1TeamsUiConfirmRootTeamDeletePayload = {|+payload: _Keybase1T
 export type Keybase1TeamsUiConfirmSubteamDeletePayload = {|+payload: _Keybase1TeamsUiConfirmSubteamDeletePayload, +type: 'engine-gen:keybase1TeamsUiConfirmSubteamDelete'|}
 export type Keybase1UiPromptYesNoPayload = {|+payload: _Keybase1UiPromptYesNoPayload, +type: 'engine-gen:keybase1UiPromptYesNo'|}
 export type Stellar1NotifyAccountDetailsUpdatePayload = {|+payload: _Stellar1NotifyAccountDetailsUpdatePayload, +type: 'engine-gen:stellar1NotifyAccountDetailsUpdate'|}
+export type Stellar1NotifyAccountsUpdatePayload = {|+payload: _Stellar1NotifyAccountsUpdatePayload, +type: 'engine-gen:stellar1NotifyAccountsUpdate'|}
 export type Stellar1NotifyPaymentNotificationPayload = {|+payload: _Stellar1NotifyPaymentNotificationPayload, +type: 'engine-gen:stellar1NotifyPaymentNotification'|}
 export type Stellar1NotifyPaymentStatusNotificationPayload = {|+payload: _Stellar1NotifyPaymentStatusNotificationPayload, +type: 'engine-gen:stellar1NotifyPaymentStatusNotification'|}
 export type Stellar1NotifyPendingPaymentsUpdatePayload = {|+payload: _Stellar1NotifyPendingPaymentsUpdatePayload, +type: 'engine-gen:stellar1NotifyPendingPaymentsUpdate'|}
@@ -781,6 +785,7 @@ export type Actions =
   | Keybase1TeamsUiConfirmSubteamDeletePayload
   | Keybase1UiPromptYesNoPayload
   | Stellar1NotifyAccountDetailsUpdatePayload
+  | Stellar1NotifyAccountsUpdatePayload
   | Stellar1NotifyPaymentNotificationPayload
   | Stellar1NotifyPaymentStatusNotificationPayload
   | Stellar1NotifyPendingPaymentsUpdatePayload
