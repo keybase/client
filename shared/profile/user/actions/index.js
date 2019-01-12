@@ -9,28 +9,33 @@ import flags from '../../../util/feature-flags'
 
 type Props = {|
   followThem: boolean,
+  onAccept: () => void,
+  onAddToTeam: () => void,
+  onBrowsePublicFolder: () => void,
+  onChat: () => void,
   onEditProfile: ?() => void,
   onFollow: () => void,
-  onUnfollow: () => void,
-  onChat: () => void,
-  onReload: () => void,
   onIgnoreFor24Hours: () => void,
-  onAccept: () => void,
+  onOpenPrivateFolder: () => void,
+  onReload: () => void,
+  onRequestLumens: () => void,
+  onSendLumens: () => void,
+  onUnfollow: () => void,
   state: Types.DetailsState,
 |}
 
 const Actions = (p: Props) => {
   let buttons = []
 
-  const dropdown = null /* (
+  const dropdown = (
     <DropdownButton
-      onAddToTeam={onAddToTeam}
-      onOpenPrivateFolder={onOpenPrivateFolder}
-      onBrowsePublicFolder={onBrowsePublicFolder}
-      onSendLumens={onSendLumens}
-      onRequestLumens={onRequestLumens}
+      onAddToTeam={p.onAddToTeam}
+      onOpenPrivateFolder={p.onOpenPrivateFolder}
+      onBrowsePublicFolder={p.onBrowsePublicFolder}
+      onSendLumens={p.onSendLumens}
+      onRequestLumens={p.onRequestLumens}
     />
-  ) */
+  )
 
   const chatButton = (
     <Kb.WaitingButton
@@ -94,84 +99,66 @@ const Actions = (p: Props) => {
   )
 }
 
-// const makeDropdownButtonMenuItems = props => [
-// {onClick: props.onAddToTeam, title: 'Add to team...'},
-// ...(flags.walletsEnabled
-// ? [
-// {
-// onClick: props.onSendLumens,
-// title: 'Send Lumens (XLM)',
-// view: (
-// <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-// <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-// Send Lumens (XLM)
-// </Kb.Text>
-// <Kb.Meta
-// title="New"
-// size="Small"
-// backgroundColor={Styles.globalColors.blue}
-// style={styles.badge}
-// />
-// </Kb.Box2>
-// ),
-// },
-// {
-// onClick: props.onRequestLumens,
-// title: 'Request Lumens (XLM)',
-// view: (
-// <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-// <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-// Request Lumens (XLM)
-// </Kb.Text>
-// <Kb.Meta
-// title="New"
-// size="Small"
-// backgroundColor={Styles.globalColors.blue}
-// style={styles.badge}
-// />
-// </Kb.Box2>
-// ),
-// },
-// ]
-// : []),
-// ...(!Styles.isMobile
-// ? [
-// {onClick: props.onOpenPrivateFolder, title: 'Open private folder'},
-// {onClick: props.onBrowsePublicFolder, title: 'Browse public folder'},
-// ]
-// : []),
-// ...(props.onUnfollow
-// ? [{onClick: props.onUnfollow && props.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'}]
-// : []),
-// ]
+const DropdownButton = Kb.OverlayParentHOC(p => {
+  const Meta = () => <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} />
 
-// const _DropdownButton = props => (
-// <Kb.ClickableBox
-// onClick={props.toggleShowingMenu}
-// style={{backgroundColor: Styles.globalColors.white}}
-// ref={props.setAttachmentRef}
-// >
-// <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-// <Kb.Button onClick={null} type="Secondary" style={iconButton}>
-// <Kb.Icon
-// color={Styles.globalColors.black_75}
-// fontSize={Styles.isMobile ? 21 : 16}
-// style={ellipsisIcon}
-// type="iconfont-ellipsis"
-// />
-// </Kb.Button>
-// </Kb.Box2>
-// <Kb.FloatingMenu
-// closeOnSelect={true}
-// attachTo={props.getAttachmentRef}
-// containerStyle={styles.floatingMenu}
-// items={makeDropdownButtonMenuItems(props)}
-// onHidden={props.toggleShowingMenu}
-// position="bottom right"
-// visible={props.showingMenu}
-// />
-// </Kb.ClickableBox>
-// )
+  const sendLumens = flags.walletsEnabled && {
+    onClick: p.onSendLumens,
+    title: 'Send Lumens (XLM)',
+    view: (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="tiny">
+        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+          Send Lumens (XLM)
+        </Kb.Text>
+        <Meta />
+      </Kb.Box2>
+    ),
+  }
+  const requestLumens = flags.walletsEnabled && {
+    onClick: p.onRequestLumens,
+    title: 'Request Lumens (XLM)',
+    view: (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="tiny">
+        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+          Request Lumens (XLM)
+        </Kb.Text>
+        <Meta />
+      </Kb.Box2>
+    ),
+  }
+
+  const items = [
+    {onClick: p.onAddToTeam, title: 'Add to team...'},
+    sendLumens,
+    requestLumens,
+    !Styles.isMobile && {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
+    !Styles.isMobile && {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
+    p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'},
+  ].filter(Boolean)
+
+  return (
+    <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
+        <Kb.Button onClick={null} type="Secondary">
+          <Kb.Icon
+            color={Styles.globalColors.black_75}
+            fontSize={Styles.isMobile ? 21 : 16}
+            type="iconfont-ellipsis"
+          />
+        </Kb.Button>
+      </Kb.Box2>
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        attachTo={p.getAttachmentRef}
+        containerStyle={styles.floatingMenu}
+        items={items}
+        onHidden={p.toggleShowingMenu}
+        position="bottom right"
+        visible={p.showingMenu}
+      />
+    </Kb.ClickableBox>
+  )
+})
 
 const styles = Styles.styleSheetCreate({})
 
