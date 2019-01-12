@@ -23,6 +23,7 @@ type HeaderProps = {|
   loading: boolean,
   sender: string,
   senderDeviceName: string,
+  status: string,
   timestamp: string,
   topLine: string,
   txVerb: 'sent' | 'requested',
@@ -93,6 +94,11 @@ const Header = (props: HeaderProps) =>
         <Kb.Text type="BodySmall">using device {props.senderDeviceName}</Kb.Text>
         <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
+      {!!props.status && (
+        <Kb.Text type="BodySmall" style={styles.textAlignCenter}>
+          {toUpper(props.status)}
+        </Kb.Text>
+      )}
       {!!props.balanceChange && (
         <Kb.Text
           type="BodyExtrabold"
