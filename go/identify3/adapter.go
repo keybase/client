@@ -196,8 +196,7 @@ func (i *UIAdapter) DisplayCryptocurrency(cc keybase1.Cryptocurrency) error {
 }
 
 func (i *UIAdapter) DisplayStellarAccount(s keybase1.StellarAccount) error {
-	// TODO ADD STELLAR ACCOUNT TO IDENTIFY 3
-	//i.plumbCryptocurrency(cc)
+	// TODO: Add stellar support to Identify3.
 	return nil
 }
 
