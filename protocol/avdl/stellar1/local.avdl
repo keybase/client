@@ -454,21 +454,24 @@ protocol local {
 
   RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);
 
-  enum InflationDestinationType {
-    SELF_1,
-    ACCOUNTID_2,
-    LUMENAUT_3
+  @typedef("string") record InflationDestinationTag {}
+
+  record PredefinedInflationDestination {
+    InflationDestinationTag tag; // "sdf"
+    string name; // "Stellar Development Foundation"
+    boolean recommended; // false
+    AccountID accountID; // "GDWNY2POLGK65VVKIH5KQSH7VWLKRTQ5M6ADLJAYC2UEHEBEARCZJWWI"
+    string url; // "https://www.stellar.org"
   }
-  variant InflationDestination switch (InflationDestinationType typ) {
-    case SELF: void;
-    case ACCOUNTID: AccountID;
-    case LUMENAUT: void;
-  }
-  void setInflationDestinationLocal(int sessionID, AccountID accountID, InflationDestination destination);
+
+  array<PredefinedInflationDestination> getPredefinedInflationDestinationsLocal(int sessionID);
+
+  void setInflationDestinationLocal(int sessionID, AccountID accountID, AccountID destination);
 
   record InflationDestinationResultLocal {
-    union { null, AccountID } destination;
-    string comment;
+    union { null, AccountID } destination; // null if destination is not set
+    union { null, PredefinedInflationDestination } knownDestination; // set if one of the known destinations
+    boolean self; // true if destination ID is equal to account ID
   }
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 

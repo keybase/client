@@ -57,9 +57,8 @@ func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
 
 // blockRetrievalRequest represents one consumer's request for a block.
 type blockRetrievalRequest struct {
-	block          Block
-	prefetchStatus *PrefetchStatus
-	doneCh         chan error
+	block  Block
+	doneCh chan error
 }
 
 // blockRetrieval contains the metadata for a given block retrieval. May
@@ -342,14 +341,15 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 
 	cachedBlock, err := brq.config.BlockCache().Get(ptr)
 	if err == nil {
-		block.Set(cachedBlock)
 		if dbc == nil {
+			block.Set(cachedBlock)
 			return brq.getPrefetchStatus(ptr.ID), nil
 		}
 
 		prefetchStatus, err := dbc.GetPrefetchStatus(
 			ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 		if err == nil {
+			block.Set(cachedBlock)
 			return prefetchStatus, nil
 		}
 		// If the prefetch status wasn't in the preferred cache, do a
@@ -380,10 +380,9 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 }
 
 // request retrieves blocks asynchronously.
-func (brq *blockRetrievalQueue) request(
-	ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer,
-	block Block, ps *PrefetchStatus, lifetime BlockCacheLifetime,
-	action BlockRequestAction) <-chan error {
+func (brq *blockRetrievalQueue) request(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
 		ptr, action, priority)
 
@@ -413,9 +412,6 @@ func (brq *blockRetrievalQueue) request(
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
 				priority, lifetime, prefetchStatus, action)
-		}
-		if ps != nil {
-			*ps = prefetchStatus
 		}
 		ch <- nil
 		return ch
@@ -472,9 +468,8 @@ func (brq *blockRetrievalQueue) request(
 	br.reqMtx.Lock()
 	defer br.reqMtx.Unlock()
 	br.requests = append(br.requests, &blockRetrievalRequest{
-		block:          block,
-		prefetchStatus: ps,
-		doneCh:         ch,
+		block:  block,
+		doneCh: ch,
 	})
 	if lifetime > br.cacheLifetime {
 		br.cacheLifetime = lifetime
@@ -516,20 +511,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	if brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
-	return brq.request(ctx, priority, kmd, ptr, block, nil, lifetime, action)
-}
-
-// RequestWithPrefetchStatus implements the BlockRetriever interface
-// for blockRetrievalQueue.
-func (brq *blockRetrievalQueue) RequestWithPrefetchStatus(
-	ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer,
-	block Block, prefetchStatus *PrefetchStatus,
-	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if brq.config.IsSyncedTlf(kmd.TlfID()) {
-		action = action.AddSync()
-	}
-	return brq.request(
-		ctx, priority, kmd, ptr, block, prefetchStatus, lifetime, action)
+	return brq.request(ctx, priority, kmd, ptr, block, lifetime, action)
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
@@ -578,9 +560,6 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		if block != nil {
 			// Copy the decrypted block to the caller
 			req.block.Set(block)
-		}
-		if req.prefetchStatus != nil {
-			*req.prefetchStatus = NoPrefetch
 		}
 		// Since we created this channel with a buffer size of 1, this won't
 		// block.
